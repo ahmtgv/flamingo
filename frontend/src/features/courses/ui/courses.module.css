@@ -217,6 +217,7 @@
   gap: var(--space-3);
   padding: var(--space-3) 0;
   border-bottom: 1px solid var(--color-border);
+  flex-wrap: wrap;
 }
 .lessonRow:last-child {
   border-bottom: 0;

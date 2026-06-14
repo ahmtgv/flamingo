@@ -11,6 +11,7 @@ import {
 } from '@/features/auth';
 import { Cabinet } from '@/features/cabinet';
 import { CatalogScreen, CourseDetailScreen, CreateCourseScreen } from '@/features/courses';
+import { ScheduleScreen } from '@/features/schedule';
 import { useSession } from '@/shared/hooks/useSession';
 
 import styles from './app.module.css';
@@ -109,6 +110,14 @@ export function AppRouter() {
           element={
             <ProtectedRoute>
               <CourseDetailScreen />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/schedule"
+          element={
+            <ProtectedRoute>
+              <ScheduleScreen />
             </ProtectedRoute>
           }
         />

@@ -1,0 +1,48 @@
+# Scheduling operations. Fragment-free; LessonSession/Lesson type names match the SDL.
+# Note: the schema has no Lesson->course back-reference, so the schedule shows the
+# lesson title (course context can be added when the schema grows).
+
+query MySchedule($from: DateTime!, $to: DateTime!) {
+  mySchedule(from: $from, to: $to) {
+    id
+    startAt
+    endAt
+    status
+    lesson {
+      id
+      title
+    }
+  }
+}
+
+mutation ScheduleSession($input: ScheduleSessionInput!) {
+  scheduleSession(input: $input) {
+    id
+    startAt
+    status
+  }
+}
+
+mutation StartSession($sessionId: ID!) {
+  startSession(sessionId: $sessionId) {
+    id
+    status
+  }
+}
+
+mutation EndSession($sessionId: ID!) {
+  endSession(sessionId: $sessionId) {
+    id
+    status
+  }
+}
+
+mutation JoinSession($sessionId: ID!) {
+  joinSession(sessionId: $sessionId) {
+    roomToken
+    session {
+      id
+      status
+    }
+  }
+}

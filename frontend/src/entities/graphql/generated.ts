@@ -1521,6 +1521,42 @@ export type UnenrollMutationVariables = Exact<{
 
 export type UnenrollMutation = { __typename?: 'Mutation', unenroll: boolean };
 
+export type MyScheduleQueryVariables = Exact<{
+  from: Scalars['DateTime']['input'];
+  to: Scalars['DateTime']['input'];
+}>;
+
+
+export type MyScheduleQuery = { __typename?: 'Query', mySchedule: Array<{ __typename?: 'LessonSession', id: string, startAt: string, endAt?: string | null, status: SessionStatus, lesson: { __typename?: 'Lesson', id: string, title: string } }> };
+
+export type ScheduleSessionMutationVariables = Exact<{
+  input: ScheduleSessionInput;
+}>;
+
+
+export type ScheduleSessionMutation = { __typename?: 'Mutation', scheduleSession: { __typename?: 'LessonSession', id: string, startAt: string, status: SessionStatus } };
+
+export type StartSessionMutationVariables = Exact<{
+  sessionId: Scalars['ID']['input'];
+}>;
+
+
+export type StartSessionMutation = { __typename?: 'Mutation', startSession: { __typename?: 'LessonSession', id: string, status: SessionStatus } };
+
+export type EndSessionMutationVariables = Exact<{
+  sessionId: Scalars['ID']['input'];
+}>;
+
+
+export type EndSessionMutation = { __typename?: 'Mutation', endSession: { __typename?: 'LessonSession', id: string, status: SessionStatus } };
+
+export type JoinSessionMutationVariables = Exact<{
+  sessionId: Scalars['ID']['input'];
+}>;
+
+
+export type JoinSessionMutation = { __typename?: 'Mutation', joinSession: { __typename?: 'SessionJoin', roomToken: string, session: { __typename?: 'LessonSession', id: string, status: SessionStatus } } };
+
 
 export const LoginDocument = gql`
     mutation Login($email: String!, $password: String!) {
@@ -2263,3 +2299,194 @@ export function useUnenrollMutation(baseOptions?: Apollo.MutationHookOptions<Une
 export type UnenrollMutationHookResult = ReturnType<typeof useUnenrollMutation>;
 export type UnenrollMutationResult = Apollo.MutationResult<UnenrollMutation>;
 export type UnenrollMutationOptions = Apollo.BaseMutationOptions<UnenrollMutation, UnenrollMutationVariables>;
+export const MyScheduleDocument = gql`
+    query MySchedule($from: DateTime!, $to: DateTime!) {
+  mySchedule(from: $from, to: $to) {
+    id
+    startAt
+    endAt
+    status
+    lesson {
+      id
+      title
+    }
+  }
+}
+    `;
+
+/**
+ * __useMyScheduleQuery__
+ *
+ * To run a query within a React component, call `useMyScheduleQuery` and pass it any options that fit your needs.
+ * When your component renders, `useMyScheduleQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useMyScheduleQuery({
+ *   variables: {
+ *      from: // value for 'from'
+ *      to: // value for 'to'
+ *   },
+ * });
+ */
+export function useMyScheduleQuery(baseOptions: Apollo.QueryHookOptions<MyScheduleQuery, MyScheduleQueryVariables> & ({ variables: MyScheduleQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<MyScheduleQuery, MyScheduleQueryVariables>(MyScheduleDocument, options);
+      }
+export function useMyScheduleLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<MyScheduleQuery, MyScheduleQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<MyScheduleQuery, MyScheduleQueryVariables>(MyScheduleDocument, options);
+        }
+// @ts-ignore
+export function useMyScheduleSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<MyScheduleQuery, MyScheduleQueryVariables>): Apollo.UseSuspenseQueryResult<MyScheduleQuery, MyScheduleQueryVariables>;
+export function useMyScheduleSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<MyScheduleQuery, MyScheduleQueryVariables>): Apollo.UseSuspenseQueryResult<MyScheduleQuery | undefined, MyScheduleQueryVariables>;
+export function useMyScheduleSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<MyScheduleQuery, MyScheduleQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<MyScheduleQuery, MyScheduleQueryVariables>(MyScheduleDocument, options);
+        }
+export type MyScheduleQueryHookResult = ReturnType<typeof useMyScheduleQuery>;
+export type MyScheduleLazyQueryHookResult = ReturnType<typeof useMyScheduleLazyQuery>;
+export type MyScheduleSuspenseQueryHookResult = ReturnType<typeof useMyScheduleSuspenseQuery>;
+export type MyScheduleQueryResult = Apollo.QueryResult<MyScheduleQuery, MyScheduleQueryVariables>;
+export const ScheduleSessionDocument = gql`
+    mutation ScheduleSession($input: ScheduleSessionInput!) {
+  scheduleSession(input: $input) {
+    id
+    startAt
+    status
+  }
+}
+    `;
+export type ScheduleSessionMutationFn = Apollo.MutationFunction<ScheduleSessionMutation, ScheduleSessionMutationVariables>;
+
+/**
+ * __useScheduleSessionMutation__
+ *
+ * To run a mutation, you first call `useScheduleSessionMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useScheduleSessionMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [scheduleSessionMutation, { data, loading, error }] = useScheduleSessionMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useScheduleSessionMutation(baseOptions?: Apollo.MutationHookOptions<ScheduleSessionMutation, ScheduleSessionMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<ScheduleSessionMutation, ScheduleSessionMutationVariables>(ScheduleSessionDocument, options);
+      }
+export type ScheduleSessionMutationHookResult = ReturnType<typeof useScheduleSessionMutation>;
+export type ScheduleSessionMutationResult = Apollo.MutationResult<ScheduleSessionMutation>;
+export type ScheduleSessionMutationOptions = Apollo.BaseMutationOptions<ScheduleSessionMutation, ScheduleSessionMutationVariables>;
+export const StartSessionDocument = gql`
+    mutation StartSession($sessionId: ID!) {
+  startSession(sessionId: $sessionId) {
+    id
+    status
+  }
+}
+    `;
+export type StartSessionMutationFn = Apollo.MutationFunction<StartSessionMutation, StartSessionMutationVariables>;
+
+/**
+ * __useStartSessionMutation__
+ *
+ * To run a mutation, you first call `useStartSessionMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useStartSessionMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [startSessionMutation, { data, loading, error }] = useStartSessionMutation({
+ *   variables: {
+ *      sessionId: // value for 'sessionId'
+ *   },
+ * });
+ */
+export function useStartSessionMutation(baseOptions?: Apollo.MutationHookOptions<StartSessionMutation, StartSessionMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<StartSessionMutation, StartSessionMutationVariables>(StartSessionDocument, options);
+      }
+export type StartSessionMutationHookResult = ReturnType<typeof useStartSessionMutation>;
+export type StartSessionMutationResult = Apollo.MutationResult<StartSessionMutation>;
+export type StartSessionMutationOptions = Apollo.BaseMutationOptions<StartSessionMutation, StartSessionMutationVariables>;
+export const EndSessionDocument = gql`
+    mutation EndSession($sessionId: ID!) {
+  endSession(sessionId: $sessionId) {
+    id
+    status
+  }
+}
+    `;
+export type EndSessionMutationFn = Apollo.MutationFunction<EndSessionMutation, EndSessionMutationVariables>;
+
+/**
+ * __useEndSessionMutation__
+ *
+ * To run a mutation, you first call `useEndSessionMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useEndSessionMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [endSessionMutation, { data, loading, error }] = useEndSessionMutation({
+ *   variables: {
+ *      sessionId: // value for 'sessionId'
+ *   },
+ * });
+ */
+export function useEndSessionMutation(baseOptions?: Apollo.MutationHookOptions<EndSessionMutation, EndSessionMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<EndSessionMutation, EndSessionMutationVariables>(EndSessionDocument, options);
+      }
+export type EndSessionMutationHookResult = ReturnType<typeof useEndSessionMutation>;
+export type EndSessionMutationResult = Apollo.MutationResult<EndSessionMutation>;
+export type EndSessionMutationOptions = Apollo.BaseMutationOptions<EndSessionMutation, EndSessionMutationVariables>;
+export const JoinSessionDocument = gql`
+    mutation JoinSession($sessionId: ID!) {
+  joinSession(sessionId: $sessionId) {
+    roomToken
+    session {
+      id
+      status
+    }
+  }
+}
+    `;
+export type JoinSessionMutationFn = Apollo.MutationFunction<JoinSessionMutation, JoinSessionMutationVariables>;
+
+/**
+ * __useJoinSessionMutation__
+ *
+ * To run a mutation, you first call `useJoinSessionMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useJoinSessionMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [joinSessionMutation, { data, loading, error }] = useJoinSessionMutation({
+ *   variables: {
+ *      sessionId: // value for 'sessionId'
+ *   },
+ * });
+ */
+export function useJoinSessionMutation(baseOptions?: Apollo.MutationHookOptions<JoinSessionMutation, JoinSessionMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<JoinSessionMutation, JoinSessionMutationVariables>(JoinSessionDocument, options);
+      }
+export type JoinSessionMutationHookResult = ReturnType<typeof useJoinSessionMutation>;
+export type JoinSessionMutationResult = Apollo.MutationResult<JoinSessionMutation>;
+export type JoinSessionMutationOptions = Apollo.BaseMutationOptions<JoinSessionMutation, JoinSessionMutationVariables>;

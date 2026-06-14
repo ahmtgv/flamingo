@@ -27,7 +27,7 @@ export function TeacherCabinet({ me }: { me: Me }) {
   const nav: CabinetNavItem[] = [
     { key: 'dashboard', label: t('nav.dashboard'), icon: LayoutDashboard, active: true },
     { key: 'courses', label: t('nav.courses'), icon: BookOpen, to: '/courses' },
-    { key: 'lessons', label: t('nav.lessons'), icon: Video },
+    { key: 'lessons', label: t('nav.lessons'), icon: Video, to: '/schedule' },
     { key: 'grading', label: t('nav.grading'), icon: FileText },
     { key: 'analytics', label: t('nav.analytics'), icon: BarChart3 },
   ];

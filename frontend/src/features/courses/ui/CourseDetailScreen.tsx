@@ -1,4 +1,13 @@
-import { ArrowLeft, BookOpen, Check, GraduationCap, Plus, ShieldCheck, Users } from 'lucide-react';
+import {
+  ArrowLeft,
+  BookOpen,
+  CalendarPlus,
+  Check,
+  GraduationCap,
+  Plus,
+  ShieldCheck,
+  Users,
+} from 'lucide-react';
 import { type FormEvent, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Navigate, useNavigate, useParams } from 'react-router-dom';
@@ -11,6 +20,7 @@ import {
   useMeQuery,
   usePublishCourseMutation,
   usePublishLessonMutation,
+  useScheduleSessionMutation,
   useUnenrollMutation,
 } from '@/entities/graphql/generated';
 import { Badge, Button, Input, TextField } from '@/shared/ui';
@@ -129,6 +139,7 @@ export function CourseDetailScreen() {
                             {t('manage.publishLesson')}
                           </Button>
                         )}
+                        {isOwner && <ScheduleSessionForm lessonId={lesson.id} />}
                       </div>
                     ))}
                     {isOwner && <AddLessonForm sectionId={section.id} onDone={reload} />}
@@ -245,6 +256,58 @@ function AddLessonForm({ sectionId, onDone }: { sectionId: string; onDone: () =>
       </div>
       <Button type="submit" variant="ghost" icon={<Plus size={16} />} loading={loading}>
         {t('manage.addLesson')}
+      </Button>
+    </form>
+  );
+}
+
+function ScheduleSessionForm({ lessonId }: { lessonId: string }) {
+  const { t } = useTranslation('schedule');
+  const [open, setOpen] = useState(false);
+  const [when, setWhen] = useState('');
+  const [done, setDone] = useState(false);
+  const [scheduleSession, { loading }] = useScheduleSessionMutation();
+
+  async function submit(e: FormEvent) {
+    e.preventDefault();
+    if (!when) return;
+    await scheduleSession({
+      variables: { input: { lessonId, startAt: new Date(when).toISOString() } },
+    });
+    setDone(true);
+  }
+
+  if (done) {
+    return (
+      <span className={styles.lessonMeta}>
+        <Check size={14} /> {t('status.SCHEDULED')}
+      </span>
+    );
+  }
+  if (!open) {
+    return (
+      <Button
+        variant="ghost"
+        size="sm"
+        icon={<CalendarPlus size={15} />}
+        onClick={() => setOpen(true)}
+      >
+        {t('lessonForm.schedule')}
+      </Button>
+    );
+  }
+  return (
+    <form className={styles.inlineForm} onSubmit={submit}>
+      <div>
+        <Input
+          type="datetime-local"
+          value={when}
+          onChange={(e) => setWhen(e.target.value)}
+          aria-label={t('lessonForm.schedule')}
+        />
+      </div>
+      <Button type="submit" variant="secondary" size="sm" loading={loading}>
+        {t('lessonForm.submit')}
       </Button>
     </form>
   );
