@@ -10,3 +10,5 @@ channels-redis>=4.2
 uvicorn[standard]>=0.30
 pytest>=8.0
 pytest-django>=4.8
+ruff>=0.6
+black>=24.0
