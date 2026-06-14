@@ -1,0 +1,130 @@
+# Auth domain operations.
+#
+# NOTE: deliberately fragment-free and selecting only fields the live backend
+# implements, so these validate against docs/flamingo_schema.graphql (codegen)
+# AND run against the real Strawberry API, despite the SDL<->live type-name drift
+# (User vs UserType, ID vs UUID, DateTime vs Date). Inputs are passed as
+# whole-object variables so scalar-name drift never appears in the document.
+
+mutation Login($email: String!, $password: String!) {
+  login(email: $email, password: $password) {
+    token
+    refreshToken
+    user {
+      id
+      email
+      firstName
+      lastName
+      role
+      locale
+      studentProfile {
+        ageBand
+        gradeLevel
+        points
+      }
+      teacherProfile {
+        verificationStatus
+      }
+    }
+  }
+}
+
+mutation RegisterUser($input: RegisterUserInput!) {
+  registerUser(input: $input) {
+    token
+    refreshToken
+    user {
+      id
+      email
+      firstName
+      lastName
+      role
+      locale
+      studentProfile {
+        ageBand
+        gradeLevel
+        points
+      }
+      teacherProfile {
+        verificationStatus
+      }
+    }
+  }
+}
+
+mutation RefreshToken($refreshToken: String!) {
+  refreshToken(refreshToken: $refreshToken) {
+    token
+    refreshToken
+    user {
+      id
+      email
+      firstName
+      lastName
+      role
+      locale
+      studentProfile {
+        ageBand
+        gradeLevel
+        points
+      }
+      teacherProfile {
+        verificationStatus
+      }
+    }
+  }
+}
+
+mutation RequestPasswordReset($email: String!) {
+  requestPasswordReset(email: $email)
+}
+
+mutation ResetPassword($token: String!, $newPassword: String!) {
+  resetPassword(token: $token, newPassword: $newPassword)
+}
+
+# Parent adds/links a child (consumed by the parent cabinet — wired here so the
+# typed hook is ready). Carries 152-FZ consent at creation.
+mutation AddChild($input: AddChildInput!) {
+  addChild(input: $input) {
+    id
+    status
+    consent152fz
+    consentAt
+    child {
+      id
+      firstName
+      lastName
+    }
+  }
+}
+
+# Teacher submits a diploma for moderation (consumed by the teacher cabinet once
+# the files module exists; the hook is generated now).
+mutation SubmitVerificationDocument($fileKey: String!) {
+  submitVerificationDocument(fileKey: $fileKey) {
+    id
+    status
+    fileUrl
+    createdAt
+  }
+}
+
+query Me {
+  me {
+    id
+    email
+    firstName
+    lastName
+    role
+    locale
+    studentProfile {
+      ageBand
+      gradeLevel
+      points
+    }
+    teacherProfile {
+      verificationStatus
+    }
+  }
+}
