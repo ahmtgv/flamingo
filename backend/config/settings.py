@@ -14,6 +14,7 @@ INSTALLED_APPS = [
     "django.contrib.contenttypes",
     "strawberry_django",
     "apps.accounts",
+    "apps.courses",
 ]
 
 # JWT bearer auth only (no cookies/sessions) -> no Session/CSRF/Auth middleware.
