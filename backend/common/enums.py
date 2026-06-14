@@ -116,6 +116,17 @@ class EnrollmentStatus(Enum):
 
 
 @strawberry.enum
+class AccessStatus(Enum):
+    """Payment-gating seam for an enrollment (distinct from the lifecycle
+    ``EnrollmentStatus``). Default ``ACTIVE`` keeps everything open/free until a
+    monetization model is chosen; ``PENDING_PAYMENT`` is reserved for the future
+    ``billing`` app. See ``courses/access.py``."""
+
+    ACTIVE = "active"
+    PENDING_PAYMENT = "pending_payment"
+
+
+@strawberry.enum
 class HomeworkType(Enum):
     FILE = "file"
     TEXT = "text"

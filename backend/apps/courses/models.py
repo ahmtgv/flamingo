@@ -3,6 +3,7 @@
 from django.db import models
 
 from common.enums import (
+    AccessStatus,
     CourseLevel,
     CourseStatus,
     EnrollmentStatus,
@@ -30,6 +31,11 @@ class Course(SoftDeleteModel):
         max_length=12, choices=choices(CourseStatus), default=CourseStatus.DRAFT.value
     )
     cover_key = models.CharField(max_length=512, blank=True, default="")
+    # Payment-readiness seam (see courses/access.py + CLAUDE.md "Future: Payments").
+    # price is in integer minor units (kopecks); null = free. currency is ISO-4217;
+    # null when free. No pricing/gating logic exists yet — these are integration points.
+    price = models.PositiveIntegerField(null=True, blank=True)
+    currency = models.CharField(max_length=3, null=True, blank=True)
     # institution / group FKs are added with the institutions module.
 
     def __str__(self) -> str:
@@ -88,6 +94,10 @@ class Enrollment(BaseModel):
     course = models.ForeignKey(Course, related_name="enrollments", on_delete=models.CASCADE)
     status = models.CharField(
         max_length=12, choices=choices(EnrollmentStatus), default=EnrollmentStatus.ACTIVE.value
+    )
+    # Payment-gating seam (see courses/access.py). Default ACTIVE = open/free.
+    access_status = models.CharField(
+        max_length=16, choices=choices(AccessStatus), default=AccessStatus.ACTIVE.value
     )
     progress_pct = models.PositiveIntegerField(default=0)
     # Per-lesson view tracking backing progress_pct (MVP; keeps markLessonViewed idempotent).
