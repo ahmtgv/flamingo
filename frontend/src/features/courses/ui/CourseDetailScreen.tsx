@@ -3,9 +3,12 @@ import {
   BookOpen,
   CalendarPlus,
   Check,
+  FileText,
   GraduationCap,
+  Link2,
   Plus,
   ShieldCheck,
+  Trash2,
   Users,
 } from 'lucide-react';
 import { type FormEvent, useState } from 'react';
@@ -13,9 +16,14 @@ import { useTranslation } from 'react-i18next';
 import { Navigate, useNavigate, useParams } from 'react-router-dom';
 
 import {
+  type MaterialType,
+  useAddMaterialMutation,
   useCourseDetailQuery,
   useCreateLessonMutation,
   useCreateSectionMutation,
+  useDeleteLessonMutation,
+  useDeleteMaterialMutation,
+  useDeleteSectionMutation,
   useEnrollMutation,
   useMeQuery,
   usePublishCourseMutation,
@@ -23,7 +31,7 @@ import {
   useScheduleSessionMutation,
   useUnenrollMutation,
 } from '@/entities/graphql/generated';
-import { Badge, Button, Input, TextField } from '@/shared/ui';
+import { Badge, Button, Input, Select, TextField } from '@/shared/ui';
 
 import { CoursesLayout } from './CoursesLayout';
 import styles from './courses.module.css';
@@ -39,6 +47,9 @@ export function CourseDetailScreen() {
   const [unenroll, { loading: unenrolling }] = useUnenrollMutation();
   const [publishCourse, { loading: publishingCourse }] = usePublishCourseMutation();
   const [publishLesson] = usePublishLessonMutation();
+  const [deleteSection] = useDeleteSectionMutation();
+  const [deleteLesson] = useDeleteLessonMutation();
+  const [deleteMaterial] = useDeleteMaterialMutation();
 
   if (!id) return <Navigate to="/courses" replace />;
 
@@ -117,29 +128,97 @@ export function CourseDetailScreen() {
                   : section.lessons.filter((l) => l.status === 'PUBLISHED');
                 return (
                   <div className={styles.section} key={section.id}>
-                    <div className={styles.sectionTitle}>{section.title}</div>
+                    <div className={styles.sectionHead}>
+                      <div className={styles.sectionTitle}>{section.title}</div>
+                      {isOwner && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          icon={<Trash2 size={15} />}
+                          onClick={async () => {
+                            await deleteSection({ variables: { id: section.id } });
+                            await reload();
+                          }}
+                        >
+                          {t('manage.deleteSection')}
+                        </Button>
+                      )}
+                    </div>
                     {lessons.map((lesson) => (
-                      <div className={styles.lessonRow} key={lesson.id}>
-                        <BookOpen size={16} />
-                        <span className={styles.lessonName}>{lesson.title}</span>
-                        {lesson.durationMin > 0 && (
-                          <span className={styles.lessonMeta}>
-                            {t('detail.min', { n: lesson.durationMin })}
-                          </span>
+                      <div key={lesson.id}>
+                        <div className={styles.lessonRow}>
+                          <BookOpen size={16} />
+                          <span className={styles.lessonName}>{lesson.title}</span>
+                          {lesson.durationMin > 0 && (
+                            <span className={styles.lessonMeta}>
+                              {t('detail.min', { n: lesson.durationMin })}
+                            </span>
+                          )}
+                          {isOwner && lesson.status === 'DRAFT' && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={async () => {
+                                await publishLesson({ variables: { id: lesson.id } });
+                                await reload();
+                              }}
+                            >
+                              {t('manage.publishLesson')}
+                            </Button>
+                          )}
+                          {isOwner && <ScheduleSessionForm lessonId={lesson.id} />}
+                          {isOwner && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              icon={<Trash2 size={15} />}
+                              onClick={async () => {
+                                await deleteLesson({ variables: { id: lesson.id } });
+                                await reload();
+                              }}
+                            >
+                              {t('manage.deleteLesson')}
+                            </Button>
+                          )}
+                        </div>
+                        {lesson.materials.length > 0 && (
+                          <ul className={styles.materials}>
+                            {lesson.materials.map((m) => (
+                              <li className={styles.material} key={m.id}>
+                                {m.type === 'LINK' ? <Link2 size={14} /> : <FileText size={14} />}
+                                {m.type === 'LINK' && m.url ? (
+                                  <a
+                                    className={styles.materialLink}
+                                    href={m.url}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                  >
+                                    {m.title}
+                                  </a>
+                                ) : (
+                                  <span>{m.title}</span>
+                                )}
+                                {m.type === 'TEXT' && m.body ? (
+                                  <span className={styles.materialBody}>— {m.body}</span>
+                                ) : null}
+                                {isOwner && (
+                                  <button
+                                    type="button"
+                                    className={styles.materialDelete}
+                                    aria-label={t('manage.deleteMaterial')}
+                                    onClick={async () => {
+                                      await deleteMaterial({ variables: { id: m.id } });
+                                      await reload();
+                                    }}
+                                  >
+                                    <Trash2 size={13} />
+                                  </button>
+                                )}
+                              </li>
+                            ))}
+                          </ul>
                         )}
-                        {isOwner && lesson.status === 'DRAFT' && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={async () => {
-                              await publishLesson({ variables: { id: lesson.id } });
-                              await reload();
-                            }}
-                          >
-                            {t('manage.publishLesson')}
-                          </Button>
-                        )}
-                        {isOwner && <ScheduleSessionForm lessonId={lesson.id} />}
+                        {isOwner && <MaterialForm lessonId={lesson.id} onDone={reload} />}
                       </div>
                     ))}
                     {isOwner && <AddLessonForm sectionId={section.id} onDone={reload} />}
@@ -308,6 +387,76 @@ function ScheduleSessionForm({ lessonId }: { lessonId: string }) {
       </div>
       <Button type="submit" variant="secondary" size="sm" loading={loading}>
         {t('lessonForm.submit')}
+      </Button>
+    </form>
+  );
+}
+
+function MaterialForm({ lessonId, onDone }: { lessonId: string; onDone: () => void }) {
+  const { t } = useTranslation('courses');
+  const [open, setOpen] = useState(false);
+  const [type, setType] = useState<MaterialType>('LINK');
+  const [title, setTitle] = useState('');
+  const [value, setValue] = useState('');
+  const [addMaterial, { loading }] = useAddMaterialMutation();
+
+  async function submit(e: FormEvent) {
+    e.preventDefault();
+    if (!title.trim()) return;
+    await addMaterial({
+      variables: {
+        input: {
+          lessonId,
+          type,
+          title,
+          url: type === 'LINK' ? value : null,
+          body: type === 'TEXT' ? value : null,
+        },
+      },
+    });
+    setTitle('');
+    setValue('');
+    setOpen(false);
+    onDone();
+  }
+
+  if (!open) {
+    return (
+      <Button variant="ghost" size="sm" icon={<Plus size={14} />} onClick={() => setOpen(true)}>
+        {t('manage.addMaterial')}
+      </Button>
+    );
+  }
+  return (
+    <form className={styles.inlineForm} onSubmit={submit}>
+      <div>
+        <Select
+          value={type}
+          onChange={(e) => setType(e.target.value as MaterialType)}
+          aria-label={t('manage.materialType')}
+        >
+          <option value="LINK">{t('manage.materialLink')}</option>
+          <option value="TEXT">{t('manage.materialText')}</option>
+        </Select>
+      </div>
+      <div>
+        <Input
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          placeholder={t('manage.materialTitle')}
+          aria-label={t('manage.materialTitle')}
+        />
+      </div>
+      <div>
+        <Input
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          placeholder={type === 'LINK' ? t('manage.materialUrl') : t('manage.materialBody')}
+          aria-label={type === 'LINK' ? t('manage.materialUrl') : t('manage.materialBody')}
+        />
+      </div>
+      <Button type="submit" variant="secondary" size="sm" loading={loading}>
+        {t('manage.add')}
       </Button>
     </form>
   );

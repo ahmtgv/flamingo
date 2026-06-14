@@ -1469,7 +1469,7 @@ export type CourseDetailQueryVariables = Exact<{
 }>;
 
 
-export type CourseDetailQuery = { __typename?: 'Query', course?: { __typename?: 'Course', id: string, title: string, description?: string | null, subject: string, level: CourseLevel, status: CourseStatus, lessonCount: number, enrollmentCount: number, owner: { __typename?: 'TeacherProfile', specialty?: string | null, user: { __typename?: 'User', id: string, firstName: string, lastName: string } }, sections: Array<{ __typename?: 'Section', id: string, title: string, description?: string | null, order: number, lessons: Array<{ __typename?: 'Lesson', id: string, title: string, durationMin: number, status: LessonStatus, order: number }> }>, viewerEnrollment?: { __typename?: 'Enrollment', id: string, status: EnrollmentStatus, progressPct: number } | null } | null };
+export type CourseDetailQuery = { __typename?: 'Query', course?: { __typename?: 'Course', id: string, title: string, description?: string | null, subject: string, level: CourseLevel, status: CourseStatus, lessonCount: number, enrollmentCount: number, owner: { __typename?: 'TeacherProfile', specialty?: string | null, user: { __typename?: 'User', id: string, firstName: string, lastName: string } }, sections: Array<{ __typename?: 'Section', id: string, title: string, description?: string | null, order: number, lessons: Array<{ __typename?: 'Lesson', id: string, title: string, durationMin: number, status: LessonStatus, order: number, materials: Array<{ __typename?: 'Material', id: string, type: MaterialType, title: string, url?: string | null, body?: string | null, order: number }> }> }>, viewerEnrollment?: { __typename?: 'Enrollment', id: string, status: EnrollmentStatus, progressPct: number } | null } | null };
 
 export type MyCoursesQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -1526,6 +1526,58 @@ export type UnenrollMutationVariables = Exact<{
 
 
 export type UnenrollMutation = { __typename?: 'Mutation', unenroll: boolean };
+
+export type UpdateCourseMutationVariables = Exact<{
+  id: Scalars['ID']['input'];
+  input: CourseInput;
+}>;
+
+
+export type UpdateCourseMutation = { __typename?: 'Mutation', updateCourse: { __typename?: 'Course', id: string, title: string } };
+
+export type DeleteSectionMutationVariables = Exact<{
+  id: Scalars['ID']['input'];
+}>;
+
+
+export type DeleteSectionMutation = { __typename?: 'Mutation', deleteSection: boolean };
+
+export type DeleteLessonMutationVariables = Exact<{
+  id: Scalars['ID']['input'];
+}>;
+
+
+export type DeleteLessonMutation = { __typename?: 'Mutation', deleteLesson: boolean };
+
+export type ReorderSectionsMutationVariables = Exact<{
+  courseId: Scalars['ID']['input'];
+  orderedIds: Array<Scalars['ID']['input']> | Scalars['ID']['input'];
+}>;
+
+
+export type ReorderSectionsMutation = { __typename?: 'Mutation', reorderSections: Array<{ __typename?: 'Section', id: string, order: number }> };
+
+export type ReorderLessonsMutationVariables = Exact<{
+  sectionId: Scalars['ID']['input'];
+  orderedIds: Array<Scalars['ID']['input']> | Scalars['ID']['input'];
+}>;
+
+
+export type ReorderLessonsMutation = { __typename?: 'Mutation', reorderLessons: Array<{ __typename?: 'Lesson', id: string, order: number }> };
+
+export type AddMaterialMutationVariables = Exact<{
+  input: MaterialInput;
+}>;
+
+
+export type AddMaterialMutation = { __typename?: 'Mutation', addMaterial: { __typename?: 'Material', id: string, type: MaterialType, title: string } };
+
+export type DeleteMaterialMutationVariables = Exact<{
+  id: Scalars['ID']['input'];
+}>;
+
+
+export type DeleteMaterialMutation = { __typename?: 'Mutation', deleteMaterial: boolean };
 
 export type MyScheduleQueryVariables = Exact<{
   from: Scalars['DateTime']['input'];
@@ -2019,6 +2071,14 @@ export const CourseDetailDocument = gql`
         durationMin
         status
         order
+        materials {
+          id
+          type
+          title
+          url
+          body
+          order
+        }
       }
     }
     viewerEnrollment {
@@ -2353,6 +2413,239 @@ export function useUnenrollMutation(baseOptions?: Apollo.MutationHookOptions<Une
 export type UnenrollMutationHookResult = ReturnType<typeof useUnenrollMutation>;
 export type UnenrollMutationResult = Apollo.MutationResult<UnenrollMutation>;
 export type UnenrollMutationOptions = Apollo.BaseMutationOptions<UnenrollMutation, UnenrollMutationVariables>;
+export const UpdateCourseDocument = gql`
+    mutation UpdateCourse($id: ID!, $input: CourseInput!) {
+  updateCourse(id: $id, input: $input) {
+    id
+    title
+  }
+}
+    `;
+export type UpdateCourseMutationFn = Apollo.MutationFunction<UpdateCourseMutation, UpdateCourseMutationVariables>;
+
+/**
+ * __useUpdateCourseMutation__
+ *
+ * To run a mutation, you first call `useUpdateCourseMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateCourseMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateCourseMutation, { data, loading, error }] = useUpdateCourseMutation({
+ *   variables: {
+ *      id: // value for 'id'
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useUpdateCourseMutation(baseOptions?: Apollo.MutationHookOptions<UpdateCourseMutation, UpdateCourseMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UpdateCourseMutation, UpdateCourseMutationVariables>(UpdateCourseDocument, options);
+      }
+export type UpdateCourseMutationHookResult = ReturnType<typeof useUpdateCourseMutation>;
+export type UpdateCourseMutationResult = Apollo.MutationResult<UpdateCourseMutation>;
+export type UpdateCourseMutationOptions = Apollo.BaseMutationOptions<UpdateCourseMutation, UpdateCourseMutationVariables>;
+export const DeleteSectionDocument = gql`
+    mutation DeleteSection($id: ID!) {
+  deleteSection(id: $id)
+}
+    `;
+export type DeleteSectionMutationFn = Apollo.MutationFunction<DeleteSectionMutation, DeleteSectionMutationVariables>;
+
+/**
+ * __useDeleteSectionMutation__
+ *
+ * To run a mutation, you first call `useDeleteSectionMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDeleteSectionMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [deleteSectionMutation, { data, loading, error }] = useDeleteSectionMutation({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useDeleteSectionMutation(baseOptions?: Apollo.MutationHookOptions<DeleteSectionMutation, DeleteSectionMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<DeleteSectionMutation, DeleteSectionMutationVariables>(DeleteSectionDocument, options);
+      }
+export type DeleteSectionMutationHookResult = ReturnType<typeof useDeleteSectionMutation>;
+export type DeleteSectionMutationResult = Apollo.MutationResult<DeleteSectionMutation>;
+export type DeleteSectionMutationOptions = Apollo.BaseMutationOptions<DeleteSectionMutation, DeleteSectionMutationVariables>;
+export const DeleteLessonDocument = gql`
+    mutation DeleteLesson($id: ID!) {
+  deleteLesson(id: $id)
+}
+    `;
+export type DeleteLessonMutationFn = Apollo.MutationFunction<DeleteLessonMutation, DeleteLessonMutationVariables>;
+
+/**
+ * __useDeleteLessonMutation__
+ *
+ * To run a mutation, you first call `useDeleteLessonMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDeleteLessonMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [deleteLessonMutation, { data, loading, error }] = useDeleteLessonMutation({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useDeleteLessonMutation(baseOptions?: Apollo.MutationHookOptions<DeleteLessonMutation, DeleteLessonMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<DeleteLessonMutation, DeleteLessonMutationVariables>(DeleteLessonDocument, options);
+      }
+export type DeleteLessonMutationHookResult = ReturnType<typeof useDeleteLessonMutation>;
+export type DeleteLessonMutationResult = Apollo.MutationResult<DeleteLessonMutation>;
+export type DeleteLessonMutationOptions = Apollo.BaseMutationOptions<DeleteLessonMutation, DeleteLessonMutationVariables>;
+export const ReorderSectionsDocument = gql`
+    mutation ReorderSections($courseId: ID!, $orderedIds: [ID!]!) {
+  reorderSections(courseId: $courseId, orderedIds: $orderedIds) {
+    id
+    order
+  }
+}
+    `;
+export type ReorderSectionsMutationFn = Apollo.MutationFunction<ReorderSectionsMutation, ReorderSectionsMutationVariables>;
+
+/**
+ * __useReorderSectionsMutation__
+ *
+ * To run a mutation, you first call `useReorderSectionsMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useReorderSectionsMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [reorderSectionsMutation, { data, loading, error }] = useReorderSectionsMutation({
+ *   variables: {
+ *      courseId: // value for 'courseId'
+ *      orderedIds: // value for 'orderedIds'
+ *   },
+ * });
+ */
+export function useReorderSectionsMutation(baseOptions?: Apollo.MutationHookOptions<ReorderSectionsMutation, ReorderSectionsMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<ReorderSectionsMutation, ReorderSectionsMutationVariables>(ReorderSectionsDocument, options);
+      }
+export type ReorderSectionsMutationHookResult = ReturnType<typeof useReorderSectionsMutation>;
+export type ReorderSectionsMutationResult = Apollo.MutationResult<ReorderSectionsMutation>;
+export type ReorderSectionsMutationOptions = Apollo.BaseMutationOptions<ReorderSectionsMutation, ReorderSectionsMutationVariables>;
+export const ReorderLessonsDocument = gql`
+    mutation ReorderLessons($sectionId: ID!, $orderedIds: [ID!]!) {
+  reorderLessons(sectionId: $sectionId, orderedIds: $orderedIds) {
+    id
+    order
+  }
+}
+    `;
+export type ReorderLessonsMutationFn = Apollo.MutationFunction<ReorderLessonsMutation, ReorderLessonsMutationVariables>;
+
+/**
+ * __useReorderLessonsMutation__
+ *
+ * To run a mutation, you first call `useReorderLessonsMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useReorderLessonsMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [reorderLessonsMutation, { data, loading, error }] = useReorderLessonsMutation({
+ *   variables: {
+ *      sectionId: // value for 'sectionId'
+ *      orderedIds: // value for 'orderedIds'
+ *   },
+ * });
+ */
+export function useReorderLessonsMutation(baseOptions?: Apollo.MutationHookOptions<ReorderLessonsMutation, ReorderLessonsMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<ReorderLessonsMutation, ReorderLessonsMutationVariables>(ReorderLessonsDocument, options);
+      }
+export type ReorderLessonsMutationHookResult = ReturnType<typeof useReorderLessonsMutation>;
+export type ReorderLessonsMutationResult = Apollo.MutationResult<ReorderLessonsMutation>;
+export type ReorderLessonsMutationOptions = Apollo.BaseMutationOptions<ReorderLessonsMutation, ReorderLessonsMutationVariables>;
+export const AddMaterialDocument = gql`
+    mutation AddMaterial($input: MaterialInput!) {
+  addMaterial(input: $input) {
+    id
+    type
+    title
+  }
+}
+    `;
+export type AddMaterialMutationFn = Apollo.MutationFunction<AddMaterialMutation, AddMaterialMutationVariables>;
+
+/**
+ * __useAddMaterialMutation__
+ *
+ * To run a mutation, you first call `useAddMaterialMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useAddMaterialMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [addMaterialMutation, { data, loading, error }] = useAddMaterialMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useAddMaterialMutation(baseOptions?: Apollo.MutationHookOptions<AddMaterialMutation, AddMaterialMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<AddMaterialMutation, AddMaterialMutationVariables>(AddMaterialDocument, options);
+      }
+export type AddMaterialMutationHookResult = ReturnType<typeof useAddMaterialMutation>;
+export type AddMaterialMutationResult = Apollo.MutationResult<AddMaterialMutation>;
+export type AddMaterialMutationOptions = Apollo.BaseMutationOptions<AddMaterialMutation, AddMaterialMutationVariables>;
+export const DeleteMaterialDocument = gql`
+    mutation DeleteMaterial($id: ID!) {
+  deleteMaterial(id: $id)
+}
+    `;
+export type DeleteMaterialMutationFn = Apollo.MutationFunction<DeleteMaterialMutation, DeleteMaterialMutationVariables>;
+
+/**
+ * __useDeleteMaterialMutation__
+ *
+ * To run a mutation, you first call `useDeleteMaterialMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDeleteMaterialMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [deleteMaterialMutation, { data, loading, error }] = useDeleteMaterialMutation({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useDeleteMaterialMutation(baseOptions?: Apollo.MutationHookOptions<DeleteMaterialMutation, DeleteMaterialMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<DeleteMaterialMutation, DeleteMaterialMutationVariables>(DeleteMaterialDocument, options);
+      }
+export type DeleteMaterialMutationHookResult = ReturnType<typeof useDeleteMaterialMutation>;
+export type DeleteMaterialMutationResult = Apollo.MutationResult<DeleteMaterialMutation>;
+export type DeleteMaterialMutationOptions = Apollo.BaseMutationOptions<DeleteMaterialMutation, DeleteMaterialMutationVariables>;
 export const MyScheduleDocument = gql`
     query MySchedule($from: DateTime!, $to: DateTime!) {
   mySchedule(from: $from, to: $to) {

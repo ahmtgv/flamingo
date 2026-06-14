@@ -52,7 +52,17 @@
     "lessonTitle": "Название урока",
     "duration": "Длительность, мин",
     "add": "Добавить",
-    "cancel": "Отмена"
+    "cancel": "Отмена",
+    "deleteSection": "Удалить",
+    "deleteLesson": "Удалить",
+    "deleteMaterial": "Удалить материал",
+    "addMaterial": "Материал",
+    "materialType": "Тип материала",
+    "materialLink": "Ссылка",
+    "materialText": "Текст",
+    "materialTitle": "Название",
+    "materialUrl": "https://…",
+    "materialBody": "Текст материала"
   },
   "create": {
     "title": "Новый курс",

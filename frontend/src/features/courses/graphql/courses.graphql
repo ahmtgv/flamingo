@@ -58,6 +58,14 @@ query CourseDetail($id: ID!) {
         durationMin
         status
         order
+        materials {
+          id
+          type
+          title
+          url
+          body
+          order
+        }
       }
     }
     viewerEnrollment {
@@ -127,4 +135,45 @@ mutation Enroll($courseId: ID!) {
 
 mutation Unenroll($courseId: ID!) {
   unenroll(courseId: $courseId)
+}
+
+mutation UpdateCourse($id: ID!, $input: CourseInput!) {
+  updateCourse(id: $id, input: $input) {
+    id
+    title
+  }
+}
+
+mutation DeleteSection($id: ID!) {
+  deleteSection(id: $id)
+}
+
+mutation DeleteLesson($id: ID!) {
+  deleteLesson(id: $id)
+}
+
+mutation ReorderSections($courseId: ID!, $orderedIds: [ID!]!) {
+  reorderSections(courseId: $courseId, orderedIds: $orderedIds) {
+    id
+    order
+  }
+}
+
+mutation ReorderLessons($sectionId: ID!, $orderedIds: [ID!]!) {
+  reorderLessons(sectionId: $sectionId, orderedIds: $orderedIds) {
+    id
+    order
+  }
+}
+
+mutation AddMaterial($input: MaterialInput!) {
+  addMaterial(input: $input) {
+    id
+    type
+    title
+  }
+}
+
+mutation DeleteMaterial($id: ID!) {
+  deleteMaterial(id: $id)
 }
