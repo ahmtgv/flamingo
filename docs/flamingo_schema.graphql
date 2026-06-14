@@ -557,6 +557,7 @@ type Query {
   catalog(filter: CourseFilter, first: Int = 20, after: String): CourseConnection!
   course(id: ID!): Course
   lesson(id: ID!): Lesson
+  myCourses: [Course!]!                                   # teacher's own courses (incl. drafts)
   session(id: ID!): LessonSession
   teacher(id: ID!): TeacherProfile           # public teacher card
   teacherReviews(teacherId: ID!): [Review!]!

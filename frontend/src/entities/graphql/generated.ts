@@ -978,6 +978,7 @@ export type Query = {
   lesson?: Maybe<Lesson>;
   me?: Maybe<User>;
   myAchievements: Array<UserAchievement>;
+  myCourses: Array<Course>;
   mySchedule: Array<LessonSession>;
   mySubmissions: Array<Submission>;
   notificationPreferences: Array<NotificationPreference>;
@@ -1469,6 +1470,11 @@ export type CourseDetailQueryVariables = Exact<{
 
 
 export type CourseDetailQuery = { __typename?: 'Query', course?: { __typename?: 'Course', id: string, title: string, description?: string | null, subject: string, level: CourseLevel, status: CourseStatus, lessonCount: number, enrollmentCount: number, owner: { __typename?: 'TeacherProfile', specialty?: string | null, user: { __typename?: 'User', id: string, firstName: string, lastName: string } }, sections: Array<{ __typename?: 'Section', id: string, title: string, description?: string | null, order: number, lessons: Array<{ __typename?: 'Lesson', id: string, title: string, durationMin: number, status: LessonStatus, order: number }> }>, viewerEnrollment?: { __typename?: 'Enrollment', id: string, status: EnrollmentStatus, progressPct: number } | null } | null };
+
+export type MyCoursesQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type MyCoursesQuery = { __typename?: 'Query', myCourses: Array<{ __typename?: 'Course', id: string, title: string, subject: string, level: CourseLevel, status: CourseStatus, lessonCount: number, enrollmentCount: number }> };
 
 export type CreateCourseMutationVariables = Exact<{
   input: CourseInput;
@@ -2059,6 +2065,54 @@ export type CourseDetailQueryHookResult = ReturnType<typeof useCourseDetailQuery
 export type CourseDetailLazyQueryHookResult = ReturnType<typeof useCourseDetailLazyQuery>;
 export type CourseDetailSuspenseQueryHookResult = ReturnType<typeof useCourseDetailSuspenseQuery>;
 export type CourseDetailQueryResult = Apollo.QueryResult<CourseDetailQuery, CourseDetailQueryVariables>;
+export const MyCoursesDocument = gql`
+    query MyCourses {
+  myCourses {
+    id
+    title
+    subject
+    level
+    status
+    lessonCount
+    enrollmentCount
+  }
+}
+    `;
+
+/**
+ * __useMyCoursesQuery__
+ *
+ * To run a query within a React component, call `useMyCoursesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useMyCoursesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useMyCoursesQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useMyCoursesQuery(baseOptions?: Apollo.QueryHookOptions<MyCoursesQuery, MyCoursesQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<MyCoursesQuery, MyCoursesQueryVariables>(MyCoursesDocument, options);
+      }
+export function useMyCoursesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<MyCoursesQuery, MyCoursesQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<MyCoursesQuery, MyCoursesQueryVariables>(MyCoursesDocument, options);
+        }
+// @ts-ignore
+export function useMyCoursesSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<MyCoursesQuery, MyCoursesQueryVariables>): Apollo.UseSuspenseQueryResult<MyCoursesQuery, MyCoursesQueryVariables>;
+export function useMyCoursesSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<MyCoursesQuery, MyCoursesQueryVariables>): Apollo.UseSuspenseQueryResult<MyCoursesQuery | undefined, MyCoursesQueryVariables>;
+export function useMyCoursesSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<MyCoursesQuery, MyCoursesQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<MyCoursesQuery, MyCoursesQueryVariables>(MyCoursesDocument, options);
+        }
+export type MyCoursesQueryHookResult = ReturnType<typeof useMyCoursesQuery>;
+export type MyCoursesLazyQueryHookResult = ReturnType<typeof useMyCoursesLazyQuery>;
+export type MyCoursesSuspenseQueryHookResult = ReturnType<typeof useMyCoursesSuspenseQuery>;
+export type MyCoursesQueryResult = Apollo.QueryResult<MyCoursesQuery, MyCoursesQueryVariables>;
 export const CreateCourseDocument = gql`
     mutation CreateCourse($input: CourseInput!) {
   createCourse(input: $input) {

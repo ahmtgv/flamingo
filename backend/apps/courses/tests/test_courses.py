@@ -123,3 +123,16 @@ def test_mark_lesson_viewed_updates_progress():
     enrollment = services.mark_lesson_viewed(student, l2.id)
     assert enrollment.progress_pct == 100
     assert enrollment.status == EnrollmentStatus.COMPLETED.value
+
+
+def test_teacher_courses_lists_own_including_drafts():
+    teacher = make_teacher()
+    other = make_teacher("other2@example.com")
+    draft = services.create_course(teacher, title="Черновик", subject="М", level="grade_7")
+    published = services.create_course(teacher, title="Готовый", subject="М", level="grade_7")
+    services.publish_course(teacher, published.id)
+    services.create_course(other, title="Чужой", subject="М", level="grade_7")
+
+    ids = {c.id for c in services.teacher_courses(teacher)}
+    assert ids == {draft.id, published.id}
+    assert services.teacher_courses(make_student()) == []

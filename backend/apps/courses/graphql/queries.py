@@ -3,7 +3,7 @@
 import strawberry
 
 from apps.courses import models, services
-from common.auth import get_current_user
+from common.auth import get_current_user, require_user
 from common.enums import CourseLevel, CourseStatus
 from common.pagination import paginate
 
@@ -53,3 +53,8 @@ class CoursesQuery:
     @strawberry.field
     def lesson(self, id: strawberry.ID) -> Lesson | None:
         return models.Lesson.objects.filter(id=id).first()
+
+    @strawberry.field
+    def my_courses(self, info: strawberry.Info) -> list[Course]:
+        """The signed-in teacher's own courses (incl. drafts)."""
+        return services.teacher_courses(require_user(info))

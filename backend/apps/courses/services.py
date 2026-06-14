@@ -342,3 +342,13 @@ def viewer_enrollment(user, course: Course) -> Enrollment | None:
     if profile is None:
         return None
     return Enrollment.objects.filter(student=profile, course=course).first()
+
+
+def teacher_courses(user) -> list[Course]:
+    """A teacher's own courses (all statuses, incl. drafts). Empty for non-teachers."""
+    if getattr(user, "role", None) != Role.TEACHER.value:
+        return []
+    profile = TeacherProfile.objects.filter(user=user).first()
+    if profile is None:
+        return []
+    return list(Course.objects.filter(owner=profile).order_by("-created_at", "id"))

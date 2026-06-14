@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
-import { useCatalogQuery, useMeQuery } from '@/entities/graphql/generated';
+import { useCatalogQuery, useMeQuery, useMyCoursesQuery } from '@/entities/graphql/generated';
 import { Badge, Button, Input } from '@/shared/ui';
 
 import { CoursesLayout } from './CoursesLayout';
@@ -18,6 +18,8 @@ export function CatalogScreen() {
   });
   const { data: meData } = useMeQuery();
   const isTeacher = meData?.me?.role === 'TEACHER';
+  const { data: mine } = useMyCoursesQuery({ skip: !isTeacher });
+  const myCourses = mine?.myCourses ?? [];
   const nodes = data?.catalog.nodes ?? [];
 
   return (
@@ -47,6 +49,38 @@ export function CatalogScreen() {
             aria-label={t('catalog.searchPh')}
           />
         </div>
+
+        {isTeacher && myCourses.length > 0 && (
+          <>
+            <h2 className={styles.sectionTitle}>{t('catalog.mine')}</h2>
+            <div className={styles.grid} style={{ marginBottom: 'var(--space-8)' }}>
+              {myCourses.map((c) => (
+                <button
+                  key={c.id}
+                  type="button"
+                  className={styles.courseCard}
+                  onClick={() => navigate(`/courses/${c.id}`)}
+                >
+                  <div className={styles.courseMetaRow} style={{ marginTop: 0 }}>
+                    <Badge tone="accent">{t(`level.${c.level}`)}</Badge>
+                    <Badge tone={c.status === 'PUBLISHED' ? 'success' : 'neutral'}>
+                      {t(`status.${c.status}`)}
+                    </Badge>
+                  </div>
+                  <div className={styles.courseTitle}>{c.title}</div>
+                  <div className={styles.courseMetaRow}>
+                    <span className={styles.courseStat}>{t('catalog.lessons', { n: c.lessonCount })}</span>
+                    <span className={styles.courseStat}>·</span>
+                    <span className={styles.courseStat}>
+                      {t('catalog.students', { n: c.enrollmentCount })}
+                    </span>
+                  </div>
+                </button>
+              ))}
+            </div>
+            <h2 className={styles.sectionTitle}>{t('catalog.all')}</h2>
+          </>
+        )}
 
         {nodes.length === 0 ? (
           <p className={styles.empty}>{loading ? t('common:actions.loading') : t('catalog.empty')}</p>
