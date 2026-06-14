@@ -143,30 +143,6 @@
   margin-top: var(--space-3);
 }
 
-/* Multiline answer — no Textarea primitive in the design system yet, so this
-   mirrors the .input control surface from shared/ui/fields on tokens. */
-.textarea {
-  font-family: var(--font-body);
-  font-size: var(--text-body);
-  color: var(--color-text);
-  background: var(--color-surface);
-  border: 1px solid var(--color-border-strong);
-  border-radius: var(--radius-control);
-  padding: var(--space-3) var(--space-4);
-  width: 100%;
-  min-height: 96px;
-  resize: vertical;
-  line-height: var(--leading-snug);
-}
-.textarea::placeholder {
-  color: var(--color-text-tertiary);
-}
-.textarea:focus {
-  outline: none;
-  border-color: var(--color-accent);
-  box-shadow: var(--focus-ring);
-}
-
 .form {
   display: flex;
   flex-direction: column;

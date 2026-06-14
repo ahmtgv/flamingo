@@ -14,7 +14,7 @@ import {
   usePublishHomeworkMutation,
   useSubmitHomeworkMutation,
 } from '@/entities/graphql/generated';
-import { Badge, type BadgeTone, Button, Checkbox, Input, TextField } from '@/shared/ui';
+import { Badge, type BadgeTone, Button, Checkbox, Input, TextArea, TextField } from '@/shared/ui';
 
 import { HomeworkLayout } from './HomeworkLayout';
 import styles from './homework.module.css';
@@ -339,8 +339,7 @@ function SubmitForm({
 
   return (
     <form className={styles.form} onSubmit={submit}>
-      <textarea
-        className={styles.textarea}
+      <TextArea
         placeholder={t('submit.placeholder')}
         aria-label={t('submit.placeholder')}
         value={text}

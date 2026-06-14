@@ -81,6 +81,32 @@
   box-shadow: 0 0 0 var(--focus-ring-width) var(--color-error-bg);
 }
 
+/* Multiline control surface (TextArea) — mirrors .input but free-height */
+.textarea {
+  font-family: var(--font-body);
+  font-size: var(--text-body);
+  color: var(--color-text);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-control);
+  padding: var(--space-3) var(--space-4);
+  width: 100%;
+  min-height: 96px;
+  resize: vertical;
+  line-height: var(--leading-snug);
+  transition:
+    box-shadow var(--duration-fast) var(--ease-standard),
+    border-color var(--duration-fast) var(--ease-standard);
+}
+.textarea::placeholder {
+  color: var(--color-text-tertiary);
+}
+.textarea:focus {
+  outline: none;
+  border-color: var(--color-accent);
+  box-shadow: var(--focus-ring);
+}
+
 /* Select chevron */
 .selectWrap {
   position: relative;

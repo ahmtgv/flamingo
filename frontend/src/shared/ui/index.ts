@@ -8,6 +8,8 @@ export { Input } from './fields/Input';
 export type { InputProps } from './fields/Input';
 export { TextField } from './fields/TextField';
 export type { TextFieldProps } from './fields/TextField';
+export { TextArea } from './fields/TextArea';
+export type { TextAreaProps } from './fields/TextArea';
 export { Select } from './fields/Select';
 export type { SelectProps } from './fields/Select';
 export { SelectField } from './fields/SelectField';
