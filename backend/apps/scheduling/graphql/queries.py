@@ -1,6 +1,7 @@
 """Scheduling queries: mySchedule (role-aware), session."""
 
 import datetime as dt
+from typing import Annotated
 
 import strawberry
 
@@ -14,9 +15,13 @@ from .types import LessonSession
 class SchedulingQuery:
     @strawberry.field
     def my_schedule(
-        self, info: strawberry.Info, from_: dt.datetime, to: dt.datetime
+        self,
+        info: strawberry.Info,
+        from_: Annotated[dt.datetime, strawberry.argument(name="from")],
+        to: dt.datetime,
     ) -> list[LessonSession]:
-        # `from_` -> GraphQL `from` (Strawberry strips the trailing underscore).
+        # `from` is a Python keyword; expose the GraphQL arg as `from` (SDL) while
+        # the Python param stays `from_`.
         return services.my_schedule(require_user(info), from_, to)
 
     @strawberry.field
