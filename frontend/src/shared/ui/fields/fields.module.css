@@ -1,0 +1,162 @@
+/* Shared styles for form controls (Input, TextField, Select, Checkbox). */
+
+.field {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: var(--space-4);
+}
+
+.label {
+  font-family: var(--font-heading);
+  font-size: var(--text-small);
+  font-weight: var(--weight-medium);
+  color: var(--color-text-secondary);
+  margin-bottom: var(--space-2);
+}
+
+.required {
+  color: var(--color-accent-text);
+}
+
+.hint {
+  font-size: var(--text-caption);
+  color: var(--color-text-tertiary);
+  margin-top: var(--space-2);
+  line-height: var(--leading-snug);
+}
+
+.error {
+  font-size: var(--text-caption);
+  color: var(--color-error-text);
+  margin-top: var(--space-2);
+  line-height: var(--leading-snug);
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3);
+}
+@media (max-width: 460px) {
+  .row {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Input / Select shared control surface */
+.input,
+.select {
+  font-family: var(--font-body);
+  font-size: var(--text-body);
+  color: var(--color-text);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-control);
+  height: var(--control-height-md);
+  padding: 0 var(--space-4);
+  width: 100%;
+  transition:
+    box-shadow var(--duration-fast) var(--ease-standard),
+    border-color var(--duration-fast) var(--ease-standard);
+}
+.input::placeholder {
+  color: var(--color-text-tertiary);
+}
+.input:focus,
+.select:focus {
+  outline: none;
+  border-color: var(--color-accent);
+  box-shadow: var(--focus-ring);
+}
+.input:disabled,
+.select:disabled {
+  background: var(--color-surface-subtle);
+  color: var(--color-text-disabled);
+  cursor: not-allowed;
+}
+.invalid {
+  border-color: var(--color-error);
+}
+.invalid:focus {
+  box-shadow: 0 0 0 var(--focus-ring-width) var(--color-error-bg);
+}
+
+/* Select chevron */
+.selectWrap {
+  position: relative;
+  display: flex;
+}
+.select {
+  appearance: none;
+  -webkit-appearance: none;
+  padding-right: var(--space-8);
+}
+.selectIcon {
+  position: absolute;
+  right: var(--space-3);
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--color-text-secondary);
+  pointer-events: none;
+  width: 18px;
+  height: 18px;
+}
+
+/* Checkbox */
+.check {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  cursor: pointer;
+  user-select: none;
+}
+.checkInput {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+}
+.box {
+  width: 22px;
+  height: 22px;
+  border: 1.5px solid var(--color-border-strong);
+  border-radius: var(--radius-xs);
+  background: var(--color-surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 1px;
+  transition: all var(--duration-fast) var(--ease-standard);
+}
+.tick {
+  width: 14px;
+  height: 14px;
+  color: var(--color-text-on-accent);
+  opacity: 0;
+}
+.checkInput:checked + .box {
+  background: var(--color-accent-strong);
+  border-color: var(--color-accent-strong);
+}
+.checkInput:checked + .box .tick {
+  opacity: 1;
+}
+.checkInput:focus-visible + .box {
+  box-shadow: var(--focus-ring);
+}
+.checkText {
+  font-size: var(--text-small);
+  color: var(--color-text-secondary);
+  line-height: var(--leading-snug);
+}
+.checkBoxed {
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-subtle);
+}
+.checkInvalid {
+  border-color: var(--color-error);
+  background: var(--color-error-bg);
+}

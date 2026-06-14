@@ -1,0 +1,19 @@
+.logo {
+  font-family: var(--font-heading);
+  font-weight: var(--weight-semibold);
+  font-size: var(--text-h3);
+  letter-spacing: var(--tracking-snug);
+  display: inline-flex;
+  align-items: flex-end;
+  color: var(--color-text);
+  margin: 0;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  margin-left: 5px;
+  margin-bottom: 3px;
+}
