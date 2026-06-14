@@ -131,3 +131,23 @@ A module is done when: models + migrations, services, GraphQL types/queries/muta
 - `Flamingo_DesignSystem_v1.md` + `tokens.css` + `FlamingoStyleguide.jsx` — UI system.
 - `Flamingo_Brandbook_v1.md` — identity.
 - `official-documents` skill — corporate document generation (certificates/letters).
+
+## Future: Payments / Billing (NOT implemented yet — do not build now)
+
+Payments will be integrated later, after the monetization model is chosen
+(simple vs marketplace). Do NOT implement any payment, provider, payout,
+subscription, or pricing logic until explicitly asked. But build every module
+"payment-ready":
+
+- Every "can this user access this course / lesson / material / grade" decision
+  MUST go through a single function `courses/access.py: can_access_course(user, course)`
+  (or a shared permission class). Never scatter access checks across resolvers —
+  payment gating will later be added in this one place.
+- Treat `Enrollment.access_status` (active / pending_payment, default active) and
+  `Course.price` / `Course.currency` (nullable, null = free) as the integration
+  points. If present, respect them; never bypass them.
+- All billing/payment code lives inside a dedicated `billing` app. Nothing
+  payment-related goes into `courses` or `accounts`.
+- Target market RU/CIS: future provider YooKassa; store money as integer minor
+  units (kopecks); fiscal receipts (54-FZ) required. Keep money handling
+  provider-agnostic behind the `billing` boundary.
