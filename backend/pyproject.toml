@@ -1,0 +1,28 @@
+# Tooling config for the Flamingo backend.
+# Dependencies are pinned in requirements.txt (kept as the source of truth for
+# installs); this file only configures the linters/formatters and pytest.
+
+[tool.black]
+line-length = 100
+target-version = ["py312"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+extend-exclude = ["**/migrations/*"]
+
+[tool.ruff.lint]
+# pycodestyle (E), pyflakes (F), isort (I), pyupgrade (UP),
+# flake8-bugbear (B), flake8-comprehensions (C4).
+select = ["E", "F", "I", "UP", "B", "C4"]
+ignore = [
+    "E501",  # line length is enforced by black, not ruff
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["common", "apps", "api", "config"]
+# Match the existing import grouping: stdlib -> third-party -> first-party.
+section-order = ["future", "standard-library", "third-party", "first-party", "local-folder"]
+
+# pytest config stays in pytest.ini (it takes precedence over pyproject), so it
+# is not duplicated here.
