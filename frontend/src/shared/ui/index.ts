@@ -10,6 +10,8 @@ export { TextField } from './fields/TextField';
 export type { TextFieldProps } from './fields/TextField';
 export { Select } from './fields/Select';
 export type { SelectProps } from './fields/Select';
+export { SelectField } from './fields/SelectField';
+export type { SelectFieldProps } from './fields/SelectField';
 export { Checkbox } from './fields/Checkbox';
 export type { CheckboxProps } from './fields/Checkbox';
 export { FieldRow } from './fields/Field';
