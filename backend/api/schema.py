@@ -10,15 +10,17 @@ from apps.accounts.graphql.mutations import AccountsMutation
 from apps.accounts.graphql.queries import AccountsQuery
 from apps.courses.graphql.mutations import CoursesMutation
 from apps.courses.graphql.queries import CoursesQuery
+from apps.scheduling.graphql.mutations import SchedulingMutation
+from apps.scheduling.graphql.queries import SchedulingQuery
 
 
 @strawberry.type
-class Query(AccountsQuery, CoursesQuery):
+class Query(AccountsQuery, CoursesQuery, SchedulingQuery):
     pass
 
 
 @strawberry.type
-class Mutation(AccountsMutation, CoursesMutation):
+class Mutation(AccountsMutation, CoursesMutation, SchedulingMutation):
     pass
 
 

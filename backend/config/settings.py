@@ -15,6 +15,7 @@ INSTALLED_APPS = [
     "strawberry_django",
     "apps.accounts",
     "apps.courses",
+    "apps.scheduling",
 ]
 
 # JWT bearer auth only (no cookies/sessions) -> no Session/CSRF/Auth middleware.
@@ -74,4 +75,11 @@ S3 = {
     "bucket": os.environ.get("S3_BUCKET", "flamingo"),
     "access_key": os.environ.get("S3_ACCESS_KEY", ""),
     "secret_key": os.environ.get("S3_SECRET_KEY", ""),
+}
+
+# LiveKit (self-hosted video). The API only mints room tokens.
+LIVEKIT = {
+    "url": os.environ.get("LIVEKIT_URL", ""),
+    "api_key": os.environ.get("LIVEKIT_API_KEY", ""),
+    "api_secret": os.environ.get("LIVEKIT_API_SECRET", ""),
 }
