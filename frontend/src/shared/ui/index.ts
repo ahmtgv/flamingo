@@ -1,3 +1,7 @@
+export { Avatar } from './Avatar/Avatar';
+export type { AvatarProps } from './Avatar/Avatar';
+export { Badge } from './Badge/Badge';
+export type { BadgeProps, BadgeTone } from './Badge/Badge';
 export { Button } from './Button/Button';
 export type { ButtonProps, ButtonSize, ButtonVariant } from './Button/Button';
 export { Input } from './fields/Input';
