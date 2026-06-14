@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Flamingo — Архитектура</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'IBM Plex Sans',system-ui,sans-serif;background:#ede7db;color:#2a2520;padding:40px 24px 64px}
+  .wrap{max-width:1200px;margin:0 auto}
+  .logo{font-weight:600;font-size:20px;letter-spacing:-.01em;display:inline-flex;align-items:flex-end;margin-bottom:6px}
+  .logo .d{width:8px;height:8px;border-radius:50%;background:#d2562e;margin-left:5px;margin-bottom:3px}
+  h1{font-size:22px;font-weight:600;letter-spacing:-.01em;margin-bottom:6px}
+  .lede{font-size:14px;color:#6e6456;max-width:760px;margin-bottom:28px;line-height:1.5}
+  h2{font-size:15px;font-weight:600;margin:0 0 12px;letter-spacing:-.01em}
+  .card{background:#fbf8f2;border:1px solid #e0d8ca;border-radius:16px;padding:24px;box-shadow:0 2px 6px rgba(42,37,32,.06);overflow:auto;margin-bottom:24px}
+  .mermaid{min-width:680px}
+  .note{font-size:12px;color:#8b7f69;margin-top:12px;font-family:'IBM Plex Mono',monospace}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <span class="logo">flamingo<span class="d"></span></span>
+  <h1>Архитектура — слои и компоненты</h1>
+  <p class="lede">Системный обзор и слои бэкенда/фронтенда (этап 5). Пунктир в системной диаграмме — граница приватности: сырое видео не покидает устройство, по сети идут только агрегаты внимания. Канонический документ — flamingo_architecture.md.</p>
+
+  <div class="card">
+    <h2>1. Система</h2>
+    <pre class="mermaid">
+flowchart LR
+  subgraph Client["Client — browser / PWA"]
+    UI["React + Apollo + RTK"]
+    MP["MediaPipe Worker — on-device CMF"]
+    LK["LiveKit JS SDK"]
+    IDB[("IndexedDB — UBP")]
+  end
+  subgraph Cloud["Yandex Cloud — RF region"]
+    API["GraphQL API — Strawberry / ASGI"]
+    WS["Subscriptions — Channels"]
+    LKS["LiveKit server"]
+    CW["Celery workers"]
+    PG[("PostgreSQL")]
+    RD[("Redis — broker + channels")]
+    S3[("Object Storage — S3")]
+  end
+  UI -->|"GraphQL HTTP"| API
+  UI <-->|"graphql-ws"| WS
+  MP -->|"aggregate only"| WS
+  LK <-->|"media"| LKS
+  UI -->|"PUT presigned"| S3
+  API --> PG
+  API --> RD
+  API --> S3
+  WS --> RD
+  CW --> PG
+  CW --> S3
+  LKS -->|"egress recording"| S3
+  MP -. "raw video never leaves device" .- IDB
+    </pre>
+  </div>
+
+  <div class="card">
+    <h2>2. Бэкенд — путь запроса</h2>
+    <pre class="mermaid">
+flowchart TB
+  REQ["HTTP / WebSocket"] --> ASGI["ASGI — uvicorn"]
+  ASGI --> SCH["Strawberry schema — api/schema.py"]
+  SCH --> RES["Resolvers — thin: auth, permission, input"]
+  RES --> SVC["Services — business logic, transactions"]
+  SVC --> ORM["Django ORM models"]
+  ORM --> DB[("PostgreSQL")]
+  RES -. permissions .-> PERM["common.permissions"]
+  SVC --> TASKS["Celery tasks"]
+  SVC --> CH["Channels group_send"]
+    </pre>
+    <p class="note">Резолверы без бизнес-логики: авторизация и валидация → сервис (транзакции, сайд-эффекты) → ORM.</p>
+  </div>
+
+  <div class="card">
+    <h2>3. Фронтенд — слои</h2>
+    <pre class="mermaid">
+flowchart TB
+  APP["app — store, apolloClient, router, providers, tokens.css"]
+  subgraph FEAT["features"]
+    direction LR
+    F1["auth"]
+    F2["dashboard"]
+    F3["courses"]
+    F4["schedule"]
+    F5["lesson — live + CMF"]
+    F6["homework"]
+    F7["analytics"]
+    F8["admin"]
+    F9["notifications"]
+  end
+  ENT["entities — graphql ops + generated types"]
+  SH["shared — ui design system, tokens, hooks, lib"]
+  AP["Apollo Client"]
+  RTK["Redux Toolkit — UI / local state"]
+  SE["seedum — MediaPipe worker, UBP, calibration"]
+  APP --> FEAT
+  FEAT --> ENT
+  FEAT --> SH
+  FEAT --> RTK
+  ENT --> AP
+  SE --> F5
+    </pre>
+    <p class="note">Зависимости в одну сторону: features → entities/shared. Apollo — серверное состояние, RTK — только UI.</p>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.9.1/mermaid.min.js"></script>
+<script>
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: 'base',
+    fontFamily: 'IBM Plex Sans, system-ui, sans-serif',
+    flowchart: { useMaxWidth: false, htmlLabels: true, curve: 'basis' },
+    themeVariables: {
+      primaryColor: '#FBEDE6',
+      primaryBorderColor: '#A23A1C',
+      primaryTextColor: '#2A2520',
+      lineColor: '#A23A1C',
+      clusterBkg: '#F4EFE6',
+      clusterBorder: '#CFC3B0',
+      edgeLabelBackground: '#FBF8F2',
+      fontSize: '14px'
+    }
+  });
+</script>
+</body>
+</html>

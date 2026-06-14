@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Flamingo — возрастная адаптация</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Golos+Text:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* tokens (props only, scoped to .fl-root so subtrees can re-theme) */
+.fl-root{
+  --fl-white:#fff;
+  --fl-warm-50:#fbf8f2;--fl-warm-100:#f4efe6;--fl-warm-150:#ede7db;--fl-warm-200:#e0d8ca;--fl-warm-300:#cfc3b0;
+  --fl-warm-400:#a99d87;--fl-warm-500:#8b7f69;--fl-warm-600:#6e6456;--fl-warm-700:#4e473e;--fl-warm-800:#34302a;--fl-warm-900:#2a2520;
+  --fl-coral-50:#fbede6;--fl-coral-100:#f6d8c8;--fl-coral-400:#e8794f;--fl-coral-500:#d2562e;--fl-coral-600:#be4622;--fl-coral-700:#a23a1c;--fl-coral-800:#8a3017;
+  --fl-warning-500:#c8881c;--fl-warning-700:#8a5e0e;--fl-warning-50:#f7edd7;
+  --fl-dark-bg:#232019;--fl-dark-surface:#2c2820;--fl-dark-surface-2:#353027;--fl-dark-border:#3a352c;--fl-dark-text:#f1ebdf;--fl-dark-text-2:#cabfa9;
+  --fl-shadow-rgb:42,37,32;
+  --color-bg:var(--fl-warm-100);--color-surface:var(--fl-warm-50);--color-surface-subtle:var(--fl-warm-150);--color-surface-hover:var(--fl-warm-150);
+  --color-border:var(--fl-warm-200);--color-border-strong:var(--fl-warm-300);
+  --color-text:var(--fl-warm-900);--color-text-secondary:var(--fl-warm-600);--color-text-tertiary:var(--fl-warm-500);--color-text-disabled:var(--fl-warm-400);--color-text-on-accent:var(--fl-white);
+  --color-accent:var(--fl-coral-500);--color-accent-strong:var(--fl-coral-600);--color-accent-hover:var(--fl-coral-700);--color-accent-pressed:var(--fl-coral-800);
+  --color-accent-text:var(--fl-coral-700);--color-accent-subtle:var(--fl-coral-50);--color-accent-subtle-border:var(--fl-coral-100);
+  --color-warning:var(--fl-warning-500);--color-warning-text:var(--fl-warning-700);--color-warning-bg:var(--fl-warning-50);
+  --font-heading:'IBM Plex Sans',system-ui,sans-serif;--font-body:'Golos Text','IBM Plex Sans',system-ui,sans-serif;--font-mono:'IBM Plex Mono',ui-monospace,monospace;
+  --weight-medium:500;--weight-semibold:600;
+  --text-h2:1.625rem;--text-h3:1.25rem;--text-lead:1.125rem;--text-body:1rem;--text-small:0.875rem;--text-caption:0.8125rem;--text-overline:0.75rem;
+  --leading-snug:1.4;--leading-body:1.6;--tracking-wide:0.06em;--tracking-snug:-0.01em;
+  --space-1:4px;--space-2:8px;--space-3:12px;--space-4:16px;--space-5:20px;--space-6:24px;--space-7:32px;--space-9:48px;
+  --radius-xs:4px;--radius-sm:8px;--radius-md:12px;--radius-lg:16px;--radius-pill:999px;--radius-control:10px;--radius-card:16px;
+  --shadow-sm:0 1px 2px rgba(var(--fl-shadow-rgb),0.05),0 2px 6px rgba(var(--fl-shadow-rgb),0.06);
+  --shadow-md:0 2px 4px rgba(var(--fl-shadow-rgb),0.05),0 6px 16px rgba(var(--fl-shadow-rgb),0.09);
+  --duration-fast:120ms;--ease-standard:cubic-bezier(0.2,0,0,1);
+  --control-height-sm:32px;--control-height-md:40px;--control-height-lg:48px;--tap-min:44px;
+  --check-size:20px;
+  --focus-ring:0 0 0 3px rgba(210,86,46,0.45);
+}
+.fl-root[data-theme="dark"]{
+  --color-bg:var(--fl-dark-bg);--color-surface:var(--fl-dark-surface);--color-surface-subtle:var(--fl-dark-surface-2);--color-surface-hover:var(--fl-dark-surface-2);
+  --color-border:var(--fl-dark-border);--color-border-strong:#4a4438;
+  --color-text:var(--fl-dark-text);--color-text-secondary:var(--fl-dark-text-2);--color-text-tertiary:#9a8f79;--color-text-disabled:#6e6452;
+  --color-accent-text:var(--fl-coral-400);--color-accent-subtle:#3a241b;--color-accent-subtle-border:#5a3018;
+  --color-warning-bg:#322a14;
+  --shadow-sm:0 2px 6px rgba(0,0,0,0.45);--shadow-md:0 6px 16px rgba(0,0,0,0.5);
+  --focus-ring:0 0 0 3px rgba(232,121,79,0.5);
+}
+.fl-root[data-mode="kids"]{
+  --text-body:1.1875rem;--text-small:1rem;--text-caption:0.9375rem;--text-h3:1.375rem;--text-h2:1.75rem;
+  --leading-body:1.75;
+  --control-height-sm:40px;--control-height-md:48px;--control-height-lg:56px;--tap-min:48px;
+  --radius-control:14px;--radius-card:20px;
+  --check-size:24px;
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-body);background:#ede7db;color:#2a2520;padding:40px 24px 64px;-webkit-font-smoothing:antialiased}
+body.dark{background:#1c1a14}
+.board{max-width:1000px;margin:0 auto}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:20px}
+.logo{font-family:'IBM Plex Sans';font-weight:600;font-size:20px;letter-spacing:-.01em;display:inline-flex;align-items:flex-end;color:inherit}
+.logo .d{width:8px;height:8px;border-radius:50%;background:#d2562e;margin-left:5px;margin-bottom:3px}
+body.dark .logo{color:#f1ebdf}
+.seg{display:inline-flex;background:#fbf8f2;border:1px solid #e0d8ca;border-radius:999px;padding:3px}
+body.dark .seg{background:#2c2820;border-color:#3a352c}
+.seg button{font-family:'IBM Plex Sans';font-size:14px;font-weight:500;color:#6e6456;background:transparent;border:0;padding:6px 14px;border-radius:999px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:#be4622;color:#fff}
+.intro{font-size:14px;color:#6e6456;max-width:720px;margin-bottom:28px}
+body.dark .intro{color:#cabfa9}
+
+.compare{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+@media (max-width:760px){.compare{grid-template-columns:1fr}}
+.cocol{background:var(--color-surface-subtle);border:1px solid var(--color-border);border-radius:16px;padding:20px}
+.cohead{font-family:'IBM Plex Sans';font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--color-text-secondary);margin-bottom:16px}
+.cohead .tag{display:inline-block;font-size:11px;font-weight:600;color:#be4622;background:#fbede6;padding:2px 8px;border-radius:999px;margin-left:8px;text-transform:none;letter-spacing:0}
+.costack > * + *{margin-top:18px}
+.cap{font-family:'IBM Plex Mono';font-size:12px;color:var(--color-text-tertiary);margin-bottom:8px}
+
+/* components (subset, identical to styleguide) */
+.btn{font-family:var(--font-heading);font-weight:var(--weight-semibold);display:inline-flex;align-items:center;justify-content:center;gap:var(--space-2);border:1px solid transparent;border-radius:var(--radius-control);cursor:pointer;white-space:nowrap;line-height:1;transition:background var(--duration-fast) var(--ease-standard),transform var(--duration-fast) var(--ease-standard)}
+.btn-md{height:var(--control-height-md);padding:0 var(--space-5);font-size:var(--text-body)}
+.btn svg{width:1.15em;height:1.15em}
+.btn-primary{background:var(--color-accent-strong);color:var(--color-text-on-accent)}
+.btn-primary:hover{background:var(--color-accent-hover)}
+.btn-primary:active{background:var(--color-accent-pressed);transform:translateY(1px)}
+.btn:focus-visible{outline:none;box-shadow:var(--focus-ring)}
+
+.field{display:flex;flex-direction:column}
+.field-label{font-family:var(--font-heading);font-size:var(--text-small);font-weight:var(--weight-medium);color:var(--color-text-secondary);margin-bottom:var(--space-2)}
+.input{font-family:var(--font-body);font-size:var(--text-body);color:var(--color-text);background:var(--color-surface);border:1px solid var(--color-border-strong);border-radius:var(--radius-control);height:var(--control-height-md);padding:0 var(--space-4);width:100%;transition:box-shadow var(--duration-fast) var(--ease-standard),border-color var(--duration-fast) var(--ease-standard)}
+.input::placeholder{color:var(--color-text-tertiary)}
+.input:focus{outline:none;border-color:var(--color-accent);box-shadow:var(--focus-ring)}
+
+.check{display:inline-flex;align-items:center;gap:var(--space-3);cursor:pointer;font-size:var(--text-body);color:var(--color-text)}
+.check input{position:absolute;opacity:0;width:1px;height:1px}
+.check .box{width:var(--check-size);height:var(--check-size);border:1.5px solid var(--color-border-strong);border-radius:var(--radius-xs);background:var(--color-surface);display:flex;align-items:center;justify-content:center;transition:all var(--duration-fast) var(--ease-standard);flex-shrink:0}
+.check .tick{color:var(--color-text-on-accent);opacity:0;width:70%;height:70%}
+.check input:checked + .box{background:var(--color-accent-strong);border-color:var(--color-accent-strong)}
+.check input:checked + .box .tick{opacity:1}
+.check input:focus-visible + .box{box-shadow:var(--focus-ring)}
+
+.dcard{background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-card);padding:var(--space-5);box-shadow:var(--shadow-sm);display:flex;flex-direction:column;gap:var(--space-3)}
+.dcard-head{display:flex;align-items:flex-start;gap:var(--space-3)}
+.icon-chip{width:44px;height:44px;border-radius:var(--radius-md);background:var(--color-accent-subtle);color:var(--color-accent-text);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.icon-chip svg{width:22px;height:22px}
+.icon-chip.lg{width:56px;height:56px;border-radius:var(--radius-lg)}
+.icon-chip.lg svg{width:30px;height:30px}
+.dcard-title{font-family:var(--font-heading);font-size:var(--text-h3);font-weight:var(--weight-semibold);line-height:var(--leading-snug);color:var(--color-text)}
+.dcard-meta{font-size:var(--text-small);color:var(--color-text-secondary);margin-top:2px}
+.dcard-foot{display:flex;align-items:center;justify-content:space-between;gap:var(--space-3);margin-top:var(--space-1)}
+.badge{display:inline-flex;align-items:center;gap:var(--space-1);font-family:var(--font-heading);font-size:var(--text-caption);font-weight:var(--weight-semibold);padding:3px 10px;border-radius:var(--radius-pill);line-height:1.45;background:var(--color-warning-bg);color:var(--color-warning-text)}
+.badge .bdot{width:6px;height:6px;border-radius:50%;background:currentColor}
+
+/* spec card */
+.spec{margin-top:28px;background:var(--color-surface);border:1px solid var(--color-border);border-radius:16px;padding:24px}
+.spec h3{font-family:'IBM Plex Sans';font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--color-text-secondary);margin-bottom:14px}
+.spec .two{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+@media (max-width:680px){.spec .two{grid-template-columns:1fr}}
+.spec h4{font-family:'IBM Plex Sans';font-size:14px;font-weight:600;color:var(--color-text);margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.spec h4 .mk{font-size:11px;font-weight:600;padding:2px 8px;border-radius:999px}
+.mk-auto{background:#e6f0e8;color:#2e6b45}
+.mk-cont{background:#fbede6;color:#a23a1c}
+.spec ul{list-style:none;font-size:13px;color:var(--color-text-secondary);line-height:1.7}
+.spec li{padding-left:16px;position:relative}
+.spec li::before{content:"";position:absolute;left:0;top:9px;width:5px;height:5px;border-radius:50%;background:var(--color-accent)}
+.spec .num{font-family:'IBM Plex Mono'}
+</style>
+</head>
+<body>
+<div class="fl-root" id="root">
+<div class="board">
+
+  <div class="topbar">
+    <span class="logo">flamingo<span class="d"></span></span>
+    <div class="seg" id="themeSeg">
+      <button data-theme-val="" aria-pressed="true">Светлая</button>
+      <button data-theme-val="dark" aria-pressed="false">Тёмная</button>
+    </div>
+  </div>
+
+  <p class="intro">Те же компоненты в двух режимах одновременно. Слева — взрослый/подросток (база), справа — младшие классы. Часть отличий приходит автоматически от токенов, часть — осознанный контент-вариант. Переключите тему — оба режима следуют ей.</p>
+
+  <div class="compare">
+    <!-- ADULT (inherits outer .fl-root) -->
+    <div class="cocol">
+      <div class="cohead">Взрослый / подросток</div>
+      <div class="costack">
+        <div><div class="cap">кнопка</div><button class="btn btn-md btn-primary"><i data-lucide="video"></i>Присоединиться</button></div>
+        <div><div class="cap">поле</div><div class="field"><label class="field-label">Поиск курса</label><input class="input" placeholder="Например, алгебра"></div></div>
+        <div><div class="cap">чекбокс</div><label class="check"><input type="checkbox" checked><span class="box"><i data-lucide="check" class="tick"></i></span>Получать уведомления о занятиях</label></div>
+        <div><div class="cap">карточка занятия</div>
+          <div class="dcard">
+            <div class="dcard-head">
+              <span class="icon-chip"><i data-lucide="calculator"></i></span>
+              <div><div class="dcard-title">Введение в линейные уравнения</div><div class="dcard-meta">Иван Петров · 10:00 · кабинет 7Б</div></div>
+            </div>
+            <div class="dcard-foot"><span class="badge"><span class="bdot"></span>через 5 мин</span><button class="btn btn-md btn-primary" style="height:var(--control-height-sm);padding:0 var(--space-3);font-size:var(--text-small)">Присоединиться</button></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- KIDS (nested .fl-root with data-mode) -->
+    <div class="cocol">
+      <div class="cohead">Младшие классы<span class="tag">7–11 лет</span></div>
+      <div class="fl-root" data-mode="kids" id="kidsRoot">
+        <div class="costack">
+          <div><div class="cap">кнопка · короче и дружелюбнее</div><button class="btn btn-md btn-primary"><i data-lucide="video"></i>Зайти на урок</button></div>
+          <div><div class="cap">поле · крупнее</div><div class="field"><label class="field-label">Найти урок</label><input class="input" placeholder="Математика"></div></div>
+          <div><div class="cap">чекбокс · крупнее, проще</div><label class="check"><input type="checkbox" checked><span class="box"><i data-lucide="check" class="tick"></i></span>Напоминать мне</label></div>
+          <div><div class="cap">карточка занятия · крупная иконка, меньше текста</div>
+            <div class="dcard">
+              <div class="dcard-head">
+                <span class="icon-chip lg"><i data-lucide="calculator"></i></span>
+                <div><div class="dcard-title">Математика</div><div class="dcard-meta">10:00 с Иваном</div></div>
+              </div>
+              <div class="dcard-foot"><span class="badge"><span class="bdot"></span>скоро</span><button class="btn btn-md btn-primary">Зайти на урок</button></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="spec">
+    <h3>Что именно меняется</h3>
+    <div class="two">
+      <div>
+        <h4><span class="mk mk-auto">авто</span> от токенов <span class="num" style="font-weight:400;color:var(--color-text-tertiary);font-size:12px">[data-mode="kids"]</span></h4>
+        <ul>
+          <li>Тело <span class="num">16→19px</span>, интерлиньяж <span class="num">1.6→1.75</span></li>
+          <li>Мелкий/подписи крупнее: <span class="num">14→16</span>, <span class="num">13→15</span></li>
+          <li>Заголовки на ступень крупнее (h3 <span class="num">20→22</span>, h2 <span class="num">26→28</span>)</li>
+          <li>Высоты контролов <span class="num">40→48</span> (sm <span class="num">32→40</span>, lg <span class="num">48→56</span>)</li>
+          <li>Тап-цель <span class="num">44→48px</span></li>
+          <li>Радиусы: контролы <span class="num">10→14</span>, карточки <span class="num">16→20</span></li>
+          <li>Размер чекбокса <span class="num">20→24</span> (токен <span class="num">--check-size</span> — добавить в tokens.css)</li>
+        </ul>
+      </div>
+      <div>
+        <h4><span class="mk mk-cont">контент</span> решение на компонент</h4>
+        <ul>
+          <li>Иконки крупнее и заметнее (<span class="num">44→56</span>, модификатор <span class="num">.icon-chip.lg</span>)</li>
+          <li>Короче подписи и меньше метаданных: «Математика · 10:00 с Иваном» вместо полной строки с кабинетом</li>
+          <li>Дружелюбное действие: «Зайти на урок» вместо «Присоединиться»</li>
+          <li>Цветовая кодировка предметов в расписании — определим при сборке экрана (этап 3)</li>
+          <li>Больше воздуха, меньше элементов на экран</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+</div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.408.0/lucide.min.js"></script>
+<script>
+  if(window.lucide){lucide.createIcons();}
+  var seg=document.getElementById('themeSeg');
+  seg.addEventListener('click',function(e){
+    var b=e.target.closest('button'); if(!b) return;
+    var val=b.getAttribute('data-theme-val');
+    document.querySelectorAll('.fl-root').forEach(function(r){
+      if(val){r.setAttribute('data-theme',val);} else {r.removeAttribute('data-theme');}
+    });
+    document.body.classList.toggle('dark', !!val);
+    seg.querySelectorAll('button').forEach(function(x){x.setAttribute('aria-pressed', x===b?'true':'false');});
+  });
+</script>
+</body>
+</html>

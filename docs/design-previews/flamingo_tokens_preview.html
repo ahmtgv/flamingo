@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Flamingo — design tokens</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Golos+Text:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   FLAMINGO — DESIGN TOKENS v1
+   Architecture: primitives -> semantic aliases.
+   Components MUST consume semantic tokens only (never primitives,
+   never raw values). Theme via [data-theme], age via [data-mode].
+   ============================================================ */
+
+/* ------------------------------------------------------------
+   1. PRIMITIVES  (raw scales — do not use directly in components)
+   ------------------------------------------------------------ */
+:root {
+  --fl-white: #ffffff;
+
+  /* Warm neutral ramp */
+  --fl-warm-50:  #fbf8f2;
+  --fl-warm-100: #f4efe6;
+  --fl-warm-150: #ede7db;
+  --fl-warm-200: #e0d8ca;
+  --fl-warm-300: #cfc3b0;
+  --fl-warm-400: #a99d87;
+  --fl-warm-500: #8b7f69;
+  --fl-warm-600: #6e6456;
+  --fl-warm-700: #4e473e;
+  --fl-warm-800: #34302a;
+  --fl-warm-900: #2a2520;
+
+  /* Brand coral ramp */
+  --fl-coral-50:  #fbede6;
+  --fl-coral-100: #f6d8c8;
+  --fl-coral-200: #efc0a8;
+  --fl-coral-300: #e59e78;
+  --fl-coral-400: #e8794f;
+  --fl-coral-500: #d2562e;
+  --fl-coral-600: #be4622;
+  --fl-coral-700: #a23a1c;
+  --fl-coral-800: #8a3017;
+
+  /* Semantic sources */
+  --fl-success-500: #3f8f5f;  --fl-success-700: #2e6b45;  --fl-success-50: #e6f0e8;
+  --fl-warning-500: #c8881c;  --fl-warning-700: #8a5e0e;  --fl-warning-50: #f7edd7;
+  --fl-error-500:   #c8392b;  --fl-error-700:   #a52a20;  --fl-error-50:   #f8e3df;
+  --fl-info-500:    #2f74a8;  --fl-info-700:    #1f5780;  --fl-info-50:    #e1ecf4;
+
+  /* Dark surfaces (used by dark theme) */
+  --fl-dark-bg:        #232019;
+  --fl-dark-surface:   #2c2820;
+  --fl-dark-surface-2: #353027;
+  --fl-dark-border:    #3a352c;
+  --fl-dark-text:      #f1ebdf;
+  --fl-dark-text-2:    #cabfa9;
+
+  /* Warm shadow tint (ink-based, never pure black) */
+  --fl-shadow-rgb: 42, 37, 32;
+}
+
+/* ------------------------------------------------------------
+   2. SEMANTIC ALIASES — light theme (default)
+   ------------------------------------------------------------ */
+:root {
+  /* Surfaces & text */
+  --color-bg:              var(--fl-warm-100);
+  --color-surface:         var(--fl-warm-50);
+  --color-surface-subtle:  var(--fl-warm-150);
+  --color-surface-hover:   var(--fl-warm-150);
+  --color-border:          var(--fl-warm-200);
+  --color-border-strong:   var(--fl-warm-300);
+
+  --color-text:            var(--fl-warm-900);
+  --color-text-secondary:  var(--fl-warm-600);
+  --color-text-tertiary:   var(--fl-warm-500);  /* placeholder, muted */
+  --color-text-disabled:   var(--fl-warm-400);
+  --color-text-inverse:    var(--fl-dark-text);
+  --color-text-on-accent:  var(--fl-white);
+
+  /* Brand / action */
+  --color-accent:          var(--fl-coral-500);  /* logo dot, graphics (>=3:1) */
+  --color-accent-strong:   var(--fl-coral-600);  /* button fill (white text AA) */
+  --color-accent-hover:    var(--fl-coral-700);
+  --color-accent-pressed:  var(--fl-coral-800);
+  --color-accent-text:     var(--fl-coral-700);  /* coral text/links on light */
+  --color-accent-subtle:   var(--fl-coral-50);
+  --color-accent-subtle-border: var(--fl-coral-100);
+  --color-link:            var(--fl-coral-700);
+
+  /* Status */
+  --color-success: var(--fl-success-500); --color-success-text: var(--fl-success-700); --color-success-bg: var(--fl-success-50);
+  --color-warning: var(--fl-warning-500); --color-warning-text: var(--fl-warning-700); --color-warning-bg: var(--fl-warning-50);
+  --color-error:   var(--fl-error-500);   --color-error-text:   var(--fl-error-700);   --color-error-bg:   var(--fl-error-50);
+  --color-info:    var(--fl-info-500);    --color-info-text:    var(--fl-info-700);    --color-info-bg:    var(--fl-info-50);
+
+  /* Overlay / scrim */
+  --color-overlay: rgba(var(--fl-shadow-rgb), 0.45);
+
+  /* ---------- Typography ---------- */
+  --font-heading: 'IBM Plex Sans', system-ui, -apple-system, sans-serif;
+  --font-body:    'Golos Text', 'IBM Plex Sans', system-ui, sans-serif;
+  --font-mono:    'IBM Plex Mono', ui-monospace, 'SF Mono', monospace;
+
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+
+  --text-display:  2.75rem;   /* 44 */
+  --text-h1:       2rem;      /* 32 */
+  --text-h2:       1.625rem;  /* 26 */
+  --text-h3:       1.25rem;   /* 20 */
+  --text-lead:     1.125rem;  /* 18 */
+  --text-body:     1rem;      /* 16 — base */
+  --text-small:    0.875rem;  /* 14 */
+  --text-caption:  0.8125rem; /* 13 */
+  --text-overline: 0.75rem;   /* 12 */
+
+  --leading-tight:   1.1;
+  --leading-heading: 1.25;
+  --leading-snug:    1.4;
+  --leading-body:    1.6;
+  --leading-relaxed: 1.75;
+
+  --tracking-tight:  -0.02em;
+  --tracking-snug:   -0.01em;
+  --tracking-normal: 0;
+  --tracking-wide:   0.06em;
+
+  /* ---------- Spacing (4px grid) ---------- */
+  --space-1: 4px;   --space-2: 8px;   --space-3: 12px;  --space-4: 16px;
+  --space-5: 20px;  --space-6: 24px;  --space-7: 32px;  --space-8: 40px;
+  --space-9: 48px;  --space-10: 64px; --space-11: 80px; --space-12: 96px;
+
+  /* ---------- Radius ---------- */
+  --radius-xs: 4px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-pill: 999px;
+  --radius-control: 10px;  /* buttons, inputs */
+  --radius-card: 16px;
+
+  /* ---------- Elevation (warm-tinted) ---------- */
+  --shadow-xs: 0 1px 2px rgba(var(--fl-shadow-rgb), 0.06);
+  --shadow-sm: 0 1px 2px rgba(var(--fl-shadow-rgb), 0.05), 0 2px 6px rgba(var(--fl-shadow-rgb), 0.06);
+  --shadow-md: 0 2px 4px rgba(var(--fl-shadow-rgb), 0.05), 0 6px 16px rgba(var(--fl-shadow-rgb), 0.09);
+  --shadow-lg: 0 4px 8px rgba(var(--fl-shadow-rgb), 0.06), 0 16px 32px rgba(var(--fl-shadow-rgb), 0.12);
+
+  /* ---------- Motion ---------- */
+  --duration-fast: 120ms;
+  --duration-base: 200ms;
+  --duration-slow: 320ms;
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --ease-out:      cubic-bezier(0, 0, 0, 1);
+  --ease-in:       cubic-bezier(0.4, 0, 1, 1);
+
+  /* ---------- Controls / sizing ---------- */
+  --control-height-sm: 32px;
+  --control-height-md: 40px;
+  --control-height-lg: 48px;
+  --tap-min: 44px;
+
+  /* ---------- Focus ring (two-layer, brand) ---------- */
+  --focus-ring-width: 3px;
+  --focus-ring-color: rgba(210, 86, 46, 0.45);
+  --focus-ring: 0 0 0 var(--focus-ring-width) var(--focus-ring-color);
+  --focus-ring-inset: 0 0 0 2px var(--color-surface), 0 0 0 5px var(--focus-ring-color);
+
+  /* ---------- Z-index ---------- */
+  --z-base: 1;
+  --z-dropdown: 1000;
+  --z-sticky: 1100;
+  --z-overlay: 1200;
+  --z-modal: 1300;
+  --z-toast: 1400;
+  --z-tooltip: 1500;
+}
+
+/* ------------------------------------------------------------
+   3. DARK THEME  — reassign semantic aliases only
+   ------------------------------------------------------------ */
+[data-theme="dark"] {
+  --color-bg:             var(--fl-dark-bg);
+  --color-surface:        var(--fl-dark-surface);
+  --color-surface-subtle: var(--fl-dark-surface-2);
+  --color-surface-hover:  var(--fl-dark-surface-2);
+  --color-border:         var(--fl-dark-border);
+  --color-border-strong:  #4a4438;
+
+  --color-text:           var(--fl-dark-text);
+  --color-text-secondary: var(--fl-dark-text-2);
+  --color-text-tertiary:  #9a8f79;
+  --color-text-disabled:  #6e6452;
+  --color-text-inverse:   var(--fl-warm-900);
+
+  --color-accent:         var(--fl-coral-500);
+  --color-accent-strong:  var(--fl-coral-600);
+  --color-accent-hover:   var(--fl-coral-500);
+  --color-accent-pressed: var(--fl-coral-400);
+  --color-accent-text:    var(--fl-coral-400);  /* 5.6:1 on dark */
+  --color-accent-subtle:  #3a241b;
+  --color-accent-subtle-border: #5a3018;
+  --color-link:           var(--fl-coral-400);
+
+  --color-success-bg: #1e3328; --color-warning-bg: #322a14; --color-error-bg: #3a201c; --color-info-bg: #1c2f3f;
+
+  --color-overlay: rgba(0, 0, 0, 0.6);
+
+  --shadow-xs: 0 1px 2px rgba(0,0,0,0.4);
+  --shadow-sm: 0 2px 6px rgba(0,0,0,0.45);
+  --shadow-md: 0 6px 16px rgba(0,0,0,0.5);
+  --shadow-lg: 0 16px 32px rgba(0,0,0,0.55);
+
+  --focus-ring-color: rgba(232, 121, 79, 0.5);
+}
+
+/* ------------------------------------------------------------
+   4. KIDS MODE (7–11) — larger, more spacious
+   Apply [data-mode="kids"] alongside any theme.
+   ------------------------------------------------------------ */
+[data-mode="kids"] {
+  --text-body:    1.1875rem; /* 19 */
+  --text-small:   1rem;      /* 16 */
+  --text-caption: 0.9375rem; /* 15 */
+  --text-h3:      1.375rem;  /* 22 */
+  --text-h2:      1.75rem;   /* 28 */
+
+  --leading-body: 1.75;
+
+  --control-height-sm: 40px;
+  --control-height-md: 48px;
+  --control-height-lg: 56px;
+  --tap-min: 48px;
+
+  --radius-control: 14px;
+  --radius-card: 20px;
+}
+
+/* ------------------------------------------------------------
+   5. Reduced motion
+   ------------------------------------------------------------ */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duration-fast: 0ms;
+    --duration-base: 0ms;
+    --duration-slow: 0ms;
+  }
+}
+
+/* ------------------------------------------------------------
+   6. Breakpoints (reference — use in media queries / JS)
+   xs 320  ·  sm 480  ·  md 768  ·  lg 1024  ·  xl 1280  ·  2xl 1536
+   ------------------------------------------------------------ */
+</style>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--color-bg);color:var(--color-text);font-family:var(--font-body);line-height:var(--leading-body);-webkit-font-smoothing:antialiased;padding:var(--space-7) var(--space-6) var(--space-12);transition:background var(--duration-base) var(--ease-standard),color var(--duration-base) var(--ease-standard)}
+  .wrap{max-width:980px;margin:0 auto}
+  .topbar{display:flex;align-items:center;justify-content:space-between;gap:var(--space-4);flex-wrap:wrap;margin-bottom:var(--space-9)}
+  .logo{font-family:var(--font-heading);font-weight:var(--weight-semibold);font-size:var(--text-h3);letter-spacing:var(--tracking-snug);display:inline-flex;align-items:flex-end}
+  .logo .dot{width:8px;height:8px;border-radius:50%;background:var(--color-accent);margin-left:5px;margin-bottom:3px}
+  .toggles{display:flex;gap:var(--space-3);flex-wrap:wrap}
+  .seg{display:inline-flex;background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-pill);padding:3px}
+  .seg button{font-family:var(--font-heading);font-size:var(--text-small);font-weight:var(--weight-medium);color:var(--color-text-secondary);background:transparent;border:0;padding:6px 14px;border-radius:var(--radius-pill);cursor:pointer;transition:all var(--duration-fast) var(--ease-standard)}
+  .seg button[aria-pressed="true"]{background:var(--color-accent-strong);color:var(--color-text-on-accent)}
+  .seg button:focus-visible{outline:none;box-shadow:var(--focus-ring)}
+  section{margin-bottom:var(--space-9)}
+  .eyebrow{font-family:var(--font-heading);font-size:var(--text-overline);font-weight:var(--weight-semibold);text-transform:uppercase;letter-spacing:var(--tracking-wide);color:var(--color-text-secondary);margin-bottom:var(--space-4)}
+  .card{background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-card);padding:var(--space-6);box-shadow:var(--shadow-sm)}
+  .swatches{display:grid;grid-template-columns:repeat(auto-fill,minmax(152px,1fr));gap:var(--space-3)}
+  .sw{border:1px solid var(--color-border);border-radius:var(--radius-md);overflow:hidden}
+  .sw .chip{height:54px}
+  .sw .meta{padding:var(--space-3)}
+  .sw .meta b{display:block;font-family:var(--font-mono);font-weight:var(--weight-medium);font-size:var(--text-caption);color:var(--color-text)}
+  .sw .meta span{font-size:var(--text-caption);color:var(--color-text-secondary)}
+  .type-row{display:flex;align-items:baseline;gap:var(--space-5);padding:var(--space-3) 0;border-bottom:1px solid var(--color-surface-subtle);flex-wrap:wrap}
+  .type-row:last-child{border-bottom:0}
+  .type-meta{font-family:var(--font-mono);font-size:var(--text-caption);color:var(--color-text-secondary);min-width:124px}
+  .space-row{display:flex;align-items:center;gap:var(--space-4);margin-bottom:var(--space-2)}
+  .space-bar{height:14px;background:var(--color-accent);border-radius:var(--radius-xs)}
+  .space-lbl{font-family:var(--font-mono);font-size:var(--text-caption);color:var(--color-text-secondary);min-width:96px}
+  .tiles{display:flex;gap:var(--space-5);flex-wrap:wrap}
+  .rtile{width:84px;text-align:center}
+  .rtile .box{height:60px;background:var(--color-accent-subtle);border:1px solid var(--color-accent-subtle-border)}
+  .rtile .lbl{font-family:var(--font-mono);font-size:var(--text-caption);color:var(--color-text-secondary);margin-top:var(--space-2)}
+  .shtile{width:128px}
+  .shtile .box{height:72px;background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-md)}
+  .shtile .lbl{font-family:var(--font-mono);font-size:var(--text-caption);color:var(--color-text-secondary);margin-top:var(--space-2);text-align:center}
+  .demo-row{display:flex;gap:var(--space-4);align-items:center;flex-wrap:wrap}
+  .btn{font-family:var(--font-heading);font-weight:var(--weight-semibold);font-size:var(--text-body);color:var(--color-text-on-accent);background:var(--color-accent-strong);border:0;height:var(--control-height-md);padding:0 var(--space-5);border-radius:var(--radius-control);cursor:pointer;transition:transform var(--duration-fast) var(--ease-standard),background var(--duration-fast) var(--ease-standard)}
+  .btn:hover{background:var(--color-accent-hover)}
+  .btn:active{background:var(--color-accent-pressed);transform:translateY(1px)}
+  .btn:focus-visible{outline:none;box-shadow:var(--focus-ring)}
+  .input{font-family:var(--font-body);font-size:var(--text-body);color:var(--color-text);background:var(--color-surface);border:1px solid var(--color-border-strong);height:var(--control-height-md);padding:0 var(--space-4);border-radius:var(--radius-control);transition:box-shadow var(--duration-fast) var(--ease-standard),border-color var(--duration-fast) var(--ease-standard)}
+  .input::placeholder{color:var(--color-text-tertiary)}
+  .input:focus{outline:none;border-color:var(--color-accent);box-shadow:var(--focus-ring)}
+  .body-demo{font-size:var(--text-body);line-height:var(--leading-body);color:var(--color-text);max-width:62ch;margin-top:var(--space-3)}
+  .mono-num{font-family:var(--font-mono);font-variant-numeric:tabular-nums;color:var(--color-accent-text)}
+  .hint{font-size:var(--text-caption);color:var(--color-text-tertiary);margin-top:var(--space-3)}
+  .stack-sm > * + *{margin-top:var(--space-3)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="topbar">
+    <span class="logo">flamingo<span class="dot"></span></span>
+    <div class="toggles">
+      <div class="seg" id="themeSeg">
+        <button data-theme-val="" aria-pressed="true">Светлая</button>
+        <button data-theme-val="dark" aria-pressed="false">Тёмная</button>
+      </div>
+      <div class="seg" id="modeSeg">
+        <button data-mode-val="" aria-pressed="true">Взрослый</button>
+        <button data-mode-val="kids" aria-pressed="false">Детский</button>
+      </div>
+    </div>
+  </div>
+
+  <section>
+    <div class="eyebrow">Цветовые роли (реагируют на тему)</div>
+    <div class="card">
+      <div class="swatches">
+        <div class="sw"><div class="chip" style="background:var(--color-bg)"></div><div class="meta"><b>--color-bg</b><span>фон</span></div></div>
+        <div class="sw"><div class="chip" style="background:var(--color-surface)"></div><div class="meta"><b>--color-surface</b><span>карточки</span></div></div>
+        <div class="sw"><div class="chip" style="background:var(--color-surface-subtle)"></div><div class="meta"><b>--color-surface-subtle</b><span>hover</span></div></div>
+        <div class="sw"><div class="chip" style="background:var(--color-border-strong)"></div><div class="meta"><b>--color-border-strong</b><span>границы</span></div></div>
+        <div class="sw"><div class="chip" style="background:var(--color-text)"></div><div class="meta"><b>--color-text</b><span>текст</span></div></div>
+        <div class="sw"><div class="chip" style="background:var(--color-text-secondary)"></div><div class="meta"><b>--color-text-secondary</b><span>вторичный</span></div></div>
+        <div class="sw"><div class="chip" style="background:var(--color-accent)"></div><div class="meta"><b>--color-accent</b><span>акцент / точка</span></div></div>
+        <div class="sw"><div class="chip" style="background:var(--color-accent-strong)"></div><div class="meta"><b>--color-accent-strong</b><span>кнопки</span></div></div>
+        <div class="sw"><div class="chip" style="background:var(--color-accent-text)"></div><div class="meta"><b>--color-accent-text</b><span>ссылки</span></div></div>
+        <div class="sw"><div class="chip" style="background:var(--color-accent-subtle)"></div><div class="meta"><b>--color-accent-subtle</b><span>мягкий фон</span></div></div>
+        <div class="sw"><div class="chip" style="background:var(--color-success)"></div><div class="meta"><b>--color-success</b><span>успех</span></div></div>
+        <div class="sw"><div class="chip" style="background:var(--color-warning)"></div><div class="meta"><b>--color-warning</b><span>warning</span></div></div>
+        <div class="sw"><div class="chip" style="background:var(--color-error)"></div><div class="meta"><b>--color-error</b><span>ошибка</span></div></div>
+        <div class="sw"><div class="chip" style="background:var(--color-info)"></div><div class="meta"><b>--color-info</b><span>инфо</span></div></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="eyebrow">Типографика (реагирует на детский режим)</div>
+    <div class="card">
+      <div class="type-row"><span class="type-meta">display · 44/600</span><span style="font-family:var(--font-heading);font-size:var(--text-display);font-weight:var(--weight-semibold);line-height:var(--leading-tight);letter-spacing:var(--tracking-tight)">Образование</span></div>
+      <div class="type-row"><span class="type-meta">h1 · 32/600</span><span style="font-family:var(--font-heading);font-size:var(--text-h1);font-weight:var(--weight-semibold);line-height:var(--leading-heading)">Заголовок раздела</span></div>
+      <div class="type-row"><span class="type-meta">h2 · 26/600</span><span style="font-family:var(--font-heading);font-size:var(--text-h2);font-weight:var(--weight-semibold);line-height:var(--leading-heading)">Подзаголовок</span></div>
+      <div class="type-row"><span class="type-meta">h3 · 20/600</span><span style="font-family:var(--font-heading);font-size:var(--text-h3);font-weight:var(--weight-semibold)">Название карточки</span></div>
+      <div class="type-row"><span class="type-meta">body · 16/1.6</span><span style="font-size:var(--text-body);line-height:var(--leading-body)">Основной текст для чтения</span></div>
+      <div class="type-row"><span class="type-meta">caption · 13/500</span><span style="font-size:var(--text-caption);font-weight:var(--weight-medium);color:var(--color-text-secondary)">Метаданные и подписи</span></div>
+      <p class="body-demo">Flamingo помогает учиться в спокойном темпе. Внимание сейчас <span class="mono-num">87%</span>, следующее занятие в <span class="mono-num">10:00</span> — цифры набраны моноширинным Plex Mono.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="eyebrow">Отступы · 4px-сетка</div>
+    <div class="card">
+      <div class="space-row"><span class="space-lbl">space-1 · 4</span><span class="space-bar" style="width:var(--space-1)"></span></div>
+      <div class="space-row"><span class="space-lbl">space-2 · 8</span><span class="space-bar" style="width:var(--space-2)"></span></div>
+      <div class="space-row"><span class="space-lbl">space-3 · 12</span><span class="space-bar" style="width:var(--space-3)"></span></div>
+      <div class="space-row"><span class="space-lbl">space-4 · 16</span><span class="space-bar" style="width:var(--space-4)"></span></div>
+      <div class="space-row"><span class="space-lbl">space-6 · 24</span><span class="space-bar" style="width:var(--space-6)"></span></div>
+      <div class="space-row"><span class="space-lbl">space-7 · 32</span><span class="space-bar" style="width:var(--space-7)"></span></div>
+      <div class="space-row"><span class="space-lbl">space-9 · 48</span><span class="space-bar" style="width:var(--space-9)"></span></div>
+      <div class="space-row"><span class="space-lbl">space-10 · 64</span><span class="space-bar" style="width:var(--space-10)"></span></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="eyebrow">Радиусы · тени (тёплые)</div>
+    <div class="card stack-sm">
+      <div class="tiles">
+        <div class="rtile"><div class="box" style="border-radius:var(--radius-xs)"></div><div class="lbl">xs · 4</div></div>
+        <div class="rtile"><div class="box" style="border-radius:var(--radius-sm)"></div><div class="lbl">sm · 8</div></div>
+        <div class="rtile"><div class="box" style="border-radius:var(--radius-md)"></div><div class="lbl">md · 12</div></div>
+        <div class="rtile"><div class="box" style="border-radius:var(--radius-lg)"></div><div class="lbl">lg · 16</div></div>
+        <div class="rtile"><div class="box" style="border-radius:var(--radius-xl)"></div><div class="lbl">xl · 20</div></div>
+      </div>
+      <div class="tiles" style="margin-top:var(--space-5)">
+        <div class="shtile"><div class="box" style="box-shadow:var(--shadow-xs)"></div><div class="lbl">shadow-xs</div></div>
+        <div class="shtile"><div class="box" style="box-shadow:var(--shadow-sm)"></div><div class="lbl">shadow-sm</div></div>
+        <div class="shtile"><div class="box" style="box-shadow:var(--shadow-md)"></div><div class="lbl">shadow-md</div></div>
+        <div class="shtile"><div class="box" style="box-shadow:var(--shadow-lg)"></div><div class="lbl">shadow-lg</div></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="eyebrow">Движение · фокус (реагирует на размер в детском режиме)</div>
+    <div class="card">
+      <div class="demo-row">
+        <button class="btn">Присоединиться</button>
+        <input class="input" placeholder="Поиск курса…" aria-label="Поиск курса">
+      </div>
+      <p class="hint">Наведите на кнопку и нажмите — переходы на токенах длительности/easing. Перейдите по Tab — виден фирменный focus-ring. Переключите тему и возраст вверху: меняются только семантические токены.</p>
+    </div>
+  </section>
+
+</div>
+<script>
+  function bind(segId, attr){
+    var seg=document.getElementById(segId);
+    seg.addEventListener('click',function(e){
+      var b=e.target.closest('button'); if(!b) return;
+      var val=b.getAttribute('data-'+attr+'-val');
+      if(val){document.documentElement.setAttribute('data-'+attr,val);}
+      else{document.documentElement.removeAttribute('data-'+attr);}
+      seg.querySelectorAll('button').forEach(function(x){x.setAttribute('aria-pressed', x===b?'true':'false');});
+    });
+  }
+  bind('themeSeg','theme');
+  bind('modeSeg','mode');
+</script>
+</body>
+</html>

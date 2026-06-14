@@ -1,0 +1,713 @@
+# =============================================================================
+# Flamingo — GraphQL Schema (SDL)
+# Version: 1.0  ·  Date: 2026-06-13
+# Status: foundation for the API layer (Graphene/Strawberry) over the ERD.
+#
+# Conventions
+# - `ID` values are UUIDs (see ERD §1). `DateTime` is ISO-8601 (timestamptz).
+# - Auth: JWT in the Authorization header. `me` and role queries require auth;
+#   `verifyCertificate` is PUBLIC (no auth) for the /verify/{id} page.
+# - File uploads: client calls `requestUpload` -> gets a presigned S3 URL +
+#   `fileKey`, uploads bytes directly to object storage, then passes `fileKey`
+#   to the relevant mutation. No multipart through GraphQL. (ERD §1 "files by key")
+# - SEduM/CMF: raw video never reaches the server. Clients push only aggregates
+#   via `reportAttention`; teachers watch a class live via `attentionUpdates`.
+# - Pagination: lightweight cursor connections (`*Connection` + `PageInfo`).
+# =============================================================================
+
+scalar DateTime
+scalar JSON
+
+# ----------------------------------------------------------------------------- Enums
+enum Role { STUDENT PARENT TEACHER ADMIN }
+enum AgeBand { JUNIOR TEEN ADULT }
+enum VerificationStatus { PENDING APPROVED REJECTED }
+enum InstitutionStatus { PENDING ACTIVE INACTIVE }
+enum MembershipRole { TEACHER STUDENT ADMIN }
+enum MembershipStatus { PENDING ACTIVE INACTIVE }
+enum GuardianshipStatus { PENDING ACTIVE }
+enum CourseLevel {
+  GRADE_1 GRADE_2 GRADE_3 GRADE_4 GRADE_5 GRADE_6
+  GRADE_7 GRADE_8 GRADE_9 GRADE_10 GRADE_11 ADULT
+}
+enum CourseStatus { DRAFT PUBLISHED ARCHIVED }
+enum LessonStatus { DRAFT PUBLISHED }
+enum SessionStatus { SCHEDULED LIVE ENDED CANCELED }
+enum MaterialType { FILE LINK TEXT }
+enum EnrollmentStatus { ACTIVE COMPLETED PENDING }
+enum HomeworkType { FILE TEXT QUIZ }
+enum SubmissionStatus { SUBMITTED LATE GRADED }
+enum AttendanceStatus { PRESENT ABSENT LATE }
+enum RecommendationKind { SCHEDULE COURSE MATERIAL WELLBEING }
+enum InsightKind { GOOD WATCH }
+enum PointReason { ATTENDANCE HOMEWORK GRADE STREAK }
+enum ReviewStatus { VISIBLE PENDING HIDDEN }
+enum NotificationType { GRADE NEW_LESSON ABSENCE HOMEWORK_DONE CMF_INSIGHT WEEKLY_DIGEST }
+enum NotificationChannel { PUSH EMAIL IN_APP }
+enum UploadPurpose { AVATAR MATERIAL SUBMISSION VERIFICATION COVER INSTITUTION_LOGO }
+
+# ----------------------------------------------------------------------------- Identity & org
+type User {
+  id: ID!
+  email: String!
+  phone: String
+  role: Role!
+  firstName: String!
+  lastName: String!
+  locale: String!
+  isActive: Boolean!
+  avatarUrl: String
+  createdAt: DateTime!
+  studentProfile: StudentProfile
+  teacherProfile: TeacherProfile
+  parentProfile: ParentProfile
+  adminProfile: AdminProfile
+}
+
+type StudentProfile {
+  user: User!
+  birthDate: DateTime
+  ageBand: AgeBand!
+  gradeLevel: String
+  points: Int!
+  institution: Institution
+}
+
+type TeacherProfile {
+  user: User!
+  specialty: String
+  education: String
+  experience: String
+  bio: String
+  verificationStatus: VerificationStatus!
+  rating: Float
+  reviewCount: Int!
+}
+
+type ParentProfile {
+  user: User!
+  children: [StudentProfile!]!
+}
+
+type AdminProfile {
+  user: User!
+  institution: Institution
+}
+
+type Institution {
+  id: ID!
+  name: String!
+  address: String
+  logoUrl: String
+  website: String
+  subdomain: String
+  status: InstitutionStatus!
+  defaultLocale: String!
+  branding: JSON          # white-label colors / domain
+}
+
+type InstitutionMembership {
+  id: ID!
+  user: User!
+  institution: Institution!
+  role: MembershipRole!
+  status: MembershipStatus!
+  joinedAt: DateTime
+}
+
+type Guardianship {
+  id: ID!
+  parent: User!
+  child: User!
+  status: GuardianshipStatus!
+  consent152fz: Boolean!
+  consentAt: DateTime
+}
+
+type VerificationDocument {
+  id: ID!
+  fileUrl: String!
+  status: VerificationStatus!
+  createdAt: DateTime!
+}
+
+# ----------------------------------------------------------------------------- Learning content
+type Course {
+  id: ID!
+  title: String!
+  description: String
+  level: CourseLevel!
+  subject: String!
+  language: String!
+  owner: TeacherProfile!
+  institution: Institution
+  status: CourseStatus!
+  coverUrl: String
+  sections: [Section!]!
+  lessonCount: Int!
+  enrollmentCount: Int!
+  rating: Float
+  createdAt: DateTime!
+  viewerEnrollment: Enrollment   # the calling student's enrollment, if any
+}
+
+type Section {
+  id: ID!
+  title: String!
+  description: String
+  coverUrl: String
+  order: Int!
+  lessons: [Lesson!]!
+}
+
+type Lesson {
+  id: ID!
+  title: String!
+  description: String
+  durationMin: Int!
+  options: LessonOptions!
+  scheduleRule: JSON           # { type: ONCE|WEEKLY, days: [..], time: "HH:MM" }
+  status: LessonStatus!
+  order: Int!
+  materials: [Material!]!
+  sessions(from: DateTime, to: DateTime): [LessonSession!]!
+}
+
+type LessonOptions {
+  camera: Boolean!
+  screen: Boolean!
+  chat: Boolean!
+  homework: Boolean!
+}
+
+type LessonSession {
+  id: ID!
+  lesson: Lesson!
+  group: Group
+  startAt: DateTime!
+  endAt: DateTime
+  status: SessionStatus!
+  recordingUrl: String
+  roomToken: String            # null unless viewer is a participant of a live session
+  attendance: [Attendance!]!
+  attentionSummary: AttentionSummary   # teacher: class summary after the session
+}
+
+type Material {
+  id: ID!
+  type: MaterialType!
+  title: String!
+  fileUrl: String
+  url: String
+  body: String
+  order: Int!
+}
+
+type Enrollment {
+  id: ID!
+  student: StudentProfile!
+  course: Course!
+  status: EnrollmentStatus!
+  progressPct: Int!
+  enrolledAt: DateTime!
+}
+
+# ----------------------------------------------------------------------------- Groups (institutional)
+type Group {
+  id: ID!
+  institution: Institution!
+  name: String!
+  level: String
+  students: [StudentProfile!]!
+  teachers: [GroupTeacher!]!
+}
+
+type GroupTeacher {
+  id: ID!
+  teacher: TeacherProfile!
+  subject: String!
+}
+
+# ----------------------------------------------------------------------------- Assessment & progress
+type Homework {
+  id: ID!
+  title: String!
+  description: String
+  type: HomeworkType!
+  dueAt: DateTime
+  allowRedo: Boolean!
+  course: Course
+  lesson: Lesson
+  group: Group
+  createdBy: User!
+  publishedAt: DateTime
+  submissions: [Submission!]!
+  submissionStats: SubmissionStats!
+  viewerSubmission: Submission   # the calling student's latest attempt
+}
+
+type SubmissionStats {
+  total: Int!
+  submitted: Int!
+  graded: Int!
+  late: Int!
+}
+
+type Submission {
+  id: ID!
+  homework: Homework!
+  student: StudentProfile!
+  attempt: Int!
+  contentText: String
+  status: SubmissionStatus!
+  submittedAt: DateTime
+  score: Int
+  comment: String
+  gradedBy: User
+  gradedAt: DateTime
+  files: [SubmissionFile!]!
+}
+
+type SubmissionFile {
+  id: ID!
+  fileUrl: String!
+  name: String!
+}
+
+type Attendance {
+  id: ID!
+  session: LessonSession!
+  student: StudentProfile!
+  status: AttendanceStatus!
+  joinedAt: DateTime
+}
+
+type Certificate {
+  id: ID!
+  student: StudentProfile!
+  course: Course!
+  pdfUrl: String!
+  verificationId: ID!
+  issuedAt: DateTime!
+}
+
+# Public verification result (no auth) for /verify/{verificationId}
+type CertificateVerification {
+  valid: Boolean!
+  studentName: String
+  courseTitle: String
+  institutionName: String
+  issuedAt: DateTime
+}
+
+# ----------------------------------------------------------------------------- SEduM (CMF) — aggregates only
+type AttentionMetric {
+  id: ID!
+  sessionId: ID!
+  studentId: ID!
+  bucketStart: DateTime!
+  avgAttention: Int!           # 0..100
+}
+
+type AttentionPoint { at: DateTime! value: Int! }
+
+type AttentionSummary {
+  averageAttention: Int!
+  peak: Int!
+  low: Int!
+  points: [AttentionPoint!]!
+}
+
+type SubjectAttention { subject: String! averageAttention: Int! }
+type DailyAttention { weekday: Int! averageAttention: Int! }   # 1=Mon..7=Sun
+type Insight { kind: InsightKind! text: String! }
+
+type AttentionAnalytics {
+  averageAttention: Int!
+  bySubject: [SubjectAttention!]!
+  byWeekday: [DailyAttention!]!
+  insights: [Insight!]!
+}
+
+type GroupAnalytics {
+  group: Group!
+  averageAttention: Int!
+  averageGrade: Float
+  attendancePct: Int!
+  students: [StudentStat!]!
+  attentionBySession: [AttentionPoint!]!
+  insights: [Insight!]!
+}
+
+type StudentStat {
+  student: StudentProfile!
+  averageAttention: Int
+  averageGrade: Float
+  attendancePct: Int!
+}
+
+type Recommendation {
+  id: ID!
+  kind: RecommendationKind!
+  title: String!
+  body: String!
+  payload: JSON
+  dismissed: Boolean!
+  createdAt: DateTime!
+}
+
+# UBP backup is opaque to the server (client-side encrypted). Opt-in.
+type UbpBackup {
+  encryptedBlob: String!       # base64
+  keyHint: String
+  updatedAt: DateTime!
+}
+
+# ----------------------------------------------------------------------------- Engagement
+type Achievement {
+  id: ID!
+  code: String!
+  title: String!
+  description: String
+  icon: String
+  criteria: JSON
+}
+
+type UserAchievement { achievement: Achievement! earnedAt: DateTime! }
+
+type LeaderboardEntry { rank: Int! student: StudentProfile! points: Int! }
+
+type PointEvent { id: ID! reason: PointReason! amount: Int! createdAt: DateTime! }
+
+type Review {
+  id: ID!
+  teacher: TeacherProfile!
+  author: User!
+  rating: Int!
+  text: String
+  status: ReviewStatus!
+  createdAt: DateTime!
+}
+
+# ----------------------------------------------------------------------------- Platform
+type Notification {
+  id: ID!
+  type: NotificationType!
+  title: String!
+  body: String
+  payload: JSON
+  isRead: Boolean!
+  createdAt: DateTime!
+}
+
+type NotificationPreference {
+  id: ID!
+  eventType: NotificationType!
+  channel: NotificationChannel!
+  enabled: Boolean!
+  child: User                  # for parents: per-child override
+}
+
+type ChatMessage {
+  id: ID!
+  sessionId: ID!
+  sender: User!
+  text: String!
+  sentAt: DateTime!
+}
+
+# ----------------------------------------------------------------------------- Auth / utility payloads
+type AuthPayload { token: String! refreshToken: String! user: User! }
+type UploadTicket { uploadUrl: String! fileKey: String! expiresAt: DateTime! }
+type SessionJoin { session: LessonSession! roomToken: String! }
+
+# ----------------------------------------------------------------------------- Composite read models (power the prototyped screens)
+type StudentDashboard {
+  today: [LessonSession!]!
+  enrollments: [Enrollment!]!
+  recommendations: [Recommendation!]!
+  points: Int!
+  rank: Int
+}
+
+type TeacherDashboard {
+  courses: [Course!]!
+  upcomingSessions: [LessonSession!]!
+  pendingSubmissions: [Submission!]!
+  classAttentionAverage: Int
+}
+
+type ParentChildOverview {
+  child: StudentProfile!
+  todaySchedule: [LessonSession!]!
+  recentGrades: [Submission!]!
+  attendancePct: Int!
+  attentionAverage: Int!
+  attentionWeek: [DailyAttention!]!
+}
+
+type AdminDashboard {
+  activeUsers: Int!
+  averageAttention: Int!
+  attendancePct: Int!
+  averageGrade: Float
+  problemGroups: [GroupStat!]!
+}
+
+type GroupStat {
+  group: Group!
+  averageAttention: Int!
+  averageGrade: Float
+  attendancePct: Int!
+}
+
+# ----------------------------------------------------------------------------- Pagination
+type PageInfo { hasNextPage: Boolean! endCursor: String }
+type CourseConnection { nodes: [Course!]! pageInfo: PageInfo! totalCount: Int! }
+type NotificationConnection { nodes: [Notification!]! pageInfo: PageInfo! totalCount: Int! }
+
+# =============================================================================
+# Inputs
+# =============================================================================
+input RegisterUserInput {
+  email: String!
+  password: String!
+  firstName: String!
+  lastName: String!
+  role: Role!
+  locale: String = "ru"
+  student: StudentInfoInput      # required when role = STUDENT (teen/adult self-signup)
+  teacher: TeacherInfoInput      # required when role = TEACHER
+}
+input StudentInfoInput { birthDate: DateTime gradeLevel: String parentEmail: String }
+input TeacherInfoInput { specialty: String education: String experience: String }
+
+input AddChildInput {
+  firstName: String!
+  lastName: String!
+  gradeLevel: String
+  birthDate: DateTime
+  childEmail: String             # if the child already has / will get an account
+  consent152fz: Boolean!         # parental consent at creation
+}
+
+input UploadRequestInput { filename: String! contentType: String! purpose: UploadPurpose! }
+
+input CourseInput {
+  title: String!
+  description: String
+  level: CourseLevel!
+  subject: String!
+  language: String = "ru"
+  institutionId: ID
+  groupId: ID
+  coverKey: String
+}
+input SectionInput { title: String! description: String coverKey: String }
+input LessonOptionsInput { camera: Boolean = true screen: Boolean = true chat: Boolean = true homework: Boolean = false }
+input LessonInput {
+  title: String!
+  description: String
+  durationMin: Int!
+  options: LessonOptionsInput
+  scheduleRule: JSON
+}
+input MaterialInput {
+  lessonId: ID
+  courseId: ID
+  type: MaterialType!
+  title: String!
+  fileKey: String
+  url: String
+  body: String
+}
+input ScheduleSessionInput { lessonId: ID! groupId: ID startAt: DateTime! }
+
+input HomeworkInput {
+  title: String!
+  description: String
+  type: HomeworkType!
+  dueAt: DateTime
+  allowRedo: Boolean = false
+  lessonId: ID
+  courseId: ID
+  groupId: ID
+}
+input SubmitHomeworkInput { homeworkId: ID! contentText: String fileKeys: [String!] }
+input GradeInput { submissionId: ID! score: Int! comment: String allowRedo: Boolean }
+
+input InviteInput { institutionId: ID! email: String! role: MembershipRole! groupId: ID }
+input InstitutionInput { name: String! address: String website: String subdomain: String logoKey: String defaultLocale: String = "ru" }
+input GroupInput { institutionId: ID! name: String! level: String }
+
+input AttentionInput { sessionId: ID! bucketStart: DateTime! avgAttention: Int! }
+input UbpBackupInput { encryptedBlob: String! keyHint: String }
+input NotificationPreferenceInput { eventType: NotificationType! channel: NotificationChannel! enabled: Boolean! childId: ID }
+
+input CourseFilter { level: CourseLevel subject: String language: String search: String }
+
+# =============================================================================
+# Query
+# =============================================================================
+type Query {
+  # identity
+  me: User
+
+  # catalog & content
+  catalog(filter: CourseFilter, first: Int = 20, after: String): CourseConnection!
+  course(id: ID!): Course
+  lesson(id: ID!): Lesson
+  session(id: ID!): LessonSession
+  teacher(id: ID!): TeacherProfile           # public teacher card
+  teacherReviews(teacherId: ID!): [Review!]!
+
+  # schedule (role-aware: own lessons / children / institution)
+  mySchedule(from: DateTime!, to: DateTime!): [LessonSession!]!
+
+  # dashboards (composite, auth + role)
+  studentDashboard: StudentDashboard!
+  teacherDashboard: TeacherDashboard!
+  adminDashboard: AdminDashboard!
+  parentChildren: [StudentProfile!]!
+  parentChildOverview(childId: ID!): ParentChildOverview!
+
+  # homework / grading
+  homework(id: ID!): Homework
+  homeworkSubmissions(homeworkId: ID!): [Submission!]!     # teacher grading list
+  mySubmissions(courseId: ID): [Submission!]!              # student
+
+  # SEduM analytics
+  attentionAnalytics(studentId: ID, courseId: ID, from: DateTime, to: DateTime): AttentionAnalytics!
+  sessionAttention(sessionId: ID!): AttentionSummary!      # post-session report
+  groupAnalytics(groupId: ID!): GroupAnalytics!            # teacher / admin
+  recommendations: [Recommendation!]!
+  ubpBackup: UbpBackup                                     # for device restore
+
+  # engagement
+  leaderboard(groupId: ID!): [LeaderboardEntry!]!
+  myAchievements: [UserAchievement!]!
+
+  # institution / admin
+  institution(id: ID!): Institution
+  groups(institutionId: ID!): [Group!]!
+  group(id: ID!): Group
+  institutionMembers(institutionId: ID!, role: MembershipRole): [InstitutionMembership!]!
+
+  # certificates
+  certificate(id: ID!): Certificate
+  verifyCertificate(verificationId: ID!): CertificateVerification!   # PUBLIC
+
+  # notifications
+  notifications(first: Int = 20, after: String, unreadOnly: Boolean = false): NotificationConnection!
+  notificationPreferences: [NotificationPreference!]!
+}
+
+# =============================================================================
+# Mutation
+# =============================================================================
+type Mutation {
+  # --- auth & onboarding
+  registerUser(input: RegisterUserInput!): AuthPayload!
+  login(email: String!, password: String!): AuthPayload!
+  refreshToken(refreshToken: String!): AuthPayload!
+  logout: Boolean!
+  requestPasswordReset(email: String!): Boolean!
+  resetPassword(token: String!, newPassword: String!): Boolean!
+  verifyEmail(token: String!): Boolean!
+  addChild(input: AddChildInput!): Guardianship!            # parent links/creates a child
+  respondGuardianship(id: ID!, accept: Boolean!): Guardianship!   # child confirms request
+  submitVerificationDocument(fileKey: String!): VerificationDocument!   # teacher
+
+  # --- files
+  requestUpload(input: UploadRequestInput!): UploadTicket!
+
+  # --- courses / lessons (teacher)
+  createCourse(input: CourseInput!): Course!
+  updateCourse(id: ID!, input: CourseInput!): Course!
+  publishCourse(id: ID!): Course!
+  archiveCourse(id: ID!): Course!
+  deleteCourse(id: ID!): Boolean!
+  createSection(courseId: ID!, input: SectionInput!): Section!
+  updateSection(id: ID!, input: SectionInput!): Section!
+  reorderSections(courseId: ID!, orderedIds: [ID!]!): [Section!]!
+  deleteSection(id: ID!): Boolean!
+  createLesson(sectionId: ID!, input: LessonInput!): Lesson!
+  updateLesson(id: ID!, input: LessonInput!): Lesson!
+  reorderLessons(sectionId: ID!, orderedIds: [ID!]!): [Lesson!]!
+  publishLesson(id: ID!): Lesson!
+  deleteLesson(id: ID!): Boolean!
+  addMaterial(input: MaterialInput!): Material!
+  deleteMaterial(id: ID!): Boolean!
+
+  # --- scheduling & live sessions
+  scheduleSession(input: ScheduleSessionInput!): LessonSession!
+  startSession(sessionId: ID!): LessonSession!              # teacher -> LIVE (+roomToken)
+  endSession(sessionId: ID!): LessonSession!                # -> ENDED, recording async
+  joinSession(sessionId: ID!): SessionJoin!                 # student -> roomToken + ATTENDANCE
+  setAttendance(sessionId: ID!, studentId: ID!, status: AttendanceStatus!): Attendance!
+  sendChatMessage(sessionId: ID!, text: String!): ChatMessage!
+  reportAttention(input: AttentionInput!): Boolean!         # client pushes aggregate only
+
+  # --- enrollment & progress
+  enroll(courseId: ID!): Enrollment!
+  unenroll(courseId: ID!): Boolean!
+  markLessonViewed(lessonId: ID!): Enrollment!
+
+  # --- homework / grading
+  createHomework(input: HomeworkInput!): Homework!
+  updateHomework(id: ID!, input: HomeworkInput!): Homework!
+  publishHomework(id: ID!): Homework!
+  deleteHomework(id: ID!): Boolean!
+  submitHomework(input: SubmitHomeworkInput!): Submission!
+  gradeSubmission(input: GradeInput!): Submission!
+
+  # --- certificates
+  issueCertificate(courseId: ID!): Certificate!            # after completion / passing
+
+  # --- institution / admin
+  createInstitution(input: InstitutionInput!): Institution!
+  updateInstitution(id: ID!, input: InstitutionInput!): Institution!
+  updateBranding(institutionId: ID!, branding: JSON!): Institution!
+  inviteMember(input: InviteInput!): InstitutionMembership!
+  updateMembership(id: ID!, role: MembershipRole, status: MembershipStatus): InstitutionMembership!
+  removeMember(id: ID!): Boolean!
+  createGroup(input: GroupInput!): Group!
+  updateGroup(id: ID!, input: GroupInput!): Group!
+  addStudentsToGroup(groupId: ID!, studentIds: [ID!]!): Group!
+  removeStudentFromGroup(groupId: ID!, studentId: ID!): Group!
+  assignTeacher(groupId: ID!, teacherId: ID!, subject: String!): GroupTeacher!
+
+  # --- engagement
+  createReview(teacherId: ID!, rating: Int!, text: String): Review!
+  moderateReview(id: ID!, status: ReviewStatus!): Review!  # admin
+  dismissRecommendation(id: ID!): Recommendation!
+
+  # --- SEduM / UBP (opt-in, encrypted)
+  backupUbp(input: UbpBackupInput!): UbpBackup!
+  deleteUbpBackup: Boolean!
+
+  # --- notifications
+  markNotificationRead(id: ID!): Notification!
+  markAllNotificationsRead: Boolean!
+  updateNotificationPreference(input: NotificationPreferenceInput!): NotificationPreference!
+}
+
+# =============================================================================
+# Subscription  (WebSocket — graphql-ws)
+# =============================================================================
+type Subscription {
+  # teacher watches the class attention live; payload is an aggregate, never video
+  attentionUpdates(sessionId: ID!): AttentionMetric!
+  # session lifecycle (scheduled -> live -> ended)
+  sessionStatusChanged(sessionId: ID!): LessonSession!
+  # live lesson chat
+  chatMessageReceived(sessionId: ID!): ChatMessage!
+  # current user's notifications (new grade, absence, CMF insight, ...)
+  notificationReceived: Notification!
+}
+
+schema {
+  query: Query
+  mutation: Mutation
+  subscription: Subscription
+}

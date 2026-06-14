@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Flamingo — типографика</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Golos+Text:wght@400;500;600;700&family=Source+Sans+3:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{--ink:#2A2520;--paper:#FBF8F2;--bg:#EDE7DB;--muted:#6E6456;--line:#E0D8CA;--coral:#D2562E}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'IBM Plex Sans',system-ui,sans-serif;background:var(--bg);color:var(--ink);padding:40px 24px 64px;line-height:1.55}
+  .wrap{max-width:920px;margin:0 auto}
+  h1.t{font-weight:600;font-size:22px;letter-spacing:-.01em;margin-bottom:6px}
+  .lede{font-size:14px;color:var(--muted);max-width:680px;margin-bottom:32px}
+  .card{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:26px;margin-bottom:22px}
+  .card.rec{border-color:var(--coral);box-shadow:0 0 0 3px #FBEDE6}
+  .eyebrow{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:4px}
+  .rec-tag{display:inline-block;font-size:11px;font-weight:600;color:#fff;background:var(--coral);padding:2px 8px;border-radius:99px;margin-left:8px;vertical-align:middle}
+  .pair-name{font-size:18px;font-weight:600;margin-bottom:16px}
+  .sample-h{font-weight:600;font-size:24px;margin-bottom:8px;letter-spacing:-.01em}
+  .sample-p{font-size:16px;line-height:1.6;color:#34302A;max-width:640px;margin-bottom:14px}
+  .pangram{font-size:17px;color:var(--ink);margin-bottom:8px}
+  .alpha{font-size:15px;color:var(--muted);letter-spacing:.01em;margin-bottom:10px}
+  .aperture{font-size:13px;color:var(--muted)}
+  .aperture b{font-size:30px;color:var(--ink);font-weight:500;letter-spacing:.08em;margin-left:6px;vertical-align:middle}
+  .divider{height:1px;background:#EBE3D5;margin:18px 0}
+  /* type scale */
+  .scale-row{display:flex;align-items:baseline;gap:18px;padding:10px 0;border-bottom:1px solid #F0E9DC;flex-wrap:wrap}
+  .scale-row:last-child{border-bottom:0}
+  .scale-meta{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--muted);min-width:150px}
+  .scale-demo{font-family:'Golos Text',sans-serif;color:var(--ink)}
+  /* kids vs adult */
+  .cols{display:flex;gap:16px;flex-wrap:wrap}
+  .col{flex:1;min-width:260px;border:1px solid var(--line);border-radius:12px;padding:20px;background:#fff}
+  .col h4{font-family:'IBM Plex Sans';font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:14px;font-weight:600}
+  .tap{display:inline-block;background:#BE4622;color:#fff;font-weight:600;border-radius:10px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1 class="t">flamingo<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#D2562E;margin-left:5px"></span> &nbsp;типографика</h1>
+  <p class="lede">Принцип — «не устают глаза»: открытая апертура, качественная кириллица, просторный интерлиньяж. Заголовки держат дисциплину логотипа (Plex), тело — для долгого чтения. Цифры везде — Plex Mono (метрики CMF, расписание, табличные данные).</p>
+
+  <!-- OPTION 1 -->
+  <div class="card rec">
+    <div class="eyebrow">Вариант 1<span class="rec-tag">рекомендую</span></div>
+    <div class="pair-name">IBM Plex Sans — заголовки · Golos Text — тело</div>
+    <div class="sample-h" style="font-family:'IBM Plex Sans'">Линейные уравнения и функции</div>
+    <p class="sample-p" style="font-family:'Golos Text'">Flamingo помогает учиться в спокойном темпе. Система видит, когда внимание падает, и подсказывает, когда сделать перерыв. Преподаватель собирает курс прямо на платформе, а родитель видит прогресс ребёнка без лишнего шума.</p>
+    <div class="pangram" style="font-family:'Golos Text'">Съешь же ещё этих мягких французских булок да выпей чаю.</div>
+    <div class="alpha" style="font-family:'Golos Text'">АБВГДЕЁЖЗИЙКЛМНОПРСТУФ · абвгдеёжзийклмноп · 0123456789</div>
+    <div class="aperture" style="font-family:'Golos Text'">открытая апертура:<b>е с а ѕ э</b></div>
+    <div class="divider"></div>
+    <div style="font-size:13px;color:var(--muted)">Golos Text — кириллица как родная (Paratype), открытые формы, тёплый и нейтральный одновременно. С Plex гармонирует по пропорциям, но мягче в чтении — заголовки строгие, абзацы спокойные.</div>
+  </div>
+
+  <!-- OPTION 2 -->
+  <div class="card">
+    <div class="eyebrow">Вариант 2</div>
+    <div class="pair-name">IBM Plex Sans — заголовки · Source Sans 3 — тело</div>
+    <div class="sample-h" style="font-family:'IBM Plex Sans'">Линейные уравнения и функции</div>
+    <p class="sample-p" style="font-family:'Source Sans 3'">Flamingo помогает учиться в спокойном темпе. Система видит, когда внимание падает, и подсказывает, когда сделать перерыв. Преподаватель собирает курс прямо на платформе, а родитель видит прогресс ребёнка без лишнего шума.</p>
+    <div class="pangram" style="font-family:'Source Sans 3'">Съешь же ещё этих мягких французских булок да выпей чаю.</div>
+    <div class="alpha" style="font-family:'Source Sans 3'">АБВГДЕЁЖЗИЙКЛМНОПРСТУФ · абвгдеёжзийклмноп · 0123456789</div>
+    <div class="aperture" style="font-family:'Source Sans 3'">открытая апертура:<b>е с а ѕ э</b></div>
+    <div class="divider"></div>
+    <div style="font-size:13px;color:var(--muted)">Source Sans 3 — нейтральный гуманистический гротеск с открытой апертурой и хорошей кириллицей. Чуть суше Golos, очень разборчив. Минус: разница с Plex едва заметна — пара выглядит менее «намеренной».</div>
+  </div>
+
+  <!-- OPTION 3 -->
+  <div class="card">
+    <div class="eyebrow">Вариант 3</div>
+    <div class="pair-name">Только IBM Plex Sans (+ Plex Mono для цифр)</div>
+    <div class="sample-h" style="font-family:'IBM Plex Sans'">Линейные уравнения и функции</div>
+    <p class="sample-p" style="font-family:'IBM Plex Sans'">Flamingo помогает учиться в спокойном темпе. Система видит, когда внимание падает, и подсказывает, когда сделать перерыв. Преподаватель собирает курс прямо на платформе, а родитель видит прогресс ребёнка без лишнего шума.</p>
+    <div class="pangram" style="font-family:'IBM Plex Sans'">Съешь же ещё этих мягких французских булок да выпей чаю.</div>
+    <div class="alpha" style="font-family:'IBM Plex Sans'">АБВГДЕЁЖЗИЙКЛМНОПРСТУФ · абвгдеёжзийклмноп · <span style="font-family:'IBM Plex Mono'">0123456789</span></div>
+    <div class="aperture" style="font-family:'IBM Plex Sans'">апертура умеренная:<b>е с а ѕ э</b></div>
+    <div class="divider"></div>
+    <div style="font-size:13px;color:var(--muted)">Максимальная цельность с логотипом и одна гарнитура на всё — проще и быстрее для MVP. Минус: для очень длинных текстов Plex чуть механистичнее, апертура умереннее принципа «открытая».</div>
+  </div>
+
+  <!-- TYPE SCALE -->
+  <div class="card">
+    <div class="eyebrow">Шкала размеров — взрослый режим (тело 16px = база)</div>
+    <div class="scale-row"><span class="scale-meta">display · 44 / 1.1 / 600</span><span class="scale-demo" style="font-size:44px;line-height:1.1;font-weight:600;letter-spacing:-.01em">Образование</span></div>
+    <div class="scale-row"><span class="scale-meta">h1 · 32 / 1.2 / 600</span><span class="scale-demo" style="font-size:32px;font-weight:600">Заголовок раздела</span></div>
+    <div class="scale-row"><span class="scale-meta">h2 · 26 / 1.25 / 600</span><span class="scale-demo" style="font-size:26px;font-weight:600">Подзаголовок</span></div>
+    <div class="scale-row"><span class="scale-meta">h3 · 20 / 1.3 / 600</span><span class="scale-demo" style="font-size:20px;font-weight:600">Название карточки</span></div>
+    <div class="scale-row"><span class="scale-meta">lead · 18 / 1.45 / 500</span><span class="scale-demo" style="font-size:18px;font-weight:500">Вводный абзац покрупнее</span></div>
+    <div class="scale-row"><span class="scale-meta">body · 16 / 1.6 / 400</span><span class="scale-demo" style="font-size:16px;line-height:1.6">Основной текст для чтения</span></div>
+    <div class="scale-row"><span class="scale-meta">small · 14 / 1.55 / 400</span><span class="scale-demo" style="font-size:14px">Вторичный текст и подписи</span></div>
+    <div class="scale-row"><span class="scale-meta">caption · 13 / 1.45 / 500</span><span class="scale-demo" style="font-size:13px;font-weight:500">Метаданные, лейблы</span></div>
+    <div class="scale-row"><span class="scale-meta">overline · 12 / 600 / +.06em</span><span class="scale-demo" style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.06em">Надзаголовок</span></div>
+    <div style="font-size:12px;color:var(--muted);margin-top:14px">Интерлиньяж: тело — щедрые 1.6 против усталости; заголовки плотнее 1.1–1.3; мелкое 1.45–1.55.</div>
+  </div>
+
+  <!-- KIDS VS ADULT -->
+  <div class="card">
+    <div class="eyebrow">Детский режим (7–11) против взрослого</div>
+    <div class="cols">
+      <div class="col">
+        <h4>Взрослый / подросток</h4>
+        <div style="font-family:'IBM Plex Sans';font-size:20px;font-weight:600;margin-bottom:8px">Сегодня</div>
+        <div style="font-family:'Golos Text';font-size:16px;line-height:1.6;color:#34302A;margin-bottom:14px">Алгебра в 10:00 с Иваном. Через 5 минут можно присоединиться.</div>
+        <span class="tap" style="font-size:14px;padding:9px 16px">Присоединиться</span>
+      </div>
+      <div class="col">
+        <h4>Младшие классы</h4>
+        <div style="font-family:'IBM Plex Sans';font-size:26px;font-weight:600;margin-bottom:12px">Сегодня</div>
+        <div style="font-family:'Golos Text';font-size:19px;line-height:1.75;color:#34302A;margin-bottom:18px">Алгебра в 10:00 с Иваном. Скоро можно зайти на урок!</div>
+        <span class="tap" style="font-size:18px;padding:14px 22px">Зайти на урок</span>
+      </div>
+    </div>
+    <div style="font-size:12px;color:var(--muted);margin-top:16px">Правила детского режима: база тела 19px (вместо 16), интерлиньяж 1.7–1.8, заголовки крупнее на ступень, тап-цели ≥48px, больше воздуха и отступов, меньше текста на экран.</div>
+  </div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Flamingo — иконки</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Golos+Text:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{--ink:#2A2520;--paper:#FBF8F2;--bg:#EDE7DB;--muted:#6E6456;--line:#E0D8CA;--coral:#D2562E;--coral6:#BE4622;--coral7:#A23A1C}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Golos Text','IBM Plex Sans',system-ui,sans-serif;background:var(--bg);color:var(--ink);padding:40px 24px 64px;line-height:1.55}
+  .wrap{max-width:920px;margin:0 auto}
+  h1.t{font-family:'IBM Plex Sans';font-weight:600;font-size:22px;letter-spacing:-.01em;margin-bottom:6px}
+  .lede{font-size:14px;color:var(--muted);max-width:680px;margin-bottom:32px}
+  .card{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:26px;margin-bottom:22px}
+  .card.rec{border-color:var(--coral);box-shadow:0 0 0 3px #FBEDE6}
+  h2{font-family:'IBM Plex Sans';font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:16px}
+  .rec-tag{display:inline-block;font-size:11px;font-weight:600;color:#fff;background:var(--coral);padding:2px 8px;border-radius:99px;margin-left:8px}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{text-align:left;padding:10px;border-bottom:1px solid #EBE3D5;vertical-align:top}
+  th{font-family:'IBM Plex Sans';font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:600}
+  td.lib{font-weight:600;color:var(--ink);white-space:nowrap}
+  .verdict{font-weight:600}
+  .v-rec{color:var(--coral7)}
+  .iconwrap{color:var(--ink)}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:10px}
+  .itile{display:flex;flex-direction:column;align-items:center;gap:8px;padding:14px 6px;border:1px solid #EFE7D9;border-radius:12px;background:#fff}
+  .ilabel{font-size:11px;color:var(--muted);font-family:'IBM Plex Sans'}
+  .s16{width:16px;height:16px;stroke-width:1.5}
+  .s20{width:20px;height:20px;stroke-width:1.75}
+  .s24{width:24px;height:24px;stroke-width:2}
+  .s32{width:32px;height:32px;stroke-width:2}
+  .s48{width:48px;height:48px;stroke-width:1.75}
+  .sizerow{display:flex;align-items:flex-end;gap:26px;flex-wrap:wrap}
+  .sizecol{display:flex;flex-direction:column;align-items:center;gap:8px}
+  .sizemeta{font-family:'IBM Plex Mono';font-size:11px;color:var(--muted)}
+  .states{display:flex;gap:14px;flex-wrap:wrap}
+  .state{display:flex;align-items:center;gap:8px;padding:10px 14px;border:1px solid #EFE7D9;border-radius:10px;background:#fff;font-size:13px;font-family:'IBM Plex Sans'}
+  .pill-active{background:#FBEDE6;color:var(--coral7);border-color:#F2D2C2}
+  .btn-coral{background:var(--coral6);color:#fff;border-color:var(--coral6)}
+  .kidsrow{display:flex;gap:16px;flex-wrap:wrap;align-items:center}
+  .kidicon{width:56px;height:56px;border-radius:16px;background:#FBEDE6;display:flex;align-items:center;justify-content:center;color:var(--coral6)}
+  .adulticon{width:40px;height:40px;border-radius:10px;background:#EDE7DB;display:flex;align-items:center;justify-content:center;color:var(--ink)}
+  .note{font-size:12px;color:var(--muted);margin-top:14px}
+  .note b{color:var(--ink)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1 class="t">flamingo<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#D2562E;margin-left:5px"></span> &nbsp;иконки</h1>
+  <p class="lede">Линейные иконки, единая толщина, скруглённые концы — спокойно и тепло, без визуального шума. Возрастная адаптация — размером и мягкими подложками, не сменой библиотеки.</p>
+
+  <!-- COMPARISON -->
+  <div class="card">
+    <h2>Сравнение библиотек</h2>
+    <table>
+      <thead><tr><th>Библиотека</th><th>Стиль</th><th>Покрытие · лицензия</th><th>Особенность</th><th>Вердикт</th></tr></thead>
+      <tbody>
+        <tr>
+          <td class="lib">Lucide</td>
+          <td>линейные, сетка 24, штрих 2px, скруглённые концы — чисто и дружелюбно, но не по-детски</td>
+          <td>~1500, ISC; lucide-react</td>
+          <td>один выверенный вес; есть прямо в нашей среде прототипов</td>
+          <td class="verdict v-rec">беру ✓</td>
+        </tr>
+        <tr>
+          <td class="lib">Phosphor</td>
+          <td>дружелюбные, чуть мягче/игривее</td>
+          <td>~9000, MIT; 6 весов (Thin…Fill, Duotone)</td>
+          <td>веса можно крутить под возраст</td>
+          <td class="verdict">риск ухода в «детское»; больше решений</td>
+        </tr>
+        <tr>
+          <td class="lib">Tabler</td>
+          <td>острее, техничнее</td>
+          <td>~5900, MIT; @tabler/icons-react</td>
+          <td>силён для плотных админ-таблиц</td>
+          <td class="verdict">холоднее нашего тёплого тона</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- SPECIMEN -->
+  <div class="card rec">
+    <h2>Набор Lucide для MVP<span class="rec-tag">рекомендую</span></h2>
+    <div class="grid iconwrap">
+      <div class="itile"><i data-lucide="layout-dashboard" class="s24"></i><span class="ilabel">дашборд</span></div>
+      <div class="itile"><i data-lucide="calendar" class="s24"></i><span class="ilabel">расписание</span></div>
+      <div class="itile"><i data-lucide="video" class="s24"></i><span class="ilabel">занятие</span></div>
+      <div class="itile"><i data-lucide="message-circle" class="s24"></i><span class="ilabel">чат</span></div>
+      <div class="itile"><i data-lucide="upload" class="s24"></i><span class="ilabel">сдать ДЗ</span></div>
+      <div class="itile"><i data-lucide="file-text" class="s24"></i><span class="ilabel">материалы</span></div>
+      <div class="itile"><i data-lucide="bar-chart-3" class="s24"></i><span class="ilabel">аналитика</span></div>
+      <div class="itile"><i data-lucide="eye" class="s24"></i><span class="ilabel">внимание CMF</span></div>
+      <div class="itile"><i data-lucide="award" class="s24"></i><span class="ilabel">сертификат</span></div>
+      <div class="itile"><i data-lucide="users" class="s24"></i><span class="ilabel">группа</span></div>
+      <div class="itile"><i data-lucide="book-open" class="s24"></i><span class="ilabel">курс</span></div>
+      <div class="itile"><i data-lucide="graduation-cap" class="s24"></i><span class="ilabel">преподаватель</span></div>
+      <div class="itile"><i data-lucide="bell" class="s24"></i><span class="ilabel">уведомления</span></div>
+      <div class="itile"><i data-lucide="clock" class="s24"></i><span class="ilabel">время</span></div>
+      <div class="itile"><i data-lucide="star" class="s24"></i><span class="ilabel">рейтинг</span></div>
+      <div class="itile"><i data-lucide="settings" class="s24"></i><span class="ilabel">настройки</span></div>
+    </div>
+  </div>
+
+  <!-- SIZES -->
+  <div class="card">
+    <h2>Размеры и толщина штриха</h2>
+    <div class="sizerow iconwrap">
+      <div class="sizecol"><i data-lucide="calendar" class="s16"></i><span class="sizemeta">16 / 1.5px</span><span class="ilabel">в строке</span></div>
+      <div class="sizecol"><i data-lucide="calendar" class="s20"></i><span class="sizemeta">20 / 1.75px</span><span class="ilabel">кнопки</span></div>
+      <div class="sizecol"><i data-lucide="calendar" class="s24"></i><span class="sizemeta">24 / 2px</span><span class="ilabel">база, навигация</span></div>
+      <div class="sizecol"><i data-lucide="calendar" class="s32"></i><span class="sizemeta">32 / 2px</span><span class="ilabel">акцент, пустые экраны</span></div>
+      <div class="sizecol"><i data-lucide="calendar" class="s48"></i><span class="sizemeta">48 / 1.75px</span><span class="ilabel">онбординг, детский</span></div>
+    </div>
+    <p class="note">Чем мельче иконка, тем тоньше штрих — оптическая плотность остаётся ровной. Тап-цель всегда ≥44px (≥48px в детском), даже если сама иконка меньше.</p>
+  </div>
+
+  <!-- COLOR STATES -->
+  <div class="card">
+    <h2>Цветовые состояния</h2>
+    <div class="states">
+      <span class="state iconwrap" style="color:var(--ink)"><i data-lucide="calendar" class="s20"></i>обычная (ink)</span>
+      <span class="state pill-active iconwrap"><i data-lucide="calendar" class="s20"></i>активная (coral-700)</span>
+      <span class="state btn-coral iconwrap" style="color:#fff"><i data-lucide="upload" class="s20"></i>на кнопке (white)</span>
+      <span class="state iconwrap" style="color:#2E6B45"><i data-lucide="check-circle-2" class="s20"></i>успех</span>
+      <span class="state iconwrap" style="color:#A52A20"><i data-lucide="x-circle" class="s20"></i>ошибка</span>
+      <span class="state iconwrap" style="color:#8A5E0E"><i data-lucide="alert-triangle" class="s20"></i>warning</span>
+    </div>
+    <p class="note">По умолчанию иконка цвета текста. Коралл — только активное/интерактивное. Семантические цвета — только для семантических иконок.</p>
+  </div>
+
+  <!-- KIDS -->
+  <div class="card">
+    <h2>Детский режим против взрослого</h2>
+    <div class="kidsrow">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div class="adulticon iconwrap"><i data-lucide="video" class="s20"></i></div>
+        <span style="font-size:13px;color:var(--muted);font-family:'IBM Plex Sans'">взрослый: 20px, нейтральная подложка</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px">
+        <div class="kidicon iconwrap"><i data-lucide="video" class="s32"></i></div>
+        <span style="font-size:13px;color:var(--muted);font-family:'IBM Plex Sans'">детский: 32px, мягкая коралловая подложка</span>
+      </div>
+    </div>
+    <p class="note"><b>Тот же набор Lucide</b> — для младших просто крупнее и в тёплой скруглённой подложке. Не меняем библиотеку и не переходим на залитые «мультяшные» иконки.</p>
+  </div>
+
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.408.0/lucide.min.js"></script>
+<script>if(window.lucide){lucide.createIcons();}</script>
+</body>
+</html>

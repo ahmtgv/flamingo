@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Flamingo — ERD</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'IBM Plex Sans',system-ui,sans-serif;background:#ede7db;color:#2a2520;padding:40px 24px 64px}
+  .wrap{max-width:1200px;margin:0 auto}
+  .logo{font-weight:600;font-size:20px;letter-spacing:-.01em;display:inline-flex;align-items:flex-end;margin-bottom:6px}
+  .logo .d{width:8px;height:8px;border-radius:50%;background:#d2562e;margin-left:5px;margin-bottom:3px}
+  h1{font-size:22px;font-weight:600;letter-spacing:-.01em;margin-bottom:6px}
+  .lede{font-size:14px;color:#6e6456;max-width:720px;margin-bottom:24px}
+  .card{background:#fbf8f2;border:1px solid #e0d8ca;border-radius:16px;padding:24px;box-shadow:0 2px 6px rgba(42,37,32,.06);overflow:auto}
+  .mermaid{min-width:900px}
+  .legend{font-size:12px;color:#8b7f69;margin-top:14px;font-family:'IBM Plex Mono',monospace}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <span class="logo">flamingo<span class="d"></span></span>
+  <h1>Модель данных — ERD</h1>
+  <p class="lede">Сущности и связи MVP на основе user stories этапа 1. Сырые биометрические данные на сервере не хранятся — только агрегаты внимания (см. документ ERD, §6).</p>
+  <div class="card">
+<pre class="mermaid">
+erDiagram
+  USER ||--|| STUDENT_PROFILE : has
+  USER ||--|| TEACHER_PROFILE : has
+  USER ||--|| PARENT_PROFILE : has
+  USER ||--|| ADMIN_PROFILE : has
+  USER ||--o{ INSTITUTION_MEMBERSHIP : member
+  INSTITUTION ||--o{ INSTITUTION_MEMBERSHIP : has
+  USER ||--o{ GUARDIANSHIP : parent_of
+  USER ||--o{ GUARDIANSHIP : child_of
+  TEACHER_PROFILE ||--o{ VERIFICATION_DOCUMENT : submits
+  USER ||--o{ COURSE : owns
+  INSTITUTION ||--o{ COURSE : hosts
+  COURSE ||--o{ SECTION : contains
+  SECTION ||--o{ LESSON : contains
+  LESSON ||--o{ LESSON_SESSION : scheduled_as
+  LESSON ||--o{ MATERIAL : has
+  COURSE ||--o{ ENROLLMENT : has
+  USER ||--o{ ENROLLMENT : enrolls
+  INSTITUTION ||--o{ GROUP : has
+  GROUP ||--o{ GROUP_MEMBERSHIP : has
+  USER ||--o{ GROUP_MEMBERSHIP : in
+  GROUP ||--o{ GROUP_TEACHER : staffed_by
+  USER ||--o{ GROUP_TEACHER : teaches
+  GROUP ||--o{ LESSON_SESSION : targets
+  COURSE ||--o{ HOMEWORK : has
+  LESSON ||--o{ HOMEWORK : has
+  HOMEWORK ||--o{ SUBMISSION : receives
+  USER ||--o{ SUBMISSION : submits
+  SUBMISSION ||--o{ SUBMISSION_FILE : attaches
+  LESSON_SESSION ||--o{ ATTENDANCE : records
+  USER ||--o{ ATTENDANCE : attends
+  COURSE ||--o{ CERTIFICATE : grants
+  USER ||--o{ CERTIFICATE : earns
+  LESSON_SESSION ||--o{ ATTENTION_METRIC : aggregates
+  USER ||--o{ ATTENTION_METRIC : measured
+  USER ||--o| UBP_BACKUP : optional
+  USER ||--o{ RECOMMENDATION : receives
+  ACHIEVEMENT ||--o{ USER_ACHIEVEMENT : awarded
+  USER ||--o{ USER_ACHIEVEMENT : earns
+  USER ||--o{ POINT_EVENT : earns
+  USER ||--o{ REVIEW : receives
+  USER ||--o{ REVIEW : writes
+  USER ||--o{ NOTIFICATION : receives
+  USER ||--o{ NOTIFICATION_PREFERENCE : configures
+  USER {
+    uuid id PK
+    citext email
+    enum role
+    string locale
+  }
+  STUDENT_PROFILE {
+    uuid user_id PK
+    enum age_band
+    string grade_level
+    int points_cached
+  }
+  TEACHER_PROFILE {
+    uuid user_id PK
+    enum verification_status
+    numeric rating_cached
+  }
+  INSTITUTION {
+    uuid id PK
+    string name
+    string subdomain
+    jsonb branding
+  }
+  GUARDIANSHIP {
+    uuid id PK
+    bool consent_152fz
+    enum status
+  }
+  COURSE {
+    uuid id PK
+    string title
+    enum level
+    enum status
+  }
+  SECTION {
+    uuid id PK
+    string title
+    int order
+  }
+  LESSON {
+    uuid id PK
+    int duration_min
+    jsonb options
+    jsonb schedule_rule
+  }
+  LESSON_SESSION {
+    uuid id PK
+    timestamptz start_at
+    enum status
+    string recording_key
+  }
+  MATERIAL {
+    uuid id PK
+    enum type
+    string file_key
+  }
+  ENROLLMENT {
+    uuid id PK
+    enum status
+    int progress_pct
+  }
+  GROUP {
+    uuid id PK
+    string name
+    string level
+  }
+  GROUP_MEMBERSHIP {
+    uuid id PK
+  }
+  GROUP_TEACHER {
+    uuid id PK
+    string subject
+  }
+  HOMEWORK {
+    uuid id PK
+    enum type
+    timestamptz due_at
+    bool allow_redo
+  }
+  SUBMISSION {
+    uuid id PK
+    int attempt
+    enum status
+    int score
+    text comment
+  }
+  SUBMISSION_FILE {
+    uuid id PK
+    string file_key
+  }
+  ATTENDANCE {
+    uuid id PK
+    enum status
+  }
+  CERTIFICATE {
+    uuid id PK
+    uuid verification_uuid
+    string pdf_key
+  }
+  ATTENTION_METRIC {
+    uuid id PK
+    timestamptz bucket_start
+    int avg_attention
+  }
+  UBP_BACKUP {
+    uuid id PK
+    bytea encrypted_blob
+  }
+  RECOMMENDATION {
+    uuid id PK
+    enum kind
+    string title
+  }
+  ACHIEVEMENT {
+    uuid id PK
+    string code
+  }
+  USER_ACHIEVEMENT {
+    uuid id PK
+    timestamptz earned_at
+  }
+  POINT_EVENT {
+    uuid id PK
+    enum reason
+    int amount
+  }
+  REVIEW {
+    uuid id PK
+    int rating
+    enum status
+  }
+  NOTIFICATION {
+    uuid id PK
+    enum type
+    bool is_read
+  }
+  NOTIFICATION_PREFERENCE {
+    uuid id PK
+    enum channel
+    bool enabled
+  }
+</pre>
+  </div>
+  <div class="legend">PK — первичный ключ · ||--o{ — один-ко-многим · ||--|| — один-к-одному · ||--o| — ноль-или-один (опционально)</div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.9.1/mermaid.min.js"></script>
+<script>
+  if (window.mermaid) {
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'base',
+      fontFamily: 'IBM Plex Sans, system-ui, sans-serif',
+      er: { useMaxWidth: false, entityPadding: 10 },
+      themeVariables: {
+        primaryColor: '#FBF8F2',
+        primaryBorderColor: '#CFC3B0',
+        primaryTextColor: '#2A2520',
+        lineColor: '#A23A1C',
+        mainBkg: '#FBEDE6',
+        attributeBackgroundColorOdd: '#FBF8F2',
+        attributeBackgroundColorEven: '#F4EFE6'
+      }
+    });
+  }
+</script>
+</body>
+</html>

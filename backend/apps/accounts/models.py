@@ -1,0 +1,118 @@
+"""Identity models: USER, role profiles, guardianship, verification."""
+import uuid
+
+from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
+from django.db import models
+
+from common.enums import (
+    AgeBand,
+    GuardianshipStatus,
+    Role,
+    VerificationStatus,
+    choices,
+)
+from common.models import BaseModel, TimeStampedModel
+
+from .managers import UserManager
+
+
+class User(AbstractBaseUser, PermissionsMixin):
+    """Single account table. Role-specific data lives in 1:1 profiles."""
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    email = models.EmailField(unique=True)
+    phone = models.CharField(max_length=32, blank=True, default="")
+    role = models.CharField(max_length=16, choices=choices(Role))
+    first_name = models.CharField(max_length=120)
+    last_name = models.CharField(max_length=120)
+    locale = models.CharField(max_length=8, default="ru")  # i18n-ready
+    is_active = models.BooleanField(default=True)
+    is_staff = models.BooleanField(default=False)
+    is_email_verified = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    objects = UserManager()
+
+    USERNAME_FIELD = "email"
+    REQUIRED_FIELDS = ["first_name", "last_name", "role"]
+
+    def __str__(self) -> str:
+        return self.email
+
+
+class StudentProfile(TimeStampedModel):
+    user = models.OneToOneField(
+        User, primary_key=True, related_name="student_profile", on_delete=models.CASCADE
+    )
+    birth_date = models.DateField(null=True, blank=True)
+    age_band = models.CharField(
+        max_length=8, choices=choices(AgeBand), default=AgeBand.TEEN.value
+    )
+    grade_level = models.CharField(max_length=32, blank=True, default="")
+    points_cached = models.PositiveIntegerField(default=0)
+    avatar_key = models.CharField(max_length=512, blank=True, default="")
+    # institution FK is added with the institutions module.
+
+
+class ParentProfile(TimeStampedModel):
+    user = models.OneToOneField(
+        User, primary_key=True, related_name="parent_profile", on_delete=models.CASCADE
+    )
+
+
+class TeacherProfile(TimeStampedModel):
+    user = models.OneToOneField(
+        User, primary_key=True, related_name="teacher_profile", on_delete=models.CASCADE
+    )
+    specialty = models.CharField(max_length=200, blank=True, default="")
+    education = models.TextField(blank=True, default="")
+    experience = models.TextField(blank=True, default="")
+    bio = models.TextField(blank=True, default="")
+    verification_status = models.CharField(
+        max_length=12, choices=choices(VerificationStatus), default=VerificationStatus.PENDING.value
+    )
+    rating_cached = models.DecimalField(max_digits=2, decimal_places=1, null=True, blank=True)
+    avatar_key = models.CharField(max_length=512, blank=True, default="")
+
+
+class AdminProfile(TimeStampedModel):
+    user = models.OneToOneField(
+        User, primary_key=True, related_name="admin_profile", on_delete=models.CASCADE
+    )
+    # institution FK is added with the institutions module.
+
+
+class Guardianship(BaseModel):
+    """Parent <-> child link with 152-FZ consent."""
+
+    parent_user = models.ForeignKey(
+        User, related_name="children_links", on_delete=models.CASCADE
+    )
+    child_user = models.ForeignKey(
+        User, related_name="parent_links", on_delete=models.CASCADE
+    )
+    status = models.CharField(
+        max_length=12, choices=choices(GuardianshipStatus), default=GuardianshipStatus.PENDING.value
+    )
+    consent_152fz = models.BooleanField(default=False)
+    consent_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["parent_user", "child_user"], name="uniq_guardianship"
+            )
+        ]
+
+
+class VerificationDocument(BaseModel):
+    """Teacher diploma/certificate submitted for moderation."""
+
+    teacher_user = models.ForeignKey(
+        User, related_name="verification_documents", on_delete=models.CASCADE
+    )
+    file_key = models.CharField(max_length=512)
+    status = models.CharField(
+        max_length=12, choices=choices(VerificationStatus), default=VerificationStatus.PENDING.value
+    )

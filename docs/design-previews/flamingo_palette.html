@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Flamingo — палитра</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{--ink:#2A2520;--paper:#FBF8F2;--bg:#F4EFE6;--coral:#D2562E;--muted:#6E6456;--line:#E0D8CA}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'IBM Plex Sans',system-ui,sans-serif;background:#EDE7DB;color:var(--ink);padding:40px 24px 64px;line-height:1.55}
+  .wrap{max-width:960px;margin:0 auto}
+  h1{font-weight:600;font-size:22px;letter-spacing:-.01em;margin-bottom:6px}
+  .lede{font-size:14px;color:var(--muted);max-width:680px;margin-bottom:32px}
+  .card{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:24px;margin-bottom:22px}
+  h2{font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:16px}
+  .row{display:flex;flex-wrap:wrap;gap:14px}
+  .sw{width:120px}
+  .chip{height:64px;border-radius:10px;box-shadow:inset 0 0 0 1px rgba(42,37,32,.08)}
+  .hex{font-family:'IBM Plex Mono',monospace;font-size:12px;margin-top:8px;color:var(--ink)}
+  .role{font-size:11px;color:var(--muted);margin-top:2px;line-height:1.35}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{text-align:left;padding:9px 10px;border-bottom:1px solid #EBE3D5}
+  th{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:600}
+  td.r{font-family:'IBM Plex Mono',monospace;font-variant-numeric:tabular-nums}
+  .badge{display:inline-block;font-size:11px;font-weight:600;padding:2px 8px;border-radius:99px;white-space:nowrap}
+  .b-ok{background:#E6F0E8;color:#2E6B45}
+  .b-lg{background:#F7EDD7;color:#8A5E0E}
+  .b-na{background:#EDE7DB;color:#8B7F69}
+  .pair{display:inline-flex;align-items:center;gap:8px}
+  .dotchip{width:14px;height:14px;border-radius:3px;box-shadow:inset 0 0 0 1px rgba(42,37,32,.1)}
+  .note{font-size:12px;color:var(--muted);margin-top:14px}
+  .darkbox{background:#232019;border-radius:12px;padding:24px;display:flex;flex-wrap:wrap;gap:20px;align-items:center}
+  .darkbox .t{color:#F1EBDF;font-size:15px}
+  .darkbox .acc{color:#E8794F;font-weight:600}
+  .btnp{background:#BE4622;color:#fff;font-size:14px;font-weight:600;padding:9px 18px;border-radius:9px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>flamingo<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#D2562E;margin-left:5px;vertical-align:baseline"></span> &nbsp;палитра</h1>
+  <p class="lede">Тёплая база: ни чистого белого, ни чистого чёрного — мягкий контраст для долгого чтения. Светлая тема сейчас, тёмная заложена токенами. Все рабочие пары проверены по WCAG.</p>
+
+  <!-- BRAND -->
+  <div class="card">
+    <h2>Бренд — коралл</h2>
+    <div class="row">
+      <div class="sw"><div class="chip" style="background:#FBEDE6"></div><div class="hex">#FBEDE6</div><div class="role">coral-50 · мягкая заливка</div></div>
+      <div class="sw"><div class="chip" style="background:#F6D8C8"></div><div class="hex">#F6D8C8</div><div class="role">coral-100 · тинт, бейджи</div></div>
+      <div class="sw"><div class="chip" style="background:#E8794F"></div><div class="hex">#E8794F</div><div class="role">coral-400 · акцент тёмной темы</div></div>
+      <div class="sw"><div class="chip" style="background:#D2562E"></div><div class="hex">#D2562E</div><div class="role">coral-500 · бренд-акцент, точка лого</div></div>
+      <div class="sw"><div class="chip" style="background:#BE4622"></div><div class="hex">#BE4622</div><div class="role">coral-600 · заливка кнопок</div></div>
+      <div class="sw"><div class="chip" style="background:#A23A1C"></div><div class="hex">#A23A1C</div><div class="role">coral-700 · текст/ссылки, hover</div></div>
+      <div class="sw"><div class="chip" style="background:#8A3017"></div><div class="hex">#8A3017</div><div class="role">coral-800 · pressed</div></div>
+    </div>
+  </div>
+
+  <!-- NEUTRALS -->
+  <div class="card">
+    <h2>Нейтральная шкала (тёплая)</h2>
+    <div class="row">
+      <div class="sw"><div class="chip" style="background:#FBF8F2"></div><div class="hex">#FBF8F2</div><div class="role">paper · карточки, поверхности</div></div>
+      <div class="sw"><div class="chip" style="background:#F4EFE6"></div><div class="hex">#F4EFE6</div><div class="role">bg · фон страницы</div></div>
+      <div class="sw"><div class="chip" style="background:#EDE7DB"></div><div class="hex">#EDE7DB</div><div class="role">bg-subtle · hover, врезки</div></div>
+      <div class="sw"><div class="chip" style="background:#E0D8CA"></div><div class="hex">#E0D8CA</div><div class="role">border · тонкие разделители</div></div>
+      <div class="sw"><div class="chip" style="background:#CFC3B0"></div><div class="hex">#CFC3B0</div><div class="role">border-strong · явные границы</div></div>
+      <div class="sw"><div class="chip" style="background:#A99D87"></div><div class="hex">#A99D87</div><div class="role">n-400 · disabled</div></div>
+      <div class="sw"><div class="chip" style="background:#8B7F69"></div><div class="hex">#8B7F69</div><div class="role">n-500 · placeholder</div></div>
+      <div class="sw"><div class="chip" style="background:#6E6456"></div><div class="hex">#6E6456</div><div class="role">n-600 · вторичный текст</div></div>
+      <div class="sw"><div class="chip" style="background:#4E473E"></div><div class="hex">#4E473E</div><div class="role">n-700 · сильный вторичный</div></div>
+      <div class="sw"><div class="chip" style="background:#2A2520"></div><div class="hex">#2A2520</div><div class="role">ink · основной текст</div></div>
+    </div>
+  </div>
+
+  <!-- SEMANTIC -->
+  <div class="card">
+    <h2>Семантические</h2>
+    <div class="row">
+      <div class="sw"><div class="chip" style="background:#3F8F5F"></div><div class="hex">#3F8F5F</div><div class="role">success · база (иконка/бордер)</div></div>
+      <div class="sw"><div class="chip" style="background:#2E6B45"></div><div class="hex">#2E6B45</div><div class="role">success-text</div></div>
+      <div class="sw"><div class="chip" style="background:#E6F0E8"></div><div class="hex">#E6F0E8</div><div class="role">success-bg</div></div>
+      <div class="sw"><div class="chip" style="background:#C8881C"></div><div class="hex">#C8881C</div><div class="role">warning · база</div></div>
+      <div class="sw"><div class="chip" style="background:#8A5E0E"></div><div class="hex">#8A5E0E</div><div class="role">warning-text</div></div>
+      <div class="sw"><div class="chip" style="background:#F7EDD7"></div><div class="hex">#F7EDD7</div><div class="role">warning-bg</div></div>
+      <div class="sw"><div class="chip" style="background:#C8392B"></div><div class="hex">#C8392B</div><div class="role">error · база</div></div>
+      <div class="sw"><div class="chip" style="background:#A52A20"></div><div class="hex">#A52A20</div><div class="role">error-text</div></div>
+      <div class="sw"><div class="chip" style="background:#F8E3DF"></div><div class="hex">#F8E3DF</div><div class="role">error-bg</div></div>
+      <div class="sw"><div class="chip" style="background:#2F74A8"></div><div class="hex">#2F74A8</div><div class="role">info · база</div></div>
+      <div class="sw"><div class="chip" style="background:#1F5780"></div><div class="hex">#1F5780</div><div class="role">info-text</div></div>
+      <div class="sw"><div class="chip" style="background:#E1ECF4"></div><div class="hex">#E1ECF4</div><div class="role">info-bg</div></div>
+    </div>
+  </div>
+
+  <!-- CONTRAST TABLE -->
+  <div class="card">
+    <h2>Контраст и соответствие WCAG AA</h2>
+    <table>
+      <thead><tr><th>Пара текст / фон</th><th>Контраст</th><th>Назначение</th><th>Вердикт</th></tr></thead>
+      <tbody>
+        <tr><td><span class="pair"><span class="dotchip" style="background:#2A2520"></span>ink / bg</span></td><td class="r">13.25:1</td><td>основной текст</td><td><span class="badge b-ok">AA</span></td></tr>
+        <tr><td><span class="pair"><span class="dotchip" style="background:#2A2520"></span>ink / paper</span></td><td class="r">14.31:1</td><td>текст на карточке</td><td><span class="badge b-ok">AA</span></td></tr>
+        <tr><td><span class="pair"><span class="dotchip" style="background:#4E473E"></span>n-700 / bg</span></td><td class="r">7.99:1</td><td>сильный вторичный</td><td><span class="badge b-ok">AA</span></td></tr>
+        <tr><td><span class="pair"><span class="dotchip" style="background:#6E6456"></span>n-600 / bg</span></td><td class="r">5.06:1</td><td>вторичный текст</td><td><span class="badge b-ok">AA</span></td></tr>
+        <tr><td><span class="pair"><span class="dotchip" style="background:#8B7F69"></span>n-500 / bg</span></td><td class="r">3.44:1</td><td>placeholder / крупный</td><td><span class="badge b-lg">AA large</span></td></tr>
+        <tr><td><span class="pair"><span class="dotchip" style="background:#A99D87"></span>n-400 / bg</span></td><td class="r">2.33:1</td><td>disabled (исключён)</td><td><span class="badge b-na">n/a</span></td></tr>
+        <tr><td><span class="pair"><span class="dotchip" style="background:#A23A1C"></span>coral-700 / bg</span></td><td class="r">5.81:1</td><td>ссылки, коралл-текст</td><td><span class="badge b-ok">AA</span></td></tr>
+        <tr><td><span class="pair"><span class="dotchip" style="background:#fff"></span>white / coral-600</span></td><td class="r">5.14:1</td><td>текст на кнопке</td><td><span class="badge b-ok">AA</span></td></tr>
+        <tr><td><span class="pair"><span class="dotchip" style="background:#D2562E"></span>coral-500 / bg</span></td><td class="r">3.59:1</td><td>точка/графика (≥3)</td><td><span class="badge b-lg">AA graphic</span></td></tr>
+        <tr><td><span class="pair"><span class="dotchip" style="background:#2E6B45"></span>success-text / bg</span></td><td class="r">5.55:1</td><td>успех — текст</td><td><span class="badge b-ok">AA</span></td></tr>
+        <tr><td><span class="pair"><span class="dotchip" style="background:#2A2520"></span>ink / warning</span></td><td class="r">5.05:1</td><td>тёмный текст на warning</td><td><span class="badge b-ok">AA</span></td></tr>
+        <tr><td><span class="pair"><span class="dotchip" style="background:#A52A20"></span>error-text / bg</span></td><td class="r">6.21:1</td><td>ошибка — текст</td><td><span class="badge b-ok">AA</span></td></tr>
+        <tr><td><span class="pair"><span class="dotchip" style="background:#fff"></span>white / error</span></td><td class="r">5.15:1</td><td>текст на error-кнопке</td><td><span class="badge b-ok">AA</span></td></tr>
+        <tr><td><span class="pair"><span class="dotchip" style="background:#1F5780"></span>info-text / bg</span></td><td class="r">6.71:1</td><td>инфо — текст</td><td><span class="badge b-ok">AA</span></td></tr>
+      </tbody>
+    </table>
+    <p class="note">«AA large» = проходит для текста ≥24px или ≥18.5px полужирного, и для графических объектов (≥3:1). Disabled-состояния освобождены от требований контраста. Тонкие бордеры (#E0D8CA) — декоративные разделители, к ним требование 3:1 не применяется; где граница несёт смысл, берём border-strong или тень.</p>
+  </div>
+
+  <!-- DARK PREVIEW -->
+  <div class="card">
+    <h2>Тёмная тема — заготовка (токены на потом)</h2>
+    <div class="darkbox">
+      <span class="t">основной текст 13.7:1 <span class="acc">коралл-акцент</span></span>
+      <span class="btnp">Кнопка</span>
+      <span style="display:inline-flex;align-items:center;gap:8px;color:#F1EBDF;font-size:13px">flamingo<span style="width:8px;height:8px;border-radius:50%;background:#E8794F"></span></span>
+    </div>
+    <p class="note">Фон #232019, поверхность #2C2820, текст #F1EBDF (13.7:1), акцент coral-400 #E8794F (5.6:1), заливка кнопок coral-600 (бел. текст 5.1:1). Все проходят AA.</p>
+  </div>
+
+</div>
+</body>
+</html>
