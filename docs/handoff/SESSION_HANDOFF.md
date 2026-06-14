@@ -1,7 +1,41 @@
 # Flamingo — Session Handoff
 
-**Date:** 2026-06-14 · **Branch:** `main` · **HEAD:** `725f2de` · working tree clean (197 tracked files).
+**Date:** 2026-06-14 · **Branch:** `main` · **HEAD:** `12a135e` · working tree clean.
 This doc lets a fresh session resume cleanly. It references files by path — read those, don't rely on this doc alone.
+
+---
+
+## 0. Overnight autonomous run — read this first (morning summary)
+Ran the approved overnight queue. **Everything committed on `main`; tree clean; whole repo green**
+(backend **44 pytest** + ruff + black; frontend **build + lint + 22 vitest**). Each task is its own
+revertible commit. Nothing was left broken or half-built.
+
+**Done (in order):**
+1. **Course constructor — reorder + edit-course UI** — `80c561b` (feat) + `794eb2c` (handoff).
+   FE-only; section/lesson ▲▼ reorder + `EditCourseForm`, wired to pre-existing hooks; +6 vitest.
+   Browser-verified: reorder + title edit persist across reload (DB-confirmed). The MVP constructor
+   is now feature-complete.
+2. **Shared `TextArea` primitive** — `b73ed1c` (refactor). Extracted the homework one-off
+   `<textarea>` into `shared/ui/TextArea` on field tokens (cleanup noted in the homework plan).
+3. **Student submit-path test** — `fdd795d` (test). Covers `submitHomework` firing (was only
+   asserting the button rendered); vitest 21 → 22.
+4. **Institutions/admin module — PLAN ONLY** — `12a135e` (docs). Investigation + draft plan in
+   [`INSTITUTIONS_PLAN.md`](INSTITUTIONS_PLAN.md). **Not implemented** (per instructions).
+
+**Blocked — needs owner** (did NOT touch, by design):
+- **Institutions implementation** — needs (a) the **group_id-FK vs CourseGroup-M2M** product
+  decision (ERD §7) and (b) migrations that **alter existing tables** (the reserved cross-app FKs).
+  Both are owner-gated. See [`INSTITUTIONS_PLAN.md`](INSTITUTIONS_PLAN.md) §1/§5/§7 — 5 questions
+  await you there (group shape, REVIEW app placement, B2C `student.institution`, onboarding,
+  subdomain/branding).
+
+**Considered but skipped** (low value / out of scope): trivial empty-state tests (padding);
+anything needing a backend/SDL/migration change, a product decision, payments, SEduM, auth, or
+dependency changes — all explicitly out of bounds for the unattended run.
+
+**Note:** the dev stack (Postgres, uvicorn :8000, vite :5173) is still up and demo users/data
+(`hwteacher@example.com` / `hwstudent@example.com`, course "Алгебра 7 — обновлён") remain in the
+**dev** DB from verification — harmless; clear when convenient.
 
 ---
 
