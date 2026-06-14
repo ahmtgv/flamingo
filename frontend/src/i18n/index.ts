@@ -2,6 +2,7 @@ import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 
 import authRu from './locales/ru/auth.json';
+import cabinetRu from './locales/ru/cabinet.json';
 import commonRu from './locales/ru/common.json';
 
 export const defaultNS = 'common';
@@ -12,13 +13,14 @@ export const resources = {
   ru: {
     common: commonRu,
     auth: authRu,
+    cabinet: cabinetRu,
   },
 } as const;
 
 void i18n.use(initReactI18next).init({
   lng: 'ru',
   fallbackLng: 'ru',
-  ns: ['common', 'auth'],
+  ns: ['common', 'auth', 'cabinet'],
   defaultNS,
   resources,
   interpolation: {

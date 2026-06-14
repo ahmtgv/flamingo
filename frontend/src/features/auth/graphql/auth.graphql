@@ -125,6 +125,18 @@ query Me {
     }
     teacherProfile {
       verificationStatus
+      specialty
+    }
+    parentProfile {
+      children {
+        ageBand
+        gradeLevel
+        user {
+          id
+          firstName
+          lastName
+        }
+      }
     }
   }
 }

@@ -9,7 +9,7 @@ import {
   ResetRequestScreen,
   RoleSelectScreen,
 } from '@/features/auth';
-import { HomeScreen } from '@/features/home';
+import { Cabinet } from '@/features/cabinet';
 import { useSession } from '@/shared/hooks/useSession';
 
 import styles from './app.module.css';
@@ -83,7 +83,7 @@ export function AppRouter() {
           path="/app"
           element={
             <ProtectedRoute>
-              <HomeScreen />
+              <Cabinet />
             </ProtectedRoute>
           }
         />
