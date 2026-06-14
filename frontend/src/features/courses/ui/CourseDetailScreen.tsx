@@ -180,6 +180,16 @@ export function CourseDetailScreen() {
                               {t('manage.deleteLesson')}
                             </Button>
                           )}
+                          {(isOwner || enrollment) && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              icon={<FileText size={15} />}
+                              onClick={() => navigate(`/lessons/${lesson.id}/homework`)}
+                            >
+                              {t('homework:lesson.title')}
+                            </Button>
+                          )}
                         </div>
                         {lesson.materials.length > 0 && (
                           <ul className={styles.materials}>

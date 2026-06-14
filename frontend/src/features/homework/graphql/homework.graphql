@@ -1,0 +1,97 @@
+# Homework operations. Fragment-free and selecting only backend-implemented live
+# fields (see the SDL-vs-live drift note). Homework/Submission names match the SDL.
+
+query LessonHomework($lessonId: ID!) {
+  lessonHomework(lessonId: $lessonId) {
+    id
+    title
+    description
+    type
+    dueAt
+    allowRedo
+    publishedAt
+    submissionStats {
+      total
+      submitted
+      graded
+      late
+    }
+    viewerSubmission {
+      id
+      status
+      score
+      comment
+      attempt
+    }
+  }
+}
+
+query HomeworkSubmissions($homeworkId: ID!) {
+  homeworkSubmissions(homeworkId: $homeworkId) {
+    id
+    attempt
+    status
+    score
+    comment
+    contentText
+    submittedAt
+    student {
+      user {
+        id
+        firstName
+        lastName
+      }
+    }
+  }
+}
+
+query MySubmissions($courseId: ID) {
+  mySubmissions(courseId: $courseId) {
+    id
+    status
+    score
+    comment
+    attempt
+    submittedAt
+    homework {
+      id
+      title
+    }
+  }
+}
+
+mutation CreateHomework($input: HomeworkInput!) {
+  createHomework(input: $input) {
+    id
+    title
+    publishedAt
+  }
+}
+
+mutation PublishHomework($id: ID!) {
+  publishHomework(id: $id) {
+    id
+    publishedAt
+  }
+}
+
+mutation DeleteHomework($id: ID!) {
+  deleteHomework(id: $id)
+}
+
+mutation SubmitHomework($input: SubmitHomeworkInput!) {
+  submitHomework(input: $input) {
+    id
+    status
+    attempt
+  }
+}
+
+mutation GradeSubmission($input: GradeInput!) {
+  gradeSubmission(input: $input) {
+    id
+    status
+    score
+    comment
+  }
+}

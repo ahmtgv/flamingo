@@ -976,6 +976,7 @@ export type Query = {
   institutionMembers: Array<InstitutionMembership>;
   leaderboard: Array<LeaderboardEntry>;
   lesson?: Maybe<Lesson>;
+  lessonHomework: Array<Homework>;
   me?: Maybe<User>;
   myAchievements: Array<UserAchievement>;
   myCourses: Array<Course>;
@@ -1065,6 +1066,11 @@ export type QueryLeaderboardArgs = {
 
 export type QueryLessonArgs = {
   id: Scalars['ID']['input'];
+};
+
+
+export type QueryLessonHomeworkArgs = {
+  lessonId: Scalars['ID']['input'];
 };
 
 
@@ -1578,6 +1584,62 @@ export type DeleteMaterialMutationVariables = Exact<{
 
 
 export type DeleteMaterialMutation = { __typename?: 'Mutation', deleteMaterial: boolean };
+
+export type LessonHomeworkQueryVariables = Exact<{
+  lessonId: Scalars['ID']['input'];
+}>;
+
+
+export type LessonHomeworkQuery = { __typename?: 'Query', lessonHomework: Array<{ __typename?: 'Homework', id: string, title: string, description?: string | null, type: HomeworkType, dueAt?: string | null, allowRedo: boolean, publishedAt?: string | null, submissionStats: { __typename?: 'SubmissionStats', total: number, submitted: number, graded: number, late: number }, viewerSubmission?: { __typename?: 'Submission', id: string, status: SubmissionStatus, score?: number | null, comment?: string | null, attempt: number } | null }> };
+
+export type HomeworkSubmissionsQueryVariables = Exact<{
+  homeworkId: Scalars['ID']['input'];
+}>;
+
+
+export type HomeworkSubmissionsQuery = { __typename?: 'Query', homeworkSubmissions: Array<{ __typename?: 'Submission', id: string, attempt: number, status: SubmissionStatus, score?: number | null, comment?: string | null, contentText?: string | null, submittedAt?: string | null, student: { __typename?: 'StudentProfile', user: { __typename?: 'User', id: string, firstName: string, lastName: string } } }> };
+
+export type MySubmissionsQueryVariables = Exact<{
+  courseId?: InputMaybe<Scalars['ID']['input']>;
+}>;
+
+
+export type MySubmissionsQuery = { __typename?: 'Query', mySubmissions: Array<{ __typename?: 'Submission', id: string, status: SubmissionStatus, score?: number | null, comment?: string | null, attempt: number, submittedAt?: string | null, homework: { __typename?: 'Homework', id: string, title: string } }> };
+
+export type CreateHomeworkMutationVariables = Exact<{
+  input: HomeworkInput;
+}>;
+
+
+export type CreateHomeworkMutation = { __typename?: 'Mutation', createHomework: { __typename?: 'Homework', id: string, title: string, publishedAt?: string | null } };
+
+export type PublishHomeworkMutationVariables = Exact<{
+  id: Scalars['ID']['input'];
+}>;
+
+
+export type PublishHomeworkMutation = { __typename?: 'Mutation', publishHomework: { __typename?: 'Homework', id: string, publishedAt?: string | null } };
+
+export type DeleteHomeworkMutationVariables = Exact<{
+  id: Scalars['ID']['input'];
+}>;
+
+
+export type DeleteHomeworkMutation = { __typename?: 'Mutation', deleteHomework: boolean };
+
+export type SubmitHomeworkMutationVariables = Exact<{
+  input: SubmitHomeworkInput;
+}>;
+
+
+export type SubmitHomeworkMutation = { __typename?: 'Mutation', submitHomework: { __typename?: 'Submission', id: string, status: SubmissionStatus, attempt: number } };
+
+export type GradeSubmissionMutationVariables = Exact<{
+  input: GradeInput;
+}>;
+
+
+export type GradeSubmissionMutation = { __typename?: 'Mutation', gradeSubmission: { __typename?: 'Submission', id: string, status: SubmissionStatus, score?: number | null, comment?: string | null } };
 
 export type MyScheduleQueryVariables = Exact<{
   from: Scalars['DateTime']['input'];
@@ -2646,6 +2708,347 @@ export function useDeleteMaterialMutation(baseOptions?: Apollo.MutationHookOptio
 export type DeleteMaterialMutationHookResult = ReturnType<typeof useDeleteMaterialMutation>;
 export type DeleteMaterialMutationResult = Apollo.MutationResult<DeleteMaterialMutation>;
 export type DeleteMaterialMutationOptions = Apollo.BaseMutationOptions<DeleteMaterialMutation, DeleteMaterialMutationVariables>;
+export const LessonHomeworkDocument = gql`
+    query LessonHomework($lessonId: ID!) {
+  lessonHomework(lessonId: $lessonId) {
+    id
+    title
+    description
+    type
+    dueAt
+    allowRedo
+    publishedAt
+    submissionStats {
+      total
+      submitted
+      graded
+      late
+    }
+    viewerSubmission {
+      id
+      status
+      score
+      comment
+      attempt
+    }
+  }
+}
+    `;
+
+/**
+ * __useLessonHomeworkQuery__
+ *
+ * To run a query within a React component, call `useLessonHomeworkQuery` and pass it any options that fit your needs.
+ * When your component renders, `useLessonHomeworkQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useLessonHomeworkQuery({
+ *   variables: {
+ *      lessonId: // value for 'lessonId'
+ *   },
+ * });
+ */
+export function useLessonHomeworkQuery(baseOptions: Apollo.QueryHookOptions<LessonHomeworkQuery, LessonHomeworkQueryVariables> & ({ variables: LessonHomeworkQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<LessonHomeworkQuery, LessonHomeworkQueryVariables>(LessonHomeworkDocument, options);
+      }
+export function useLessonHomeworkLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<LessonHomeworkQuery, LessonHomeworkQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<LessonHomeworkQuery, LessonHomeworkQueryVariables>(LessonHomeworkDocument, options);
+        }
+// @ts-ignore
+export function useLessonHomeworkSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<LessonHomeworkQuery, LessonHomeworkQueryVariables>): Apollo.UseSuspenseQueryResult<LessonHomeworkQuery, LessonHomeworkQueryVariables>;
+export function useLessonHomeworkSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<LessonHomeworkQuery, LessonHomeworkQueryVariables>): Apollo.UseSuspenseQueryResult<LessonHomeworkQuery | undefined, LessonHomeworkQueryVariables>;
+export function useLessonHomeworkSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<LessonHomeworkQuery, LessonHomeworkQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<LessonHomeworkQuery, LessonHomeworkQueryVariables>(LessonHomeworkDocument, options);
+        }
+export type LessonHomeworkQueryHookResult = ReturnType<typeof useLessonHomeworkQuery>;
+export type LessonHomeworkLazyQueryHookResult = ReturnType<typeof useLessonHomeworkLazyQuery>;
+export type LessonHomeworkSuspenseQueryHookResult = ReturnType<typeof useLessonHomeworkSuspenseQuery>;
+export type LessonHomeworkQueryResult = Apollo.QueryResult<LessonHomeworkQuery, LessonHomeworkQueryVariables>;
+export const HomeworkSubmissionsDocument = gql`
+    query HomeworkSubmissions($homeworkId: ID!) {
+  homeworkSubmissions(homeworkId: $homeworkId) {
+    id
+    attempt
+    status
+    score
+    comment
+    contentText
+    submittedAt
+    student {
+      user {
+        id
+        firstName
+        lastName
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useHomeworkSubmissionsQuery__
+ *
+ * To run a query within a React component, call `useHomeworkSubmissionsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useHomeworkSubmissionsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useHomeworkSubmissionsQuery({
+ *   variables: {
+ *      homeworkId: // value for 'homeworkId'
+ *   },
+ * });
+ */
+export function useHomeworkSubmissionsQuery(baseOptions: Apollo.QueryHookOptions<HomeworkSubmissionsQuery, HomeworkSubmissionsQueryVariables> & ({ variables: HomeworkSubmissionsQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<HomeworkSubmissionsQuery, HomeworkSubmissionsQueryVariables>(HomeworkSubmissionsDocument, options);
+      }
+export function useHomeworkSubmissionsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<HomeworkSubmissionsQuery, HomeworkSubmissionsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<HomeworkSubmissionsQuery, HomeworkSubmissionsQueryVariables>(HomeworkSubmissionsDocument, options);
+        }
+// @ts-ignore
+export function useHomeworkSubmissionsSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<HomeworkSubmissionsQuery, HomeworkSubmissionsQueryVariables>): Apollo.UseSuspenseQueryResult<HomeworkSubmissionsQuery, HomeworkSubmissionsQueryVariables>;
+export function useHomeworkSubmissionsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<HomeworkSubmissionsQuery, HomeworkSubmissionsQueryVariables>): Apollo.UseSuspenseQueryResult<HomeworkSubmissionsQuery | undefined, HomeworkSubmissionsQueryVariables>;
+export function useHomeworkSubmissionsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<HomeworkSubmissionsQuery, HomeworkSubmissionsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<HomeworkSubmissionsQuery, HomeworkSubmissionsQueryVariables>(HomeworkSubmissionsDocument, options);
+        }
+export type HomeworkSubmissionsQueryHookResult = ReturnType<typeof useHomeworkSubmissionsQuery>;
+export type HomeworkSubmissionsLazyQueryHookResult = ReturnType<typeof useHomeworkSubmissionsLazyQuery>;
+export type HomeworkSubmissionsSuspenseQueryHookResult = ReturnType<typeof useHomeworkSubmissionsSuspenseQuery>;
+export type HomeworkSubmissionsQueryResult = Apollo.QueryResult<HomeworkSubmissionsQuery, HomeworkSubmissionsQueryVariables>;
+export const MySubmissionsDocument = gql`
+    query MySubmissions($courseId: ID) {
+  mySubmissions(courseId: $courseId) {
+    id
+    status
+    score
+    comment
+    attempt
+    submittedAt
+    homework {
+      id
+      title
+    }
+  }
+}
+    `;
+
+/**
+ * __useMySubmissionsQuery__
+ *
+ * To run a query within a React component, call `useMySubmissionsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useMySubmissionsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useMySubmissionsQuery({
+ *   variables: {
+ *      courseId: // value for 'courseId'
+ *   },
+ * });
+ */
+export function useMySubmissionsQuery(baseOptions?: Apollo.QueryHookOptions<MySubmissionsQuery, MySubmissionsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<MySubmissionsQuery, MySubmissionsQueryVariables>(MySubmissionsDocument, options);
+      }
+export function useMySubmissionsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<MySubmissionsQuery, MySubmissionsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<MySubmissionsQuery, MySubmissionsQueryVariables>(MySubmissionsDocument, options);
+        }
+// @ts-ignore
+export function useMySubmissionsSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<MySubmissionsQuery, MySubmissionsQueryVariables>): Apollo.UseSuspenseQueryResult<MySubmissionsQuery, MySubmissionsQueryVariables>;
+export function useMySubmissionsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<MySubmissionsQuery, MySubmissionsQueryVariables>): Apollo.UseSuspenseQueryResult<MySubmissionsQuery | undefined, MySubmissionsQueryVariables>;
+export function useMySubmissionsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<MySubmissionsQuery, MySubmissionsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<MySubmissionsQuery, MySubmissionsQueryVariables>(MySubmissionsDocument, options);
+        }
+export type MySubmissionsQueryHookResult = ReturnType<typeof useMySubmissionsQuery>;
+export type MySubmissionsLazyQueryHookResult = ReturnType<typeof useMySubmissionsLazyQuery>;
+export type MySubmissionsSuspenseQueryHookResult = ReturnType<typeof useMySubmissionsSuspenseQuery>;
+export type MySubmissionsQueryResult = Apollo.QueryResult<MySubmissionsQuery, MySubmissionsQueryVariables>;
+export const CreateHomeworkDocument = gql`
+    mutation CreateHomework($input: HomeworkInput!) {
+  createHomework(input: $input) {
+    id
+    title
+    publishedAt
+  }
+}
+    `;
+export type CreateHomeworkMutationFn = Apollo.MutationFunction<CreateHomeworkMutation, CreateHomeworkMutationVariables>;
+
+/**
+ * __useCreateHomeworkMutation__
+ *
+ * To run a mutation, you first call `useCreateHomeworkMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreateHomeworkMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [createHomeworkMutation, { data, loading, error }] = useCreateHomeworkMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useCreateHomeworkMutation(baseOptions?: Apollo.MutationHookOptions<CreateHomeworkMutation, CreateHomeworkMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<CreateHomeworkMutation, CreateHomeworkMutationVariables>(CreateHomeworkDocument, options);
+      }
+export type CreateHomeworkMutationHookResult = ReturnType<typeof useCreateHomeworkMutation>;
+export type CreateHomeworkMutationResult = Apollo.MutationResult<CreateHomeworkMutation>;
+export type CreateHomeworkMutationOptions = Apollo.BaseMutationOptions<CreateHomeworkMutation, CreateHomeworkMutationVariables>;
+export const PublishHomeworkDocument = gql`
+    mutation PublishHomework($id: ID!) {
+  publishHomework(id: $id) {
+    id
+    publishedAt
+  }
+}
+    `;
+export type PublishHomeworkMutationFn = Apollo.MutationFunction<PublishHomeworkMutation, PublishHomeworkMutationVariables>;
+
+/**
+ * __usePublishHomeworkMutation__
+ *
+ * To run a mutation, you first call `usePublishHomeworkMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `usePublishHomeworkMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [publishHomeworkMutation, { data, loading, error }] = usePublishHomeworkMutation({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function usePublishHomeworkMutation(baseOptions?: Apollo.MutationHookOptions<PublishHomeworkMutation, PublishHomeworkMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<PublishHomeworkMutation, PublishHomeworkMutationVariables>(PublishHomeworkDocument, options);
+      }
+export type PublishHomeworkMutationHookResult = ReturnType<typeof usePublishHomeworkMutation>;
+export type PublishHomeworkMutationResult = Apollo.MutationResult<PublishHomeworkMutation>;
+export type PublishHomeworkMutationOptions = Apollo.BaseMutationOptions<PublishHomeworkMutation, PublishHomeworkMutationVariables>;
+export const DeleteHomeworkDocument = gql`
+    mutation DeleteHomework($id: ID!) {
+  deleteHomework(id: $id)
+}
+    `;
+export type DeleteHomeworkMutationFn = Apollo.MutationFunction<DeleteHomeworkMutation, DeleteHomeworkMutationVariables>;
+
+/**
+ * __useDeleteHomeworkMutation__
+ *
+ * To run a mutation, you first call `useDeleteHomeworkMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDeleteHomeworkMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [deleteHomeworkMutation, { data, loading, error }] = useDeleteHomeworkMutation({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useDeleteHomeworkMutation(baseOptions?: Apollo.MutationHookOptions<DeleteHomeworkMutation, DeleteHomeworkMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<DeleteHomeworkMutation, DeleteHomeworkMutationVariables>(DeleteHomeworkDocument, options);
+      }
+export type DeleteHomeworkMutationHookResult = ReturnType<typeof useDeleteHomeworkMutation>;
+export type DeleteHomeworkMutationResult = Apollo.MutationResult<DeleteHomeworkMutation>;
+export type DeleteHomeworkMutationOptions = Apollo.BaseMutationOptions<DeleteHomeworkMutation, DeleteHomeworkMutationVariables>;
+export const SubmitHomeworkDocument = gql`
+    mutation SubmitHomework($input: SubmitHomeworkInput!) {
+  submitHomework(input: $input) {
+    id
+    status
+    attempt
+  }
+}
+    `;
+export type SubmitHomeworkMutationFn = Apollo.MutationFunction<SubmitHomeworkMutation, SubmitHomeworkMutationVariables>;
+
+/**
+ * __useSubmitHomeworkMutation__
+ *
+ * To run a mutation, you first call `useSubmitHomeworkMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useSubmitHomeworkMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [submitHomeworkMutation, { data, loading, error }] = useSubmitHomeworkMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useSubmitHomeworkMutation(baseOptions?: Apollo.MutationHookOptions<SubmitHomeworkMutation, SubmitHomeworkMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<SubmitHomeworkMutation, SubmitHomeworkMutationVariables>(SubmitHomeworkDocument, options);
+      }
+export type SubmitHomeworkMutationHookResult = ReturnType<typeof useSubmitHomeworkMutation>;
+export type SubmitHomeworkMutationResult = Apollo.MutationResult<SubmitHomeworkMutation>;
+export type SubmitHomeworkMutationOptions = Apollo.BaseMutationOptions<SubmitHomeworkMutation, SubmitHomeworkMutationVariables>;
+export const GradeSubmissionDocument = gql`
+    mutation GradeSubmission($input: GradeInput!) {
+  gradeSubmission(input: $input) {
+    id
+    status
+    score
+    comment
+  }
+}
+    `;
+export type GradeSubmissionMutationFn = Apollo.MutationFunction<GradeSubmissionMutation, GradeSubmissionMutationVariables>;
+
+/**
+ * __useGradeSubmissionMutation__
+ *
+ * To run a mutation, you first call `useGradeSubmissionMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useGradeSubmissionMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [gradeSubmissionMutation, { data, loading, error }] = useGradeSubmissionMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useGradeSubmissionMutation(baseOptions?: Apollo.MutationHookOptions<GradeSubmissionMutation, GradeSubmissionMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<GradeSubmissionMutation, GradeSubmissionMutationVariables>(GradeSubmissionDocument, options);
+      }
+export type GradeSubmissionMutationHookResult = ReturnType<typeof useGradeSubmissionMutation>;
+export type GradeSubmissionMutationResult = Apollo.MutationResult<GradeSubmissionMutation>;
+export type GradeSubmissionMutationOptions = Apollo.BaseMutationOptions<GradeSubmissionMutation, GradeSubmissionMutationVariables>;
 export const MyScheduleDocument = gql`
     query MySchedule($from: DateTime!, $to: DateTime!) {
   mySchedule(from: $from, to: $to) {

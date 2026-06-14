@@ -11,6 +11,7 @@ import {
 } from '@/features/auth';
 import { Cabinet } from '@/features/cabinet';
 import { CatalogScreen, CourseDetailScreen, CreateCourseScreen } from '@/features/courses';
+import { LessonHomeworkScreen, StudentHomeworkScreen } from '@/features/homework';
 import { ScheduleScreen } from '@/features/schedule';
 import { useSession } from '@/shared/hooks/useSession';
 
@@ -118,6 +119,22 @@ export function AppRouter() {
           element={
             <ProtectedRoute>
               <ScheduleScreen />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/homework"
+          element={
+            <ProtectedRoute>
+              <StudentHomeworkScreen />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/lessons/:lessonId/homework"
+          element={
+            <ProtectedRoute>
+              <LessonHomeworkScreen />
             </ProtectedRoute>
           }
         />
