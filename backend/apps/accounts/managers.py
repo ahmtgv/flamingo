@@ -1,4 +1,5 @@
 """Custom user manager (email is the login, normalised to lowercase)."""
+
 from django.contrib.auth.base_user import BaseUserManager
 
 

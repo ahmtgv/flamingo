@@ -1,12 +1,12 @@
 """GraphQL-layer tests: execute operations through the schema."""
+
 from types import SimpleNamespace
 
 import pytest
 from django.contrib.auth.models import AnonymousUser
 
-from common.auth import authenticate_request
-
 from api.schema import schema
+from common.auth import authenticate_request
 
 pytestmark = pytest.mark.django_db
 

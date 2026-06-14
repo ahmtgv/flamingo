@@ -1,12 +1,13 @@
 """Service-level tests for the accounts domain."""
+
 from datetime import date
 
 import pytest
 
-from common.enums import AgeBand, GuardianshipStatus, Role
-
 from apps.accounts import services
 from apps.accounts.models import Guardianship, StudentProfile, TeacherProfile, User
+from common.enums import AgeBand, GuardianshipStatus, Role
+from common.exceptions import AuthError, PermissionDenied, ValidationError
 
 pytestmark = pytest.mark.django_db
 
@@ -53,20 +54,29 @@ def test_register_teacher_creates_teacher_profile():
 
 def test_duplicate_email_rejected():
     services.register_user(
-        email="dup@example.com", password="strongpass1!",
-        first_name="A", last_name="B", role=Role.PARENT,
+        email="dup@example.com",
+        password="strongpass1!",
+        first_name="A",
+        last_name="B",
+        role=Role.PARENT,
     )
-    with pytest.raises(Exception):
+    with pytest.raises(ValidationError):
         services.register_user(
-            email="DUP@example.com", password="strongpass1!",
-            first_name="A", last_name="B", role=Role.PARENT,
+            email="DUP@example.com",
+            password="strongpass1!",
+            first_name="A",
+            last_name="B",
+            role=Role.PARENT,
         )
 
 
 def test_login_returns_token_pair():
     services.register_user(
-        email="login@example.com", password="strongpass1!",
-        first_name="A", last_name="B", role=Role.PARENT,
+        email="login@example.com",
+        password="strongpass1!",
+        first_name="A",
+        last_name="B",
+        role=Role.PARENT,
     )
     user, tokens = services.login(email="login@example.com", password="strongpass1!")
     assert tokens["token"] and tokens["refresh_token"]
@@ -74,17 +84,23 @@ def test_login_returns_token_pair():
 
 def test_login_wrong_password_fails():
     services.register_user(
-        email="login2@example.com", password="strongpass1!",
-        first_name="A", last_name="B", role=Role.PARENT,
+        email="login2@example.com",
+        password="strongpass1!",
+        first_name="A",
+        last_name="B",
+        role=Role.PARENT,
     )
-    with pytest.raises(Exception):
+    with pytest.raises(AuthError):
         services.login(email="login2@example.com", password="wrong")
 
 
 def test_add_child_creates_guardianship_with_consent():
     parent = services.register_user(
-        email="parent@example.com", password="strongpass1!",
-        first_name="P", last_name="A", role=Role.PARENT,
+        email="parent@example.com",
+        password="strongpass1!",
+        first_name="P",
+        last_name="A",
+        role=Role.PARENT,
     )
     link = services.add_child(
         parent,
@@ -103,8 +119,11 @@ def test_add_child_creates_guardianship_with_consent():
 
 def test_non_parent_cannot_add_child():
     teacher = services.register_user(
-        email="nt@example.com", password="strongpass1!",
-        first_name="T", last_name="A", role=Role.TEACHER,
+        email="nt@example.com",
+        password="strongpass1!",
+        first_name="T",
+        last_name="A",
+        role=Role.TEACHER,
     )
-    with pytest.raises(Exception):
+    with pytest.raises(PermissionDenied):
         services.add_child(teacher, first_name="X", last_name="Y", consent_152fz=True)

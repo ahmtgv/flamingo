@@ -1,4 +1,5 @@
 """Identity models: USER, role profiles, guardianship, verification."""
+
 import uuid
 
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
@@ -46,9 +47,7 @@ class StudentProfile(TimeStampedModel):
         User, primary_key=True, related_name="student_profile", on_delete=models.CASCADE
     )
     birth_date = models.DateField(null=True, blank=True)
-    age_band = models.CharField(
-        max_length=8, choices=choices(AgeBand), default=AgeBand.TEEN.value
-    )
+    age_band = models.CharField(max_length=8, choices=choices(AgeBand), default=AgeBand.TEEN.value)
     grade_level = models.CharField(max_length=32, blank=True, default="")
     points_cached = models.PositiveIntegerField(default=0)
     avatar_key = models.CharField(max_length=512, blank=True, default="")
@@ -86,12 +85,8 @@ class AdminProfile(TimeStampedModel):
 class Guardianship(BaseModel):
     """Parent <-> child link with 152-FZ consent."""
 
-    parent_user = models.ForeignKey(
-        User, related_name="children_links", on_delete=models.CASCADE
-    )
-    child_user = models.ForeignKey(
-        User, related_name="parent_links", on_delete=models.CASCADE
-    )
+    parent_user = models.ForeignKey(User, related_name="children_links", on_delete=models.CASCADE)
+    child_user = models.ForeignKey(User, related_name="parent_links", on_delete=models.CASCADE)
     status = models.CharField(
         max_length=12, choices=choices(GuardianshipStatus), default=GuardianshipStatus.PENDING.value
     )
@@ -100,9 +95,7 @@ class Guardianship(BaseModel):
 
     class Meta:
         constraints = [
-            models.UniqueConstraint(
-                fields=["parent_user", "child_user"], name="uniq_guardianship"
-            )
+            models.UniqueConstraint(fields=["parent_user", "child_user"], name="uniq_guardianship")
         ]
 
 

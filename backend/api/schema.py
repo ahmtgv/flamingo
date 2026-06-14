@@ -3,6 +3,7 @@ composed here. As modules land (courses, scheduling, ...), add their mixins and
 the Subscription type. Keep `docs/flamingo_schema.graphql` in sync via
 `python manage.py export_schema api.schema`.
 """
+
 import strawberry
 
 from apps.accounts.graphql.mutations import AccountsMutation

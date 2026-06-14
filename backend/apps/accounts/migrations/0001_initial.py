@@ -12,122 +12,278 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('auth', '0012_alter_user_first_name_max_length'),
+        ("auth", "0012_alter_user_first_name_max_length"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='User',
+            name="User",
             fields=[
-                ('password', models.CharField(max_length=128, verbose_name='password')),
-                ('last_login', models.DateTimeField(blank=True, null=True, verbose_name='last login')),
-                ('is_superuser', models.BooleanField(default=False, help_text='Designates that this user has all permissions without explicitly assigning them.', verbose_name='superuser status')),
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('email', models.EmailField(max_length=254, unique=True)),
-                ('phone', models.CharField(blank=True, default='', max_length=32)),
-                ('role', models.CharField(choices=[('student', 'STUDENT'), ('parent', 'PARENT'), ('teacher', 'TEACHER'), ('admin', 'ADMIN')], max_length=16)),
-                ('first_name', models.CharField(max_length=120)),
-                ('last_name', models.CharField(max_length=120)),
-                ('locale', models.CharField(default='ru', max_length=8)),
-                ('is_active', models.BooleanField(default=True)),
-                ('is_staff', models.BooleanField(default=False)),
-                ('is_email_verified', models.BooleanField(default=False)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('groups', models.ManyToManyField(blank=True, help_text='The groups this user belongs to. A user will get all permissions granted to each of their groups.', related_name='user_set', related_query_name='user', to='auth.group', verbose_name='groups')),
-                ('user_permissions', models.ManyToManyField(blank=True, help_text='Specific permissions for this user.', related_name='user_set', related_query_name='user', to='auth.permission', verbose_name='user permissions')),
+                ("password", models.CharField(max_length=128, verbose_name="password")),
+                (
+                    "last_login",
+                    models.DateTimeField(blank=True, null=True, verbose_name="last login"),
+                ),
+                (
+                    "is_superuser",
+                    models.BooleanField(
+                        default=False,
+                        help_text="Designates that this user has all permissions without explicitly assigning them.",
+                        verbose_name="superuser status",
+                    ),
+                ),
+                (
+                    "id",
+                    models.UUIDField(
+                        default=uuid.uuid4, editable=False, primary_key=True, serialize=False
+                    ),
+                ),
+                ("email", models.EmailField(max_length=254, unique=True)),
+                ("phone", models.CharField(blank=True, default="", max_length=32)),
+                (
+                    "role",
+                    models.CharField(
+                        choices=[
+                            ("student", "STUDENT"),
+                            ("parent", "PARENT"),
+                            ("teacher", "TEACHER"),
+                            ("admin", "ADMIN"),
+                        ],
+                        max_length=16,
+                    ),
+                ),
+                ("first_name", models.CharField(max_length=120)),
+                ("last_name", models.CharField(max_length=120)),
+                ("locale", models.CharField(default="ru", max_length=8)),
+                ("is_active", models.BooleanField(default=True)),
+                ("is_staff", models.BooleanField(default=False)),
+                ("is_email_verified", models.BooleanField(default=False)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "groups",
+                    models.ManyToManyField(
+                        blank=True,
+                        help_text="The groups this user belongs to. A user will get all permissions granted to each of their groups.",
+                        related_name="user_set",
+                        related_query_name="user",
+                        to="auth.group",
+                        verbose_name="groups",
+                    ),
+                ),
+                (
+                    "user_permissions",
+                    models.ManyToManyField(
+                        blank=True,
+                        help_text="Specific permissions for this user.",
+                        related_name="user_set",
+                        related_query_name="user",
+                        to="auth.permission",
+                        verbose_name="user permissions",
+                    ),
+                ),
             ],
             options={
-                'abstract': False,
+                "abstract": False,
             },
             managers=[
-                ('objects', apps.accounts.managers.UserManager()),
+                ("objects", apps.accounts.managers.UserManager()),
             ],
         ),
         migrations.CreateModel(
-            name='AdminProfile',
+            name="AdminProfile",
             fields=[
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('user', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, primary_key=True, related_name='admin_profile', serialize=False, to=settings.AUTH_USER_MODEL)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "user",
+                    models.OneToOneField(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        primary_key=True,
+                        related_name="admin_profile",
+                        serialize=False,
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'abstract': False,
+                "abstract": False,
             },
         ),
         migrations.CreateModel(
-            name='ParentProfile',
+            name="ParentProfile",
             fields=[
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('user', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, primary_key=True, related_name='parent_profile', serialize=False, to=settings.AUTH_USER_MODEL)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "user",
+                    models.OneToOneField(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        primary_key=True,
+                        related_name="parent_profile",
+                        serialize=False,
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'abstract': False,
+                "abstract": False,
             },
         ),
         migrations.CreateModel(
-            name='StudentProfile',
+            name="StudentProfile",
             fields=[
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('user', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, primary_key=True, related_name='student_profile', serialize=False, to=settings.AUTH_USER_MODEL)),
-                ('birth_date', models.DateField(blank=True, null=True)),
-                ('age_band', models.CharField(choices=[('junior', 'JUNIOR'), ('teen', 'TEEN'), ('adult', 'ADULT')], default='teen', max_length=8)),
-                ('grade_level', models.CharField(blank=True, default='', max_length=32)),
-                ('points_cached', models.PositiveIntegerField(default=0)),
-                ('avatar_key', models.CharField(blank=True, default='', max_length=512)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "user",
+                    models.OneToOneField(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        primary_key=True,
+                        related_name="student_profile",
+                        serialize=False,
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                ("birth_date", models.DateField(blank=True, null=True)),
+                (
+                    "age_band",
+                    models.CharField(
+                        choices=[("junior", "JUNIOR"), ("teen", "TEEN"), ("adult", "ADULT")],
+                        default="teen",
+                        max_length=8,
+                    ),
+                ),
+                ("grade_level", models.CharField(blank=True, default="", max_length=32)),
+                ("points_cached", models.PositiveIntegerField(default=0)),
+                ("avatar_key", models.CharField(blank=True, default="", max_length=512)),
             ],
             options={
-                'abstract': False,
+                "abstract": False,
             },
         ),
         migrations.CreateModel(
-            name='TeacherProfile',
+            name="TeacherProfile",
             fields=[
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('user', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, primary_key=True, related_name='teacher_profile', serialize=False, to=settings.AUTH_USER_MODEL)),
-                ('specialty', models.CharField(blank=True, default='', max_length=200)),
-                ('education', models.TextField(blank=True, default='')),
-                ('experience', models.TextField(blank=True, default='')),
-                ('bio', models.TextField(blank=True, default='')),
-                ('verification_status', models.CharField(choices=[('pending', 'PENDING'), ('approved', 'APPROVED'), ('rejected', 'REJECTED')], default='pending', max_length=12)),
-                ('rating_cached', models.DecimalField(blank=True, decimal_places=1, max_digits=2, null=True)),
-                ('avatar_key', models.CharField(blank=True, default='', max_length=512)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "user",
+                    models.OneToOneField(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        primary_key=True,
+                        related_name="teacher_profile",
+                        serialize=False,
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                ("specialty", models.CharField(blank=True, default="", max_length=200)),
+                ("education", models.TextField(blank=True, default="")),
+                ("experience", models.TextField(blank=True, default="")),
+                ("bio", models.TextField(blank=True, default="")),
+                (
+                    "verification_status",
+                    models.CharField(
+                        choices=[
+                            ("pending", "PENDING"),
+                            ("approved", "APPROVED"),
+                            ("rejected", "REJECTED"),
+                        ],
+                        default="pending",
+                        max_length=12,
+                    ),
+                ),
+                (
+                    "rating_cached",
+                    models.DecimalField(blank=True, decimal_places=1, max_digits=2, null=True),
+                ),
+                ("avatar_key", models.CharField(blank=True, default="", max_length=512)),
             ],
             options={
-                'abstract': False,
+                "abstract": False,
             },
         ),
         migrations.CreateModel(
-            name='VerificationDocument',
+            name="VerificationDocument",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('file_key', models.CharField(max_length=512)),
-                ('status', models.CharField(choices=[('pending', 'PENDING'), ('approved', 'APPROVED'), ('rejected', 'REJECTED')], default='pending', max_length=12)),
-                ('teacher_user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='verification_documents', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.UUIDField(
+                        default=uuid.uuid4, editable=False, primary_key=True, serialize=False
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                ("file_key", models.CharField(max_length=512)),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[
+                            ("pending", "PENDING"),
+                            ("approved", "APPROVED"),
+                            ("rejected", "REJECTED"),
+                        ],
+                        default="pending",
+                        max_length=12,
+                    ),
+                ),
+                (
+                    "teacher_user",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="verification_documents",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'abstract': False,
+                "abstract": False,
             },
         ),
         migrations.CreateModel(
-            name='Guardianship',
+            name="Guardianship",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('status', models.CharField(choices=[('pending', 'PENDING'), ('active', 'ACTIVE')], default='pending', max_length=12)),
-                ('consent_152fz', models.BooleanField(default=False)),
-                ('consent_at', models.DateTimeField(blank=True, null=True)),
-                ('child_user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='parent_links', to=settings.AUTH_USER_MODEL)),
-                ('parent_user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='children_links', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.UUIDField(
+                        default=uuid.uuid4, editable=False, primary_key=True, serialize=False
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[("pending", "PENDING"), ("active", "ACTIVE")],
+                        default="pending",
+                        max_length=12,
+                    ),
+                ),
+                ("consent_152fz", models.BooleanField(default=False)),
+                ("consent_at", models.DateTimeField(blank=True, null=True)),
+                (
+                    "child_user",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="parent_links",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "parent_user",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="children_links",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'constraints': [models.UniqueConstraint(fields=('parent_user', 'child_user'), name='uniq_guardianship')],
+                "constraints": [
+                    models.UniqueConstraint(
+                        fields=("parent_user", "child_user"), name="uniq_guardianship"
+                    )
+                ],
             },
         ),
     ]

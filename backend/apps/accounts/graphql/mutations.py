@@ -1,31 +1,30 @@
 """Accounts mutations. Inputs are mapped to thin service calls."""
+
 from __future__ import annotations
 
 import datetime as dt
-from typing import Optional
 
 import strawberry
 
+from apps.accounts import services
 from common.auth import issue_tokens, require_user
 from common.enums import Role
-
-from apps.accounts import services
 
 from .types import AuthPayload, GuardianshipType, VerificationDocumentType
 
 
 @strawberry.input
 class StudentInfoInput:
-    birth_date: Optional[dt.date] = None
-    grade_level: Optional[str] = None
-    parent_email: Optional[str] = None
+    birth_date: dt.date | None = None
+    grade_level: str | None = None
+    parent_email: str | None = None
 
 
 @strawberry.input
 class TeacherInfoInput:
-    specialty: Optional[str] = None
-    education: Optional[str] = None
-    experience: Optional[str] = None
+    specialty: str | None = None
+    education: str | None = None
+    experience: str | None = None
 
 
 @strawberry.input
@@ -36,8 +35,8 @@ class RegisterUserInput:
     last_name: str
     role: Role
     locale: str = "ru"
-    student: Optional[StudentInfoInput] = None
-    teacher: Optional[TeacherInfoInput] = None
+    student: StudentInfoInput | None = None
+    teacher: TeacherInfoInput | None = None
 
 
 @strawberry.input
@@ -45,9 +44,9 @@ class AddChildInput:
     first_name: str
     last_name: str
     consent_152fz: bool
-    grade_level: Optional[str] = None
-    birth_date: Optional[dt.date] = None
-    child_email: Optional[str] = None
+    grade_level: str | None = None
+    birth_date: dt.date | None = None
+    child_email: str | None = None
 
 
 @strawberry.type
@@ -116,11 +115,15 @@ class AccountsMutation:
         )
 
     @strawberry.mutation
-    def respond_guardianship(self, info: strawberry.Info, id: strawberry.ID, accept: bool) -> GuardianshipType:
+    def respond_guardianship(
+        self, info: strawberry.Info, id: strawberry.ID, accept: bool
+    ) -> GuardianshipType:
         user = require_user(info)
         return services.respond_guardianship(user, id, accept)
 
     @strawberry.mutation
-    def submit_verification_document(self, info: strawberry.Info, file_key: str) -> VerificationDocumentType:
+    def submit_verification_document(
+        self, info: strawberry.Info, file_key: str
+    ) -> VerificationDocumentType:
         user = require_user(info)
         return services.submit_verification_document(user, file_key)

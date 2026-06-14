@@ -1,10 +1,10 @@
 """Business logic for the accounts domain. Resolvers stay thin and call these."""
+
 from __future__ import annotations
 
 import logging
 import secrets
 from datetime import date
-from typing import Optional
 
 from django.contrib.auth import authenticate
 from django.core import signing
@@ -32,12 +32,14 @@ _RESET_SALT = "accounts.password-reset"
 
 
 # --- helpers ----------------------------------------------------------------
-def compute_age_band(birth_date: Optional[date]) -> AgeBand:
+def compute_age_band(birth_date: date | None) -> AgeBand:
     if not birth_date:
         return AgeBand.TEEN
     today = date.today()
-    age = today.year - birth_date.year - (
-        (today.month, today.day) < (birth_date.month, birth_date.day)
+    age = (
+        today.year
+        - birth_date.year
+        - ((today.month, today.day) < (birth_date.month, birth_date.day))
     )
     if age < 12:
         return AgeBand.JUNIOR
@@ -75,12 +77,12 @@ def register_user(
     last_name: str,
     role,
     locale: str = "ru",
-    birth_date: Optional[date] = None,
-    grade_level: Optional[str] = None,
-    parent_email: Optional[str] = None,
-    specialty: Optional[str] = None,
-    education: Optional[str] = None,
-    experience: Optional[str] = None,
+    birth_date: date | None = None,
+    grade_level: str | None = None,
+    parent_email: str | None = None,
+    specialty: str | None = None,
+    education: str | None = None,
+    experience: str | None = None,
 ) -> User:
     role = _coerce_role(role)
     if User.objects.filter(email=email.lower()).exists():
@@ -146,9 +148,9 @@ def add_child(
     *,
     first_name: str,
     last_name: str,
-    grade_level: Optional[str] = None,
-    birth_date: Optional[date] = None,
-    child_email: Optional[str] = None,
+    grade_level: str | None = None,
+    birth_date: date | None = None,
+    child_email: str | None = None,
     consent_152fz: bool = False,
 ) -> Guardianship:
     if parent.role != Role.PARENT.value:

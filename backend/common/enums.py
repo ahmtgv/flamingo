@@ -4,6 +4,7 @@ Each enum is a plain ``Enum`` decorated for GraphQL (`@strawberry.enum`) and
 reused as Django field choices via :func:`choices`. The DB stores the member
 *value*; GraphQL exposes the member *name* (UPPER_SNAKE).
 """
+
 from enum import Enum
 
 import strawberry

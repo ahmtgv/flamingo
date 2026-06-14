@@ -1,4 +1,5 @@
 """Attaches request.user from a JWT bearer token (or AnonymousUser)."""
+
 from django.contrib.auth.models import AnonymousUser
 from django.utils.functional import SimpleLazyObject
 
@@ -10,7 +11,5 @@ class JWTAuthMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
-        request.user = SimpleLazyObject(
-            lambda: authenticate_request(request) or AnonymousUser()
-        )
+        request.user = SimpleLazyObject(lambda: authenticate_request(request) or AnonymousUser())
         return self.get_response(request)

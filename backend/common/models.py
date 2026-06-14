@@ -1,4 +1,5 @@
 """Shared abstract models. Every domain model builds on these."""
+
 import uuid
 
 from django.db import models

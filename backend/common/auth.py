@@ -1,8 +1,9 @@
 """JWT issuing/decoding and request authentication helpers."""
+
 from __future__ import annotations
 
 import datetime as dt
-from typing import Any, Optional
+from typing import Any
 
 import jwt
 from django.conf import settings
@@ -21,7 +22,7 @@ def _ttl_refresh() -> dt.timedelta:
 
 
 def _encode(user_id: Any, token_type: str, ttl: dt.timedelta) -> str:
-    now = dt.datetime.now(dt.timezone.utc)
+    now = dt.datetime.now(dt.UTC)
     payload = {"sub": str(user_id), "type": token_type, "iat": now, "exp": now + ttl}
     return jwt.encode(payload, settings.SECRET_KEY, algorithm=ALGORITHM)
 
@@ -41,7 +42,7 @@ def issue_tokens(user) -> dict[str, str]:
     }
 
 
-def decode_token(token: str, expected_type: Optional[str] = None) -> dict:
+def decode_token(token: str, expected_type: str | None = None) -> dict:
     try:
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[ALGORITHM])
     except jwt.ExpiredSignatureError as exc:

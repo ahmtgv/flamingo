@@ -1,13 +1,12 @@
 """GraphQL types for the accounts domain (strawberry-django)."""
-from __future__ import annotations
 
-import datetime as dt
-from typing import List, Optional
+from __future__ import annotations
 
 import strawberry
 import strawberry_django
 from strawberry import auto
 
+from apps.accounts import models
 from common.enums import (
     AgeBand,
     GuardianshipStatus,
@@ -15,12 +14,10 @@ from common.enums import (
     VerificationStatus,
 )
 
-from apps.accounts import models
-
 
 @strawberry_django.type(models.StudentProfile)
 class StudentProfileType:
-    user: "UserType"
+    user: UserType
     birth_date: auto
     grade_level: auto
 
@@ -35,7 +32,7 @@ class StudentProfileType:
 
 @strawberry_django.type(models.TeacherProfile)
 class TeacherProfileType:
-    user: "UserType"
+    user: UserType
     specialty: auto
     education: auto
     experience: auto
@@ -46,7 +43,7 @@ class TeacherProfileType:
         return VerificationStatus(self.verification_status)
 
     @strawberry_django.field
-    def rating(self) -> Optional[float]:
+    def rating(self) -> float | None:
         return float(self.rating_cached) if self.rating_cached is not None else None
 
     @strawberry_django.field
@@ -56,15 +53,15 @@ class TeacherProfileType:
 
 @strawberry_django.type(models.AdminProfile)
 class AdminProfileType:
-    user: "UserType"
+    user: UserType
 
 
 @strawberry_django.type(models.ParentProfile)
 class ParentProfileType:
-    user: "UserType"
+    user: UserType
 
     @strawberry_django.field
-    def children(self) -> List[StudentProfileType]:
+    def children(self) -> list[StudentProfileType]:
         child_ids = models.Guardianship.objects.filter(
             parent_user=self.user, status=GuardianshipStatus.ACTIVE.value
         ).values_list("child_user_id", flat=True)
@@ -87,32 +84,32 @@ class UserType:
         return Role(self.role)
 
     @strawberry_django.field
-    def avatar_url(self) -> Optional[str]:
+    def avatar_url(self) -> str | None:
         # Presigned avatar URL is wired with the files module.
         return None
 
     @strawberry_django.field
-    def student_profile(self) -> Optional[StudentProfileType]:
+    def student_profile(self) -> StudentProfileType | None:
         return getattr(self, "student_profile", None)
 
     @strawberry_django.field
-    def teacher_profile(self) -> Optional[TeacherProfileType]:
+    def teacher_profile(self) -> TeacherProfileType | None:
         return getattr(self, "teacher_profile", None)
 
     @strawberry_django.field
-    def parent_profile(self) -> Optional[ParentProfileType]:
+    def parent_profile(self) -> ParentProfileType | None:
         return getattr(self, "parent_profile", None)
 
     @strawberry_django.field
-    def admin_profile(self) -> Optional[AdminProfileType]:
+    def admin_profile(self) -> AdminProfileType | None:
         return getattr(self, "admin_profile", None)
 
 
 @strawberry_django.type(models.Guardianship)
 class GuardianshipType:
     id: auto
-    parent: "UserType" = strawberry_django.field(field_name="parent_user")
-    child: "UserType" = strawberry_django.field(field_name="child_user")
+    parent: UserType = strawberry_django.field(field_name="parent_user")
+    child: UserType = strawberry_django.field(field_name="child_user")
     consent_at: auto
 
     @strawberry_django.field
