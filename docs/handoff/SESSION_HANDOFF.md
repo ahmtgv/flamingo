@@ -80,4 +80,8 @@ cd backend && export POSTGRES_HOST=localhost POSTGRES_USER=flamingo POSTGRES_PAS
 ```
 
 **Exact first prompt for the next session:**
-> Resume the Flamingo build. First read `CLAUDE.md` and `docs/handoff/SESSION_HANDOFF.md` (then `docs/flamingo_erd.md` / `docs/flamingo_schema.graphql` as needed). Bring up the dev stack per the handoff §9 (Postgres with `LC_ALL`, backend `uvicorn … --reload` on :8000, frontend `npm run dev` on :5173) and confirm `pytest` is green. Then start the **payments/billing seams** task (new `billing` app, `Enrollment.access_status`, `Course.price`/`currency`, centralized `can_access_course`) — but the payment rules are NOT in `CLAUDE.md` yet, so ask me to confirm them and add them to `CLAUDE.md` before writing gating logic. After that, continue with the **homework** module per the build order.
+> Resume the Flamingo build.
+> 1. **Read first:** `CLAUDE.md` and `docs/handoff/SESSION_HANDOFF.md` (then `docs/flamingo_erd.md` / `docs/flamingo_schema.graphql` as needed).
+> 2. **Bring up the dev stack** per §9 (Postgres with `LC_ALL`, backend `uvicorn … --reload` on :8000, frontend `npm run dev` on :5173) and confirm `pytest` is green (expect 25 passed).
+> 3. **Payments/billing seams:** the payment-readiness rules are already in `CLAUDE.md` ("Future: Payments / Billing") — do not ask me to re-add them. Build ONLY the seams: a **default-open** `courses/access.py: can_access_course(user, course)` plus nullable `Enrollment.access_status` / `Course.price` / `Course.currency`. Do NOT add any gating, pricing, or subscription logic, and confirm the monetization model (simple vs marketplace; per-course vs subscription) with me before any gating. For the seams: **present a plan and WAIT for my approval before editing any files; keep all existing tests green; and do not change any current behaviour** (defaults stay open/free).
+> 4. After the seams are approved and merged, continue with the **homework** module per the build order.
