@@ -10,6 +10,7 @@ import {
   RoleSelectScreen,
 } from '@/features/auth';
 import { Cabinet } from '@/features/cabinet';
+import { CatalogScreen, CourseDetailScreen, CreateCourseScreen } from '@/features/courses';
 import { useSession } from '@/shared/hooks/useSession';
 
 import styles from './app.module.css';
@@ -84,6 +85,30 @@ export function AppRouter() {
           element={
             <ProtectedRoute>
               <Cabinet />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/courses"
+          element={
+            <ProtectedRoute>
+              <CatalogScreen />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/courses/new"
+          element={
+            <ProtectedRoute>
+              <CreateCourseScreen />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/courses/:id"
+          element={
+            <ProtectedRoute>
+              <CourseDetailScreen />
             </ProtectedRoute>
           }
         />

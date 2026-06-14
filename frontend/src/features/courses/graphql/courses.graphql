@@ -1,0 +1,118 @@
+# Courses operations. Fragment-free and selecting only backend-implemented fields
+# (see the SDL-vs-live drift note). Course type names already match the SDL.
+
+query Catalog($filter: CourseFilter, $first: Int, $after: String) {
+  catalog(filter: $filter, first: $first, after: $after) {
+    totalCount
+    pageInfo {
+      hasNextPage
+      endCursor
+    }
+    nodes {
+      id
+      title
+      description
+      subject
+      level
+      status
+      lessonCount
+      enrollmentCount
+      owner {
+        specialty
+        user {
+          id
+          firstName
+          lastName
+        }
+      }
+    }
+  }
+}
+
+query CourseDetail($id: ID!) {
+  course(id: $id) {
+    id
+    title
+    description
+    subject
+    level
+    status
+    lessonCount
+    enrollmentCount
+    owner {
+      specialty
+      user {
+        id
+        firstName
+        lastName
+      }
+    }
+    sections {
+      id
+      title
+      description
+      order
+      lessons {
+        id
+        title
+        durationMin
+        status
+        order
+      }
+    }
+    viewerEnrollment {
+      id
+      status
+      progressPct
+    }
+  }
+}
+
+mutation CreateCourse($input: CourseInput!) {
+  createCourse(input: $input) {
+    id
+    status
+  }
+}
+
+mutation PublishCourse($id: ID!) {
+  publishCourse(id: $id) {
+    id
+    status
+  }
+}
+
+mutation CreateSection($courseId: ID!, $input: SectionInput!) {
+  createSection(courseId: $courseId, input: $input) {
+    id
+    title
+    order
+  }
+}
+
+mutation CreateLesson($sectionId: ID!, $input: LessonInput!) {
+  createLesson(sectionId: $sectionId, input: $input) {
+    id
+    title
+    status
+  }
+}
+
+mutation PublishLesson($id: ID!) {
+  publishLesson(id: $id) {
+    id
+    status
+  }
+}
+
+mutation Enroll($courseId: ID!) {
+  enroll(courseId: $courseId) {
+    id
+    status
+    progressPct
+  }
+}
+
+mutation Unenroll($courseId: ID!) {
+  unenroll(courseId: $courseId)
+}

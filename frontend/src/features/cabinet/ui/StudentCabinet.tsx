@@ -18,7 +18,7 @@ export function StudentCabinet({ me }: { me: Me }) {
   const nav: CabinetNavItem[] = [
     { key: 'dashboard', label: t('nav.dashboard'), icon: LayoutDashboard, active: true },
     { key: 'schedule', label: t('nav.schedule'), icon: Calendar },
-    { key: 'courses', label: t('nav.courses'), icon: BookOpen },
+    { key: 'courses', label: t('nav.courses'), icon: BookOpen, to: '/courses' },
     { key: 'homework', label: t('nav.homework'), icon: FileText },
     { key: 'analytics', label: t('nav.analytics'), icon: BarChart3 },
   ];

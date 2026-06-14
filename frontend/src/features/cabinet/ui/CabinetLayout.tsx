@@ -1,6 +1,7 @@
 import { type LucideIcon, LogOut, Moon, Settings, Sun } from 'lucide-react';
 import { type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 
 import { useAppDispatch, useAppSelector } from '@/app/hooks';
 import { toggleTheme } from '@/app/uiSlice';
@@ -14,6 +15,8 @@ export interface CabinetNavItem {
   label: string;
   icon: LucideIcon;
   active?: boolean;
+  /** Route to navigate to; makes a non-active item a working link. */
+  to?: string;
 }
 
 interface CabinetLayoutProps {
@@ -26,6 +29,7 @@ export function CabinetLayout({ nav, user, children }: CabinetLayoutProps) {
   const { t } = useTranslation(['cabinet', 'common']);
   const theme = useAppSelector((s) => s.ui.theme);
   const dispatch = useAppDispatch();
+  const navigate = useNavigate();
   const logout = useLogout();
   const goingDark = theme === 'light';
 
@@ -37,17 +41,19 @@ export function CabinetLayout({ nav, user, children }: CabinetLayoutProps) {
         </div>
         {nav.map((item) => {
           const Icon = item.icon;
+          const interactive = item.active || !!item.to;
           return (
             <button
               key={item.key}
               type="button"
               className={[styles.navItem, item.active ? styles.navActive : ''].filter(Boolean).join(' ')}
-              disabled={!item.active}
+              disabled={!interactive}
               aria-current={item.active ? 'page' : undefined}
+              onClick={item.to ? () => navigate(item.to as string) : undefined}
             >
               <Icon />
               {item.label}
-              {!item.active && <span className={styles.navSoon}>{t('soon')}</span>}
+              {!interactive && <span className={styles.navSoon}>{t('soon')}</span>}
             </button>
           );
         })}
