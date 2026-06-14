@@ -3,9 +3,12 @@ import {
   BookOpen,
   CalendarPlus,
   Check,
+  ChevronDown,
+  ChevronUp,
   FileText,
   GraduationCap,
   Link2,
+  Pencil,
   Plus,
   ShieldCheck,
   Trash2,
@@ -16,6 +19,7 @@ import { useTranslation } from 'react-i18next';
 import { Navigate, useNavigate, useParams } from 'react-router-dom';
 
 import {
+  type CourseLevel,
   type MaterialType,
   useAddMaterialMutation,
   useCourseDetailQuery,
@@ -28,13 +32,32 @@ import {
   useMeQuery,
   usePublishCourseMutation,
   usePublishLessonMutation,
+  useReorderLessonsMutation,
+  useReorderSectionsMutation,
   useScheduleSessionMutation,
   useUnenrollMutation,
+  useUpdateCourseMutation,
 } from '@/entities/graphql/generated';
-import { Badge, Button, Input, Select, TextField } from '@/shared/ui';
+import { Badge, Button, Input, Select, SelectField, TextField } from '@/shared/ui';
 
 import { CoursesLayout } from './CoursesLayout';
 import styles from './courses.module.css';
+import { move } from './reorder';
+
+const COURSE_LEVELS: CourseLevel[] = [
+  'GRADE_1',
+  'GRADE_2',
+  'GRADE_3',
+  'GRADE_4',
+  'GRADE_5',
+  'GRADE_6',
+  'GRADE_7',
+  'GRADE_8',
+  'GRADE_9',
+  'GRADE_10',
+  'GRADE_11',
+  'ADULT',
+];
 
 export function CourseDetailScreen() {
   const { id = '' } = useParams();
@@ -50,6 +73,8 @@ export function CourseDetailScreen() {
   const [deleteSection] = useDeleteSectionMutation();
   const [deleteLesson] = useDeleteLessonMutation();
   const [deleteMaterial] = useDeleteMaterialMutation();
+  const [reorderSections] = useReorderSectionsMutation();
+  const [reorderLessons] = useReorderLessonsMutation();
 
   if (!id) return <Navigate to="/courses" replace />;
 
@@ -94,6 +119,8 @@ export function CourseDetailScreen() {
             </div>
             {course.description && <p className={styles.pageSub}>{course.description}</p>}
 
+            {isOwner && <EditCourseForm course={course} onDone={reload} />}
+
             {isOwner && course.status === 'DRAFT' && (
               <div className={styles.panel} style={{ marginTop: 'var(--space-5)' }}>
                 <div className={styles.panelTitle}>{t('manage.title')}</div>
@@ -122,29 +149,64 @@ export function CourseDetailScreen() {
             {course.sections.length === 0 ? (
               <p className={styles.empty}>{t('detail.noSections')}</p>
             ) : (
-              course.sections.map((section) => {
+              course.sections.map((section, sectionIndex) => {
                 const lessons = isOwner
                   ? section.lessons
                   : section.lessons.filter((l) => l.status === 'PUBLISHED');
+                const sectionIds = course.sections.map((s) => s.id);
                 return (
                   <div className={styles.section} key={section.id}>
                     <div className={styles.sectionHead}>
                       <div className={styles.sectionTitle}>{section.title}</div>
                       {isOwner && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          icon={<Trash2 size={15} />}
-                          onClick={async () => {
-                            await deleteSection({ variables: { id: section.id } });
-                            await reload();
-                          }}
-                        >
-                          {t('manage.deleteSection')}
-                        </Button>
+                        <div className={styles.actionsRow}>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            icon={<ChevronUp size={15} />}
+                            aria-label={t('manage.moveUp')}
+                            disabled={sectionIndex === 0}
+                            onClick={async () => {
+                              await reorderSections({
+                                variables: {
+                                  courseId: id,
+                                  orderedIds: move(sectionIds, sectionIndex, -1),
+                                },
+                              });
+                              await reload();
+                            }}
+                          />
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            icon={<ChevronDown size={15} />}
+                            aria-label={t('manage.moveDown')}
+                            disabled={sectionIndex === sectionIds.length - 1}
+                            onClick={async () => {
+                              await reorderSections({
+                                variables: {
+                                  courseId: id,
+                                  orderedIds: move(sectionIds, sectionIndex, 1),
+                                },
+                              });
+                              await reload();
+                            }}
+                          />
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            icon={<Trash2 size={15} />}
+                            onClick={async () => {
+                              await deleteSection({ variables: { id: section.id } });
+                              await reload();
+                            }}
+                          >
+                            {t('manage.deleteSection')}
+                          </Button>
+                        </div>
                       )}
                     </div>
-                    {lessons.map((lesson) => (
+                    {lessons.map((lesson, lessonIndex) => (
                       <div key={lesson.id}>
                         <div className={styles.lessonRow}>
                           <BookOpen size={16} />
@@ -153,6 +215,50 @@ export function CourseDetailScreen() {
                             <span className={styles.lessonMeta}>
                               {t('detail.min', { n: lesson.durationMin })}
                             </span>
+                          )}
+                          {isOwner && (
+                            <>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                icon={<ChevronUp size={15} />}
+                                aria-label={t('manage.moveUp')}
+                                disabled={lessonIndex === 0}
+                                onClick={async () => {
+                                  await reorderLessons({
+                                    variables: {
+                                      sectionId: section.id,
+                                      orderedIds: move(
+                                        section.lessons.map((l) => l.id),
+                                        lessonIndex,
+                                        -1,
+                                      ),
+                                    },
+                                  });
+                                  await reload();
+                                }}
+                              />
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                icon={<ChevronDown size={15} />}
+                                aria-label={t('manage.moveDown')}
+                                disabled={lessonIndex === section.lessons.length - 1}
+                                onClick={async () => {
+                                  await reorderLessons({
+                                    variables: {
+                                      sectionId: section.id,
+                                      orderedIds: move(
+                                        section.lessons.map((l) => l.id),
+                                        lessonIndex,
+                                        1,
+                                      ),
+                                    },
+                                  });
+                                  await reload();
+                                }}
+                              />
+                            </>
                           )}
                           {isOwner && lesson.status === 'DRAFT' && (
                             <Button
@@ -467,6 +573,88 @@ function MaterialForm({ lessonId, onDone }: { lessonId: string; onDone: () => vo
       </div>
       <Button type="submit" variant="secondary" size="sm" loading={loading}>
         {t('manage.add')}
+      </Button>
+    </form>
+  );
+}
+
+function EditCourseForm({
+  course,
+  onDone,
+}: {
+  course: {
+    id: string;
+    title: string;
+    subject: string;
+    level: CourseLevel;
+    description?: string | null;
+  };
+  onDone: () => void;
+}) {
+  const { t } = useTranslation('courses');
+  const [open, setOpen] = useState(false);
+  const [title, setTitle] = useState(course.title);
+  const [subject, setSubject] = useState(course.subject);
+  const [level, setLevel] = useState<CourseLevel>(course.level);
+  const [description, setDescription] = useState(course.description ?? '');
+  const [updateCourse, { loading }] = useUpdateCourseMutation();
+
+  async function submit(e: FormEvent) {
+    e.preventDefault();
+    if (!title.trim() || !subject.trim()) return;
+    await updateCourse({
+      variables: { id: course.id, input: { title, subject, level, description } },
+    });
+    setOpen(false);
+    onDone();
+  }
+
+  if (!open) {
+    return (
+      <Button
+        variant="secondary"
+        size="sm"
+        icon={<Pencil size={15} />}
+        onClick={() => setOpen(true)}
+      >
+        {t('manage.editCourse')}
+      </Button>
+    );
+  }
+
+  return (
+    <form className={styles.inlineForm} onSubmit={submit}>
+      <TextField
+        label={t('create.name')}
+        value={title}
+        onChange={(e) => setTitle(e.target.value)}
+      />
+      <TextField
+        label={t('create.subject')}
+        value={subject}
+        onChange={(e) => setSubject(e.target.value)}
+      />
+      <SelectField
+        label={t('create.level')}
+        value={level}
+        onChange={(e) => setLevel(e.target.value as CourseLevel)}
+      >
+        {COURSE_LEVELS.map((lvl) => (
+          <option key={lvl} value={lvl}>
+            {t(`level.${lvl}`)}
+          </option>
+        ))}
+      </SelectField>
+      <TextField
+        label={t('create.description')}
+        value={description}
+        onChange={(e) => setDescription(e.target.value)}
+      />
+      <Button type="submit" variant="primary" size="sm" loading={loading}>
+        {t('manage.save')}
+      </Button>
+      <Button type="button" variant="ghost" size="sm" onClick={() => setOpen(false)}>
+        {t('manage.cancel')}
       </Button>
     </form>
   );
