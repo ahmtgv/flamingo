@@ -574,6 +574,7 @@ type Query {
 
   # homework / grading
   homework(id: ID!): Homework
+  lessonHomework(lessonId: ID!): [Homework!]!             # published for students, all for the owning teacher
   homeworkSubmissions(homeworkId: ID!): [Submission!]!     # teacher grading list
   mySubmissions(courseId: ID): [Submission!]!              # student
 
