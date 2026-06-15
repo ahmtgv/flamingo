@@ -42,6 +42,26 @@ def _authorize_teacher(token: str, session_id) -> bool:
     return services.is_session_teacher(user, session)
 
 
+async def stream_attention(ws, session_id) -> AsyncGenerator[AttentionMetric, None]:
+    """Yield aggregate ``AttentionMetric``s from the session's channel group.
+
+    ``listen_to_channel`` is an async *context manager* that yields the message
+    iterator (Strawberry Channels) — it MUST be entered with ``async with`` (a plain
+    ``async for`` over it raises ``TypeError``). Payloads are aggregates, never video.
+    """
+    async with ws.listen_to_channel(
+        "attention.update", groups=[f"attention_{session_id}"]
+    ) as messages:
+        async for message in messages:
+            yield AttentionMetric(
+                id=message["id"],
+                session_id=message["session_id"],
+                student_id=message["student_id"],
+                bucket_start=dt.datetime.fromisoformat(message["bucket_start"]),
+                avg_attention=message["avg_attention"],
+            )
+
+
 @strawberry.type
 class SeedumSubscription:
     @strawberry.subscription
@@ -53,14 +73,5 @@ class SeedumSubscription:
         token = token.removeprefix("Bearer ").strip()
         if not await _authorize_teacher(token, session_id):
             return  # unauthorized → no stream
-        ws = info.context["ws"]
-        async for message in ws.listen_to_channel(
-            "attention.update", groups=[f"attention_{session_id}"]
-        ):
-            yield AttentionMetric(
-                id=message["id"],
-                session_id=message["session_id"],
-                student_id=message["student_id"],
-                bucket_start=dt.datetime.fromisoformat(message["bucket_start"]),
-                avg_attention=message["avg_attention"],
-            )
+        async for metric in stream_attention(info.context["ws"], session_id):
+            yield metric

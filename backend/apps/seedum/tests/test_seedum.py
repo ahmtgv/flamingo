@@ -1,6 +1,8 @@
 """Service-level tests for SEduM (logic + privacy/authorization boundaries)."""
 
+import asyncio
 import base64
+import contextlib
 from datetime import date, timedelta
 
 import pytest
@@ -10,6 +12,7 @@ from apps.accounts import services as accounts
 from apps.courses import services as courses
 from apps.scheduling.models import LessonSession
 from apps.seedum import services
+from apps.seedum.graphql.subscriptions import stream_attention
 from apps.seedum.models import AttentionMetric, Recommendation
 from common.enums import Role
 from common.exceptions import PermissionDenied
@@ -178,3 +181,43 @@ def test_ubp_backup_roundtrip_and_delete():
     assert services.get_ubp_backup(student) is not None
     assert services.delete_ubp_backup(student) is True
     assert services.get_ubp_backup(student) is None
+
+
+# --- attentionUpdates streaming (regression: async context manager) ---------
+class _FakeWs:
+    """Mimics Strawberry's Channels consumer: listen_to_channel is an async context
+    manager yielding the message iterator. A resolver that does `async for` directly
+    over it (instead of `async with`) raises TypeError — this guards that."""
+
+    def __init__(self, messages):
+        self._messages = messages
+
+    @contextlib.asynccontextmanager
+    async def listen_to_channel(self, type_, groups):
+        async def gen():
+            for m in self._messages:
+                yield m
+
+        yield gen()
+
+
+def test_stream_attention_enters_context_manager_and_yields_aggregates():
+    message = {
+        "id": "m1",
+        "session_id": "s1",
+        "student_id": "u1",
+        "bucket_start": "2026-06-15T10:00:00+00:00",
+        "avg_attention": 80,
+    }
+
+    async def drive():
+        out = []
+        async for metric in stream_attention(_FakeWs([message]), "s1"):
+            out.append(metric)
+        return out
+
+    metrics = asyncio.run(drive())
+    assert len(metrics) == 1
+    assert metrics[0].avg_attention == 80
+    assert metrics[0].student_id == "u1"
+    assert metrics[0].session_id == "s1"
