@@ -1,25 +1,36 @@
 # Flamingo — Session Handoff
 
-**Date:** 2026-06-15 · **Branch:** `main` · **HEAD:** `09b6ace` · working tree clean (53 commits on `main`).
+**Date:** 2026-06-15 · **Branch:** `main` · **HEAD:** `2a4f41a` · working tree clean (56 commits on `main`).
 This doc lets a fresh session resume cleanly. It references files by path — read those, don't rely on this doc alone.
 
 ---
 
 ## 0. Current state — read this first
-✅ **SEduM sub-slice (b) — on-device pipeline — is DONE & green** (`09b6ace`, supersedes the WIP
-`f747f88`). The earlier "no-internet" blocker is resolved: MediaPipe assets are now **vendored into
-the repo** (no runtime/build network dependency). **Resume with sub-slice (c) — the live CMF room**
-(see §5).
+✅ **SEduM Lite is COMPLETE (a + b + c) and green.** Sub-slice (c) — the live CMF room — landed
+(`2a4f41a`) on top of (b) `09b6ace` and (a) `42bf093`. A real backend bug found during (c)'s browser
+E2E was fixed (`718ea77`: `attentionUpdates` must enter `listen_to_channel` via `async with`).
+**The MVP build order (`CLAUDE.md` §10) is now fully through SEduM Lite — next is cross-cutting work
+(see §5): files/S3, certificates, engagement, notifications.**
 
-**Both gates green** (verified this session): backend **68 pytest** on Postgres + **ruff** + **black**
+**Both gates green** (verified this session): backend **69 pytest** on Postgres + **ruff** + **black**
 clean, 0 unapplied migrations, `makemigrations --check` clean; frontend **`npm run build` + `lint` +
-38 vitest** (was 25 before the seedum suite). Tree clean (all committed).
+40 vitest**. Tree clean (all committed).
+
+**Browser-verified E2E** (dev stack, this session): teacher live view updated from a student
+`reportAttention` over the WS subscription (class avg + per-student row + sparkline); `sessionAttention`
+report rendered (avg/peak/low); student camera screen shows the privacy indicator and degrades to
+"camera denied" gracefully. **Network inspection:** the only non-asset traffic is `POST /graphql/`
+(queries/mutations) and the `/graphql/` WebSocket — **no request carries frames/video** (aggregates only).
+The preview browser blocks the camera (`NotAllowedError`), so real MediaPipe face→score inference was
+**not** exercised live here (build-verified only); the on-device egress path that the privacy invariant
+governs IS fully verified.
 
 **MVP build order status** (`CLAUDE.md` §10: `auth → cabinets → schedule → homework → admin → SEduM`):
 auth ✅ · cabinets ✅ (parent functional; others shells) · courses ✅ · scheduling ✅ ·
 homework ✅ (TEXT-only) · payment-readiness seams ✅ · course constructor ✅ ·
-admin/institutions ✅ (module complete) · **SEduM Lite — IN PROGRESS: sub-slice (a) backend +
-realtime DONE; (b) on-device pipeline DONE & green; (c) live CMF room next.**
+admin/institutions ✅ (module complete) · **SEduM Lite ✅ COMPLETE (a backend+realtime, b on-device
+pipeline, c live CMF room).** Deferred follow-ups (not blocking): 3-stage «база тест» calibration
+capture UI + encrypted UBP cloud backup wiring (see §4).
 
 **Apps:** `backend/apps/` = accounts, courses, scheduling, homework, institutions, **seedum**.
 **Frontend features:** `frontend/src/features/` = auth, cabinet, courses, schedule, homework, admin
@@ -48,7 +59,8 @@ Flamingo is a B2C online-education platform (pupils grades 1–11 + adults, plus
 - Migrations (all applied to dev Postgres, 0 unapplied): `accounts/0001`; `courses/0001`,`0002` (price/currency/access_status),`0003` (institution+group FKs); `scheduling/0001`,`0002` (group FK); `homework/0001`,`0002` (group FK); `institutions/0001`; `seedum/0001` (`AttentionMetric`/`UbpBackup`/`Recommendation`).
 - Key models (`backend/apps/*/models.py`): accounts `User`/`*Profile`/`Guardianship`/`VerificationDocument`; courses `Course`/`Section`/`Lesson`/`Material`/`Enrollment` (+ nullable `price`/`currency`/`institution`/`group`); scheduling `LessonSession`(+nullable `group`)/`Attendance`; homework `Homework`(+nullable `group`)/`Submission`/`SubmissionFile`; institutions `Institution`/`InstitutionMembership`/`Group`/`GroupMembership`/`GroupTeacher`. Shared base in `backend/common/models.py`; enums in `backend/common/enums.py`; auth in `backend/common/auth.py`; cursor pagination `backend/common/pagination.py`; LiveKit token minting `backend/common/livekit.py`.
 **Frontend** — TypeScript, React 18, Vite 6, Apollo Client, Redux Toolkit (UI state only), GraphQL Codegen (reads `docs/flamingo_schema.graphql` → `frontend/src/entities/graphql/generated.ts`, committed), i18next (`ru`, `frontend/src/i18n/`), CSS Modules on `tokens.css`.
-- Layout: `frontend/src/app/` (store, apolloClient, router, providers, useLogout), `shared/ui` (design-system primitives incl. `TextArea`), `shared/lib` (env, session, refresh), `entities/graphql/generated.ts`, `features/{auth,cabinet,courses,schedule,homework,admin}`, **`seedum/`** (on-device pipeline lib — not yet a `feature`/route until (c)). i18n namespaces: `common,auth,cabinet,courses,schedule,homework,admin,seedum`. **Vendored ML assets in `frontend/public/seedum/`** (committed; `npm run vendor:seedum` to re-fetch).
+- Layout: `frontend/src/app/` (store, apolloClient, router, providers, useLogout), `shared/ui` (design-system primitives incl. `TextArea`), `shared/lib` (env, session, refresh), `entities/graphql/generated.ts`, `features/{auth,cabinet,courses,schedule,homework,admin,lesson}`, **`seedum/`** (on-device pipeline lib). `features/lesson` = the live CMF room (`/sessions/:sessionId/room`). i18n namespaces: `common,auth,cabinet,courses,schedule,homework,admin,seedum`. **Vendored ML assets in `frontend/public/seedum/`** (committed; `npm run vendor:seedum` to re-fetch).
+- **Apollo split link** (`app/apolloClient.ts`): subscriptions → `graphql-ws` WebSocket (`GRAPHQL_WS_URL`, same-origin ws(s); JWT in `connectionParams.authToken`; `lazy`); queries/mutations → the authed+refreshing HTTP chain. Vite `/graphql` proxy forwards the WS upgrade (`ws: true`). The only subscription wired so far is `attentionUpdates`.
 - Auth: access token in memory, refresh token in `localStorage`, silent refresh on auth error (`frontend/src/app/apolloClient.ts`, `shared/lib/session.ts`, `shared/lib/refresh.ts`).
 - **GraphQL drift caveat** (memory `sdl-vs-live-schema-drift`): accounts live type names are `*Type`-suffixed (`UserType`) vs SDL `User`; courses/scheduling/homework/institutions names match the SDL. FE ops are **fragment-free** and select only live-implemented fields. LiveKit video is mocked (no server); join only acquires a token.
 
@@ -87,22 +99,39 @@ All green: **backend 68 pytest on Postgres + ruff + black clean; frontend `npm r
   per-frame score (on-device) leave the worker; UBP on-device; backup client-encrypted.
   **Not browser-verified** (no camera/GPU in this env) — the guarded adapter degrades to `'unavailable'`
   rather than crash/fake if anything is missing; real inference gets exercised when (c) wires it in.
+- **SEduM Lite — live CMF room (sub-slice c)** — `2a4f41a` (FE) + `718ea77` (backend fix). **No SDL
+  change.** Apollo split link (`app/apolloClient.ts`): subscriptions → `graphql-ws` WebSocket,
+  queries/mutations → the existing authed/refreshing HTTP chain; JWT in graphql-ws `connectionParams`
+  (`authToken`, read by the subscription resolver); socket is `lazy`. `GRAPHQL_WS_URL` same-origin
+  ws(s) default (`shared/lib/env`); Vite `/graphql` proxy now `ws: true`. New **`features/lesson`**:
+  `LiveRoomScreen` at `/sessions/:sessionId/room` (role-aware). Student = camera + `startAttentionPipeline`
+  (frames discarded on-device) + local `AttentionChart` (LOCAL per-frame score, not server) + each ~10s
+  bucket → `reportAttention` (bucketStart mapped from the worker's performance-clock to wall-clock via
+  `performance.timeOrigin`); loads on-device UBP baseline; guarded camera-denied / model-unavailable
+  states. Teacher = `useAttentionUpdatesSubscription` → live per-student rows + class average + sparkline;
+  "Отчёт по занятию" → `sessionAttention` (avg/peak/low + chart). `PrivacyIndicator` on both views.
+  Schedule wiring: student "Подключиться" joins then enters the room; teacher "Эфир класса" (LIVE) /
+  "Отчёт внимания" (ENDED). FE ops `features/lesson/graphql/liveroom.graphql` (fragment-free) + regen;
+  `ru/schedule.json` += `actions.room/report`. +2 vitest. **Backend fix `718ea77`:** `attentionUpdates`
+  resolver must enter `listen_to_channel` with `async with` (it's an async context manager, not an
+  iterator) — sub-slice (a) shipped this untested; extracted `stream_attention()` + regression test.
+  Browser-verified E2E + network inspection (only aggregates leave; see §0).
 Verified E2E in-browser (earlier sessions): register→login→`me`; parent add-child; teacher create→publish course→student enroll; schedule→start→student join (attendance row created); add lesson material.
 
 ## 4. In progress / partially built
 Working tree is **clean** — nothing uncommitted. Partially-built *within* committed code:
 - **FILE materials** — only TEXT/LINK materials are supported in the UI; FILE needs the files/S3 upload module (not built).
 - **FILE/QUIZ homework** — homework UI is TEXT-only; FILE submissions need the files module, QUIZ needs a quiz model (neither built).
+- **SEduM calibration UI deferred** — the «база тест» 3-stage calibration (`seedum/calibration.ts` state machine exists, tested) is NOT wired into the room: the worker emits only score/bucket aggregates, not the raw `AttentionSignals` the `Calibration` needs, so capturing a baseline needs a worker "calibration mode" that emits per-stage signals + a 3-step UI. The room **loads** an existing UBP baseline (none exists until calibration ships → raw scoring used). Plan §6.1 recommended deferring this.
+- **Encrypted UBP cloud backup deferred** — `seedum/ubp.ts` has WebCrypto encrypt/decrypt and the backend `backupUbp`/`ubpBackup`/`deleteUbpBackup` exist, but there's no FE op/UX wiring (and nothing to back up until calibration produces a baseline). Plan §6.2 recommended a minimal version; deferred with calibration.
 
 ## 5. Next tasks (ordered, most important first)
 - ✅ **DONE — Payments/billing seams** (`be3c759`, see §3). Seams only: default-open `courses/access.py: can_access_course` + nullable `Course.price`/`currency` + `Enrollment.access_status`. The full `billing` app and any payment/pricing/subscription/gating logic remain **out of scope until the monetization model is chosen** (still open — §8).
 - ✅ **DONE — Homework/grades** (backend `ec3d638` + frontend `1fdacf8`, see §3). Module complete: models/services/GraphQL/migration + React assign/submit/grade UI; student access routed through `can_access_course`. TEXT-only (FILE/QUIZ + homework-editing UI deferred).
 - ✅ **DONE — Course constructor reorder + edit** (`80c561b`, see §3). FE-only; the constructor is now feature-complete for MVP.
 - ✅ **DONE — Admin / institutions** (backend `17dcfcd`/`5f12481`/`ed580af`/`628e786` + frontend `15b5732`, see §3). Module complete per [`INSTITUTIONS_PLAN.md`](INSTITUTIONS_PLAN.md) (Option A group model; reviews→engagement; back-office onboarding; branding stored-unused). Admin FE at `/admin`. Minor follow-up: guard an admin from removing their own/last admin membership (§3 note).
-1. **SEduM Lite — IN PROGRESS** (plan: [`SEDUM_LITE_PLAN.md`](SEDUM_LITE_PLAN.md); owner approved full scope, include-not-defer). **(a) backend + realtime DONE & green** (`42bf093`). **(b) on-device pipeline DONE & green** (`09b6ace`, supersedes WIP `f747f88` — see §3). Deps installed, assets vendored, worker inference complete behind the guarded adapter, both gates green. **(c) live CMF room is NEXT — nothing started.**
-   - **(c) live CMF room** — wires (a)+(b) into the lesson UI. Apollo `graphql-ws` split link (install `graphql-ws`; subscriptions→WS, queries/mutations→HTTP, JWT in `connectionParams`). **Student view:** camera + `startAttentionPipeline` (from `src/seedum`) + local live `AttentionChart` (fed by the LOCAL pipeline, not the server) + mandatory `PrivacyIndicator`; each ~10s bucket → `reportAttention({sessionId, bucketStart, avgAttention})`. **Teacher view:** `attentionUpdates(sessionId)` subscription → live per-student / class-average attention; post-session `sessionAttention` → `AttentionSummary` chart. Extend `features/schedule` or add `features/lesson`. Add FE GraphQL ops (`reportAttention`/`attentionUpdates`/`sessionAttention`) + regen codegen; ops fragment-free per the drift caveat (§2). **Node-principle absolute (CLAUDE.md §2/§7):** no frame ingress; aggregates only; UBP client-encrypted; privacy indicator on every camera screen.
-   - **Worker runtime caveat for (c):** the worker is CLASSIC (iife) by necessity (MediaPipe needs `importScripts`); real face inference was build-verified but **not browser-verified here** (no camera). When wiring (c), do the browser E2E from `SEDUM_LITE_PLAN.md` §7 and confirm via network inspection that only aggregates (never frames) hit the server. If MediaPipe can't init, the pipeline reports `'unavailable'` — surface that in the UI rather than blocking the lesson. Re-vendor assets if missing: `cd frontend && npm run vendor:seedum`.
-2. **Cross-cutting later:** files/S3 module (presigned uploads — unblocks FILE materials + FILE homework), certificates (PDF+QR), engagement (points/leaderboard/**reviews** — REVIEW model deferred here), notifications.
+- ✅ **DONE — SEduM Lite (a + b + c)** (plan: [`SEDUM_LITE_PLAN.md`](SEDUM_LITE_PLAN.md); owner approved full scope). (a) backend+realtime `42bf093`; (b) on-device pipeline `09b6ace`; (c) live CMF room `2a4f41a` + backend fix `718ea77` — all see §3. Browser-verified E2E + network inspection (only aggregates leave; §0). **Deferred follow-ups (not blocking, see §4):** «база тест» calibration capture UI + encrypted UBP cloud-backup wiring. If picked up: the worker needs a calibration mode that emits per-stage `AttentionSignals`; then a 3-step UI feeds `seedum/calibration.ts`, saves the baseline to UBP (IndexedDB), and optionally `backupUbp` (client-encrypted).
+1. **Cross-cutting (next, pick per owner priority):** **files/S3 module** (presigned `requestUpload` → S3/MinIO key → mutations accept `fileKey`; unblocks FILE materials + FILE homework + avatars), **certificates** (PDF+QR public verification — `official-documents` skill), **engagement** (points/leaderboard/**reviews** — REVIEW model lives here per `INSTITUTIONS_PLAN.md`), **notifications** (the `notificationReceived`/`sessionStatusChanged`/`chatMessageReceived` subscriptions share the now-working graphql-ws infra). Composite dashboards (`studentDashboard`/`teacherDashboard`/`adminDashboard`) still SDL-only (§8).
 - ✅ DONE — guard admin self/last-removal (`5531bc0`, see §3).
 
 ## 6. Key decisions & constraints (don't re-litigate)
@@ -141,16 +170,22 @@ Working tree is **clean** — nothing uncommitted. Partially-built *within* comm
 export LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8
 /opt/homebrew/opt/postgresql@16/bin/pg_ctl -D /opt/homebrew/var/postgresql@16 -l /opt/homebrew/var/log/postgresql@16.log start   # role+db 'flamingo' already exist
 cd backend && export POSTGRES_HOST=localhost POSTGRES_USER=flamingo POSTGRES_PASSWORD=flamingo POSTGRES_DB=flamingo
-.venv/bin/python manage.py migrate && .venv/bin/python -m pytest        # expect 68 passed
+.venv/bin/python manage.py migrate && .venv/bin/python -m pytest        # expect 69 passed
 .venv/bin/uvicorn config.asgi:application --port 8000 --reload
-# new shell: cd frontend && npm run dev   (proxies /graphql -> :8000; preview via .claude/launch.json)
-# frontend gates: npm run build && npm run lint && npm test   (expect 38 vitest)
+# new shell: cd frontend && npm run dev   (proxies /graphql -> :8000 incl. WS upgrade; preview via .claude/launch.json)
+# frontend gates: npm run build && npm run lint && npm test   (expect 40 vitest)
 # seedum assets are committed under frontend/public/seedum/; re-vendor only if missing: npm run vendor:seedum
+# CMF live-room E2E needs a LIVE LessonSession + an enrolled student; see this session's demo rows below (§0/§5).
 ```
+
+**Demo rows from this session** (dev DB; harmless, clear when convenient): `cmf.teacher@flamingo.dev` /
+`cmf.student@flamingo.dev` (password `strongpass1!`), course "CMF демо — Алгебра 7", a LIVE
+`LessonSession`. Open the room at `/sessions/<id>/room`. The preview browser blocks the camera, so the
+student pipeline was driven by injecting `reportAttention`; a real browser (with camera permission) runs
+the full MediaPipe path.
 
 **Exact first prompt for the next session:**
 > Resume the Flamingo build.
-> 1. **Read first:** `CLAUDE.md` and `docs/handoff/SESSION_HANDOFF.md` §0 (current state) + §5 (next tasks), then `docs/handoff/SEDUM_LITE_PLAN.md` §3(c)/§7 — and `docs/flamingo_schema.graphql` (`attentionUpdates`/`reportAttention`/`sessionAttention`) as needed.
-> 2. **Bring up the dev stack** per §9 (Postgres with `LC_ALL`, backend `uvicorn … --reload` on :8000, frontend `npm run dev` on :5173) and confirm green: backend `pytest` (expect **68 passed**) + `ruff`/`black`; frontend `npm run build`/`lint`/`test` (expect **38 vitest**).
-> 3. **Next is SEduM Lite sub-slice (c) — the live CMF room** (a+b are DONE & green). Build it per §5 item 1: Apollo `graphql-ws` split link; student camera+pipeline (`startAttentionPipeline` from `src/seedum`)+local `AttentionChart`+`PrivacyIndicator` → `reportAttention`; teacher `attentionUpdates`+`sessionAttention` report. **Node-principle absolute:** no frame ingress, aggregates only, UBP client-encrypted, privacy indicator on every camera screen. Then browser-verify (SEDUM_LITE_PLAN §7) — incl. network inspection that only aggregates leave the device. Keep gates green; commit per concern.
-> 4. Alternatively, if I deprioritise SEduM (c), the next-best cross-cutting work is the **files/S3 module** (presigned uploads — unblocks FILE materials + FILE homework), **certificates** (PDF+QR), or **engagement** (points/leaderboard/reviews). Ask me which before starting.
+> 1. **Read first:** `CLAUDE.md` and `docs/handoff/SESSION_HANDOFF.md` §0 (current state) + §5 (next tasks); then `docs/flamingo_erd.md` / `docs/flamingo_schema.graphql` / `docs/flamingo_architecture.md` as needed.
+> 2. **Bring up the dev stack** per §9 (Postgres with `LC_ALL`, backend `uvicorn … --reload` on :8000, frontend `npm run dev` on :5173) and confirm green: backend `pytest` (expect **69 passed**) + `ruff`/`black`; frontend `npm run build`/`lint`/`test` (expect **40 vitest**).
+> 3. **SEduM Lite is COMPLETE (a+b+c).** Pick the next cross-cutting module (§5 item 1) — tell me which: **files/S3** (presigned uploads; unblocks FILE materials + FILE homework + avatars), **certificates** (PDF+QR), **engagement** (points/leaderboard/reviews), or **notifications** (reuses the working graphql-ws infra). Or pick up the deferred SEduM follow-ups (§4): «база тест» calibration UI + encrypted UBP backup. Keep gates green; backend-then-FE; commit per concern; node-principle absolute for anything CMF.
