@@ -8,6 +8,7 @@ import commonRu from './locales/ru/common.json';
 import coursesRu from './locales/ru/courses.json';
 import homeworkRu from './locales/ru/homework.json';
 import scheduleRu from './locales/ru/schedule.json';
+import seedumRu from './locales/ru/seedum.json';
 
 export const defaultNS = 'common';
 
@@ -22,13 +23,14 @@ export const resources = {
     schedule: scheduleRu,
     homework: homeworkRu,
     admin: adminRu,
+    seedum: seedumRu,
   },
 } as const;
 
 void i18n.use(initReactI18next).init({
   lng: 'ru',
   fallbackLng: 'ru',
-  ns: ['common', 'auth', 'cabinet', 'courses', 'schedule', 'homework', 'admin'],
+  ns: ['common', 'auth', 'cabinet', 'courses', 'schedule', 'homework', 'admin', 'seedum'],
   defaultNS,
   resources,
   interpolation: {
