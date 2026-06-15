@@ -6,10 +6,14 @@ This doc lets a fresh session resume cleanly. It references files by path — re
 ---
 
 ## 0. Current state — read this first
-**Repo is green and clean** (verified this session, not from memory): backend **68 pytest** on
-Postgres + **ruff** + **black** clean, 0 unapplied migrations, `makemigrations --check` clean;
-frontend **`npm run build`** + **`npm run lint`** + **25 vitest**, `generated.ts` matches the SDL
-(no codegen drift). Tree clean.
+⚠️ **Last commit `f747f88` is an explicit WIP (SEduM sub-slice b) — the FRONTEND gate is NOT
+green** (see §5: no-internet blocker; MediaPipe deps/model can't be installed/fetched here).
+Backend is unaffected and green. **Resume by gating the frontend green before anything else.**
+
+**Backend green** (verified this session): **68 pytest** on Postgres + **ruff** + **black** clean,
+0 unapplied migrations, `makemigrations --check` clean. **Frontend was green at `41976f4`** (build +
+lint + **25 vitest**); the `f747f88` WIP added `src/seedum/` (untested-as-a-suite) and declares two
+uninstalled deps — **re-run `npm run build`/`lint`/`test` on resume**. Tree clean (all committed).
 
 **MVP build order status** (`CLAUDE.md` §10: `auth → cabinets → schedule → homework → admin → SEduM`):
 auth ✅ · cabinets ✅ (parent functional; others shells) · courses ✅ · scheduling ✅ ·
@@ -76,7 +80,11 @@ Working tree is **clean** — nothing uncommitted. Partially-built *within* comm
 - ✅ **DONE — Homework/grades** (backend `ec3d638` + frontend `1fdacf8`, see §3). Module complete: models/services/GraphQL/migration + React assign/submit/grade UI; student access routed through `can_access_course`. TEXT-only (FILE/QUIZ + homework-editing UI deferred).
 - ✅ **DONE — Course constructor reorder + edit** (`80c561b`, see §3). FE-only; the constructor is now feature-complete for MVP.
 - ✅ **DONE — Admin / institutions** (backend `17dcfcd`/`5f12481`/`ed580af`/`628e786` + frontend `15b5732`, see §3). Module complete per [`INSTITUTIONS_PLAN.md`](INSTITUTIONS_PLAN.md) (Option A group model; reviews→engagement; back-office onboarding; branding stored-unused). Admin FE at `/admin`. Minor follow-up: guard an admin from removing their own/last admin membership (§3 note).
-1. **SEduM Lite — IN PROGRESS** (plan: [`SEDUM_LITE_PLAN.md`](SEDUM_LITE_PLAN.md); owner approved full scope, include-not-defer). **(a) backend + realtime DONE** (`42bf093`, see §3). **Next: (b) on-device pipeline** — `frontend/src/seedum/` MediaPipe `FaceLandmarker` Web Worker → ~10s aggregates only + bucketing (pure, tested) + 3-stage baseline calibration + UBP in IndexedDB with WebCrypto encrypt/backup/restore; **vendor the MediaPipe WASM/model assets locally (no CDN)**; deps `@mediapipe/tasks-vision`, `idb`. **Then (c) live CMF room** — Apollo `graphql-ws` split link; student camera+pipeline+local live chart+privacy indicator → `reportAttention`; teacher `attentionUpdates`; `sessionAttention` report; `ru/seedum.json`. Node-principle absolute (CLAUDE.md §2/§7): no frame ingress; aggregates only; UBP client-encrypted; privacy indicator on every camera screen.
+1. **SEduM Lite — IN PROGRESS** (plan: [`SEDUM_LITE_PLAN.md`](SEDUM_LITE_PLAN.md); owner approved full scope, include-not-defer). **(a) backend + realtime DONE & green** (`42bf093`, see §3). **(b) on-device pipeline — PARTIAL / WIP** (`f747f88`, NOT gated green).
+   - ⛔ **BLOCKER:** this env has **no internet** → cannot `npm install @mediapipe/tasks-vision` / `idb`, nor fetch the `face_landmarker.task` model. Real on-device inference + its browser verification are not runnable here. Needs **network access or vendored assets**. (Privacy invariant kept: no faked biometrics, no frame ingress.)
+   - **Committed in (b)** (`frontend/src/seedum/`, offline-feasible, unit tests written but suite NOT run-green): `bucketing.ts` (pure ~10s aggregation), `score.ts` (pure scorer), `calibration.ts` (3-stage «база тест» state machine), `ubp.ts` (IndexedDB + WebCrypto AES-GCM/PBKDF2 encrypt/decrypt — server sees only the opaque blob), `attention.ts` (camera→worker, frames discarded), `mediapipe.worker.ts` (**guarded** FaceLandmarker adapter — real when deps+model present, else `'unavailable'`, never fabricated), `ui/PrivacyIndicator` + `AttentionChart`, `index.ts`; `ru/seedum.json` + i18n registration; `package.json` declares `@mediapipe/tasks-vision` + `graphql-ws` (NOT installed).
+   - **Remaining for (b):** `npm install @mediapipe/tasks-vision` (+ `idb` if used); **vendor** the MediaPipe WASM + `face_landmarker.task` model into `frontend/public/seedum/` (a vendoring script was planned in `SEDUM_LITE_PLAN.md`); finish/verify worker inference; then **gate green** (`npm run build`/`lint`/`test` — and re-run backend `pytest` to confirm still 68). **First action on resume:** run `git show f747f88 --stat` and `npm run build`/`test` to see what fails, fix, gate green, THEN sub-slice (c).
+   - **(c) live CMF room** (after b green): Apollo `graphql-ws` split link (`graphql-ws` already in node_modules); student camera+pipeline+local chart+`PrivacyIndicator` → `reportAttention`; teacher `attentionUpdates`; `sessionAttention` report. Node-principle absolute (CLAUDE.md §2/§7): no frame ingress; aggregates only; UBP client-encrypted; privacy indicator on every camera screen.
 2. **Cross-cutting later:** files/S3 module (presigned uploads — unblocks FILE materials + FILE homework), certificates (PDF+QR), engagement (points/leaderboard/**reviews** — REVIEW model deferred here), notifications.
 - ✅ DONE — guard admin self/last-removal (`5531bc0`, see §3).
 
