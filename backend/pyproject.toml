@@ -19,6 +19,11 @@ ignore = [
     "E501",  # line length is enforced by black, not ruff
 ]
 
+[tool.ruff.lint.per-file-ignores]
+# strawberry.lazy needs quoted forward-refs to break the accounts<->institutions
+# graphql import cycle; UP037 (de-quote annotations) would break schema build.
+"apps/accounts/graphql/types.py" = ["UP037"]
+
 [tool.ruff.lint.isort]
 known-first-party = ["common", "apps", "api", "config"]
 # Match the existing import grouping: stdlib -> third-party -> first-party.

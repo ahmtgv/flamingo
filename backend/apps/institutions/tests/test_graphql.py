@@ -67,3 +67,26 @@ def test_institution_admin_flow_through_schema():
     # an anonymous user cannot
     res = schema.execute_sync(GROUPS, variable_values={"id": inst_id}, context_value=_ctx())
     assert res.errors is not None
+
+
+ME_INSTITUTION = "query { me { adminProfile { institution { id name } } } }"
+
+
+def test_admin_me_exposes_their_institution():
+    staff = _make("staff2@example.com", Role.ADMIN)
+    staff.is_staff = True
+    staff.save(update_fields=["is_staff"])
+    admin = _make("admin2@example.com", Role.ADMIN)
+    inst = services.create_institution(staff, name="Школа №2")
+    services.add_admin(staff, institution_id=inst.id, admin_user_id=admin.id)
+
+    # the admin's own institution is reachable via me.adminProfile.institution
+    res = schema.execute_sync(ME_INSTITUTION, context_value=_ctx(admin))
+    assert res.errors is None, res.errors
+    assert res.data["me"]["adminProfile"]["institution"]["name"] == "Школа №2"
+
+    # an admin with no active membership sees null (no entry point yet)
+    other = _make("admin3@example.com", Role.ADMIN)
+    res = schema.execute_sync(ME_INSTITUTION, context_value=_ctx(other))
+    assert res.errors is None, res.errors
+    assert res.data["me"]["adminProfile"]["institution"] is None

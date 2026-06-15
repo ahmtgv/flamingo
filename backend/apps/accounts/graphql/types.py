@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING, Annotated
+
 import strawberry
 import strawberry_django
 from strawberry import auto
@@ -13,6 +15,10 @@ from common.enums import (
     Role,
     VerificationStatus,
 )
+
+if TYPE_CHECKING:
+    # Lazily referenced to avoid the accounts <-> institutions graphql import cycle.
+    from apps.institutions.graphql.types import Institution
 
 
 @strawberry_django.type(models.StudentProfile)
@@ -54,6 +60,30 @@ class TeacherProfileType:
 @strawberry_django.type(models.AdminProfile)
 class AdminProfileType:
     user: UserType
+
+    @strawberry_django.field
+    def institution(
+        self,
+    ) -> Annotated["Institution", strawberry.lazy("apps.institutions.graphql.types")] | None:
+        """The admin's institution, derived from their active admin membership.
+
+        Gives the admin FE an entry point (there is no AdminProfile.institution
+        column). The quoted "Institution" is required by strawberry.lazy to break
+        the accounts<->institutions graphql import cycle (UP037 ignored for this
+        file in pyproject)."""
+        from apps.institutions.models import InstitutionMembership
+        from common.enums import MembershipRole, MembershipStatus
+
+        membership = (
+            InstitutionMembership.objects.filter(
+                user_id=self.user_id,
+                role=MembershipRole.ADMIN.value,
+                status=MembershipStatus.ACTIVE.value,
+            )
+            .select_related("institution")
+            .first()
+        )
+        return membership.institution if membership else None
 
 
 @strawberry_django.type(models.ParentProfile)
