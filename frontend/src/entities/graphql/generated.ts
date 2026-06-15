@@ -1408,7 +1408,7 @@ export type VerificationStatus =
 export type AdminInstitutionQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type AdminInstitutionQuery = { __typename?: 'Query', me?: { __typename?: 'User', adminProfile?: { __typename?: 'AdminProfile', institution?: { __typename?: 'Institution', id: string, name: string, address?: string | null, website?: string | null, subdomain?: string | null, status: InstitutionStatus, defaultLocale: string, branding?: Record<string, unknown> | null, logoUrl?: string | null } | null } | null } | null };
+export type AdminInstitutionQuery = { __typename?: 'Query', me?: { __typename?: 'User', id: string, adminProfile?: { __typename?: 'AdminProfile', institution?: { __typename?: 'Institution', id: string, name: string, address?: string | null, website?: string | null, subdomain?: string | null, status: InstitutionStatus, defaultLocale: string, branding?: Record<string, unknown> | null, logoUrl?: string | null } | null } | null } | null };
 
 export type InstitutionGroupsQueryVariables = Exact<{
   institutionId: Scalars['ID']['input'];
@@ -1772,6 +1772,7 @@ export type JoinSessionMutation = { __typename?: 'Mutation', joinSession: { __ty
 export const AdminInstitutionDocument = gql`
     query AdminInstitution {
   me {
+    id
     adminProfile {
       institution {
         id

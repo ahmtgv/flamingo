@@ -6,8 +6,9 @@ import pytest
 
 from apps.accounts import services as accounts
 from apps.institutions import services
+from apps.institutions.models import InstitutionMembership
 from common.enums import MembershipRole, MembershipStatus, Role
-from common.exceptions import NotFound, PermissionDenied
+from common.exceptions import NotFound, PermissionDenied, ValidationError
 
 pytestmark = pytest.mark.django_db
 
@@ -114,6 +115,45 @@ def test_invite_unknown_email_raises():
         services.invite_member(
             admin, institution_id=inst.id, email="ghost@example.com", role=MembershipRole.TEACHER
         )
+
+
+def test_cannot_remove_own_admin_membership():
+    staff = make_staff()
+    admin = make_admin()
+    inst = institution_with_admin(staff, admin)
+    own = InstitutionMembership.objects.get(user=admin, institution=inst)
+    with pytest.raises(ValidationError):
+        services.remove_member(admin, own.id)
+    assert InstitutionMembership.objects.filter(id=own.id).exists()
+
+
+def test_cannot_remove_last_active_admin():
+    staff = make_staff()
+    admin = make_admin()
+    inst = institution_with_admin(staff, admin)
+    own = InstitutionMembership.objects.get(user=admin, institution=inst)
+    # even platform staff (a different caller) cannot orphan the institution
+    with pytest.raises(ValidationError):
+        services.remove_member(staff, own.id)
+    assert InstitutionMembership.objects.filter(id=own.id).exists()
+
+
+def test_remove_member_works_for_others_and_non_last_admin():
+    staff = make_staff()
+    admin_a = make_admin("a@example.com")
+    admin_b = make_admin("b@example.com")
+    inst = institution_with_admin(staff, admin_a)
+    services.add_admin(staff, institution_id=inst.id, admin_user_id=admin_b.id)  # 2nd active admin
+    teacher = make_teacher()
+    membership = services.invite_member(
+        admin_a, institution_id=inst.id, email=teacher.email, role=MembershipRole.TEACHER
+    )
+
+    # a normal member can be removed
+    assert services.remove_member(admin_a, membership.id) is True
+    # and a non-last admin can be removed (two active admins -> removing one is fine)
+    b_membership = InstitutionMembership.objects.get(user=admin_b, institution=inst)
+    assert services.remove_member(admin_a, b_membership.id) is True
 
 
 # --- groups -----------------------------------------------------------------

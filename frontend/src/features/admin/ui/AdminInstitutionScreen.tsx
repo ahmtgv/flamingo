@@ -59,7 +59,7 @@ export function AdminInstitutionScreen() {
           <>
             <p className={styles.pageSub}>{institution.name}</p>
             <SettingsSection institution={institution} onDone={refetch} />
-            <MembersSection institutionId={institution.id} />
+            <MembersSection institutionId={institution.id} currentUserId={data?.me?.id ?? ''} />
             <GroupsSection institutionId={institution.id} />
           </>
         )}
@@ -138,10 +138,19 @@ function SettingsSection({ institution, onDone }: { institution: Institution; on
   );
 }
 
-function MembersSection({ institutionId }: { institutionId: string }) {
+function MembersSection({
+  institutionId,
+  currentUserId,
+}: {
+  institutionId: string;
+  currentUserId: string;
+}) {
   const { t } = useTranslation(['admin', 'common']);
   const { data, loading, refetch } = useInstitutionMembersQuery({ variables: { institutionId } });
   const members = data?.institutionMembers ?? [];
+  const activeAdminCount = members.filter(
+    (m) => m.role === 'ADMIN' && m.status === 'ACTIVE',
+  ).length;
   const [email, setEmail] = useState('');
   const [role, setRole] = useState<MembershipRole>('STUDENT');
   const [err, setErr] = useState('');
@@ -170,7 +179,11 @@ function MembersSection({ institutionId }: { institutionId: string }) {
       ) : members.length === 0 ? (
         <p className={styles.muted}>{t('members.empty')}</p>
       ) : (
-        members.map((m: Member) => (
+        members.map((m: Member) => {
+          const isActiveAdmin = m.role === 'ADMIN' && m.status === 'ACTIVE';
+          const blockSelf = isActiveAdmin && m.user.id === currentUserId;
+          const blockLast = isActiveAdmin && activeAdminCount === 1;
+          return (
           <div className={styles.row} key={m.id}>
             <span className={styles.rowMain}>
               {m.user.firstName} {m.user.lastName}{' '}
@@ -195,6 +208,14 @@ function MembersSection({ institutionId }: { institutionId: string }) {
                 variant="ghost"
                 size="sm"
                 icon={<Trash2 size={14} />}
+                disabled={blockSelf || blockLast}
+                title={
+                  blockSelf
+                    ? t('members.cannotRemoveSelf')
+                    : blockLast
+                      ? t('members.cannotRemoveLast')
+                      : undefined
+                }
                 onClick={async () => {
                   await removeMember({ variables: { id: m.id } });
                   await refetch();
@@ -204,7 +225,8 @@ function MembersSection({ institutionId }: { institutionId: string }) {
               </Button>
             </div>
           </div>
-        ))
+          );
+        })
       )}
       <form className={styles.form} onSubmit={invite}>
         <div className={styles.formRow}>

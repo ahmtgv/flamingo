@@ -14,7 +14,11 @@ import { AdminInstitutionScreen } from './AdminInstitutionScreen';
 function adminInstitutionMock(institution: unknown) {
   return {
     request: { query: AdminInstitutionDocument },
-    result: { data: { me: { __typename: 'User', adminProfile: { __typename: 'AdminProfile', institution } } } },
+    result: {
+      data: {
+        me: { __typename: 'User', id: 'admin1', adminProfile: { __typename: 'AdminProfile', institution } },
+      },
+    },
   };
 }
 
@@ -64,5 +68,30 @@ describe('AdminInstitutionScreen', () => {
     expect(screen.getByText('Настройки учреждения')).toBeInTheDocument();
     expect(screen.getByText('Участники')).toBeInTheDocument();
     expect(screen.getByText('Группы')).toBeInTheDocument();
+  });
+
+  it('disables removing the own/last active admin', async () => {
+    const ownAdmin = {
+      __typename: 'InstitutionMembership',
+      id: 'mem1',
+      role: 'ADMIN',
+      status: 'ACTIVE',
+      joinedAt: null,
+      user: {
+        __typename: 'User',
+        id: 'admin1', // matches me.id from adminInstitutionMock
+        firstName: 'Алла',
+        lastName: 'Админова',
+        email: 'a@example.com',
+      },
+    };
+    const membersWithAdmin = () => ({
+      request: { query: InstitutionMembersDocument, variables: { institutionId: 'inst1' } },
+      result: { data: { institutionMembers: [ownAdmin] } },
+    });
+    renderAdmin([adminInstitutionMock(institution), membersWithAdmin(), membersWithAdmin(), groupsMock]);
+
+    expect(await screen.findByText(/Алла Админова/)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Удалить' })).toBeDisabled();
   });
 });

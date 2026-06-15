@@ -15,7 +15,7 @@ from django.utils import timezone
 
 from apps.accounts.models import StudentProfile, TeacherProfile, User
 from common.enums import MembershipRole, MembershipStatus
-from common.exceptions import NotFound, PermissionDenied
+from common.exceptions import NotFound, PermissionDenied, ValidationError
 
 from .models import Group, GroupMembership, GroupTeacher, Institution, InstitutionMembership
 
@@ -164,6 +164,30 @@ def update_membership(user, membership_id, *, role=None, status=None) -> Institu
     return membership
 
 
+def _guard_admin_removal(user, membership: InstitutionMembership) -> None:
+    """Protect against an institution losing its admin: an admin cannot remove
+    their own active admin membership, nor the last remaining active admin."""
+    is_active_admin = (
+        membership.role == MembershipRole.ADMIN.value
+        and membership.status == MembershipStatus.ACTIVE.value
+    )
+    if not is_active_admin:
+        return
+    if membership.user_id == getattr(user, "id", None):
+        raise ValidationError("An admin cannot remove their own admin membership")
+    remaining_active_admins = (
+        InstitutionMembership.objects.filter(
+            institution_id=membership.institution_id,
+            role=MembershipRole.ADMIN.value,
+            status=MembershipStatus.ACTIVE.value,
+        )
+        .exclude(id=membership.id)
+        .count()
+    )
+    if remaining_active_admins == 0:
+        raise ValidationError("Cannot remove the last active admin of the institution")
+
+
 def remove_member(user, membership_id) -> bool:
     membership = (
         InstitutionMembership.objects.filter(id=membership_id).select_related("institution").first()
@@ -171,6 +195,7 @@ def remove_member(user, membership_id) -> bool:
     if membership is None:
         raise NotFound("Membership not found")
     _admin_for(user, membership.institution_id)
+    _guard_admin_removal(user, membership)
     membership.delete()
     return True
 

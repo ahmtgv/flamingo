@@ -3,6 +3,7 @@
 
 query AdminInstitution {
   me {
+    id
     adminProfile {
       institution {
         id
