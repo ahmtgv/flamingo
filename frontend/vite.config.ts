@@ -5,6 +5,10 @@ import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
   plugins: [react()],
+  // The SEduM worker MUST be a classic (iife) worker: MediaPipe's WASM loader uses
+  // `importScripts`, which is unavailable in `{ type: 'module' }` workers (it would
+  // fall back to `document`, absent in a worker). Keep this 'iife' (see seedum/attention.ts).
+  worker: { format: 'iife' },
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),

@@ -26,7 +26,9 @@ export function startAttentionPipeline(
   baseline: Baseline | undefined,
   cb: PipelineCallbacks,
 ): PipelineHandle {
-  const worker = new Worker(new URL('./mediapipe.worker.ts', import.meta.url), { type: 'module' });
+  // Classic (non-module) worker on purpose: MediaPipe's WASM loader needs
+  // `importScripts`, absent in module workers (see vite.config.ts `worker.format`).
+  const worker = new Worker(new URL('./mediapipe.worker.ts', import.meta.url));
   let running = true;
   let ready = false;
 

@@ -6,6 +6,13 @@
 // or its vendored model are unavailable it reports 'unavailable' — never a faked
 // score (CLAUDE.md §2/§7).
 
+import {
+  type Category,
+  FaceLandmarker,
+  type FaceLandmarkerResult,
+  FilesetResolver,
+} from '@mediapipe/tasks-vision';
+
 import { Bucketer } from './bucketing';
 import { type AttentionSignals, type Baseline, scoreAttention } from './score';
 
@@ -16,19 +23,17 @@ type InMsg =
 
 const ctx = self as unknown as DedicatedWorkerGlobalScope;
 
-// MediaPipe types are not installed offline; treat the module as untyped.
-/* eslint-disable @typescript-eslint/no-explicit-any */
-let landmarker: any = null;
+let landmarker: FaceLandmarker | null = null;
 let baseline: Baseline | undefined;
 let bucketer: Bucketer | null = null;
 
-function blend(categories: any[], name: string): number {
-  const c = categories?.find((x) => x.categoryName === name);
+function blend(categories: Category[], name: string): number {
+  const c = categories.find((x) => x.categoryName === name);
   return c ? c.score : 0;
 }
 
-function extractSignals(result: any): AttentionSignals {
-  const present = (result?.faceLandmarks?.length ?? 0) > 0;
+function extractSignals(result: FaceLandmarkerResult): AttentionSignals {
+  const present = (result.faceLandmarks?.length ?? 0) > 0;
   if (!present) return { facePresent: false, eyeOpenness: 0, gazeCenter: 0, headForward: 0 };
   const cats = result.faceBlendshapes?.[0]?.categories ?? [];
   const blink = Math.max(blend(cats, 'eyeBlinkLeft'), blend(cats, 'eyeBlinkRight'));
@@ -56,11 +61,11 @@ ctx.onmessage = async (e: MessageEvent<InMsg>) => {
       ctx.postMessage({ type: 'bucket', bucketStart, avgAttention: avg }),
     );
     try {
-      // Variable specifier so the bundler does not try to resolve the optional dep.
-      const specifier = '@mediapipe/tasks-vision';
-      const vision: any = await import(/* @vite-ignore */ specifier);
-      const fileset = await vision.FilesetResolver.forVisionTasks(msg.wasmBase);
-      landmarker = await vision.FaceLandmarker.createFromOptions(fileset, {
+      // WASM runtime + model are vendored under /seedum/ (see scripts/vendor-seedum-assets.mjs);
+      // nothing is fetched from a third-party CDN. If either is missing/unloadable we report
+      // 'unavailable' below — we never fabricate a score (CLAUDE.md §2/§7).
+      const fileset = await FilesetResolver.forVisionTasks(msg.wasmBase);
+      landmarker = await FaceLandmarker.createFromOptions(fileset, {
         baseOptions: { modelAssetPath: msg.modelUrl },
         runningMode: 'VIDEO',
         numFaces: 1,

@@ -3,6 +3,8 @@
 // (WebCrypto, AES-GCM, PBKDF2) — the server stores `encryptedBlob` (opaque) +
 // `keyHint` (salt+iv, NOT the key) and can never decrypt it (CLAUDE.md §2/§7).
 
+import { type DBSchema, type IDBPDatabase, openDB } from 'idb';
+
 import type { Baseline } from './score';
 
 export interface Ubp {
@@ -15,40 +17,31 @@ const DB_NAME = 'flamingo-seedum';
 const STORE = 'ubp';
 const KEY = 'self';
 
-function openDb(): Promise<IDBDatabase> {
-  return new Promise((resolve, reject) => {
-    const req = indexedDB.open(DB_NAME, 1);
-    req.onupgradeneeded = () => req.result.createObjectStore(STORE);
-    req.onsuccess = () => resolve(req.result);
-    req.onerror = () => reject(req.error);
+interface SeedumDb extends DBSchema {
+  ubp: { key: string; value: Ubp };
+}
+
+let dbPromise: Promise<IDBPDatabase<SeedumDb>> | null = null;
+
+function db(): Promise<IDBPDatabase<SeedumDb>> {
+  dbPromise ??= openDB<SeedumDb>(DB_NAME, 1, {
+    upgrade(database) {
+      database.createObjectStore(STORE);
+    },
   });
+  return dbPromise;
 }
 
 export async function loadUbp(): Promise<Ubp | null> {
-  const db = await openDb();
-  return new Promise((resolve, reject) => {
-    const req = db.transaction(STORE, 'readonly').objectStore(STORE).get(KEY);
-    req.onsuccess = () => resolve((req.result as Ubp) ?? null);
-    req.onerror = () => reject(req.error);
-  });
+  return (await (await db()).get(STORE, KEY)) ?? null;
 }
 
 export async function saveUbp(ubp: Ubp): Promise<void> {
-  const db = await openDb();
-  return new Promise((resolve, reject) => {
-    const req = db.transaction(STORE, 'readwrite').objectStore(STORE).put(ubp, KEY);
-    req.onsuccess = () => resolve();
-    req.onerror = () => reject(req.error);
-  });
+  await (await db()).put(STORE, ubp, KEY);
 }
 
 export async function clearUbp(): Promise<void> {
-  const db = await openDb();
-  return new Promise((resolve, reject) => {
-    const req = db.transaction(STORE, 'readwrite').objectStore(STORE).delete(KEY);
-    req.onsuccess = () => resolve();
-    req.onerror = () => reject(req.error);
-  });
+  await (await db()).delete(STORE, KEY);
 }
 
 // --- client-side encryption -------------------------------------------------
@@ -62,11 +55,14 @@ export function toBase64(bytes: ArrayBuffer | Uint8Array): string {
   return btoa(out);
 }
 
-export function fromBase64(s: string): Uint8Array {
-  return Uint8Array.from(atob(s), (c) => c.charCodeAt(0));
+export function fromBase64(s: string): Uint8Array<ArrayBuffer> {
+  const bin = atob(s);
+  const out = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i += 1) out[i] = bin.charCodeAt(i);
+  return out;
 }
 
-async function deriveKey(passphrase: string, salt: Uint8Array): Promise<CryptoKey> {
+async function deriveKey(passphrase: string, salt: Uint8Array<ArrayBuffer>): Promise<CryptoKey> {
   const base = await crypto.subtle.importKey('raw', encoder.encode(passphrase), 'PBKDF2', false, [
     'deriveKey',
   ]);
