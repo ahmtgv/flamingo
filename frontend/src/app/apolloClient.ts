@@ -1,8 +1,18 @@
-import { ApolloClient, ApolloLink, fromPromise, HttpLink, InMemoryCache } from '@apollo/client';
+import {
+  ApolloClient,
+  ApolloLink,
+  fromPromise,
+  HttpLink,
+  InMemoryCache,
+  split,
+} from '@apollo/client';
 import { setContext } from '@apollo/client/link/context';
 import { onError } from '@apollo/client/link/error';
+import { GraphQLWsLink } from '@apollo/client/link/subscriptions';
+import { getMainDefinition } from '@apollo/client/utilities';
+import { createClient } from 'graphql-ws';
 
-import { GRAPHQL_HTTP_URL } from '@/shared/lib/env';
+import { GRAPHQL_HTTP_URL, GRAPHQL_WS_URL } from '@/shared/lib/env';
 import { refreshAccessToken } from '@/shared/lib/refresh';
 import { clearSession, getAccessToken, getRefreshToken } from '@/shared/lib/session';
 
@@ -33,7 +43,33 @@ const errorLink = onError(({ graphQLErrors, operation, forward }) => {
   });
 });
 
+const httpChain = ApolloLink.from([errorLink, authLink, httpLink]);
+
+// Subscriptions go over WebSocket (graphql-ws); the JWT travels in connectionParams
+// (the seedum subscription resolver reads `authToken`). `lazy` defers the socket until
+// the first subscription, so HTTP-only sessions (and tests) never open it.
+const wsLink = new GraphQLWsLink(
+  createClient({
+    url: GRAPHQL_WS_URL,
+    lazy: true,
+    connectionParams: () => {
+      const token = getAccessToken();
+      return token ? { authToken: `Bearer ${token}` } : {};
+    },
+  }),
+);
+
+// Route subscriptions → WS, everything else → the authed/refreshing HTTP chain.
+const splitLink = split(
+  ({ query }) => {
+    const def = getMainDefinition(query);
+    return def.kind === 'OperationDefinition' && def.operation === 'subscription';
+  },
+  wsLink,
+  httpChain,
+);
+
 export const apolloClient = new ApolloClient({
-  link: ApolloLink.from([errorLink, authLink, httpLink]),
+  link: splitLink,
   cache: new InMemoryCache(),
 });

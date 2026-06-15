@@ -1,0 +1,30 @@
+# Live CMF room operations. Fragment-free; names match the live SDL (seedum types
+# carry no *Type suffix). The student pushes ONLY the aggregate via reportAttention;
+# the teacher watches the class live via attentionUpdates and pulls the post-session
+# report via sessionAttention. No frame/landmark/video field exists anywhere.
+
+mutation ReportAttention($input: AttentionInput!) {
+  reportAttention(input: $input)
+}
+
+subscription AttentionUpdates($sessionId: ID!) {
+  attentionUpdates(sessionId: $sessionId) {
+    id
+    sessionId
+    studentId
+    bucketStart
+    avgAttention
+  }
+}
+
+query SessionAttention($sessionId: ID!) {
+  sessionAttention(sessionId: $sessionId) {
+    averageAttention
+    peak
+    low
+    points {
+      at
+      value
+    }
+  }
+}

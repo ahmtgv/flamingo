@@ -1732,6 +1732,27 @@ export type GradeSubmissionMutationVariables = Exact<{
 
 export type GradeSubmissionMutation = { __typename?: 'Mutation', gradeSubmission: { __typename?: 'Submission', id: string, status: SubmissionStatus, score?: number | null, comment?: string | null } };
 
+export type ReportAttentionMutationVariables = Exact<{
+  input: AttentionInput;
+}>;
+
+
+export type ReportAttentionMutation = { __typename?: 'Mutation', reportAttention: boolean };
+
+export type AttentionUpdatesSubscriptionVariables = Exact<{
+  sessionId: Scalars['ID']['input'];
+}>;
+
+
+export type AttentionUpdatesSubscription = { __typename?: 'Subscription', attentionUpdates: { __typename?: 'AttentionMetric', id: string, sessionId: string, studentId: string, bucketStart: string, avgAttention: number } };
+
+export type SessionAttentionQueryVariables = Exact<{
+  sessionId: Scalars['ID']['input'];
+}>;
+
+
+export type SessionAttentionQuery = { __typename?: 'Query', sessionAttention: { __typename?: 'AttentionSummary', averageAttention: number, peak: number, low: number, points: Array<{ __typename?: 'AttentionPoint', at: string, value: number }> } };
+
 export type MyScheduleQueryVariables = Exact<{
   from: Scalars['DateTime']['input'];
   to: Scalars['DateTime']['input'];
@@ -3652,6 +3673,120 @@ export function useGradeSubmissionMutation(baseOptions?: Apollo.MutationHookOpti
 export type GradeSubmissionMutationHookResult = ReturnType<typeof useGradeSubmissionMutation>;
 export type GradeSubmissionMutationResult = Apollo.MutationResult<GradeSubmissionMutation>;
 export type GradeSubmissionMutationOptions = Apollo.BaseMutationOptions<GradeSubmissionMutation, GradeSubmissionMutationVariables>;
+export const ReportAttentionDocument = gql`
+    mutation ReportAttention($input: AttentionInput!) {
+  reportAttention(input: $input)
+}
+    `;
+export type ReportAttentionMutationFn = Apollo.MutationFunction<ReportAttentionMutation, ReportAttentionMutationVariables>;
+
+/**
+ * __useReportAttentionMutation__
+ *
+ * To run a mutation, you first call `useReportAttentionMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useReportAttentionMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [reportAttentionMutation, { data, loading, error }] = useReportAttentionMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useReportAttentionMutation(baseOptions?: Apollo.MutationHookOptions<ReportAttentionMutation, ReportAttentionMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<ReportAttentionMutation, ReportAttentionMutationVariables>(ReportAttentionDocument, options);
+      }
+export type ReportAttentionMutationHookResult = ReturnType<typeof useReportAttentionMutation>;
+export type ReportAttentionMutationResult = Apollo.MutationResult<ReportAttentionMutation>;
+export type ReportAttentionMutationOptions = Apollo.BaseMutationOptions<ReportAttentionMutation, ReportAttentionMutationVariables>;
+export const AttentionUpdatesDocument = gql`
+    subscription AttentionUpdates($sessionId: ID!) {
+  attentionUpdates(sessionId: $sessionId) {
+    id
+    sessionId
+    studentId
+    bucketStart
+    avgAttention
+  }
+}
+    `;
+
+/**
+ * __useAttentionUpdatesSubscription__
+ *
+ * To run a query within a React component, call `useAttentionUpdatesSubscription` and pass it any options that fit your needs.
+ * When your component renders, `useAttentionUpdatesSubscription` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the subscription, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useAttentionUpdatesSubscription({
+ *   variables: {
+ *      sessionId: // value for 'sessionId'
+ *   },
+ * });
+ */
+export function useAttentionUpdatesSubscription(baseOptions: Apollo.SubscriptionHookOptions<AttentionUpdatesSubscription, AttentionUpdatesSubscriptionVariables> & ({ variables: AttentionUpdatesSubscriptionVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useSubscription<AttentionUpdatesSubscription, AttentionUpdatesSubscriptionVariables>(AttentionUpdatesDocument, options);
+      }
+export type AttentionUpdatesSubscriptionHookResult = ReturnType<typeof useAttentionUpdatesSubscription>;
+export type AttentionUpdatesSubscriptionResult = Apollo.SubscriptionResult<AttentionUpdatesSubscription>;
+export const SessionAttentionDocument = gql`
+    query SessionAttention($sessionId: ID!) {
+  sessionAttention(sessionId: $sessionId) {
+    averageAttention
+    peak
+    low
+    points {
+      at
+      value
+    }
+  }
+}
+    `;
+
+/**
+ * __useSessionAttentionQuery__
+ *
+ * To run a query within a React component, call `useSessionAttentionQuery` and pass it any options that fit your needs.
+ * When your component renders, `useSessionAttentionQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useSessionAttentionQuery({
+ *   variables: {
+ *      sessionId: // value for 'sessionId'
+ *   },
+ * });
+ */
+export function useSessionAttentionQuery(baseOptions: Apollo.QueryHookOptions<SessionAttentionQuery, SessionAttentionQueryVariables> & ({ variables: SessionAttentionQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<SessionAttentionQuery, SessionAttentionQueryVariables>(SessionAttentionDocument, options);
+      }
+export function useSessionAttentionLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<SessionAttentionQuery, SessionAttentionQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<SessionAttentionQuery, SessionAttentionQueryVariables>(SessionAttentionDocument, options);
+        }
+// @ts-ignore
+export function useSessionAttentionSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<SessionAttentionQuery, SessionAttentionQueryVariables>): Apollo.UseSuspenseQueryResult<SessionAttentionQuery, SessionAttentionQueryVariables>;
+export function useSessionAttentionSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<SessionAttentionQuery, SessionAttentionQueryVariables>): Apollo.UseSuspenseQueryResult<SessionAttentionQuery | undefined, SessionAttentionQueryVariables>;
+export function useSessionAttentionSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<SessionAttentionQuery, SessionAttentionQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<SessionAttentionQuery, SessionAttentionQueryVariables>(SessionAttentionDocument, options);
+        }
+export type SessionAttentionQueryHookResult = ReturnType<typeof useSessionAttentionQuery>;
+export type SessionAttentionLazyQueryHookResult = ReturnType<typeof useSessionAttentionLazyQuery>;
+export type SessionAttentionSuspenseQueryHookResult = ReturnType<typeof useSessionAttentionSuspenseQuery>;
+export type SessionAttentionQueryResult = Apollo.QueryResult<SessionAttentionQuery, SessionAttentionQueryVariables>;
 export const MyScheduleDocument = gql`
     query MySchedule($from: DateTime!, $to: DateTime!) {
   mySchedule(from: $from, to: $to) {

@@ -1,4 +1,15 @@
-import { ArrowLeft, Check, LogOut, Moon, Play, Radio, Square, Sun, Video } from 'lucide-react';
+import {
+  ArrowLeft,
+  BarChart3,
+  Check,
+  LogOut,
+  Moon,
+  Play,
+  Radio,
+  Square,
+  Sun,
+  Video,
+} from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
@@ -61,8 +72,13 @@ export function ScheduleScreen() {
   const sessions = data?.mySchedule ?? [];
 
   async function handleJoin(id: string) {
+    // Acquire the room token + create ATTENDANCE, then enter the live CMF room where
+    // the on-device attention pipeline runs.
     const res = await joinSession({ variables: { sessionId: id } });
-    if (res.data?.joinSession.roomToken) setJoined((prev) => new Set(prev).add(id));
+    if (res.data?.joinSession.roomToken) {
+      setJoined((prev) => new Set(prev).add(id));
+      navigate(`/sessions/${id}/room`);
+    }
   }
 
   return (
@@ -121,16 +137,36 @@ export function ScheduleScreen() {
                   </Button>
                 )}
                 {isTeacher && s.status === 'LIVE' && (
+                  <>
+                    <Button
+                      variant="primary"
+                      size="sm"
+                      icon={<Radio size={15} />}
+                      onClick={() => navigate(`/sessions/${s.id}/room`)}
+                    >
+                      {t('actions.room')}
+                    </Button>
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      icon={<Square size={15} />}
+                      onClick={async () => {
+                        await endSession({ variables: { sessionId: s.id } });
+                        await refetch();
+                      }}
+                    >
+                      {t('actions.end')}
+                    </Button>
+                  </>
+                )}
+                {isTeacher && s.status === 'ENDED' && (
                   <Button
-                    variant="secondary"
+                    variant="ghost"
                     size="sm"
-                    icon={<Square size={15} />}
-                    onClick={async () => {
-                      await endSession({ variables: { sessionId: s.id } });
-                      await refetch();
-                    }}
+                    icon={<BarChart3 size={15} />}
+                    onClick={() => navigate(`/sessions/${s.id}/room`)}
                   >
-                    {t('actions.end')}
+                    {t('actions.report')}
                   </Button>
                 )}
                 {s.status === 'LIVE' &&
