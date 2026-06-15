@@ -1,41 +1,36 @@
 # Flamingo — Session Handoff
 
-**Date:** 2026-06-14 · **Branch:** `main` · **HEAD:** `12a135e` · working tree clean.
+**Date:** 2026-06-15 · **Branch:** `main` · **HEAD:** `98ad05c` · working tree clean (44 commits on `main`).
 This doc lets a fresh session resume cleanly. It references files by path — read those, don't rely on this doc alone.
 
 ---
 
-## 0. Overnight autonomous run — read this first (morning summary)
-Ran the approved overnight queue. **Everything committed on `main`; tree clean; whole repo green**
-(backend **44 pytest** + ruff + black; frontend **build + lint + 22 vitest**). Each task is its own
-revertible commit. Nothing was left broken or half-built.
+## 0. Current state — read this first
+**Repo is green and clean** (verified this session, not from memory): backend **54 pytest** on
+Postgres + **ruff** + **black** clean, 0 unapplied migrations, `makemigrations --check` clean;
+frontend **`npm run build`** + **`npm run lint`** + **24 vitest**, `generated.ts` matches the SDL
+(no codegen drift). HEAD `98ad05c`, tree clean.
 
-**Done (in order):**
-1. **Course constructor — reorder + edit-course UI** — `80c561b` (feat) + `794eb2c` (handoff).
-   FE-only; section/lesson ▲▼ reorder + `EditCourseForm`, wired to pre-existing hooks; +6 vitest.
-   Browser-verified: reorder + title edit persist across reload (DB-confirmed). The MVP constructor
-   is now feature-complete.
-2. **Shared `TextArea` primitive** — `b73ed1c` (refactor). Extracted the homework one-off
-   `<textarea>` into `shared/ui/TextArea` on field tokens (cleanup noted in the homework plan).
-3. **Student submit-path test** — `fdd795d` (test). Covers `submitHomework` firing (was only
-   asserting the button rendered); vitest 21 → 22.
-4. **Institutions/admin module — PLAN ONLY** — `12a135e` (docs). Investigation + draft plan in
-   [`INSTITUTIONS_PLAN.md`](INSTITUTIONS_PLAN.md). **Not implemented** (per instructions).
+**MVP build order status** (`CLAUDE.md` §10: `auth → cabinets → schedule → homework → admin → SEduM`):
+auth ✅ · cabinets ✅ (parent functional; others shells) · courses ✅ · scheduling ✅ ·
+homework ✅ (TEXT-only) · payment-readiness seams ✅ · course constructor ✅ ·
+**admin/institutions ✅ (a+b+c, module complete)** · **SEduM Lite — NOT started** (next).
 
-**Blocked — needs owner** (did NOT touch, by design):
-- **Institutions implementation** — needs (a) the **group_id-FK vs CourseGroup-M2M** product
-  decision (ERD §7) and (b) migrations that **alter existing tables** (the reserved cross-app FKs).
-  Both are owner-gated. See [`INSTITUTIONS_PLAN.md`](INSTITUTIONS_PLAN.md) §1/§5/§7 — 5 questions
-  await you there (group shape, REVIEW app placement, B2C `student.institution`, onboarding,
-  subdomain/branding).
+**Apps:** `backend/apps/` = accounts, courses, scheduling, homework, institutions (no `seedum`).
+**Frontend features:** `frontend/src/features/` = auth, cabinet, courses, schedule, homework, admin
+(no `seedum`). `api/schema.py` composes 5 Query/Mutation mixins; **still no `Subscription` type**.
 
-**Considered but skipped** (low value / out of scope): trivial empty-state tests (padding);
-anything needing a backend/SDL/migration change, a product decision, payments, SEduM, auth, or
-dependency changes — all explicitly out of bounds for the unattended run.
+**Owner-gated migration check:** the institutions cross-app FK migration (the table-altering step —
+`courses/0003`, `scheduling/0002`, `homework/0002`) **landed and is applied**; it was the
+owner-approved one (additive nullable FKs, shown before applying — see §3 step b).
 
-**Note:** the dev stack (Postgres, uvicorn :8000, vite :5173) is still up and demo users/data
-(`hwteacher@example.com` / `hwstudent@example.com`, course "Алгебра 7 — обновлён") remain in the
-**dev** DB from verification — harmless; clear when convenient.
+**Known minor follow-up (not a blocker):** an admin can `removeMember` their own active admin
+membership and lock themselves out of `/admin` (no guard yet) — §3 / §5.
+
+**Dev stack / demo data:** Postgres + uvicorn :8000 + vite :5173 were up this session; **dev** DB
+holds demo rows from verification (`hwteacher@`/`hwstudent@` + course "Алгебра 7 — обновлён";
+`platform@`/`schooladmin@`/`tteacher@`/`sstudent@` + institution "Гимназия №1" with a "7А" group).
+Harmless; clear when convenient.
 
 ---
 
@@ -45,14 +40,14 @@ Flamingo is a B2C online-education platform (pupils grades 1–11 + adults, plus
 
 ## 2. Architecture state (what's actually wired)
 **Backend** — Python 3.12, Django 5.1, Strawberry GraphQL (`strawberry-django`), PostgreSQL 16, JWT bearer auth, ASGI (uvicorn, HTTP only — no Channels/subscriptions yet, `backend/config/asgi.py`).
-- Apps present: `backend/common/`, `backend/apps/accounts`, `backend/apps/courses`, `backend/apps/scheduling`. Each app: `models.py`, `services.py` (logic+permissions), `graphql/{types,queries,mutations}.py`, `tests/`.
-- Root schema: `backend/api/schema.py` composes Accounts/Courses/Scheduling Query+Mutation. **No `Subscription` type yet.**
-- Migrations (all applied to dev Postgres): `accounts/0001`, `courses/0001`, `scheduling/0001`.
-- Key models (see `backend/apps/*/models.py`): accounts `User`/`*Profile`/`Guardianship`/`VerificationDocument`; courses `Course`/`Section`/`Lesson`/`Material`/`Enrollment`; scheduling `LessonSession`/`Attendance`. Shared base in `backend/common/models.py`; enums in `backend/common/enums.py`; auth in `backend/common/auth.py`; cursor pagination `backend/common/pagination.py`; LiveKit token minting `backend/common/livekit.py`.
+- Apps present: `backend/common/`, `backend/apps/{accounts,courses,scheduling,homework,institutions}`. Each app: `models.py`, `services.py` (logic+permissions), `graphql/{types,queries,mutations}.py`, `tests/`. (`courses` also has `access.py`, the `can_access_course` chokepoint.)
+- Root schema: `backend/api/schema.py` composes **Accounts/Courses/Scheduling/Homework/Institutions** Query+Mutation mixins. **No `Subscription` type yet.**
+- Migrations (all applied to dev Postgres, 0 unapplied): `accounts/0001`; `courses/0001`,`0002` (price/currency/access_status),`0003` (institution+group FKs); `scheduling/0001`,`0002` (group FK); `homework/0001`,`0002` (group FK); `institutions/0001`.
+- Key models (`backend/apps/*/models.py`): accounts `User`/`*Profile`/`Guardianship`/`VerificationDocument`; courses `Course`/`Section`/`Lesson`/`Material`/`Enrollment` (+ nullable `price`/`currency`/`institution`/`group`); scheduling `LessonSession`(+nullable `group`)/`Attendance`; homework `Homework`(+nullable `group`)/`Submission`/`SubmissionFile`; institutions `Institution`/`InstitutionMembership`/`Group`/`GroupMembership`/`GroupTeacher`. Shared base in `backend/common/models.py`; enums in `backend/common/enums.py`; auth in `backend/common/auth.py`; cursor pagination `backend/common/pagination.py`; LiveKit token minting `backend/common/livekit.py`.
 **Frontend** — TypeScript, React 18, Vite 6, Apollo Client, Redux Toolkit (UI state only), GraphQL Codegen (reads `docs/flamingo_schema.graphql` → `frontend/src/entities/graphql/generated.ts`, committed), i18next (`ru`, `frontend/src/i18n/`), CSS Modules on `tokens.css`.
-- Layout: `frontend/src/app/` (store, apolloClient, router, providers, useLogout), `shared/ui` (design-system primitives), `shared/lib` (env, session, refresh), `entities/graphql/generated.ts`, `features/{auth,cabinet,courses,schedule}`.
+- Layout: `frontend/src/app/` (store, apolloClient, router, providers, useLogout), `shared/ui` (design-system primitives incl. `TextArea`), `shared/lib` (env, session, refresh), `entities/graphql/generated.ts`, `features/{auth,cabinet,courses,schedule,homework,admin}`. i18n namespaces: `common,auth,cabinet,courses,schedule,homework,admin`.
 - Auth: access token in memory, refresh token in `localStorage`, silent refresh on auth error (`frontend/src/app/apolloClient.ts`, `shared/lib/session.ts`, `shared/lib/refresh.ts`).
-- **GraphQL drift caveat** (memory `sdl-vs-live-schema-drift`): accounts live type names are `*Type`-suffixed (`UserType`) vs SDL `User`; courses/scheduling names match the SDL. FE ops are **fragment-free** and select only live-implemented fields. LiveKit video is mocked (no server); join only acquires a token.
+- **GraphQL drift caveat** (memory `sdl-vs-live-schema-drift`): accounts live type names are `*Type`-suffixed (`UserType`) vs SDL `User`; courses/scheduling/homework/institutions names match the SDL. FE ops are **fragment-free** and select only live-implemented fields. LiveKit video is mocked (no server); join only acquires a token.
 
 ## 3. Done (committed on `main`)
 All green: **backend 54 pytest on Postgres + ruff + black clean; frontend `npm run build` + `npm run lint` + 24 vitest** (run from `backend/` and `frontend/`).
@@ -80,8 +75,9 @@ Working tree is **clean** — nothing uncommitted. Partially-built *within* comm
 - ✅ **DONE — Homework/grades** (backend `ec3d638` + frontend `1fdacf8`, see §3). Module complete: models/services/GraphQL/migration + React assign/submit/grade UI; student access routed through `can_access_course`. TEXT-only (FILE/QUIZ + homework-editing UI deferred).
 - ✅ **DONE — Course constructor reorder + edit** (`80c561b`, see §3). FE-only; the constructor is now feature-complete for MVP.
 - ✅ **DONE — Admin / institutions** (backend `17dcfcd`/`5f12481`/`ed580af`/`628e786` + frontend `15b5732`, see §3). Module complete per [`INSTITUTIONS_PLAN.md`](INSTITUTIONS_PLAN.md) (Option A group model; reviews→engagement; back-office onboarding; branding stored-unused). Admin FE at `/admin`. Minor follow-up: guard an admin from removing their own/last admin membership (§3 note).
-1. **SEduM Lite** — `apps/seedum` + `frontend/src/seedum/` (MediaPipe worker, attention pipeline → aggregates only, UBP in IndexedDB, `reportAttention`, `attentionUpdates` **subscription**). Requires standing up **Django Channels** (`config/asgi.py` is HTTP-only today) and the live CMF room consuming the scheduling LiveKit tokens.
-5. Cross-cutting later: files/S3 module (presigned uploads), certificates (PDF+QR), engagement (points/leaderboard/reviews), notifications.
+1. **SEduM Lite — CURRENT NEXT** (next per the build order; nothing started — no `apps/seedum`, no `frontend/src/seedum/`). New `apps/seedum` + `frontend/src/seedum/` (MediaPipe `FaceLandmarker` Web Worker, attention pipeline → **aggregates only**, UBP in IndexedDB, `reportAttention`, `attentionUpdates` **subscription**). Requires standing up **Django Channels** (`config/asgi.py` is HTTP-only today; first subscription work) + the live CMF room consuming the scheduling LiveKit tokens. Heavy/privacy-critical — plan-first and confirm scope before building. (Per `CLAUDE.md` §2/§7: raw biometrics never leave the device; no server endpoint accepts frames.)
+2. **Cross-cutting later:** files/S3 module (presigned uploads — unblocks FILE materials + FILE homework), certificates (PDF+QR), engagement (points/leaderboard/**reviews** — REVIEW model deferred here), notifications.
+3. **Small follow-up:** guard an admin from `removeMember`-ing their own/last active admin membership (§3 note).
 
 ## 6. Key decisions & constraints (don't re-litigate)
 - **No Docker on this machine** → stack runs **natively** (memory `local-dev-stack`); toolchain installed via Homebrew (node, postgresql@16, python@3.12). `infra/docker-compose.yml` exists but is unused locally.
@@ -100,13 +96,16 @@ Working tree is **clean** — nothing uncommitted. Partially-built *within* comm
 - **vitest major must match vite major** (vite 6 ↔ vitest 3) or you get two-copies-of-vite type errors.
 - FE ops: no fragments on type names; pass whole-object inputs; send `<input type=datetime-local>` as `new Date(v).toISOString()`; lucide icons typed as `LucideIcon`.
 - `frontend/src/entities/graphql/generated.ts` is committed — re-run `npm run codegen` after any schema/op change.
+- **Cross-app GraphQL type cycle** — a resolver returning another app's GraphQL type both ways (e.g. `accounts.AdminProfileType.institution` → institutions, while institutions imports accounts `UserType`) creates an import cycle. Break it with a `TYPE_CHECKING` import + `Annotated["X", strawberry.lazy("module.path")]` (keep the quotes; `UP037` is per-file-ignored in `pyproject.toml` for `apps/accounts/graphql/types.py` because ruff would strip them and break schema build). See `628e786`.
+- **Browser-driving the dev app**: hard `window.location.href` nav drops the in-memory access token (a hard reload then relies on silent refresh; `me` returns `null` for anonymous, which shows empty states, not an auth error). Prefer SPA nav after a fresh login, or expect a reload+refresh delay. Also: destructive admin buttons (`removeMember`, delete) are real — don't click them blindly while exploring (it deleted the seeded admin's own membership once).
 
 ## 8. Open questions for the product owner
 - **Payments — monetization model (still open):** payment-readiness rules are now in `CLAUDE.md` (committed `eb5bcb4`). Still to decide before any billing logic: the **monetization model (simple vs marketplace)** and whether access is gated **per-course (`Course.price`) or by subscription**. Until decided, keep `can_access_course` default-open and `Enrollment.access_status` default `active`; secondary details still open (what flips `access_status` to active, trials/refunds, which actions gate).
 - **Junior pupil signup:** currently a junior self-registers via `registerUser` using the parent's email as the login + a 152-FZ consent gate (MVP simplification). Confirm vs the "parent creates child via `addChild`" flow.
 - ✅ **Group ↔ Course shape** (ERD §7) — DECIDED: Option A (`group_id` FK) for MVP; `CourseGroup` M2M deferred to official release. Built B-friendly (nullable FKs, group access only in `can_access_course`). Implemented in `5f12481`/`ed580af`.
 - ✅ **Admin institution discovery** — RESOLVED (`628e786`): `me.adminProfile.institution` resolves from the active admin `InstitutionMembership` (no migration/SDL edit). The admin FE uses it as its entry point.
-- **Composite dashboards** (`studentDashboard`/`teacherDashboard`/`adminDashboard` in SDL) — implement fully once scheduling + homework exist? (`adminDashboard` would also give admins an institution entry point.)
+- **Composite dashboards** (`studentDashboard`/`teacherDashboard`/`adminDashboard` in the SDL) — still **unimplemented** (SDL-only). Implement fully once analytics/grades aggregation is wanted? (Not blocking: the admin entry point is already handled by `me.adminProfile.institution`.)
+- **REVIEW app placement** (deferred, recommended in `INSTITUTIONS_PLAN.md`): reviews live in the future `engagement` app — confirm before building reviews/moderation. `TeacherProfile.review_count` / `Course.rating` return stubs until then.
 
 ## 9. How to resume
 **Read first:** `CLAUDE.md`, this file, then `docs/flamingo_erd.md`, `docs/flamingo_schema.graphql`, `docs/flamingo_architecture.md` as needed. Memory files (`MEMORY.md`, `local-dev-stack.md`, `sdl-vs-live-schema-drift.md`) auto-load.
@@ -116,14 +115,15 @@ Working tree is **clean** — nothing uncommitted. Partially-built *within* comm
 export LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8
 /opt/homebrew/opt/postgresql@16/bin/pg_ctl -D /opt/homebrew/var/postgresql@16 -l /opt/homebrew/var/log/postgresql@16.log start   # role+db 'flamingo' already exist
 cd backend && export POSTGRES_HOST=localhost POSTGRES_USER=flamingo POSTGRES_PASSWORD=flamingo POSTGRES_DB=flamingo
-.venv/bin/python manage.py migrate && .venv/bin/python -m pytest        # expect 25 passed
+.venv/bin/python manage.py migrate && .venv/bin/python -m pytest        # expect 54 passed
 .venv/bin/uvicorn config.asgi:application --port 8000 --reload
 # new shell: cd frontend && npm run dev   (proxies /graphql -> :8000; preview via .claude/launch.json)
+# frontend gates: npm run build && npm run lint && npm test   (expect 24 vitest)
 ```
 
 **Exact first prompt for the next session:**
 > Resume the Flamingo build.
-> 1. **Read first:** `CLAUDE.md` and `docs/handoff/SESSION_HANDOFF.md` (then `docs/flamingo_erd.md` / `docs/flamingo_schema.graphql` as needed).
-> 2. **Bring up the dev stack** per §9 (Postgres with `LC_ALL`, backend `uvicorn … --reload` on :8000, frontend `npm run dev` on :5173) and confirm `pytest` is green (expect 25 passed).
-> 3. **Payments/billing seams:** the payment-readiness rules are already in `CLAUDE.md` ("Future: Payments / Billing") — do not ask me to re-add them. Build ONLY the seams: a **default-open** `courses/access.py: can_access_course(user, course)` plus nullable `Enrollment.access_status` / `Course.price` / `Course.currency`. Do NOT add any gating, pricing, or subscription logic, and confirm the monetization model (simple vs marketplace; per-course vs subscription) with me before any gating. For the seams: **present a plan and WAIT for my approval before editing any files; keep all existing tests green; and do not change any current behaviour** (defaults stay open/free).
-> 4. After the seams are approved and merged, continue with the **homework** module per the build order.
+> 1. **Read first:** `CLAUDE.md` and `docs/handoff/SESSION_HANDOFF.md` §0 (current state) — then `docs/flamingo_erd.md` / `docs/flamingo_schema.graphql` as needed.
+> 2. **Bring up the dev stack** per §9 (Postgres with `LC_ALL`, backend `uvicorn … --reload` on :8000, frontend `npm run dev` on :5173) and confirm green: backend `pytest` (expect **54 passed**) + `ruff`/`black`; frontend `npm run build`/`lint`/`test` (expect **24 vitest**).
+> 3. **Next module is SEduM Lite** (build order; nothing started). It's heavy and privacy-critical (raw biometrics never leave the device; it needs the first **Django Channels**/subscription work) — so **plan-first**: investigate (`CLAUDE.md` §7, `docs/flamingo_erd.md` seedum entities, `docs/flamingo_schema.graphql` `attentionUpdates`/`reportAttention`), present a plan, and WAIT for my approval before building. Keep all tests green; backend-then-FE; commit per concern.
+> 4. Alternatively, if I deprioritise SEduM, the next-best is the **files/S3 module** (presigned uploads — unblocks FILE materials + FILE homework) or **engagement** (points/leaderboard/reviews). Ask me which before starting.
