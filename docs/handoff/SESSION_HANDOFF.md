@@ -6,7 +6,7 @@ This doc lets a fresh session resume cleanly. It references files by path — re
 ---
 
 ## 0. Current state — read this first
-**Repo is green and clean** (verified this session, not from memory): backend **57 pytest** on
+**Repo is green and clean** (verified this session, not from memory): backend **68 pytest** on
 Postgres + **ruff** + **black** clean, 0 unapplied migrations, `makemigrations --check` clean;
 frontend **`npm run build`** + **`npm run lint`** + **25 vitest**, `generated.ts` matches the SDL
 (no codegen drift). Tree clean.
@@ -14,11 +14,13 @@ frontend **`npm run build`** + **`npm run lint`** + **25 vitest**, `generated.ts
 **MVP build order status** (`CLAUDE.md` §10: `auth → cabinets → schedule → homework → admin → SEduM`):
 auth ✅ · cabinets ✅ (parent functional; others shells) · courses ✅ · scheduling ✅ ·
 homework ✅ (TEXT-only) · payment-readiness seams ✅ · course constructor ✅ ·
-**admin/institutions ✅ (a+b+c, module complete)** · **SEduM Lite — NOT started** (next).
+admin/institutions ✅ (module complete) · **SEduM Lite — IN PROGRESS: sub-slice (a) backend +
+realtime DONE; (b) on-device pipeline + (c) live room next.**
 
-**Apps:** `backend/apps/` = accounts, courses, scheduling, homework, institutions (no `seedum`).
+**Apps:** `backend/apps/` = accounts, courses, scheduling, homework, institutions, **seedum**.
 **Frontend features:** `frontend/src/features/` = auth, cabinet, courses, schedule, homework, admin
-(no `seedum`). `api/schema.py` composes 5 Query/Mutation mixins; **still no `Subscription` type**.
+(seedum FE lands in slices b/c). `api/schema.py` composes 6 Query/Mutation mixins **+ a
+`Subscription` type** (`attentionUpdates`); ASGI now routes WebSocket (graphql-ws over Channels).
 
 **Owner-gated migration check:** the institutions cross-app FK migration (the table-altering step —
 `courses/0003`, `scheduling/0002`, `homework/0002`) **landed and is applied**; it was the
@@ -36,7 +38,7 @@ Flamingo is a B2C online-education platform (pupils grades 1–11 + adults, plus
 **Source of truth (read these):** [`CLAUDE.md`](../../CLAUDE.md) (the contract — privacy, 152-FZ, i18n, tokens, thin resolvers, per-resolver auth), `docs/Flamingo_Product_Brief_v1.md`, `docs/flamingo_erd.md` (data model, entities 1:1 to models), `docs/flamingo_schema.graphql` (API contract — codegen reads this), `docs/flamingo_architecture.md` (layers), `docs/FIRST_CLAUDE_CODE_SESSION.md`, design system in `docs/Flamingo_DesignSystem_v1.md` + `frontend/src/shared/styles/tokens.css` + `frontend/design-reference/*.jsx`.
 
 ## 2. Architecture state (what's actually wired)
-**Backend** — Python 3.12, Django 5.1, Strawberry GraphQL (`strawberry-django`), PostgreSQL 16, JWT bearer auth, ASGI (uvicorn, HTTP only — no Channels/subscriptions yet, `backend/config/asgi.py`).
+**Backend** — Python 3.12, Django 5.1, Strawberry GraphQL (`strawberry-django`), PostgreSQL 16, JWT bearer auth, ASGI (uvicorn). `config/asgi.py` is a `ProtocolTypeRouter`: **HTTP** stays on the Django app (so `JWTAuthMiddleware` runs); **WebSocket** (graphql-ws subscriptions over Channels) → Strawberry `GraphQLWSConsumer`. Channel layer: InMemory in dev, `channels_redis` env-switched (`CHANNELS_REDIS_URL`).
 - Apps present: `backend/common/`, `backend/apps/{accounts,courses,scheduling,homework,institutions}`. Each app: `models.py`, `services.py` (logic+permissions), `graphql/{types,queries,mutations}.py`, `tests/`. (`courses` also has `access.py`, the `can_access_course` chokepoint.)
 - Root schema: `backend/api/schema.py` composes **Accounts/Courses/Scheduling/Homework/Institutions** Query+Mutation mixins. **No `Subscription` type yet.**
 - Migrations (all applied to dev Postgres, 0 unapplied): `accounts/0001`; `courses/0001`,`0002` (price/currency/access_status),`0003` (institution+group FKs); `scheduling/0001`,`0002` (group FK); `homework/0001`,`0002` (group FK); `institutions/0001`.
@@ -47,7 +49,7 @@ Flamingo is a B2C online-education platform (pupils grades 1–11 + adults, plus
 - **GraphQL drift caveat** (memory `sdl-vs-live-schema-drift`): accounts live type names are `*Type`-suffixed (`UserType`) vs SDL `User`; courses/scheduling/homework/institutions names match the SDL. FE ops are **fragment-free** and select only live-implemented fields. LiveKit video is mocked (no server); join only acquires a token.
 
 ## 3. Done (committed on `main`)
-All green: **backend 57 pytest on Postgres + ruff + black clean; frontend `npm run build` + `npm run lint` + 25 vitest** (run from `backend/` and `frontend/`).
+All green: **backend 68 pytest on Postgres + ruff + black clean; frontend `npm run build` + `npm run lint` + 25 vitest** (run from `backend/` and `frontend/`).
 - **Foundation/infra** — `33ee20f` baseline, `e47c763` dev infra (compose/Dockerfiles/ruff+black), `f20b601`/`10df489` ruff+black on backend, `2e30420` ignore local settings.
 - **Auth (vertical slice)** — backend `apps/accounts` was provided; FE `628fb88` scaffold+design-system, `9a98e77` auth screens (role-aware register/login/reset, auto-login), `e6f54f7` auth tests. `cb8f2ad`/`131942d` add Avatar/Badge/SelectField primitives.
 - **Cabinets** — `2292513` role-aware cabinet shell + dispatch; **parent cabinet is functional** (view + add children with 152-FZ consent via `addChild`); student/teacher/admin show profile + honest empty-states.
@@ -61,6 +63,7 @@ All green: **backend 57 pytest on Postgres + ruff + black clean; frontend `npm r
 - **Institutions/admin — cross-app FKs + access (step b)** — `5f12481` (schema: nullable `Course.institution`/`Course.group`, `LessonSession.group`, `Homework.group`, all FK→institutions `SET_NULL`; migrations `courses/0003`, `scheduling/0002`, `homework/0002`, additive — owner-approved & applied) + `ed580af` (behaviour: group→course access decided **inside `can_access_course`** — a student in the course's target group gets access; expose the SDL cross-app fields `Course.institution`/`LessonSession.group`/`Homework.group` + forward `HomeworkInput.groupId`; `Course.group` stays model-only). No SDL edit; FE codegen unaffected. +1 access test.
 - **Institutions/admin — admin FE (step c)** — `628e786` (backend enabler: `me.adminProfile.institution` resolver from the active admin membership via `strawberry.lazy`; no migration/SDL edit; +1 test) + `15b5732` (FE: `frontend/src/features/admin/AdminInstitutionScreen` at route `/admin` — institution settings + stored-only branding color, members invite/approve/remove, groups create + add/remove students + assign teachers; `graphql/admin.graphql` + regenerated hooks; `ru/admin.json`; AdminCabinet nav wired; 2 vitest). **Module complete** (a+b+c). Verified live in-browser + via API (institution/members/groups render; `createGroup` round-trips).
 - **Institutions/admin — remove-member guard** — `5531bc0` service-layer guard in `institutions/services.py` (`_guard_admin_removal`): `removeMember` raises a clear `ValidationError` for removing one's **own active admin** membership or the **last active admin** (covers every caller, incl. staff); non-admin/non-last removals unchanged. FE: `AdminInstitution` query selects `me.id` and the members list disables the "Удалить" button for own/last admin (ru tooltip). +3 backend, +1 vitest.
+- **SEduM Lite — backend + realtime (sub-slice a)** — `42bf093` first subscription work + the aggregates-only backend. **Realtime:** `config/asgi.py` `ProtocolTypeRouter` (HTTP→Django incl. JWT middleware; WS→`GraphQLWSConsumer`), `channels` + `CHANNEL_LAYERS` (InMemory dev / `channels_redis` env), `api/schema.py` gains `Subscription` (`attentionUpdates`). Boot-verified: HTTP serves + WS `connection_init`→`connection_ack`. **`apps/seedum`** (`AttentionMetric`/`UbpBackup`/`Recommendation`, migration `0001`): `reportAttention` (**studentId derived from the auth user**, value clamped, publishes the aggregate to the `attention_<session>` channel group), `attentionUpdates` subscription (**teacher-only**, authed from graphql-ws `connection_params`), `sessionAttention` (teacher), `attentionAnalytics` (self/parent/teacher-of authz; bySubject/byWeekday/insights), rule-based `recommendations` + `dismissRecommendation`, opaque `backupUbp`/`ubpBackup`/`deleteUbpBackup` (base64; server never decrypts). `common.enums.InsightKind` added. **Privacy invariant TESTED** (AttentionInput is exactly {sessionId,bucketStart,avgAttention}; no frame/landmark/video field anywhere; reportAttention is the sole attention ingress). No SDL edits. **FE (b on-device pipeline / c live room) not built yet.**
 Verified E2E in-browser: register→login→`me`; parent add-child; teacher create→publish course→student enroll; schedule→start→student join (attendance row created); add lesson material.
 
 ## 4. In progress / partially built
@@ -73,7 +76,7 @@ Working tree is **clean** — nothing uncommitted. Partially-built *within* comm
 - ✅ **DONE — Homework/grades** (backend `ec3d638` + frontend `1fdacf8`, see §3). Module complete: models/services/GraphQL/migration + React assign/submit/grade UI; student access routed through `can_access_course`. TEXT-only (FILE/QUIZ + homework-editing UI deferred).
 - ✅ **DONE — Course constructor reorder + edit** (`80c561b`, see §3). FE-only; the constructor is now feature-complete for MVP.
 - ✅ **DONE — Admin / institutions** (backend `17dcfcd`/`5f12481`/`ed580af`/`628e786` + frontend `15b5732`, see §3). Module complete per [`INSTITUTIONS_PLAN.md`](INSTITUTIONS_PLAN.md) (Option A group model; reviews→engagement; back-office onboarding; branding stored-unused). Admin FE at `/admin`. Minor follow-up: guard an admin from removing their own/last admin membership (§3 note).
-1. **SEduM Lite — CURRENT NEXT** (next per the build order; nothing started — no `apps/seedum`, no `frontend/src/seedum/`). **Plan written, awaiting owner decisions:** [`SEDUM_LITE_PLAN.md`](SEDUM_LITE_PLAN.md) — node-principle anchor + 3 sub-slices ((a) Channels infra + attention-metrics backend, (b) on-device MediaPipe pipeline, (c) live CMF room) + 6 owner questions (база-тест baseline scope, encrypted UBP backup scope, new FE deps, dev channel layer, recommendations engine, which subscriptions). Channels/uvicorn deps already in `requirements.txt` (wiring, not installing); `config/asgi.py` is HTTP-only and the schema has no `Subscription` yet. Per `CLAUDE.md` §2/§7: raw biometrics never leave the device; no server endpoint accepts frames.
+1. **SEduM Lite — IN PROGRESS** (plan: [`SEDUM_LITE_PLAN.md`](SEDUM_LITE_PLAN.md); owner approved full scope, include-not-defer). **(a) backend + realtime DONE** (`42bf093`, see §3). **Next: (b) on-device pipeline** — `frontend/src/seedum/` MediaPipe `FaceLandmarker` Web Worker → ~10s aggregates only + bucketing (pure, tested) + 3-stage baseline calibration + UBP in IndexedDB with WebCrypto encrypt/backup/restore; **vendor the MediaPipe WASM/model assets locally (no CDN)**; deps `@mediapipe/tasks-vision`, `idb`. **Then (c) live CMF room** — Apollo `graphql-ws` split link; student camera+pipeline+local live chart+privacy indicator → `reportAttention`; teacher `attentionUpdates`; `sessionAttention` report; `ru/seedum.json`. Node-principle absolute (CLAUDE.md §2/§7): no frame ingress; aggregates only; UBP client-encrypted; privacy indicator on every camera screen.
 2. **Cross-cutting later:** files/S3 module (presigned uploads — unblocks FILE materials + FILE homework), certificates (PDF+QR), engagement (points/leaderboard/**reviews** — REVIEW model deferred here), notifications.
 - ✅ DONE — guard admin self/last-removal (`5531bc0`, see §3).
 
