@@ -1,0 +1,109 @@
+.room {
+  margin-top: var(--space-4);
+}
+.liveBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 2px var(--space-2);
+  margin-bottom: var(--space-3);
+  border-radius: var(--radius-pill);
+  background: var(--color-danger-bg, var(--color-surface-hover));
+  color: var(--color-danger-text, var(--color-text));
+  font-size: var(--text-caption);
+  font-weight: var(--weight-medium);
+}
+.grid {
+  display: grid;
+  gap: var(--space-3);
+  grid-template-columns: 1fr;
+}
+.grid[data-count='2'] {
+  grid-template-columns: repeat(2, 1fr);
+}
+.grid[data-count='3'],
+.grid[data-count='4'] {
+  grid-template-columns: repeat(2, 1fr);
+}
+.grid[data-count='5'] {
+  grid-template-columns: repeat(3, 1fr);
+}
+.tile {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  border-radius: var(--radius-control);
+  overflow: hidden;
+  background: var(--color-surface-hover);
+  border: 1px solid var(--color-border);
+}
+.video,
+.videoMirror {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.videoMirror {
+  transform: scaleX(-1); /* mirror only the local self-view */
+}
+.camOff {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-tertiary);
+  font-size: var(--text-small);
+}
+.name {
+  position: absolute;
+  left: var(--space-2);
+  bottom: var(--space-2);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-xs);
+  background: var(--color-overlay, rgba(0, 0, 0, 0.5));
+  color: #fff;
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+}
+.connecting {
+  margin-top: var(--space-3);
+  font-size: var(--text-small);
+  color: var(--color-text-secondary);
+}
+.controls {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+}
+.controlBtn {
+  width: var(--control-height-md);
+  height: var(--control-height-md);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--color-border-strong);
+  background: var(--color-surface);
+  color: var(--color-text);
+  cursor: pointer;
+}
+.controlBtn:hover {
+  background: var(--color-surface-hover);
+}
+.controlBtn:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+.controlBtn[data-off='true'] {
+  background: var(--color-surface-hover);
+  color: var(--color-text-tertiary);
+}
+.leaveBtn {
+  border-color: var(--color-danger-border, var(--color-border-strong));
+  color: var(--color-danger-text, var(--color-text));
+}

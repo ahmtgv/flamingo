@@ -13,6 +13,7 @@ describe('PrivacyIndicator', () => {
         <PrivacyIndicator />
       </I18nextProvider>,
     );
-    expect(screen.getByText(/видео не покидает устройство/)).toBeInTheDocument();
+    // Scoped to the on-device CMF analysis (still true even when the call publishes video).
+    expect(screen.getByText(/Анализ внимания идёт на вашем устройстве/)).toBeInTheDocument();
   });
 });

@@ -15,3 +15,10 @@ export const GRAPHQL_HTTP_URL = import.meta.env.VITE_GRAPHQL_HTTP_URL ?? '/graph
 export const GRAPHQL_WS_URL =
   import.meta.env.VITE_GRAPHQL_WS_URL ??
   `${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.host}/graphql/`;
+
+/**
+ * LiveKit server URL (e.g. wss://<project>.livekit.cloud). The URL is public; the
+ * API key/secret stay server-side (the backend mints the room token). Empty in dev
+ * until set in frontend/.env (VITE_LIVEKIT_URL) — the room then degrades gracefully.
+ */
+export const LIVEKIT_URL = import.meta.env.VITE_LIVEKIT_URL ?? '';

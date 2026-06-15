@@ -28,3 +28,18 @@ query SessionAttention($sessionId: ID!) {
     }
   }
 }
+
+# Room entry: status + the per-viewer LiveKit token (resolved via room_token_for —
+# non-null only for a participant of a LIVE session). The LiveKit server URL itself
+# comes from VITE_LIVEKIT_URL, not the API.
+query SessionRoom($id: ID!) {
+  session(id: $id) {
+    id
+    status
+    roomToken
+    lesson {
+      id
+      title
+    }
+  }
+}

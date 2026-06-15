@@ -1753,6 +1753,13 @@ export type SessionAttentionQueryVariables = Exact<{
 
 export type SessionAttentionQuery = { __typename?: 'Query', sessionAttention: { __typename?: 'AttentionSummary', averageAttention: number, peak: number, low: number, points: Array<{ __typename?: 'AttentionPoint', at: string, value: number }> } };
 
+export type SessionRoomQueryVariables = Exact<{
+  id: Scalars['ID']['input'];
+}>;
+
+
+export type SessionRoomQuery = { __typename?: 'Query', session?: { __typename?: 'LessonSession', id: string, status: SessionStatus, roomToken?: string | null, lesson: { __typename?: 'Lesson', id: string, title: string } } | null };
+
 export type MyScheduleQueryVariables = Exact<{
   from: Scalars['DateTime']['input'];
   to: Scalars['DateTime']['input'];
@@ -3787,6 +3794,55 @@ export type SessionAttentionQueryHookResult = ReturnType<typeof useSessionAttent
 export type SessionAttentionLazyQueryHookResult = ReturnType<typeof useSessionAttentionLazyQuery>;
 export type SessionAttentionSuspenseQueryHookResult = ReturnType<typeof useSessionAttentionSuspenseQuery>;
 export type SessionAttentionQueryResult = Apollo.QueryResult<SessionAttentionQuery, SessionAttentionQueryVariables>;
+export const SessionRoomDocument = gql`
+    query SessionRoom($id: ID!) {
+  session(id: $id) {
+    id
+    status
+    roomToken
+    lesson {
+      id
+      title
+    }
+  }
+}
+    `;
+
+/**
+ * __useSessionRoomQuery__
+ *
+ * To run a query within a React component, call `useSessionRoomQuery` and pass it any options that fit your needs.
+ * When your component renders, `useSessionRoomQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useSessionRoomQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useSessionRoomQuery(baseOptions: Apollo.QueryHookOptions<SessionRoomQuery, SessionRoomQueryVariables> & ({ variables: SessionRoomQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<SessionRoomQuery, SessionRoomQueryVariables>(SessionRoomDocument, options);
+      }
+export function useSessionRoomLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<SessionRoomQuery, SessionRoomQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<SessionRoomQuery, SessionRoomQueryVariables>(SessionRoomDocument, options);
+        }
+// @ts-ignore
+export function useSessionRoomSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<SessionRoomQuery, SessionRoomQueryVariables>): Apollo.UseSuspenseQueryResult<SessionRoomQuery, SessionRoomQueryVariables>;
+export function useSessionRoomSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<SessionRoomQuery, SessionRoomQueryVariables>): Apollo.UseSuspenseQueryResult<SessionRoomQuery | undefined, SessionRoomQueryVariables>;
+export function useSessionRoomSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<SessionRoomQuery, SessionRoomQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<SessionRoomQuery, SessionRoomQueryVariables>(SessionRoomDocument, options);
+        }
+export type SessionRoomQueryHookResult = ReturnType<typeof useSessionRoomQuery>;
+export type SessionRoomLazyQueryHookResult = ReturnType<typeof useSessionRoomLazyQuery>;
+export type SessionRoomSuspenseQueryHookResult = ReturnType<typeof useSessionRoomSuspenseQuery>;
+export type SessionRoomQueryResult = Apollo.QueryResult<SessionRoomQuery, SessionRoomQueryVariables>;
 export const MyScheduleDocument = gql`
     query MySchedule($from: DateTime!, $to: DateTime!) {
   mySchedule(from: $from, to: $to) {

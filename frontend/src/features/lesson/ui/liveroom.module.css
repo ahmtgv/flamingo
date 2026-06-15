@@ -68,6 +68,17 @@
   padding: var(--space-5) var(--space-5) var(--space-6);
   box-shadow: var(--shadow-sm);
 }
+.card + .card {
+  margin-top: var(--space-4);
+}
+/* CMF analysis source: rendered (so frames decode) but visually hidden. NOT display:none. */
+.cmfHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
 .videoWrap {
   position: relative;
   width: 100%;
