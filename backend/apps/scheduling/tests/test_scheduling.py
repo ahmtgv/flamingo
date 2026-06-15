@@ -2,7 +2,9 @@
 
 from datetime import date, timedelta
 
+import jwt
 import pytest
+from django.conf import settings
 from django.utils import timezone
 
 from apps.accounts import services as accounts
@@ -11,6 +13,7 @@ from apps.scheduling import services as scheduling
 from apps.scheduling.models import Attendance
 from common.enums import Role, SessionStatus
 from common.exceptions import PermissionDenied, ValidationError
+from common.livekit import room_token
 
 pytestmark = pytest.mark.django_db
 
@@ -97,3 +100,19 @@ def test_room_token_only_when_live_for_participant():
     assert scheduling.room_token_for(student, session)
     outsider = _student("out3@e.com")
     assert scheduling.room_token_for(outsider, session) is None
+
+
+def test_room_token_is_a_valid_livekit_grant():
+    """The minted JWT must carry a real LiveKit VideoGrant (so LiveKit Cloud accepts it).
+    Decode with the same secret room_token signs with: the configured LIVEKIT_API_SECRET
+    if present (real cloud project), else the SECRET_KEY dev fallback."""
+    secret = settings.LIVEKIT.get("api_secret") or settings.SECRET_KEY
+    token = room_token(identity="user-1", room="room-1")
+    claims = jwt.decode(token, secret, algorithms=["HS256"])
+    assert claims["sub"] == "user-1"  # participant identity
+    assert claims["iss"]  # API key (project key in prod, 'devkey' in dev)
+    grant = claims["video"]
+    assert grant["room"] == "room-1"
+    assert grant["roomJoin"] is True
+    assert grant["canPublish"] is True
+    assert grant["canSubscribe"] is True
