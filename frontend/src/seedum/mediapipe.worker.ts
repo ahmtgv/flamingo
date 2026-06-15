@@ -65,7 +65,9 @@ ctx.onmessage = async (e: MessageEvent<InMsg>) => {
       // nothing is fetched from a third-party CDN. If either is missing/unloadable we report
       // 'unavailable' below — we never fabricate a score (CLAUDE.md §2/§7).
       console.log('[CMF-W] init: resolving fileset', msg.wasmBase); // [CMF-DEBUG]
-      const fileset = await FilesetResolver.forVisionTasks(msg.wasmBase);
+      // useModule=true → the ES-module WASM build (vision_wasm_module_internal.*),
+      // which loads via dynamic import() and works inside a module worker (no importScripts).
+      const fileset = await FilesetResolver.forVisionTasks(msg.wasmBase, true);
       console.log('[CMF-W] fileset ok; creating FaceLandmarker', msg.modelUrl); // [CMF-DEBUG]
       landmarker = await FaceLandmarker.createFromOptions(fileset, {
         baseOptions: { modelAssetPath: msg.modelUrl },

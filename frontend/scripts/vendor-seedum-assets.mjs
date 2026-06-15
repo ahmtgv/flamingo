@@ -21,14 +21,11 @@ const here = dirname(fileURLToPath(import.meta.url));
 const publicSeedum = resolve(here, '..', 'public', 'seedum');
 const force = process.argv.includes('--force');
 
-// FilesetResolver.forVisionTasks assembles `vision_wasm[_nosimd]_internal.{js,wasm}`;
-// vendor both so any browser (SIMD or not) is served locally.
-const WASM_FILES = [
-  'vision_wasm_internal.js',
-  'vision_wasm_internal.wasm',
-  'vision_wasm_nosimd_internal.js',
-  'vision_wasm_nosimd_internal.wasm',
-];
+// The SEduM worker is a MODULE worker (vite dev can't serve a classic worker that
+// uses ESM imports), so MediaPipe loads via FilesetResolver.forVisionTasks(base, true)
+// → the ES-module WASM build `vision_wasm_module_internal.{js,wasm}` (module mode
+// assumes SIMD, so there is no _nosimd module variant to vendor).
+const WASM_FILES = ['vision_wasm_module_internal.js', 'vision_wasm_module_internal.wasm'];
 
 // Pinned float16 FaceLandmarker bundle (landmarks + blendshapes + transform matrix).
 const MODEL_URL =

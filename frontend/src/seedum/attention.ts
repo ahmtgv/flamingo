@@ -26,9 +26,12 @@ export function startAttentionPipeline(
   baseline: Baseline | undefined,
   cb: PipelineCallbacks,
 ): PipelineHandle {
-  // Classic (non-module) worker on purpose: MediaPipe's WASM loader needs
-  // `importScripts`, absent in module workers (see vite.config.ts `worker.format`).
-  const worker = new Worker(new URL('./mediapipe.worker.ts', import.meta.url));
+  // Module worker so `vite dev` + `vite build` both serve it as ESM (a classic worker
+  // can't use ESM imports in dev). MediaPipe loads its ES-module WASM build inside
+  // the worker via forVisionTasks(base, true) — see mediapipe.worker.ts.
+  const worker = new Worker(new URL('./mediapipe.worker.ts', import.meta.url), {
+    type: 'module',
+  });
   let running = true;
   let ready = false;
 

@@ -90,6 +90,10 @@ type RoomProps = { sessionId: string; roomToken: string | null; isLive: boolean 
 function StudentRoom({ sessionId, roomToken, isLive }: RoomProps) {
   const { t } = useTranslation(['seedum', 'lesson']);
   const [reportAttention] = useReportAttentionMutation();
+  // Keep the latest mutate fn in a ref so it is NOT a dependency of the pipeline
+  // effect (else LiveKit re-renders would tear down + recreate the MediaPipe worker).
+  const reportRef = useRef(reportAttention);
+  reportRef.current = reportAttention;
   const { stream, denied, acquire, release } = useSharedCamera();
   const [joined, setJoined] = useState(false);
   const cmfVideoRef = useRef<HTMLVideoElement>(null);
@@ -118,7 +122,7 @@ function StudentRoom({ sessionId, roomToken, isLive }: RoomProps) {
           // worker buckets in performance-clock ms → map to wall-clock for the server
           const bucketStart = new Date(performance.timeOrigin + bucketStartMs).toISOString();
           console.log('[CMF] reportAttention →', { bucketStart, avgAttention }); // [CMF-DEBUG]
-          void reportAttention({
+          void reportRef.current({
             variables: { input: { sessionId, bucketStart, avgAttention } },
           }).catch((e) => console.warn('[CMF] reportAttention failed', e));
         },
@@ -129,7 +133,7 @@ function StudentRoom({ sessionId, roomToken, isLive }: RoomProps) {
       pipelineRef.current?.stop();
       pipelineRef.current = null;
     };
-  }, [joined, stream, sessionId, reportAttention]);
+  }, [joined, stream, sessionId]);
 
   const join = useCallback(async () => {
     const s = await acquire();
