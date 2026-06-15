@@ -6,10 +6,10 @@ This doc lets a fresh session resume cleanly. It references files by path — re
 ---
 
 ## 0. Current state — read this first
-**Repo is green and clean** (verified this session, not from memory): backend **54 pytest** on
+**Repo is green and clean** (verified this session, not from memory): backend **57 pytest** on
 Postgres + **ruff** + **black** clean, 0 unapplied migrations, `makemigrations --check` clean;
-frontend **`npm run build`** + **`npm run lint`** + **24 vitest**, `generated.ts` matches the SDL
-(no codegen drift). HEAD `98ad05c`, tree clean.
+frontend **`npm run build`** + **`npm run lint`** + **25 vitest**, `generated.ts` matches the SDL
+(no codegen drift). Tree clean.
 
 **MVP build order status** (`CLAUDE.md` §10: `auth → cabinets → schedule → homework → admin → SEduM`):
 auth ✅ · cabinets ✅ (parent functional; others shells) · courses ✅ · scheduling ✅ ·
@@ -23,9 +23,6 @@ homework ✅ (TEXT-only) · payment-readiness seams ✅ · course constructor �
 **Owner-gated migration check:** the institutions cross-app FK migration (the table-altering step —
 `courses/0003`, `scheduling/0002`, `homework/0002`) **landed and is applied**; it was the
 owner-approved one (additive nullable FKs, shown before applying — see §3 step b).
-
-**Known minor follow-up (not a blocker):** an admin can `removeMember` their own active admin
-membership and lock themselves out of `/admin` (no guard yet) — §3 / §5.
 
 **Dev stack / demo data:** Postgres + uvicorn :8000 + vite :5173 were up this session; **dev** DB
 holds demo rows from verification (`hwteacher@`/`hwstudent@` + course "Алгебра 7 — обновлён";
@@ -50,7 +47,7 @@ Flamingo is a B2C online-education platform (pupils grades 1–11 + adults, plus
 - **GraphQL drift caveat** (memory `sdl-vs-live-schema-drift`): accounts live type names are `*Type`-suffixed (`UserType`) vs SDL `User`; courses/scheduling/homework/institutions names match the SDL. FE ops are **fragment-free** and select only live-implemented fields. LiveKit video is mocked (no server); join only acquires a token.
 
 ## 3. Done (committed on `main`)
-All green: **backend 54 pytest on Postgres + ruff + black clean; frontend `npm run build` + `npm run lint` + 24 vitest** (run from `backend/` and `frontend/`).
+All green: **backend 57 pytest on Postgres + ruff + black clean; frontend `npm run build` + `npm run lint` + 25 vitest** (run from `backend/` and `frontend/`).
 - **Foundation/infra** — `33ee20f` baseline, `e47c763` dev infra (compose/Dockerfiles/ruff+black), `f20b601`/`10df489` ruff+black on backend, `2e30420` ignore local settings.
 - **Auth (vertical slice)** — backend `apps/accounts` was provided; FE `628fb88` scaffold+design-system, `9a98e77` auth screens (role-aware register/login/reset, auto-login), `e6f54f7` auth tests. `cb8f2ad`/`131942d` add Avatar/Badge/SelectField primitives.
 - **Cabinets** — `2292513` role-aware cabinet shell + dispatch; **parent cabinet is functional** (view + add children with 152-FZ consent via `addChild`); student/teacher/admin show profile + honest empty-states.
@@ -62,7 +59,8 @@ All green: **backend 54 pytest on Postgres + ruff + black clean; frontend `npm r
 - **Course constructor — reorder + edit** — `80c561b` FE-only (no backend/SDL/codegen change): section/lesson ▲▼ reorder controls (owner, boundary-disabled) wired to the pre-existing `useReorderSectionsMutation`/`useReorderLessonsMutation`; an `EditCourseForm` (`useUpdateCourseMutation`, any status); pure `move()` helper in `courses/ui/reorder.ts`; `manage.editCourse/save/moveUp/moveDown` i18n; +6 vitest (15→21). Browser-verified: section + lesson reorder and a title edit all persist across reload (DB-confirmed).
 - **Institutions/admin — backend core (step a)** — `17dcfcd` new `apps/institutions` (`Institution`/`InstitutionMembership`/`Group`/`GroupMembership`/`GroupTeacher` per ERD §3.1/§3.3, migration `0001` — **new tables only**): admin-scoped services (`_admin_for`: admin manages only their own institution); back-office onboarding (`create_institution` staff-only; `add_admin` seeds the first admin, not GraphQL-exposed; invite→`update_membership` activates); groups + members + teacher assignment; GraphQL types/queries/mutations matching the SDL (no SDL edits); branding JSON stored-but-unused. 8 tests. **Reviews deferred to engagement; no `StudentProfile.institution` (derive from GroupMembership).** Per [`INSTITUTIONS_PLAN.md`](INSTITUTIONS_PLAN.md) decisions (Option A group model). **Step (c) admin FE is NOT done** (see §5).
 - **Institutions/admin — cross-app FKs + access (step b)** — `5f12481` (schema: nullable `Course.institution`/`Course.group`, `LessonSession.group`, `Homework.group`, all FK→institutions `SET_NULL`; migrations `courses/0003`, `scheduling/0002`, `homework/0002`, additive — owner-approved & applied) + `ed580af` (behaviour: group→course access decided **inside `can_access_course`** — a student in the course's target group gets access; expose the SDL cross-app fields `Course.institution`/`LessonSession.group`/`Homework.group` + forward `HomeworkInput.groupId`; `Course.group` stays model-only). No SDL edit; FE codegen unaffected. +1 access test.
-- **Institutions/admin — admin FE (step c)** — `628e786` (backend enabler: `me.adminProfile.institution` resolver from the active admin membership via `strawberry.lazy`; no migration/SDL edit; +1 test) + `15b5732` (FE: `frontend/src/features/admin/AdminInstitutionScreen` at route `/admin` — institution settings + stored-only branding color, members invite/approve/remove, groups create + add/remove students + assign teachers; `graphql/admin.graphql` + regenerated hooks; `ru/admin.json`; AdminCabinet nav wired; 2 vitest). **Module complete** (a+b+c). Verified live in-browser + via API (institution/members/groups render; `createGroup` round-trips). ⚠️ Minor UX nit (not fixed): an admin can `removeMember` their own active admin membership and lock themselves out — consider guarding the last/own admin later.
+- **Institutions/admin — admin FE (step c)** — `628e786` (backend enabler: `me.adminProfile.institution` resolver from the active admin membership via `strawberry.lazy`; no migration/SDL edit; +1 test) + `15b5732` (FE: `frontend/src/features/admin/AdminInstitutionScreen` at route `/admin` — institution settings + stored-only branding color, members invite/approve/remove, groups create + add/remove students + assign teachers; `graphql/admin.graphql` + regenerated hooks; `ru/admin.json`; AdminCabinet nav wired; 2 vitest). **Module complete** (a+b+c). Verified live in-browser + via API (institution/members/groups render; `createGroup` round-trips).
+- **Institutions/admin — remove-member guard** — `5531bc0` service-layer guard in `institutions/services.py` (`_guard_admin_removal`): `removeMember` raises a clear `ValidationError` for removing one's **own active admin** membership or the **last active admin** (covers every caller, incl. staff); non-admin/non-last removals unchanged. FE: `AdminInstitution` query selects `me.id` and the members list disables the "Удалить" button for own/last admin (ru tooltip). +3 backend, +1 vitest.
 Verified E2E in-browser: register→login→`me`; parent add-child; teacher create→publish course→student enroll; schedule→start→student join (attendance row created); add lesson material.
 
 ## 4. In progress / partially built
@@ -77,7 +75,7 @@ Working tree is **clean** — nothing uncommitted. Partially-built *within* comm
 - ✅ **DONE — Admin / institutions** (backend `17dcfcd`/`5f12481`/`ed580af`/`628e786` + frontend `15b5732`, see §3). Module complete per [`INSTITUTIONS_PLAN.md`](INSTITUTIONS_PLAN.md) (Option A group model; reviews→engagement; back-office onboarding; branding stored-unused). Admin FE at `/admin`. Minor follow-up: guard an admin from removing their own/last admin membership (§3 note).
 1. **SEduM Lite — CURRENT NEXT** (next per the build order; nothing started — no `apps/seedum`, no `frontend/src/seedum/`). New `apps/seedum` + `frontend/src/seedum/` (MediaPipe `FaceLandmarker` Web Worker, attention pipeline → **aggregates only**, UBP in IndexedDB, `reportAttention`, `attentionUpdates` **subscription**). Requires standing up **Django Channels** (`config/asgi.py` is HTTP-only today; first subscription work) + the live CMF room consuming the scheduling LiveKit tokens. Heavy/privacy-critical — plan-first and confirm scope before building. (Per `CLAUDE.md` §2/§7: raw biometrics never leave the device; no server endpoint accepts frames.)
 2. **Cross-cutting later:** files/S3 module (presigned uploads — unblocks FILE materials + FILE homework), certificates (PDF+QR), engagement (points/leaderboard/**reviews** — REVIEW model deferred here), notifications.
-3. **Small follow-up:** guard an admin from `removeMember`-ing their own/last active admin membership (§3 note).
+- ✅ DONE — guard admin self/last-removal (`5531bc0`, see §3).
 
 ## 6. Key decisions & constraints (don't re-litigate)
 - **No Docker on this machine** → stack runs **natively** (memory `local-dev-stack`); toolchain installed via Homebrew (node, postgresql@16, python@3.12). `infra/docker-compose.yml` exists but is unused locally.
