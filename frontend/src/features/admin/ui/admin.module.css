@@ -1,0 +1,216 @@
+.shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-6);
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+.logoBtn {
+  background: none;
+  border: 0;
+  cursor: pointer;
+  padding: 0;
+  border-radius: var(--radius-xs);
+}
+.logoBtn:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+.topActions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+.iconBtn {
+  width: var(--control-height-md);
+  height: var(--control-height-md);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-control);
+  border: 1px solid var(--color-border-strong);
+  background: transparent;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+}
+.iconBtn:hover {
+  background: var(--color-surface-hover);
+  color: var(--color-text);
+}
+.iconBtn:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+.content {
+  width: 100%;
+  max-width: 920px;
+  margin: 0 auto;
+  padding: var(--space-7) var(--space-6) var(--space-12);
+}
+
+.back {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  background: none;
+  border: 0;
+  cursor: pointer;
+  color: var(--color-text-secondary);
+  font-family: var(--font-body);
+  font-size: var(--text-small);
+  padding: var(--space-2) 2px;
+  margin-bottom: var(--space-3);
+  border-radius: var(--radius-xs);
+}
+.back:hover {
+  color: var(--color-text);
+}
+.back:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.pageTitle {
+  font-family: var(--font-heading);
+  font-size: var(--text-h1);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-snug);
+  line-height: var(--leading-tight);
+}
+.pageSub {
+  font-size: var(--text-body);
+  color: var(--color-text-secondary);
+  margin-top: var(--space-2);
+  margin-bottom: var(--space-5);
+}
+.empty {
+  text-align: center;
+  padding: var(--space-9) var(--space-5);
+  color: var(--color-text-secondary);
+  font-size: var(--text-small);
+}
+.muted {
+  color: var(--color-text-secondary);
+  font-size: var(--text-small);
+}
+
+/* Section card */
+.card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  padding: var(--space-5);
+  box-shadow: var(--shadow-sm);
+  margin-bottom: var(--space-4);
+}
+.sectionTitle {
+  font-family: var(--font-heading);
+  font-size: var(--text-h3);
+  font-weight: var(--weight-semibold);
+  margin-bottom: var(--space-3);
+}
+
+/* Row (member / group / student) */
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--color-border);
+}
+.row:last-of-type {
+  border-bottom: 0;
+}
+.rowMain {
+  flex: 1;
+  min-width: 160px;
+  font-size: var(--text-body);
+}
+.rowSub {
+  font-size: var(--text-caption);
+  color: var(--color-text-tertiary);
+}
+
+/* Forms */
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-top: var(--space-3);
+}
+.formRow {
+  display: flex;
+  gap: var(--space-3);
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+.formRow > div {
+  flex: 1;
+  min-width: 150px;
+  margin-bottom: 0;
+}
+.actionsRow {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+/* Group block */
+.group {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  margin-bottom: var(--space-3);
+  background: var(--color-surface-subtle);
+}
+.groupHead {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  margin-bottom: var(--space-2);
+}
+.groupName {
+  flex: 1;
+  font-family: var(--font-heading);
+  font-weight: var(--weight-semibold);
+}
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin: var(--space-2) 0;
+}
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--text-caption);
+  color: var(--color-text-secondary);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  padding: 2px var(--space-2);
+}
+.chipDelete {
+  background: none;
+  border: 0;
+  cursor: pointer;
+  color: var(--color-text-tertiary);
+  padding: 0;
+  display: inline-flex;
+}
+.chipDelete:hover {
+  color: var(--color-error-text);
+}

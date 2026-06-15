@@ -15,8 +15,9 @@ export function AdminCabinet({ me }: { me: Me }) {
 
   const nav: CabinetNavItem[] = [
     { key: 'dashboard', label: t('nav.dashboard'), icon: LayoutDashboard, active: true },
-    { key: 'users', label: t('nav.users'), icon: Users },
-    { key: 'groups', label: t('nav.groups'), icon: UsersRound },
+    { key: 'institution', label: t('admin.institution'), icon: Building2, to: '/admin' },
+    { key: 'users', label: t('nav.users'), icon: Users, to: '/admin' },
+    { key: 'groups', label: t('nav.groups'), icon: UsersRound, to: '/admin' },
     { key: 'reports', label: t('nav.reports'), icon: BarChart3 },
   ];
 

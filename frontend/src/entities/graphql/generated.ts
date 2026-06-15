@@ -1405,6 +1405,97 @@ export type VerificationStatus =
   | 'PENDING'
   | 'REJECTED';
 
+export type AdminInstitutionQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type AdminInstitutionQuery = { __typename?: 'Query', me?: { __typename?: 'User', adminProfile?: { __typename?: 'AdminProfile', institution?: { __typename?: 'Institution', id: string, name: string, address?: string | null, website?: string | null, subdomain?: string | null, status: InstitutionStatus, defaultLocale: string, branding?: Record<string, unknown> | null, logoUrl?: string | null } | null } | null } | null };
+
+export type InstitutionGroupsQueryVariables = Exact<{
+  institutionId: Scalars['ID']['input'];
+}>;
+
+
+export type InstitutionGroupsQuery = { __typename?: 'Query', groups: Array<{ __typename?: 'Group', id: string, name: string, level?: string | null, students: Array<{ __typename?: 'StudentProfile', user: { __typename?: 'User', id: string, firstName: string, lastName: string } }>, teachers: Array<{ __typename?: 'GroupTeacher', id: string, subject: string, teacher: { __typename?: 'TeacherProfile', user: { __typename?: 'User', id: string, firstName: string, lastName: string } } }> }> };
+
+export type InstitutionMembersQueryVariables = Exact<{
+  institutionId: Scalars['ID']['input'];
+  role?: InputMaybe<MembershipRole>;
+}>;
+
+
+export type InstitutionMembersQuery = { __typename?: 'Query', institutionMembers: Array<{ __typename?: 'InstitutionMembership', id: string, role: MembershipRole, status: MembershipStatus, joinedAt?: string | null, user: { __typename?: 'User', id: string, firstName: string, lastName: string, email: string } }> };
+
+export type UpdateInstitutionMutationVariables = Exact<{
+  id: Scalars['ID']['input'];
+  input: InstitutionInput;
+}>;
+
+
+export type UpdateInstitutionMutation = { __typename?: 'Mutation', updateInstitution: { __typename?: 'Institution', id: string, name: string, address?: string | null, website?: string | null } };
+
+export type UpdateBrandingMutationVariables = Exact<{
+  institutionId: Scalars['ID']['input'];
+  branding: Scalars['JSON']['input'];
+}>;
+
+
+export type UpdateBrandingMutation = { __typename?: 'Mutation', updateBranding: { __typename?: 'Institution', id: string, branding?: Record<string, unknown> | null } };
+
+export type InviteMemberMutationVariables = Exact<{
+  input: InviteInput;
+}>;
+
+
+export type InviteMemberMutation = { __typename?: 'Mutation', inviteMember: { __typename?: 'InstitutionMembership', id: string, role: MembershipRole, status: MembershipStatus, user: { __typename?: 'User', id: string, firstName: string, lastName: string, email: string } } };
+
+export type UpdateMembershipMutationVariables = Exact<{
+  id: Scalars['ID']['input'];
+  role?: InputMaybe<MembershipRole>;
+  status?: InputMaybe<MembershipStatus>;
+}>;
+
+
+export type UpdateMembershipMutation = { __typename?: 'Mutation', updateMembership: { __typename?: 'InstitutionMembership', id: string, role: MembershipRole, status: MembershipStatus } };
+
+export type RemoveMemberMutationVariables = Exact<{
+  id: Scalars['ID']['input'];
+}>;
+
+
+export type RemoveMemberMutation = { __typename?: 'Mutation', removeMember: boolean };
+
+export type CreateGroupMutationVariables = Exact<{
+  input: GroupInput;
+}>;
+
+
+export type CreateGroupMutation = { __typename?: 'Mutation', createGroup: { __typename?: 'Group', id: string, name: string, level?: string | null } };
+
+export type AddStudentsToGroupMutationVariables = Exact<{
+  groupId: Scalars['ID']['input'];
+  studentIds: Array<Scalars['ID']['input']> | Scalars['ID']['input'];
+}>;
+
+
+export type AddStudentsToGroupMutation = { __typename?: 'Mutation', addStudentsToGroup: { __typename?: 'Group', id: string, students: Array<{ __typename?: 'StudentProfile', user: { __typename?: 'User', id: string, firstName: string, lastName: string } }> } };
+
+export type RemoveStudentFromGroupMutationVariables = Exact<{
+  groupId: Scalars['ID']['input'];
+  studentId: Scalars['ID']['input'];
+}>;
+
+
+export type RemoveStudentFromGroupMutation = { __typename?: 'Mutation', removeStudentFromGroup: { __typename?: 'Group', id: string, students: Array<{ __typename?: 'StudentProfile', user: { __typename?: 'User', id: string, firstName: string, lastName: string } }> } };
+
+export type AssignTeacherMutationVariables = Exact<{
+  groupId: Scalars['ID']['input'];
+  teacherId: Scalars['ID']['input'];
+  subject: Scalars['String']['input'];
+}>;
+
+
+export type AssignTeacherMutation = { __typename?: 'Mutation', assignTeacher: { __typename?: 'GroupTeacher', id: string, subject: string, teacher: { __typename?: 'TeacherProfile', user: { __typename?: 'User', id: string, firstName: string, lastName: string } } } };
+
 export type LoginMutationVariables = Exact<{
   email: Scalars['String']['input'];
   password: Scalars['String']['input'];
@@ -1678,6 +1769,517 @@ export type JoinSessionMutationVariables = Exact<{
 export type JoinSessionMutation = { __typename?: 'Mutation', joinSession: { __typename?: 'SessionJoin', roomToken: string, session: { __typename?: 'LessonSession', id: string, status: SessionStatus } } };
 
 
+export const AdminInstitutionDocument = gql`
+    query AdminInstitution {
+  me {
+    adminProfile {
+      institution {
+        id
+        name
+        address
+        website
+        subdomain
+        status
+        defaultLocale
+        branding
+        logoUrl
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useAdminInstitutionQuery__
+ *
+ * To run a query within a React component, call `useAdminInstitutionQuery` and pass it any options that fit your needs.
+ * When your component renders, `useAdminInstitutionQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useAdminInstitutionQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useAdminInstitutionQuery(baseOptions?: Apollo.QueryHookOptions<AdminInstitutionQuery, AdminInstitutionQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<AdminInstitutionQuery, AdminInstitutionQueryVariables>(AdminInstitutionDocument, options);
+      }
+export function useAdminInstitutionLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<AdminInstitutionQuery, AdminInstitutionQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<AdminInstitutionQuery, AdminInstitutionQueryVariables>(AdminInstitutionDocument, options);
+        }
+// @ts-ignore
+export function useAdminInstitutionSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<AdminInstitutionQuery, AdminInstitutionQueryVariables>): Apollo.UseSuspenseQueryResult<AdminInstitutionQuery, AdminInstitutionQueryVariables>;
+export function useAdminInstitutionSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<AdminInstitutionQuery, AdminInstitutionQueryVariables>): Apollo.UseSuspenseQueryResult<AdminInstitutionQuery | undefined, AdminInstitutionQueryVariables>;
+export function useAdminInstitutionSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<AdminInstitutionQuery, AdminInstitutionQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<AdminInstitutionQuery, AdminInstitutionQueryVariables>(AdminInstitutionDocument, options);
+        }
+export type AdminInstitutionQueryHookResult = ReturnType<typeof useAdminInstitutionQuery>;
+export type AdminInstitutionLazyQueryHookResult = ReturnType<typeof useAdminInstitutionLazyQuery>;
+export type AdminInstitutionSuspenseQueryHookResult = ReturnType<typeof useAdminInstitutionSuspenseQuery>;
+export type AdminInstitutionQueryResult = Apollo.QueryResult<AdminInstitutionQuery, AdminInstitutionQueryVariables>;
+export const InstitutionGroupsDocument = gql`
+    query InstitutionGroups($institutionId: ID!) {
+  groups(institutionId: $institutionId) {
+    id
+    name
+    level
+    students {
+      user {
+        id
+        firstName
+        lastName
+      }
+    }
+    teachers {
+      id
+      subject
+      teacher {
+        user {
+          id
+          firstName
+          lastName
+        }
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useInstitutionGroupsQuery__
+ *
+ * To run a query within a React component, call `useInstitutionGroupsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useInstitutionGroupsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useInstitutionGroupsQuery({
+ *   variables: {
+ *      institutionId: // value for 'institutionId'
+ *   },
+ * });
+ */
+export function useInstitutionGroupsQuery(baseOptions: Apollo.QueryHookOptions<InstitutionGroupsQuery, InstitutionGroupsQueryVariables> & ({ variables: InstitutionGroupsQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<InstitutionGroupsQuery, InstitutionGroupsQueryVariables>(InstitutionGroupsDocument, options);
+      }
+export function useInstitutionGroupsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<InstitutionGroupsQuery, InstitutionGroupsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<InstitutionGroupsQuery, InstitutionGroupsQueryVariables>(InstitutionGroupsDocument, options);
+        }
+// @ts-ignore
+export function useInstitutionGroupsSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<InstitutionGroupsQuery, InstitutionGroupsQueryVariables>): Apollo.UseSuspenseQueryResult<InstitutionGroupsQuery, InstitutionGroupsQueryVariables>;
+export function useInstitutionGroupsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<InstitutionGroupsQuery, InstitutionGroupsQueryVariables>): Apollo.UseSuspenseQueryResult<InstitutionGroupsQuery | undefined, InstitutionGroupsQueryVariables>;
+export function useInstitutionGroupsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<InstitutionGroupsQuery, InstitutionGroupsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<InstitutionGroupsQuery, InstitutionGroupsQueryVariables>(InstitutionGroupsDocument, options);
+        }
+export type InstitutionGroupsQueryHookResult = ReturnType<typeof useInstitutionGroupsQuery>;
+export type InstitutionGroupsLazyQueryHookResult = ReturnType<typeof useInstitutionGroupsLazyQuery>;
+export type InstitutionGroupsSuspenseQueryHookResult = ReturnType<typeof useInstitutionGroupsSuspenseQuery>;
+export type InstitutionGroupsQueryResult = Apollo.QueryResult<InstitutionGroupsQuery, InstitutionGroupsQueryVariables>;
+export const InstitutionMembersDocument = gql`
+    query InstitutionMembers($institutionId: ID!, $role: MembershipRole) {
+  institutionMembers(institutionId: $institutionId, role: $role) {
+    id
+    role
+    status
+    joinedAt
+    user {
+      id
+      firstName
+      lastName
+      email
+    }
+  }
+}
+    `;
+
+/**
+ * __useInstitutionMembersQuery__
+ *
+ * To run a query within a React component, call `useInstitutionMembersQuery` and pass it any options that fit your needs.
+ * When your component renders, `useInstitutionMembersQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useInstitutionMembersQuery({
+ *   variables: {
+ *      institutionId: // value for 'institutionId'
+ *      role: // value for 'role'
+ *   },
+ * });
+ */
+export function useInstitutionMembersQuery(baseOptions: Apollo.QueryHookOptions<InstitutionMembersQuery, InstitutionMembersQueryVariables> & ({ variables: InstitutionMembersQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<InstitutionMembersQuery, InstitutionMembersQueryVariables>(InstitutionMembersDocument, options);
+      }
+export function useInstitutionMembersLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<InstitutionMembersQuery, InstitutionMembersQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<InstitutionMembersQuery, InstitutionMembersQueryVariables>(InstitutionMembersDocument, options);
+        }
+// @ts-ignore
+export function useInstitutionMembersSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<InstitutionMembersQuery, InstitutionMembersQueryVariables>): Apollo.UseSuspenseQueryResult<InstitutionMembersQuery, InstitutionMembersQueryVariables>;
+export function useInstitutionMembersSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<InstitutionMembersQuery, InstitutionMembersQueryVariables>): Apollo.UseSuspenseQueryResult<InstitutionMembersQuery | undefined, InstitutionMembersQueryVariables>;
+export function useInstitutionMembersSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<InstitutionMembersQuery, InstitutionMembersQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<InstitutionMembersQuery, InstitutionMembersQueryVariables>(InstitutionMembersDocument, options);
+        }
+export type InstitutionMembersQueryHookResult = ReturnType<typeof useInstitutionMembersQuery>;
+export type InstitutionMembersLazyQueryHookResult = ReturnType<typeof useInstitutionMembersLazyQuery>;
+export type InstitutionMembersSuspenseQueryHookResult = ReturnType<typeof useInstitutionMembersSuspenseQuery>;
+export type InstitutionMembersQueryResult = Apollo.QueryResult<InstitutionMembersQuery, InstitutionMembersQueryVariables>;
+export const UpdateInstitutionDocument = gql`
+    mutation UpdateInstitution($id: ID!, $input: InstitutionInput!) {
+  updateInstitution(id: $id, input: $input) {
+    id
+    name
+    address
+    website
+  }
+}
+    `;
+export type UpdateInstitutionMutationFn = Apollo.MutationFunction<UpdateInstitutionMutation, UpdateInstitutionMutationVariables>;
+
+/**
+ * __useUpdateInstitutionMutation__
+ *
+ * To run a mutation, you first call `useUpdateInstitutionMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateInstitutionMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateInstitutionMutation, { data, loading, error }] = useUpdateInstitutionMutation({
+ *   variables: {
+ *      id: // value for 'id'
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useUpdateInstitutionMutation(baseOptions?: Apollo.MutationHookOptions<UpdateInstitutionMutation, UpdateInstitutionMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UpdateInstitutionMutation, UpdateInstitutionMutationVariables>(UpdateInstitutionDocument, options);
+      }
+export type UpdateInstitutionMutationHookResult = ReturnType<typeof useUpdateInstitutionMutation>;
+export type UpdateInstitutionMutationResult = Apollo.MutationResult<UpdateInstitutionMutation>;
+export type UpdateInstitutionMutationOptions = Apollo.BaseMutationOptions<UpdateInstitutionMutation, UpdateInstitutionMutationVariables>;
+export const UpdateBrandingDocument = gql`
+    mutation UpdateBranding($institutionId: ID!, $branding: JSON!) {
+  updateBranding(institutionId: $institutionId, branding: $branding) {
+    id
+    branding
+  }
+}
+    `;
+export type UpdateBrandingMutationFn = Apollo.MutationFunction<UpdateBrandingMutation, UpdateBrandingMutationVariables>;
+
+/**
+ * __useUpdateBrandingMutation__
+ *
+ * To run a mutation, you first call `useUpdateBrandingMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateBrandingMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateBrandingMutation, { data, loading, error }] = useUpdateBrandingMutation({
+ *   variables: {
+ *      institutionId: // value for 'institutionId'
+ *      branding: // value for 'branding'
+ *   },
+ * });
+ */
+export function useUpdateBrandingMutation(baseOptions?: Apollo.MutationHookOptions<UpdateBrandingMutation, UpdateBrandingMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UpdateBrandingMutation, UpdateBrandingMutationVariables>(UpdateBrandingDocument, options);
+      }
+export type UpdateBrandingMutationHookResult = ReturnType<typeof useUpdateBrandingMutation>;
+export type UpdateBrandingMutationResult = Apollo.MutationResult<UpdateBrandingMutation>;
+export type UpdateBrandingMutationOptions = Apollo.BaseMutationOptions<UpdateBrandingMutation, UpdateBrandingMutationVariables>;
+export const InviteMemberDocument = gql`
+    mutation InviteMember($input: InviteInput!) {
+  inviteMember(input: $input) {
+    id
+    role
+    status
+    user {
+      id
+      firstName
+      lastName
+      email
+    }
+  }
+}
+    `;
+export type InviteMemberMutationFn = Apollo.MutationFunction<InviteMemberMutation, InviteMemberMutationVariables>;
+
+/**
+ * __useInviteMemberMutation__
+ *
+ * To run a mutation, you first call `useInviteMemberMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useInviteMemberMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [inviteMemberMutation, { data, loading, error }] = useInviteMemberMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useInviteMemberMutation(baseOptions?: Apollo.MutationHookOptions<InviteMemberMutation, InviteMemberMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<InviteMemberMutation, InviteMemberMutationVariables>(InviteMemberDocument, options);
+      }
+export type InviteMemberMutationHookResult = ReturnType<typeof useInviteMemberMutation>;
+export type InviteMemberMutationResult = Apollo.MutationResult<InviteMemberMutation>;
+export type InviteMemberMutationOptions = Apollo.BaseMutationOptions<InviteMemberMutation, InviteMemberMutationVariables>;
+export const UpdateMembershipDocument = gql`
+    mutation UpdateMembership($id: ID!, $role: MembershipRole, $status: MembershipStatus) {
+  updateMembership(id: $id, role: $role, status: $status) {
+    id
+    role
+    status
+  }
+}
+    `;
+export type UpdateMembershipMutationFn = Apollo.MutationFunction<UpdateMembershipMutation, UpdateMembershipMutationVariables>;
+
+/**
+ * __useUpdateMembershipMutation__
+ *
+ * To run a mutation, you first call `useUpdateMembershipMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateMembershipMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateMembershipMutation, { data, loading, error }] = useUpdateMembershipMutation({
+ *   variables: {
+ *      id: // value for 'id'
+ *      role: // value for 'role'
+ *      status: // value for 'status'
+ *   },
+ * });
+ */
+export function useUpdateMembershipMutation(baseOptions?: Apollo.MutationHookOptions<UpdateMembershipMutation, UpdateMembershipMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UpdateMembershipMutation, UpdateMembershipMutationVariables>(UpdateMembershipDocument, options);
+      }
+export type UpdateMembershipMutationHookResult = ReturnType<typeof useUpdateMembershipMutation>;
+export type UpdateMembershipMutationResult = Apollo.MutationResult<UpdateMembershipMutation>;
+export type UpdateMembershipMutationOptions = Apollo.BaseMutationOptions<UpdateMembershipMutation, UpdateMembershipMutationVariables>;
+export const RemoveMemberDocument = gql`
+    mutation RemoveMember($id: ID!) {
+  removeMember(id: $id)
+}
+    `;
+export type RemoveMemberMutationFn = Apollo.MutationFunction<RemoveMemberMutation, RemoveMemberMutationVariables>;
+
+/**
+ * __useRemoveMemberMutation__
+ *
+ * To run a mutation, you first call `useRemoveMemberMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useRemoveMemberMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [removeMemberMutation, { data, loading, error }] = useRemoveMemberMutation({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useRemoveMemberMutation(baseOptions?: Apollo.MutationHookOptions<RemoveMemberMutation, RemoveMemberMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<RemoveMemberMutation, RemoveMemberMutationVariables>(RemoveMemberDocument, options);
+      }
+export type RemoveMemberMutationHookResult = ReturnType<typeof useRemoveMemberMutation>;
+export type RemoveMemberMutationResult = Apollo.MutationResult<RemoveMemberMutation>;
+export type RemoveMemberMutationOptions = Apollo.BaseMutationOptions<RemoveMemberMutation, RemoveMemberMutationVariables>;
+export const CreateGroupDocument = gql`
+    mutation CreateGroup($input: GroupInput!) {
+  createGroup(input: $input) {
+    id
+    name
+    level
+  }
+}
+    `;
+export type CreateGroupMutationFn = Apollo.MutationFunction<CreateGroupMutation, CreateGroupMutationVariables>;
+
+/**
+ * __useCreateGroupMutation__
+ *
+ * To run a mutation, you first call `useCreateGroupMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreateGroupMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [createGroupMutation, { data, loading, error }] = useCreateGroupMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useCreateGroupMutation(baseOptions?: Apollo.MutationHookOptions<CreateGroupMutation, CreateGroupMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<CreateGroupMutation, CreateGroupMutationVariables>(CreateGroupDocument, options);
+      }
+export type CreateGroupMutationHookResult = ReturnType<typeof useCreateGroupMutation>;
+export type CreateGroupMutationResult = Apollo.MutationResult<CreateGroupMutation>;
+export type CreateGroupMutationOptions = Apollo.BaseMutationOptions<CreateGroupMutation, CreateGroupMutationVariables>;
+export const AddStudentsToGroupDocument = gql`
+    mutation AddStudentsToGroup($groupId: ID!, $studentIds: [ID!]!) {
+  addStudentsToGroup(groupId: $groupId, studentIds: $studentIds) {
+    id
+    students {
+      user {
+        id
+        firstName
+        lastName
+      }
+    }
+  }
+}
+    `;
+export type AddStudentsToGroupMutationFn = Apollo.MutationFunction<AddStudentsToGroupMutation, AddStudentsToGroupMutationVariables>;
+
+/**
+ * __useAddStudentsToGroupMutation__
+ *
+ * To run a mutation, you first call `useAddStudentsToGroupMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useAddStudentsToGroupMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [addStudentsToGroupMutation, { data, loading, error }] = useAddStudentsToGroupMutation({
+ *   variables: {
+ *      groupId: // value for 'groupId'
+ *      studentIds: // value for 'studentIds'
+ *   },
+ * });
+ */
+export function useAddStudentsToGroupMutation(baseOptions?: Apollo.MutationHookOptions<AddStudentsToGroupMutation, AddStudentsToGroupMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<AddStudentsToGroupMutation, AddStudentsToGroupMutationVariables>(AddStudentsToGroupDocument, options);
+      }
+export type AddStudentsToGroupMutationHookResult = ReturnType<typeof useAddStudentsToGroupMutation>;
+export type AddStudentsToGroupMutationResult = Apollo.MutationResult<AddStudentsToGroupMutation>;
+export type AddStudentsToGroupMutationOptions = Apollo.BaseMutationOptions<AddStudentsToGroupMutation, AddStudentsToGroupMutationVariables>;
+export const RemoveStudentFromGroupDocument = gql`
+    mutation RemoveStudentFromGroup($groupId: ID!, $studentId: ID!) {
+  removeStudentFromGroup(groupId: $groupId, studentId: $studentId) {
+    id
+    students {
+      user {
+        id
+        firstName
+        lastName
+      }
+    }
+  }
+}
+    `;
+export type RemoveStudentFromGroupMutationFn = Apollo.MutationFunction<RemoveStudentFromGroupMutation, RemoveStudentFromGroupMutationVariables>;
+
+/**
+ * __useRemoveStudentFromGroupMutation__
+ *
+ * To run a mutation, you first call `useRemoveStudentFromGroupMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useRemoveStudentFromGroupMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [removeStudentFromGroupMutation, { data, loading, error }] = useRemoveStudentFromGroupMutation({
+ *   variables: {
+ *      groupId: // value for 'groupId'
+ *      studentId: // value for 'studentId'
+ *   },
+ * });
+ */
+export function useRemoveStudentFromGroupMutation(baseOptions?: Apollo.MutationHookOptions<RemoveStudentFromGroupMutation, RemoveStudentFromGroupMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<RemoveStudentFromGroupMutation, RemoveStudentFromGroupMutationVariables>(RemoveStudentFromGroupDocument, options);
+      }
+export type RemoveStudentFromGroupMutationHookResult = ReturnType<typeof useRemoveStudentFromGroupMutation>;
+export type RemoveStudentFromGroupMutationResult = Apollo.MutationResult<RemoveStudentFromGroupMutation>;
+export type RemoveStudentFromGroupMutationOptions = Apollo.BaseMutationOptions<RemoveStudentFromGroupMutation, RemoveStudentFromGroupMutationVariables>;
+export const AssignTeacherDocument = gql`
+    mutation AssignTeacher($groupId: ID!, $teacherId: ID!, $subject: String!) {
+  assignTeacher(groupId: $groupId, teacherId: $teacherId, subject: $subject) {
+    id
+    subject
+    teacher {
+      user {
+        id
+        firstName
+        lastName
+      }
+    }
+  }
+}
+    `;
+export type AssignTeacherMutationFn = Apollo.MutationFunction<AssignTeacherMutation, AssignTeacherMutationVariables>;
+
+/**
+ * __useAssignTeacherMutation__
+ *
+ * To run a mutation, you first call `useAssignTeacherMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useAssignTeacherMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [assignTeacherMutation, { data, loading, error }] = useAssignTeacherMutation({
+ *   variables: {
+ *      groupId: // value for 'groupId'
+ *      teacherId: // value for 'teacherId'
+ *      subject: // value for 'subject'
+ *   },
+ * });
+ */
+export function useAssignTeacherMutation(baseOptions?: Apollo.MutationHookOptions<AssignTeacherMutation, AssignTeacherMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<AssignTeacherMutation, AssignTeacherMutationVariables>(AssignTeacherDocument, options);
+      }
+export type AssignTeacherMutationHookResult = ReturnType<typeof useAssignTeacherMutation>;
+export type AssignTeacherMutationResult = Apollo.MutationResult<AssignTeacherMutation>;
+export type AssignTeacherMutationOptions = Apollo.BaseMutationOptions<AssignTeacherMutation, AssignTeacherMutationVariables>;
 export const LoginDocument = gql`
     mutation Login($email: String!, $password: String!) {
   login(email: $email, password: $password) {

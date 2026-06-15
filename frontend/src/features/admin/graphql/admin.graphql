@@ -1,0 +1,151 @@
+# Admin / institutions operations. Fragment-free; select only live-implemented fields.
+# The admin's institution comes from me.adminProfile.institution (the entry point).
+
+query AdminInstitution {
+  me {
+    adminProfile {
+      institution {
+        id
+        name
+        address
+        website
+        subdomain
+        status
+        defaultLocale
+        branding
+        logoUrl
+      }
+    }
+  }
+}
+
+query InstitutionGroups($institutionId: ID!) {
+  groups(institutionId: $institutionId) {
+    id
+    name
+    level
+    students {
+      user {
+        id
+        firstName
+        lastName
+      }
+    }
+    teachers {
+      id
+      subject
+      teacher {
+        user {
+          id
+          firstName
+          lastName
+        }
+      }
+    }
+  }
+}
+
+query InstitutionMembers($institutionId: ID!, $role: MembershipRole) {
+  institutionMembers(institutionId: $institutionId, role: $role) {
+    id
+    role
+    status
+    joinedAt
+    user {
+      id
+      firstName
+      lastName
+      email
+    }
+  }
+}
+
+mutation UpdateInstitution($id: ID!, $input: InstitutionInput!) {
+  updateInstitution(id: $id, input: $input) {
+    id
+    name
+    address
+    website
+  }
+}
+
+mutation UpdateBranding($institutionId: ID!, $branding: JSON!) {
+  updateBranding(institutionId: $institutionId, branding: $branding) {
+    id
+    branding
+  }
+}
+
+mutation InviteMember($input: InviteInput!) {
+  inviteMember(input: $input) {
+    id
+    role
+    status
+    user {
+      id
+      firstName
+      lastName
+      email
+    }
+  }
+}
+
+mutation UpdateMembership($id: ID!, $role: MembershipRole, $status: MembershipStatus) {
+  updateMembership(id: $id, role: $role, status: $status) {
+    id
+    role
+    status
+  }
+}
+
+mutation RemoveMember($id: ID!) {
+  removeMember(id: $id)
+}
+
+mutation CreateGroup($input: GroupInput!) {
+  createGroup(input: $input) {
+    id
+    name
+    level
+  }
+}
+
+mutation AddStudentsToGroup($groupId: ID!, $studentIds: [ID!]!) {
+  addStudentsToGroup(groupId: $groupId, studentIds: $studentIds) {
+    id
+    students {
+      user {
+        id
+        firstName
+        lastName
+      }
+    }
+  }
+}
+
+mutation RemoveStudentFromGroup($groupId: ID!, $studentId: ID!) {
+  removeStudentFromGroup(groupId: $groupId, studentId: $studentId) {
+    id
+    students {
+      user {
+        id
+        firstName
+        lastName
+      }
+    }
+  }
+}
+
+mutation AssignTeacher($groupId: ID!, $teacherId: ID!, $subject: String!) {
+  assignTeacher(groupId: $groupId, teacherId: $teacherId, subject: $subject) {
+    id
+    subject
+    teacher {
+      user {
+        id
+        firstName
+        lastName
+      }
+    }
+  }
+}

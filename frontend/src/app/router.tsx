@@ -10,6 +10,7 @@ import {
   RoleSelectScreen,
 } from '@/features/auth';
 import { Cabinet } from '@/features/cabinet';
+import { AdminInstitutionScreen } from '@/features/admin';
 import { CatalogScreen, CourseDetailScreen, CreateCourseScreen } from '@/features/courses';
 import { LessonHomeworkScreen, StudentHomeworkScreen } from '@/features/homework';
 import { ScheduleScreen } from '@/features/schedule';
@@ -127,6 +128,14 @@ export function AppRouter() {
           element={
             <ProtectedRoute>
               <StudentHomeworkScreen />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute>
+              <AdminInstitutionScreen />
             </ProtectedRoute>
           }
         />
