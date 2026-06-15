@@ -22,7 +22,7 @@ class HomeworkInput:
     allow_redo: bool = False
     lesson_id: strawberry.ID | None = None
     course_id: strawberry.ID | None = None
-    # group attachment is accepted for SDL parity but unused until institutions.
+    # optional target group for institutional delivery (Option A).
     group_id: strawberry.ID | None = None
 
 
@@ -51,6 +51,7 @@ class HomeworkMutation:
             type=input.type,
             lesson_id=input.lesson_id,
             course_id=input.course_id,
+            group_id=input.group_id,
             description=input.description or "",
             due_at=input.due_at,
             allow_redo=input.allow_redo,

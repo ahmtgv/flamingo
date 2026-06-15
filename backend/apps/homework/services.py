@@ -83,6 +83,7 @@ def create_homework(
     type,
     lesson_id=None,
     course_id=None,
+    group_id=None,
     description: str = "",
     due_at=None,
     allow_redo: bool = False,
@@ -100,6 +101,7 @@ def create_homework(
         type=_val(type),
         lesson=lesson,
         course=None if lesson else course,
+        group_id=group_id,  # optional institutional target (Option A)
         description=description or "",
         due_at=due_at,
         allow_redo=bool(allow_redo),

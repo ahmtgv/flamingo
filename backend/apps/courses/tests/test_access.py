@@ -15,6 +15,7 @@ from apps.accounts import services as accounts
 from apps.courses import services
 from apps.courses.access import can_access_course
 from apps.courses.models import Course, Enrollment
+from apps.institutions import services as institutions
 from common.enums import AccessStatus, Role
 
 pytestmark = pytest.mark.django_db
@@ -111,3 +112,41 @@ def test_paid_course_blocks_pending_payment_enrollment():
     course.refresh_from_db()
 
     assert can_access_course(student, course) is False
+
+
+# --- institutional (group) access — decided inside can_access_course --------
+def test_paid_course_access_via_group_membership():
+    teacher = make_teacher()
+    in_group = make_student("ingroup@example.com")
+    outsider = make_student("outsider@example.com")
+
+    # back-office sets up an institution + admin; admin makes a group with one student
+    staff = accounts.register_user(
+        email="staff@example.com",
+        password="strongpass1!",
+        first_name="S",
+        last_name="T",
+        role=Role.ADMIN,
+    )
+    staff.is_staff = True
+    staff.save(update_fields=["is_staff"])
+    admin = accounts.register_user(
+        email="adm@example.com",
+        password="strongpass1!",
+        first_name="A",
+        last_name="D",
+        role=Role.ADMIN,
+    )
+    inst = institutions.create_institution(staff, name="Школа №1")
+    institutions.add_admin(staff, institution_id=inst.id, admin_user_id=admin.id)
+    group = institutions.create_group(admin, institution_id=inst.id, name="7А")
+    institutions.add_students_to_group(admin, group.id, [in_group.id])
+
+    # a paid course targeted at that group
+    course = make_published_course(teacher)
+    Course.objects.filter(id=course.id).update(price=50000, currency="RUB", group_id=group.id)
+    course.refresh_from_db()
+
+    # the group member gets access (no individual enrollment); the outsider does not
+    assert can_access_course(in_group, course) is True
+    assert can_access_course(outsider, course) is False

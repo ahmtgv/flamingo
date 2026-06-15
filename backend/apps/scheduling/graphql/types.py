@@ -8,6 +8,7 @@ from strawberry import auto
 
 from apps.accounts.graphql.types import StudentProfileType
 from apps.courses.graphql.types import Lesson
+from apps.institutions.graphql.types import Group as GroupType
 from apps.scheduling import models, services
 from common.auth import get_current_user
 from common.enums import AttendanceStatus, SessionStatus
@@ -40,6 +41,10 @@ class LessonSession:
     @strawberry_django.field
     def lesson(self) -> Lesson:
         return self.lesson
+
+    @strawberry_django.field
+    def group(self) -> GroupType | None:
+        return self.group
 
     @strawberry_django.field
     def status(self) -> SessionStatus:

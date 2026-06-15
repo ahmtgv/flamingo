@@ -16,6 +16,7 @@ from strawberry.scalars import JSON
 
 from apps.accounts.graphql.types import StudentProfileType, TeacherProfileType
 from apps.courses import models, services
+from apps.institutions.graphql.types import Institution as InstitutionType
 from common.auth import get_current_user
 from common.enums import (
     CourseLevel,
@@ -147,6 +148,10 @@ class Course:
     @strawberry_django.field
     def owner(self) -> TeacherProfileType:
         return self.owner
+
+    @strawberry_django.field
+    def institution(self) -> InstitutionType | None:
+        return self.institution
 
     @strawberry_django.field
     def cover_url(self) -> str | None:

@@ -14,6 +14,7 @@ from strawberry import auto
 from apps.accounts.graphql.types import StudentProfileType, UserType
 from apps.courses.graphql.types import Course, Lesson
 from apps.homework import models, services
+from apps.institutions.graphql.types import Group as GroupType
 from common.auth import get_current_user
 from common.enums import HomeworkType, SubmissionStatus
 
@@ -89,6 +90,10 @@ class Homework:
     @strawberry_django.field
     def lesson(self) -> Lesson | None:
         return self.lesson
+
+    @strawberry_django.field
+    def group(self) -> GroupType | None:
+        return self.group
 
     @strawberry_django.field
     def created_by(self) -> UserType:

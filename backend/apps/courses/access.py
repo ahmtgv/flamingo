@@ -22,6 +22,7 @@ Do NOT add pricing/subscription/provider logic here — that lives in the future
 ``billing`` app. This function only answers "may this user access this course?".
 """
 
+from apps.institutions.models import GroupMembership
 from common.enums import AccessStatus
 
 from .models import Course, Enrollment
@@ -35,8 +36,11 @@ def can_access_course(user, course: Course) -> bool:
 
     - free courses (``price is None``) are open to everyone;
     - the owning teacher always has access;
+    - a student in the course's target group has access (institutional delivery);
     - an enrolled student with an ``ACTIVE`` access status has access.
 
+    Group→course access is decided HERE on purpose (the single chokepoint), so the
+    later Option A→B group-model move and any payment gating change one place only.
     Payment gating (paid course + no active access => ``False``) is added here
     later, gated on the chosen monetization model — not now.
     """
@@ -50,6 +54,14 @@ def can_access_course(user, course: Course) -> bool:
     # Owning teacher always has access. Profile PKs are the User PK
     # (OneToOneField primary_key=True), so owner_id == owner's user id.
     if course.owner_id == user.id:
+        return True
+
+    # Institutional delivery (Option A): a student in the course's target group
+    # has access without an individual enrollment.
+    if (
+        course.group_id is not None
+        and GroupMembership.objects.filter(group_id=course.group_id, student__user=user).exists()
+    ):
         return True
 
     # Enrolled student with an active access status.
