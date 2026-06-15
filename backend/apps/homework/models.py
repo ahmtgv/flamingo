@@ -12,13 +12,20 @@ class Homework(SoftDeleteModel):
     type = models.CharField(max_length=8, choices=choices(HomeworkType))
     due_at = models.DateTimeField(null=True, blank=True)
     allow_redo = models.BooleanField(default=False)
-    # Attached to a lesson and/or a course (at least one). group attachment FK is
-    # added with the institutions module (mirrors the courses module deferral).
+    # Attached to a lesson and/or a course (at least one); optionally targeted at a
+    # group for institutional delivery (Option A). All nullable/additive.
     lesson = models.ForeignKey(
         "courses.Lesson", related_name="homework", null=True, blank=True, on_delete=models.CASCADE
     )
     course = models.ForeignKey(
         "courses.Course", related_name="homework", null=True, blank=True, on_delete=models.CASCADE
+    )
+    group = models.ForeignKey(
+        "institutions.Group",
+        related_name="homework",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
     )
     created_by = models.ForeignKey(
         "accounts.User", related_name="homework_created", on_delete=models.CASCADE

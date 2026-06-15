@@ -36,7 +36,23 @@ class Course(SoftDeleteModel):
     # null when free. No pricing/gating logic exists yet — these are integration points.
     price = models.PositiveIntegerField(null=True, blank=True)
     currency = models.CharField(max_length=3, null=True, blank=True)
-    # institution / group FKs are added with the institutions module.
+    # Institutional delivery (Option A): an optional owning institution and a single
+    # optional target group. Nullable/additive — B2C courses leave both null. Group→
+    # course access is decided in courses/access.py: can_access_course (one place).
+    institution = models.ForeignKey(
+        "institutions.Institution",
+        related_name="courses",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+    )
+    group = models.ForeignKey(
+        "institutions.Group",
+        related_name="courses",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+    )
 
     def __str__(self) -> str:
         return self.title

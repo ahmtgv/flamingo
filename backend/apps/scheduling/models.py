@@ -8,7 +8,15 @@ from common.models import BaseModel
 
 class LessonSession(BaseModel):
     lesson = models.ForeignKey("courses.Lesson", related_name="sessions", on_delete=models.CASCADE)
-    # group FK is added with the institutions module.
+    # Optional target group for institutional (B2B) scheduling (Option A). Nullable/
+    # additive — B2C sessions leave it null.
+    group = models.ForeignKey(
+        "institutions.Group",
+        related_name="sessions",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+    )
     start_at = models.DateTimeField()
     end_at = models.DateTimeField(null=True, blank=True)
     status = models.CharField(
