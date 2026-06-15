@@ -1,20 +1,25 @@
 # Flamingo — Session Handoff
 
-**Date:** 2026-06-15 · **Branch:** `main` · **HEAD:** `2a4f41a` · working tree clean (56 commits on `main`).
+**Date:** 2026-06-15 · **Branch:** `main` · **HEAD:** `32c61da` · working tree clean (58 commits on `main`).
 This doc lets a fresh session resume cleanly. It references files by path — read those, don't rely on this doc alone.
 
 ---
 
 ## 0. Current state — read this first
-✅ **SEduM Lite is COMPLETE (a + b + c) and green.** Sub-slice (c) — the live CMF room — landed
-(`2a4f41a`) on top of (b) `09b6ace` and (a) `42bf093`. A real backend bug found during (c)'s browser
-E2E was fixed (`718ea77`: `attentionUpdates` must enter `listen_to_channel` via `async with`).
-**The MVP build order (`CLAUDE.md` §10) is now fully through SEduM Lite — next is cross-cutting work
-(see §5): files/S3, certificates, engagement, notifications.**
+✅ **SEduM Lite COMPLETE (a+b+c).** ✅ **LiveKit video room — slice 1 (1:1 video + shared-camera
+composition) DONE & green** (`32c61da` FE + `0904ed0` backend test). **NEXT: LiveKit slice 2 —
+group (≤5) + screen share** (see §5; plan in this doc / approved). Slice 1 is committed but the
+camera↔camera E2E was **not** run in the preview (it blocks `getUserMedia`) — **browser-verify slice 1
+in a real browser with camera permission before slice 2** (steps below in §5/the resume notes).
 
-**Both gates green** (verified this session): backend **69 pytest** on Postgres + **ruff** + **black**
+**Both gates green** (verified this session): backend **70 pytest** on Postgres + **ruff** + **black**
 clean, 0 unapplied migrations, `makemigrations --check` clean; frontend **`npm run build` + `lint` +
-40 vitest**. Tree clean (all committed).
+43 vitest**. Tree clean (all committed).
+
+**LiveKit config (real creds are file-based, never committed):** `backend/.env` holds
+`LIVEKIT_URL`/`LIVEKIT_API_KEY`/`LIVEKIT_API_SECRET` (loaded via python-dotenv, `4c97997`);
+`frontend/.env` holds `VITE_LIVEKIT_URL=wss://flamingo-atvyww1r.livekit.cloud`. Both `.env` are
+git-ignored. `room_token` (reused as-is) signs a real LiveKit `VideoGrant` — test `0904ed0`.
 
 **Browser-verified E2E** (dev stack, this session): teacher live view updated from a student
 `reportAttention` over the WS subscription (class avg + per-student row + sparkline); `sessionAttention`
@@ -116,6 +121,7 @@ All green: **backend 68 pytest on Postgres + ruff + black clean; frontend `npm r
   resolver must enter `listen_to_channel` with `async with` (it's an async context manager, not an
   iterator) — sub-slice (a) shipped this untested; extracted `stream_attention()` + regression test.
   Browser-verified E2E + network inspection (only aggregates leave; see §0).
+- **LiveKit video room — slice 1 (1:1 + shared camera)** — `32c61da` (FE) + `0904ed0` (backend token test) + `4c97997` (dotenv config). **No SDL change.** `livekit-client` (Apache-2.0, headless). Config: `VITE_LIVEKIT_URL` (`shared/lib/env`, real value in `frontend/.env`); backend `LIVEKIT_*` in `backend/.env`. Token reuses `LessonSession.roomToken` (`room_token_for`) via a new fragment-free `SessionRoom` query. **`features/lesson/livekit/useLiveKitRoom.ts`** connects + publishes our own getUserMedia tracks + toggles + leave. **Shared-camera composition:** ONE `getUserMedia({video,audio})` → LiveKit publish AND the on-device CMF pipeline (frames discarded; aggregates only). Camera toggle flips the shared `track.enabled` (pauses publish + CMF together). UI `ui/{VideoRoom,VideoTile,RoomControls}` on tokens; student keeps the CMF chart, teacher keeps the attention panel. **Privacy copy SPLIT** (honest): blanket "видео не покидает устройство" removed; CALL badge "Камера в эфире — преподаватель вас видит" (`lesson` ns); CMF indicator rescoped to attention analysis and **kept** (still true). Tests: `useLiveKitRoom` (publish both tracks + toggles), composition test (one getUserMedia → both consumers), token-grant test. **NOT camera-E2E-verified in the preview (blocks getUserMedia) — verify in a real browser (§5).**
 Verified E2E in-browser (earlier sessions): register→login→`me`; parent add-child; teacher create→publish course→student enroll; schedule→start→student join (attendance row created); add lesson material.
 
 ## 4. In progress / partially built
@@ -131,7 +137,12 @@ Working tree is **clean** — nothing uncommitted. Partially-built *within* comm
 - ✅ **DONE — Course constructor reorder + edit** (`80c561b`, see §3). FE-only; the constructor is now feature-complete for MVP.
 - ✅ **DONE — Admin / institutions** (backend `17dcfcd`/`5f12481`/`ed580af`/`628e786` + frontend `15b5732`, see §3). Module complete per [`INSTITUTIONS_PLAN.md`](INSTITUTIONS_PLAN.md) (Option A group model; reviews→engagement; back-office onboarding; branding stored-unused). Admin FE at `/admin`. Minor follow-up: guard an admin from removing their own/last admin membership (§3 note).
 - ✅ **DONE — SEduM Lite (a + b + c)** (plan: [`SEDUM_LITE_PLAN.md`](SEDUM_LITE_PLAN.md); owner approved full scope). (a) backend+realtime `42bf093`; (b) on-device pipeline `09b6ace`; (c) live CMF room `2a4f41a` + backend fix `718ea77` — all see §3. Browser-verified E2E + network inspection (only aggregates leave; §0). **Deferred follow-ups (not blocking, see §4):** «база тест» calibration capture UI + encrypted UBP cloud-backup wiring. If picked up: the worker needs a calibration mode that emits per-stage `AttentionSignals`; then a 3-step UI feeds `seedum/calibration.ts`, saves the baseline to UBP (IndexedDB), and optionally `backupUbp` (client-encrypted).
-1. **Cross-cutting (next, pick per owner priority):** **files/S3 module** (presigned `requestUpload` → S3/MinIO key → mutations accept `fileKey`; unblocks FILE materials + FILE homework + avatars), **certificates** (PDF+QR public verification — `official-documents` skill), **engagement** (points/leaderboard/**reviews** — REVIEW model lives here per `INSTITUTIONS_PLAN.md`), **notifications** (the `notificationReceived`/`sessionStatusChanged`/`chatMessageReceived` subscriptions share the now-working graphql-ws infra). Composite dashboards (`studentDashboard`/`teacherDashboard`/`adminDashboard`) still SDL-only (§8).
+1. **LiveKit video room — IN PROGRESS** (owner-approved 3-slice plan; LiveKit Cloud free-tier for MVP, self-host in RF before prod for 152-FZ/OSS). **Slice 1 DONE & green** (`32c61da`/`0904ed0`, see §3): 1:1 video + shared-camera composition, composed into `/sessions/:sessionId/room`.
+   - **⚠️ Browser-verify slice 1 first** (real browser w/ camera; the preview blocks `getUserMedia`): two browser profiles, teacher + student, same room URL → they see each other's video; toggle mic/camera; confirm CMF still posts `reportAttention` aggregates and **no frames** leave. Demo: `cmf.teacher@`/`cmf.student@flamingo.dev` (`strongpass1!`), session `aa781c61-a00c-4219-880f-dfa7c81c182c` (LIVE) → `/sessions/<id>/room`. Needs `frontend/.env` `VITE_LIVEKIT_URL` + `backend/.env` `LIVEKIT_API_KEY`/`SECRET` (present) + backend restart to load them.
+   - **Slice 2 — group (≤5) + screen share:** participant grid + client-side cap guard (hard cap needs `livekit-api` `RoomService(max_participants=5)` — deferred), `setScreenShareEnabled` publish/subscribe + a prominent screen tile, active-speaker, teacher attention sidebar beside tiles, responsive + age-mode.
+   - **Slice 3 — polish/resilience:** reconnect/error/permission states, a11y; remote mute badge via `publication.mute()`; recording (LiveKit Egress) stays out of scope.
+   - **Key files:** `features/lesson/livekit/useLiveKitRoom.ts`, `ui/{VideoRoom,VideoTile,RoomControls}.tsx`, `ui/LiveRoomScreen.tsx` (role-aware compose), `ru/lesson.json`. Token via `SessionRoom` query (`LessonSession.roomToken`); LiveKit URL via `VITE_LIVEKIT_URL` (env, not SDL).
+2. **Cross-cutting (after LiveKit, pick per owner priority):** **files/S3 module** (presigned `requestUpload` → S3/MinIO key → mutations accept `fileKey`; unblocks FILE materials + FILE homework + avatars), **certificates** (PDF+QR public verification — `official-documents` skill), **engagement** (points/leaderboard/**reviews** — REVIEW model lives here per `INSTITUTIONS_PLAN.md`), **notifications** (the `notificationReceived`/`sessionStatusChanged`/`chatMessageReceived` subscriptions share the now-working graphql-ws infra). Composite dashboards still SDL-only (§8).
 - ✅ DONE — guard admin self/last-removal (`5531bc0`, see §3).
 
 ## 6. Key decisions & constraints (don't re-litigate)
@@ -170,12 +181,14 @@ Working tree is **clean** — nothing uncommitted. Partially-built *within* comm
 export LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8
 /opt/homebrew/opt/postgresql@16/bin/pg_ctl -D /opt/homebrew/var/postgresql@16 -l /opt/homebrew/var/log/postgresql@16.log start   # role+db 'flamingo' already exist
 cd backend && export POSTGRES_HOST=localhost POSTGRES_USER=flamingo POSTGRES_PASSWORD=flamingo POSTGRES_DB=flamingo
-.venv/bin/python manage.py migrate && .venv/bin/python -m pytest        # expect 69 passed
+.venv/bin/python manage.py migrate && .venv/bin/python -m pytest        # expect 70 passed
 .venv/bin/uvicorn config.asgi:application --port 8000 --reload
 # new shell: cd frontend && npm run dev   (proxies /graphql -> :8000 incl. WS upgrade; preview via .claude/launch.json)
-# frontend gates: npm run build && npm run lint && npm test   (expect 40 vitest)
+# frontend gates: npm run build && npm run lint && npm test   (expect 43 vitest)
 # seedum assets are committed under frontend/public/seedum/; re-vendor only if missing: npm run vendor:seedum
-# CMF live-room E2E needs a LIVE LessonSession + an enrolled student; see this session's demo rows below (§0/§5).
+# LiveKit: real creds live in backend/.env (LIVEKIT_API_KEY/SECRET/URL) + frontend/.env (VITE_LIVEKIT_URL);
+#   both git-ignored. After editing backend/.env, RESTART uvicorn (settings load .env at import).
+# Live-room E2E needs a LIVE LessonSession + an enrolled student; see this session's demo rows below (§0/§5).
 ```
 
 **Demo rows from this session** (dev DB; harmless, clear when convenient): `cmf.teacher@flamingo.dev` /
@@ -187,5 +200,5 @@ the full MediaPipe path.
 **Exact first prompt for the next session:**
 > Resume the Flamingo build.
 > 1. **Read first:** `CLAUDE.md` and `docs/handoff/SESSION_HANDOFF.md` §0 (current state) + §5 (next tasks); then `docs/flamingo_erd.md` / `docs/flamingo_schema.graphql` / `docs/flamingo_architecture.md` as needed.
-> 2. **Bring up the dev stack** per §9 (Postgres with `LC_ALL`, backend `uvicorn … --reload` on :8000, frontend `npm run dev` on :5173) and confirm green: backend `pytest` (expect **69 passed**) + `ruff`/`black`; frontend `npm run build`/`lint`/`test` (expect **40 vitest**).
-> 3. **SEduM Lite is COMPLETE (a+b+c).** Pick the next cross-cutting module (§5 item 1) — tell me which: **files/S3** (presigned uploads; unblocks FILE materials + FILE homework + avatars), **certificates** (PDF+QR), **engagement** (points/leaderboard/reviews), or **notifications** (reuses the working graphql-ws infra). Or pick up the deferred SEduM follow-ups (§4): «база тест» calibration UI + encrypted UBP backup. Keep gates green; backend-then-FE; commit per concern; node-principle absolute for anything CMF.
+> 2. **Bring up the dev stack** per §9 (Postgres with `LC_ALL`, backend `uvicorn … --reload` on :8000, frontend `npm run dev` on :5173) and confirm green: backend `pytest` (expect **70 passed**) + `ruff`/`black`; frontend `npm run build`/`lint`/`test` (expect **43 vitest**).
+> 3. **LiveKit video room: slice 1 (1:1 + shared camera) is DONE & green** (§3). FIRST browser-verify slice 1 in a real browser with camera permission (two profiles, teacher+student, same `/sessions/<id>/room` → see each other; CMF still posts only aggregates) — see §5. THEN build **slice 2 (group ≤5 + screen share)** per §5. Keep CLAUDE.md invariants (CMF privacy, ru i18n, design tokens, thin resolvers, no SDL regen, OSS-only); gates green; commit per concern. (Cross-cutting modules in §5 item 2 come after LiveKit.)
