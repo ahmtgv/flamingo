@@ -3,7 +3,14 @@
 import os
 from pathlib import Path
 
+from dotenv import load_dotenv
+
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Load secrets/config from backend/.env (git-ignored) before reading os.environ
+# below. `override=False` (the default) means real process env vars (shell `export`
+# in dev, CI secrets) still win — this only fills what is unset.
+load_dotenv(BASE_DIR / ".env")
 
 SECRET_KEY = os.environ.get("SECRET_KEY", "dev-insecure-change-me")
 DEBUG = os.environ.get("DEBUG", "1") == "1"
