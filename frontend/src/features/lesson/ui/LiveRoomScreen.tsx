@@ -102,12 +102,14 @@ function StudentRoom({ sessionId, roomToken, isLive }: RoomProps) {
   // CMF runs locally off the SAME stream (a dedicated, hidden <video> source).
   useEffect(() => {
     const video = cmfVideoRef.current;
+    console.log('[CMF] effect', { joined, hasStream: !!stream, hasVideo: !!video }); // [CMF-DEBUG]
     if (!joined || !stream || !video) return undefined;
     video.srcObject = stream;
-    void video.play().catch(() => undefined);
+    void video.play().catch((e) => console.warn('[CMF] video.play() rejected', e)); // [CMF-DEBUG]
     let cancelled = false;
     void loadUbp().then((stored) => {
       if (cancelled) return;
+      console.log('[CMF] startAttentionPipeline()'); // [CMF-DEBUG]
       pipelineRef.current = startAttentionPipeline(video, stored?.baseline, {
         onReady: () => setCmfStatus('running'),
         onUnavailable: () => setCmfStatus('unavailable'),
@@ -115,9 +117,10 @@ function StudentRoom({ sessionId, roomToken, isLive }: RoomProps) {
         onBucket: (bucketStartMs, avgAttention) => {
           // worker buckets in performance-clock ms → map to wall-clock for the server
           const bucketStart = new Date(performance.timeOrigin + bucketStartMs).toISOString();
+          console.log('[CMF] reportAttention →', { bucketStart, avgAttention }); // [CMF-DEBUG]
           void reportAttention({
             variables: { input: { sessionId, bucketStart, avgAttention } },
-          }).catch(() => undefined);
+          }).catch((e) => console.warn('[CMF] reportAttention failed', e));
         },
       });
     });
