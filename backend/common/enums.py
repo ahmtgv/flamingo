@@ -156,6 +156,12 @@ class RecommendationKind(Enum):
 
 
 @strawberry.enum
+class InsightKind(Enum):
+    GOOD = "good"
+    WATCH = "watch"
+
+
+@strawberry.enum
 class PointReason(Enum):
     ATTENDANCE = "attendance"
     HOMEWORK = "homework"

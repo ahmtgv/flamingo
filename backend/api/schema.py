@@ -16,18 +16,33 @@ from apps.institutions.graphql.mutations import InstitutionsMutation
 from apps.institutions.graphql.queries import InstitutionsQuery
 from apps.scheduling.graphql.mutations import SchedulingMutation
 from apps.scheduling.graphql.queries import SchedulingQuery
+from apps.seedum.graphql.mutations import SeedumMutation
+from apps.seedum.graphql.queries import SeedumQuery
+from apps.seedum.graphql.subscriptions import SeedumSubscription
 
 
 @strawberry.type
-class Query(AccountsQuery, CoursesQuery, SchedulingQuery, HomeworkQuery, InstitutionsQuery):
+class Query(
+    AccountsQuery, CoursesQuery, SchedulingQuery, HomeworkQuery, InstitutionsQuery, SeedumQuery
+):
     pass
 
 
 @strawberry.type
 class Mutation(
-    AccountsMutation, CoursesMutation, SchedulingMutation, HomeworkMutation, InstitutionsMutation
+    AccountsMutation,
+    CoursesMutation,
+    SchedulingMutation,
+    HomeworkMutation,
+    InstitutionsMutation,
+    SeedumMutation,
 ):
     pass
 
 
-schema = strawberry.Schema(query=Query, mutation=Mutation)
+@strawberry.type
+class Subscription(SeedumSubscription):
+    pass
+
+
+schema = strawberry.Schema(query=Query, mutation=Mutation, subscription=Subscription)

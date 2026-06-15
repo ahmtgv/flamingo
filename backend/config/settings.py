@@ -12,13 +12,28 @@ ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "*").split(",")
 INSTALLED_APPS = [
     "django.contrib.auth",
     "django.contrib.contenttypes",
+    "channels",
     "strawberry_django",
     "apps.accounts",
     "apps.courses",
     "apps.scheduling",
     "apps.homework",
     "apps.institutions",
+    "apps.seedum",
 ]
+
+# Realtime (GraphQL subscriptions over WebSocket / graphql-ws). In-memory channel
+# layer for native dev (single process); env-switch to Redis for prod/multi-worker.
+_CHANNELS_REDIS_URL = os.environ.get("CHANNELS_REDIS_URL")
+if _CHANNELS_REDIS_URL:
+    CHANNEL_LAYERS = {
+        "default": {
+            "BACKEND": "channels_redis.core.RedisChannelLayer",
+            "CONFIG": {"hosts": [_CHANNELS_REDIS_URL]},
+        }
+    }
+else:
+    CHANNEL_LAYERS = {"default": {"BACKEND": "channels.layers.InMemoryChannelLayer"}}
 
 # JWT bearer auth only (no cookies/sessions) -> no Session/CSRF/Auth middleware.
 MIDDLEWARE = [
