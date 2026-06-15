@@ -17,6 +17,7 @@ INSTALLED_APPS = [
     "apps.courses",
     "apps.scheduling",
     "apps.homework",
+    "apps.institutions",
 ]
 
 # JWT bearer auth only (no cookies/sessions) -> no Session/CSRF/Auth middleware.
