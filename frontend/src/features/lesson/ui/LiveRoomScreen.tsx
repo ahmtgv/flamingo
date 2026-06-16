@@ -173,12 +173,17 @@ function StudentRoom({ sessionId, roomToken, isLive }: RoomProps) {
             <VideoRoom
               localStream={stream}
               connecting={lk.connecting}
+              roomFull={lk.roomFull}
               micEnabled={lk.micEnabled}
               cameraEnabled={lk.cameraEnabled}
+              screenSharing={lk.screenSharing}
               participants={lk.participants}
               version={lk.version}
+              activeSpeakers={lk.activeSpeakers}
+              screenShare={lk.screenShare}
               onToggleMic={lk.toggleMic}
               onToggleCamera={lk.toggleCamera}
+              onToggleScreenShare={lk.toggleScreenShare}
               onLeave={leave}
             />
             {/* Hidden CMF source — same stream, analysed on-device, frames discarded. */}
@@ -265,12 +270,17 @@ function TeacherRoom({ sessionId, roomToken, isLive }: RoomProps) {
           <VideoRoom
             localStream={stream}
             connecting={lk.connecting}
+            roomFull={lk.roomFull}
             micEnabled={lk.micEnabled}
             cameraEnabled={lk.cameraEnabled}
+            screenSharing={lk.screenSharing}
             participants={lk.participants}
             version={lk.version}
+            activeSpeakers={lk.activeSpeakers}
+            screenShare={lk.screenShare}
             onToggleMic={lk.toggleMic}
             onToggleCamera={lk.toggleCamera}
+            onToggleScreenShare={lk.toggleScreenShare}
             onLeave={leave}
           />
         )}

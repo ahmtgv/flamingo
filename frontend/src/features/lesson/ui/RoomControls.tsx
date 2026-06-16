@@ -1,20 +1,24 @@
-import { Mic, MicOff, PhoneOff, Video, VideoOff } from 'lucide-react';
+import { Mic, MicOff, MonitorUp, PhoneOff, Video, VideoOff } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import styles from './videoroom.module.css';
 
-/** Call controls: mute mic, toggle camera, leave. Headless — wired by the parent. */
+/** Call controls: mute mic, toggle camera, screen share, leave. Headless — wired by the parent. */
 export function RoomControls({
   micEnabled,
   cameraEnabled,
+  screenSharing,
   onToggleMic,
   onToggleCamera,
+  onToggleScreenShare,
   onLeave,
 }: {
   micEnabled: boolean;
   cameraEnabled: boolean;
+  screenSharing: boolean;
   onToggleMic: () => void;
   onToggleCamera: () => void;
+  onToggleScreenShare: () => void;
   onLeave: () => void;
 }) {
   const { t } = useTranslation('lesson');
@@ -41,6 +45,17 @@ export function RoomControls({
         title={cameraEnabled ? t('camera.on') : t('camera.off')}
       >
         {cameraEnabled ? <Video size={18} /> : <VideoOff size={18} />}
+      </button>
+      <button
+        type="button"
+        className={styles.controlBtn}
+        data-on={screenSharing}
+        onClick={onToggleScreenShare}
+        aria-pressed={screenSharing}
+        aria-label={screenSharing ? t('screenShare.off') : t('screenShare.on')}
+        title={screenSharing ? t('screenShare.off') : t('screenShare.on')}
+      >
+        <MonitorUp size={18} />
       </button>
       <button
         type="button"

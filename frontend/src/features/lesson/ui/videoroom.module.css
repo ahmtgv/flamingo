@@ -36,6 +36,37 @@
   background: var(--color-surface-hover);
   border: 1px solid var(--color-border);
 }
+/* Active-speaker ring. */
+.tile[data-active='true'] {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 2px var(--color-accent);
+}
+/* Screen-share main stage + camera filmstrip. */
+.stage {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: var(--radius-control);
+  overflow: hidden;
+  background: var(--color-surface-hover);
+  border: 1px solid var(--color-border);
+}
+.stageVideo {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  background: var(--color-bg);
+}
+.filmstrip {
+  display: flex;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+  overflow-x: auto;
+}
+.filmstrip > .tile {
+  flex: 0 0 clamp(96px, 22%, 160px);
+}
 .video,
 .videoMirror {
   width: 100%;
@@ -102,6 +133,11 @@
 .controlBtn[data-off='true'] {
   background: var(--color-surface-hover);
   color: var(--color-text-tertiary);
+}
+.controlBtn[data-on='true'] {
+  background: var(--color-accent);
+  color: var(--color-on-accent, #fff);
+  border-color: var(--color-accent);
 }
 .leaveBtn {
   border-color: var(--color-danger-border, var(--color-border-strong));

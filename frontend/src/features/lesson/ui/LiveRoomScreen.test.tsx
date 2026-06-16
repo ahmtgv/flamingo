@@ -34,7 +34,12 @@ vi.mock('@/seedum', async (orig) => ({
 }));
 vi.mock('livekit-client', () => {
   class Room {
-    localParticipant = { publishTrack: h.publishTrack };
+    localParticipant = {
+      publishTrack: h.publishTrack,
+      getTrackPublication: () => undefined,
+      isScreenShareEnabled: false,
+      setScreenShareEnabled: vi.fn().mockResolvedValue(undefined),
+    };
     remoteParticipants = new Map();
     on() {
       return this;
@@ -44,8 +49,8 @@ vi.mock('livekit-client', () => {
   }
   return {
     Room,
-    RoomEvent: { ParticipantConnected: 'pc', ParticipantDisconnected: 'pd', TrackSubscribed: 'ts', TrackUnsubscribed: 'tu', Disconnected: 'd' },
-    Track: { Source: { Camera: 'camera', Microphone: 'microphone' }, Kind: { Video: 'video', Audio: 'audio' } },
+    RoomEvent: { ParticipantConnected: 'pc', ParticipantDisconnected: 'pd', TrackSubscribed: 'ts', TrackUnsubscribed: 'tu', LocalTrackPublished: 'ltp', LocalTrackUnpublished: 'ltu', ActiveSpeakersChanged: 'asc', Disconnected: 'd' },
+    Track: { Source: { Camera: 'camera', Microphone: 'microphone', ScreenShare: 'screen' }, Kind: { Video: 'video', Audio: 'audio' } },
   };
 });
 
