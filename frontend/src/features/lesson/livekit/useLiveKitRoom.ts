@@ -63,13 +63,10 @@ export function useLiveKitRoom({ url, token, stream, active }: UseLiveKitRoomArg
 
     setConnecting(true);
     setError(null);
-    void (async () => {
+    const connecting = (async () => {
       try {
         await room.connect(url, token);
-        if (cancelled) {
-          await room.disconnect();
-          return;
-        }
+        if (cancelled) return;
         const video = stream.getVideoTracks()[0];
         const audio = stream.getAudioTracks()[0];
         if (video) await room.localParticipant.publishTrack(video, { source: Track.Source.Camera });
@@ -91,7 +88,10 @@ export function useLiveKitRoom({ url, token, stream, active }: UseLiveKitRoomArg
 
     return () => {
       cancelled = true;
-      void room.disconnect();
+      // Disconnect only AFTER the in-flight connect settles — otherwise a React
+      // StrictMode unmount (dev) aborts mid-connect → connect→leave→reconnect churn.
+      // Prod (no double-invoke) connects once, so this just makes dev clean.
+      void connecting.finally(() => room.disconnect());
       roomRef.current = null;
       setConnected(false);
       setParticipants([]);
