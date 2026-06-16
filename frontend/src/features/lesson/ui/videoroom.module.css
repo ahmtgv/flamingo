@@ -9,8 +9,8 @@
   padding: 2px var(--space-2);
   margin-bottom: var(--space-3);
   border-radius: var(--radius-pill);
-  background: var(--color-danger-bg, var(--color-surface-hover));
-  color: var(--color-danger-text, var(--color-text));
+  background: var(--color-error-bg);
+  color: var(--color-error-text);
   font-size: var(--text-caption);
   font-weight: var(--weight-medium);
 }
@@ -101,8 +101,8 @@
   gap: var(--space-1);
   padding: 2px var(--space-2);
   border-radius: var(--radius-xs);
-  background: var(--color-overlay, rgba(0, 0, 0, 0.5));
-  color: #fff;
+  background: var(--color-overlay);
+  color: var(--color-text-on-accent);
   font-family: var(--font-mono);
   font-size: var(--text-caption);
 }
@@ -142,12 +142,12 @@
 }
 .controlBtn[data-on='true'] {
   background: var(--color-accent);
-  color: var(--color-on-accent, #fff);
+  color: var(--color-text-on-accent);
   border-color: var(--color-accent);
 }
 .leaveBtn {
-  border-color: var(--color-danger-border, var(--color-border-strong));
-  color: var(--color-danger-text, var(--color-text));
+  border-color: var(--color-error);
+  color: var(--color-error-text);
 }
 
 /* Non-blocking connection-lifecycle banner (reconnecting / reconnected). A sibling of the

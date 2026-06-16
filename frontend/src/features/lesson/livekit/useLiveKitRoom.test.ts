@@ -203,6 +203,28 @@ describe('useLiveKitRoom', () => {
     }
   });
 
+  it('a disconnect during the reconnected settle window wins — stays disconnected (no stale flip)', () => {
+    vi.useFakeTimers();
+    try {
+      const { stream } = fakeStream();
+      // Hold connect open so the connect IIFE never races the lifecycle events.
+      lk.connect.mockReturnValue(new Promise<void>(() => undefined));
+      const { result } = renderHook(() =>
+        useLiveKitRoom({ url: 'wss://x', token: 'tok-1', stream, active: true }),
+      );
+      act(() => lk.handlers['reconnected']?.());
+      expect(result.current.connectionState).toBe('reconnected');
+      // A clean disconnect arrives mid-settle → the settle timer must be cleared so it
+      // can't later flip 'connected' over the disconnected overlay.
+      act(() => lk.handlers['d']?.(DisconnectReason.CLIENT_INITIATED));
+      expect(result.current.connectionState).toBe('disconnected');
+      act(() => vi.advanceTimersByTime(5000));
+      expect(result.current.connectionState).toBe('disconnected');
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it('rejoin() re-runs the connect WITHOUT stopping the shared camera (no release)', async () => {
     const { stream, video, audio } = fakeStream();
     const { result } = renderHook(() =>
