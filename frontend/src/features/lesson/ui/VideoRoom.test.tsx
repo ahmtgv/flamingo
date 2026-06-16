@@ -15,15 +15,20 @@ vi.mock('livekit-client', () => ({
 
 // cameraEnabled is false so the (role="status") live badge doesn't collide with the
 // reconnecting banner in role queries — the lifecycle UI is independent of the camera flag.
-function renderRoom(connectionState: RoomConnectionState, onRejoin = vi.fn()) {
+function renderRoom(
+  connectionState: RoomConnectionState,
+  { cameraEnabled = false, liveBadgeLabel = 'Камера в эфире' } = {},
+) {
+  const onRejoin = vi.fn();
   const utils = renderWithProviders(
     <VideoRoom
       localStream={null}
+      liveBadgeLabel={liveBadgeLabel}
       connecting={false}
       connectionState={connectionState}
       roomFull={false}
       micEnabled
-      cameraEnabled={false}
+      cameraEnabled={cameraEnabled}
       screenSharing={false}
       participants={[]}
       version={0}
@@ -84,5 +89,10 @@ describe('VideoRoom connection lifecycle UI', () => {
     expect(screen.getByRole('button', { name: /микрофон/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /камер/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Выйти из эфира/ })).toBeInTheDocument();
+  });
+
+  it('renders the role-specific live-badge label from the parent (no cross-role leak)', () => {
+    renderRoom('connected', { cameraEnabled: true, liveBadgeLabel: 'Ваша камера в эфире' });
+    expect(screen.getByText('Ваша камера в эфире')).toBeInTheDocument();
   });
 });

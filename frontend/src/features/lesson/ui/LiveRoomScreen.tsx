@@ -222,6 +222,7 @@ function StudentRoom({ sessionId, roomToken, isLive }: RoomProps) {
           <>
             <VideoRoom
               localStream={stream}
+              liveBadgeLabel={t('lesson:liveBadge')}
               connecting={lk.connecting}
               connectionState={lk.connectionState}
               roomFull={lk.roomFull}
@@ -355,6 +356,7 @@ function TeacherRoom({ sessionId, roomToken, isLive }: RoomProps) {
         ) : (
           <VideoRoom
             localStream={stream}
+            liveBadgeLabel={t('lesson:liveBadgeTeacher')}
             connecting={lk.connecting}
             connectionState={lk.connectionState}
             roomFull={lk.roomFull}

@@ -21,6 +21,7 @@ import styles from './videoroom.module.css';
  */
 export function VideoRoom({
   localStream,
+  liveBadgeLabel,
   connecting,
   connectionState,
   roomFull,
@@ -39,6 +40,8 @@ export function VideoRoom({
   nameFor,
 }: {
   localStream: MediaStream | null;
+  /** Role-specific self-view badge copy (student: "…преподаватель вас видит"; teacher: own). */
+  liveBadgeLabel: string;
   connecting: boolean;
   connectionState: RoomConnectionState;
   roomFull: boolean;
@@ -118,7 +121,7 @@ export function VideoRoom({
 
       {cameraEnabled && (
         <p className={styles.liveBadge} role="status">
-          <Radio size={13} aria-hidden="true" /> {t('liveBadge')}
+          <Radio size={13} aria-hidden="true" /> {liveBadgeLabel}
         </p>
       )}
 
