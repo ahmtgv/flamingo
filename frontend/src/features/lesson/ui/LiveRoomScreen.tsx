@@ -1,4 +1,4 @@
-import { ArrowLeft, BarChart3, ShieldCheck, Video } from 'lucide-react';
+import { ArrowLeft, BarChart3, RefreshCw, ShieldCheck, Video } from 'lucide-react';
 import { type ReactNode, useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Navigate, useNavigate, useParams } from 'react-router-dom';
@@ -15,6 +15,7 @@ import { LIVEKIT_URL } from '@/shared/lib/env';
 import { Button, Logo } from '@/shared/ui';
 
 import { classAverage, heldValue, summaryStats } from '../attentionView';
+import { type CameraErrorKind, classifyMediaError } from '../mediaError';
 
 import { useLiveKitRoom } from '../livekit/useLiveKitRoom';
 import styles from './liveroom.module.css';
@@ -56,16 +57,17 @@ function RoomShell({ subtitle, children }: { subtitle: string; children: ReactNo
 function useSharedCamera() {
   const streamRef = useRef<MediaStream | null>(null);
   const [stream, setStream] = useState<MediaStream | null>(null);
-  const [denied, setDenied] = useState(false);
+  const [cameraError, setCameraError] = useState<CameraErrorKind | null>(null);
 
   const acquire = useCallback(async (): Promise<MediaStream | null> => {
     try {
       const s = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
       streamRef.current = s;
       setStream(s);
+      setCameraError(null);
       return s;
-    } catch {
-      setDenied(true);
+    } catch (e) {
+      setCameraError(classifyMediaError(e));
       return null;
     }
   }, []);
@@ -79,7 +81,49 @@ function useSharedCamera() {
   // Stop the camera only when the room truly unmounts (real navigation / leave).
   useEffect(() => () => streamRef.current?.getTracks().forEach((track) => track.stop()), []);
 
-  return { stream, denied, acquire, release };
+  return { stream, cameraError, acquire, release };
+}
+
+/** Pre-join camera/mic error with a Retry that re-acquires getUserMedia. `role="alert"` so
+ *  the classified, actionable message is announced. Re-acquiring is safe here: pre-join means
+ *  nothing is published yet and the CMF pipeline isn't running. */
+function CameraErrorNote({
+  kind,
+  disabled,
+  onRetry,
+}: {
+  kind: CameraErrorKind;
+  disabled: boolean;
+  onRetry: () => void;
+}) {
+  const { t } = useTranslation(['seedum', 'lesson']);
+  // Reuse the existing seedum copy for the denied case; the finer device states are new.
+  const message =
+    kind === 'denied'
+      ? t('room.cameraDenied')
+      : kind === 'notFound'
+        ? t('lesson:camera.error.notFound')
+        : kind === 'inUse'
+          ? t('lesson:camera.error.inUse')
+          : t('lesson:camera.error.generic');
+  return (
+    <>
+      <p className={styles.note} role="alert">
+        {message}
+      </p>
+      <div className={styles.actions}>
+        <Button
+          variant="primary"
+          size="sm"
+          icon={<RefreshCw size={15} />}
+          disabled={disabled}
+          onClick={onRetry}
+        >
+          {t('lesson:camera.retry')}
+        </Button>
+      </div>
+    </>
+  );
 }
 
 type RoomProps = { sessionId: string; roomToken: string | null; isLive: boolean };
@@ -96,7 +140,7 @@ function StudentRoom({ sessionId, roomToken, isLive }: RoomProps) {
   // effect (else LiveKit re-renders would tear down + recreate the MediaPipe worker).
   const reportRef = useRef(reportAttention);
   reportRef.current = reportAttention;
-  const { stream, denied, acquire, release } = useSharedCamera();
+  const { stream, cameraError, acquire, release } = useSharedCamera();
   const [joined, setJoined] = useState(false);
   const cmfVideoRef = useRef<HTMLVideoElement>(null);
   const pipelineRef = useRef<{ stop: () => void } | null>(null);
@@ -157,18 +201,21 @@ function StudentRoom({ sessionId, roomToken, isLive }: RoomProps) {
         {!joined ? (
           <>
             {!isLive && <p className={styles.note}>{t('lesson:notLive')}</p>}
-            {denied && <p className={styles.note}>{t('room.cameraDenied')}</p>}
-            <div className={styles.actions}>
-              <Button
-                variant="primary"
-                size="sm"
-                icon={<Video size={15} />}
-                disabled={!isLive}
-                onClick={() => void join()}
-              >
-                {t('lesson:join')}
-              </Button>
-            </div>
+            {cameraError ? (
+              <CameraErrorNote kind={cameraError} disabled={!isLive} onRetry={() => void join()} />
+            ) : (
+              <div className={styles.actions}>
+                <Button
+                  variant="primary"
+                  size="sm"
+                  icon={<Video size={15} />}
+                  disabled={!isLive}
+                  onClick={() => void join()}
+                >
+                  {t('lesson:join')}
+                </Button>
+              </div>
+            )}
           </>
         ) : (
           <>
@@ -214,7 +261,7 @@ function StudentRoom({ sessionId, roomToken, isLive }: RoomProps) {
  */
 function TeacherRoom({ sessionId, roomToken, isLive }: RoomProps) {
   const { t } = useTranslation(['seedum', 'lesson']);
-  const { stream, denied, acquire, release } = useSharedCamera();
+  const { stream, cameraError, acquire, release } = useSharedCamera();
   const [joined, setJoined] = useState(false);
   const lk = useLiveKitRoom({ url: LIVEKIT_URL, token: roomToken, stream, active: joined });
 
@@ -268,18 +315,21 @@ function TeacherRoom({ sessionId, roomToken, isLive }: RoomProps) {
         {!joined ? (
           <>
             {!isLive && <p className={styles.note}>{t('lesson:notLive')}</p>}
-            {denied && <p className={styles.note}>{t('room.cameraDenied')}</p>}
-            <div className={styles.actions}>
-              <Button
-                variant="primary"
-                size="sm"
-                icon={<Video size={15} />}
-                disabled={!isLive}
-                onClick={() => void join()}
-              >
-                {t('lesson:join')}
-              </Button>
-            </div>
+            {cameraError ? (
+              <CameraErrorNote kind={cameraError} disabled={!isLive} onRetry={() => void join()} />
+            ) : (
+              <div className={styles.actions}>
+                <Button
+                  variant="primary"
+                  size="sm"
+                  icon={<Video size={15} />}
+                  disabled={!isLive}
+                  onClick={() => void join()}
+                >
+                  {t('lesson:join')}
+                </Button>
+              </div>
+            )}
           </>
         ) : (
           <VideoRoom

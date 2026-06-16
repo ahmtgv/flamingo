@@ -157,6 +157,26 @@ describe('LiveRoomScreen', () => {
     expect(await screen.findByText(/Камера в эфире/)).toBeInTheDocument();
   });
 
+  it('classifies a camera/device failure into an actionable message + Retry that recovers', async () => {
+    // First attempt fails with a device-busy error → classified "in use" + Retry (role=alert).
+    h.getUserMedia.mockRejectedValueOnce(Object.assign(new Error('busy'), { name: 'NotReadableError' }));
+    renderRoom([meMock('STUDENT'), sessionRoomMock]);
+    fireEvent.click(await screen.findByRole('button', { name: /Войти в эфир/ }));
+
+    const alert = await screen.findByRole('alert');
+    expect(alert).toHaveTextContent(/занята/i); // "Камера занята другим приложением…"
+
+    // Retry re-acquires; this time getUserMedia succeeds → we're in the call.
+    const stream = {
+      getVideoTracks: () => [{ kind: 'video', enabled: true, stop: vi.fn() }],
+      getAudioTracks: () => [{ kind: 'audio', enabled: true, stop: vi.fn() }],
+      getTracks: () => [{ stop: vi.fn() }],
+    };
+    h.getUserMedia.mockResolvedValueOnce(stream);
+    fireEvent.click(screen.getByRole('button', { name: /Повторить/ }));
+    expect(await screen.findByText(/Камера в эфире/)).toBeInTheDocument();
+  });
+
   it('teacher view renders a live class-attention metric from attentionUpdates (aggregate only)', async () => {
     const subMock = {
       request: { query: AttentionUpdatesDocument, variables: { sessionId: 'sess-1' } },
