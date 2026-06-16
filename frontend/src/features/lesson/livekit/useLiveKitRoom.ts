@@ -8,11 +8,54 @@
 // getDisplayMedia track IN ADDITION to the camera (camera + CMF keep running); the screen
 // track never feeds CMF.
 
-import { type Participant, type RemoteParticipant, Room, RoomEvent, Track } from 'livekit-client';
+import {
+  DisconnectReason,
+  type Participant,
+  type RemoteParticipant,
+  Room,
+  RoomEvent,
+  Track,
+} from 'livekit-client';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 /** MVP soft cap (total participants incl. self). Hard cap is server-side (deferred). */
 export const MAX_PARTICIPANTS = 5;
+
+/** How long the "reconnected" success notice lingers before settling to 'connected'. */
+const RECONNECTED_NOTICE_MS = 2500;
+
+/**
+ * One explicit room-connection state the UI renders directly — driven off LiveKit's
+ * connection-lifecycle events (Reconnecting / Reconnected / Disconnected) plus our own
+ * connect success/failure, never inferred from booleans scattered across the UI.
+ */
+export type RoomConnectionState =
+  | 'idle'
+  | 'connecting'
+  | 'connected'
+  | 'reconnecting'
+  | 'reconnected'
+  | 'disconnected'
+  | 'failed';
+
+/**
+ * Map a LiveKit disconnect to a terminal UI state. A clean, expected close (we left, the
+ * host ended/closed the room, or another tab took our identity) reads as 'disconnected';
+ * anything fault-like (server/signal/media/timeout, or unknown) reads as 'failed'. Both
+ * states offer Rejoin — the split only changes the copy shown.
+ */
+export function classifyDisconnect(reason?: DisconnectReason): 'disconnected' | 'failed' {
+  switch (reason) {
+    case DisconnectReason.CLIENT_INITIATED:
+    case DisconnectReason.ROOM_DELETED:
+    case DisconnectReason.ROOM_CLOSED:
+    case DisconnectReason.PARTICIPANT_REMOVED:
+    case DisconnectReason.DUPLICATE_IDENTITY:
+      return 'disconnected';
+    default:
+      return 'failed';
+  }
+}
 
 export interface UseLiveKitRoomArgs {
   url: string;
@@ -32,6 +75,8 @@ export interface ScreenShare {
 export interface LiveKitRoomState {
   connected: boolean;
   connecting: boolean;
+  /** One explicit lifecycle state for the UI (reconnecting banner / rejoin overlay). */
+  connectionState: RoomConnectionState;
   error: string | null;
   roomFull: boolean;
   participants: RemoteParticipant[];
@@ -45,6 +90,8 @@ export interface LiveKitRoomState {
   toggleMic: () => void;
   toggleCamera: () => void;
   toggleScreenShare: () => void;
+  /** Re-run ONLY the LiveKit connect (keeps the shared camera + CMF pipeline alive). */
+  rejoin: () => void;
   leave: () => void;
 }
 
@@ -52,8 +99,12 @@ export function useLiveKitRoom({ url, token, stream, active }: UseLiveKitRoomArg
   const roomRef = useRef<Room | null>(null);
   const [connected, setConnected] = useState(false);
   const [connecting, setConnecting] = useState(false);
+  const [connectionState, setConnectionState] = useState<RoomConnectionState>('idle');
   const [error, setError] = useState<string | null>(null);
   const [roomFull, setRoomFull] = useState(false);
+  // Bumped by rejoin() to re-run ONLY this effect (reconnect the LiveKit room) without
+  // touching the shared camera stream — so the local <video> and CMF pipeline stay alive.
+  const [attempt, setAttempt] = useState(0);
   const [participants, setParticipants] = useState<RemoteParticipant[]>([]);
   const [version, setVersion] = useState(0);
   const [activeSpeakers, setActiveSpeakers] = useState<Set<string>>(new Set());
@@ -108,11 +159,24 @@ export function useLiveKitRoom({ url, token, stream, active }: UseLiveKitRoomArg
       .on(RoomEvent.ActiveSpeakersChanged, (speakers: Participant[]) =>
         setActiveSpeakers(new Set(speakers.map((s) => s.sid))),
       )
-      .on(RoomEvent.Disconnected, () => {
-        if (!cancelled) setConnected(false);
+      // Transient blip: livekit-client handles the reconnect internally — we only surface
+      // it. The shared camera track and the CMF pipeline do NOT depend on this state, so
+      // they keep running straight through the reconnect (no <video> remount, no worker
+      // teardown). See LiveRoomScreen: the pipeline is keyed on [joined, stream, sessionId].
+      .on(RoomEvent.Reconnecting, () => {
+        if (!cancelled) setConnectionState('reconnecting');
+      })
+      .on(RoomEvent.Reconnected, () => {
+        if (!cancelled) setConnectionState('reconnected');
+      })
+      .on(RoomEvent.Disconnected, (reason?: DisconnectReason) => {
+        if (cancelled) return;
+        setConnected(false);
+        setConnectionState(classifyDisconnect(reason));
       });
 
     setConnecting(true);
+    setConnectionState('connecting');
     setError(null);
     const connecting = (async () => {
       try {
@@ -134,11 +198,13 @@ export function useLiveKitRoom({ url, token, stream, active }: UseLiveKitRoomArg
         setCameraEnabled(video?.enabled ?? false);
         setConnected(true);
         setConnecting(false);
+        setConnectionState('connected');
         sync();
       } catch (e) {
         if (!cancelled) {
           setError(String(e));
           setConnecting(false);
+          setConnectionState('failed');
         }
       }
     })();
@@ -153,7 +219,14 @@ export function useLiveKitRoom({ url, token, stream, active }: UseLiveKitRoomArg
       setConnected(false);
       setParticipants([]);
     };
-  }, [active, token, stream, url]);
+  }, [active, token, stream, url, attempt]);
+
+  // A recovered reconnect shows a brief "reconnected" notice, then settles to 'connected'.
+  useEffect(() => {
+    if (connectionState !== 'reconnected') return undefined;
+    const id = setTimeout(() => setConnectionState('connected'), RECONNECTED_NOTICE_MS);
+    return () => clearTimeout(id);
+  }, [connectionState]);
 
   const toggleMic = useCallback(() => {
     const track = stream?.getAudioTracks()[0];
@@ -193,6 +266,16 @@ export function useLiveKitRoom({ url, token, stream, active }: UseLiveKitRoomArg
       .catch(() => undefined);
   }, []);
 
+  // Re-run ONLY the connect effect (via the attempt counter). It never calls release()
+  // or re-acquires getUserMedia, so the shared MediaStream object is retained — the local
+  // <video> keeps its srcObject and the CMF pipeline (keyed on the stream) stays alive.
+  const rejoin = useCallback(() => {
+    setError(null);
+    setRoomFull(false);
+    setConnectionState('connecting');
+    setAttempt((n) => n + 1);
+  }, []);
+
   const leave = useCallback(() => {
     void roomRef.current?.disconnect();
     roomRef.current = null;
@@ -202,6 +285,7 @@ export function useLiveKitRoom({ url, token, stream, active }: UseLiveKitRoomArg
   return {
     connected,
     connecting,
+    connectionState,
     error,
     roomFull,
     participants,
@@ -214,6 +298,7 @@ export function useLiveKitRoom({ url, token, stream, active }: UseLiveKitRoomArg
     toggleMic,
     toggleCamera,
     toggleScreenShare,
+    rejoin,
     leave,
   };
 }

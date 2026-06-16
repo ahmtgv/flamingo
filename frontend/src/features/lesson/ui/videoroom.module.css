@@ -1,4 +1,5 @@
 .room {
+  position: relative; /* anchors the terminal-state overlay over the still-mounted tiles */
   margin-top: var(--space-4);
 }
 .liveBadge {
@@ -147,4 +148,67 @@
 .leaveBtn {
   border-color: var(--color-danger-border, var(--color-border-strong));
   color: var(--color-danger-text, var(--color-text));
+}
+
+/* Non-blocking connection-lifecycle banner (reconnecting / reconnected). A sibling of the
+   tiles — it shifts layout but never wraps or unmounts the <video>s underneath. */
+.stateBanner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  margin-bottom: var(--space-3);
+  border-radius: var(--radius-md);
+  font-size: var(--text-small);
+  line-height: var(--leading-snug);
+}
+.stateBanner[data-kind='reconnecting'] {
+  background: var(--color-warning-bg);
+  color: var(--color-warning-text);
+}
+.stateBanner[data-kind='reconnecting'] svg {
+  color: var(--color-warning);
+}
+.stateBanner[data-kind='reconnected'] {
+  background: var(--color-success-bg);
+  color: var(--color-success-text);
+}
+.stateBanner[data-kind='reconnected'] svg {
+  color: var(--color-success);
+}
+
+/* Terminal state (disconnected / failed): a scrim + card layered OVER the tiles, so the
+   camera <video> stays mounted underneath and Rejoin restores the call instantly. */
+.disconnectedOverlay {
+  position: absolute;
+  inset: 0;
+  z-index: var(--z-modal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-4);
+  background: var(--color-overlay);
+  border-radius: var(--radius-control);
+}
+.disconnectedCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  max-width: 320px;
+  padding: var(--space-5) var(--space-4);
+  text-align: center;
+  background: var(--color-surface);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-lg);
+}
+.disconnectedCard svg {
+  color: var(--color-error);
+}
+.disconnectedText {
+  font-size: var(--text-small);
+  font-weight: var(--weight-medium);
+  line-height: var(--leading-snug);
 }
