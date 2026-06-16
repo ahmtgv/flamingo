@@ -2,6 +2,18 @@
   position: relative; /* anchors the terminal-state overlay over the still-mounted tiles */
   margin-top: var(--space-4);
 }
+/* Visually hidden but available to assistive tech — the room's polite live region. */
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
 .liveBadge {
   display: inline-flex;
   align-items: center;

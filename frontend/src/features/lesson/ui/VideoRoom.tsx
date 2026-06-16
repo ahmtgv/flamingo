@@ -1,6 +1,6 @@
 import { type RemoteParticipant } from 'livekit-client';
 import { Radio, RefreshCw, Wifi, WifiOff } from 'lucide-react';
-import { useCallback } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/shared/ui';
@@ -58,6 +58,24 @@ export function VideoRoom({
   // Terminal states render an overlay OVER the still-mounted tiles (never an early return).
   const terminal = connectionState === 'disconnected' || connectionState === 'failed';
 
+  const rejoinRef = useRef<HTMLButtonElement>(null);
+  // a11y: move focus to the primary recovery action when the terminal overlay appears, so a
+  // keyboard / screen-reader user lands on Rejoin (the overlay's role="alert" announces it).
+  useEffect(() => {
+    if (terminal) rejoinRef.current?.focus();
+  }, [terminal]);
+
+  // Single persistent polite live region for the TRANSIENT states (reconnecting/reconnected).
+  // Terminal states are announced assertively by the overlay's role="alert", so they are
+  // intentionally NOT duplicated here (no double announcement); the visible banners below are
+  // aria-hidden decoration.
+  const liveAnnouncement =
+    connectionState === 'reconnecting'
+      ? t('reconnecting')
+      : connectionState === 'reconnected'
+        ? t('reconnected')
+        : '';
+
   // Callback ref → (re)attaches the shared stream on ANY mount, not relying on a deps array.
   const attachLocal = useCallback(
     (el: HTMLVideoElement | null) => {
@@ -89,21 +107,28 @@ export function VideoRoom({
 
   return (
     <div className={styles.room}>
+      {/* The room's single polite live region (the project's first). Announces transient
+          connection changes; empty (silent) otherwise. */}
+      <p className={styles.srOnly} role="status">
+        {liveAnnouncement}
+      </p>
+
       {cameraEnabled && (
         <p className={styles.liveBadge} role="status">
-          <Radio size={13} /> {t('liveBadge')}
+          <Radio size={13} aria-hidden="true" /> {t('liveBadge')}
         </p>
       )}
 
       {/* Non-blocking lifecycle banner — a SIBLING of the tiles, so the local <video>
-          underneath never unmounts (and keeps its srcObject) during a reconnect. */}
+          underneath never unmounts (and keeps its srcObject) during a reconnect.
+          aria-hidden: it's visual only; the live region above does the announcing. */}
       {connectionState === 'reconnecting' && (
-        <p className={styles.stateBanner} data-kind="reconnecting" role="status">
+        <p className={styles.stateBanner} data-kind="reconnecting" aria-hidden="true">
           <RefreshCw size={14} /> {t('reconnecting')}
         </p>
       )}
       {connectionState === 'reconnected' && (
-        <p className={styles.stateBanner} data-kind="reconnected" role="status">
+        <p className={styles.stateBanner} data-kind="reconnected" aria-hidden="true">
           <Wifi size={14} /> {t('reconnected')}
         </p>
       )}
@@ -143,11 +168,17 @@ export function VideoRoom({
       {terminal && (
         <div className={styles.disconnectedOverlay}>
           <div className={styles.disconnectedCard} role="alert">
-            <WifiOff size={22} />
+            <WifiOff size={22} aria-hidden="true" />
             <p className={styles.disconnectedText}>
               {connectionState === 'failed' ? t('connectionFailed') : t('connectionLost')}
             </p>
-            <Button variant="primary" size="sm" icon={<RefreshCw size={15} />} onClick={onRejoin}>
+            <Button
+              ref={rejoinRef}
+              variant="primary"
+              size="sm"
+              icon={<RefreshCw size={15} />}
+              onClick={onRejoin}
+            >
               {t('rejoin')}
             </Button>
           </div>

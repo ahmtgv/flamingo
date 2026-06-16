@@ -40,12 +40,13 @@ function renderRoom(connectionState: RoomConnectionState, onRejoin = vi.fn()) {
 }
 
 describe('VideoRoom connection lifecycle UI', () => {
-  it('connected: no banner, no overlay; the local <video> and tiles are mounted', () => {
+  it('connected: live region empty, no overlay; the local <video> and tiles are mounted', () => {
     const { container } = renderRoom('connected');
     expect(container.querySelector('video')).toBeTruthy();
     expect(screen.getByText('Вы')).toBeInTheDocument();
     expect(screen.queryByRole('alert')).toBeNull();
-    expect(screen.queryByRole('status')).toBeNull();
+    // The persistent polite live region exists but announces nothing when connected.
+    expect(screen.getByRole('status').textContent).toBe('');
   });
 
   it('reconnecting: non-blocking status banner while tiles + <video> stay mounted', () => {
@@ -58,13 +59,15 @@ describe('VideoRoom connection lifecycle UI', () => {
     expect(screen.queryByRole('alert')).toBeNull();
   });
 
-  it('disconnected: rejoin overlay layered OVER still-mounted tiles (not an early return)', () => {
+  it('disconnected: rejoin overlay OVER still-mounted tiles; focus moves to Rejoin', () => {
     const { container, onRejoin } = renderRoom('disconnected');
     // Tiles + local <video> remain mounted underneath the overlay (the camera survives).
     expect(container.querySelector('video')).toBeTruthy();
     expect(screen.getByText('Вы')).toBeInTheDocument();
     expect(screen.getByRole('alert')).toHaveTextContent(/потеряно/i);
-    fireEvent.click(screen.getByRole('button', { name: /Переподключиться/ }));
+    const rejoin = screen.getByRole('button', { name: /Переподключиться/ });
+    expect(rejoin).toHaveFocus(); // a11y: focus lands on the primary recovery action
+    fireEvent.click(rejoin);
     expect(onRejoin).toHaveBeenCalledTimes(1);
   });
 
@@ -72,5 +75,14 @@ describe('VideoRoom connection lifecycle UI', () => {
     const { container } = renderRoom('failed');
     expect(container.querySelector('video')).toBeTruthy();
     expect(screen.getByRole('alert')).toHaveTextContent(/Не удалось/i);
+  });
+
+  it('exposes an accessible, labelled control group with keyboard-operable buttons', () => {
+    renderRoom('connected');
+    expect(screen.getByRole('group', { name: /Управление эфиром/ })).toBeInTheDocument();
+    // Native <button>s with ru aria-labels → keyboard-operable + screen-reader-named.
+    expect(screen.getByRole('button', { name: /микрофон/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /камер/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Выйти из эфира/ })).toBeInTheDocument();
   });
 });

@@ -23,7 +23,7 @@ export function RoomControls({
 }) {
   const { t } = useTranslation('lesson');
   return (
-    <div className={styles.controls}>
+    <div className={styles.controls} role="group" aria-label={t('controls')}>
       <button
         type="button"
         className={styles.controlBtn}
