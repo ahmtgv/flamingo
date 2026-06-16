@@ -7,13 +7,14 @@ import {
   useAttentionUpdatesSubscription,
   useMeQuery,
   useReportAttentionMutation,
-  useSessionAttentionLazyQuery,
   useSessionRoomQuery,
 } from '@/entities/graphql/generated';
 import { AttentionChart, PrivacyIndicator, startAttentionPipeline } from '@/seedum';
 import { loadUbp } from '@/seedum/ubp';
 import { LIVEKIT_URL } from '@/shared/lib/env';
 import { Button, Logo } from '@/shared/ui';
+
+import { classAverage, heldValue, summaryStats } from '../attentionView';
 
 import { useLiveKitRoom } from '../livekit/useLiveKitRoom';
 import styles from './liveroom.module.css';
@@ -237,10 +238,16 @@ function TeacherRoom({ sessionId, roomToken, isLive }: RoomProps) {
   }, []);
 
   const latestRef = useRef<Record<string, number>>({});
-  const [view, setView] = useState<{ students: Array<[string, number]>; series: number[] }>({
-    students: [],
-    series: [],
-  });
+  // Real (non-zero) class aggregates received this session — the summary is computed from
+  // THESE only, never from between-bucket gaps / zero (no-reading) buckets.
+  const receivedRef = useRef<number[]>([]);
+  const [view, setView] = useState<{
+    students: Array<[string, number]>;
+    series: number[];
+    classAvg: number;
+  }>({ students: [], series: [], classAvg: 0 });
+  const [showReport, setShowReport] = useState(false);
+
   useAttentionUpdatesSubscription({
     variables: { sessionId },
     onData: ({ data }) => {
@@ -248,15 +255,20 @@ function TeacherRoom({ sessionId, roomToken, isLive }: RoomProps) {
       if (!metric) return;
       latestRef.current = { ...latestRef.current, [metric.studentId]: metric.avgAttention };
       const students = Object.entries(latestRef.current);
-      const avg = Math.round(students.reduce((sum, [, v]) => sum + v, 0) / students.length);
-      setView((prev) => ({ students, series: [...prev.series.slice(-59), avg] }));
+      const avg = classAverage(students.map(([, v]) => v));
+      if (avg > 0) receivedRef.current.push(avg); // stats from real buckets only
+      setView((prev) => ({
+        students,
+        series: [...prev.series.slice(-59), heldValue(prev.classAvg, avg)],
+        classAvg: heldValue(prev.classAvg, avg),
+      }));
     },
   });
-  const [loadReport, { data: report }] = useSessionAttentionLazyQuery({
-    fetchPolicy: 'network-only',
-  });
-  const summary = report?.sessionAttention;
-  const classAvg = view.series.length ? view.series[view.series.length - 1] : 0;
+
+  // Client-side summary from the real received buckets (no backend call → no stored zeros).
+  const summary = showReport ? summaryStats(receivedRef.current) : null;
+  const report = summary ? { ...summary, points: receivedRef.current } : null;
+  const classAvg = view.classAvg;
 
   const join = useCallback(async () => {
     const s = await acquire();
@@ -336,19 +348,19 @@ function TeacherRoom({ sessionId, roomToken, isLive }: RoomProps) {
             variant="secondary"
             size="sm"
             icon={<BarChart3 size={15} />}
-            onClick={() => void loadReport({ variables: { sessionId } })}
+            onClick={() => setShowReport(true)}
           >
             {t('room.report')}
           </Button>
         </div>
-        {summary && (
+        {report && (
           <div className={styles.report}>
             <div className={styles.reportStats}>
-              <span>{t('room.average', { n: summary.averageAttention })}</span>
-              <span>{t('room.peak', { n: summary.peak })}</span>
-              <span>{t('room.low', { n: summary.low })}</span>
+              <span>{t('room.average', { n: report.averageAttention })}</span>
+              <span>{t('room.peak', { n: report.peak })}</span>
+              <span>{t('room.low', { n: report.low })}</span>
             </div>
-            <AttentionChart values={summary.points.map((p) => p.value)} />
+            <AttentionChart values={report.points} />
           </div>
         )}
       </div>
