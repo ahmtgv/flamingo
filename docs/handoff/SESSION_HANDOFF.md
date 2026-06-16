@@ -1,16 +1,22 @@
 # Flamingo — Session Handoff
 
-**Date:** 2026-06-15 · **Branch:** `main` · **HEAD:** `de9e60f` · working tree clean (67 commits on `main`).
+**Date:** 2026-06-15 · **Branch:** `main` · **HEAD:** `7686a9c` · working tree clean (69 commits on `main`).
 This doc lets a fresh session resume cleanly. It references files by path — read those, don't rely on this doc alone.
 
 ---
 
 ## 0. Current state — read this first
 ✅ **SEduM Lite COMPLETE (a+b+c) — CMF browser-verified LIVE.** ✅ **LiveKit video room — slice 1
-(1:1 + shared camera, camera-verified) AND slice 2 (group ≤5 + screen share) DONE & green** (`de9e60f`).
-**NEXT: LiveKit slice 3 — polish/resilience** (reconnect/error/permission states, a11y, remote-mute UI;
-recording = out of scope) — NOT started; awaits owner go-ahead. Slice 2 is committed + gate-green but its
-**real-browser E2E (grid ≤5 + screen share live) is still owner-pending** (preview blocks camera).
+(1:1 + shared camera) AND slice 2 (group ≤5 + screen share) DONE & green.** A slice-2 **regression**
+(starting/stopping screen share blacked the camera tile + could drop CMF) is **FIXED** (`7686a9c`):
+VideoRoom now keeps ONE stable `.tiles` container (grid↔filmstrip via a `data-screen` CSS switch; the
+screen stage is an additional element above it — no `<video>` ever remounts), tiles attach via callback
+refs, and `LiveRoomScreen` no longer unmounts the joined room on a refetch (loader only on initial load
+→ the shared camera track is never stopped mid-session). **Verified in `vite dev` (synthetic):**
+screen-share start→stop keeps the local tile attached, CMF posts throughout, no remount/unmount.
+**⚠️ Temporary `[CAM]`/`[ROOM]` logs are still in `LiveRoomScreen.tsx` — REMOVE after the owner's
+real-camera confirm.** **NEXT: owner real-camera re-verify of slice 2 (incl. screen share), then LiveKit
+slice 3 — polish/resilience** (NOT started; awaits go-ahead).
 
 **CMF is confirmed live in `vite dev` with a REAL camera** (`21812ef`): worker READY → score →
 BUCKET → reportAttention every ~10s with non-zero values, and the teacher's live "Внимание класса"
@@ -134,6 +140,7 @@ All green: **backend 68 pytest on Postgres + ruff + black clean; frontend `npm r
 - **LiveKit video room — slice 1 (1:1 + shared camera)** — `32c61da` (FE) + `0904ed0` (backend token test) + `4c97997` (dotenv config). **No SDL change.** `livekit-client` (Apache-2.0, headless). Config: `VITE_LIVEKIT_URL` (`shared/lib/env`, real value in `frontend/.env`); backend `LIVEKIT_*` in `backend/.env`. Token reuses `LessonSession.roomToken` (`room_token_for`) via a new fragment-free `SessionRoom` query. **`features/lesson/livekit/useLiveKitRoom.ts`** connects + publishes our own getUserMedia tracks + toggles + leave. **Shared-camera composition:** ONE `getUserMedia({video,audio})` → LiveKit publish AND the on-device CMF pipeline (frames discarded; aggregates only). Camera toggle flips the shared `track.enabled` (pauses publish + CMF together). UI `ui/{VideoRoom,VideoTile,RoomControls}` on tokens; student keeps the CMF chart, teacher keeps the attention panel. **Privacy copy SPLIT** (honest): blanket "видео не покидает устройство" removed; CALL badge "Камера в эфире — преподаватель вас видит" (`lesson` ns); CMF indicator rescoped to attention analysis and **kept** (still true). Tests: `useLiveKitRoom` (publish both tracks + toggles), composition test (one getUserMedia → both consumers), token-grant test.
 - **LiveKit slice 1 — CMF dev fix + camera verify + reconnect fix** — `21812ef` + `9df72e9` (logs removed) + `c9334d3`. The CMF pipeline had **never run in `vite dev`** (the worker was classic → ESM `import` SyntaxError on load; only bundles in `vite build`). Fix: **MODULE worker** (`vite worker.format:'es'` + `new Worker(url,{type:'module'})`) + `FilesetResolver.forVisionTasks(wasmBase, true)` (ES-module WASM `vision_wasm_module_internal.*`, vendored; classic SIMD/no-SIMD dropped) + a **dev-only Vite middleware `serveSeedumWasmRaw`** (`apply:'serve'`) serving `/seedum/wasm/*` raw (MediaPipe's runtime `import()` else hit Vite's `?import` → 500; prod serves /public as-is). Effect stabilized: `reportAttention` via a ref (out of worker-recreation deps). **Browser-verified LIVE in `vite dev` with a real camera** (worker READY → score → BUCKET → reportAttention every ~10s, non-zero; teacher live panel tracks it; network = aggregates only). `c9334d3` fixes the LiveKit StrictMode connect→leave→reconnect churn (disconnect only after the in-flight connect settles; dev-quality, prod single-connects). Memory [[seedum-mediapipe-worker]] updated (classic→module). **Slice 1 fully done & camera-verified.**
 - **LiveKit slice 2 — group (≤5) + screen share** — `de9e60f` (FE only; no backend/SDL change; CMF + privacy split untouched). `useLiveKitRoom` adds `toggleScreenShare` (`setScreenShareEnabled` — **additive**: separate getDisplayMedia track; camera + CMF keep running; screen never feeds CMF), `screenShare`/`activeSpeakers`/`screenSharing`, and a **≤5 soft guard** (`roomFull` disconnects the 6th; hard cap server-side deferred). `VideoRoom`: ≤5 grid → screen main-stage + camera filmstrip when anyone shares; `VideoTile` active-speaker ring + mic-mute badge; `RoomControls` screen-share toggle (teacher always + student on-demand UI gate — both have canPublish). `ru/lesson.json` += screenShare/presenting. +2 vitest (additive screen share; ≤5 guard). Joined-room render covered by the slice-1 composition test. **Real-browser E2E (grid + screen share live) owner-pending.**
+- **LiveKit slice 2 — screen-share remount regression FIX** — `7686a9c` (FE only; no backend/SDL change). The grid↔stage swap had remounted the local `<video>` (and the `srcObject` attach was keyed on `[localStream]`, not re-run on remount) → black camera tile; and `LiveRoomScreen`'s `if (meLoading||sessionLoading) return null` could unmount the room on a refetch → `useSharedCamera` stops the shared track → CMF→0 + cross-window desync. Fix: (1) ONE stable `.tiles` container, grid↔filmstrip via `data-screen` CSS, screen stage as an additional element (no `<video>` remounts; stable keys); (2) callback-ref attach on local self-view + `TrackVideo` (re-attach on any mount); (3) loader only on initial load (`(meLoading||sessionLoading) && !session`) so a refetch can't unmount the joined room / stop the camera track (tracks stop ONLY on real leave). Verified in `vite dev` (synthetic): screen-share start→stop keeps the local tile attached + CMF posting (rows grew 324→332), no remount/unmount. **Temporary `[CAM]`/`[ROOM]` logs remain in `LiveRoomScreen.tsx` pending the owner's real-camera confirm — then remove them.**
 Verified E2E in-browser (earlier sessions): register→login→`me`; parent add-child; teacher create→publish course→student enroll; schedule→start→student join (attendance row created); add lesson material.
 
 ## 4. In progress / partially built
