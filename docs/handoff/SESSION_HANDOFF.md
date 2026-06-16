@@ -1,6 +1,6 @@
 # Flamingo — Session Handoff
 
-**Date:** 2026-06-16 · **Branch:** `main` · **Code HEAD:** `404fc6f` — *LiveKit slice 3.1 (connection lifecycle)*. This `docs(handoff)` commit sits on top as the latest commit on `main` (76 commits; run `git rev-parse HEAD` for its exact hash). Working tree clean.
+**Date:** 2026-06-16 · **Branch:** `main` · **Code HEAD:** `b666fa4` — *per-student teacher attention view + attendance-roster auth fix*. This `docs(handoff)` commit sits on top as the latest commit on `main` (85 commits; run `git rev-parse HEAD` for its exact hash). Working tree clean.
 This doc lets a fresh session resume cleanly. It references files by path — read those, don't rely on this doc alone.
 
 ---
@@ -14,6 +14,25 @@ harden/tidy `dcda4af`, 3.2 camera/mic permission + device errors `47d9e60`, 3.3 
 **NEXT: the combined owner real-camera/real-network pass** (§5 item 1 — slice 2 + slice 3 behaviours;
 nothing media/SR/network is mock-verified), then the **"prepare for real-user test"** milestone and
 the cross-cutting modules (§5 items 2–3). The hard ≤5 server cap and recording remain out of scope.
+
+✅ **Per-student teacher attention view + security fix (this batch, post real-run UX fix):**
+- **`b2782ba` (backend, SECURITY):** the `LessonSession.attendance` field resolver was unscoped
+  (`list(self.attendances.all())`) while `get_session` admits any participant — so any **enrolled
+  student** could query `session{attendance{student{user{firstName lastName}}}}` and enumerate
+  classmates' names (per-resolver-auth gap, CLAUDE.md §5 + minor-PII/152-FZ, pre-existing). Now
+  `services.attendance_for(user, session)` returns the roster **only to the course owner**, else `[]`
+  (+test: owner sees it, non-owner enrolled student & anon get `[]`). No model/SDL/migration.
+- **`85ed82a` (FE feature):** the teacher view is now **per-student PRIMARY** — one card per student
+  (real name + attention % + its own sparkline), live from `attentionUpdates`; class average demoted
+  to a small secondary "Среднее по классу". Names come from a new fragment-free op `SessionAttendees`
+  (`session{attendance{student{user{id firstName lastName}}}}`, owner-scoped per the fix above) +
+  `npm run codegen` (FE types from the SDL — **not** an SDL regen); the `studentId→name` map also
+  labels the video tiles (`VideoRoom.nameFor` → `VideoTile.displayName`); pure capped `pushSeries`
+  helper. **Display-only — CMF/egress/`reportAttention` untouched; only the aggregate leaves.**
+- **`b666fa4` (FE):** role-leak fix — `VideoRoom` takes a `liveBadgeLabel` prop (teacher no longer
+  saw the student-facing "…преподаватель вас видит"); `room.teacherSub` reworded to per-student.
+- **BACKLOG (do later, see §5):** audit other GraphQL field resolvers for the same unscoped
+  `return list(self.X.all())` pattern.
 
 **Slice 3.1 — connection lifecycle (`404fc6f`):** `useLiveKitRoom` now exposes one explicit
 `connectionState` (idle/connecting/connected/reconnecting/reconnected/disconnected/failed) off
@@ -61,9 +80,9 @@ bundle, never camera-tested dev. **Fix:** MODULE worker + `forVisionTasks(wasmBa
 raw (MediaPipe's runtime `import()` otherwise hit Vite's `?import` → 500). Also fixed the LiveKit
 StrictMode reconnect churn (`c9334d3`). See §3 + memory [[seedum-mediapipe-worker]].
 
-**Both gates green** (verified this session): backend **70 pytest** on Postgres + **ruff** + **black**
+**Both gates green** (verified this session): backend **71 pytest** on Postgres + **ruff** + **black**
 clean, 0 unapplied migrations, `makemigrations --check` clean; frontend **`npm run build` + `lint` +
-70 vitest**. Tree clean (all committed).
+73 vitest**. Tree clean (all committed).
 
 **LiveKit config (real creds are file-based, never committed):** `backend/.env` holds
 `LIVEKIT_URL`/`LIVEKIT_API_KEY`/`LIVEKIT_API_SECRET` (loaded via python-dotenv, `4c97997`);
@@ -206,6 +225,12 @@ Working tree is **clean** — nothing uncommitted. Partially-built *within* comm
 2. **"Prepare for real-user test" milestone (separate from slice 3 — do whichever the owner prioritises):** the app currently only runs on `localhost` with seeded demo accounts. To put it in front of a real pupil/teacher: (a) **expose the dev stack** — a tunnel (e.g. cloudflared/ngrok over vite :5173 + the `/graphql` HTTP+WS proxy) for a quick test, or a real deploy (backend ASGI + Postgres + the LiveKit creds) for anything durable; (b) **real email/SMTP** — registration today auto-logs-in with no verification and no mail is sent, so wire an SMTP provider + a verify-email step before strangers register; (c) **real registration flow** — exercise sign-up → consent (152-FZ for <18) → role cabinet end-to-end with a fresh account (not the seeded demo users), and confirm the junior-signup question in §8 is resolved first. None of this is started.
 3. **Cross-cutting (after LiveKit, pick per owner priority):** **files/S3 module** (presigned `requestUpload` → S3/MinIO key → mutations accept `fileKey`; unblocks FILE materials + FILE homework + avatars), **certificates** (PDF+QR public verification — `official-documents` skill), **engagement** (points/leaderboard/**reviews** — REVIEW model lives here per `INSTITUTIONS_PLAN.md`), **notifications** (the `notificationReceived`/`sessionStatusChanged`/`chatMessageReceived` subscriptions share the now-working graphql-ws infra). Composite dashboards still SDL-only (§8).
 - ✅ DONE — guard admin self/last-removal (`5531bc0`, see §3).
+- 🔒 **BACKLOG (security audit, not started):** sweep all GraphQL field resolvers for the unscoped
+  `return list(self.X.all())` pattern that exposed the attendance roster (fixed in `b2782ba`). Any
+  field returning related rows on an object that a non-owner can fetch (e.g. via a participant-scoped
+  `get_*`) must apply per-resolver auth. Candidates to check: course/section/lesson child lists,
+  institution memberships/groups, homework submissions. Confirm each is owner/role-scoped or returns
+  `[]`/own-rows for non-owners. (Do NOT trust object-level reachability as the only gate.)
 
 ## 6. Key decisions & constraints (don't re-litigate)
 - **No Docker on this machine** → stack runs **natively** (memory `local-dev-stack`); toolchain installed via Homebrew (node, postgresql@16, python@3.12). `infra/docker-compose.yml` exists but is unused locally.
@@ -243,7 +268,7 @@ Working tree is **clean** — nothing uncommitted. Partially-built *within* comm
 export LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8
 /opt/homebrew/opt/postgresql@16/bin/pg_ctl -D /opt/homebrew/var/postgresql@16 -l /opt/homebrew/var/log/postgresql@16.log start   # role+db 'flamingo' already exist
 cd backend && export POSTGRES_HOST=localhost POSTGRES_USER=flamingo POSTGRES_PASSWORD=flamingo POSTGRES_DB=flamingo
-.venv/bin/python manage.py migrate && .venv/bin/python -m pytest        # expect 70 passed
+.venv/bin/python manage.py migrate && .venv/bin/python -m pytest        # expect 71 passed
 .venv/bin/uvicorn config.asgi:application --port 8000 --reload
 # new shell: cd frontend && npm run dev   (proxies /graphql -> :8000 incl. WS upgrade; preview via .claude/launch.json)
 # frontend gates: npm run build && npm run lint && npm test   (expect 59 vitest)
@@ -265,5 +290,5 @@ synthetic preview browser blocks the camera + `getDisplayMedia` — the items in
 **Exact first prompt for the next session:**
 > Resume the Flamingo build.
 > 1. **Read first:** `CLAUDE.md` and `docs/handoff/SESSION_HANDOFF.md` §0 (current state) + §5 (next tasks); then `docs/flamingo_erd.md` / `docs/flamingo_schema.graphql` / `docs/flamingo_architecture.md` as needed.
-> 2. **Bring up the dev stack** per §9 (Postgres with `LC_ALL`, backend `uvicorn … --reload` on :8000, frontend `npm run dev` on :5173) and confirm green: backend `pytest` (expect **70 passed**) + `ruff`/`black`; frontend `npm run build`/`lint`/`test` (expect **70 vitest**).
+> 2. **Bring up the dev stack** per §9 (Postgres with `LC_ALL`, backend `uvicorn … --reload` on :8000, frontend `npm run dev` on :5173) and confirm green: backend `pytest` (expect **71 passed**) + `ruff`/`black`; frontend `npm run build`/`lint`/`test` (expect **73 vitest**).
 > 3. **LiveKit video room: slices 1, 2 & 3 COMPLETE & green** (3.1 `404fc6f`, harden `dcda4af`, 3.2 `47d9e60`, 3.3 `3d4fea2`, 3.4 `4af95f3`; §0/§5 item 1). **The next action is the COMBINED owner real-camera/real-network pass** (§5 item 1, items a–g: screen-share native/remote stop, multi-window grid ≤5, cross-window share, network-drop→reconnect with CMF continuing, permission/device errors + Retry, screen-reader/keyboard/reduced-motion, live remote mute/camera-off) — nothing media/SR/network is mock-verified. **After that pass**, pick from §5: the **"prepare for real-user test"** milestone (item 2 — tunnel/deploy + real SMTP + registration flow) or the **cross-cutting** modules (item 3 — files/S3, certificates, engagement, notifications). Hard ≤5 cap server-side + recording stay **out of scope**. Keep CLAUDE.md invariants (CMF privacy, ru i18n, design tokens, thin resolvers, no SDL regen, OSS-only); gates green; commit per concern.
