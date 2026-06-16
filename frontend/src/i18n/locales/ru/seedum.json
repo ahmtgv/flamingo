@@ -9,6 +9,8 @@
     "stop": "Остановить",
     "yourAttention": "Ваше внимание",
     "classAttention": "Внимание класса",
+    "perStudentTitle": "Внимание учеников",
+    "classAverage": "Среднее по классу: {{n}}",
     "live": "В эфире",
     "unavailable": "Анализ внимания недоступен на этом устройстве (нет модели MediaPipe).",
     "cameraDenied": "Нет доступа к камере.",

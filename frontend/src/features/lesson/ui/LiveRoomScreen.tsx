@@ -1,5 +1,5 @@
 import { ArrowLeft, BarChart3, RefreshCw, ShieldCheck, Video } from 'lucide-react';
-import { type ReactNode, useCallback, useEffect, useRef, useState } from 'react';
+import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Navigate, useNavigate, useParams } from 'react-router-dom';
 
@@ -7,6 +7,7 @@ import {
   useAttentionUpdatesSubscription,
   useMeQuery,
   useReportAttentionMutation,
+  useSessionAttendeesQuery,
   useSessionRoomQuery,
 } from '@/entities/graphql/generated';
 import { AttentionChart, PrivacyIndicator, startAttentionPipeline } from '@/seedum';
@@ -14,7 +15,7 @@ import { loadUbp } from '@/seedum/ubp';
 import { LIVEKIT_URL } from '@/shared/lib/env';
 import { Button, Logo } from '@/shared/ui';
 
-import { classAverage, heldValue, summaryStats } from '../attentionView';
+import { classAverage, heldValue, pushSeries, summaryStats } from '../attentionView';
 import { type CameraErrorKind, classifyMediaError } from '../mediaError';
 
 import { useLiveKitRoom } from '../livekit/useLiveKitRoom';
@@ -265,15 +266,30 @@ function TeacherRoom({ sessionId, roomToken, isLive }: RoomProps) {
   const [joined, setJoined] = useState(false);
   const lk = useLiveKitRoom({ url: LIVEKIT_URL, token: roomToken, stream, active: joined });
 
+  // Teacher-only roster → studentId (= user.id, same id attentionUpdates emits and the
+  // LiveKit participant identity) → display name. The `attendance` read is owner-scoped
+  // server-side (returns [] to non-owners), so this carries names only for the owning teacher.
+  const { data: attendeesData } = useSessionAttendeesQuery({ variables: { id: sessionId } });
+  const nameFor = useMemo(() => {
+    const byId = new Map<string, string>();
+    for (const a of attendeesData?.session?.attendance ?? []) {
+      const u = a.student.user;
+      const full = `${u.firstName} ${u.lastName}`.trim();
+      if (u.id) byId.set(u.id, full || u.id.slice(0, 8));
+    }
+    return (id: string) => byId.get(id) ?? id.slice(0, 8);
+  }, [attendeesData]);
+
+  // Per-student live state: latest value + a capped sparkline series, keyed by studentId.
   const latestRef = useRef<Record<string, number>>({});
-  // Real (non-zero) class aggregates received this session — the summary is computed from
-  // THESE only, never from between-bucket gaps / zero (no-reading) buckets.
+  const seriesRef = useRef<Record<string, number[]>>({});
+  // Real (non-zero) class aggregates received this session — the post-session report summary
+  // is computed from THESE only, never from between-bucket gaps / zero (no-reading) buckets.
   const receivedRef = useRef<number[]>([]);
   const [view, setView] = useState<{
-    students: Array<[string, number]>;
-    series: number[];
+    students: Array<{ id: string; value: number; series: number[] }>;
     classAvg: number;
-  }>({ students: [], series: [], classAvg: 0 });
+  }>({ students: [], classAvg: 0 });
   const [showReport, setShowReport] = useState(false);
 
   useAttentionUpdatesSubscription({
@@ -281,15 +297,20 @@ function TeacherRoom({ sessionId, roomToken, isLive }: RoomProps) {
     onData: ({ data }) => {
       const metric = data.data?.attentionUpdates;
       if (!metric) return;
-      latestRef.current = { ...latestRef.current, [metric.studentId]: metric.avgAttention };
-      const students = Object.entries(latestRef.current);
-      const avg = classAverage(students.map(([, v]) => v));
-      if (avg > 0) receivedRef.current.push(avg); // stats from real buckets only
-      setView((prev) => ({
-        students,
-        series: [...prev.series.slice(-59), heldValue(prev.classAvg, avg)],
-        classAvg: heldValue(prev.classAvg, avg),
+      const id = metric.studentId;
+      latestRef.current = { ...latestRef.current, [id]: metric.avgAttention };
+      seriesRef.current = {
+        ...seriesRef.current,
+        [id]: pushSeries(seriesRef.current[id] ?? [], metric.avgAttention),
+      };
+      const students = Object.keys(latestRef.current).map((sid) => ({
+        id: sid,
+        value: latestRef.current[sid],
+        series: seriesRef.current[sid] ?? [],
       }));
+      const avg = classAverage(students.map((s) => s.value));
+      if (avg > 0) receivedRef.current.push(avg); // stats from real buckets only
+      setView((prev) => ({ students, classAvg: heldValue(prev.classAvg, avg) }));
     },
   });
 
@@ -349,33 +370,29 @@ function TeacherRoom({ sessionId, roomToken, isLive }: RoomProps) {
             onToggleScreenShare={lk.toggleScreenShare}
             onRejoin={lk.rejoin}
             onLeave={leave}
+            nameFor={nameFor}
           />
         )}
       </div>
 
       <div className={styles.card}>
-        <div className={styles.metric}>
-          <span className={styles.metricLabel}>{t('room.classAttention')}</span>
-          <span className={styles.metricValue}>{classAvg}</span>
-          {view.series.length > 0 ? (
-            <AttentionChart values={view.series} />
-          ) : (
-            <p className={styles.note}>{t('room.waiting')}</p>
-          )}
-        </div>
-        {view.students.length > 0 && (
+        <h2 className={styles.sectionTitle}>{t('room.perStudentTitle')}</h2>
+        {view.students.length > 0 ? (
           <ul className={styles.studentList}>
-            {view.students.map(([id, value]) => (
-              <li key={id} className={styles.studentRow}>
-                <span className={styles.studentId}>{id.slice(0, 8)}</span>
-                <span className={styles.bar} aria-hidden="true">
-                  <span className={styles.barFill} style={{ width: `${value}%` }} />
-                </span>
-                <span className={styles.studentValue}>{value}</span>
+            {view.students.map((s) => (
+              <li key={s.id} className={styles.studentCard}>
+                <div className={styles.studentHead}>
+                  <span className={styles.studentName}>{nameFor(s.id)}</span>
+                  <span className={styles.studentValue}>{s.value}</span>
+                </div>
+                <AttentionChart values={s.series} />
               </li>
             ))}
           </ul>
+        ) : (
+          <p className={styles.note}>{t('room.waiting')}</p>
         )}
+        <p className={styles.classAverage}>{t('room.classAverage', { n: classAvg })}</p>
         <div className={styles.actions}>
           <Button
             variant="secondary"

@@ -11,10 +11,13 @@ export function VideoTile({
   participant,
   version,
   active,
+  displayName,
 }: {
   participant: RemoteParticipant;
   version: number;
   active?: boolean;
+  /** Resolved name (teacher: real name; otherwise an id-slice) — labels the tile. */
+  displayName: string;
 }) {
   const { t } = useTranslation('lesson');
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -38,7 +41,7 @@ export function VideoTile({
   const camPub = participant.getTrackPublication(TrackNs.Source.Camera);
   const cameraOff = !camPub?.track || camPub.isMuted;
   const micMuted = participant.getTrackPublication(TrackNs.Source.Microphone)?.isMuted ?? true;
-  const name = participant.identity.slice(0, 8);
+  const name = displayName;
 
   // One accessible name for the whole tile (role="img" makes the media subtree atomic to AT).
   const label = [name, cameraOff ? t('tile.cameraOff') : '', micMuted ? t('tile.micOff') : '']

@@ -7,6 +7,7 @@ import {
   AttentionUpdatesDocument,
   MeDocument,
   type Role,
+  SessionAttendeesDocument,
   SessionRoomDocument,
 } from '@/entities/graphql/generated';
 import { renderWithProviders } from '@/test/renderWithProviders';
@@ -177,7 +178,7 @@ describe('LiveRoomScreen', () => {
     expect(await screen.findByText(/Камера в эфире/)).toBeInTheDocument();
   });
 
-  it('teacher view renders a live class-attention metric from attentionUpdates (aggregate only)', async () => {
+  it('teacher view renders PER-STUDENT cards (name + value) from attentionUpdates, class avg secondary', async () => {
     const subMock = {
       request: { query: AttentionUpdatesDocument, variables: { sessionId: 'sess-1' } },
       result: {
@@ -193,10 +194,40 @@ describe('LiveRoomScreen', () => {
         },
       },
     };
-    renderRoom([meMock('TEACHER'), sessionRoomMock, subMock]);
+    // Teacher-only roster → resolves studentId 'student-123456' to a real name.
+    const attendeesMock = {
+      request: { query: SessionAttendeesDocument, variables: { id: 'sess-1' } },
+      result: {
+        data: {
+          session: {
+            __typename: 'LessonSession',
+            id: 'sess-1',
+            attendance: [
+              {
+                __typename: 'Attendance',
+                student: {
+                  __typename: 'StudentProfile',
+                  user: {
+                    __typename: 'User',
+                    id: 'student-123456',
+                    firstName: 'Иван',
+                    lastName: 'Петров',
+                  },
+                },
+              },
+            ],
+          },
+        },
+      },
+    };
+    renderRoom([meMock('TEACHER'), sessionRoomMock, subMock, attendeesMock]);
 
-    expect(await screen.findByText('Внимание класса')).toBeInTheDocument();
-    expect(await screen.findAllByText('80')).not.toHaveLength(0);
+    // Per-student is PRIMARY: the card shows the resolved name + the student's value.
+    expect(await screen.findByText('Внимание учеников')).toBeInTheDocument();
+    expect(await screen.findByText('Иван Петров')).toBeInTheDocument();
+    expect(screen.getAllByText('80').length).toBeGreaterThan(0);
+    // Class average is demoted to a small secondary line.
+    expect(screen.getByText(/Среднее по классу/)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Отчёт/ })).toBeInTheDocument();
   });
 });

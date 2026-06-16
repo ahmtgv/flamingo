@@ -36,6 +36,7 @@ export function VideoRoom({
   onToggleScreenShare,
   onRejoin,
   onLeave,
+  nameFor,
 }: {
   localStream: MediaStream | null;
   connecting: boolean;
@@ -53,6 +54,8 @@ export function VideoRoom({
   onToggleScreenShare: () => void;
   onRejoin: () => void;
   onLeave: () => void;
+  /** Resolve a participant identity (== user id) to a display name; teacher-only (roster). */
+  nameFor?: (identity: string) => string;
 }) {
   const { t } = useTranslation('lesson');
   // Terminal states render an overlay OVER the still-mounted tiles (never an early return).
@@ -154,7 +157,13 @@ export function VideoRoom({
           <span className={styles.name}>{t('you')}</span>
         </div>
         {participants.map((p) => (
-          <VideoTile key={p.sid} participant={p} version={version} active={activeSpeakers.has(p.sid)} />
+          <VideoTile
+            key={p.sid}
+            participant={p}
+            version={version}
+            active={activeSpeakers.has(p.sid)}
+            displayName={nameFor ? nameFor(p.identity) : p.identity.slice(0, 8)}
+          />
         ))}
       </div>
 

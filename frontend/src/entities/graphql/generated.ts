@@ -1760,6 +1760,13 @@ export type SessionRoomQueryVariables = Exact<{
 
 export type SessionRoomQuery = { __typename?: 'Query', session?: { __typename?: 'LessonSession', id: string, status: SessionStatus, roomToken?: string | null, lesson: { __typename?: 'Lesson', id: string, title: string } } | null };
 
+export type SessionAttendeesQueryVariables = Exact<{
+  id: Scalars['ID']['input'];
+}>;
+
+
+export type SessionAttendeesQuery = { __typename?: 'Query', session?: { __typename?: 'LessonSession', id: string, attendance: Array<{ __typename?: 'Attendance', student: { __typename?: 'StudentProfile', user: { __typename?: 'User', id: string, firstName: string, lastName: string } } }> } | null };
+
 export type MyScheduleQueryVariables = Exact<{
   from: Scalars['DateTime']['input'];
   to: Scalars['DateTime']['input'];
@@ -3843,6 +3850,58 @@ export type SessionRoomQueryHookResult = ReturnType<typeof useSessionRoomQuery>;
 export type SessionRoomLazyQueryHookResult = ReturnType<typeof useSessionRoomLazyQuery>;
 export type SessionRoomSuspenseQueryHookResult = ReturnType<typeof useSessionRoomSuspenseQuery>;
 export type SessionRoomQueryResult = Apollo.QueryResult<SessionRoomQuery, SessionRoomQueryVariables>;
+export const SessionAttendeesDocument = gql`
+    query SessionAttendees($id: ID!) {
+  session(id: $id) {
+    id
+    attendance {
+      student {
+        user {
+          id
+          firstName
+          lastName
+        }
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useSessionAttendeesQuery__
+ *
+ * To run a query within a React component, call `useSessionAttendeesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useSessionAttendeesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useSessionAttendeesQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useSessionAttendeesQuery(baseOptions: Apollo.QueryHookOptions<SessionAttendeesQuery, SessionAttendeesQueryVariables> & ({ variables: SessionAttendeesQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<SessionAttendeesQuery, SessionAttendeesQueryVariables>(SessionAttendeesDocument, options);
+      }
+export function useSessionAttendeesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<SessionAttendeesQuery, SessionAttendeesQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<SessionAttendeesQuery, SessionAttendeesQueryVariables>(SessionAttendeesDocument, options);
+        }
+// @ts-ignore
+export function useSessionAttendeesSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<SessionAttendeesQuery, SessionAttendeesQueryVariables>): Apollo.UseSuspenseQueryResult<SessionAttendeesQuery, SessionAttendeesQueryVariables>;
+export function useSessionAttendeesSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<SessionAttendeesQuery, SessionAttendeesQueryVariables>): Apollo.UseSuspenseQueryResult<SessionAttendeesQuery | undefined, SessionAttendeesQueryVariables>;
+export function useSessionAttendeesSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<SessionAttendeesQuery, SessionAttendeesQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<SessionAttendeesQuery, SessionAttendeesQueryVariables>(SessionAttendeesDocument, options);
+        }
+export type SessionAttendeesQueryHookResult = ReturnType<typeof useSessionAttendeesQuery>;
+export type SessionAttendeesLazyQueryHookResult = ReturnType<typeof useSessionAttendeesLazyQuery>;
+export type SessionAttendeesSuspenseQueryHookResult = ReturnType<typeof useSessionAttendeesSuspenseQuery>;
+export type SessionAttendeesQueryResult = Apollo.QueryResult<SessionAttendeesQuery, SessionAttendeesQueryVariables>;
 export const MyScheduleDocument = gql`
     query MySchedule($from: DateTime!, $to: DateTime!) {
   mySchedule(from: $from, to: $to) {

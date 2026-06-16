@@ -43,3 +43,23 @@ query SessionRoom($id: ID!) {
     }
   }
 }
+
+# Teacher-only roster → maps studentId (= user.id, the same id attentionUpdates emits and
+# the LiveKit participant identity) to a display name, so the live per-student cards and the
+# video tiles show names instead of id-slices. The `attendance` field is owner-scoped
+# server-side (returns [] for non-owners), so a non-teacher gets nothing here. Display-only —
+# carries no attention/biometric data.
+query SessionAttendees($id: ID!) {
+  session(id: $id) {
+    id
+    attendance {
+      student {
+        user {
+          id
+          firstName
+          lastName
+        }
+      }
+    }
+  }
+}

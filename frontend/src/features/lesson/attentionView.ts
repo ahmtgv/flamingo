@@ -16,6 +16,12 @@ export function heldValue(prevClassAvg: number, avg: number): number {
   return avg > 0 ? avg : prevClassAvg;
 }
 
+/** Append one reading to a per-student series, capped to the most recent `cap` points
+ *  (keeps each student's live sparkline bounded — purely a display buffer). */
+export function pushSeries(prev: number[], value: number, cap = 60): number[] {
+  return [...prev, value].slice(-cap);
+}
+
 export interface AttentionSummary {
   averageAttention: number;
   peak: number;

@@ -32,14 +32,14 @@ function makeParticipant(opts: {
 describe('VideoTile remote mute / camera-off', () => {
   it('camera on + mic on: the tile is labelled with just the name', () => {
     renderWithProviders(
-      <VideoTile participant={makeParticipant({ camTrack: true, micMuted: false })} version={0} />,
+      <VideoTile participant={makeParticipant({ camTrack: true, micMuted: false })} version={0} displayName="student1" />,
     );
     expect(screen.getByRole('img', { name: 'student1' })).toBeInTheDocument();
   });
 
   it('camera off (no track): the tile announces camera off', () => {
     renderWithProviders(
-      <VideoTile participant={makeParticipant({ camTrack: false, micMuted: false })} version={0} />,
+      <VideoTile participant={makeParticipant({ camTrack: false, micMuted: false })} version={0} displayName="student1" />,
     );
     expect(screen.getByRole('img', { name: /Камера выключена/ })).toBeInTheDocument();
   });
@@ -49,6 +49,7 @@ describe('VideoTile remote mute / camera-off', () => {
       <VideoTile
         participant={makeParticipant({ camTrack: true, camMuted: true, micMuted: false })}
         version={0}
+        displayName="student1"
       />,
     );
     expect(screen.getByRole('img', { name: /Камера выключена/ })).toBeInTheDocument();
@@ -56,8 +57,19 @@ describe('VideoTile remote mute / camera-off', () => {
 
   it('mic muted: the tile announces mic off', () => {
     renderWithProviders(
-      <VideoTile participant={makeParticipant({ camTrack: true, micMuted: true })} version={0} />,
+      <VideoTile participant={makeParticipant({ camTrack: true, micMuted: true })} version={0} displayName="student1" />,
     );
     expect(screen.getByRole('img', { name: /Микрофон выключен/ })).toBeInTheDocument();
+  });
+
+  it('labels the tile with the resolved displayName, not the identity', () => {
+    renderWithProviders(
+      <VideoTile
+        participant={makeParticipant({ camTrack: true, micMuted: false, identity: 'abcdef123456' })}
+        version={0}
+        displayName="Иван Петров"
+      />,
+    );
+    expect(screen.getByRole('img', { name: 'Иван Петров' })).toBeInTheDocument();
   });
 });
