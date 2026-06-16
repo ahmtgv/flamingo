@@ -45,6 +45,8 @@ vi.mock('livekit-client', () => {
       TrackUnsubscribed: 'tu',
       TrackPublished: 'tp',
       TrackUnpublished: 'tup',
+      TrackMuted: 'tm',
+      TrackUnmuted: 'tmu',
       LocalTrackPublished: 'ltp',
       LocalTrackUnpublished: 'ltu',
       ActiveSpeakersChanged: 'asc',
@@ -242,6 +244,17 @@ describe('useLiveKitRoom', () => {
     // The shared MediaStream is retained — the camera (and CMF feed) is never stopped.
     expect(video.stop).not.toHaveBeenCalled();
     expect(audio.stop).not.toHaveBeenCalled();
+  });
+
+  it('a remote TrackMuted re-syncs (version bumps) so tiles re-read mute/camera state', async () => {
+    const { stream } = fakeStream();
+    const { result } = renderHook(() =>
+      useLiveKitRoom({ url: 'wss://x', token: 'tok-1', stream, active: true }),
+    );
+    await waitFor(() => expect(result.current.connected).toBe(true));
+    const before = result.current.version;
+    act(() => lk.handlers['tm']?.());
+    expect(result.current.version).toBeGreaterThan(before);
   });
 
   it('a failed initial connect surfaces the failed state', async () => {

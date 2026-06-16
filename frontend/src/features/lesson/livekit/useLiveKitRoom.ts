@@ -154,6 +154,9 @@ export function useLiveKitRoom({ url, token, stream, active }: UseLiveKitRoomArg
       .on(RoomEvent.TrackUnsubscribed, sync)
       .on(RoomEvent.TrackPublished, sync)
       .on(RoomEvent.TrackUnpublished, sync)
+      // Remote mic/camera mute toggles → re-sync so tiles re-read mute/camera-off state live.
+      .on(RoomEvent.TrackMuted, sync)
+      .on(RoomEvent.TrackUnmuted, sync)
       .on(RoomEvent.LocalTrackPublished, sync)
       .on(RoomEvent.LocalTrackUnpublished, sync)
       .on(RoomEvent.ActiveSpeakersChanged, (speakers: Participant[]) =>

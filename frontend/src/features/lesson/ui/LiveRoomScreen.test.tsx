@@ -49,7 +49,7 @@ vi.mock('livekit-client', () => {
   }
   return {
     Room,
-    RoomEvent: { ParticipantConnected: 'pc', ParticipantDisconnected: 'pd', TrackSubscribed: 'ts', TrackUnsubscribed: 'tu', TrackPublished: 'tp', TrackUnpublished: 'tup', LocalTrackPublished: 'ltp', LocalTrackUnpublished: 'ltu', ActiveSpeakersChanged: 'asc', Reconnecting: 'reconnecting', Reconnected: 'reconnected', ConnectionStateChanged: 'csc', Connected: 'connected', Disconnected: 'd' },
+    RoomEvent: { ParticipantConnected: 'pc', ParticipantDisconnected: 'pd', TrackSubscribed: 'ts', TrackUnsubscribed: 'tu', TrackPublished: 'tp', TrackUnpublished: 'tup', TrackMuted: 'tm', TrackUnmuted: 'tmu', LocalTrackPublished: 'ltp', LocalTrackUnpublished: 'ltu', ActiveSpeakersChanged: 'asc', Reconnecting: 'reconnecting', Reconnected: 'reconnected', ConnectionStateChanged: 'csc', Connected: 'connected', Disconnected: 'd' },
     ConnectionState: { Disconnected: 'disconnected', Connecting: 'connecting', Connected: 'connected', Reconnecting: 'reconnecting', SignalReconnecting: 'signalReconnecting' },
     DisconnectReason: { UNKNOWN_REASON: 0, CLIENT_INITIATED: 1, DUPLICATE_IDENTITY: 2, SERVER_SHUTDOWN: 3, PARTICIPANT_REMOVED: 4, ROOM_DELETED: 5, STATE_MISMATCH: 6, JOIN_FAILURE: 7, MIGRATION: 8, SIGNAL_CLOSE: 9, ROOM_CLOSED: 10, USER_UNAVAILABLE: 11, USER_REJECTED: 12, SIP_TRUNK_FAILURE: 13, CONNECTION_TIMEOUT: 14, MEDIA_FAILURE: 15, AGENT_ERROR: 16 },
     Track: { Source: { Camera: 'camera', Microphone: 'microphone', ScreenShare: 'screen' }, Kind: { Video: 'video', Audio: 'audio' } },
