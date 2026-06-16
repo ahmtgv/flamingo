@@ -35,24 +35,16 @@ export function startAttentionPipeline(
   let running = true;
   let ready = false;
 
-  let _frames = 0; // [CMF-DEBUG] temporary
-  let _loggedIdle = false; // [CMF-DEBUG] temporary
-  worker.onerror = (e) => console.error('[CMF] worker.onerror', e.message, e.filename, e.lineno); // [CMF-DEBUG]
-  worker.onmessageerror = () => console.error('[CMF] worker.onmessageerror'); // [CMF-DEBUG]
   worker.onmessage = (e: MessageEvent) => {
     const m = e.data;
     if (m.type === 'ready') {
       ready = true;
-      console.log('[CMF] worker READY'); // [CMF-DEBUG]
       cb.onReady?.();
     } else if (m.type === 'unavailable') {
-      console.warn('[CMF] worker UNAVAILABLE:', m.reason); // [CMF-DEBUG]
       cb.onUnavailable?.(m.reason);
     } else if (m.type === 'score') {
-      if (_frames === 1 || _frames % 25 === 0) console.log('[CMF] score', m.value); // [CMF-DEBUG]
       cb.onScore?.(m.value);
     } else if (m.type === 'bucket') {
-      console.log('[CMF] BUCKET', m.bucketStart, m.avgAttention); // [CMF-DEBUG]
       cb.onBucket(m.bucketStart, m.avgAttention);
     }
   };
@@ -65,17 +57,9 @@ export function startAttentionPipeline(
         try {
           const bitmap = await createImageBitmap(video);
           worker.postMessage({ type: 'frame', bitmap, ts: performance.now() }, [bitmap]);
-          if (_frames++ % 25 === 0) console.log('[CMF] frame sent #', _frames); // [CMF-DEBUG]
-        } catch (err) {
-          console.warn('[CMF] frame error', err); // [CMF-DEBUG]
+        } catch {
+          /* frame skipped */
         }
-      } else if (running && !_loggedIdle) {
-        _loggedIdle = true; // [CMF-DEBUG] one-shot: why aren't we feeding frames yet?
-        console.log('[CMF] not feeding', {
-          ready,
-          readyState: video.readyState,
-          videoWidth: video.videoWidth,
-        });
       }
       await new Promise((r) => setTimeout(r, FRAME_INTERVAL_MS));
     }

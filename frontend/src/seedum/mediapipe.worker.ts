@@ -64,11 +64,9 @@ ctx.onmessage = async (e: MessageEvent<InMsg>) => {
       // WASM runtime + model are vendored under /seedum/ (see scripts/vendor-seedum-assets.mjs);
       // nothing is fetched from a third-party CDN. If either is missing/unloadable we report
       // 'unavailable' below — we never fabricate a score (CLAUDE.md §2/§7).
-      console.log('[CMF-W] init: resolving fileset', msg.wasmBase); // [CMF-DEBUG]
       // useModule=true → the ES-module WASM build (vision_wasm_module_internal.*),
       // which loads via dynamic import() and works inside a module worker (no importScripts).
       const fileset = await FilesetResolver.forVisionTasks(msg.wasmBase, true);
-      console.log('[CMF-W] fileset ok; creating FaceLandmarker', msg.modelUrl); // [CMF-DEBUG]
       landmarker = await FaceLandmarker.createFromOptions(fileset, {
         baseOptions: { modelAssetPath: msg.modelUrl },
         runningMode: 'VIDEO',
@@ -76,10 +74,8 @@ ctx.onmessage = async (e: MessageEvent<InMsg>) => {
         outputFaceBlendshapes: true,
         outputFacialTransformationMatrixes: true,
       });
-      console.log('[CMF-W] FaceLandmarker READY'); // [CMF-DEBUG]
       ctx.postMessage({ type: 'ready' });
     } catch (err) {
-      console.error('[CMF-W] init FAILED', err); // [CMF-DEBUG]
       ctx.postMessage({ type: 'unavailable', reason: String(err) });
     }
     return;
