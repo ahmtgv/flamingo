@@ -68,20 +68,28 @@ export function useLiveKitRoom({ url, token, stream, active }: UseLiveKitRoomArg
     const room = new Room();
     roomRef.current = room;
 
+    // A screen publication only counts if its underlying track is LIVE — a track that
+    // ended (e.g. via the browser's "Stop sharing" bar) may linger as a publication, and
+    // we must NOT keep the grey stage open for it.
+    const liveScreen = (pub: { track?: Track | null } | undefined): Track | null => {
+      const tr = pub?.track;
+      return tr && tr.mediaStreamTrack?.readyState === 'live' ? tr : null;
+    };
+
     const sync = () => {
       setParticipants(Array.from(room.remoteParticipants.values()));
       setScreenSharing(room.localParticipant.isScreenShareEnabled);
       // Feature one screen share: a remote presenter first, else our own.
       let share: ScreenShare | null = null;
       for (const p of room.remoteParticipants.values()) {
-        const track = p.getTrackPublication(Track.Source.ScreenShare)?.track;
+        const track = liveScreen(p.getTrackPublication(Track.Source.ScreenShare));
         if (track) {
           share = { sid: p.sid, identity: p.identity, isLocal: false, track };
           break;
         }
       }
       if (!share) {
-        const local = room.localParticipant.getTrackPublication(Track.Source.ScreenShare)?.track;
+        const local = liveScreen(room.localParticipant.getTrackPublication(Track.Source.ScreenShare));
         if (local) share = { sid: 'local', identity: 'you', isLocal: true, track: local };
       }
       setScreenShare(share);
@@ -93,6 +101,8 @@ export function useLiveKitRoom({ url, token, stream, active }: UseLiveKitRoomArg
       .on(RoomEvent.ParticipantDisconnected, sync)
       .on(RoomEvent.TrackSubscribed, sync)
       .on(RoomEvent.TrackUnsubscribed, sync)
+      .on(RoomEvent.TrackPublished, sync)
+      .on(RoomEvent.TrackUnpublished, sync)
       .on(RoomEvent.LocalTrackPublished, sync)
       .on(RoomEvent.LocalTrackUnpublished, sync)
       .on(RoomEvent.ActiveSpeakersChanged, (speakers: Participant[]) =>
@@ -163,10 +173,23 @@ export function useLiveKitRoom({ url, token, stream, active }: UseLiveKitRoomArg
   const toggleScreenShare = useCallback(() => {
     const room = roomRef.current;
     if (!room) return;
+    const turningOn = !room.localParticipant.isScreenShareEnabled;
     // Additive: leaves the camera (and CMF) running. May reject if the user cancels the
     // OS picker — swallow that. LocalTrackPublished/Unpublished events drive the UI.
     void room.localParticipant
-      .setScreenShareEnabled(!room.localParticipant.isScreenShareEnabled)
+      .setScreenShareEnabled(turningOn)
+      .then((pub) => {
+        // LiveKit does NOT reliably auto-unpublish when the screen track ends via the
+        // browser's "Stop sharing" bar — route that through setScreenShareEnabled(false)
+        // so the stage collapses (else it lingers as a grey rectangle).
+        if (turningOn && pub) {
+          pub.track?.mediaStreamTrack?.addEventListener(
+            'ended',
+            () => void room.localParticipant.setScreenShareEnabled(false).catch(() => undefined),
+            { once: true },
+          );
+        }
+      })
       .catch(() => undefined);
   }, []);
 
