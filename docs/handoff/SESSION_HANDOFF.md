@@ -1,6 +1,6 @@
 # Flamingo — Session Handoff
 
-**Date:** 2026-06-15 · **Branch:** `main` · **HEAD:** `980f298` · working tree clean (73 commits on `main`).
+**Date:** 2026-06-16 · **Branch:** `main` · **Code HEAD:** `404fc6f` — *LiveKit slice 3.1 (connection lifecycle)*. This `docs(handoff)` commit sits on top as the latest commit on `main` (76 commits; run `git rev-parse HEAD` for its exact hash). Working tree clean.
 This doc lets a fresh session resume cleanly. It references files by path — read those, don't rely on this doc alone.
 
 ---
@@ -8,9 +8,24 @@ This doc lets a fresh session resume cleanly. It references files by path — re
 ## 0. Current state — read this first
 ✅ **SEduM Lite COMPLETE (a+b+c) — CMF browser-verified LIVE.** ✅ **LiveKit video room — slice 1
 (1:1 + shared camera) AND slice 2 (group ≤5 + screen share) DONE & green, with all reported
-regressions fixed.** Temporary diagnostic logs removed; tree clean. **NEXT: LiveKit slice 3 —
-polish/resilience** (NOT started; awaits go-ahead) and a separate **"prepare for real-user test"**
-milestone (see §5).
+regressions fixed.** ✅ **Slice 3.1 (connection lifecycle states) DONE & green** (`404fc6f`).
+Temporary diagnostic logs removed; tree clean. **NEXT: LiveKit slice 3.2–3.4** (camera/mic
+permission + device-error states → a11y pass → richer remote-mute indicator — one concern each)
+and a separate **"prepare for real-user test"** milestone (see §5).
+
+**Slice 3.1 — connection lifecycle (`404fc6f`):** `useLiveKitRoom` now exposes one explicit
+`connectionState` (idle/connecting/connected/reconnecting/reconnected/disconnected/failed) off
+`RoomEvent.Reconnecting/Reconnected/Disconnected` (livekit-client 2.19.2) + a pure
+`classifyDisconnect(reason)` (clean close vs fault). `rejoin()` re-runs ONLY the connect effect
+(attempt counter) — never `release()`/re-acquire, so the shared `MediaStream` is retained and the
+CMF pipeline (keyed on `[joined, stream, sessionId]`, NOT on `connected`) stays alive across a
+reconnect; only the `{sessionId, bucketStart, avgAttention}` aggregate ever leaves. UI: a
+non-blocking reconnecting/reconnected banner (`role=status`) + a terminal disconnected/failed
+overlay + Rejoin (`role=alert`) rendered as SIBLINGS over the still-mounted `.tiles` (never the
+`roomFull` early-return — the 7686a9c camera-loss hazard). Tokens-only CSS, ru copy in
+`ru/lesson.json`. Frontend-only (no backend/SDL/codegen). **Verified by vitest only;** the real
+network-drop → reconnect → CMF-continues path is an **OWNER REAL RUN** (mocks can't prove it) —
+folded into the combined real-camera checklist in §5.
 
 **Slice-2 regressions — all FIXED & verified this session:**
 1. **Camera black-tile + CMF drop on screen-share** (`7686a9c`): the grid↔stage layout remounted the
@@ -46,7 +61,7 @@ StrictMode reconnect churn (`c9334d3`). See §3 + memory [[seedum-mediapipe-work
 
 **Both gates green** (verified this session): backend **70 pytest** on Postgres + **ruff** + **black**
 clean, 0 unapplied migrations, `makemigrations --check` clean; frontend **`npm run build` + `lint` +
-48 vitest**. Tree clean (all committed).
+59 vitest**. Tree clean (all committed).
 
 **LiveKit config (real creds are file-based, never committed):** `backend/.env` holds
 `LIVEKIT_URL`/`LIVEKIT_API_KEY`/`LIVEKIT_API_SECRET` (loaded via python-dotenv, `4c97997`);
@@ -172,10 +187,11 @@ Working tree is **clean** — nothing uncommitted. Partially-built *within* comm
 - ✅ **DONE — Course constructor reorder + edit** (`80c561b`, see §3). FE-only; the constructor is now feature-complete for MVP.
 - ✅ **DONE — Admin / institutions** (backend `17dcfcd`/`5f12481`/`ed580af`/`628e786` + frontend `15b5732`, see §3). Module complete per [`INSTITUTIONS_PLAN.md`](INSTITUTIONS_PLAN.md) (Option A group model; reviews→engagement; back-office onboarding; branding stored-unused). Admin FE at `/admin`. Minor follow-up: guard an admin from removing their own/last admin membership (§3 note).
 - ✅ **DONE — SEduM Lite (a + b + c)** (plan: [`SEDUM_LITE_PLAN.md`](SEDUM_LITE_PLAN.md); owner approved full scope). (a) backend+realtime `42bf093`; (b) on-device pipeline `09b6ace`; (c) live CMF room `2a4f41a` + backend fix `718ea77` — all see §3. Browser-verified E2E + network inspection (only aggregates leave; §0). **Deferred follow-ups (not blocking, see §4):** «база тест» calibration capture UI + encrypted UBP cloud-backup wiring. If picked up: the worker needs a calibration mode that emits per-stage `AttentionSignals`; then a 3-step UI feeds `seedum/calibration.ts`, saves the baseline to UBP (IndexedDB), and optionally `backupUbp` (client-encrypted).
-1. **LiveKit video room — slices 1 & 2 DONE & green** (owner-approved 3-slice plan; LiveKit Cloud free-tier for MVP, self-host in RF before prod for 152-FZ/OSS). **Slice 1** (`32c61da`/`0904ed0` + dev fixes `21812ef`/`9df72e9`/`c9334d3`): 1:1 video + shared-camera composition at `/sessions/:sessionId/room`; CMF camera-verified live; reconnect churn fixed. **Slice 2** (`de9e60f`): group ≤5 grid, screen share (teacher always + student on-demand UI gate; additive — camera/CMF keep running), active-speaker ring, mic-mute badge, ≤5 soft guard (`roomFull`). **Demo:** `cmf.teacher@`/`cmf.student@flamingo.dev` (`strongpass1!`), LIVE session `aa781c61-a00c-4219-880f-dfa7c81c182c`. **Slice 2 real-browser E2E (grid + screen share live) is owner-pending** (preview blocks camera).
-   - **Slice 3 — polish/resilience (NEXT, not started):** reconnect/error/permission states, a11y; remote mute badge already shows via `publication.isMuted` (slice 2) — slice 3 can add a richer one; **hard ≤5 cap** server-side (`livekit-api` `RoomService(max_participants=5)`) still deferred; recording (LiveKit Egress) out of scope.
-   - **Key files:** `features/lesson/livekit/useLiveKitRoom.ts`, `ui/{VideoRoom,VideoTile,RoomControls}.tsx`, `ui/LiveRoomScreen.tsx` (role-aware compose), `ru/lesson.json`. Token via `SessionRoom` query (`LessonSession.roomToken`); LiveKit URL via `VITE_LIVEKIT_URL` (env, not SDL).
-   - **Owner real-camera confirm (still synthetic-only):** preview blocks a real camera + `getDisplayMedia`, and a programmatic `track.stop()` doesn't fire `'ended'`. So **owner should real-camera-confirm**: (a) screen-share **native-bar** stop and **remote** stop both collapse the stage; (b) full **multi-window grid (≤5)** with two+ real cameras; (c) **cross-window screen share** (one window shares, the other sees the stage). The our-button stop, the camera black-tile fix, CMF live, and the teacher hold/summary are already browser-verified (§0).
+1. **LiveKit video room — slices 1 & 2 DONE & green; slice 3 IN PROGRESS (3.1 done)** (owner-approved 3-slice plan; LiveKit Cloud free-tier for MVP, self-host in RF before prod for 152-FZ/OSS). **Slice 1** (`32c61da`/`0904ed0` + dev fixes `21812ef`/`9df72e9`/`c9334d3`): 1:1 video + shared-camera composition at `/sessions/:sessionId/room`; CMF camera-verified live; reconnect churn fixed. **Slice 2** (`de9e60f`): group ≤5 grid, screen share (teacher always + student on-demand UI gate; additive — camera/CMF keep running), active-speaker ring, mic-mute badge, ≤5 soft guard (`roomFull`). **Demo:** `cmf.teacher@`/`cmf.student@flamingo.dev` (`strongpass1!`), LIVE session `aa781c61-a00c-4219-880f-dfa7c81c182c`. **Slice 2 real-browser E2E (grid + screen share live) is owner-pending** (preview blocks camera).
+   - ✅ **Slice 3.1 — connection lifecycle states (`404fc6f`, DONE & green):** `useLiveKitRoom.connectionState` + `classifyDisconnect`; `rejoin()` (attempt-counter, no release → CMF survives); reconnecting/reconnected banner + disconnected/failed Rejoin overlay as siblings over the still-mounted tiles; ru copy; tokens-only. +11 vitest (48→59). Real network-drop→reconnect→CMF-continues = owner real run (combined checklist below).
+   - **Slice 3.2–3.4 — NEXT (not started), one concern each:** **3.2** camera/mic permission + device-error states (`useSharedCamera` today exposes a single `denied` boolean — split into NotAllowed/NotFound/NotReadable + a Retry that re-acquires; this pre-join surface is the safe place to re-acquire); **3.3** accessibility pass (keyboard, ARIA, focus mgmt into the overlay, the project's first `aria-live` announcements, reduced-motion); **3.4** richer remote-mute / camera-off indicator (today just `publication.isMuted` → add a camera-off placeholder, live via `TrackMuted`/`TrackUnmuted`). **Out of scope (do NOT build):** hard ≤5 cap server-side (`livekit-api` `RoomService(max_participants=5)`) and recording (LiveKit Egress).
+   - **Key files:** `features/lesson/livekit/useLiveKitRoom.ts` (exports `RoomConnectionState`/`classifyDisconnect`), `ui/{VideoRoom,VideoTile,RoomControls}.tsx`, `ui/LiveRoomScreen.tsx` (role-aware compose + `useSharedCamera`), `ru/lesson.json`. Token via `SessionRoom` query (`LessonSession.roomToken`); LiveKit URL via `VITE_LIVEKIT_URL` (env, not SDL).
+   - **Combined owner real-camera/real-network pass (ONE run; all still synthetic/code-verified only):** preview blocks a real camera + `getDisplayMedia` and a programmatic `track.stop()` doesn't fire `'ended'`, so confirm with real hardware: (a) screen-share **native-bar** stop and **remote** stop both collapse the stage; (b) full **multi-window grid (≤5)** with 2+ real cameras; (c) **cross-window screen share**; (d) **slice 3.1:** a real **network drop** → reconnecting banner → auto-recover with `reportAttention` **continuing across the blip**, and a terminal disconnect → **Rejoin** restoring a live call with the camera still running. The our-button screen-share stop, the camera black-tile fix, CMF live, and the teacher hold/summary are already browser-verified (§0).
 2. **"Prepare for real-user test" milestone (separate from slice 3 — do whichever the owner prioritises):** the app currently only runs on `localhost` with seeded demo accounts. To put it in front of a real pupil/teacher: (a) **expose the dev stack** — a tunnel (e.g. cloudflared/ngrok over vite :5173 + the `/graphql` HTTP+WS proxy) for a quick test, or a real deploy (backend ASGI + Postgres + the LiveKit creds) for anything durable; (b) **real email/SMTP** — registration today auto-logs-in with no verification and no mail is sent, so wire an SMTP provider + a verify-email step before strangers register; (c) **real registration flow** — exercise sign-up → consent (152-FZ for <18) → role cabinet end-to-end with a fresh account (not the seeded demo users), and confirm the junior-signup question in §8 is resolved first. None of this is started.
 3. **Cross-cutting (after LiveKit, pick per owner priority):** **files/S3 module** (presigned `requestUpload` → S3/MinIO key → mutations accept `fileKey`; unblocks FILE materials + FILE homework + avatars), **certificates** (PDF+QR public verification — `official-documents` skill), **engagement** (points/leaderboard/**reviews** — REVIEW model lives here per `INSTITUTIONS_PLAN.md`), **notifications** (the `notificationReceived`/`sessionStatusChanged`/`chatMessageReceived` subscriptions share the now-working graphql-ws infra). Composite dashboards still SDL-only (§8).
 - ✅ DONE — guard admin self/last-removal (`5531bc0`, see §3).
@@ -219,7 +235,7 @@ cd backend && export POSTGRES_HOST=localhost POSTGRES_USER=flamingo POSTGRES_PAS
 .venv/bin/python manage.py migrate && .venv/bin/python -m pytest        # expect 70 passed
 .venv/bin/uvicorn config.asgi:application --port 8000 --reload
 # new shell: cd frontend && npm run dev   (proxies /graphql -> :8000 incl. WS upgrade; preview via .claude/launch.json)
-# frontend gates: npm run build && npm run lint && npm test   (expect 48 vitest)
+# frontend gates: npm run build && npm run lint && npm test   (expect 59 vitest)
 # seedum assets are committed under frontend/public/seedum/; re-vendor only if missing: npm run vendor:seedum
 # LiveKit: real creds live in backend/.env (LIVEKIT_API_KEY/SECRET/URL) + frontend/.env (VITE_LIVEKIT_URL);
 #   both git-ignored. After editing backend/.env, RESTART uvicorn (settings load .env at import).
@@ -238,5 +254,5 @@ synthetic preview browser blocks the camera + `getDisplayMedia` — the items in
 **Exact first prompt for the next session:**
 > Resume the Flamingo build.
 > 1. **Read first:** `CLAUDE.md` and `docs/handoff/SESSION_HANDOFF.md` §0 (current state) + §5 (next tasks); then `docs/flamingo_erd.md` / `docs/flamingo_schema.graphql` / `docs/flamingo_architecture.md` as needed.
-> 2. **Bring up the dev stack** per §9 (Postgres with `LC_ALL`, backend `uvicorn … --reload` on :8000, frontend `npm run dev` on :5173) and confirm green: backend `pytest` (expect **70 passed**) + `ruff`/`black`; frontend `npm run build`/`lint`/`test` (expect **48 vitest**).
-> 3. **LiveKit video room: slices 1 & 2 are DONE & green** (1:1 + shared camera camera-verified; group ≤5 + screen share — `de9e60f`; §3). **First, real-browser E2E slice 2** (grid up to 5; teacher screen-share → student sees main stage; student on-demand share; CMF still posting aggregates the whole time) — demo creds/session in §5. **Then slice 3 — polish/resilience** (reconnect/error/permission states, a11y; hard ≤5 cap server-side still deferred; recording out of scope) — present a short plan and WAIT for approval. Keep CLAUDE.md invariants (CMF privacy, ru i18n, design tokens, thin resolvers, no SDL regen, OSS-only); gates green; commit per concern. (The separate "prepare for real-user test" milestone is §5 item 2; cross-cutting modules are §5 item 3 — both come after LiveKit, per owner priority.)
+> 2. **Bring up the dev stack** per §9 (Postgres with `LC_ALL`, backend `uvicorn … --reload` on :8000, frontend `npm run dev` on :5173) and confirm green: backend `pytest` (expect **70 passed**) + `ruff`/`black`; frontend `npm run build`/`lint`/`test` (expect **59 vitest**).
+> 3. **LiveKit video room: slices 1 & 2 DONE & green; slice 3.1 (connection lifecycle) DONE & green** (`404fc6f`; §0/§5 item 1). **Next: slice 3.2** — camera/mic permission + device-error states (`useSharedCamera` denied-boolean → NotAllowed/NotFound/NotReadable + Retry) — present a short plan and WAIT for approval; then **3.3** a11y pass and **3.4** richer remote-mute indicator (one concern each). Hard ≤5 cap server-side + recording stay **out of scope**. Keep CLAUDE.md invariants (CMF privacy, ru i18n, design tokens, thin resolvers, no SDL regen, OSS-only); gates green; commit per concern; update this handoff per sub-slice. **Owner real-camera/real-network pass is still pending** — the combined checklist (slice-2 grid/screen-share live + slice-3.1 network-drop→reconnect→CMF-continues) is in §5 item 1. (The "prepare for real-user test" milestone is §5 item 2; cross-cutting modules are §5 item 3.)
