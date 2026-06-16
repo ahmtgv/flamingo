@@ -60,6 +60,8 @@ function useSharedCamera() {
   const acquire = useCallback(async (): Promise<MediaStream | null> => {
     try {
       const s = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+      // [CMF-DEBUG] temporary: catch the shared camera track ending unexpectedly.
+      s.getVideoTracks()[0]?.addEventListener?.('ended', () => console.warn('[CAM] camera track ENDED'));
       streamRef.current = s;
       setStream(s);
       return s;
@@ -70,12 +72,20 @@ function useSharedCamera() {
   }, []);
 
   const release = useCallback(() => {
+    console.warn('[CAM] release(): stopping shared tracks'); // [CMF-DEBUG] temporary
     streamRef.current?.getTracks().forEach((track) => track.stop());
     streamRef.current = null;
     setStream(null);
   }, []);
 
-  useEffect(() => () => streamRef.current?.getTracks().forEach((track) => track.stop()), []);
+  // Stop the camera only when the room truly unmounts (real navigation / leave).
+  useEffect(
+    () => () => {
+      console.warn('[CAM] useSharedCamera unmount: stopping shared tracks'); // [CMF-DEBUG] temporary
+      streamRef.current?.getTracks().forEach((track) => track.stop());
+    },
+    [],
+  );
 
   return { stream, denied, acquire, release };
 }
@@ -102,6 +112,12 @@ function StudentRoom({ sessionId, roomToken, isLive }: RoomProps) {
   const [scores, setScores] = useState<number[]>([]);
 
   const lk = useLiveKitRoom({ url: LIVEKIT_URL, token: roomToken, stream, active: joined });
+
+  // [CMF-DEBUG] temporary: catch an unexpected StudentRoom remount (would stop the shared track).
+  useEffect(() => {
+    console.log('[ROOM] student mount');
+    return () => console.warn('[ROOM] student UNMOUNT');
+  }, []);
 
   // CMF runs locally off the SAME stream (a dedicated, hidden <video> source).
   useEffect(() => {
@@ -213,6 +229,12 @@ function TeacherRoom({ sessionId, roomToken, isLive }: RoomProps) {
   const { stream, denied, acquire, release } = useSharedCamera();
   const [joined, setJoined] = useState(false);
   const lk = useLiveKitRoom({ url: LIVEKIT_URL, token: roomToken, stream, active: joined });
+
+  // [CMF-DEBUG] temporary: catch an unexpected TeacherRoom remount (resets the class view to 0).
+  useEffect(() => {
+    console.log('[ROOM] teacher mount');
+    return () => console.warn('[ROOM] teacher UNMOUNT');
+  }, []);
 
   const latestRef = useRef<Record<string, number>>({});
   const [view, setView] = useState<{ students: Array<[string, number]>; series: number[] }>({
@@ -344,9 +366,12 @@ export function LiveRoomScreen() {
   });
 
   if (!sessionId) return <Navigate to="/schedule" replace />;
-  if (meLoading || sessionLoading) return null;
 
   const session = sessionData?.session ?? null;
+  // Loader ONLY on the initial load. An in-flight refetch keeps cached data, so we must
+  // NOT unmount the joined room (that would run useSharedCamera cleanup → stop the shared
+  // camera track → black tile + CMF→0). Once we have session data, never return null.
+  if ((meLoading || sessionLoading) && !session) return null;
   const props: RoomProps = {
     sessionId,
     roomToken: session?.roomToken ?? null,

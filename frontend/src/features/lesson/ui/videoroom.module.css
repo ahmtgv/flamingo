@@ -13,20 +13,33 @@
   font-size: var(--text-caption);
   font-weight: var(--weight-medium);
 }
-.grid {
+/* ONE stable tiles container. Layout switches via data-screen (grid ↔ filmstrip) in
+   CSS only — tiles are never moved to a different parent, so no <video> remounts. */
+.tiles {
   display: grid;
   gap: var(--space-3);
   grid-template-columns: 1fr;
 }
-.grid[data-count='2'] {
+.tiles[data-count='2'] {
   grid-template-columns: repeat(2, 1fr);
 }
-.grid[data-count='3'],
-.grid[data-count='4'] {
+.tiles[data-count='3'],
+.tiles[data-count='4'] {
   grid-template-columns: repeat(2, 1fr);
 }
-.grid[data-count='5'] {
+.tiles[data-count='5'] {
   grid-template-columns: repeat(3, 1fr);
+}
+/* When a screen is the main stage, cameras drop to a horizontal filmstrip below it. */
+.tiles[data-screen='true'] {
+  display: flex;
+  grid-template-columns: none;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+  overflow-x: auto;
+}
+.tiles[data-screen='true'] > .tile {
+  flex: 0 0 clamp(96px, 22%, 160px);
 }
 .tile {
   position: relative;
@@ -41,7 +54,7 @@
   border-color: var(--color-accent);
   box-shadow: 0 0 0 2px var(--color-accent);
 }
-/* Screen-share main stage + camera filmstrip. */
+/* Screen-share main stage (camera filmstrip is .tiles[data-screen='true'] above). */
 .stage {
   position: relative;
   width: 100%;
@@ -50,6 +63,7 @@
   overflow: hidden;
   background: var(--color-surface-hover);
   border: 1px solid var(--color-border);
+  margin-bottom: var(--space-3);
 }
 .stageVideo {
   width: 100%;
@@ -57,15 +71,6 @@
   object-fit: contain;
   display: block;
   background: var(--color-bg);
-}
-.filmstrip {
-  display: flex;
-  gap: var(--space-2);
-  margin-top: var(--space-3);
-  overflow-x: auto;
-}
-.filmstrip > .tile {
-  flex: 0 0 clamp(96px, 22%, 160px);
 }
 .video,
 .videoMirror {

@@ -1,7 +1,7 @@
 import { type RemoteParticipant, type Track } from 'livekit-client';
 import { Track as TrackNs } from 'livekit-client';
 import { MicOff } from 'lucide-react';
-import { useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 
 import styles from './videoroom.module.css';
 
@@ -44,12 +44,15 @@ export function VideoTile({
   );
 }
 
-/** Attaches a single (camera or screen) track to a <video> — used for the screen main stage. */
+/** Attaches a single (camera or screen) track to a <video> — used for the screen main stage.
+ *  Callback ref re-attaches on ANY (re)mount; detaches when the element/track goes away. */
 export function TrackVideo({ track, className }: { track: Track; className?: string }) {
-  const ref = useRef<HTMLVideoElement>(null);
-  useEffect(() => {
-    if (ref.current) track.attach(ref.current);
-    return () => void track.detach();
-  }, [track]);
-  return <video ref={ref} className={className ?? styles.video} autoPlay playsInline muted />;
+  const attach = useCallback(
+    (el: HTMLVideoElement | null) => {
+      if (el) track.attach(el);
+      else track.detach();
+    },
+    [track],
+  );
+  return <video ref={attach} className={className ?? styles.video} autoPlay playsInline muted />;
 }
