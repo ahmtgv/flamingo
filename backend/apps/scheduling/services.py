@@ -141,6 +141,16 @@ def get_session(user, session_id) -> LessonSession | None:
     return session if _is_participant(user, session.lesson.section.course) else None
 
 
+def attendance_for(user, session: LessonSession) -> list[Attendance]:
+    """Roster is teacher-only: only the course owner may read who attended. A session is
+    readable by any enrolled participant, and student names are PII (CLAUDE.md §2/§5), so the
+    attendance list MUST NOT be exposed to non-owners — any other viewer gets an empty list."""
+    course = session.lesson.section.course
+    if user is not None and course.owner_id == getattr(user, "id", None):
+        return list(session.attendances.all())
+    return []
+
+
 def room_token_for(user, session: LessonSession) -> str | None:
     """Per-viewer roomToken: only a participant of a LIVE session gets one."""
     if user is None or session.status != SessionStatus.LIVE.value:

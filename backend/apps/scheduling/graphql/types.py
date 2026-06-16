@@ -56,8 +56,9 @@ class LessonSession:
         return None
 
     @strawberry_django.field
-    def attendance(self) -> list[Attendance]:
-        return list(self.attendances.all())
+    def attendance(self, info: strawberry.Info) -> list[Attendance]:
+        # Teacher-only: the roster (student names = PII) is scoped to the course owner.
+        return services.attendance_for(get_current_user(info), self)
 
     @strawberry_django.field
     def room_token(self, info: strawberry.Info) -> str | None:

@@ -116,3 +116,20 @@ def test_room_token_is_a_valid_livekit_grant():
     assert grant["roomJoin"] is True
     assert grant["canPublish"] is True
     assert grant["canSubscribe"] is True
+
+
+def test_attendance_roster_is_teacher_only():
+    """The roster (student names = PII) is readable ONLY by the course owner. A non-owner
+    enrolled student — who CAN otherwise read the session — must not enumerate classmates."""
+    teacher, student, course, lesson = _setup()
+    session = scheduling.schedule_session(teacher, lesson_id=lesson.id, start_at=timezone.now())
+    scheduling.start_session(teacher, session.id)
+    scheduling.join_session(student, session.id)  # creates an Attendance row
+    assert Attendance.objects.filter(session=session).count() == 1
+
+    # Owner (teacher) sees the roster…
+    assert len(scheduling.attendance_for(teacher, session)) == 1
+    # …but a non-owner enrolled student gets nothing (cannot enumerate names)…
+    assert scheduling.attendance_for(student, session) == []
+    # …and an anonymous viewer gets nothing.
+    assert scheduling.attendance_for(None, session) == []
