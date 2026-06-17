@@ -109,6 +109,19 @@ class MaterialType(Enum):
 
 
 @strawberry.enum
+class UploadPurpose(Enum):
+    """What a presigned upload is for — gates the requestUpload role check, key prefix, and
+    per-purpose size/type limits (see apps/files/services.py). Not a DB enum."""
+
+    AVATAR = "avatar"
+    MATERIAL = "material"
+    SUBMISSION = "submission"
+    VERIFICATION = "verification"
+    COVER = "cover"
+    INSTITUTION_LOGO = "institution_logo"
+
+
+@strawberry.enum
 class EnrollmentStatus(Enum):
     ACTIVE = "active"
     COMPLETED = "completed"

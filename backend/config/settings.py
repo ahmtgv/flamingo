@@ -27,6 +27,7 @@ INSTALLED_APPS = [
     "apps.homework",
     "apps.institutions",
     "apps.seedum",
+    "apps.files",
 ]
 
 # Realtime (GraphQL subscriptions over WebSocket / graphql-ws). In-memory channel
@@ -93,12 +94,16 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 ACCESS_TOKEN_LIFETIME_MIN = int(os.environ.get("ACCESS_TOKEN_LIFETIME_MIN", "15"))
 REFRESH_TOKEN_LIFETIME_DAYS = int(os.environ.get("REFRESH_TOKEN_LIFETIME_DAYS", "14"))
 
-# Object storage (presigned uploads); wired in the files module.
+# Object storage (presigned uploads) — S3-compatible, endpoint-configurable: native MinIO in
+# dev (defaults below), Yandex Object Storage (RF region) in prod via env (152-FZ). Same
+# env-switch shape as CHANNEL_LAYERS / LIVEKIT: env overrides, dev-friendly fallbacks.
 S3 = {
-    "endpoint": os.environ.get("S3_ENDPOINT", ""),
+    "endpoint": os.environ.get("S3_ENDPOINT", "http://localhost:9000"),
     "bucket": os.environ.get("S3_BUCKET", "flamingo"),
-    "access_key": os.environ.get("S3_ACCESS_KEY", ""),
-    "secret_key": os.environ.get("S3_SECRET_KEY", ""),
+    "access_key": os.environ.get("S3_ACCESS_KEY", "flamingo"),
+    "secret_key": os.environ.get("S3_SECRET_KEY", "flamingo-secret"),
+    # SigV4 region — MinIO accepts any; Yandex uses ru-central1 (set via env in prod).
+    "region": os.environ.get("S3_REGION", "us-east-1"),
 }
 
 # LiveKit (self-hosted video). The API only mints room tokens.

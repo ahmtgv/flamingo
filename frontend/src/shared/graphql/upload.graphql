@@ -1,0 +1,10 @@
+# Files module — presigned uploads. requestUpload returns a presigned PUT URL + the object
+# key; the client PUTs bytes DIRECTLY to S3 (never through GraphQL) and submits the fileKey to
+# the relevant mutation. Fragment-free; matches the committed SDL (no SDL change).
+mutation RequestUpload($input: UploadRequestInput!) {
+  requestUpload(input: $input) {
+    uploadUrl
+    fileKey
+    expiresAt
+  }
+}

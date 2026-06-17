@@ -1,0 +1,8 @@
+{
+  "uploadFile": "Загрузить файл",
+  "uploading": "Загрузка…",
+  "fileTooLarge": "Файл слишком большой",
+  "fileTypeNotAllowed": "Недопустимый тип файла",
+  "uploadFailed": "Не удалось загрузить файл",
+  "remove": "Убрать"
+}

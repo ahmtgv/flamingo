@@ -10,6 +10,7 @@ from apps.accounts.graphql.mutations import AccountsMutation
 from apps.accounts.graphql.queries import AccountsQuery
 from apps.courses.graphql.mutations import CoursesMutation
 from apps.courses.graphql.queries import CoursesQuery
+from apps.files.graphql.mutations import FilesMutation
 from apps.homework.graphql.mutations import HomeworkMutation
 from apps.homework.graphql.queries import HomeworkQuery
 from apps.institutions.graphql.mutations import InstitutionsMutation
@@ -36,6 +37,7 @@ class Mutation(
     HomeworkMutation,
     InstitutionsMutation,
     SeedumMutation,
+    FilesMutation,
 ):
     pass
 

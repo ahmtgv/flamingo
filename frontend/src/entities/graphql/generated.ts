@@ -1803,6 +1803,13 @@ export type JoinSessionMutationVariables = Exact<{
 
 export type JoinSessionMutation = { __typename?: 'Mutation', joinSession: { __typename?: 'SessionJoin', roomToken: string, session: { __typename?: 'LessonSession', id: string, status: SessionStatus } } };
 
+export type RequestUploadMutationVariables = Exact<{
+  input: UploadRequestInput;
+}>;
+
+
+export type RequestUploadMutation = { __typename?: 'Mutation', requestUpload: { __typename?: 'UploadTicket', uploadUrl: string, fileKey: string, expiresAt: string } };
+
 
 export const AdminInstitutionDocument = gql`
     query AdminInstitution {
@@ -4093,3 +4100,38 @@ export function useJoinSessionMutation(baseOptions?: Apollo.MutationHookOptions<
 export type JoinSessionMutationHookResult = ReturnType<typeof useJoinSessionMutation>;
 export type JoinSessionMutationResult = Apollo.MutationResult<JoinSessionMutation>;
 export type JoinSessionMutationOptions = Apollo.BaseMutationOptions<JoinSessionMutation, JoinSessionMutationVariables>;
+export const RequestUploadDocument = gql`
+    mutation RequestUpload($input: UploadRequestInput!) {
+  requestUpload(input: $input) {
+    uploadUrl
+    fileKey
+    expiresAt
+  }
+}
+    `;
+export type RequestUploadMutationFn = Apollo.MutationFunction<RequestUploadMutation, RequestUploadMutationVariables>;
+
+/**
+ * __useRequestUploadMutation__
+ *
+ * To run a mutation, you first call `useRequestUploadMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useRequestUploadMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [requestUploadMutation, { data, loading, error }] = useRequestUploadMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useRequestUploadMutation(baseOptions?: Apollo.MutationHookOptions<RequestUploadMutation, RequestUploadMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<RequestUploadMutation, RequestUploadMutationVariables>(RequestUploadDocument, options);
+      }
+export type RequestUploadMutationHookResult = ReturnType<typeof useRequestUploadMutation>;
+export type RequestUploadMutationResult = Apollo.MutationResult<RequestUploadMutation>;
+export type RequestUploadMutationOptions = Apollo.BaseMutationOptions<RequestUploadMutation, RequestUploadMutationVariables>;

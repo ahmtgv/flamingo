@@ -10,6 +10,7 @@ import homeworkRu from './locales/ru/homework.json';
 import lessonRu from './locales/ru/lesson.json';
 import scheduleRu from './locales/ru/schedule.json';
 import seedumRu from './locales/ru/seedum.json';
+import uploadRu from './locales/ru/upload.json';
 
 export const defaultNS = 'common';
 
@@ -26,13 +27,14 @@ export const resources = {
     admin: adminRu,
     seedum: seedumRu,
     lesson: lessonRu,
+    upload: uploadRu,
   },
 } as const;
 
 void i18n.use(initReactI18next).init({
   lng: 'ru',
   fallbackLng: 'ru',
-  ns: ['common', 'auth', 'cabinet', 'courses', 'schedule', 'homework', 'admin', 'seedum', 'lesson'],
+  ns: ['common', 'auth', 'cabinet', 'courses', 'schedule', 'homework', 'admin', 'seedum', 'lesson', 'upload'],
   defaultNS,
   resources,
   interpolation: {
