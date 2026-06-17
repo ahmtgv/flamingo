@@ -1,26 +1,46 @@
 import { describe, expect, it } from 'vitest';
 
-import { scoreAttention } from './score';
+import { type AttentionSignals, engagementScore } from './score';
 
-describe('scoreAttention', () => {
+const sig = (o: Partial<AttentionSignals> = {}): AttentionSignals => ({
+  facePresent: true,
+  gazeOnScreen: 1,
+  eyeOpenness: 1,
+  headYaw: 0,
+  headPitch: 0,
+  alertness: 1,
+  ...o,
+});
+
+describe('engagementScore', () => {
   it('is 0 when no face is present', () => {
-    expect(scoreAttention({ facePresent: false, eyeOpenness: 1, gazeCenter: 1, headForward: 1 })).toBe(0);
+    expect(engagementScore(sig({ facePresent: false }))).toBe(0);
   });
 
-  it('is high for centered gaze + forward head + open eyes', () => {
-    expect(scoreAttention({ facePresent: true, eyeOpenness: 1, gazeCenter: 1, headForward: 1 })).toBe(100);
+  it('is high for gaze on-screen + eyes open + head straight', () => {
+    expect(engagementScore(sig())).toBe(100);
   });
 
-  it('drops when looking away', () => {
-    const focused = scoreAttention({ facePresent: true, eyeOpenness: 1, gazeCenter: 1, headForward: 1 });
-    const away = scoreAttention({ facePresent: true, eyeOpenness: 1, gazeCenter: 0.1, headForward: 0.2 });
-    expect(away).toBeLessThan(focused);
+  it('does NOT penalize head tilt alone while gaze stays on-screen', () => {
+    expect(engagementScore(sig({ headYaw: 30, headPitch: 20 }))).toBe(100);
   });
 
-  it('normalizes against a calibration baseline', () => {
-    const s = { facePresent: true, eyeOpenness: 1, gazeCenter: 0.5, headForward: 0.5 } as const;
-    const raw = scoreAttention(s);
-    const normalized = scoreAttention(s, { gazeCenter: 0.5, headForward: 0.5 });
-    expect(normalized).toBeGreaterThan(raw);
+  it('drops when gaze goes off-screen (the primary signal)', () => {
+    expect(engagementScore(sig({ gazeOnScreen: 0.2 }))).toBeLessThan(30);
+  });
+
+  it('is near zero when eyes are closed even with gaze on-screen', () => {
+    expect(engagementScore(sig({ eyeOpenness: 0 }))).toBe(0);
+  });
+
+  it('applies an extra penalty only when head is far AND gaze is off-screen', () => {
+    const offOnly = engagementScore(sig({ gazeOnScreen: 0.4 }));
+    const offAndHeadOut = engagementScore(sig({ gazeOnScreen: 0.4, headYaw: 40 }));
+    expect(offAndHeadOut).toBeLessThan(offOnly);
+  });
+
+  it('normalizes gaze against a calibration baseline when given', () => {
+    const s = sig({ gazeOnScreen: 0.5 });
+    expect(engagementScore(s, { gazeOnScreen: 0.5 })).toBeGreaterThan(engagementScore(s));
   });
 });

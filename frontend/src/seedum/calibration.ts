@@ -53,8 +53,7 @@ export class Calibration {
     const focus = this.samples.focus;
     return {
       baseline: {
-        gazeCenter: mean(focus.map((s) => s.gazeCenter)) || 1,
-        headForward: mean(focus.map((s) => s.headForward)) || 1,
+        gazeOnScreen: mean(focus.map((s) => s.gazeOnScreen)) || 1,
       },
       samplesPerStage: {
         focus: this.samples.focus.length,

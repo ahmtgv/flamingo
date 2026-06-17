@@ -3,6 +3,7 @@
 // (plus the user's own per-frame score for their local chart). Frames never
 // leave the device.
 
+import { CMF } from './cmfConfig';
 import type { Baseline } from './score';
 
 export interface PipelineCallbacks {
@@ -19,7 +20,7 @@ export interface PipelineHandle {
 // Vendored locally (no third-party CDN at runtime) — see scripts/vendor-seedum-assets.mjs.
 const WASM_BASE = '/seedum/wasm';
 const MODEL_URL = '/seedum/models/face_landmarker.task';
-const FRAME_INTERVAL_MS = 200; // ~5 fps is ample for attention; cheap on the CPU
+const FRAME_INTERVAL_MS = CMF.frameIntervalMs; // ~5 fps is ample for attention; cheap on the CPU
 
 export function startAttentionPipeline(
   video: HTMLVideoElement,

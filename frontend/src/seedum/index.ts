@@ -3,7 +3,7 @@ export type { PipelineCallbacks, PipelineHandle } from './attention';
 export { average, BUCKET_MS, Bucketer, bucketStartFor } from './bucketing';
 export { Calibration, CALIBRATION_STAGES } from './calibration';
 export type { CalibrationResult, CalibrationStage } from './calibration';
-export { scoreAttention } from './score';
+export { engagementScore } from './score';
 export type { AttentionSignals, Baseline } from './score';
 export * as ubp from './ubp';
 export { AttentionChart } from './ui/AttentionChart';

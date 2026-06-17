@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { decryptUbp, encryptUbp, fromBase64, toBase64, type Ubp } from './ubp';
 
 const sampleUbp: Ubp = {
-  baseline: { gazeCenter: 0.8, headForward: 0.7 },
+  baseline: { gazeOnScreen: 0.8 },
   updatedAt: '2026-06-15T00:00:00.000Z',
   sessionsSeen: 3,
 };

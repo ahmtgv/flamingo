@@ -1,7 +1,10 @@
-// ~10s aggregation buckets (CLAUDE.md §7). Per-frame scores are aggregated ON
-// DEVICE here; only the per-bucket average ever leaves the device.
+// On-device aggregation buckets (CLAUDE.md §7). Per-frame scores are aggregated ON DEVICE
+// here; only the per-bucket average ever leaves the device. Cadence is tunable in cmfConfig
+// (now ~2.5s for a near-live teacher view).
 
-export const BUCKET_MS = 10_000;
+import { CMF } from './cmfConfig';
+
+export const BUCKET_MS = CMF.bucketMs;
 
 export function bucketStartFor(tsMs: number, bucketMs = BUCKET_MS): number {
   return Math.floor(tsMs / bucketMs) * bucketMs;

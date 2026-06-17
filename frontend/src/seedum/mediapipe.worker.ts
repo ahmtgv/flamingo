@@ -14,7 +14,8 @@ import {
 } from '@mediapipe/tasks-vision';
 
 import { Bucketer } from './bucketing';
-import { type AttentionSignals, type Baseline, scoreAttention } from './score';
+import { AlertnessTracker, ema, eyeOpennessEAR, gazeOnScreen, headEuler } from './metrics';
+import { type AttentionSignals, type Baseline, engagementScore } from './score';
 
 type InMsg =
   | { type: 'init'; wasmBase: string; modelUrl: string; baseline?: Baseline }
@@ -26,30 +27,36 @@ const ctx = self as unknown as DedicatedWorkerGlobalScope;
 let landmarker: FaceLandmarker | null = null;
 let baseline: Baseline | undefined;
 let bucketer: Bucketer | null = null;
+let alertness: AlertnessTracker | null = null;
+let emaScore = -1; // EMA of the per-frame engagement (smooths brief blinks/glances)
 
 function blend(categories: Category[], name: string): number {
   const c = categories.find((x) => x.categoryName === name);
   return c ? c.score : 0;
 }
 
-function extractSignals(result: FaceLandmarkerResult): AttentionSignals {
+// Derive on-device scalars from MediaPipe outputs. Sub-metrics (gaze/openness/yaw/pitch/
+// alertness) are computed here for the engagement composite + the alertness accumulator; the
+// worker still emits ONLY the engagement score + per-bucket aggregate (richer payload lands in
+// a later sub-slice). Frames/landmarks never leave this worker.
+function extractSignals(result: FaceLandmarkerResult, tsMs: number): AttentionSignals {
   const present = (result.faceLandmarks?.length ?? 0) > 0;
-  if (!present) return { facePresent: false, eyeOpenness: 0, gazeCenter: 0, headForward: 0 };
+  if (!present) {
+    return { facePresent: false, gazeOnScreen: 0, eyeOpenness: 0, headYaw: 0, headPitch: 0, alertness: 0 };
+  }
   const cats = result.faceBlendshapes?.[0]?.categories ?? [];
-  const blink = Math.max(blend(cats, 'eyeBlinkLeft'), blend(cats, 'eyeBlinkRight'));
-  const lookAway =
-    (blend(cats, 'eyeLookOutLeft') +
-      blend(cats, 'eyeLookOutRight') +
-      blend(cats, 'eyeLookUpLeft') +
-      blend(cats, 'eyeLookDownRight')) /
-    4;
-  const matrix = result.facialTransformationMatrixes?.[0]?.data;
-  const headForward = matrix ? Math.max(0, 1 - (Math.abs(matrix[8]) + Math.abs(matrix[9]))) : 0.8;
+  const blendFn = (name: string): number => blend(cats, name);
+  const blinkFallback = 1 - Math.max(blend(cats, 'eyeBlinkLeft'), blend(cats, 'eyeBlinkRight'));
+  const eyeOpenness = eyeOpennessEAR(result.faceLandmarks?.[0], blinkFallback);
+  const { yaw, pitch } = headEuler(result.facialTransformationMatrixes?.[0]?.data);
+  alertness?.add(tsMs, eyeOpenness);
   return {
     facePresent: true,
-    eyeOpenness: 1 - blink,
-    gazeCenter: 1 - Math.min(1, lookAway),
-    headForward,
+    gazeOnScreen: gazeOnScreen(blendFn),
+    eyeOpenness,
+    headYaw: yaw,
+    headPitch: pitch,
+    alertness: alertness ? alertness.value(tsMs) : 1,
   };
 }
 
@@ -57,6 +64,8 @@ ctx.onmessage = async (e: MessageEvent<InMsg>) => {
   const msg = e.data;
   if (msg.type === 'init') {
     baseline = msg.baseline;
+    alertness = new AlertnessTracker();
+    emaScore = -1;
     bucketer = new Bucketer((bucketStart, avg) =>
       ctx.postMessage({ type: 'bucket', bucketStart, avgAttention: avg }),
     );
@@ -88,9 +97,10 @@ ctx.onmessage = async (e: MessageEvent<InMsg>) => {
     }
     const result = landmarker.detectForVideo(msg.bitmap, msg.ts);
     msg.bitmap.close(); // discard the frame immediately — never stored or sent
-    const score = scoreAttention(extractSignals(result), baseline);
-    ctx.postMessage({ type: 'score', value: score });
-    bucketer.add(msg.ts, score);
+    const raw = engagementScore(extractSignals(result, msg.ts), baseline);
+    emaScore = emaScore < 0 ? raw : Math.round(ema(emaScore, raw));
+    ctx.postMessage({ type: 'score', value: emaScore });
+    bucketer.add(msg.ts, emaScore);
     return;
   }
 
