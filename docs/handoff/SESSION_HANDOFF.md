@@ -1,6 +1,6 @@
 # Flamingo — Session Handoff
 
-**Date:** 2026-06-16 · **Branch:** `main` · **Code HEAD:** `b666fa4` — *per-student teacher attention view + attendance-roster auth fix*. This `docs(handoff)` commit sits on top as the latest commit on `main` (85 commits; run `git rev-parse HEAD` for its exact hash). Working tree clean.
+**Date:** 2026-06-17 · **Branch:** `main` · **Code HEAD:** `981dbfd` — *files/S3 presigned uploads (storage core + homework FILE submissions)*. This `docs(handoff)` commit sits on top as the latest commit on `main` (88 commits; run `git rev-parse HEAD` for its exact hash). Working tree clean.
 This doc lets a fresh session resume cleanly. It references files by path — read those, don't rely on this doc alone.
 
 ---
@@ -33,6 +33,33 @@ the cross-cutting modules (§5 items 2–3). The hard ≤5 server cap and record
   saw the student-facing "…преподаватель вас видит"); `room.teacherSub` reworded to per-student.
 - **BACKLOG (do later, see §5):** audit other GraphQL field resolvers for the same unscoped
   `return list(self.X.all())` pattern.
+
+✅ **Files/S3 presigned uploads — storage core + homework FILE submissions DONE & green (this batch):**
+- **`e51d3eb` (a) storage core:** `common/storage.py` (the only S3 client — `presign_put` signs
+  Content-Type, `presign_get`, `head`; TTLs PUT 10m/GET 5m); `apps/files` is **modelless (Option A —
+  ERD-faithful, no migration)**: `services.PURPOSE_POLICY` = per-purpose ROLE gate + **owner-namespaced
+  keys** (`<prefix>/<userId>/<uuid>/<file>`) + size/type limits; `requestUpload` implemented to the
+  **already-existing SDL contract** (UploadTicket/UploadRequestInput/UploadPurpose — live schema diffed
+  against the committed SDL, matches; **SDL NOT regenerated**). FE `shared/lib/useUpload()` +
+  `RequestUpload` op + codegen (FE types from the existing SDL). `boto3` (runtime) + `moto` (tests)
+  added. **Verified end-to-end against native MinIO:** presigned PUT 200, head correct, GET body
+  matches, wrong-Content-Type PUT → 403.
+- **`981dbfd` (b) homework FILE:** `submit_homework` binds keys with `assert_caller_key` (own namespace)
+  + `validate_uploaded` (head: exists/size/type); `SubmissionFile.fileUrl` → presigned GET authorized to
+  the submitting student OR owning teacher — **never a classmate** (test); student submit UI attaches
+  files via `useUpload` → fileKeys.
+- **Authz model:** `requestUpload` = role gate + owner-namespaced key; bind-time = key-prefix==caller +
+  `head()` size/type; download = per-resolver auth on every `fileUrl`. **SEPARATE from CMF/egress** — no
+  file path touches the worker/pipeline; `reportAttention` stays aggregate-only; no bytes through GraphQL.
+- **Dev storage (no Docker):** native MinIO binary — `MINIO_ROOT_USER=flamingo
+  MINIO_ROOT_PASSWORD=flamingo-secret minio server ~/.flamingo-minio --address :9000
+  --console-address :9001`; `settings.S3` defaults to `http://localhost:9000` (env-switched to Yandex RF
+  in prod). **Was running this session.** Tests use `moto` (no live server needed).
+- **🔒 BACKLOG (do later, see §5; NOT built):** a bucket lifecycle rule to auto-expire **unbound**
+  objects. Presigned PUT can't cap size pre-upload (`head()` rejects at bind, but the bytes are already
+  written → orphans). If size-abuse ever matters, swap to presigned POST with `content-length-range`.
+- **NEXT (files): (c) FILE materials, (d) avatars** — (d) needs the one approved **`setAvatar` SDL
+  hand-add** (hand-edit `docs/flamingo_schema.graphql`, NOT regenerate). See §5.
 
 **Slice 3.1 — connection lifecycle (`404fc6f`):** `useLiveKitRoom` now exposes one explicit
 `connectionState` (idle/connecting/connected/reconnecting/reconnected/disconnected/failed) off
@@ -80,9 +107,9 @@ bundle, never camera-tested dev. **Fix:** MODULE worker + `forVisionTasks(wasmBa
 raw (MediaPipe's runtime `import()` otherwise hit Vite's `?import` → 500). Also fixed the LiveKit
 StrictMode reconnect churn (`c9334d3`). See §3 + memory [[seedum-mediapipe-worker]].
 
-**Both gates green** (verified this session): backend **71 pytest** on Postgres + **ruff** + **black**
+**Both gates green** (verified this session): backend **80 pytest** on Postgres + **ruff** + **black**
 clean, 0 unapplied migrations, `makemigrations --check` clean; frontend **`npm run build` + `lint` +
-73 vitest**. Tree clean (all committed).
+76 vitest**. Tree clean (all committed).
 
 **LiveKit config (real creds are file-based, never committed):** `backend/.env` holds
 `LIVEKIT_URL`/`LIVEKIT_API_KEY`/`LIVEKIT_API_SECRET` (loaded via python-dotenv, `4c97997`);
@@ -197,7 +224,7 @@ Verified E2E in-browser (earlier sessions): register→login→`me`; parent add-
 
 ## 4. In progress / partially built
 Working tree is **clean** — nothing uncommitted. Partially-built *within* committed code:
-- **FILE materials** — only TEXT/LINK materials are supported in the UI; FILE needs the files/S3 upload module (not built).
+- **FILE materials** — the files/S3 module now exists (§0); FILE materials are sub-slice (c) of files (§5 item 3), not yet wired into `addMaterial`/`Material.fileUrl`. TEXT/LINK work today.
 - **FILE/QUIZ homework** — homework UI is TEXT-only; FILE submissions need the files module, QUIZ needs a quiz model (neither built).
 - **SEduM calibration UI deferred** — the «база тест» 3-stage calibration (`seedum/calibration.ts` state machine exists, tested) is NOT wired into the room: the worker emits only score/bucket aggregates, not the raw `AttentionSignals` the `Calibration` needs, so capturing a baseline needs a worker "calibration mode" that emits per-stage signals + a 3-step UI. The room **loads** an existing UBP baseline (none exists until calibration ships → raw scoring used). Plan §6.1 recommended deferring this.
 - **Encrypted UBP cloud backup deferred** — `seedum/ubp.ts` has WebCrypto encrypt/decrypt and the backend `backupUbp`/`ubpBackup`/`deleteUbpBackup` exist, but there's no FE op/UX wiring (and nothing to back up until calibration produces a baseline). Plan §6.2 recommended a minimal version; deferred with calibration.
@@ -223,7 +250,11 @@ Working tree is **clean** — nothing uncommitted. Partially-built *within* comm
      - *(3.4)* **(g)** a participant in **another window** mutes mic / turns off camera → the badge + camera-off placeholder update **live** in the first window.
      - Already browser-verified (§0), not part of this pass: our-button screen-share stop, the camera black-tile fix, CMF live, the teacher hold/summary.
 2. **"Prepare for real-user test" milestone (separate from slice 3 — do whichever the owner prioritises):** the app currently only runs on `localhost` with seeded demo accounts. To put it in front of a real pupil/teacher: (a) **expose the dev stack** — a tunnel (e.g. cloudflared/ngrok over vite :5173 + the `/graphql` HTTP+WS proxy) for a quick test, or a real deploy (backend ASGI + Postgres + the LiveKit creds) for anything durable; (b) **real email/SMTP** — registration today auto-logs-in with no verification and no mail is sent, so wire an SMTP provider + a verify-email step before strangers register; (c) **real registration flow** — exercise sign-up → consent (152-FZ for <18) → role cabinet end-to-end with a fresh account (not the seeded demo users), and confirm the junior-signup question in §8 is resolved first. None of this is started.
-3. **Cross-cutting (after LiveKit, pick per owner priority):** **files/S3 module** (presigned `requestUpload` → S3/MinIO key → mutations accept `fileKey`; unblocks FILE materials + FILE homework + avatars), **certificates** (PDF+QR public verification — `official-documents` skill), **engagement** (points/leaderboard/**reviews** — REVIEW model lives here per `INSTITUTIONS_PLAN.md`), **notifications** (the `notificationReceived`/`sessionStatusChanged`/`chatMessageReceived` subscriptions share the now-working graphql-ws infra). Composite dashboards still SDL-only (§8).
+3. **Files/S3 module — (a) storage core + (b) homework FILE submissions DONE & green** (`e51d3eb`, `981dbfd`; see §0). **Remaining sub-slices (one concern each):**
+   - **(c) FILE materials:** `addMaterial` — for `type=FILE` require + validate a `file_key` (caller-namespaced, MATERIAL purpose, `head()`); `Material.fileUrl` → presigned GET authorized via `courses/access.py: can_access_course` (enrolled students + owner). FE: material-add upload via `useUpload(file, 'MATERIAL')`. No SDL change (MaterialInput already takes `file_key`).
+   - **(d) Avatars:** **hand-add `setAvatar(fileKey: String!): User!`** to `docs/flamingo_schema.graphql` (NOT `export_schema`); `setAvatar` validates the key is the caller's own `avatar/<userId>/…` namespace, writes `avatar_key` to the role profile; `User.avatarUrl` → presigned GET. FE: profile avatar upload via `useUpload(file, 'AVATAR')`.
+   - Key files: `apps/files/services.py` (`assert_caller_key`/`validate_uploaded` reuse), `common/storage.py`, `shared/lib/useUpload.ts`. Dev: run native MinIO (see §0/§9).
+4. **Other cross-cutting (pick per owner priority):** **certificates** (PDF+QR public verification — `official-documents` skill), **engagement** (points/leaderboard/**reviews** — REVIEW model lives here per `INSTITUTIONS_PLAN.md`), **notifications** (the `notificationReceived`/`sessionStatusChanged`/`chatMessageReceived` subscriptions share the now-working graphql-ws infra). Composite dashboards still SDL-only (§8).
 - ✅ DONE — guard admin self/last-removal (`5531bc0`, see §3).
 - 🔒 **BACKLOG (security audit, not started):** sweep all GraphQL field resolvers for the unscoped
   `return list(self.X.all())` pattern that exposed the attendance roster (fixed in `b2782ba`). Any
@@ -268,11 +299,15 @@ Working tree is **clean** — nothing uncommitted. Partially-built *within* comm
 export LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8
 /opt/homebrew/opt/postgresql@16/bin/pg_ctl -D /opt/homebrew/var/postgresql@16 -l /opt/homebrew/var/log/postgresql@16.log start   # role+db 'flamingo' already exist
 cd backend && export POSTGRES_HOST=localhost POSTGRES_USER=flamingo POSTGRES_PASSWORD=flamingo POSTGRES_DB=flamingo
-.venv/bin/python manage.py migrate && .venv/bin/python -m pytest        # expect 71 passed
+.venv/bin/python manage.py migrate && .venv/bin/python -m pytest        # expect 80 passed
 .venv/bin/uvicorn config.asgi:application --port 8000 --reload
 # new shell: cd frontend && npm run dev   (proxies /graphql -> :8000 incl. WS upgrade; preview via .claude/launch.json)
-# frontend gates: npm run build && npm run lint && npm test   (expect 59 vitest)
+# frontend gates: npm run build && npm run lint && npm test   (expect 76 vitest)
 # seedum assets are committed under frontend/public/seedum/; re-vendor only if missing: npm run vendor:seedum
+# files/S3 (presigned uploads): for a REAL upload, run native MinIO (no Docker):
+#   MINIO_ROOT_USER=flamingo MINIO_ROOT_PASSWORD=flamingo-secret minio server ~/.flamingo-minio \
+#     --address :9000 --console-address :9001    (then create the 'flamingo' bucket once)
+#   settings.S3 defaults to http://localhost:9000; tests use moto (no server needed).
 # LiveKit: real creds live in backend/.env (LIVEKIT_API_KEY/SECRET/URL) + frontend/.env (VITE_LIVEKIT_URL);
 #   both git-ignored. After editing backend/.env, RESTART uvicorn (settings load .env at import).
 # Live-room E2E needs a LIVE LessonSession + an enrolled student; see this session's demo rows below (§0/§5).
@@ -290,5 +325,5 @@ synthetic preview browser blocks the camera + `getDisplayMedia` — the items in
 **Exact first prompt for the next session:**
 > Resume the Flamingo build.
 > 1. **Read first:** `CLAUDE.md` and `docs/handoff/SESSION_HANDOFF.md` §0 (current state) + §5 (next tasks); then `docs/flamingo_erd.md` / `docs/flamingo_schema.graphql` / `docs/flamingo_architecture.md` as needed.
-> 2. **Bring up the dev stack** per §9 (Postgres with `LC_ALL`, backend `uvicorn … --reload` on :8000, frontend `npm run dev` on :5173) and confirm green: backend `pytest` (expect **71 passed**) + `ruff`/`black`; frontend `npm run build`/`lint`/`test` (expect **73 vitest**).
-> 3. **LiveKit video room: slices 1, 2 & 3 COMPLETE & green** (3.1 `404fc6f`, harden `dcda4af`, 3.2 `47d9e60`, 3.3 `3d4fea2`, 3.4 `4af95f3`; §0/§5 item 1). **The next action is the COMBINED owner real-camera/real-network pass** (§5 item 1, items a–g: screen-share native/remote stop, multi-window grid ≤5, cross-window share, network-drop→reconnect with CMF continuing, permission/device errors + Retry, screen-reader/keyboard/reduced-motion, live remote mute/camera-off) — nothing media/SR/network is mock-verified. **After that pass**, pick from §5: the **"prepare for real-user test"** milestone (item 2 — tunnel/deploy + real SMTP + registration flow) or the **cross-cutting** modules (item 3 — files/S3, certificates, engagement, notifications). Hard ≤5 cap server-side + recording stay **out of scope**. Keep CLAUDE.md invariants (CMF privacy, ru i18n, design tokens, thin resolvers, no SDL regen, OSS-only); gates green; commit per concern.
+> 2. **Bring up the dev stack** per §9 (Postgres with `LC_ALL`, backend `uvicorn … --reload` on :8000, frontend `npm run dev` on :5173) and confirm green: backend `pytest` (expect **80 passed**) + `ruff`/`black`; frontend `npm run build`/`lint`/`test` (expect **76 vitest**).
+> 3. **LiveKit video room: slices 1, 2 & 3 COMPLETE & green** (3.1 `404fc6f`, harden `dcda4af`, 3.2 `47d9e60`, 3.3 `3d4fea2`, 3.4 `4af95f3`; §0/§5 item 1). **The next action is the COMBINED owner real-camera/real-network pass** (§5 item 1, items a–g: screen-share native/remote stop, multi-window grid ≤5, cross-window share, network-drop→reconnect with CMF continuing, permission/device errors + Retry, screen-reader/keyboard/reduced-motion, live remote mute/camera-off) — nothing media/SR/network is mock-verified. **After that pass**, pick from §5: finish **files/S3** (item 3 — (a) storage core + (b) homework FILE are DONE; **(c) FILE materials, (d) avatars** remain), the **"prepare for real-user test"** milestone (item 2 — tunnel/deploy + real SMTP + registration flow), or the **other cross-cutting** modules (item 4 — certificates, engagement, notifications). Hard ≤5 cap server-side + recording stay **out of scope**. Keep CLAUDE.md invariants (CMF privacy, ru i18n, design tokens, thin resolvers, no SDL regen, OSS-only); gates green; commit per concern.
