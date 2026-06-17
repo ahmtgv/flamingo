@@ -1,11 +1,12 @@
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Route, Routes } from 'react-router-dom';
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import {
   LessonHomeworkDocument,
   MeDocument,
+  RequestUploadDocument,
   SubmitHomeworkDocument,
 } from '@/entities/graphql/generated';
 import { renderWithProviders } from '@/test/renderWithProviders';
@@ -85,7 +86,7 @@ describe('LessonHomeworkScreen (student)', () => {
     const submitMock = {
       request: {
         query: SubmitHomeworkDocument,
-        variables: { input: { homeworkId: 'h1', contentText: 'ответ' } },
+        variables: { input: { homeworkId: 'h1', contentText: 'ответ', fileKeys: [] } },
       },
       result: () => {
         submitted = true;
@@ -111,4 +112,73 @@ describe('LessonHomeworkScreen (student)', () => {
 
     await waitFor(() => expect(submitted).toBe(true));
   });
+
+  it('uploads an attached file (presigned PUT) and submits its fileKey — no bytes via GraphQL', async () => {
+    const user = userEvent.setup();
+    const fileKey = 'submission/u1/abc/hw.pdf';
+    // Bytes go straight to S3 via the presigned PUT — stub fetch, never GraphQL.
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true });
+    vi.stubGlobal('fetch', fetchMock);
+
+    const requestUploadMock = {
+      request: {
+        query: RequestUploadDocument,
+        variables: {
+          input: { filename: 'hw.pdf', contentType: 'application/pdf', purpose: 'SUBMISSION' },
+        },
+      },
+      result: {
+        data: {
+          requestUpload: {
+            __typename: 'UploadTicket',
+            uploadUrl: 'https://s3.example/put?sig=abc',
+            fileKey,
+            expiresAt: '2026-06-17T00:00:00Z',
+          },
+        },
+      },
+    };
+    let submittedKeys: string[] | null = null;
+    const submitMock = {
+      request: {
+        query: SubmitHomeworkDocument,
+        variables: { input: { homeworkId: 'h1', contentText: '', fileKeys: [fileKey] } },
+      },
+      result: () => {
+        submittedKeys = [fileKey];
+        return {
+          data: {
+            submitHomework: { __typename: 'Submission', id: 'sub2', status: 'SUBMITTED', attempt: 1 },
+          },
+        };
+      },
+    };
+
+    const { container } = renderWithProviders(
+      <Routes>
+        <Route path="/lessons/:lessonId/homework" element={<LessonHomeworkScreen />} />
+      </Routes>,
+      {
+        mocks: [meMock, homeworkMock, requestUploadMock, submitMock, homeworkMock],
+        route: '/lessons/l1/homework',
+      },
+    );
+
+    await screen.findByText('Задача 1');
+    const fileInput = container.querySelector('input[type="file"]') as HTMLInputElement;
+    await user.upload(fileInput, new File(['hi'], 'hw.pdf', { type: 'application/pdf' }));
+    expect(screen.getByText('hw.pdf')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Сдать работу' }));
+
+    // requestUpload → direct PUT to the presigned URL → submitHomework with the returned key.
+    await waitFor(() => expect(submittedKeys).toEqual([fileKey]));
+    expect(fetchMock).toHaveBeenCalledWith(
+      'https://s3.example/put?sig=abc',
+      expect.objectContaining({ method: 'PUT' }),
+    );
+  });
+});
+
+afterEach(() => {
+  vi.unstubAllGlobals();
 });

@@ -30,7 +30,9 @@ from apps.courses.services import (
     _teacher_profile,
     _val,
 )
-from common.enums import Role, SubmissionStatus
+from apps.files import services as files
+from common import storage
+from common.enums import Role, SubmissionStatus, UploadPurpose
 from common.exceptions import NotFound, PermissionDenied, ValidationError
 
 from .models import Homework, Submission, SubmissionFile
@@ -160,10 +162,27 @@ def submit_homework(user, *, homework_id, content_text: str = "", file_keys=None
         submitted_at=now,
     )
     for key in file_keys or []:
+        # Bind-time authz: the key must be in THIS student's own upload namespace (no binding
+        # someone else's / a forged key), and the object must exist within the SUBMISSION
+        # size/type limit (the presigned PUT couldn't cap size pre-upload).
+        files.assert_caller_key(user, key, UploadPurpose.SUBMISSION)
+        files.validate_uploaded(key, UploadPurpose.SUBMISSION)
         SubmissionFile.objects.create(
             submission=submission, file_key=key, name=key.rsplit("/", 1)[-1]
         )
     return submission
+
+
+def submission_file_url(user, submission_file: SubmissionFile) -> str:
+    """Presigned GET for a submission file — authorized to the submitting student (own) OR the
+    teacher who owns the homework's course. NEVER a classmate (defense-in-depth on the download
+    path; don't rely on parent reachability — the attendance-gap lesson)."""
+    submission = submission_file.submission
+    if user is not None and submission.student_id == user.id:
+        pass  # the student reading their own file
+    else:
+        _ensure_owner(user, _homework_course(submission.homework))  # raises if not the owner
+    return storage.presign_get(submission_file.file_key)
 
 
 # --- grading (teacher) ------------------------------------------------------

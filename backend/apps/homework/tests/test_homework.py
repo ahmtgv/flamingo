@@ -8,6 +8,7 @@ from django.utils import timezone
 from apps.accounts import services as accounts
 from apps.courses import services as courses
 from apps.homework import services
+from common import storage
 from common.enums import HomeworkType, Role, SubmissionStatus
 from common.exceptions import PermissionDenied, ValidationError
 
@@ -188,3 +189,48 @@ def test_lesson_homework_hides_drafts_from_students():
     assert len(services.lesson_homework(teacher, lesson.id)) == 2  # owner sees all
     student_visible = services.lesson_homework(student, lesson.id)
     assert len(student_visible) == 1 and student_visible[0].id == published.id
+
+
+def test_file_submission_and_download_authz(monkeypatch):
+    teacher = make_teacher()
+    course, lesson = published_course_with_lesson(teacher)
+    hw = make_homework(teacher, lesson, allow_redo=True)
+    services.publish_homework(teacher, hw.id)
+    student = make_student("owner@example.com")
+    classmate = make_student("mate@example.com")
+    courses.enroll(student, course.id)
+    courses.enroll(classmate, course.id)
+
+    # validate_uploaded HEADs S3 — stub it to a valid small object (no MinIO in tests).
+    monkeypatch.setattr(
+        storage, "head", lambda key: {"size": 10, "content_type": "application/pdf"}
+    )
+    key = f"submission/{student.id}/abc/hw.pdf"
+    sub = services.submit_homework(student, homework_id=hw.id, file_keys=[key])
+    sf = sub.files.first()
+    assert sf is not None and sf.file_key == key
+
+    # Download authz: the submitting student and the owning teacher each get a presigned URL…
+    assert services.submission_file_url(student, sf).startswith("http")
+    assert services.submission_file_url(teacher, sf).startswith("http")
+    # …but a classmate (also enrolled) is DENIED — never reads another student's file.
+    with pytest.raises(PermissionDenied):
+        services.submission_file_url(classmate, sf)
+
+
+def test_cannot_bind_another_students_upload_key(monkeypatch):
+    teacher = make_teacher()
+    course, lesson = published_course_with_lesson(teacher)
+    hw = make_homework(teacher, lesson)
+    services.publish_homework(teacher, hw.id)
+    student = make_student("a@example.com")
+    other = make_student("b@example.com")
+    courses.enroll(student, course.id)
+    monkeypatch.setattr(
+        storage, "head", lambda key: {"size": 10, "content_type": "application/pdf"}
+    )
+    # The key is in ANOTHER student's namespace → bind-time assert_caller_key denies it.
+    with pytest.raises(PermissionDenied):
+        services.submit_homework(
+            student, homework_id=hw.id, file_keys=[f"submission/{other.id}/x/hw.pdf"]
+        )

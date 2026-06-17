@@ -15,7 +15,7 @@ from apps.accounts.graphql.types import StudentProfileType, UserType
 from apps.courses.graphql.types import Course, Lesson
 from apps.homework import models, services
 from apps.institutions.graphql.types import Group as GroupType
-from common.auth import get_current_user
+from common.auth import get_current_user, require_user
 from common.enums import HomeworkType, SubmissionStatus
 
 
@@ -33,9 +33,9 @@ class SubmissionFile:
     name: auto
 
     @strawberry_django.field
-    def file_url(self) -> str:
-        # Presigned GET arrives with the files module; expose the key path for now.
-        return f"/files/{self.file_key}"
+    def file_url(self, info: strawberry.Info) -> str:
+        # Presigned GET, authorized per-viewer (own student / owning teacher; never classmates).
+        return services.submission_file_url(require_user(info), self)
 
 
 @strawberry_django.type(models.Submission)

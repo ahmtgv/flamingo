@@ -1,4 +1,4 @@
-import { ArrowLeft, CheckCircle2, ClipboardList, Plus, Send, Trash2 } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, ClipboardList, Paperclip, Plus, Send, Trash2 } from 'lucide-react';
 import { type FormEvent, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Navigate, useNavigate, useParams } from 'react-router-dom';
@@ -14,6 +14,7 @@ import {
   usePublishHomeworkMutation,
   useSubmitHomeworkMutation,
 } from '@/entities/graphql/generated';
+import { useUpload } from '@/shared/lib/useUpload';
 import { Badge, type BadgeTone, Button, Checkbox, Input, TextArea, TextField } from '@/shared/ui';
 
 import { HomeworkLayout } from './HomeworkLayout';
@@ -325,17 +326,36 @@ function SubmitForm({
   resubmit: boolean;
   onDone: () => void;
 }) {
-  const { t } = useTranslation('homework');
+  const { t } = useTranslation(['homework', 'upload']);
   const [text, setText] = useState('');
+  const [files, setFiles] = useState<File[]>([]);
+  const [error, setError] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
   const [submitHomework, { loading }] = useSubmitHomeworkMutation();
+  const { upload } = useUpload();
 
   async function submit(e: FormEvent) {
     e.preventDefault();
-    if (!text.trim()) return;
-    await submitHomework({ variables: { input: { homeworkId, contentText: text } } });
-    setText('');
-    onDone();
+    if (!text.trim() && files.length === 0) return;
+    setError(null);
+    setUploading(true);
+    try {
+      // Each file uploads DIRECTLY to S3 via a presigned PUT; only the returned keys are
+      // submitted to GraphQL (no bytes through the API).
+      const fileKeys: string[] = [];
+      for (const file of files) fileKeys.push(await upload(file, 'SUBMISSION'));
+      await submitHomework({ variables: { input: { homeworkId, contentText: text, fileKeys } } });
+      setText('');
+      setFiles([]);
+      onDone();
+    } catch {
+      setError(t('upload:uploadFailed'));
+    } finally {
+      setUploading(false);
+    }
   }
+
+  const busy = loading || uploading;
 
   return (
     <form className={styles.form} onSubmit={submit}>
@@ -345,8 +365,43 @@ function SubmitForm({
         value={text}
         onChange={(e) => setText(e.target.value)}
       />
+      <label className={styles.fileLabel}>
+        <Paperclip size={15} /> {t('upload:uploadFile')}
+        <input
+          type="file"
+          multiple
+          accept="application/pdf,image/png,image/jpeg,image/webp,text/plain"
+          className={styles.fileInput}
+          onChange={(e) => {
+            setFiles((prev) => [...prev, ...Array.from(e.target.files ?? [])]);
+            e.target.value = '';
+          }}
+        />
+      </label>
+      {files.length > 0 && (
+        <ul className={styles.fileList}>
+          {files.map((file, i) => (
+            <li key={`${file.name}-${i}`} className={styles.fileItem}>
+              <span>{file.name}</span>
+              <button
+                type="button"
+                className={styles.fileRemove}
+                aria-label={t('upload:remove')}
+                onClick={() => setFiles((prev) => prev.filter((_, j) => j !== i))}
+              >
+                <Trash2 size={14} />
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+      {error && (
+        <p className={styles.error} role="alert">
+          {error}
+        </p>
+      )}
       <div className={styles.actionsRow}>
-        <Button type="submit" variant="primary" icon={<Send size={15} />} loading={loading}>
+        <Button type="submit" variant="primary" icon={<Send size={15} />} loading={busy}>
           {resubmit ? t('actions.resubmit') : t('actions.submit')}
         </Button>
       </div>
