@@ -535,6 +535,7 @@ export type Mutation = {
   scheduleSession: LessonSession;
   sendChatMessage: ChatMessage;
   setAttendance: Attendance;
+  setAvatar: User;
   startSession: LessonSession;
   submitHomework: Submission;
   submitVerificationDocument: VerificationDocument;
@@ -796,6 +797,11 @@ export type MutationSetAttendanceArgs = {
   sessionId: Scalars['ID']['input'];
   status: AttendanceStatus;
   studentId: Scalars['ID']['input'];
+};
+
+
+export type MutationSetAvatarArgs = {
+  fileKey: Scalars['String']['input'];
 };
 
 
@@ -1550,7 +1556,14 @@ export type SubmitVerificationDocumentMutation = { __typename?: 'Mutation', subm
 export type MeQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type MeQuery = { __typename?: 'Query', me?: { __typename?: 'User', id: string, email: string, firstName: string, lastName: string, role: Role, locale: string, studentProfile?: { __typename?: 'StudentProfile', ageBand: AgeBand, gradeLevel?: string | null, points: number } | null, teacherProfile?: { __typename?: 'TeacherProfile', verificationStatus: VerificationStatus, specialty?: string | null } | null, parentProfile?: { __typename?: 'ParentProfile', children: Array<{ __typename?: 'StudentProfile', ageBand: AgeBand, gradeLevel?: string | null, user: { __typename?: 'User', id: string, firstName: string, lastName: string } }> } | null } | null };
+export type MeQuery = { __typename?: 'Query', me?: { __typename?: 'User', id: string, email: string, firstName: string, lastName: string, role: Role, locale: string, avatarUrl?: string | null, studentProfile?: { __typename?: 'StudentProfile', ageBand: AgeBand, gradeLevel?: string | null, points: number } | null, teacherProfile?: { __typename?: 'TeacherProfile', verificationStatus: VerificationStatus, specialty?: string | null } | null, parentProfile?: { __typename?: 'ParentProfile', children: Array<{ __typename?: 'StudentProfile', ageBand: AgeBand, gradeLevel?: string | null, user: { __typename?: 'User', id: string, firstName: string, lastName: string } }> } | null } | null };
+
+export type SetAvatarMutationVariables = Exact<{
+  fileKey: Scalars['String']['input'];
+}>;
+
+
+export type SetAvatarMutation = { __typename?: 'Mutation', setAvatar: { __typename?: 'User', id: string, avatarUrl?: string | null } };
 
 export type CatalogQueryVariables = Exact<{
   filter?: InputMaybe<CourseFilter>;
@@ -2623,6 +2636,7 @@ export const MeDocument = gql`
     lastName
     role
     locale
+    avatarUrl
     studentProfile {
       ageBand
       gradeLevel
@@ -2681,6 +2695,40 @@ export type MeQueryHookResult = ReturnType<typeof useMeQuery>;
 export type MeLazyQueryHookResult = ReturnType<typeof useMeLazyQuery>;
 export type MeSuspenseQueryHookResult = ReturnType<typeof useMeSuspenseQuery>;
 export type MeQueryResult = Apollo.QueryResult<MeQuery, MeQueryVariables>;
+export const SetAvatarDocument = gql`
+    mutation SetAvatar($fileKey: String!) {
+  setAvatar(fileKey: $fileKey) {
+    id
+    avatarUrl
+  }
+}
+    `;
+export type SetAvatarMutationFn = Apollo.MutationFunction<SetAvatarMutation, SetAvatarMutationVariables>;
+
+/**
+ * __useSetAvatarMutation__
+ *
+ * To run a mutation, you first call `useSetAvatarMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useSetAvatarMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [setAvatarMutation, { data, loading, error }] = useSetAvatarMutation({
+ *   variables: {
+ *      fileKey: // value for 'fileKey'
+ *   },
+ * });
+ */
+export function useSetAvatarMutation(baseOptions?: Apollo.MutationHookOptions<SetAvatarMutation, SetAvatarMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<SetAvatarMutation, SetAvatarMutationVariables>(SetAvatarDocument, options);
+      }
+export type SetAvatarMutationHookResult = ReturnType<typeof useSetAvatarMutation>;
+export type SetAvatarMutationResult = Apollo.MutationResult<SetAvatarMutation>;
+export type SetAvatarMutationOptions = Apollo.BaseMutationOptions<SetAvatarMutation, SetAvatarMutationVariables>;
 export const CatalogDocument = gql`
     query Catalog($filter: CourseFilter, $first: Int, $after: String) {
   catalog(filter: $filter, first: $first, after: $after) {

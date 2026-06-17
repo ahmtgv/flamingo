@@ -101,6 +101,25 @@
   font-weight: var(--weight-medium);
   color: var(--color-text);
 }
+/* Avatar-as-upload-button (student/teacher): click the avatar to pick a new image. */
+.avatarUpload {
+  display: inline-flex;
+  border-radius: 50%;
+  cursor: pointer;
+}
+.avatarUpload:focus-within {
+  box-shadow: var(--focus-ring);
+}
+.fileInput {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
 .iconBtn {
   width: var(--tap-min);
   height: var(--tap-min);

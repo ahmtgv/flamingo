@@ -8,6 +8,7 @@
   background: var(--color-accent-subtle);
   color: var(--color-accent-text);
   flex-shrink: 0;
+  object-fit: cover; /* when rendered as <img src> (no effect on the initials span) */
 }
 .sm {
   width: 32px;

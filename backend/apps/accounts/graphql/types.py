@@ -9,6 +9,8 @@ import strawberry_django
 from strawberry import auto
 
 from apps.accounts import models
+from common import storage
+from common.auth import require_user
 from common.enums import (
     AgeBand,
     GuardianshipStatus,
@@ -114,9 +116,19 @@ class UserType:
         return Role(self.role)
 
     @strawberry_django.field
-    def avatar_url(self) -> str | None:
-        # Presigned avatar URL is wired with the files module.
-        return None
+    def avatar_url(self, info: strawberry.Info) -> str | None:
+        # Presigned GET for the avatar (low sensitivity: any authenticated user, private
+        # bucket, short TTL). avatar_key lives on student/teacher profiles only.
+        if self.role == Role.STUDENT.value:
+            key = self.student_profile.avatar_key
+        elif self.role == Role.TEACHER.value:
+            key = self.teacher_profile.avatar_key
+        else:
+            return None
+        if not key:
+            return None
+        require_user(info)  # any authed viewer may see avatars; anonymous gets nothing
+        return storage.presign_get(key)
 
     @strawberry_django.field
     def student_profile(self) -> StudentProfileType | None:

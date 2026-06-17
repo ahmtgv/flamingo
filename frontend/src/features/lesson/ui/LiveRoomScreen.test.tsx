@@ -84,6 +84,7 @@ const meMock = (role: Role) => ({
         lastName: 'Фамилия',
         role,
         locale: 'ru',
+        avatarUrl: null,
         studentProfile:
           role === 'STUDENT'
             ? { __typename: 'StudentProfile', ageBand: 'TEEN', gradeLevel: '7', points: 0 }

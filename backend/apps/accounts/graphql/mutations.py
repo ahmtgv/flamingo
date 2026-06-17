@@ -10,7 +10,7 @@ from apps.accounts import services
 from common.auth import issue_tokens, require_user
 from common.enums import Role
 
-from .types import AuthPayload, GuardianshipType, VerificationDocumentType
+from .types import AuthPayload, GuardianshipType, UserType, VerificationDocumentType
 
 
 @strawberry.input
@@ -127,3 +127,8 @@ class AccountsMutation:
     ) -> VerificationDocumentType:
         user = require_user(info)
         return services.submit_verification_document(user, file_key)
+
+    @strawberry.mutation
+    def set_avatar(self, info: strawberry.Info, file_key: str) -> UserType:
+        # Own avatar; the key must be in the caller's own avatar/<userId>/ namespace (service).
+        return services.set_avatar(require_user(info), file_key)

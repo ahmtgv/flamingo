@@ -6,6 +6,7 @@ import pytest
 
 from apps.accounts import services
 from apps.accounts.models import Guardianship, StudentProfile, TeacherProfile, User
+from common import storage
 from common.enums import AgeBand, GuardianshipStatus, Role
 from common.exceptions import AuthError, PermissionDenied, ValidationError
 
@@ -127,3 +128,45 @@ def test_non_parent_cannot_add_child():
     )
     with pytest.raises(PermissionDenied):
         services.add_child(teacher, first_name="X", last_name="Y", consent_152fz=True)
+
+
+def _student(email="av@example.com"):
+    return services.register_user(
+        email=email,
+        password="strongpass1!",
+        first_name="A",
+        last_name="B",
+        role=Role.STUDENT,
+        birth_date=date(2008, 1, 1),
+    )
+
+
+def test_set_avatar_namespace_and_write(monkeypatch):
+    student = _student()
+    other = _student("other@example.com")
+    monkeypatch.setattr(storage, "head", lambda key: {"size": 10, "content_type": "image/png"})
+
+    # A key outside the caller's own avatar namespace is rejected…
+    with pytest.raises(PermissionDenied):
+        services.set_avatar(student, f"avatar/{other.id}/x/me.png")
+    # …the caller's own key is written to their profile…
+    key = f"avatar/{student.id}/abc/me.png"
+    services.set_avatar(student, key)
+    student.student_profile.refresh_from_db()
+    assert student.student_profile.avatar_key == key
+    # …and that key presigns to a real (private-bucket) GET URL.
+    assert storage.presign_get(key).startswith("http")
+
+
+def test_set_avatar_unsupported_role(monkeypatch):
+    parent = services.register_user(
+        email="par@example.com",
+        password="strongpass1!",
+        first_name="P",
+        last_name="A",
+        role=Role.PARENT,
+    )
+    monkeypatch.setattr(storage, "head", lambda key: {"size": 10, "content_type": "image/png"})
+    # Parent/admin profiles have no avatar_key — graceful error, no model change.
+    with pytest.raises(ValidationError):
+        services.set_avatar(parent, f"avatar/{parent.id}/x/me.png")

@@ -24,7 +24,15 @@ export function StudentCabinet({ me }: { me: Me }) {
   ];
 
   return (
-    <CabinetLayout nav={nav} user={{ name: me.firstName, initials: initialsOf(me.firstName, me.lastName) }}>
+    <CabinetLayout
+      nav={nav}
+      canUploadAvatar
+      user={{
+        name: me.firstName,
+        initials: initialsOf(me.firstName, me.lastName),
+        avatarUrl: me.avatarUrl,
+      }}
+    >
       <div className={styles.content}>
         <div className={styles.pageHead}>
           <h1 className={styles.pageTitle}>

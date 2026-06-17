@@ -619,6 +619,7 @@ type Mutation {
   addChild(input: AddChildInput!): Guardianship!            # parent links/creates a child
   respondGuardianship(id: ID!, accept: Boolean!): Guardianship!   # child confirms request
   submitVerificationDocument(fileKey: String!): VerificationDocument!   # teacher
+  setAvatar(fileKey: String!): User!                                    # own avatar (student/teacher)
 
   # --- files
   requestUpload(input: UploadRequestInput!): UploadTicket!

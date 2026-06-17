@@ -25,6 +25,7 @@ const meMock = {
         lastName: 'Сидоров',
         role: 'STUDENT',
         locale: 'ru',
+        avatarUrl: null,
         studentProfile: {
           __typename: 'StudentProfile',
           ageBand: 'TEEN',

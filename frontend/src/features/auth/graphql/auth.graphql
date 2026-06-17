@@ -118,6 +118,7 @@ query Me {
     lastName
     role
     locale
+    avatarUrl
     studentProfile {
       ageBand
       gradeLevel
@@ -138,5 +139,14 @@ query Me {
         }
       }
     }
+  }
+}
+
+# Own avatar. Returns id + avatarUrl so Apollo updates the normalized User in cache (the Me
+# query reflects the new avatar without a refetch). The bytes were already PUT directly to S3.
+mutation SetAvatar($fileKey: String!) {
+  setAvatar(fileKey: $fileKey) {
+    id
+    avatarUrl
   }
 }

@@ -12,7 +12,7 @@ from django.db import transaction
 from django.utils import timezone
 
 from common.auth import decode_token, issue_tokens
-from common.enums import AgeBand, GuardianshipStatus, Role, VerificationStatus
+from common.enums import AgeBand, GuardianshipStatus, Role, UploadPurpose, VerificationStatus
 from common.exceptions import AuthError, NotFound, PermissionDenied, ValidationError
 
 from .models import (
@@ -193,6 +193,26 @@ def respond_guardianship(user: User, guardianship_id, accept: bool) -> Guardians
     link.status = GuardianshipStatus.ACTIVE.value if accept else GuardianshipStatus.PENDING.value
     link.save(update_fields=["status", "updated_at"])
     return link
+
+
+# --- avatar ------------------------------------------------------------------
+def set_avatar(user: User, file_key: str) -> User:
+    """Set the caller's avatar. The key MUST be in the caller's own ``avatar/<userId>/``
+    namespace, and the object must exist within the AVATAR size/type limit. ``avatar_key`` lives
+    only on student/teacher profiles — other roles get a graceful error (no model change)."""
+    from apps.files import services as files
+
+    files.assert_caller_key(user, file_key, UploadPurpose.AVATAR)
+    files.validate_uploaded(file_key, UploadPurpose.AVATAR)
+    if user.role == Role.STUDENT.value:
+        profile = user.student_profile
+    elif user.role == Role.TEACHER.value:
+        profile = user.teacher_profile
+    else:
+        raise ValidationError("Avatar is not supported for this role")
+    profile.avatar_key = file_key
+    profile.save(update_fields=["avatar_key"])
+    return user
 
 
 # --- teacher verification ----------------------------------------------------

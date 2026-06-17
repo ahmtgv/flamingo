@@ -25,6 +25,7 @@ const teacherMe = {
         lastName: 'Учитель',
         role: 'TEACHER',
         locale: 'ru',
+        avatarUrl: null,
         studentProfile: null,
         teacherProfile: {
           __typename: 'TeacherProfile',
