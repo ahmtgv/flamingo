@@ -1,10 +1,10 @@
-"""Tests for the payment-readiness seam: defaults and the central access gate.
+"""Tests for the central course-content access gate (``can_access_course``).
 
-These lock in two things while the seam is unused: (1) the new model fields keep
-everything open/free by default, and (2) ``can_access_course`` is default-open for
-free courses yet already structured for the future paid path. No resolver is wired
-through it yet (see the TODO in ``courses/access.py``), so none of this changes
-current behaviour.
+Access is ENROLLMENT-CONTROLLED, not price-based: owner / institutional-group / actively-
+enrolled get in; anonymous and unenrolled are denied even on a free course. Price does not
+determine access today (billing is a future ADDITIVE gate). The paid-course tests below set a
+price only to document that the seam stays payment-ready — the access result is the same as for
+a free course (enrollment-based).
 """
 
 from datetime import date
@@ -64,19 +64,21 @@ def test_new_enrollment_access_status_defaults_active():
     assert enrollment.access_status == AccessStatus.ACTIVE.value
 
 
-# --- can_access_course: default-open for free courses -----------------------
-def test_free_course_is_open_to_everyone():
+# --- can_access_course: enrollment-controlled (even for free courses) -------
+def test_free_course_is_enrollment_controlled():
     teacher = make_teacher()
-    student = make_student()
-    course = make_published_course(teacher)  # price is None => free
+    enrolled = make_student("enrolled@example.com")
+    outsider = make_student("outsider@example.com")
+    course = make_published_course(teacher)  # free (price is None) — still enrollment-gated
+    services.enroll(enrolled, course.id)
 
-    assert can_access_course(None, course) is True  # anonymous
-    assert can_access_course(student, course) is True  # unenrolled student
     assert can_access_course(teacher, course) is True  # owner
+    assert can_access_course(enrolled, course) is True  # active enrollment
+    assert can_access_course(outsider, course) is False  # unenrolled — denied though free
+    assert can_access_course(None, course) is False  # anonymous
 
 
-# --- forward-looking: the seam is structured for the future paid path -------
-# (No resolver calls this yet, so these document intent without gating anything.)
+# --- payment-ready: price never loosens access; the gate stays enrollment-based -------
 def test_paid_course_blocks_anonymous_and_unenrolled():
     teacher = make_teacher()
     student = make_student()

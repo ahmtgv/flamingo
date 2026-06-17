@@ -1,16 +1,18 @@
-"""Single chokepoint for course-content access decisions.
+"""Single chokepoint for course-CONTENT access decisions.
 
-``can_access_course`` is the ONE place where payment gating will later be added
-(see CLAUDE.md "Future: Payments / Billing"). It is **default-open** today: with
-the current data model every course is free (``Course.price is None``) and every
-enrollment is ``ACTIVE`` (``Enrollment.access_status``), so this returns ``True``
-for everyone and changes no current behaviour. It exists now only so that future
-gating drops into one function instead of being scattered across resolvers.
+``can_access_course`` answers "may this user access this course's content?". Access is
+**enrollment-controlled**: the owning teacher, a student in the course's institutional group,
+or a student with an ACTIVE enrollment. It is NOT price-based — all courses are free today, but
+price does not determine access (billing is a separate future layer). Anonymous and unenrolled
+users are denied, even on a free course.
 
-When the monetization model is chosen and the ``billing`` app is built, gating is
-added HERE and these existing call sites — which currently make their own ad-hoc
-access decisions and are NOT yet routed through this function — must be wired
-through it so the chokepoint doesn't drift from reality:
+This gates CONTENT only. Course DISCOVERY (the public catalog/preview) must stay open so a
+non-enrolled user can find a course and enroll — those queries do NOT call this function.
+
+When the monetization model is chosen and the ``billing`` app is built, a PAID course will
+ADDITIONALLY require payment on top of enrollment — added HERE (payment-ready). These existing
+call sites make their own ad-hoc access decisions and are NOT yet routed through this function;
+wire them through it then so the chokepoint doesn't drift from reality:
 
     TODO(payments): route through can_access_course when gating is introduced:
       - apps/courses/graphql/queries.py :: CoursesQuery.course   (draft/owner check only)
@@ -29,25 +31,26 @@ from .models import Course, Enrollment
 
 
 def can_access_course(user, course: Course) -> bool:
-    """Whether ``user`` may access ``course``'s content. Default-open.
+    """Whether ``user`` may access ``course``'s CONTENT (materials, homework, …).
 
-    Structured for the future payment gate but behaviour-preserving today, because
-    ``price`` is always ``None`` (free) and ``access_status`` always ``ACTIVE``:
+    Access is ENROLLMENT-CONTROLLED, not price-based: a student is granted access by the
+    course owner, an institution admin, or institutional (group) delivery. All courses are
+    free today, but price is NOT the access determinant — billing is a separate future layer.
 
-    - free courses (``price is None``) are open to everyone;
     - the owning teacher always has access;
-    - a student in the course's target group has access (institutional delivery);
-    - an enrolled student with an ``ACTIVE`` access status has access.
+    - a student in the course's target group has access (institutional delivery, Option A);
+    - a student with an ``ACTIVE`` enrollment has access;
+    - everyone else — anonymous OR unenrolled — is denied (even on a free course).
 
-    Group→course access is decided HERE on purpose (the single chokepoint), so the
-    later Option A→B group-model move and any payment gating change one place only.
-    Payment gating (paid course + no active access => ``False``) is added here
-    later, gated on the chosen monetization model — not now.
+    This is the single chokepoint for content-access decisions. Course DISCOVERY (the public
+    catalog / detail-preview, so a non-enrolled user can see name/description/teacher to
+    enroll) does NOT go through here — it shows published courses to everyone.
+
+    TODO(payments): payment is a FUTURE ADDITIVE gate — when billing lands, a PAID course will
+    additionally require payment ON TOP of enrollment (paid + no settled payment => ``False``).
+    Enrollment is the basis now; the chokepoint stays payment-ready. Do NOT add
+    pricing/provider logic here — that lives in the future ``billing`` app.
     """
-    # Free course: open to all (current state for every course).
-    if course.price is None:
-        return True
-
     if user is None or not user.is_authenticated:
         return False
 
