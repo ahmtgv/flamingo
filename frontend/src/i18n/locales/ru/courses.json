@@ -64,6 +64,7 @@
     "materialType": "Тип материала",
     "materialLink": "Ссылка",
     "materialText": "Текст",
+    "materialFile": "Файл",
     "materialTitle": "Название",
     "materialUrl": "https://…",
     "materialBody": "Текст материала"

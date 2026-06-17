@@ -6,9 +6,19 @@ from django.db import transaction
 from django.db.models import Max
 
 from apps.accounts.models import StudentProfile, TeacherProfile
-from common.enums import CourseStatus, EnrollmentStatus, LessonStatus, Role
+from apps.files import services as files
+from common import storage
+from common.enums import (
+    CourseStatus,
+    EnrollmentStatus,
+    LessonStatus,
+    MaterialType,
+    Role,
+    UploadPurpose,
+)
 from common.exceptions import NotFound, PermissionDenied, ValidationError
 
+from .access import can_access_course
 from .models import Course, Enrollment, Lesson, Material, Section
 
 
@@ -247,6 +257,13 @@ def add_material(
         course = _owned_course(user, course_id)
     else:
         raise ValidationError("Material needs a lesson or a course")
+    if _val(type) == MaterialType.FILE.value:
+        # FILE materials carry an uploaded object. Bind-time: the key must be in THIS teacher's
+        # own MATERIAL namespace, and the object must exist within the size/type limit.
+        if not file_key:
+            raise ValidationError("A FILE material needs an uploaded file")
+        files.assert_caller_key(user, file_key, UploadPurpose.MATERIAL)
+        files.validate_uploaded(file_key, UploadPurpose.MATERIAL)
     sibling = Material.objects.filter(lesson=lesson, course=None if lesson else course)
     order = (sibling.aggregate(m=Max("order"))["m"] or 0) + 1
     return Material.objects.create(
@@ -259,6 +276,16 @@ def add_material(
         body=body or "",
         order=order,
     )
+
+
+def material_file_url(user, material: Material) -> str:
+    """Presigned GET for a FILE material — authorized to anyone who can access the course
+    (enrolled students + the owning teacher) via can_access_course; never the general public.
+    Assumes the material has a file_key (the resolver returns None otherwise)."""
+    course = material.course or material.lesson.section.course
+    if not can_access_course(user, course):
+        raise PermissionDenied("No access to this material")
+    return storage.presign_get(material.file_key)
 
 
 def delete_material(user, material_id) -> bool:

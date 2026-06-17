@@ -64,6 +64,7 @@ query CourseDetail($id: ID!) {
           title
           url
           body
+          fileUrl
           order
         }
       }

@@ -8,6 +8,7 @@ import {
   FileText,
   GraduationCap,
   Link2,
+  Paperclip,
   Pencil,
   Plus,
   ShieldCheck,
@@ -38,6 +39,7 @@ import {
   useUnenrollMutation,
   useUpdateCourseMutation,
 } from '@/entities/graphql/generated';
+import { useUpload } from '@/shared/lib/useUpload';
 import { Badge, Button, Input, Select, SelectField, TextField } from '@/shared/ui';
 
 import { CoursesLayout } from './CoursesLayout';
@@ -311,6 +313,16 @@ export function CourseDetailScreen() {
                                   >
                                     {m.title}
                                   </a>
+                                ) : m.type === 'FILE' && m.fileUrl ? (
+                                  // Presigned GET — authorized server-side (enrolled + owner).
+                                  <a
+                                    className={styles.materialLink}
+                                    href={m.fileUrl}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                  >
+                                    {m.title}
+                                  </a>
                                 ) : (
                                   <span>{m.title}</span>
                                 )}
@@ -509,31 +521,48 @@ function ScheduleSessionForm({ lessonId }: { lessonId: string }) {
 }
 
 function MaterialForm({ lessonId, onDone }: { lessonId: string; onDone: () => void }) {
-  const { t } = useTranslation('courses');
+  const { t } = useTranslation(['courses', 'upload']);
   const [open, setOpen] = useState(false);
   const [type, setType] = useState<MaterialType>('LINK');
   const [title, setTitle] = useState('');
   const [value, setValue] = useState('');
+  const [file, setFile] = useState<File | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
   const [addMaterial, { loading }] = useAddMaterialMutation();
+  const { upload } = useUpload();
 
   async function submit(e: FormEvent) {
     e.preventDefault();
     if (!title.trim()) return;
-    await addMaterial({
-      variables: {
-        input: {
-          lessonId,
-          type,
-          title,
-          url: type === 'LINK' ? value : null,
-          body: type === 'TEXT' ? value : null,
+    if (type === 'FILE' && !file) return;
+    setError(null);
+    setBusy(true);
+    try {
+      // FILE: bytes go DIRECTLY to S3 via a presigned PUT; addMaterial gets only the fileKey.
+      const fileKey = type === 'FILE' && file ? await upload(file, 'MATERIAL') : null;
+      await addMaterial({
+        variables: {
+          input: {
+            lessonId,
+            type,
+            title,
+            url: type === 'LINK' ? value : null,
+            body: type === 'TEXT' ? value : null,
+            fileKey,
+          },
         },
-      },
-    });
-    setTitle('');
-    setValue('');
-    setOpen(false);
-    onDone();
+      });
+      setTitle('');
+      setValue('');
+      setFile(null);
+      setOpen(false);
+      onDone();
+    } catch {
+      setError(t('upload:uploadFailed'));
+    } finally {
+      setBusy(false);
+    }
   }
 
   if (!open) {
@@ -553,6 +582,7 @@ function MaterialForm({ lessonId, onDone }: { lessonId: string; onDone: () => vo
         >
           <option value="LINK">{t('manage.materialLink')}</option>
           <option value="TEXT">{t('manage.materialText')}</option>
+          <option value="FILE">{t('manage.materialFile')}</option>
         </Select>
       </div>
       <div>
@@ -564,14 +594,31 @@ function MaterialForm({ lessonId, onDone }: { lessonId: string; onDone: () => vo
         />
       </div>
       <div>
-        <Input
-          value={value}
-          onChange={(e) => setValue(e.target.value)}
-          placeholder={type === 'LINK' ? t('manage.materialUrl') : t('manage.materialBody')}
-          aria-label={type === 'LINK' ? t('manage.materialUrl') : t('manage.materialBody')}
-        />
+        {type === 'FILE' ? (
+          <label className={styles.fileLabel}>
+            <Paperclip size={14} /> {file ? file.name : t('upload:uploadFile')}
+            <input
+              type="file"
+              accept="application/pdf,image/png,image/jpeg,image/webp,text/plain"
+              className={styles.fileInput}
+              onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+            />
+          </label>
+        ) : (
+          <Input
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+            placeholder={type === 'LINK' ? t('manage.materialUrl') : t('manage.materialBody')}
+            aria-label={type === 'LINK' ? t('manage.materialUrl') : t('manage.materialBody')}
+          />
+        )}
       </div>
-      <Button type="submit" variant="secondary" size="sm" loading={loading}>
+      {error && (
+        <p className={styles.formError} role="alert">
+          {error}
+        </p>
+      )}
+      <Button type="submit" variant="secondary" size="sm" loading={loading || busy}>
         {t('manage.add')}
       </Button>
     </form>

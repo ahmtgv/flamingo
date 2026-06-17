@@ -7,7 +7,8 @@ import pytest
 from apps.accounts import services as accounts
 from apps.courses import services
 from apps.courses.models import Enrollment, Section
-from common.enums import CourseStatus, EnrollmentStatus, Role
+from common import storage
+from common.enums import CourseStatus, EnrollmentStatus, MaterialType, Role
 from common.exceptions import PermissionDenied, ValidationError
 
 pytestmark = pytest.mark.django_db
@@ -136,3 +137,49 @@ def test_teacher_courses_lists_own_including_drafts():
     ids = {c.id for c in services.teacher_courses(teacher)}
     assert ids == {draft.id, published.id}
     assert services.teacher_courses(make_student()) == []
+
+
+def test_file_material_key_validation_and_download_authz(monkeypatch):
+    teacher = make_teacher()
+    other_teacher = make_teacher("other@example.com")
+    enrolled = make_student("enrolled@example.com")
+    outsider = make_student("outsider@example.com")
+    course = services.create_course(teacher, title="Алгебра", subject="М", level="grade_7")
+    section = services.create_section(teacher, course.id, title="Раздел")
+    lesson = services.create_lesson(teacher, section.id, title="Урок", duration_min=30)
+    services.publish_lesson(teacher, lesson.id)
+    services.publish_course(teacher, course.id)
+    services.enroll(enrolled, course.id)
+
+    monkeypatch.setattr(
+        storage, "head", lambda key: {"size": 10, "content_type": "application/pdf"}
+    )
+
+    # A FILE material needs an uploaded key…
+    with pytest.raises(ValidationError):
+        services.add_material(teacher, type=MaterialType.FILE, title="N", lesson_id=lesson.id)
+    # …in the CALLER's own namespace (binding another teacher's key is denied)…
+    with pytest.raises(PermissionDenied):
+        services.add_material(
+            teacher,
+            type=MaterialType.FILE,
+            title="N",
+            lesson_id=lesson.id,
+            file_key=f"material/{other_teacher.id}/x/n.pdf",
+        )
+    # …owner uploads in their own namespace.
+    key = f"material/{teacher.id}/abc/notes.pdf"
+    mat = services.add_material(
+        teacher, type=MaterialType.FILE, title="Notes", lesson_id=lesson.id, file_key=key
+    )
+    assert mat.file_key == key
+
+    # Download authz (enrollment-controlled): owner + enrolled get a presigned URL…
+    assert services.material_file_url(teacher, mat).startswith("http")
+    assert services.material_file_url(enrolled, mat).startswith("http")
+    # …a non-enrolled authed user is denied (even though the course is free)…
+    with pytest.raises(PermissionDenied):
+        services.material_file_url(outsider, mat)
+    # …and anonymous is denied.
+    with pytest.raises(PermissionDenied):
+        services.material_file_url(None, mat)

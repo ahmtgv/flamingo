@@ -17,7 +17,7 @@ from strawberry.scalars import JSON
 from apps.accounts.graphql.types import StudentProfileType, TeacherProfileType
 from apps.courses import models, services
 from apps.institutions.graphql.types import Institution as InstitutionType
-from common.auth import get_current_user
+from common.auth import get_current_user, require_user
 from common.enums import (
     CourseLevel,
     CourseStatus,
@@ -54,9 +54,12 @@ class Material:
         return MaterialType(self.type)
 
     @strawberry_django.field
-    def file_url(self) -> str | None:
-        # Presigned GET arrives with the files module; expose the key path for now.
-        return f"/files/{self.file_key}" if self.file_key else None
+    def file_url(self, info: strawberry.Info) -> str | None:
+        # FILE materials only; presigned GET authorized via can_access_course (enrolled +
+        # owner). No file → None (no auth gate for TEXT/LINK materials).
+        if not self.file_key:
+            return None
+        return services.material_file_url(require_user(info), self)
 
 
 @strawberry_django.type(models.Lesson)

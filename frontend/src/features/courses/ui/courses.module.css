@@ -289,6 +289,34 @@
   min-width: 160px;
   margin-bottom: 0;
 }
+/* FILE material upload (the file input is hidden; the label is the button). */
+.fileLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border: 1px dashed var(--color-border-strong);
+  border-radius: var(--radius-control);
+  font-size: var(--text-small);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+}
+.fileLabel:hover {
+  background: var(--color-surface-hover);
+}
+.fileLabel:focus-within {
+  box-shadow: var(--focus-ring);
+}
+.fileInput {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
 .formError {
   display: flex;
   gap: var(--space-2);
