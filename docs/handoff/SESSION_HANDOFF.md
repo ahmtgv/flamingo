@@ -1,6 +1,6 @@
 # Flamingo — Session Handoff
 
-**Date:** 2026-06-17 · **Branch:** `main` · **Code HEAD:** `b9a3635` — *files/S3 COMPLETE (a–d): storage core, homework FILE, FILE materials, avatars (+ course-access chokepoint fix)*. This `docs(handoff)` commit sits on top as the latest commit on `main` (92 commits; run `git rev-parse HEAD` for its exact hash). Working tree clean.
+**Date:** 2026-06-17 · **Branch:** `main` · **Code HEAD:** `0cd20e6` — *deep CMF sub-slice 1 (gaze-primary engagement + EAR/head/alertness metrics + 2.5s cadence; FE-only)*. Files/S3 complete (a–d) just before it. This `docs(handoff)` commit sits on top as the latest commit on `main` (95 commits; run `git rev-parse HEAD` for its exact hash). Working tree clean.
 This doc lets a fresh session resume cleanly. It references files by path — read those, don't rely on this doc alone.
 
 ---
@@ -77,6 +77,23 @@ the cross-cutting modules (§5 items 2–3). The hard ≤5 server cap and record
   `VerificationDocument.fileUrl`, `Course.coverUrl`, `Institution.logoUrl`. **Browser-upload verification
   is DEFERRED** — see the Deferred-verification checklist in §5.
 
+🔬 **Deep CMF — sub-slice 1 DONE & green (`0cd20e6`; FE-only, no SDL/UI/payload change):** richer
+on-device worker metrics + a **gaze-primary engagement** score. New `seedum/cmfConfig.ts` holds
+**all** tunable thresholds (15° head tolerance, EAR closed/open, gaze on-screen span, alertness
+blink window/rates, EMA, cadence) — **PROVISIONAL first guesses, to tune on a real camera**.
+`seedum/metrics.ts` (pure, unit-tested): `gazeOnScreen` (8 gaze blendshapes → on-screen confidence),
+`eyeOpennessEAR` (Eye Aspect Ratio + blink fallback), `headEuler` (yaw/pitch), `ema`,
+`AlertnessTracker` (alert-vs-drowsy). `score.ts` `engagementScore` (replaces `scoreAttention`):
+PRIMARY = gaze; head tilt alone NOT penalized (only beyond tolerance AND gaze off-screen);
+saccades stay attentive; eyes-closed lowers it. **Cadence `BUCKET_MS` 10s → 2.5s** for a near-live
+teacher view. **PRIVACY ABSOLUTE — confirmed:** sub-metrics are computed but **NOT emitted** this
+slice; the worker still posts only the engagement score (on-device) + per-bucket aggregate; egress
+payload **unchanged** (`{sessionId, bucketStart, avgAttention}`). **NEXT (sub-slice 2, awaits go-ahead):**
+hand-add the sub-metric scalars to `AttentionInput`/`AttentionMetric` (live-only, no migration) +
+backend pass-through + FE ops/codegen + diff; then student/teacher UI breakdown (sub-slices 3–4).
+Sub-slice 2 also **updates CLAUDE.md §2** to enumerate the richer aggregate (keep the invariant
+verbatim-strong; live-only).
+
 **Slice 3.1 — connection lifecycle (`404fc6f`):** `useLiveKitRoom` now exposes one explicit
 `connectionState` (idle/connecting/connected/reconnecting/reconnected/disconnected/failed) off
 `RoomEvent.Reconnecting/Reconnected/Disconnected` (livekit-client 2.19.2) + a pure
@@ -125,7 +142,7 @@ StrictMode reconnect churn (`c9334d3`). See §3 + memory [[seedum-mediapipe-work
 
 **Both gates green** (verified this session): backend **83 pytest** on Postgres + **ruff** + **black**
 clean, 0 unapplied migrations, `makemigrations --check` clean; frontend **`npm run build` + `lint` +
-76 vitest**. Tree clean (all committed).
+91 vitest**. Tree clean (all committed).
 
 **LiveKit config (real creds are file-based, never committed):** `backend/.env` holds
 `LIVEKIT_URL`/`LIVEKIT_API_KEY`/`LIVEKIT_API_SECRET` (loaded via python-dotenv, `4c97997`);
@@ -335,7 +352,7 @@ cd backend && export POSTGRES_HOST=localhost POSTGRES_USER=flamingo POSTGRES_PAS
 .venv/bin/python manage.py migrate && .venv/bin/python -m pytest        # expect 83 passed
 .venv/bin/uvicorn config.asgi:application --port 8000 --reload
 # new shell: cd frontend && npm run dev   (proxies /graphql -> :8000 incl. WS upgrade; preview via .claude/launch.json)
-# frontend gates: npm run build && npm run lint && npm test   (expect 76 vitest)
+# frontend gates: npm run build && npm run lint && npm test   (expect 91 vitest)
 # seedum assets are committed under frontend/public/seedum/; re-vendor only if missing: npm run vendor:seedum
 # files/S3 (presigned uploads): for a REAL upload, run native MinIO (no Docker):
 #   MINIO_ROOT_USER=flamingo MINIO_ROOT_PASSWORD=flamingo-secret minio server ~/.flamingo-minio \
@@ -358,5 +375,5 @@ synthetic preview browser blocks the camera + `getDisplayMedia` — the items in
 **Exact first prompt for the next session:**
 > Resume the Flamingo build.
 > 1. **Read first:** `CLAUDE.md` and `docs/handoff/SESSION_HANDOFF.md` §0 (current state) + §5 (next tasks); then `docs/flamingo_erd.md` / `docs/flamingo_schema.graphql` / `docs/flamingo_architecture.md` as needed.
-> 2. **Bring up the dev stack** per §9 (Postgres with `LC_ALL`, backend `uvicorn … --reload` on :8000, frontend `npm run dev` on :5173) and confirm green: backend `pytest` (expect **83 passed**) + `ruff`/`black`; frontend `npm run build`/`lint`/`test` (expect **76 vitest**).
+> 2. **Bring up the dev stack** per §9 (Postgres with `LC_ALL`, backend `uvicorn … --reload` on :8000, frontend `npm run dev` on :5173) and confirm green: backend `pytest` (expect **83 passed**) + `ruff`/`black`; frontend `npm run build`/`lint`/`test` (expect **91 vitest**).
 > 3. **LiveKit video room: slices 1, 2 & 3 COMPLETE & green** (3.1 `404fc6f`, harden `dcda4af`, 3.2 `47d9e60`, 3.3 `3d4fea2`, 3.4 `4af95f3`; §0/§5 item 1). **The next action is the COMBINED owner real-camera/real-network pass** (§5 item 1, items a–g: screen-share native/remote stop, multi-window grid ≤5, cross-window share, network-drop→reconnect with CMF continuing, permission/device errors + Retry, screen-reader/keyboard/reduced-motion, live remote mute/camera-off) — nothing media/SR/network is mock-verified. **After that pass**, pick from §5: **files/S3 is COMPLETE (a–d)** — its only open item is the deferred browser-upload/CORS verification (§5 "Deferred verification" A); then the **"prepare for real-user test"** milestone (item 2 — tunnel/deploy + real SMTP + registration flow) or the **other cross-cutting** modules (item 4 — certificates, engagement, notifications). Hard ≤5 cap server-side + recording stay **out of scope**. Keep CLAUDE.md invariants (CMF privacy, ru i18n, design tokens, thin resolvers, no SDL regen except the approved per-feature hand-adds, OSS-only); gates green; commit per concern.
