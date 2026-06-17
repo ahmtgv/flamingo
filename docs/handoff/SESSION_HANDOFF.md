@@ -272,7 +272,9 @@ Working tree is **clean** — nothing uncommitted. Partially-built *within* comm
 
 ### 🔬 Deferred verification checklist (TEST LATER — none of this is done; grouped)
 **A. Files / browser upload** (needs a real browser; dev MinIO likely OK, prod needs bucket CORS):
-- Browser upload path (`useUpload` → cross-origin PUT to S3) NOT browser-verified — confirm an in-browser PUT to MinIO succeeds with **NO CORS error**: homework (b), materials (c), avatars (d). Dev MinIO default CORS is usually `*`; confirm.
+- 🐞 **KNOWN BUG (browser pass, 2026-06-17): student homework file attach does not complete in-browser.** Selecting a file on the homework submit form doesn't finish the upload/submit. Investigate: cross-origin PUT **CORS** on dev MinIO (most likely — `useUpload` does a raw `fetch` PUT to `:9000`), vs FE wiring (the `useUpload`→`submitHomework` chain / Content-Type match), vs error surfaced silently. (Unit-tested green; only the real browser path is unverified.)
+- 🐞 **KNOWN BUG (browser pass, 2026-06-17): teacher can't attach presentation/material files in-browser.** The FILE-material upload (`MaterialForm` → `useUpload('MATERIAL')` → `addMaterial`) doesn't complete in-browser. Same suspects as above (CORS / FE wiring), plus confirm the **in-lesson-vs-homework scope** (materials are added on the course-detail/constructor screen, not the live lesson — verify that's the intended place and the only one).
+- Browser upload path (`useUpload` → cross-origin PUT to S3) NOT browser-verified — confirm an in-browser PUT to MinIO succeeds with **NO CORS error**: homework (b), materials (c), avatars (d). Dev MinIO default CORS is usually `*`; confirm. **(The two bugs above are concrete instances of this — fix dev-MinIO CORS first, it's the prime suspect.)**
 - **PROD (Yandex Object Storage):** the bucket CORS must allow the frontend origin — a deploy prerequisite for browser uploads in prod.
 - Real flows: homework student-upload→teacher-download; material teacher-upload→enrolled-download (non-enrolled denied); avatar upload→render.
 - Multi-user: several students upload, teacher downloads each; classmate-denied in the real flow (unit-tested already).
