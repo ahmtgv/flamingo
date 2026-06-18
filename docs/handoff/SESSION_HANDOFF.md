@@ -1,6 +1,6 @@
 # Flamingo — Session Handoff
 
-**Date:** 2026-06-18 · **Branch:** `main` · **Code HEAD:** `060ed89` — *deep CMF sub-slice 2 (CMF sub-metrics now leave the device as per-bucket aggregate scalars; live-only, no migration)*. Sub-slice 1 (`0cd20e6`) and Files/S3 (a–d) precede it. This `docs(handoff)` commit sits on top as the latest commit on `main` (97 commits; run `git rev-parse HEAD` for its exact hash). Working tree clean.
+**Date:** 2026-06-18 · **Branch:** `main` · **Code HEAD:** `e74e2bb` — *deep CMF sub-slices 3 + 4 (the live UI breakdowns: student self-view + teacher per-student strip; FE display-only)*. Slice 3 `600ea98`, slice 4 `b2b5a01`, align-fix `e74e2bb`; sub-slice 2 (`060ed89`), sub-slice 1 (`0cd20e6`) and Files/S3 (a–d) precede them. This `docs(handoff)` commit sits on top as the latest commit on `main` (101 commits; run `git rev-parse HEAD` for its exact hash). Working tree clean.
 This doc lets a fresh session resume cleanly. It references files by path — read those, don't rely on this doc alone.
 
 ---
@@ -116,9 +116,41 @@ sub-metrics now **leave the device, but ONLY as per-bucket aggregate scalars** a
   avgAttention, gazeOnScreen, eyeOpenness, headYaw, headPitch, alertness}`; sub-metrics noted **live-only**
   (server stores only `avgAttention`); the hard invariant kept **verbatim-strong + made more precise**
   ("no raw frames/audio/landmarks/per-frame features ever leave the device").
-- **No UI this slice** (per instruction). **NEXT (sub-slices 3–4, awaits go-ahead):** student-side UI
-  breakdown of the sub-metrics, then the teacher per-student UI breakdown. Awaiting the owner's review of
-  the new payload + §2 wording + SDL diff before any UI.
+- **No UI this slice** (per instruction). (UI shipped in sub-slices 3 + 4 below.)
+
+🔬 **Deep CMF — sub-slices 3 + 4 DONE & green (the UI breakdowns; FE display-only, no SDL/worker/
+backend/egress change):** the per-bucket sub-metrics from sub-slice 2 are now visualised live (2.5s).
+Design was chosen via a judge-panel workflow (spatial-glanceable structure + shared atoms); each slice
+passed an adversarial review (privacy / tokens / i18n / threshold-safety / a11y+correctness) with the
+only confirmed finding (a teacher column-alignment nit) fixed in `e74e2bb`.
+- **Shared atom `seedum/headTolerance.ts` (committed in slice 3):** the SINGLE source of the head
+  in/out-of-frame decision for the UI — tri-state `headState(yaw,pitch)`, mirrors the engine predicate
+  inverted, reads tolerances **only** from `cmfConfig` (retune = no UI edit), and returns `'unknown'` on
+  `null`/`undefined` so a missing reading is **never** a false "in frame" (`Math.abs(null) <= tol` trap).
+  `POSE_AXIS_MULTIPLE` is a layout-only zoom that can't move the boundary. Unit-tested.
+- **Sub-slice 3 — STUDENT (`600ea98`):** `seedum/ui/{Meter,HeadPoseBox,AttentionBreakdown}.tsx`. Beside
+  the existing engagement number + sparkline: gaze / eye-openness / alertness as single-accent token
+  meters (raw value, **no value-band tiers, no traffic-light color**) + a head-pose box (dot at (yaw,
+  −pitch); tolerance frame **drawn from cmfConfig**) with a neutral/accent (never alarm) Badge + signed
+  degrees + an encouraging, non-clinical hint. `StudentRoom` stashes the latest bucket in local state
+  inside the existing `onBucket` (before the unchanged report call; `breakdown` is NOT an effect dep, so
+  the worker is never torn down) and resets on leave. ru `seedum:breakdown.*`.
+- **Sub-slice 4 — TEACHER (`b2b5a01` + align fix `e74e2bb`):** `features/lesson/ui/StudentSubRow.tsx`
+  (+ `subMetrics.ts`). Each per-student card gains a compact strip — gaze % · alertness % · eyes-open % ·
+  head in/out — in **fixed token-width stat columns** so they align down the class across ≤5 cards; head
+  via the shared `headState`; the one salient mark is the accent-tone "out" Badge (calm coral, never
+  red/amber); `null` → «—»/«нет данных», never a false «в кадре». `TeacherRoom` keeps the latest
+  sub-metrics per `studentId` in a `subRef` from the (already-subscribed) `attentionUpdates` metric and
+  renders the strip under the existing name/value/sparkline; avgAttention cards / class-average / report
+  unchanged. ru `seedum:cell.*`. 480px 2×2 fallback.
+- **PRIVACY (confirmed by both reviews):** display-only — renders scalars already on the client; **no new
+  egress**, `reportAttention` + GraphQL ops + worker + backend untouched; sub-metrics stay live-only (not
+  persisted). Tokens-only CSS; no `aria-live` on the 2.5s values; reduced-motion via the duration tokens.
+- **Verified by vitest + adversarial review only.** The real-camera *look/feel* of the breakdown (and
+  threshold tuning) is the **OWNER REAL RUN** — see §5: **NEXT** is the real-camera tuning pass in
+  `seedum/cmfConfig.ts` (now that every sub-metric is visible), provisional thresholds → real values,
+  **no UI rebuild** (the UI reads config + raw values). Optional future: display-only hysteresis in
+  `headTolerance.ts` if the head badge flickers at the boundary.
 
 **Slice 3.1 — connection lifecycle (`404fc6f`):** `useLiveKitRoom` now exposes one explicit
 `connectionState` (idle/connecting/connected/reconnecting/reconnected/disconnected/failed) off
@@ -168,7 +200,7 @@ StrictMode reconnect churn (`c9334d3`). See §3 + memory [[seedum-mediapipe-work
 
 **Both gates green** (verified this session): backend **84 pytest** on Postgres + **ruff** + **black**
 clean, 0 unapplied migrations, `makemigrations --check` clean; frontend **`npm run build` + `lint` +
-91 vitest**. Tree clean (all committed).
+105 vitest**. Tree clean (all committed).
 
 **LiveKit config (real creds are file-based, never committed):** `backend/.env` holds
 `LIVEKIT_URL`/`LIVEKIT_API_KEY`/`LIVEKIT_API_SECRET` (loaded via python-dotenv, `4c97997`);
@@ -378,7 +410,7 @@ cd backend && export POSTGRES_HOST=localhost POSTGRES_USER=flamingo POSTGRES_PAS
 .venv/bin/python manage.py migrate && .venv/bin/python -m pytest        # expect 84 passed
 .venv/bin/uvicorn config.asgi:application --port 8000 --reload
 # new shell: cd frontend && npm run dev   (proxies /graphql -> :8000 incl. WS upgrade; preview via .claude/launch.json)
-# frontend gates: npm run build && npm run lint && npm test   (expect 91 vitest)
+# frontend gates: npm run build && npm run lint && npm test   (expect 105 vitest)
 # seedum assets are committed under frontend/public/seedum/; re-vendor only if missing: npm run vendor:seedum
 # files/S3 (presigned uploads): for a REAL upload, run native MinIO (no Docker):
 #   MINIO_ROOT_USER=flamingo MINIO_ROOT_PASSWORD=flamingo-secret minio server ~/.flamingo-minio \
@@ -401,5 +433,5 @@ synthetic preview browser blocks the camera + `getDisplayMedia` — the items in
 **Exact first prompt for the next session:**
 > Resume the Flamingo build.
 > 1. **Read first:** `CLAUDE.md` and `docs/handoff/SESSION_HANDOFF.md` §0 (current state) + §5 (next tasks); then `docs/flamingo_erd.md` / `docs/flamingo_schema.graphql` / `docs/flamingo_architecture.md` as needed.
-> 2. **Bring up the dev stack** per §9 (Postgres with `LC_ALL`, backend `uvicorn … --reload` on :8000, frontend `npm run dev` on :5173) and confirm green: backend `pytest` (expect **84 passed**) + `ruff`/`black`; frontend `npm run build`/`lint`/`test` (expect **91 vitest**).
+> 2. **Bring up the dev stack** per §9 (Postgres with `LC_ALL`, backend `uvicorn … --reload` on :8000, frontend `npm run dev` on :5173) and confirm green: backend `pytest` (expect **84 passed**) + `ruff`/`black`; frontend `npm run build`/`lint`/`test` (expect **105 vitest**).
 > 3. **LiveKit video room: slices 1, 2 & 3 COMPLETE & green** (3.1 `404fc6f`, harden `dcda4af`, 3.2 `47d9e60`, 3.3 `3d4fea2`, 3.4 `4af95f3`; §0/§5 item 1). **The next action is the COMBINED owner real-camera/real-network pass** (§5 item 1, items a–g: screen-share native/remote stop, multi-window grid ≤5, cross-window share, network-drop→reconnect with CMF continuing, permission/device errors + Retry, screen-reader/keyboard/reduced-motion, live remote mute/camera-off) — nothing media/SR/network is mock-verified. **After that pass**, pick from §5: **files/S3 is COMPLETE (a–d)** — its only open item is the deferred browser-upload/CORS verification (§5 "Deferred verification" A); then the **"prepare for real-user test"** milestone (item 2 — tunnel/deploy + real SMTP + registration flow) or the **other cross-cutting** modules (item 4 — certificates, engagement, notifications). Hard ≤5 cap server-side + recording stay **out of scope**. Keep CLAUDE.md invariants (CMF privacy, ru i18n, design tokens, thin resolvers, no SDL regen except the approved per-feature hand-adds, OSS-only); gates green; commit per concern.
