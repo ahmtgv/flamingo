@@ -6,6 +6,18 @@
       "runtimeExecutable": "npm",
       "runtimeArgs": ["--prefix", "frontend", "run", "dev"],
       "port": 5173
+    },
+    {
+      "name": "ertc",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": ["-lc", "cd /Users/piu/Downloads/ertc-landing && npm run dev -- --port 4311"],
+      "port": 4311
+    },
+    {
+      "name": "ertc-prod",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": ["-lc", "cd /Users/piu/Downloads/ertc-landing && npm run start -- --port 4312"],
+      "port": 4312
     }
   ]
 }
