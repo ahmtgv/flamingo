@@ -10,7 +10,8 @@ import {
   useSessionAttendeesQuery,
   useSessionRoomQuery,
 } from '@/entities/graphql/generated';
-import { AttentionChart, PrivacyIndicator, startAttentionPipeline } from '@/seedum';
+import { AttentionBreakdown, AttentionChart, PrivacyIndicator, startAttentionPipeline } from '@/seedum';
+import type { BucketAggregate } from '@/seedum';
 import { loadUbp } from '@/seedum/ubp';
 import { LIVEKIT_URL } from '@/shared/lib/env';
 import { Button, Logo } from '@/shared/ui';
@@ -147,6 +148,9 @@ function StudentRoom({ sessionId, roomToken, isLive }: RoomProps) {
   const pipelineRef = useRef<{ stop: () => void } | null>(null);
   const [cmfStatus, setCmfStatus] = useState<'starting' | 'running' | 'unavailable'>('starting');
   const [scores, setScores] = useState<number[]>([]);
+  // Latest per-bucket aggregate (~2.5s) for the live sub-metric breakdown — same on-device
+  // data already sent via reportAttention; kept here for display only.
+  const [breakdown, setBreakdown] = useState<BucketAggregate | null>(null);
 
   const lk = useLiveKitRoom({ url: LIVEKIT_URL, token: roomToken, stream, active: joined });
 
@@ -164,6 +168,7 @@ function StudentRoom({ sessionId, roomToken, isLive }: RoomProps) {
         onUnavailable: () => setCmfStatus('unavailable'),
         onScore: (v) => setScores((prev) => [...prev.slice(-59), v]),
         onBucket: (bucketStartMs, bucket) => {
+          setBreakdown(bucket); // drive the live on-device sub-metric breakdown (display only)
           // worker buckets in performance-clock ms → map to wall-clock for the server.
           // Per-bucket AGGREGATE scalars only (sub-metrics live-only server-side); no raw data.
           const bucketStart = new Date(performance.timeOrigin + bucketStartMs).toISOString();
@@ -204,6 +209,7 @@ function StudentRoom({ sessionId, roomToken, isLive }: RoomProps) {
     setJoined(false);
     setCmfStatus('starting');
     setScores([]);
+    setBreakdown(null);
   }, [lk, release]);
 
   const current = scores.length ? scores[scores.length - 1] : 0;
@@ -257,6 +263,7 @@ function StudentRoom({ sessionId, roomToken, isLive }: RoomProps) {
               <span className={styles.metricLabel}>{t('room.yourAttention')}</span>
               <span className={styles.metricValue}>{cmfStatus === 'running' ? current : '—'}</span>
               {cmfStatus === 'running' && <AttentionChart values={scores} />}
+              {cmfStatus === 'running' && breakdown && <AttentionBreakdown bucket={breakdown} />}
               {cmfStatus === 'unavailable' && <p className={styles.note}>{t('room.unavailable')}</p>}
             </div>
             <p className={styles.privacyFootnote}>

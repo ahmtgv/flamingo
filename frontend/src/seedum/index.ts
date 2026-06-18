@@ -1,10 +1,13 @@
 export { startAttentionPipeline } from './attention';
-export type { PipelineCallbacks, PipelineHandle } from './attention';
+export type { BucketAggregate, PipelineCallbacks, PipelineHandle } from './attention';
 export { average, BUCKET_MS, Bucketer, bucketStartFor } from './bucketing';
 export { Calibration, CALIBRATION_STAGES } from './calibration';
 export type { CalibrationResult, CalibrationStage } from './calibration';
+export { headState } from './headTolerance';
+export type { HeadState } from './headTolerance';
 export { engagementScore } from './score';
 export type { AttentionSignals, Baseline } from './score';
 export * as ubp from './ubp';
+export { AttentionBreakdown } from './ui/AttentionBreakdown';
 export { AttentionChart } from './ui/AttentionChart';
 export { PrivacyIndicator } from './ui/PrivacyIndicator';
