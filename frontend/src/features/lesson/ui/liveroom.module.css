@@ -188,10 +188,12 @@
   color: var(--color-accent);
 }
 /* Per-student sub-metric strip: invariant column order (gaze · alertness · eyes · head) so
-   the teacher scans the same column straight down across all (<=5) cards. Display-only. */
+   the teacher scans the same column straight down across all (<=5) cards. Display-only.
+   The three stat columns are a FIXED token width (content-independent) so they line up across
+   cards regardless of the head badge text; the head badge takes the remainder, anchored right. */
 .subRow {
   display: grid;
-  grid-template-columns: repeat(3, 1fr) auto;
+  grid-template-columns: repeat(3, var(--space-10)) 1fr;
   gap: var(--space-3);
   align-items: center;
   margin-top: var(--space-2);
