@@ -232,6 +232,11 @@ describe('LiveRoomScreen', () => {
     expect(await screen.findByText('Внимание учеников')).toBeInTheDocument();
     expect(await screen.findByText('Иван Петров')).toBeInTheDocument();
     expect(screen.getAllByText('80').length).toBeGreaterThan(0);
+    // Sub-slice 4: the per-student strip shows gaze / alertness / eyes + head state, near-live.
+    expect(await screen.findByText('88%')).toBeInTheDocument(); // gaze
+    expect(screen.getByText('82%')).toBeInTheDocument(); // alertness
+    expect(screen.getByText('95%')).toBeInTheDocument(); // eyes-open
+    expect(screen.getByText('в кадре')).toBeInTheDocument(); // head within cmfConfig tolerance
     // Class average is demoted to a small secondary line.
     expect(screen.getByText(/Среднее по классу/)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Отчёт/ })).toBeInTheDocument();

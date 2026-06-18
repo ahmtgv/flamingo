@@ -21,6 +21,8 @@ import { type CameraErrorKind, classifyMediaError } from '../mediaError';
 
 import { useLiveKitRoom } from '../livekit/useLiveKitRoom';
 import styles from './liveroom.module.css';
+import { StudentSubRow } from './StudentSubRow';
+import { EMPTY_SUB, type StudentSubMetrics } from './subMetrics';
 import { VideoRoom } from './VideoRoom';
 
 /** Shared chrome. The CMF on-device privacy indicator stays (it is still true — see
@@ -303,11 +305,13 @@ function TeacherRoom({ sessionId, roomToken, isLive }: RoomProps) {
   // Per-student live state: latest value + a capped sparkline series, keyed by studentId.
   const latestRef = useRef<Record<string, number>>({});
   const seriesRef = useRef<Record<string, number[]>>({});
+  // Latest sub-metrics per student (gaze/eyes/alert/head) — display-only, never persisted.
+  const subRef = useRef<Record<string, StudentSubMetrics>>({});
   // Real (non-zero) class aggregates received this session — the post-session report summary
   // is computed from THESE only, never from between-bucket gaps / zero (no-reading) buckets.
   const receivedRef = useRef<number[]>([]);
   const [view, setView] = useState<{
-    students: Array<{ id: string; value: number; series: number[] }>;
+    students: Array<{ id: string; value: number; series: number[]; sub: StudentSubMetrics }>;
     classAvg: number;
   }>({ students: [], classAvg: 0 });
   const [showReport, setShowReport] = useState(false);
@@ -323,10 +327,22 @@ function TeacherRoom({ sessionId, roomToken, isLive }: RoomProps) {
         ...seriesRef.current,
         [id]: pushSeries(seriesRef.current[id] ?? [], metric.avgAttention),
       };
+      // Sub-metrics are live-only (broadcast, not persisted) — kept client-side for the strip.
+      subRef.current = {
+        ...subRef.current,
+        [id]: {
+          gaze: metric.gazeOnScreen ?? null,
+          eyes: metric.eyeOpenness ?? null,
+          alert: metric.alertness ?? null,
+          yaw: metric.headYaw ?? null,
+          pitch: metric.headPitch ?? null,
+        },
+      };
       const students = Object.keys(latestRef.current).map((sid) => ({
         id: sid,
         value: latestRef.current[sid],
         series: seriesRef.current[sid] ?? [],
+        sub: subRef.current[sid] ?? EMPTY_SUB,
       }));
       const avg = classAverage(students.map((s) => s.value));
       if (avg > 0) receivedRef.current.push(avg); // stats from real buckets only
@@ -407,6 +423,7 @@ function TeacherRoom({ sessionId, roomToken, isLive }: RoomProps) {
                   <span className={styles.studentValue}>{s.value}</span>
                 </div>
                 <AttentionChart values={s.series} />
+                <StudentSubRow m={s.sub} />
               </li>
             ))}
           </ul>
