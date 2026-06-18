@@ -67,7 +67,17 @@ ctx.onmessage = async (e: MessageEvent<InMsg>) => {
     alertness = new AlertnessTracker();
     emaScore = -1;
     bucketer = new Bucketer((bucketStart, avg) =>
-      ctx.postMessage({ type: 'bucket', bucketStart, avgAttention: avg }),
+      ctx.postMessage({
+        type: 'bucket',
+        bucketStart,
+        // Per-bucket AGGREGATES only — never per-frame, never raw. Sub-metrics ride alongside.
+        avgAttention: avg.engagement,
+        gazeOnScreen: avg.gazeOnScreen,
+        eyeOpenness: avg.eyeOpenness,
+        headYaw: avg.headYaw,
+        headPitch: avg.headPitch,
+        alertness: avg.alertness,
+      }),
     );
     try {
       // WASM runtime + model are vendored under /seedum/ (see scripts/vendor-seedum-assets.mjs);
@@ -97,10 +107,19 @@ ctx.onmessage = async (e: MessageEvent<InMsg>) => {
     }
     const result = landmarker.detectForVideo(msg.bitmap, msg.ts);
     msg.bitmap.close(); // discard the frame immediately — never stored or sent
-    const raw = engagementScore(extractSignals(result, msg.ts), baseline);
+    const signals = extractSignals(result, msg.ts);
+    const raw = engagementScore(signals, baseline);
     emaScore = emaScore < 0 ? raw : Math.round(ema(emaScore, raw));
-    ctx.postMessage({ type: 'score', value: emaScore });
-    bucketer.add(msg.ts, emaScore);
+    ctx.postMessage({ type: 'score', value: emaScore }); // per-frame, stays on device (local chart)
+    // Per-frame sub-metric SAMPLES feed the bucket; only the per-bucket AVERAGE is emitted/leaves.
+    bucketer.add(msg.ts, {
+      engagement: emaScore,
+      gazeOnScreen: Math.round(signals.gazeOnScreen * 100),
+      eyeOpenness: Math.round(signals.eyeOpenness * 100),
+      headYaw: Math.round(signals.headYaw),
+      headPitch: Math.round(signals.headPitch),
+      alertness: Math.round(signals.alertness * 100),
+    });
     return;
   }
 

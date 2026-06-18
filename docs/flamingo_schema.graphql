@@ -306,7 +306,14 @@ type AttentionMetric {
   sessionId: ID!
   studentId: ID!
   bucketStart: DateTime!
-  avgAttention: Int!           # 0..100
+  avgAttention: Int!           # 0..100 (engagement composite; persisted)
+  # Per-bucket aggregate sub-metrics — LIVE-ONLY (broadcast for the realtime teacher view,
+  # NOT persisted; the DB stores only avgAttention). Aggregate scalars, never raw/frames.
+  gazeOnScreen: Int            # 0..100 (% on-screen)
+  eyeOpenness: Int             # 0..100
+  headYaw: Int                 # degrees (signed)
+  headPitch: Int               # degrees (signed)
+  alertness: Int               # 0..100 (alert vs drowsy)
 }
 
 type AttentionPoint { at: DateTime! value: Int! }
@@ -540,7 +547,7 @@ input InviteInput { institutionId: ID! email: String! role: MembershipRole! grou
 input InstitutionInput { name: String! address: String website: String subdomain: String logoKey: String defaultLocale: String = "ru" }
 input GroupInput { institutionId: ID! name: String! level: String }
 
-input AttentionInput { sessionId: ID! bucketStart: DateTime! avgAttention: Int! }
+input AttentionInput { sessionId: ID! bucketStart: DateTime! avgAttention: Int! gazeOnScreen: Int eyeOpenness: Int headYaw: Int headPitch: Int alertness: Int }   # sub-metrics: per-bucket aggregate scalars, live-only (not persisted)
 input UbpBackupInput { encryptedBlob: String! keyHint: String }
 input NotificationPreferenceInput { eventType: NotificationType! channel: NotificationChannel! enabled: Boolean! childId: ID }
 

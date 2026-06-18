@@ -59,6 +59,11 @@ async def stream_attention(ws, session_id) -> AsyncGenerator[AttentionMetric, No
                 student_id=message["student_id"],
                 bucket_start=dt.datetime.fromisoformat(message["bucket_start"]),
                 avg_attention=message["avg_attention"],
+                gaze_on_screen=message.get("gaze_on_screen"),
+                eye_openness=message.get("eye_openness"),
+                head_yaw=message.get("head_yaw"),
+                head_pitch=message.get("head_pitch"),
+                alertness=message.get("alertness"),
             )
 
 

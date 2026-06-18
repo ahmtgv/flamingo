@@ -1,8 +1,10 @@
 """Privacy invariant (CLAUDE.md §2/§7, 152-FZ): the server never accepts raw media.
 
-These tests fail loudly if anyone ever adds a video/audio/frame/landmark field or
-widens AttentionInput beyond the aggregate. This is an architecture guarantee, not
-a style check.
+These tests fail loudly if anyone ever adds a video/audio/frame/landmark field or widens
+AttentionInput beyond per-bucket AGGREGATE scalars. The allowlist below is exact on purpose: a
+NEW field must be a deliberate aggregate addition here (the sub-metrics gazeOnScreen/eyeOpenness/
+headYaw/headPitch/alertness are per-bucket aggregates, never raw/per-frame). Architecture
+guarantee, not a style check.
 """
 
 import re
@@ -15,7 +17,16 @@ SDL = schema.as_str()
 def test_attention_input_is_aggregate_only():
     block = re.search(r"input AttentionInput \{([^}]*)\}", SDL, re.S).group(1)
     fields = set(re.findall(r"(\w+)\s*:", block))
-    assert fields == {"sessionId", "bucketStart", "avgAttention"}, fields
+    assert fields == {
+        "sessionId",
+        "bucketStart",
+        "avgAttention",
+        "gazeOnScreen",  # per-bucket aggregate sub-metrics (live-only) — NOT raw/per-frame
+        "eyeOpenness",
+        "headYaw",
+        "headPitch",
+        "alertness",
+    }, fields
 
 
 def test_no_raw_media_anywhere_in_schema():

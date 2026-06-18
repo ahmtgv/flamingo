@@ -19,7 +19,13 @@ class AttentionMetric:
     session_id: strawberry.ID
     student_id: strawberry.ID
     bucket_start: dt.datetime
-    avg_attention: int
+    avg_attention: int  # engagement composite (persisted)
+    # Per-bucket aggregate sub-metrics — LIVE-ONLY (built from the channel payload; not persisted).
+    gaze_on_screen: int | None = None
+    eye_openness: int | None = None
+    head_yaw: int | None = None
+    head_pitch: int | None = None
+    alertness: int | None = None
 
 
 @strawberry.type

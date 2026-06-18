@@ -163,11 +163,23 @@ function StudentRoom({ sessionId, roomToken, isLive }: RoomProps) {
         onReady: () => setCmfStatus('running'),
         onUnavailable: () => setCmfStatus('unavailable'),
         onScore: (v) => setScores((prev) => [...prev.slice(-59), v]),
-        onBucket: (bucketStartMs, avgAttention) => {
-          // worker buckets in performance-clock ms → map to wall-clock for the server
+        onBucket: (bucketStartMs, bucket) => {
+          // worker buckets in performance-clock ms → map to wall-clock for the server.
+          // Per-bucket AGGREGATE scalars only (sub-metrics live-only server-side); no raw data.
           const bucketStart = new Date(performance.timeOrigin + bucketStartMs).toISOString();
           void reportRef.current({
-            variables: { input: { sessionId, bucketStart, avgAttention } },
+            variables: {
+              input: {
+                sessionId,
+                bucketStart,
+                avgAttention: bucket.avgAttention,
+                gazeOnScreen: bucket.gazeOnScreen,
+                eyeOpenness: bucket.eyeOpenness,
+                headYaw: bucket.headYaw,
+                headPitch: bucket.headPitch,
+                alertness: bucket.alertness,
+              },
+            },
           }).catch(() => undefined);
         },
       });

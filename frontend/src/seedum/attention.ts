@@ -6,8 +6,18 @@
 import { CMF } from './cmfConfig';
 import type { Baseline } from './score';
 
+/** Per-bucket aggregate (the only thing that leaves the device, via reportAttention). */
+export interface BucketAggregate {
+  avgAttention: number;
+  gazeOnScreen: number;
+  eyeOpenness: number;
+  headYaw: number;
+  headPitch: number;
+  alertness: number;
+}
+
 export interface PipelineCallbacks {
-  onBucket: (bucketStartMs: number, avgAttention: number) => void;
+  onBucket: (bucketStartMs: number, bucket: BucketAggregate) => void;
   onScore?: (score: number) => void;
   onReady?: () => void;
   onUnavailable?: (reason: string) => void;
@@ -46,7 +56,14 @@ export function startAttentionPipeline(
     } else if (m.type === 'score') {
       cb.onScore?.(m.value);
     } else if (m.type === 'bucket') {
-      cb.onBucket(m.bucketStart, m.avgAttention);
+      cb.onBucket(m.bucketStart, {
+        avgAttention: m.avgAttention,
+        gazeOnScreen: m.gazeOnScreen,
+        eyeOpenness: m.eyeOpenness,
+        headYaw: m.headYaw,
+        headPitch: m.headPitch,
+        alertness: m.alertness,
+      });
     }
   };
 

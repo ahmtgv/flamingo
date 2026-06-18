@@ -72,7 +72,18 @@ def _assert_can_view_student(user, student_user_id) -> None:
 
 # --- attention --------------------------------------------------------------
 @transaction.atomic
-def record_attention(user, *, session_id, bucket_start, avg_attention) -> bool:
+def record_attention(
+    user,
+    *,
+    session_id,
+    bucket_start,
+    avg_attention,
+    gaze_on_screen=None,
+    eye_openness=None,
+    head_yaw=None,
+    head_pitch=None,
+    alertness=None,
+) -> bool:
     profile = _student_profile(user)  # studentId == the auth user, never from input
     session = _get_session(session_id)
     value = max(0, min(100, int(avg_attention)))
@@ -80,15 +91,32 @@ def record_attention(user, *, session_id, bucket_start, avg_attention) -> bool:
         lesson_session=session,
         student=profile,
         bucket_start=bucket_start,
-        defaults={"avg_attention": value},
+        defaults={"avg_attention": value},  # ONLY the composite is persisted (no migration)
     )
-    _publish_attention(metric)
+    # Sub-metrics are LIVE-ONLY: broadcast for the realtime teacher view, never stored.
+    _publish_attention(
+        metric,
+        gaze_on_screen=gaze_on_screen,
+        eye_openness=eye_openness,
+        head_yaw=head_yaw,
+        head_pitch=head_pitch,
+        alertness=alertness,
+    )
     return True
 
 
-def _publish_attention(metric: AttentionMetric) -> None:
-    """Broadcast the aggregate to the session's live channel group (teachers watch
-    via attentionUpdates). Payload is an aggregate — never video."""
+def _publish_attention(
+    metric: AttentionMetric,
+    *,
+    gaze_on_screen=None,
+    eye_openness=None,
+    head_yaw=None,
+    head_pitch=None,
+    alertness=None,
+) -> None:
+    """Broadcast the per-bucket aggregate to the session's live channel group (teachers watch
+    via attentionUpdates). Aggregate scalars only — never frames/landmarks. The sub-metrics ride
+    the broadcast for the realtime view but are NOT persisted (live-only)."""
     layer = get_channel_layer()
     if layer is None:
         return
@@ -101,6 +129,11 @@ def _publish_attention(metric: AttentionMetric) -> None:
             "student_id": str(metric.student_id),
             "bucket_start": metric.bucket_start.isoformat(),
             "avg_attention": metric.avg_attention,
+            "gaze_on_screen": gaze_on_screen,
+            "eye_openness": eye_openness,
+            "head_yaw": head_yaw,
+            "head_pitch": head_pitch,
+            "alertness": alertness,
         },
     )
 

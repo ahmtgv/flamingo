@@ -14,11 +14,17 @@ from .types import Recommendation, UbpBackup
 
 @strawberry.input
 class AttentionInput:
-    # Aggregate ONLY — no frames/landmarks/raw signals ever (CLAUDE.md §2/§7).
-    # studentId is intentionally absent: it is derived from the authenticated user.
+    # Per-bucket AGGREGATE scalars ONLY — no frames/landmarks/per-frame signals ever
+    # (CLAUDE.md §2/§7). studentId is intentionally absent: derived from the authenticated user.
     session_id: strawberry.ID
     bucket_start: dt.datetime
     avg_attention: int
+    # Sub-metrics: per-bucket aggregates, LIVE-ONLY (broadcast, never persisted). Optional.
+    gaze_on_screen: int | None = None
+    eye_openness: int | None = None
+    head_yaw: int | None = None
+    head_pitch: int | None = None
+    alertness: int | None = None
 
 
 @strawberry.input
@@ -36,6 +42,11 @@ class SeedumMutation:
             session_id=input.session_id,
             bucket_start=input.bucket_start,
             avg_attention=input.avg_attention,
+            gaze_on_screen=input.gaze_on_screen,
+            eye_openness=input.eye_openness,
+            head_yaw=input.head_yaw,
+            head_pitch=input.head_pitch,
+            alertness=input.alertness,
         )
 
     @strawberry.mutation

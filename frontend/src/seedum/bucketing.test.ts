@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { average, BUCKET_MS, Bucketer, bucketStartFor } from './bucketing';
+import { average, BUCKET_MS, Bucketer, bucketStartFor, type Sample } from './bucketing';
 
 describe('bucketing', () => {
   it('averages and rounds', () => {
@@ -15,17 +15,17 @@ describe('bucketing', () => {
     expect(bucketStartFor(BUCKET_MS + 5)).toBe(BUCKET_MS);
   });
 
-  it('emits one aggregate per closed bucket (raw scores never escape)', () => {
-    const out: Array<[number, number]> = [];
+  it('emits one aggregate RECORD per closed bucket (per-key averages; raw samples never escape)', () => {
+    const out: Array<[number, Sample]> = [];
     const b = new Bucketer((start, avg) => out.push([start, avg]));
-    b.add(0, 80);
-    b.add(1000, 60); // bucket 0
-    b.add(BUCKET_MS + 100, 40); // bucket 1 opens -> bucket 0 flushes (avg 70)
-    expect(out).toEqual([[0, 70]]);
+    b.add(0, { engagement: 80, gazeOnScreen: 90 });
+    b.add(1000, { engagement: 60, gazeOnScreen: 70 }); // bucket 0
+    b.add(BUCKET_MS + 100, { engagement: 40, gazeOnScreen: 50 }); // bucket 1 → bucket 0 flushes
+    expect(out).toEqual([[0, { engagement: 70, gazeOnScreen: 80 }]]);
     b.flush(); // close the in-progress bucket
     expect(out).toEqual([
-      [0, 70],
-      [BUCKET_MS, 40],
+      [0, { engagement: 70, gazeOnScreen: 80 }],
+      [BUCKET_MS, { engagement: 40, gazeOnScreen: 50 }],
     ]);
   });
 });

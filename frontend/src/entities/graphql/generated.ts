@@ -81,15 +81,25 @@ export type AttentionAnalytics = {
 };
 
 export type AttentionInput = {
+  alertness?: InputMaybe<Scalars['Int']['input']>;
   avgAttention: Scalars['Int']['input'];
   bucketStart: Scalars['DateTime']['input'];
+  eyeOpenness?: InputMaybe<Scalars['Int']['input']>;
+  gazeOnScreen?: InputMaybe<Scalars['Int']['input']>;
+  headPitch?: InputMaybe<Scalars['Int']['input']>;
+  headYaw?: InputMaybe<Scalars['Int']['input']>;
   sessionId: Scalars['ID']['input'];
 };
 
 export type AttentionMetric = {
   __typename?: 'AttentionMetric';
+  alertness?: Maybe<Scalars['Int']['output']>;
   avgAttention: Scalars['Int']['output'];
   bucketStart: Scalars['DateTime']['output'];
+  eyeOpenness?: Maybe<Scalars['Int']['output']>;
+  gazeOnScreen?: Maybe<Scalars['Int']['output']>;
+  headPitch?: Maybe<Scalars['Int']['output']>;
+  headYaw?: Maybe<Scalars['Int']['output']>;
   id: Scalars['ID']['output'];
   sessionId: Scalars['ID']['output'];
   studentId: Scalars['ID']['output'];
@@ -1757,7 +1767,7 @@ export type AttentionUpdatesSubscriptionVariables = Exact<{
 }>;
 
 
-export type AttentionUpdatesSubscription = { __typename?: 'Subscription', attentionUpdates: { __typename?: 'AttentionMetric', id: string, sessionId: string, studentId: string, bucketStart: string, avgAttention: number } };
+export type AttentionUpdatesSubscription = { __typename?: 'Subscription', attentionUpdates: { __typename?: 'AttentionMetric', id: string, sessionId: string, studentId: string, bucketStart: string, avgAttention: number, gazeOnScreen?: number | null, eyeOpenness?: number | null, headYaw?: number | null, headPitch?: number | null, alertness?: number | null } };
 
 export type SessionAttentionQueryVariables = Exact<{
   sessionId: Scalars['ID']['input'];
@@ -3782,6 +3792,11 @@ export const AttentionUpdatesDocument = gql`
     studentId
     bucketStart
     avgAttention
+    gazeOnScreen
+    eyeOpenness
+    headYaw
+    headPitch
+    alertness
   }
 }
     `;

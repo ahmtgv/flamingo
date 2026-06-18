@@ -15,35 +15,44 @@ export function average(values: number[]): number {
   return Math.round(values.reduce((a, b) => a + b, 0) / values.length);
 }
 
+/** A per-frame sample: a record of named scalars (engagement + sub-metrics). */
+export type Sample = Record<string, number>;
+
+function averageSample(samples: Sample[]): Sample {
+  const out: Sample = {};
+  for (const key of Object.keys(samples[0])) out[key] = average(samples.map((s) => s[key]));
+  return out;
+}
+
 /**
- * Aggregates per-frame attention scores into fixed-duration buckets. Calls
- * `onBucket(bucketStartMs, avg)` when a bucket closes. Raw per-frame scores never
- * leave this object — only the aggregate is emitted.
+ * Aggregates per-frame samples into fixed-duration buckets. Calls `onBucket(bucketStartMs, avg)`
+ * when a bucket closes, where `avg` is the per-key average over the bucket. Raw per-frame samples
+ * never leave this object — ONLY the per-bucket aggregate record is emitted.
  */
 export class Bucketer {
   private currentStart = -1;
-  private scores: number[] = [];
+  private samples: Sample[] = [];
 
   constructor(
-    private readonly onBucket: (bucketStartMs: number, avg: number) => void,
+    private readonly onBucket: (bucketStartMs: number, avg: Sample) => void,
     private readonly bucketMs = BUCKET_MS,
   ) {}
 
-  add(tsMs: number, score: number): void {
+  add(tsMs: number, sample: Sample): void {
     const start = bucketStartFor(tsMs, this.bucketMs);
     if (this.currentStart === -1) this.currentStart = start;
     if (start !== this.currentStart) {
       this.flush();
       this.currentStart = start;
     }
-    this.scores.push(score);
+    this.samples.push(sample);
   }
 
   /** Emit the in-progress bucket (e.g. on session end) and reset. */
   flush(): void {
-    if (this.currentStart !== -1 && this.scores.length > 0) {
-      this.onBucket(this.currentStart, average(this.scores));
+    if (this.currentStart !== -1 && this.samples.length > 0) {
+      this.onBucket(this.currentStart, averageSample(this.samples));
     }
-    this.scores = [];
+    this.samples = [];
   }
 }

@@ -86,7 +86,62 @@ def test_record_attention_persists_and_derives_student(monkeypatch):
     assert msg["type"] == "attention.update"
     assert msg["avg_attention"] == 100
     assert msg["student_id"] == str(student.id)
-    assert set(msg) == {"type", "id", "session_id", "student_id", "bucket_start", "avg_attention"}
+    assert set(msg) == {
+        "type",
+        "id",
+        "session_id",
+        "student_id",
+        "bucket_start",
+        "avg_attention",
+        "gaze_on_screen",
+        "eye_openness",
+        "head_yaw",
+        "head_pitch",
+        "alertness",
+    }
+
+
+def test_sub_metrics_are_broadcast_but_not_persisted(monkeypatch):
+    """Sub-metrics ride the live broadcast (realtime teacher view) but are LIVE-ONLY: the stored
+    row keeps only avg_attention (no migration / new columns)."""
+    fake = _FakeLayer()
+    monkeypatch.setattr(services, "get_channel_layer", lambda: fake)
+    teacher = make_teacher()
+    student = make_student()
+    _c, _l, session = setup_session(teacher)
+
+    services.record_attention(
+        student,
+        session_id=session.id,
+        bucket_start=timezone.now(),
+        avg_attention=88,
+        gaze_on_screen=90,
+        eye_openness=95,
+        head_yaw=-8,
+        head_pitch=4,
+        alertness=80,
+    )
+
+    # broadcast carries the sub-metrics (live)
+    _group, msg = fake.sent[0]
+    assert (
+        msg["gaze_on_screen"],
+        msg["eye_openness"],
+        msg["head_yaw"],
+        msg["head_pitch"],
+        msg["alertness"],
+    ) == (
+        90,
+        95,
+        -8,
+        4,
+        80,
+    )
+    # but the stored row persists ONLY the composite — sub-metrics are not columns on the model
+    metric = AttentionMetric.objects.get(lesson_session=session)
+    assert metric.avg_attention == 88
+    for f in ("gaze_on_screen", "eye_openness", "head_yaw", "head_pitch", "alertness"):
+        assert not hasattr(metric, f)
 
 
 def test_record_attention_requires_student(monkeypatch):

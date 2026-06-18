@@ -14,6 +14,11 @@ subscription AttentionUpdates($sessionId: ID!) {
     studentId
     bucketStart
     avgAttention
+    gazeOnScreen
+    eyeOpenness
+    headYaw
+    headPitch
+    alertness
   }
 }
 
