@@ -1,6 +1,6 @@
 # Flamingo — Session Handoff
 
-**Date:** 2026-06-17 · **Branch:** `main` · **Code HEAD:** `0cd20e6` — *deep CMF sub-slice 1 (gaze-primary engagement + EAR/head/alertness metrics + 2.5s cadence; FE-only)*. Files/S3 complete (a–d) just before it. This `docs(handoff)` commit sits on top as the latest commit on `main` (95 commits; run `git rev-parse HEAD` for its exact hash). Working tree clean.
+**Date:** 2026-06-18 · **Branch:** `main` · **Code HEAD:** `060ed89` — *deep CMF sub-slice 2 (CMF sub-metrics now leave the device as per-bucket aggregate scalars; live-only, no migration)*. Sub-slice 1 (`0cd20e6`) and Files/S3 (a–d) precede it. This `docs(handoff)` commit sits on top as the latest commit on `main` (97 commits; run `git rev-parse HEAD` for its exact hash). Working tree clean.
 This doc lets a fresh session resume cleanly. It references files by path — read those, don't rely on this doc alone.
 
 ---
@@ -86,13 +86,39 @@ blink window/rates, EMA, cadence) — **PROVISIONAL first guesses, to tune on a 
 `AlertnessTracker` (alert-vs-drowsy). `score.ts` `engagementScore` (replaces `scoreAttention`):
 PRIMARY = gaze; head tilt alone NOT penalized (only beyond tolerance AND gaze off-screen);
 saccades stay attentive; eyes-closed lowers it. **Cadence `BUCKET_MS` 10s → 2.5s** for a near-live
-teacher view. **PRIVACY ABSOLUTE — confirmed:** sub-metrics are computed but **NOT emitted** this
-slice; the worker still posts only the engagement score (on-device) + per-bucket aggregate; egress
-payload **unchanged** (`{sessionId, bucketStart, avgAttention}`). **NEXT (sub-slice 2, awaits go-ahead):**
-hand-add the sub-metric scalars to `AttentionInput`/`AttentionMetric` (live-only, no migration) +
-backend pass-through + FE ops/codegen + diff; then student/teacher UI breakdown (sub-slices 3–4).
-Sub-slice 2 also **updates CLAUDE.md §2** to enumerate the richer aggregate (keep the invariant
-verbatim-strong; live-only).
+teacher view. **PRIVACY ABSOLUTE — confirmed:** in this slice sub-metrics were computed but **NOT
+emitted**; the worker posted only the engagement score (on-device) + per-bucket aggregate; egress
+payload was unchanged. (Superseded by sub-slice 2 below, which now emits them as aggregates.)
+
+🔬 **Deep CMF — sub-slice 2 DONE & green (`060ed89`; the privacy-sensitive slice):** the on-device
+sub-metrics now **leave the device, but ONLY as per-bucket aggregate scalars** alongside `avgAttention`.
+- **SDL (hand-add, NOT regenerated):** `AttentionInput` **and** `AttentionMetric` each gain
+  `gazeOnScreen / eyeOpenness / headYaw / headPitch / alertness` (nullable `Int`). live-vs-committed
+  diff confirmed **only these 5 fields changed** on each type (the `= null` default-rendering on the
+  input fields is strawberry's normal optional-input convention — benign, matches every other optional input).
+- **Backend (`apps/seedum`):** `report_attention(…, gaze_on_screen=None, …)` passes the 5 scalars straight
+  into the channel payload; `_publish_attention` carries them; `stream_attention` yields them (`.get()`,
+  default `None`). **`ATTENTION_METRIC` model UNCHANGED — the stored row keeps `avg_attention` only**, so
+  the sub-metrics are **broadcast live but never persisted** (`0` migrations). `AttentionMetric` is a plain
+  `@strawberry.type` built from the payload (not model-bound) → realtime fields need no migration.
+  Per-resolver auth unchanged.
+- **Privacy guards tightened (the point of the slice):** `test_sub_metrics_are_broadcast_but_not_persisted`
+  asserts the broadcast carries the sub-metrics **AND** the stored metric has no such attributes;
+  `test_attention_input_is_aggregate_only` allowlists exactly the **8 aggregate scalars**
+  (`{sessionId, bucketStart, avgAttention, gazeOnScreen, eyeOpenness, headYaw, headPitch, alertness}`);
+  `test_no_raw_media_anywhere_in_schema` still green (no forbidden tokens in the new names).
+- **FE:** worker emits the sub-metrics **inside the BUCKET payload as per-bucket averages** (never per-frame,
+  never raw — frames are still `.close()`'d immediately); `bucketing.ts` aggregates a `Sample` record;
+  `attention.ts` surfaces a `BucketAggregate`; the **student** `onBucket` pushes the whole aggregate via
+  `reportAttention`; `AttentionUpdates` selects the 5 fields; `npm run codegen` refreshed `generated.ts`
+  **from the committed SDL** (not an SDL regen). Test mock updated (`AttentionUpdates` subMock += 5 fields).
+- **CLAUDE.md §2/§7 updated:** egress payload enumerated as `{sessionId, studentId, bucketStart,
+  avgAttention, gazeOnScreen, eyeOpenness, headYaw, headPitch, alertness}`; sub-metrics noted **live-only**
+  (server stores only `avgAttention`); the hard invariant kept **verbatim-strong + made more precise**
+  ("no raw frames/audio/landmarks/per-frame features ever leave the device").
+- **No UI this slice** (per instruction). **NEXT (sub-slices 3–4, awaits go-ahead):** student-side UI
+  breakdown of the sub-metrics, then the teacher per-student UI breakdown. Awaiting the owner's review of
+  the new payload + §2 wording + SDL diff before any UI.
 
 **Slice 3.1 — connection lifecycle (`404fc6f`):** `useLiveKitRoom` now exposes one explicit
 `connectionState` (idle/connecting/connected/reconnecting/reconnected/disconnected/failed) off
@@ -140,7 +166,7 @@ bundle, never camera-tested dev. **Fix:** MODULE worker + `forVisionTasks(wasmBa
 raw (MediaPipe's runtime `import()` otherwise hit Vite's `?import` → 500). Also fixed the LiveKit
 StrictMode reconnect churn (`c9334d3`). See §3 + memory [[seedum-mediapipe-worker]].
 
-**Both gates green** (verified this session): backend **83 pytest** on Postgres + **ruff** + **black**
+**Both gates green** (verified this session): backend **84 pytest** on Postgres + **ruff** + **black**
 clean, 0 unapplied migrations, `makemigrations --check` clean; frontend **`npm run build` + `lint` +
 91 vitest**. Tree clean (all committed).
 
@@ -349,7 +375,7 @@ Working tree is **clean** — nothing uncommitted. Partially-built *within* comm
 export LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8
 /opt/homebrew/opt/postgresql@16/bin/pg_ctl -D /opt/homebrew/var/postgresql@16 -l /opt/homebrew/var/log/postgresql@16.log start   # role+db 'flamingo' already exist
 cd backend && export POSTGRES_HOST=localhost POSTGRES_USER=flamingo POSTGRES_PASSWORD=flamingo POSTGRES_DB=flamingo
-.venv/bin/python manage.py migrate && .venv/bin/python -m pytest        # expect 83 passed
+.venv/bin/python manage.py migrate && .venv/bin/python -m pytest        # expect 84 passed
 .venv/bin/uvicorn config.asgi:application --port 8000 --reload
 # new shell: cd frontend && npm run dev   (proxies /graphql -> :8000 incl. WS upgrade; preview via .claude/launch.json)
 # frontend gates: npm run build && npm run lint && npm test   (expect 91 vitest)
@@ -375,5 +401,5 @@ synthetic preview browser blocks the camera + `getDisplayMedia` — the items in
 **Exact first prompt for the next session:**
 > Resume the Flamingo build.
 > 1. **Read first:** `CLAUDE.md` and `docs/handoff/SESSION_HANDOFF.md` §0 (current state) + §5 (next tasks); then `docs/flamingo_erd.md` / `docs/flamingo_schema.graphql` / `docs/flamingo_architecture.md` as needed.
-> 2. **Bring up the dev stack** per §9 (Postgres with `LC_ALL`, backend `uvicorn … --reload` on :8000, frontend `npm run dev` on :5173) and confirm green: backend `pytest` (expect **83 passed**) + `ruff`/`black`; frontend `npm run build`/`lint`/`test` (expect **91 vitest**).
+> 2. **Bring up the dev stack** per §9 (Postgres with `LC_ALL`, backend `uvicorn … --reload` on :8000, frontend `npm run dev` on :5173) and confirm green: backend `pytest` (expect **84 passed**) + `ruff`/`black`; frontend `npm run build`/`lint`/`test` (expect **91 vitest**).
 > 3. **LiveKit video room: slices 1, 2 & 3 COMPLETE & green** (3.1 `404fc6f`, harden `dcda4af`, 3.2 `47d9e60`, 3.3 `3d4fea2`, 3.4 `4af95f3`; §0/§5 item 1). **The next action is the COMBINED owner real-camera/real-network pass** (§5 item 1, items a–g: screen-share native/remote stop, multi-window grid ≤5, cross-window share, network-drop→reconnect with CMF continuing, permission/device errors + Retry, screen-reader/keyboard/reduced-motion, live remote mute/camera-off) — nothing media/SR/network is mock-verified. **After that pass**, pick from §5: **files/S3 is COMPLETE (a–d)** — its only open item is the deferred browser-upload/CORS verification (§5 "Deferred verification" A); then the **"prepare for real-user test"** milestone (item 2 — tunnel/deploy + real SMTP + registration flow) or the **other cross-cutting** modules (item 4 — certificates, engagement, notifications). Hard ≤5 cap server-side + recording stay **out of scope**. Keep CLAUDE.md invariants (CMF privacy, ru i18n, design tokens, thin resolvers, no SDL regen except the approved per-feature hand-adds, OSS-only); gates green; commit per concern.
