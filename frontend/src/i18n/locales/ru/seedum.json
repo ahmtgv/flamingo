@@ -7,14 +7,8 @@
     "teacherSub": "Внимание каждого ученика в реальном времени (без видео).",
     "enableCamera": "Включить камеру",
     "stop": "Остановить",
-    "yourAttention": "Ваше внимание",
-    "classAttention": "Внимание класса",
-    "perStudentTitle": "Внимание учеников",
-    "classAverage": "Среднее по классу: {{n}}",
     "live": "В эфире",
-    "unavailable": "Анализ внимания недоступен на этом устройстве (нет модели MediaPipe).",
     "cameraDenied": "Нет доступа к камере.",
-    "waiting": "Ожидаем данные от учеников…",
     "calibrate": "Калибровка (3 шага)",
     "calibrating": "Калибровка: {{stage}}",
     "report": "Отчёт по занятию",
@@ -48,19 +42,12 @@
     },
     "headAria": "Голова: {{state}}"
   },
-  "cell": {
-    "gaze": "Взгляд",
-    "alertness": "Бодрость",
-    "eyes": "Глаза",
-    "value": "{{n}}%",
-    "noData": "—",
-    "aria": "{{label}}: {{n}}%",
-    "ariaNoData": "{{label}}: нет данных",
-    "head": {
-      "in": "в кадре",
-      "out": "вне кадра",
-      "noData": "нет данных",
-      "aria": "Положение головы: {{state}}"
-    }
+  "field": {
+    "classAverage": "Среднее по классу: {{n}}",
+    "hideNames": "Скрыть имена",
+    "showNames": "Показать имена",
+    "needsAttention": "нужно внимание",
+    "waiting": "Ожидаем данные от учеников…",
+    "valuePct": "{{n}}%"
   }
 }

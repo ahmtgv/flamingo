@@ -179,7 +179,7 @@ describe('LiveRoomScreen', () => {
     expect(await screen.findByText(/Камера в эфире/)).toBeInTheDocument();
   });
 
-  it('teacher view renders PER-STUDENT cards (name + value) from attentionUpdates, class avg secondary', async () => {
+  it('teacher view renders the ambient class field (orb + name + %) from attentionUpdates', async () => {
     const subMock = {
       request: { query: AttentionUpdatesDocument, variables: { sessionId: 'sess-1' } },
       result: {
@@ -228,17 +228,13 @@ describe('LiveRoomScreen', () => {
     };
     renderRoom([meMock('TEACHER'), sessionRoomMock, subMock, attendeesMock]);
 
-    // Per-student is PRIMARY: the card shows the resolved name + the student's value.
-    expect(await screen.findByText('Внимание учеников')).toBeInTheDocument();
+    // Ambient field: the orb's name + exact % (engagement only — no sub-metric strip).
     expect(await screen.findByText('Иван Петров')).toBeInTheDocument();
-    expect(screen.getAllByText('80').length).toBeGreaterThan(0);
-    // Sub-slice 4: the per-student strip shows gaze / alertness / eyes + head state, near-live.
-    expect(await screen.findByText('88%')).toBeInTheDocument(); // gaze
-    expect(screen.getByText('82%')).toBeInTheDocument(); // alertness
-    expect(screen.getByText('95%')).toBeInTheDocument(); // eyes-open
-    expect(screen.getByText('в кадре')).toBeInTheDocument(); // head within cmfConfig tolerance
-    // Class average is demoted to a small secondary line.
+    expect(await screen.findByText('80%')).toBeInTheDocument();
+    // Class average in the field top bar; report still available; 80 ≥ cutoff → no accent tag.
     expect(screen.getByText(/Среднее по классу/)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Отчёт/ })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Скрыть имена/ })).toBeInTheDocument();
+    expect(screen.queryByText('нужно внимание')).not.toBeInTheDocument();
   });
 });

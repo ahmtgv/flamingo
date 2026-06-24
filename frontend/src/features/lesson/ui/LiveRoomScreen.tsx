@@ -16,13 +16,12 @@ import { loadUbp } from '@/seedum/ubp';
 import { LIVEKIT_URL } from '@/shared/lib/env';
 import { Button, Logo } from '@/shared/ui';
 
-import { classAverage, heldValue, pushSeries, summaryStats } from '../attentionView';
+import { classAverage, heldValue, summaryStats } from '../attentionView';
 import { type CameraErrorKind, classifyMediaError } from '../mediaError';
 
 import { useLiveKitRoom } from '../livekit/useLiveKitRoom';
+import { ClassField, type FieldStudent } from './ClassField';
 import styles from './liveroom.module.css';
-import { StudentSubRow } from './StudentSubRow';
-import { EMPTY_SUB, type StudentSubMetrics } from './subMetrics';
 import { VideoRoom } from './VideoRoom';
 
 /** Shared chrome. The CMF on-device privacy indicator stays (it is still true — see
@@ -291,18 +290,16 @@ function TeacherRoom({ sessionId, roomToken, isLive }: RoomProps) {
     return (id: string) => byId.get(id) ?? id.slice(0, 8);
   }, [attendeesData]);
 
-  // Per-student live state: latest value + a capped sparkline series, keyed by studentId.
+  // Per-student live ENGAGEMENT, keyed by studentId. Insertion order is preserved (UUID keys),
+  // which the ambient field relies on to keep orbs in STABLE positions (never reordered).
   const latestRef = useRef<Record<string, number>>({});
-  const seriesRef = useRef<Record<string, number[]>>({});
-  // Latest sub-metrics per student (gaze/eyes/alert/head) — display-only, never persisted.
-  const subRef = useRef<Record<string, StudentSubMetrics>>({});
   // Real (non-zero) class aggregates received this session — the post-session report summary
   // is computed from THESE only, never from between-bucket gaps / zero (no-reading) buckets.
   const receivedRef = useRef<number[]>([]);
-  const [view, setView] = useState<{
-    students: Array<{ id: string; value: number; series: number[]; sub: StudentSubMetrics }>;
-    classAvg: number;
-  }>({ students: [], classAvg: 0 });
+  const [view, setView] = useState<{ students: FieldStudent[]; classAvg: number }>({
+    students: [],
+    classAvg: 0,
+  });
   const [showReport, setShowReport] = useState(false);
 
   useAttentionUpdatesSubscription({
@@ -312,26 +309,9 @@ function TeacherRoom({ sessionId, roomToken, isLive }: RoomProps) {
       if (!metric) return;
       const id = metric.studentId;
       latestRef.current = { ...latestRef.current, [id]: metric.avgAttention };
-      seriesRef.current = {
-        ...seriesRef.current,
-        [id]: pushSeries(seriesRef.current[id] ?? [], metric.avgAttention),
-      };
-      // Sub-metrics are live-only (broadcast, not persisted) — kept client-side for the strip.
-      subRef.current = {
-        ...subRef.current,
-        [id]: {
-          gaze: metric.gazeOnScreen ?? null,
-          eyes: metric.eyeOpenness ?? null,
-          alert: metric.alertness ?? null,
-          yaw: metric.headYaw ?? null,
-          pitch: metric.headPitch ?? null,
-        },
-      };
       const students = Object.keys(latestRef.current).map((sid) => ({
         id: sid,
         value: latestRef.current[sid],
-        series: seriesRef.current[sid] ?? [],
-        sub: subRef.current[sid] ?? EMPTY_SUB,
       }));
       const avg = classAverage(students.map((s) => s.value));
       if (avg > 0) receivedRef.current.push(avg); // stats from real buckets only
@@ -402,24 +382,7 @@ function TeacherRoom({ sessionId, roomToken, isLive }: RoomProps) {
       </div>
 
       <div className={styles.card}>
-        <h2 className={styles.sectionTitle}>{t('room.perStudentTitle')}</h2>
-        {view.students.length > 0 ? (
-          <ul className={styles.studentList}>
-            {view.students.map((s) => (
-              <li key={s.id} className={styles.studentCard}>
-                <div className={styles.studentHead}>
-                  <span className={styles.studentName}>{nameFor(s.id)}</span>
-                  <span className={styles.studentValue}>{s.value}</span>
-                </div>
-                <AttentionChart values={s.series} />
-                <StudentSubRow m={s.sub} />
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className={styles.note}>{t('room.waiting')}</p>
-        )}
-        <p className={styles.classAverage}>{t('room.classAverage', { n: classAvg })}</p>
+        <ClassField students={view.students} nameFor={nameFor} classAvg={classAvg} />
         <div className={styles.actions}>
           <Button
             variant="secondary"

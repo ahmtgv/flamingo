@@ -1,7 +1,7 @@
 // SINGLE source of tunable CMF constants. Every threshold here is a PROVISIONAL first guess,
 // to be tuned on a real camera AFTER the build (see SESSION_HANDOFF deferred backlog). Tuning
 // is therefore a one-file change. Nothing here affects privacy — all values govern on-device
-// math only; the egress payload stays aggregate scalars (see the worker).
+// math or teacher-view DISPLAY only; none change the egress payload (still aggregate scalars).
 
 export const CMF = {
   // --- cadence ---
@@ -47,4 +47,8 @@ export const CMF = {
     drowsyBlinkRatePerMin: 25, // blink rate above → drowsier
     drowsyOpenness: 0.5, // sustained mean openness below → drowsy (heavy lids)
   },
+
+  // --- teacher live-view (DISPLAY-ONLY; governs the teacher class field UI, NOT on-device
+  //     math and NOT the egress payload) ---
+  liveAttentionAlertBelow: 50, // engagement below this → "needs attention" accent in the field
 } as const;
