@@ -10,7 +10,7 @@ import {
   useSessionAttendeesQuery,
   useSessionRoomQuery,
 } from '@/entities/graphql/generated';
-import { AttentionBreakdown, AttentionChart, PrivacyIndicator, startAttentionPipeline } from '@/seedum';
+import { AttentionChart, AttentionStrip, PrivacyIndicator, startAttentionPipeline } from '@/seedum';
 import type { BucketAggregate } from '@/seedum';
 import { loadUbp } from '@/seedum/ubp';
 import { LIVEKIT_URL } from '@/shared/lib/env';
@@ -149,8 +149,7 @@ function StudentRoom({ sessionId, roomToken, isLive }: RoomProps) {
   const cmfVideoRef = useRef<HTMLVideoElement>(null);
   const pipelineRef = useRef<{ stop: () => void } | null>(null);
   const [cmfStatus, setCmfStatus] = useState<'starting' | 'running' | 'unavailable'>('starting');
-  const [scores, setScores] = useState<number[]>([]);
-  // Latest per-bucket aggregate (~2.5s) for the live sub-metric breakdown — same on-device
+  // Latest per-bucket aggregate (~2.5s) for the live attention strip — same on-device
   // data already sent via reportAttention; kept here for display only.
   const [breakdown, setBreakdown] = useState<BucketAggregate | null>(null);
 
@@ -168,7 +167,6 @@ function StudentRoom({ sessionId, roomToken, isLive }: RoomProps) {
       pipelineRef.current = startAttentionPipeline(video, stored?.baseline, {
         onReady: () => setCmfStatus('running'),
         onUnavailable: () => setCmfStatus('unavailable'),
-        onScore: (v) => setScores((prev) => [...prev.slice(-59), v]),
         onBucket: (bucketStartMs, bucket) => {
           setBreakdown(bucket); // drive the live on-device sub-metric breakdown (display only)
           // worker buckets in performance-clock ms → map to wall-clock for the server.
@@ -210,11 +208,8 @@ function StudentRoom({ sessionId, roomToken, isLive }: RoomProps) {
     release();
     setJoined(false);
     setCmfStatus('starting');
-    setScores([]);
     setBreakdown(null);
   }, [lk, release]);
-
-  const current = scores.length ? scores[scores.length - 1] : 0;
 
   return (
     <RoomShell subtitle={t('room.studentSub')}>
@@ -258,16 +253,10 @@ function StudentRoom({ sessionId, roomToken, isLive }: RoomProps) {
               onToggleScreenShare={lk.toggleScreenShare}
               onRejoin={lk.rejoin}
               onLeave={leave}
+              localOverlay={<AttentionStrip bucket={breakdown} status={cmfStatus} />}
             />
             {/* Hidden CMF source — same stream, analysed on-device, frames discarded. */}
             <video ref={cmfVideoRef} className={styles.cmfHidden} muted playsInline aria-hidden="true" />
-            <div className={styles.metric}>
-              <span className={styles.metricLabel}>{t('room.yourAttention')}</span>
-              <span className={styles.metricValue}>{cmfStatus === 'running' ? current : '—'}</span>
-              {cmfStatus === 'running' && <AttentionChart values={scores} />}
-              {cmfStatus === 'running' && breakdown && <AttentionBreakdown bucket={breakdown} />}
-              {cmfStatus === 'unavailable' && <p className={styles.note}>{t('room.unavailable')}</p>}
-            </div>
             <p className={styles.privacyFootnote}>
               <ShieldCheck size={13} /> {t('room.studentSub')}
             </p>

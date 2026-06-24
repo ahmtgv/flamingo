@@ -1,6 +1,6 @@
 import { type RemoteParticipant } from 'livekit-client';
 import { Radio, RefreshCw, Wifi, WifiOff } from 'lucide-react';
-import { useCallback, useEffect, useRef } from 'react';
+import { type ReactNode, useCallback, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/shared/ui';
@@ -38,6 +38,7 @@ export function VideoRoom({
   onRejoin,
   onLeave,
   nameFor,
+  localOverlay,
 }: {
   localStream: MediaStream | null;
   /** Role-specific self-view badge copy (student: "…преподаватель вас видит"; teacher: own). */
@@ -59,6 +60,8 @@ export function VideoRoom({
   onLeave: () => void;
   /** Resolve a participant identity (== user id) to a display name; teacher-only (roster). */
   nameFor?: (identity: string) => string;
+  /** Optional content pinned over the LOCAL self-view tile (student: the attention strip). */
+  localOverlay?: ReactNode;
 }) {
   const { t } = useTranslation('lesson');
   // Terminal states render an overlay OVER the still-mounted tiles (never an early return).
@@ -157,6 +160,9 @@ export function VideoRoom({
           {/* Local self-view (mirrored). Muted to avoid local echo. */}
           <video ref={attachLocal} className={styles.videoMirror} autoPlay playsInline muted />
           {!cameraEnabled && <span className={styles.camOff}>{t('camera.off')}</span>}
+          {/* Optional overlay (student attention strip) — a sibling of the <video>, never wraps
+              it, so the self-view track is untouched. */}
+          {localOverlay}
           <span className={styles.name}>{t('you')}</span>
         </div>
         {participants.map((p) => (

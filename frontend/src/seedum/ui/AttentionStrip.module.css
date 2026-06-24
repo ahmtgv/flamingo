@@ -1,0 +1,78 @@
+/* Frosted monochrome strip pinned over the TOP of the student's own video tile.
+   Over-video context → light-on-dark using the same tokens as the tile's .name overlay
+   (--color-overlay scrim + --color-text-on-accent text). No color anywhere. */
+.strip {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline: 0;
+  z-index: var(--z-base);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-overlay);
+  /* frosted glass — blur radius has no design token (same category as 1px hairlines) */
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  color: var(--color-text-on-accent);
+}
+.head {
+  display: grid;
+  grid-template-columns: max-content 1fr max-content max-content;
+  align-items: center;
+  column-gap: var(--space-3);
+}
+.headLabel {
+  font-size: var(--text-small);
+  font-weight: var(--weight-medium);
+}
+.headValue {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--weight-semibold);
+  font-size: var(--text-small);
+  text-align: end;
+  min-inline-size: 2.5ch;
+}
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-1);
+  background: none;
+  border: 0;
+  color: inherit;
+  cursor: pointer;
+  border-radius: var(--radius-xs);
+}
+.toggle:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+.chevron {
+  transition: transform var(--duration-base) var(--ease-standard);
+}
+.strip[data-open='true'] .chevron {
+  transform: rotate(180deg);
+}
+/* expanded sub-metric rows — shared grid so label/value columns align */
+.list {
+  display: grid;
+  grid-template-columns: max-content 1fr max-content;
+  align-items: center;
+  column-gap: var(--space-3);
+  row-gap: var(--space-2);
+}
+.row {
+  display: contents;
+}
+.rowLabel {
+  font-size: var(--text-small);
+}
+.rowValue {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--text-small);
+  text-align: end;
+  min-inline-size: 2.5ch;
+}

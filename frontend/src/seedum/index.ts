@@ -8,6 +8,6 @@ export type { HeadState } from './headTolerance';
 export { engagementScore } from './score';
 export type { AttentionSignals, Baseline } from './score';
 export * as ubp from './ubp';
-export { AttentionBreakdown } from './ui/AttentionBreakdown';
 export { AttentionChart } from './ui/AttentionChart';
+export { AttentionStrip } from './ui/AttentionStrip';
 export { PrivacyIndicator } from './ui/PrivacyIndicator';
