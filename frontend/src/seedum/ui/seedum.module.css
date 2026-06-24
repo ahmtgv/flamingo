@@ -42,3 +42,7 @@
 .meterFillMono {
   background: var(--color-text-on-accent);
 }
+/* Monochrome fill for a panel on a light surface — graphite, no color. */
+.meterFillGraphite {
+  background: var(--color-text);
+}

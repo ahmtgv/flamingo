@@ -1,13 +1,19 @@
 import styles from './seedum.module.css';
 
-export type MeterTone = 'accent' | 'mono';
+export type MeterTone = 'accent' | 'mono' | 'graphite';
+
+const TONE_CLASS: Record<MeterTone, string | undefined> = {
+  accent: undefined,
+  mono: styles.meterFillMono,
+  graphite: styles.meterFillGraphite,
+};
 
 /**
  * Display-only token meter, 0..100. One track + one fill (width = value) — no qualitative
  * bands, no traffic-light coloring (calm by design; "more" is not "good/bad", it's just the
- * value). `tone='accent'` (default) fills with the brand accent; `tone='mono'` fills near-white
- * for the monochrome strip over the dark video. `ariaLabel` carries the localized name + value;
- * `value === null` renders an empty track (ariaLabel should already read "нет данных").
+ * value). Tone picks the fill: `accent` (default, brand coral); `mono` near-white for the
+ * dark frosted strip over the video; `graphite` for a monochrome panel on a light surface.
+ * `ariaLabel` carries the localized name + value; `value === null` renders an empty track.
  */
 export function Meter({
   value,
@@ -19,8 +25,8 @@ export function Meter({
   tone?: MeterTone;
 }) {
   const pct = value == null ? 0 : Math.max(0, Math.min(100, value));
-  const fillClass =
-    tone === 'mono' ? `${styles.meterFill} ${styles.meterFillMono}` : styles.meterFill;
+  const toneClass = TONE_CLASS[tone];
+  const fillClass = toneClass ? `${styles.meterFill} ${toneClass}` : styles.meterFill;
   return (
     // role="img" (not role="meter"): parity with AttentionChart + uniform SR output, and these
     // values mutate every ~2.5s — we deliberately avoid aria-valuenow polling. The visible

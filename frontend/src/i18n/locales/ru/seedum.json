@@ -48,6 +48,7 @@
     "showNames": "Показать имена",
     "needsAttention": "нужно внимание",
     "waiting": "Ожидаем данные от учеников…",
-    "valuePct": "{{n}}%"
+    "valuePct": "{{n}}%",
+    "orbAria": "{{name}}: внимание {{n}} из 100"
   }
 }

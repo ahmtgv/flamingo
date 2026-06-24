@@ -290,9 +290,10 @@ function TeacherRoom({ sessionId, roomToken, isLive }: RoomProps) {
     return (id: string) => byId.get(id) ?? id.slice(0, 8);
   }, [attendeesData]);
 
-  // Per-student live ENGAGEMENT, keyed by studentId. Insertion order is preserved (UUID keys),
+  // Per-student state keyed by studentId: engagement + the live-only sub-metrics (display only,
+  // never persisted/egressed — revealed on orb click). Insertion order is preserved (UUID keys),
   // which the ambient field relies on to keep orbs in STABLE positions (never reordered).
-  const latestRef = useRef<Record<string, number>>({});
+  const studentsRef = useRef<Record<string, FieldStudent>>({});
   // Real (non-zero) class aggregates received this session — the post-session report summary
   // is computed from THESE only, never from between-bucket gaps / zero (no-reading) buckets.
   const receivedRef = useRef<number[]>([]);
@@ -308,11 +309,19 @@ function TeacherRoom({ sessionId, roomToken, isLive }: RoomProps) {
       const metric = data.data?.attentionUpdates;
       if (!metric) return;
       const id = metric.studentId;
-      latestRef.current = { ...latestRef.current, [id]: metric.avgAttention };
-      const students = Object.keys(latestRef.current).map((sid) => ({
-        id: sid,
-        value: latestRef.current[sid],
-      }));
+      studentsRef.current = {
+        ...studentsRef.current,
+        [id]: {
+          id,
+          value: metric.avgAttention,
+          gaze: metric.gazeOnScreen ?? null,
+          eyes: metric.eyeOpenness ?? null,
+          headYaw: metric.headYaw ?? null,
+          headPitch: metric.headPitch ?? null,
+          alert: metric.alertness ?? null,
+        },
+      };
+      const students = Object.values(studentsRef.current);
       const avg = classAverage(students.map((s) => s.value));
       if (avg > 0) receivedRef.current.push(avg); // stats from real buckets only
       setView((prev) => ({ students, classAvg: heldValue(prev.classAvg, avg) }));
