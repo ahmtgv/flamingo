@@ -20,3 +20,7 @@ dist/
 .vscode/
 # Claude Code local overrides (launch.json is shared and tracked)
 .claude/settings.local.json
+# Playwright MCP + audit artifacts (screenshots/console logs/page snapshots — regenerable)
+.playwright-mcp/
+/audit-*.jpeg
+/audit-*.png
