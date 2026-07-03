@@ -1,0 +1,573 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FLAMINGO AIR — превью редизайна (R&D v2, 2026-07)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ================================================================
+   FLAMINGO AIR — tokens v2 draft (mirrors docs/design/tokens_v2_air_draft.css)
+   Cold neutral canvas · ink · hairlines · ONE coral accent · mono machine voice
+   ================================================================ */
+:root{
+  /* neutral ramp (cool) */
+  --fl-n-0:#ffffff;--fl-n-50:#f7f7f5;--fl-n-100:#f1f1ef;--fl-n-150:#e9e9e6;--fl-n-200:#d9d9d6;
+  --fl-n-300:#c4c4c1;--fl-n-400:#98989e;--fl-n-500:#6e6e73;--fl-n-700:#3a3a3d;--fl-n-900:#1d1d1f;
+  /* coral (brand) */
+  --fl-coral-300:#ff8a5f;--fl-coral-400:#ff7040;--fl-coral-500:#e14e1f;--fl-coral-600:#c23f14;--fl-coral-50:#fdeee7;
+  /* dark surfaces */
+  --fl-d-bg:#101012;--fl-d-surface:#1a1a1c;--fl-d-surface-2:#242426;--fl-d-border:#2e2e31;
+
+  --color-bg:var(--fl-n-100);--color-surface:var(--fl-n-0);--color-surface-subtle:var(--fl-n-150);
+  --color-border:var(--fl-n-200);--color-border-strong:var(--fl-n-300);
+  --color-text:var(--fl-n-900);--color-text-secondary:var(--fl-n-500);--color-text-tertiary:var(--fl-n-400);
+  --color-text-on-accent:#fff;
+  --color-accent:var(--fl-coral-500);--color-accent-strong:var(--fl-coral-500);
+  --color-accent-hover:var(--fl-coral-600);--color-accent-text:var(--fl-coral-600);--color-accent-subtle:var(--fl-coral-50);
+  --nav-material:rgba(241,241,239,.78);
+
+  --font-ui:-apple-system,'SF Pro Display','SF Pro Text',Inter,system-ui,sans-serif;
+  --font-mono:'JetBrains Mono','SF Mono','IBM Plex Mono',ui-monospace,monospace;
+
+  --text-display:3.5rem;--text-metric:4rem;--text-h1:2rem;--text-h2:1.5rem;--text-h3:1.1875rem;
+  --text-lead:1.1875rem;--text-body:1.0625rem;--text-small:.875rem;--text-caption:.8125rem;--text-micro:.75rem;
+
+  --space-1:4px;--space-2:8px;--space-3:12px;--space-4:16px;--space-5:20px;--space-6:24px;
+  --space-7:32px;--space-8:40px;--space-9:48px;--space-10:64px;--space-12:96px;--space-13:128px;
+
+  --radius-sm:8px;--radius-control:10px;--radius-md:12px;--radius-card:14px;--radius-pill:999px;
+
+  --shadow-hover:0 1px 2px rgba(0,0,0,.03),0 8px 24px rgba(0,0,0,.05);
+  --shadow-float:0 2px 8px rgba(0,0,0,.06),0 16px 40px rgba(0,0,0,.10);
+
+  --duration-fast:120ms;--duration-base:200ms;--duration-slow:320ms;
+  --ease-standard:cubic-bezier(.2,0,0,1);
+  --control-h:42px;
+  --focus-ring:0 0 0 3px rgba(225,78,31,.4);
+}
+[data-theme="dark"]{
+  --color-bg:var(--fl-d-bg);--color-surface:var(--fl-d-surface);--color-surface-subtle:var(--fl-d-surface-2);
+  --color-border:var(--fl-d-border);--color-border-strong:#3f3f43;
+  --color-text:#f2f2f0;--color-text-secondary:#98989e;--color-text-tertiary:#6e6e73;
+  --color-accent:var(--fl-coral-400);--color-accent-strong:var(--fl-coral-500);
+  --color-accent-hover:var(--fl-coral-300);--color-accent-text:var(--fl-coral-300);--color-accent-subtle:#33201a;
+  --nav-material:rgba(16,16,18,.72);
+  --shadow-hover:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.35);
+  --shadow-float:0 2px 8px rgba(0,0,0,.5),0 16px 40px rgba(0,0,0,.5);
+}
+[data-mode="kids"]{
+  --text-body:1.1875rem;--text-small:1rem;--text-caption:.9375rem;--text-h3:1.375rem;
+  --radius-control:14px;--radius-card:20px;--control-h:50px;
+}
+@media (prefers-reduced-motion:reduce){:root{--duration-fast:0ms;--duration-base:0ms;--duration-slow:0ms}}
+
+/* ============ base ============ */
+*{box-sizing:border-box;margin:0}
+html{scroll-behavior:smooth}
+body{background:var(--color-bg);color:var(--color-text);font-family:var(--font-ui);
+  font-size:var(--text-body);line-height:1.6;-webkit-font-smoothing:antialiased;
+  transition:background var(--duration-slow) var(--ease-standard),color var(--duration-slow) var(--ease-standard)}
+button{font:inherit;color:inherit}
+.mono{font-family:var(--font-mono);font-variant-numeric:tabular-nums}
+:focus-visible{outline:none;box-shadow:var(--focus-ring)}
+
+/* ============ chrome: glass nav (sanctioned blur #1) ============ */
+.nav{position:sticky;top:0;z-index:50;background:var(--nav-material);
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--color-border)}
+.nav-in{max-width:1120px;margin:0 auto;padding:0 var(--space-6);height:56px;
+  display:flex;align-items:center;gap:var(--space-6)}
+.brand{display:flex;align-items:center;gap:10px;font-weight:600;letter-spacing:-.01em}
+.brand .dot{width:8px;height:8px;border-radius:50%;background:var(--color-accent)}
+.screens{display:flex;gap:2px;overflow-x:auto;flex:1;scrollbar-width:none}
+.screens::-webkit-scrollbar{display:none}
+.screens button{border:none;background:none;cursor:pointer;white-space:nowrap;
+  font:500 var(--text-micro) var(--font-mono);color:var(--color-text-tertiary);
+  padding:6px 10px;border-radius:var(--radius-pill);
+  transition:color var(--duration-base) var(--ease-standard),background var(--duration-base) var(--ease-standard)}
+.screens button:hover{color:var(--color-text-secondary)}
+.screens button[aria-selected="true"]{color:var(--color-text);background:var(--color-surface-subtle)}
+.modes{display:flex;gap:var(--space-2)}
+.modes button{border:1px solid var(--color-border);background:none;cursor:pointer;border-radius:var(--radius-pill);
+  font:500 var(--text-micro) var(--font-mono);color:var(--color-text-secondary);padding:5px 12px;
+  transition:all var(--duration-base) var(--ease-standard)}
+.modes button[aria-pressed="true"]{color:var(--color-text);border-color:var(--color-border-strong);background:var(--color-surface)}
+
+/* ============ layout ============ */
+main{max-width:1120px;margin:0 auto;padding:var(--space-10) var(--space-6) var(--space-13)}
+.screen{display:none;animation:in var(--duration-slow) var(--ease-standard)}
+.screen.on{display:block}
+@keyframes in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.kicker{font:500 var(--text-micro) var(--font-mono);color:var(--color-text-tertiary);margin-bottom:var(--space-6)}
+.kicker b{color:var(--color-accent-text);font-weight:500}
+.hairline{border:none;border-top:1px solid var(--color-border);margin:var(--space-10) 0}
+.h-display{font-size:var(--text-display);line-height:1.05;font-weight:600;letter-spacing:-.025em}
+.h1{font-size:var(--text-h1);line-height:1.15;font-weight:600;letter-spacing:-.02em}
+.h2{font-size:var(--text-h2);line-height:1.25;font-weight:600;letter-spacing:-.015em}
+.h3{font-size:var(--text-h3);line-height:1.3;font-weight:600;letter-spacing:-.01em}
+.sec{color:var(--color-text-secondary)}
+.ter{color:var(--color-text-tertiary)}
+.small{font-size:var(--text-small)}
+.caption{font-size:var(--text-caption)}
+
+/* controls */
+.btn{height:var(--control-h);padding:0 var(--space-6);border-radius:var(--radius-control);cursor:pointer;
+  font:500 var(--text-body) var(--font-ui);border:1px solid transparent;
+  transition:all var(--duration-base) var(--ease-standard)}
+.btn-primary{background:var(--color-accent-strong);color:var(--color-text-on-accent)}
+.btn-primary:hover{background:var(--color-accent-hover)}
+.btn-quiet{background:none;border-color:var(--color-border-strong);color:var(--color-text)}
+.btn-quiet:hover{border-color:var(--color-text-tertiary)}
+.btn-text{background:none;border:none;color:var(--color-accent-text);padding:0;height:auto}
+.input{width:100%;height:var(--control-h);border:1px solid var(--color-border-strong);border-radius:var(--radius-control);
+  background:var(--color-surface);color:var(--color-text);padding:0 var(--space-4);font:400 var(--text-body) var(--font-ui);
+  transition:border-color var(--duration-base) var(--ease-standard)}
+.input::placeholder{color:var(--color-text-tertiary)}
+.input:focus-visible{border-color:var(--color-accent)}
+label.lbl{display:block;font:500 var(--text-micro) var(--font-mono);color:var(--color-text-secondary);margin-bottom:6px}
+
+/* lists on canvas, hairline separated */
+.rows>*{display:grid;align-items:center;gap:var(--space-5);padding:var(--space-5) 0;border-bottom:1px solid var(--color-border)}
+.rows>*:last-child{border-bottom:none}
+
+/* clickable surfaces only */
+.tilecard{background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-card);
+  padding:var(--space-6);cursor:pointer;text-align:start;
+  transition:all var(--duration-base) var(--ease-standard)}
+.tilecard:hover{border-color:var(--color-border-strong);box-shadow:var(--shadow-hover);transform:translateY(-2px)}
+
+/* mono meta bits */
+.meta{font:400 var(--text-caption) var(--font-mono);color:var(--color-text-tertiary)}
+.stat-num{font:500 var(--text-metric)/1 var(--font-mono);letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.stat-num small{font-size:40%;color:var(--color-text-tertiary);font-weight:400}
+.pill{display:inline-block;font:500 var(--text-micro) var(--font-mono);color:var(--color-text-secondary);
+  border:1px solid var(--color-border);border-radius:var(--radius-pill);padding:3px 10px}
+.pill-accent{color:var(--color-accent-text);border-color:transparent;background:var(--color-accent-subtle)}
+
+/* meter grammar (thin) */
+.meter{height:3px;background:var(--color-surface-subtle);border-radius:var(--radius-pill);overflow:hidden;flex:1}
+.meter i{display:block;height:100%;background:var(--color-text-secondary);border-radius:inherit;
+  transition:inline-size var(--duration-slow) var(--ease-standard)}
+.meter.on-dark{background:rgba(255,255,255,.16)}
+.meter.on-dark i{background:rgba(255,255,255,.9)}
+
+/* live dot */
+.live-dot{width:6px;height:6px;border-radius:50%;background:var(--color-accent);display:inline-block}
+@media (prefers-reduced-motion:no-preference){.live-dot{animation:pulse 2.4s ease-in-out infinite}}
+@keyframes pulse{50%{opacity:.3}}
+
+/* video tile + frosted strip (sanctioned blur #2) */
+.vtile{position:relative;aspect-ratio:16/10;border-radius:var(--radius-card);overflow:hidden;
+  background:linear-gradient(155deg,#3a3a3d,#161618)}
+.vtile .vname{position:absolute;left:12px;bottom:12px;color:#f2f2f0;font:400 var(--text-micro) var(--font-mono);
+  background:rgba(0,0,0,.4);border-radius:var(--radius-pill);padding:3px 10px}
+.strip{position:absolute;inset-inline:12px;top:12px;color:#f2f2f0;
+  background:rgba(14,14,16,.55);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  border:1px solid rgba(255,255,255,.08);border-radius:var(--radius-md);padding:12px 16px}
+.strip .row{display:flex;align-items:center;gap:14px}
+.strip .lb{font:400 var(--text-micro) var(--font-mono);opacity:.75}
+.strip .vl{font:500 var(--text-small) var(--font-mono);font-variant-numeric:tabular-nums;min-inline-size:3ch;text-align:end}
+.privacy{display:flex;align-items:center;gap:10px;margin-top:var(--space-4);color:var(--color-text-tertiary);font-size:var(--text-caption)}
+.privacy .sh{width:13px;height:13px;border:1.5px solid currentColor;border-radius:3px 3px 6px 6px;flex:none}
+
+/* orbs (teacher field) */
+.orbs{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:var(--space-7);text-align:center}
+.orb{border:none;background:none;cursor:pointer;display:grid;justify-items:center;gap:8px;padding:var(--space-3);border-radius:var(--radius-md)}
+.orb .o{border-radius:50%;background:var(--color-text);transition:all var(--duration-slow) var(--ease-standard)}
+.orb .nm{font-size:var(--text-caption);color:var(--color-text-secondary)}
+.orb .vv{font:500 var(--text-small) var(--font-mono);font-variant-numeric:tabular-nums}
+.orb .warn{font:500 var(--text-micro) var(--font-mono);color:var(--color-accent-text)}
+
+/* two-col helpers */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:var(--space-9)}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--space-5)}
+.g32{display:grid;grid-template-columns:1.5fr 1fr;gap:var(--space-8)}
+@media(max-width:860px){.g2,.g3,.g32{grid-template-columns:1fr}}
+
+footer{max-width:1120px;margin:0 auto;padding:0 var(--space-6) var(--space-8);
+  color:var(--color-text-tertiary);font:400 var(--text-micro) var(--font-mono)}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-in">
+    <span class="brand"><span class="dot" aria-hidden="true"></span>flamingo</span>
+    <div class="screens" role="tablist" aria-label="Экраны превью">
+      <button role="tab" data-s="auth" aria-selected="true">00·auth</button>
+      <button role="tab" data-s="today">01·сегодня</button>
+      <button role="tab" data-s="catalog">02·каталог</button>
+      <button role="tab" data-s="course">03·курс</button>
+      <button role="tab" data-s="schedule">04·расписание</button>
+      <button role="tab" data-s="homework">05·домашка</button>
+      <button role="tab" data-s="room">06·live+seedum</button>
+      <button role="tab" data-s="teacher">07·преподаватель</button>
+      <button role="tab" data-s="parent">08·родитель</button>
+      <button role="tab" data-s="admin">09·админ</button>
+      <button role="tab" data-s="profile">10·профиль</button>
+      <button role="tab" data-s="spec">11·система</button>
+    </div>
+    <div class="modes">
+      <button id="m-theme" aria-pressed="false">dark</button>
+      <button id="m-kids" aria-pressed="false">1–4 класс</button>
+    </div>
+  </div>
+</nav>
+
+<main>
+
+<!-- ============ 00 AUTH ============ -->
+<section class="screen on" id="s-auth">
+  <p class="kicker">00 · вход — пустота как материал; один акцент: <b>кнопка «Войти»</b></p>
+  <div class="g2" style="align-items:center;min-height:60vh">
+    <div>
+      <h1 class="h-display">Учись.<br>Данные — <span style="color:var(--color-accent-text)">у тебя</span>.</h1>
+      <p class="sec" style="max-width:44ch;margin-top:var(--space-6);font-size:var(--text-lead)">
+        Занятия, домашние задания и внимательный помощник. Анализ внимания работает прямо на твоём устройстве — и никуда ничего не отправляет.</p>
+      <p class="meta" style="margin-top:var(--space-7)">on-device · aggregate-only · 152-ФЗ</p>
+    </div>
+    <form style="max-width:340px;display:grid;gap:var(--space-4);justify-self:end;width:100%" onsubmit="return false">
+      <div><label class="lbl" for="a-em">почта</label><input class="input" id="a-em" type="email" autocomplete="email"></div>
+      <div><label class="lbl" for="a-pw">пароль</label><input class="input" id="a-pw" type="password" autocomplete="current-password"></div>
+      <button class="btn btn-primary" type="submit">Войти</button>
+      <button class="btn btn-quiet" type="button">Создать аккаунт</button>
+      <button class="btn btn-text small" type="button" style="justify-self:start">Забыли пароль?</button>
+    </form>
+  </div>
+</section>
+
+<!-- ============ 01 TODAY ============ -->
+<section class="screen" id="s-today">
+  <p class="kicker">01 · кабинет ученика — цифры-герои моно; акцент: <b>LIVE-занятие</b></p>
+  <div style="display:flex;justify-content:space-between;align-items:baseline">
+    <h1 class="h1">Добрый день, Саша</h1>
+    <span class="meta">чт · 03.07 · 14:02</span>
+  </div>
+  <div class="g3" style="margin:var(--space-9) 0;gap:var(--space-9)">
+    <div><div class="stat-num">2</div><p class="sec small" style="margin-top:8px">занятия сегодня</p></div>
+    <div><div class="stat-num">84<small>/100</small></div><p class="sec small" style="margin-top:8px">внимание за неделю</p><p class="meta">считается на этом устройстве</p></div>
+    <div><div class="stat-num">1</div><p class="sec small" style="margin-top:8px">домашка ждёт сдачи</p><p class="meta">до пт 23:59</p></div>
+  </div>
+  <hr class="hairline">
+  <div class="rows">
+    <div style="grid-template-columns:72px 1fr auto">
+      <span class="mono sec">14:00</span>
+      <div><div style="font-weight:500">Алгебра — линейные уравнения</div><div class="caption sec">Мария Петровна · 45 мин · <span class="mono ter">7 класс</span></div></div>
+      <button class="btn btn-primary" style="height:38px;padding:0 20px"><span class="live-dot" aria-hidden="true" style="background:#fff;margin-inline-end:10px"></span>Идёт — подключиться</button>
+    </div>
+    <div style="grid-template-columns:72px 1fr auto">
+      <span class="mono sec">16:30</span>
+      <div><div style="font-weight:500">Английский — Present Perfect</div><div class="caption sec">Илья Сергеевич · 60 мин · <span class="mono ter">группа A2</span></div></div>
+      <span class="meta">через 2 ч 28 мин</span>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 02 CATALOG ============ -->
+<section class="screen" id="s-catalog">
+  <p class="kicker">02 · каталог — поверхность только у кликабельного; акцент: <b>ни одного</b> (спокойный экран)</p>
+  <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:var(--space-8)">
+    <h1 class="h1">Курсы</h1>
+    <span class="meta">142 курса · 12 предметов</span>
+  </div>
+  <div class="g3">
+    <button class="tilecard">
+      <p class="meta" style="margin-bottom:10px">математика · 7 класс</p>
+      <h3 class="h3">Алгебра: от уравнений к функциям</h3>
+      <p class="sec caption" style="margin:10px 0 var(--space-6)">36 занятий · проверка домашних преподавателем</p>
+      <div style="display:flex;justify-content:space-between;align-items:center" class="meta"><span>Мария Петровна</span><span>12/36</span></div>
+      <div class="meter" style="margin-top:12px"><i style="inline-size:33%"></i></div>
+    </button>
+    <button class="tilecard">
+      <p class="meta" style="margin-bottom:10px">языки · A2</p>
+      <h3 class="h3">Английский: разговорная практика</h3>
+      <p class="sec caption" style="margin:10px 0 var(--space-6)">Группы до 5 человек, живой разбор ошибок</p>
+      <div style="display:flex;justify-content:space-between;align-items:center" class="meta"><span>Илья Сергеевич</span><span>4/24</span></div>
+      <div class="meter" style="margin-top:12px"><i style="inline-size:17%"></i></div>
+    </button>
+    <button class="tilecard">
+      <p class="meta" style="margin-bottom:10px">физика · ОГЭ</p>
+      <h3 class="h3">Решаем вторую часть</h3>
+      <p class="sec caption" style="margin:10px 0 var(--space-6)">Интенсив по задачам с развёрнутым ответом</p>
+      <div style="display:flex;justify-content:space-between;align-items:center" class="meta"><span>Дмитрий А.</span><span>new</span></div>
+      <div class="meter" style="margin-top:12px"><i style="inline-size:0%"></i></div>
+    </button>
+  </div>
+</section>
+
+<!-- ============ 03 COURSE ============ -->
+<section class="screen" id="s-course">
+  <p class="kicker">03 · курс — программа списком на канве; акцент: <b>«Записаться»</b></p>
+  <div class="g32">
+    <div>
+      <p class="meta" style="margin-bottom:12px">математика · 7 класс · 36 занятий</p>
+      <h1 class="h1" style="max-width:18ch">Алгебра: от уравнений к функциям</h1>
+      <p class="sec" style="max-width:52ch;margin-top:var(--space-5)">Системный курс на учебный год: линейные уравнения, системы, функции и графики. Каждое занятие — живой разбор + домашнее задание с проверкой.</p>
+      <hr class="hairline" style="margin:var(--space-8) 0">
+      <div class="rows">
+        <div style="grid-template-columns:36px 1fr auto"><span class="mono ter caption">01</span><div><div style="font-weight:500">Линейные уравнения</div><div class="caption sec">4 занятия · 4 домашних</div></div><span class="meta">открыто</span></div>
+        <div style="grid-template-columns:36px 1fr auto"><span class="mono ter caption">02</span><div><div style="font-weight:500">Системы уравнений</div><div class="caption sec">6 занятий · 5 домашних</div></div><span class="meta">открыто</span></div>
+        <div style="grid-template-columns:36px 1fr auto"><span class="mono ter caption">03</span><div><div style="font-weight:500">Функции и графики</div><div class="caption sec">8 занятий · 6 домашних</div></div><span class="meta ter">после раздела 02</span></div>
+      </div>
+    </div>
+    <aside style="justify-self:end;width:100%;max-width:320px">
+      <div style="position:sticky;top:80px;display:grid;gap:var(--space-4)">
+        <div class="stat-num" style="font-size:2.5rem">бесплатно</div>
+        <p class="caption sec">Доступ по записи. Преподаватель видит твой прогресс и проверяет домашние.</p>
+        <button class="btn btn-primary">Записаться на курс</button>
+        <p class="meta">Мария Петровна · стаж 12 лет</p>
+      </div>
+    </aside>
+  </div>
+</section>
+
+<!-- ============ 04 SCHEDULE ============ -->
+<section class="screen" id="s-schedule">
+  <p class="kicker">04 · расписание — временная колонка моно; акцент: <b>LIVE сейчас</b></p>
+  <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:var(--space-8)">
+    <h1 class="h1">Неделя</h1>
+    <div style="display:flex;gap:var(--space-2)"><span class="pill">← пред</span><span class="pill" style="color:var(--color-text)">30.06 – 06.07</span><span class="pill">след →</span></div>
+  </div>
+  <div class="rows">
+    <div style="grid-template-columns:110px 72px 1fr auto">
+      <span class="meta">чт 03.07</span><span class="mono sec">14:00</span>
+      <div><div style="font-weight:500">Алгебра — линейные уравнения</div><div class="caption sec">Мария Петровна</div></div>
+      <span class="pill pill-accent"><span class="live-dot" aria-hidden="true" style="margin-inline-end:8px"></span>live</span>
+    </div>
+    <div style="grid-template-columns:110px 72px 1fr auto">
+      <span class="meta"></span><span class="mono sec">16:30</span>
+      <div><div style="font-weight:500">Английский — Present Perfect</div><div class="caption sec">Илья Сергеевич</div></div>
+      <span class="meta">scheduled</span>
+    </div>
+    <div style="grid-template-columns:110px 72px 1fr auto">
+      <span class="meta">пт 04.07</span><span class="mono sec">10:00</span>
+      <div><div style="font-weight:500">Физика — разбор задач</div><div class="caption sec">Дмитрий А.</div></div>
+      <span class="meta">scheduled</span>
+    </div>
+    <div style="grid-template-columns:110px 72px 1fr auto">
+      <span class="meta ter">ср 02.07</span><span class="mono ter">14:00</span>
+      <div class="ter"><div style="font-weight:500">Алгебра — повторение</div><div class="caption">посещено · внимание 81</div></div>
+      <span class="meta ter">ended</span>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 05 HOMEWORK ============ -->
+<section class="screen" id="s-homework">
+  <p class="kicker">05 · домашние задания — статус текстом, не светофором; акцент: <b>«Сдать»</b></p>
+  <h1 class="h1" style="margin-bottom:var(--space-8)">Домашние задания</h1>
+  <div class="rows">
+    <div style="grid-template-columns:1fr auto auto">
+      <div><div style="font-weight:500">Линейные уравнения — задачи 12–18</div><div class="caption sec">Алгебра · Мария Петровна · выдано 01.07</div></div>
+      <span class="meta">до пт 23:59</span>
+      <button class="btn btn-primary" style="height:38px;padding:0 20px">Сдать</button>
+    </div>
+    <div style="grid-template-columns:1fr auto auto">
+      <div><div style="font-weight:500">Present Perfect — упражнение письмо</div><div class="caption sec">Английский · Илья Сергеевич · сдано 30.06</div></div>
+      <span class="meta">проверяется</span><span></span>
+    </div>
+    <div style="grid-template-columns:1fr auto auto">
+      <div><div style="font-weight:500">Задачи на движение</div><div class="caption sec">Физика · Дмитрий А. · сдано 27.06</div></div>
+      <span class="mono" style="font-weight:500">5 <span class="ter caption">/ отлично</span></span><span></span>
+    </div>
+  </div>
+  <hr class="hairline">
+  <p class="kicker" style="margin-bottom:var(--space-5)">сдача — виртуальный рабочий стол</p>
+  <div class="g32">
+    <div>
+      <label class="lbl" for="hw-t">текстовый ответ</label>
+      <div class="input" style="height:120px;padding:var(--space-3) var(--space-4)" role="textbox" aria-labelledby="hw-t" contenteditable="true"></div>
+    </div>
+    <div style="display:grid;gap:var(--space-3);align-content:start">
+      <label class="lbl">файлы</label>
+      <div style="border:1px dashed var(--color-border-strong);border-radius:var(--radius-md);padding:var(--space-6);text-align:center" class="sec caption">
+        Перетащи сюда фото решения<br><span class="meta">jpg · png · pdf · до 20 МБ</span>
+      </div>
+      <p class="meta">решение_12-18.jpg · 2.4 MB · ✓</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 06 LIVE ROOM ============ -->
+<section class="screen" id="s-room">
+  <p class="kicker">06 · live-комната ученика — frosted-полоска (санкционированное стекло); акцент здесь: <b>нет</b> — спокойный монохром</p>
+  <div class="g32">
+    <div>
+      <div class="vtile">
+        <div class="strip">
+          <div class="row"><span class="lb">внимание</span><span class="meter on-dark"><i style="inline-size:84%"></i></span><span class="vl">84</span></div>
+        </div>
+        <span class="vname">Саша · ты</span>
+      </div>
+      <div style="display:flex;gap:var(--space-2);margin-top:var(--space-4)">
+        <span class="pill">камера on</span><span class="pill">микрофон off</span><span class="pill">экран</span><span class="pill" style="margin-inline-start:auto">покинуть</span>
+      </div>
+      <p class="privacy"><span class="sh" aria-hidden="true"></span>Видео и мимика анализируются на этом устройстве и не отправляются на сервер. Это подсказки, не оценка.</p>
+    </div>
+    <div>
+      <div class="vtile" style="aspect-ratio:16/11"><span class="vname">Мария Петровна</span></div>
+      <div class="rows" style="margin-top:var(--space-4)">
+        <div style="grid-template-columns:1fr auto"><span class="caption sec">взгляд на экране</span><span class="mono small">92</span></div>
+        <div style="grid-template-columns:1fr auto"><span class="caption sec">бодрость</span><span class="mono small">78</span></div>
+        <div style="grid-template-columns:1fr auto"><span class="caption sec">голова</span><span class="mono small caption">в кадре</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 07 TEACHER ============ -->
+<section class="screen" id="s-teacher">
+  <p class="kicker">07 · эфир преподавателя — поле класса; акцент: <b>«нужно внимание» у одного орба</b></p>
+  <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:var(--space-8)">
+    <h1 class="h1">Алгебра — линейные уравнения</h1>
+    <span class="pill pill-accent"><span class="live-dot" aria-hidden="true" style="margin-inline-end:8px"></span>live · 23:14</span>
+  </div>
+  <div class="g32">
+    <div>
+      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:var(--space-7)">
+        <span class="caption sec">среднее по классу</span>
+        <span class="mono h2" style="font-weight:500">66</span>
+      </div>
+      <div class="orbs">
+        <button class="orb" aria-expanded="false"><span class="o" style="width:56px;height:56px;opacity:.85" aria-hidden="true"></span><span class="nm">Саша</span><span class="vv">86</span></button>
+        <button class="orb" aria-expanded="false"><span class="o" style="width:48px;height:48px;opacity:.6" aria-hidden="true"></span><span class="nm">Вера</span><span class="vv">72</span></button>
+        <button class="orb" aria-expanded="false"><span class="o" style="width:44px;height:44px;opacity:.5" aria-hidden="true"></span><span class="nm">Костя</span><span class="vv">64</span></button>
+        <button class="orb" aria-expanded="true"><span class="o" style="width:36px;height:36px;opacity:.35;box-shadow:0 0 0 2px var(--color-bg),0 0 0 4px var(--color-accent)" aria-hidden="true"></span><span class="nm">Тимур</span><span class="vv">41</span><span class="warn">нужно внимание</span></button>
+      </div>
+      <div style="border-top:1px solid var(--color-border);margin-top:var(--space-8);padding-top:var(--space-5)" class="rows">
+        <div style="grid-template-columns:140px 1fr auto"><span class="caption sec">Тимур · взгляд</span><span class="meter"><i style="inline-size:38%"></i></span><span class="mono small">38</span></div>
+        <div style="grid-template-columns:140px 1fr auto"><span class="caption sec">бодрость</span><span class="meter"><i style="inline-size:55%"></i></span><span class="mono small">55</span></div>
+        <div style="grid-template-columns:140px 1fr auto"><span class="caption sec">голова</span><span></span><span class="mono small caption">вне кадра</span></div>
+      </div>
+    </div>
+    <div>
+      <div class="vtile"><span class="vname">ты · эфир</span></div>
+      <div style="display:flex;gap:var(--space-2);margin-top:var(--space-4)">
+        <span class="pill">камера on</span><span class="pill">демонстрация</span><span class="pill" style="margin-inline-start:auto">завершить</span>
+      </div>
+      <p class="privacy"><span class="sh" aria-hidden="true"></span>Ты видишь только агрегаты. Сырое видео учеников не покидает их устройства.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 08 PARENT ============ -->
+<section class="screen" id="s-parent">
+  <p class="kicker">08 · кабинет родителя — сводка по ребёнку; акцент: <b>пропуск занятия</b></p>
+  <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:var(--space-8)">
+    <h1 class="h1">Саша · 7 класс</h1>
+    <span class="pill">+ добавить ребёнка</span>
+  </div>
+  <div class="g3" style="gap:var(--space-9);margin-bottom:var(--space-9)">
+    <div><div class="stat-num">4.8</div><p class="sec small" style="margin-top:8px">средняя оценка · июнь</p></div>
+    <div><div class="stat-num">92<small>%</small></div><p class="sec small" style="margin-top:8px">посещаемость</p></div>
+    <div><div class="stat-num">81</div><p class="sec small" style="margin-top:8px">внимание в среднем</p><p class="meta">только агрегаты · 152-ФЗ</p></div>
+  </div>
+  <hr class="hairline">
+  <div class="rows">
+    <div style="grid-template-columns:110px 1fr auto"><span class="meta">сегодня</span><div class="small">Алгебра — идёт сейчас, Саша подключён</div><span class="meta">14:00</span></div>
+    <div style="grid-template-columns:110px 1fr auto"><span class="meta">вчера</span><div class="small">Домашнее по физике — <span class="mono">5</span>, «отлично»</div><span class="meta">18:20</span></div>
+    <div style="grid-template-columns:110px 1fr auto"><span class="meta">30.06</span><div class="small"><span style="color:var(--color-accent-text);font-weight:500">Пропуск:</span> Английский, занятие 16:30 — без предупреждения</div><span class="meta">16:30</span></div>
+  </div>
+</section>
+
+<!-- ============ 09 ADMIN ============ -->
+<section class="screen" id="s-admin">
+  <p class="kicker">09 · админ учреждения — таблицы как списки; акцент: <b>заявки на вступление</b></p>
+  <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:var(--space-8)">
+    <h1 class="h1">Гимназия №1</h1>
+    <span class="meta">142 ученика · 18 преподавателей · 12 групп</span>
+  </div>
+  <div class="g2">
+    <div>
+      <p class="kicker" style="margin-bottom:var(--space-4)">группы</p>
+      <div class="rows">
+        <div style="grid-template-columns:56px 1fr auto"><span class="mono sec">7А</span><div class="caption sec">28 учеников · 4 предмета</div><span class="meta">→</span></div>
+        <div style="grid-template-columns:56px 1fr auto"><span class="mono sec">7Б</span><div class="caption sec">26 учеников · 4 предмета</div><span class="meta">→</span></div>
+        <div style="grid-template-columns:56px 1fr auto"><span class="mono sec">8А</span><div class="caption sec">30 учеников · 5 предметов</div><span class="meta">→</span></div>
+      </div>
+    </div>
+    <div>
+      <p class="kicker" style="margin-bottom:var(--space-4)">заявки · <b>3 новые</b></p>
+      <div class="rows">
+        <div style="grid-template-columns:1fr auto auto"><div><div class="small" style="font-weight:500">Анна Р. — преподаватель</div><div class="meta">математика · сегодня 11:40</div></div><button class="btn btn-quiet" style="height:34px;padding:0 14px" >Отклонить</button><button class="btn btn-primary" style="height:34px;padding:0 14px">Принять</button></div>
+        <div style="grid-template-columns:1fr auto auto"><div><div class="small" style="font-weight:500">Пётр К. — ученик, 8А</div><div class="meta">вчера 17:05</div></div><span></span><span class="meta">ожидает</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 10 PROFILE ============ -->
+<section class="screen" id="s-profile">
+  <p class="kicker">10 · профиль — форма без коробок; акцент: <b>нет</b></p>
+  <h1 class="h1" style="margin-bottom:var(--space-8)">Профиль</h1>
+  <div class="g32">
+    <div style="display:grid;gap:var(--space-5);max-width:420px">
+      <div><label class="lbl" for="p-n">имя</label><input class="input" id="p-n" value="Саша Иванов"></div>
+      <div><label class="lbl" for="p-e">почта</label><input class="input" id="p-e" value="sasha@example.ru"></div>
+      <div><label class="lbl" for="p-g">класс</label><input class="input" id="p-g" value="7"></div>
+      <button class="btn btn-quiet" style="justify-self:start">Сохранить</button>
+    </div>
+    <div class="rows" style="align-content:start">
+      <div style="grid-template-columns:1fr auto"><div><div class="small" style="font-weight:500">Тема</div><div class="meta">системная · светлая · тёмная</div></div><span class="pill">системная</span></div>
+      <div style="grid-template-columns:1fr auto"><div><div class="small" style="font-weight:500">Биологический паспорт (UBP)</div><div class="meta">хранится в этом браузере · IndexedDB</div></div><span class="pill">на устройстве</span></div>
+      <div style="grid-template-columns:1fr auto"><div><div class="small" style="font-weight:500">Резервная копия UBP</div><div class="meta">шифруется до отправки · сервер не может прочитать</div></div><span class="pill">выключена</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 11 SPECIMEN ============ -->
+<section class="screen" id="s-spec">
+  <p class="kicker">11 · система — то, из чего всё собрано</p>
+  <div class="g2">
+    <div>
+      <h2 class="h2" style="margin-bottom:var(--space-5)">Палитра</h2>
+      <div style="display:flex;border-radius:var(--radius-md);overflow:hidden;border:1px solid var(--color-border)" role="img" aria-label="Нейтральная шкала и один коралловый акцент">
+        <i style="flex:1;height:48px;background:var(--fl-n-0)"></i><i style="flex:1;height:48px;background:var(--fl-n-150)"></i>
+        <i style="flex:1;height:48px;background:var(--fl-n-300)"></i><i style="flex:1;height:48px;background:var(--fl-n-500)"></i>
+        <i style="flex:1;height:48px;background:var(--fl-n-700)"></i><i style="flex:1;height:48px;background:var(--fl-n-900)"></i>
+        <i style="flex:1;height:48px;background:var(--fl-coral-500)"></i>
+      </div>
+      <p class="sec caption" style="margin-top:var(--space-4);max-width:44ch">Холодный нейтрал для всего информационного. Коралл — одно смысловое употребление на экран, всегда с текстом. Никаких светофоров в метриках.</p>
+      <h2 class="h2" style="margin:var(--space-8) 0 var(--space-5)">Контролы</h2>
+      <div style="display:flex;gap:var(--space-3);flex-wrap:wrap;align-items:center">
+        <button class="btn btn-primary">Primary</button>
+        <button class="btn btn-quiet">Quiet</button>
+        <span class="pill">pill · meta</span>
+        <span class="pill pill-accent">live</span>
+      </div>
+    </div>
+    <div>
+      <h2 class="h2" style="margin-bottom:var(--space-5)">Два голоса</h2>
+      <p class="h-display" style="font-size:2.75rem">Заголовок — SF/Inter.</p>
+      <p class="mono" style="font-size:var(--text-metric);font-weight:500;letter-spacing:-.03em;margin:var(--space-5) 0">98.5</p>
+      <p class="sec caption" style="max-width:44ch">Всё «машинное» — моно: цифры, время, метки, статусы. Табличные цифры и зарезервированная ширина: ничего не прыгает при обновлении раз в 2.5 с.</p>
+      <div class="rows" style="margin-top:var(--space-6)">
+        <div style="grid-template-columns:120px 1fr auto"><span class="caption sec">метр 0–100</span><span class="meter"><i style="inline-size:66%"></i></span><span class="mono small">66</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer>flamingo air · r&amp;d preview v2 · 2026-07-03 · самодостаточный файл, к приложению не подключён · правила: docs/Flamingo_Redesign_Prompt_v2.md</footer>
+
+<script>
+const tabs=[...document.querySelectorAll('.screens [role=tab]')];
+tabs.forEach(t=>t.addEventListener('click',()=>{
+  tabs.forEach(x=>x.setAttribute('aria-selected',String(x===t)));
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on'));
+  document.getElementById('s-'+t.dataset.s).classList.add('on');
+  window.scrollTo({top:0});
+}));
+const root=document.documentElement;
+const mode=(id,attr,val)=>{const b=document.getElementById(id);b.addEventListener('click',()=>{
+  const on=b.getAttribute('aria-pressed')!=='true';b.setAttribute('aria-pressed',String(on));
+  on?root.setAttribute(attr,val):root.removeAttribute(attr);});};
+mode('m-theme','data-theme','dark');
+mode('m-kids','data-mode','kids');
+</script>
+</body>
+</html>
