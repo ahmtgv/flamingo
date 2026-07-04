@@ -11,7 +11,12 @@
   gap: var(--space-3);
   padding: var(--space-4) var(--space-6);
   border-bottom: 1px solid var(--color-border);
-  background: var(--color-surface);
+  background: var(--nav-material);
+  backdrop-filter: blur(var(--nav-blur));
+  -webkit-backdrop-filter: blur(var(--nav-blur));
+  position: sticky;
+  top: 0;
+  z-index: var(--z-sticky);
 }
 .logoBtn {
   background: none;
@@ -109,7 +114,6 @@
   border: 1px solid var(--color-border);
   border-radius: var(--radius-card);
   padding: var(--space-5);
-  box-shadow: var(--shadow-sm);
   margin-bottom: var(--space-4);
 }
 .sectionTitle {

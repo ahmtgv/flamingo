@@ -129,7 +129,7 @@
     transform var(--duration-fast) var(--ease-standard);
 }
 .roleCard:hover {
-  border-color: var(--color-accent);
+  border-color: var(--color-border-strong);
   box-shadow: var(--shadow-md);
 }
 .roleCard:active {
