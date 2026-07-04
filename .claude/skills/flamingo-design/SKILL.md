@@ -9,21 +9,27 @@ Source of truth: `frontend/src/shared/styles/tokens.css` + `docs/Flamingo_Design
 Reference implementations (shipped, reviewed): `frontend/src/seedum/ui/AttentionStrip.tsx`,
 `frontend/src/features/lesson/ui/ClassField.tsx`, `frontend/src/seedum/ui/Meter.tsx`.
 
-## 1. Palette — monochrome graphite, one accent
+## 1. Palette — cold-neutral «Flamingo Air» (v2, 2026-07-03), one accent
 
-Light warm-gray canvas, graphite ink. Everything is grayscale **except** the single coral accent,
-used ONLY where action/attention is needed.
+Cold light-gray canvas, near-black ink (Apple-grade neutral). Everything is the neutral scale
+**except** the single coral accent, used ONLY where action/attention is needed.
+(v1 warm-graphite palette retired by owner decision — see `docs/Flamingo_Redesign_Prompt_v2.md`.
+Primitive names `--fl-warm-*` are retained for compatibility but hold the cool ramp.)
 
 | Role | Token | Light value |
 |---|---|---|
-| Canvas | `--color-bg` | `#f4efe6` (warm-100) |
-| Card surface | `--color-surface` | `#fbf8f2` (warm-50) |
-| Subtle / track | `--color-surface-subtle` / `--color-surface-hover` | `#ede7db` (warm-150) |
-| Ink (graphite) | `--color-text` | `#2a2520` (warm-900) |
-| Secondary ink | `--color-text-secondary` | `#6e6456` (warm-600) |
-| Muted (decor/captions only) | `--color-text-tertiary` | `#8b7f69` — 3.71:1, NOT for essential body text |
-| Border | `--color-border` / `--color-border-strong` | `#e0d8ca` / `#cfc3b0` |
-| **The accent** | `--color-accent` (graphics) / `--color-accent-text` (text) | `#d2562e` / `#a23a1c` |
+| Canvas | `--color-bg` | `#f1f1ef` |
+| Card surface | `--color-surface` | `#ffffff` |
+| Subtle / track | `--color-surface-subtle` / `--color-surface-hover` | `#e9e9e6` |
+| Ink | `--color-text` | `#1d1d1f` |
+| Secondary ink | `--color-text-secondary` | `#6e6e73` |
+| Muted (decor/captions only) | `--color-text-tertiary` | `#98989e` — decoration-grade, NOT for essential body text |
+| Border (hairline) | `--color-border` / `--color-border-strong` | `#d9d9d6` / `#c4c4c1` |
+| **The accent** | `--color-accent` (graphics) / `--color-accent-text` (text) | `#e14e1f` / `#c23f14` |
+
+**Two voices (v2):** UI voice = SF/system (`--font-body`, Inter fallback); MACHINE voice =
+`--font-mono` (JetBrains Mono) for numbers, time, kickers, statuses, counters, meta. Hairlines
+instead of boxes: surfaces only for clickable objects; depth only for floating elements.
 
 Rules:
 - **Accent = action needed.** One accent element per screen state (e.g. the teacher's
