@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FLAMINGO AIR — live-комната: варианты фокуса (F1/F2/F3/S1)</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f1f1ef;--surface:#fff;--subtle:#e9e9e6;--border:#d9d9d6;--border-s:#c4c4c1;
+  --ink:#1d1d1f;--sec:#6e6e73;--ter:#98989e;
+  --coral:#e14e1f;--coral-t:#c23f14;--coral-soft:#fdeee7;--coral-hi:#ff8a5f;
+  --ui:-apple-system,'SF Pro Display',Inter,system-ui,sans-serif;
+  --mono:'JetBrains Mono','SF Mono',ui-monospace,monospace;
+  --r:12px;--ease:cubic-bezier(.2,0,0,1);
+}
+*{box-sizing:border-box;margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--ui);padding:40px 24px 96px}
+.wrap{max-width:1080px;margin:0 auto}
+h1{font-size:1.5rem;font-weight:600;letter-spacing:-.015em}
+.sub{color:var(--sec);margin:8px 0 24px;max-width:64ch}
+.modes{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:20px}
+.modes button{font:500 12px var(--mono);color:var(--sec);background:none;border:1px solid var(--border);
+  border-radius:999px;padding:7px 14px;cursor:pointer;transition:all .2s var(--ease)}
+.modes button[aria-pressed="true"]{color:var(--ink);border-color:var(--border-s);background:var(--surface)}
+.modes button:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(225,78,31,.4)}
+.hint{font:400 12px var(--mono);color:var(--ter);margin:14px 0 0}
+
+/* app chrome */
+.app{background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow:hidden;
+  transition:all .32s var(--ease)}
+.topbar{display:flex;align-items:center;gap:10px;padding:12px 20px;border-bottom:1px solid var(--border);
+  background:rgba(241,241,239,.78);backdrop-filter:blur(20px)}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--coral)}
+.topbar b{font-size:14px;font-weight:500}
+.livepill{font:500 11px var(--mono);color:var(--coral-t);background:var(--coral-soft);border-radius:999px;
+  padding:4px 12px;margin-left:auto}
+.stage-wrap{padding:14px}
+
+/* tiles engine: one stable container, layout via data-mode only */
+.tiles{display:grid;gap:8px;transition:all .32s var(--ease)}
+.tile{position:relative;aspect-ratio:16/10;border-radius:10px;overflow:hidden;cursor:pointer;border:none;padding:0;
+  background:#2b2b2f;transition:all .32s var(--ease)}
+.tile:nth-child(2){background:#333338}.tile:nth-child(3){background:#26262a}.tile:nth-child(4){background:#2e2e33}
+.tile:nth-child(5){background:#303035}.tile:nth-child(6){background:#28282c}.tile:nth-child(7){background:#323237}
+.tile:nth-child(8){background:#2c2c31}
+.tile:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(225,78,31,.4)}
+.tile .nm{position:absolute;left:8px;bottom:6px;font:400 11px var(--mono);color:#eee;
+  background:rgba(0,0,0,.35);border-radius:999px;padding:2px 9px}
+.tile .warn{position:absolute;right:8px;top:6px;font:500 10px var(--mono);color:var(--coral-hi)}
+.tile[data-alert]{outline:2px solid var(--coral);outline-offset:-2px}
+
+/* GRID mode */
+.room[data-mode="grid"] .tiles{grid-template-columns:repeat(4,1fr)}
+
+/* FOCUS mode (B): focused tile spans, others become filmstrip row */
+.room[data-mode="focus"] .tiles{grid-template-columns:repeat(7,1fr)}
+.room[data-mode="focus"] .tile[data-focused]{grid-column:1/-1;grid-row:1;aspect-ratio:16/8;cursor:zoom-out}
+.room[data-mode="focus"] .tile:not([data-focused]){aspect-ratio:16/10}
+.focusbar{position:absolute;inset-inline:12px;top:12px;display:none;align-items:center;gap:12px;
+  background:rgba(14,14,16,.55);backdrop-filter:blur(16px);border-radius:10px;padding:8px 14px;color:#f2f2f0}
+.room[data-mode="focus"] .tile[data-focused] .focusbar,
+.room[data-mode="full"] .tile[data-focused] .focusbar{display:flex}
+.focusbar .lb{font:400 10px var(--mono);opacity:.75}
+.meter{flex:1;height:3px;background:rgba(255,255,255,.18);border-radius:999px;overflow:hidden}
+.meter i{display:block;height:100%;width:41%;background:rgba(255,255,255,.9)}
+.focusbar .vl{font:500 13px var(--mono)}
+.focusbar .wt{font:500 10px var(--mono);color:var(--coral-hi)}
+.fbtn{font:500 10px var(--mono);color:#ddd;background:none;border:1px solid rgba(255,255,255,.3);
+  border-radius:999px;padding:4px 10px;cursor:pointer}
+
+/* FULLSCREEN mode (A): app chrome hides, focused tile fills viewport-ish */
+.room[data-mode="full"] .topbar,.room[data-mode="full"] .controls{display:none}
+.room[data-mode="full"] .app{background:#0e0e10;border-color:#0e0e10}
+.room[data-mode="full"] .tiles{grid-template-columns:1fr}
+.room[data-mode="full"] .tile:not([data-focused]){display:none}
+.room[data-mode="full"] .tile[data-focused]{aspect-ratio:16/8.2;border-radius:0;cursor:zoom-out}
+.esc{display:none;position:absolute;right:14px;top:12px;font:400 10px var(--mono);color:#777}
+.room[data-mode="full"] .tile[data-focused] .esc{display:block}
+
+/* PROJECTOR mode (C) */
+.projector{display:none;gap:20px;align-items:center}
+.room[data-mode="proj"] .projector{display:flex}
+.room[data-mode="proj"] .app{display:none}
+.pad{flex:1;background:#0e0e10;border-radius:18px;padding:12px;border:1px solid var(--border)}
+.pad .big{aspect-ratio:4/2.5;background:#26262a;border-radius:10px;position:relative}
+.pad .big .nm{position:absolute;left:10px;bottom:8px;font:400 12px var(--mono);color:#eee}
+.pad .strip{position:absolute;right:8px;top:8px;display:flex;gap:4px}
+.pad .strip i{width:34px;height:22px;border-radius:4px;display:block}
+.codebox{width:240px}
+.codebox .t{font-size:14px;font-weight:500;margin-bottom:6px}
+.codebox .d{font-size:13px;color:var(--sec);line-height:1.5}
+.code{font:500 26px var(--mono);letter-spacing:6px;margin-top:10px}
+.ttl{font:400 11px var(--mono);color:var(--ter);margin-top:6px}
+
+/* STUDENT mode */
+.student{display:none;padding:14px}
+.room[data-mode="student"] .student{display:block}
+.room[data-mode="student"] .tiles-wrap{display:none}
+.teacher-stage{position:relative;aspect-ratio:16/8;background:#2f2f34;border-radius:10px}
+.teacher-stage .nm{position:absolute;left:10px;bottom:8px;font:400 11px var(--mono);color:#eee}
+.selftile{position:absolute;right:12px;bottom:12px;width:180px;aspect-ratio:16/10;background:#232327;
+  border:1px solid rgba(255,255,255,.15);border-radius:10px}
+.selfstrip{position:absolute;left:6px;top:6px;right:6px;display:flex;align-items:center;gap:6px;
+  background:rgba(14,14,16,.6);border-radius:6px;padding:4px 8px}
+.selfstrip .vl{font:500 10px var(--mono);color:#fff}
+.selftile .nm{position:absolute;left:6px;bottom:5px;font:400 9px var(--mono);color:#ddd}
+.mates{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:8px}
+.mates div{aspect-ratio:16/10;border-radius:7px;background:#2b2b2f;position:relative}
+.mates div:nth-child(2){background:#333338}.mates div:nth-child(3){background:#2e2e33}
+.mates div:nth-child(4){background:#303035}.mates div:nth-child(5){background:#28282c}
+.mates div:nth-child(6){background:#323237}.mates div:nth-child(7){background:#2c2c31}
+.mates span{position:absolute;left:5px;bottom:4px;font:400 9px var(--mono);color:#ddd}
+
+.controls{display:flex;gap:8px;padding:12px 20px;border-top:1px solid var(--border);align-items:center}
+.pill{font:500 11px var(--mono);color:var(--sec);border:1px solid var(--border);border-radius:999px;padding:5px 12px}
+.privacy{font-size:12px;color:var(--ter);margin-left:auto}
+@media (prefers-reduced-motion:reduce){.tiles,.tile,.app{transition:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Live-комната — варианты увеличенного экрана</h1>
+  <p class="sub">Интерактивный макет слайсов F1/F2/F3/S1 из LIVEROOM_SEDUM_MASTERPLAN. В режимах «Сетка» и «Фокус» тайлы кликабельны: клик — фокус на ученике, повторный клик — назад. Один стабильный контейнер, лейаут меняется только CSS-атрибутом — так же будет в коде.</p>
+  <div class="modes" role="group" aria-label="Режимы">
+    <button data-m="grid" aria-pressed="true">1 · сетка (8)</button>
+    <button data-m="focus" aria-pressed="false">2 · фокус — режим B</button>
+    <button data-m="full" aria-pressed="false">3 · режим A — весь экран</button>
+    <button data-m="proj" aria-pressed="false">4 · режим C — планшет</button>
+    <button data-m="student" aria-pressed="false">5 · экран ученика</button>
+  </div>
+
+  <div class="room" data-mode="grid" id="room">
+    <div class="app">
+      <div class="topbar"><span class="dot"></span><b>Алгебра — линейные уравнения</b><span class="livepill">● live · 23:14</span></div>
+      <div class="stage-wrap tiles-wrap">
+        <div class="tiles" id="tiles"></div>
+      </div>
+      <div class="student">
+        <div class="teacher-stage">
+          <span class="nm">Мария Петровна</span>
+          <div class="selftile">
+            <div class="selfstrip"><span class="meter" style="flex:1"><i style="width:84%"></i></span><span class="vl">84</span></div>
+            <span class="nm">ты</span>
+          </div>
+        </div>
+        <div class="mates">
+          <div><span>Вера</span></div><div><span>Тимур</span></div><div><span>Костя</span></div>
+          <div><span>Лиза</span></div><div><span>Марк</span></div><div><span>Аня</span></div><div><span>Дима</span></div>
+        </div>
+      </div>
+      <div class="controls">
+        <span class="pill">камера on</span><span class="pill">микрофон off</span><span class="pill">демонстрация</span>
+        <span class="privacy">анализ внимания — на устройствах учеников · уходят только агрегаты</span>
+      </div>
+    </div>
+    <div class="projector">
+      <div class="pad">
+        <div class="big">
+          <span class="nm">Тимур · 41</span>
+          <div class="strip"><i style="background:#2b2b2f"></i><i style="background:#333338"></i><i style="background:#303035"></i><i style="background:#323237"></i></div>
+        </div>
+      </div>
+      <div class="codebox">
+        <div class="t">Подключение как расшаривание экрана</div>
+        <div class="d">На ноутбуке — кнопка «На второй экран» показывает код. На планшете открываешь flamingo и вводишь:</div>
+        <div class="code">7 3 4 2</div>
+        <div class="ttl">код живёт 5 минут · без логина · только просмотр · гаснет с уроком</div>
+      </div>
+    </div>
+  </div>
+  <p class="hint" id="hint">клик по любому тайлу — фокус · Esc — назад</p>
+</div>
+
+<script>
+const students=[["Саша",86],["Вера",72],["Тимур",41],["Костя",64],["Лиза",78],["Марк",69],["Аня",81],["Дима",74]];
+const tiles=document.getElementById('tiles');
+students.forEach(([n,v],i)=>{
+  const b=document.createElement('button');b.className='tile';
+  b.setAttribute('aria-label','Развернуть видео: '+n);
+  if(v<50)b.setAttribute('data-alert','');
+  b.innerHTML=`
+    <div class="focusbar"><span class="lb">внимание</span><span class="meter"><i style="width:${v}%"></i></span>
+      <span class="vl">${v}</span>${v<50?'<span class="wt">нужно внимание</span>':''}
+      <span class="fbtn" data-a="full">⛶ весь экран</span><span class="fbtn" data-a="proj">▷ на второй экран</span>
+      <span class="esc">Esc — выйти</span></div>
+    <span class="nm">${n} · ${v}</span>${v<50?'<span class="warn">нужно внимание</span>':''}`;
+  tiles.appendChild(b);
+});
+const room=document.getElementById('room');
+const btns=[...document.querySelectorAll('.modes button')];
+function setMode(m){room.dataset.mode=m;btns.forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.m===m)));}
+btns.forEach(b=>b.addEventListener('click',()=>setMode(b.dataset.m)));
+tiles.addEventListener('click',e=>{
+  const act=e.target.closest('.fbtn');const t=e.target.closest('.tile');if(!t)return;
+  if(act){e.stopPropagation();setMode(act.dataset.a);return;}
+  const m=room.dataset.mode;
+  if(m==='grid'){[...tiles.children].forEach(x=>x.removeAttribute('data-focused'));t.setAttribute('data-focused','');setMode('focus');}
+  else if(m==='focus'||m==='full'){
+    if(t.hasAttribute('data-focused')){t.removeAttribute('data-focused');setMode('grid');}
+    else{[...tiles.children].forEach(x=>x.removeAttribute('data-focused'));t.setAttribute('data-focused','');if(m==='full')setMode('focus');}
+  }
+});
+document.addEventListener('keydown',e=>{
+  if(e.key!=='Escape')return;
+  const m=room.dataset.mode;
+  if(m==='full')setMode('focus');
+  else if(m==='focus'){[...tiles.children].forEach(x=>x.removeAttribute('data-focused'));setMode('grid');}
+});
+</script>
+</body>
+</html>
