@@ -1,0 +1,372 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>АТЛАС 01 — Live-комната (все режимы и состояния)</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f1f1ef;--surface:#fff;--subtle:#e9e9e6;--border:#d9d9d6;--border-s:#c4c4c1;
+  --ink:#1d1d1f;--sec:#6e6e73;--ter:#98989e;
+  --coral:#e14e1f;--coral-t:#c23f14;--coral-soft:#fdeee7;--coral-hi:#ff8a5f;
+  --ui:-apple-system,'SF Pro Display',Inter,system-ui,sans-serif;
+  --mono:'JetBrains Mono','SF Mono',ui-monospace,monospace;
+  --ease:cubic-bezier(.2,0,0,1);
+}
+*{box-sizing:border-box;margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--ui);padding:40px 24px 96px}
+.wrap{max-width:1160px;margin:0 auto}
+h1{font-size:1.5rem;font-weight:600;letter-spacing:-.015em}
+.sub{color:var(--sec);margin:8px 0 20px;max-width:72ch;font-size:.9375rem}
+.modes{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:16px}
+.modes .grp{font:500 10px var(--mono);color:var(--ter);margin-right:2px}
+.modes button{font:500 12px var(--mono);color:var(--sec);background:none;border:1px solid var(--border);
+  border-radius:999px;padding:7px 13px;cursor:pointer;transition:all .2s var(--ease)}
+.modes button[aria-pressed="true"]{color:var(--ink);border-color:var(--border-s);background:var(--surface)}
+.modes button:focus-visible,.tile:focus-visible,.svtoggle:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(225,78,31,.4)}
+.hint{font:400 12px var(--mono);color:var(--ter);margin-top:14px}
+
+/* ---------- app chrome ---------- */
+.app{position:relative;background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow:hidden;transition:all .32s var(--ease)}
+.topbar{display:flex;align-items:center;gap:10px;padding:12px 20px;border-bottom:1px solid var(--border);
+  background:rgba(241,241,239,.78);backdrop-filter:blur(20px)}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--coral)}
+.topbar b{font-size:14px;font-weight:500}
+.livepill{font:500 11px var(--mono);color:var(--coral-t);background:var(--coral-soft);border-radius:999px;padding:4px 12px}
+.svtoggle{font:500 11px var(--mono);color:var(--sec);background:none;border:1px solid var(--border);
+  border-radius:999px;padding:5px 12px;cursor:pointer;margin-left:auto}
+.svtoggle[aria-pressed="true"]{color:var(--ink);border-color:var(--border-s);background:var(--subtle)}
+.controls{display:flex;gap:8px;padding:12px 20px;border-top:1px solid var(--border);align-items:center;flex-wrap:wrap}
+.pill{font:500 11px var(--mono);color:var(--sec);border:1px solid var(--border);border-radius:999px;padding:5px 12px;background:none;cursor:pointer}
+.pill[data-on]{color:var(--ink);border-color:var(--border-s)}
+.privacy{font-size:12px;color:var(--ter);margin-left:auto}
+
+/* ---------- layout: stage column + PERMANENT side rail (никаких наложений) ---------- */
+.layout{display:grid;grid-template-columns:1fr 188px;gap:10px;padding:14px}
+.stagecol{min-width:0}
+.rail{display:flex;flex-direction:column;gap:8px}
+.railtile{position:relative;aspect-ratio:16/10;background:#232327;border:1px solid var(--border);border-radius:10px}
+.railtile .nm{position:absolute;left:7px;bottom:5px;font:400 9px var(--mono);color:#ddd}
+.railtile .oncam{position:absolute;right:6px;top:5px;font:500 8px var(--mono);color:#9be0a8}
+.railcap{font:500 9px var(--mono);color:var(--ter);margin:2px 0 0 2px}
+.studentpip{display:none;background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.studentpip .cap{font:500 9px var(--mono);color:var(--sec);padding:5px 8px;border-bottom:1px solid var(--border)}
+.studentpip .mini{position:relative;aspect-ratio:16/9;background:#2f2f34;margin:5px;border-radius:6px}
+.studentpip .mini .nm{position:absolute;left:5px;bottom:4px;font:400 8px var(--mono);color:#ddd}
+.studentpip .row{display:flex;gap:3px;padding:0 5px 5px}
+.studentpip .row i{flex:1;aspect-ratio:16/10;border-radius:3px;background:#2b2b2f;display:block}
+.room[data-sv="on"] .studentpip{display:block}
+
+/* students tiles: ONE stable container */
+.tiles{display:grid;gap:8px;transition:all .32s var(--ease)}
+.tile{position:relative;aspect-ratio:16/10;border-radius:10px;overflow:hidden;cursor:pointer;border:none;padding:0;
+  background:#2b2b2f;transition:all .32s var(--ease)}
+.tile:nth-child(2){background:#333338}.tile:nth-child(3){background:#26262a}.tile:nth-child(4){background:#2e2e33}
+.tile:nth-child(5){background:#303035}.tile:nth-child(6){background:#28282c}.tile:nth-child(7){background:#323237}
+.tile:nth-child(8){background:#2c2c31}
+.tile .nm{position:absolute;left:8px;bottom:6px;font:400 11px var(--mono);color:#eee;background:rgba(0,0,0,.35);border-radius:999px;padding:2px 9px}
+.tile .warn{position:absolute;right:8px;top:6px;font:500 10px var(--mono);color:var(--coral-hi)}
+.tile[data-alert]{outline:2px solid var(--coral);outline-offset:-2px}
+.focusbar{position:absolute;inset-inline:12px;top:12px;display:none;align-items:center;gap:12px;
+  background:rgba(14,14,16,.55);backdrop-filter:blur(16px);border-radius:10px;padding:8px 14px;color:#f2f2f0}
+.focusbar .lb{font:400 10px var(--mono);opacity:.75}
+.meter{flex:1;height:3px;background:rgba(255,255,255,.18);border-radius:999px;overflow:hidden}
+.meter i{display:block;height:100%;background:rgba(255,255,255,.9)}
+.focusbar .vl{font:500 13px var(--mono)}
+.focusbar .wt{font:500 10px var(--mono);color:var(--coral-hi)}
+.fbtn{font:500 10px var(--mono);color:#ddd;background:none;border:1px solid rgba(255,255,255,.3);border-radius:999px;padding:4px 10px;cursor:pointer}
+
+/* material surface */
+.material{display:none;position:relative;aspect-ratio:16/8.4;border-radius:10px;overflow:hidden;margin-bottom:8px}
+.material .tag{position:absolute;left:12px;top:10px;font:500 10px var(--mono);color:var(--sec);
+  background:rgba(255,255,255,.9);border:1px solid var(--border);border-radius:999px;padding:4px 12px;z-index:2}
+.mat-slides{background:#fff;border:1px solid var(--border)}
+.mat-slides .slide{position:absolute;inset:13% 16%;background:var(--subtle);border-radius:8px;display:grid;place-content:center;gap:10px;text-align:center}
+.mat-slides .slide b{font-size:clamp(14px,2.4vw,24px);font-weight:600;letter-spacing:-.02em}
+.mat-slides .slide span{font:400 12px var(--mono);color:var(--sec)}
+.mat-slides .pgr{position:absolute;right:14px;bottom:10px;font:500 11px var(--mono);color:var(--sec)}
+.mat-board{background:#fff;border:1px solid var(--border)}
+.mat-board svg{position:absolute;inset:0;width:100%;height:100%}
+.mat-board .toolbar{position:absolute;left:50%;bottom:10px;transform:translateX(-50%);display:flex;gap:4px;
+  background:var(--surface);border:1px solid var(--border);border-radius:999px;padding:4px 8px;font:500 10px var(--mono);color:var(--sec)}
+.mat-board .toolbar span{padding:3px 8px;border-radius:999px}
+.mat-board .toolbar span[data-on]{background:var(--subtle);color:var(--ink)}
+.mat-video{background:#0e0e10}
+.mat-video .play{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:64px;height:64px;border-radius:50%;
+  background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.35);display:grid;place-content:center;color:#fff;font-size:20px}
+.mat-video .vbar{position:absolute;inset-inline:14px;bottom:12px;display:flex;align-items:center;gap:10px;color:#ccc;font:400 10px var(--mono)}
+.mat-video .vtrack{flex:1;height:3px;background:rgba(255,255,255,.18);border-radius:999px}
+.mat-video .vtrack i{display:block;width:37%;height:100%;background:rgba(255,255,255,.85);border-radius:999px}
+
+/* ---------- CONDITIONS (второй ряд переключателей) ---------- */
+.prejoin{display:none;text-align:center;padding:96px 40px}
+.prejoin h3{font-size:1.3rem;font-weight:600;letter-spacing:-.015em}
+.prejoin p{color:var(--sec);max-width:46ch;margin:10px auto 26px;font-size:.9375rem}
+.prejoin .err{color:var(--coral-t);font:500 12px var(--mono)}
+.btnP{font:500 1rem var(--ui);color:#fff;background:var(--coral);border:none;border-radius:10px;height:44px;padding:0 28px;cursor:pointer}
+.btnQ{font:500 1rem var(--ui);color:var(--ink);background:none;border:1px solid var(--border-s);border-radius:10px;height:44px;padding:0 24px;cursor:pointer;margin-left:8px}
+.room[data-cond="prejoin"] .layout,.room[data-cond="prejoin"] .controls,.room[data-cond="denied"] .layout,.room[data-cond="denied"] .controls{display:none}
+.room[data-cond="prejoin"] .prejoin.pj-ok{display:block}
+.room[data-cond="denied"] .prejoin.pj-denied{display:block}
+.reconnBanner{display:none;align-items:center;gap:10px;margin:0 14px;padding:10px 16px;border-radius:10px;
+  background:#f6eed9;color:#7d570c;font:500 12px var(--mono)}
+[data-theme="dark"] .reconnBanner{background:#2e2712;color:#e0c37a}
+.room[data-cond="reconnect"] .reconnBanner{display:flex;margin-top:14px}
+.lostOverlay{display:none;position:absolute;inset:0;z-index:20;background:rgba(0,0,0,.45);place-content:center}
+.room[data-cond="lost"] .lostOverlay{display:grid}
+.lostCard{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:28px 32px;text-align:center;max-width:320px;box-shadow:0 16px 40px rgba(0,0,0,.18)}
+.lostCard p{font-size:.9375rem;font-weight:500;margin-bottom:18px}
+/* нет данных: у Тимура чип меняется, кольцо гаснет */
+.nm-nodata{display:none}
+.room[data-cond="nodata"] .nm-live{display:none}
+.room[data-cond="nodata"] .nm-nodata{display:inline-flex}
+.room[data-cond="nodata"] .tile[data-alert]{outline:none}
+.room[data-cond="nodata"] .tile .warn{display:none}
+
+/* ---------- MODES ---------- */
+.room[data-mode="grid"] .tiles{grid-template-columns:repeat(3,1fr)}
+
+.room[data-mode="focus"] .tiles{grid-template-columns:repeat(7,1fr)}
+.room[data-mode="focus"] .tile[data-focused]{grid-column:1/-1;grid-row:1;aspect-ratio:16/8.4;cursor:zoom-out}
+.room[data-mode="focus"] .tile[data-focused] .focusbar{display:flex}
+
+.room[data-mode^="mat-"] .tiles{grid-template-columns:repeat(8,1fr)}
+.room[data-mode^="mat-"] .tile{cursor:default}
+.room[data-mode="mat-slides"] .mat-slides{display:block}
+.room[data-mode="mat-board"] .mat-board{display:block}
+.room[data-mode="mat-video"] .mat-video{display:block}
+
+/* FULLSCREEN (A): вся площадь под видео + нижняя ПОЛОСА (не оверлей): инфо + свой тайл */
+.room[data-mode="full"] .topbar,.room[data-mode="full"] .controls{display:none}
+.room[data-mode="full"] .app{background:#0e0e10;border-color:#0e0e10}
+.room[data-mode="full"] .layout{grid-template-columns:1fr;padding:0;gap:0}
+.room[data-mode="full"] .rail{flex-direction:row;align-items:center;gap:14px;padding:10px 16px;background:#0e0e10}
+.room[data-mode="full"] .railcap,.room[data-mode="full"] .studentpip{display:none}
+.room[data-mode="full"] .railtile{width:150px;aspect-ratio:16/10;border-color:#2e2e31}
+.room[data-mode="full"] .fsinfo{display:flex}
+.room[data-mode="full"] .tiles{grid-template-columns:1fr;gap:0}
+.room[data-mode="full"] .tile:not([data-focused]){display:none}
+.room[data-mode="full"] .tile[data-focused]{aspect-ratio:16/8;border-radius:0;cursor:zoom-out}
+.room[data-mode="full"] .tile[data-focused] .focusbar{display:none}
+.room[data-mode="full"] .material{display:none}
+.fsinfo{display:none;align-items:center;gap:14px;color:#f2f2f0;flex:1}
+.fsinfo .who{font:500 14px var(--mono)}
+.fsinfo .meter{max-width:220px}
+.fsinfo .vl{font:500 16px var(--mono)}
+.fsinfo .wt{font:500 11px var(--mono);color:var(--coral-hi)}
+.fsinfo .esc{font:400 10px var(--mono);color:#777;margin-left:auto}
+
+/* projector */
+.projector{display:none;gap:20px;align-items:center}
+.room[data-mode="proj"] .projector{display:flex}
+.room[data-mode="proj"] .app{display:none}
+.pad{flex:1;background:#0e0e10;border-radius:18px;padding:12px;border:1px solid var(--border)}
+.pad .big{aspect-ratio:4/2.4;background:#26262a;border-radius:10px;position:relative}
+.pad .big .nm{position:absolute;left:10px;bottom:8px;font:400 12px var(--mono);color:#eee}
+.pad .stripe{display:flex;gap:4px;margin-top:8px}
+.pad .stripe i{flex:1;aspect-ratio:16/10;border-radius:6px;display:block}
+.codebox{width:240px}
+.codebox .t{font-size:14px;font-weight:500;margin-bottom:6px}
+.codebox .d{font-size:13px;color:var(--sec);line-height:1.5}
+.code{font:500 26px var(--mono);letter-spacing:6px;margin-top:10px}
+.ttl{font:400 11px var(--mono);color:var(--ter);margin-top:6px}
+
+/* ---------- STUDENT (та же схема: сцена + рейл, без наложений) ---------- */
+.room[data-mode^="stu"] .tiles,.room[data-mode^="stu"] .material{display:none}
+.room[data-mode^="stu"] .teacherwrap{display:block}
+.room[data-mode^="stu"] .rail .studentpip,.room[data-mode^="stu"] .railtile.teacherself,.room[data-mode^="stu"] .teachercap{display:none}
+.room[data-mode^="stu"] .stucap{display:block}
+.teacherwrap{display:none}
+.teacher-stage{position:relative;aspect-ratio:16/8.4;background:#2f2f34;border-radius:10px;overflow:hidden}
+.teacher-stage .nm{position:absolute;left:10px;bottom:8px;font:400 11px var(--mono);color:#eee;z-index:2}
+.stu-mat{display:none;position:absolute;inset:0;background:#fff}
+.stu-mat .slide{position:absolute;inset:13% 16%;background:var(--subtle);border-radius:8px;display:grid;place-content:center;gap:8px;text-align:center}
+.stu-mat .slide b{font-size:clamp(13px,2vw,20px);font-weight:600}
+.stu-mat .slide span{font:400 11px var(--mono);color:var(--sec)}
+.room[data-mode="stu-mat"] .stu-mat{display:block}
+.railtile.stuself,.railtile.teachermini,.stucap{display:none}
+.room[data-mode^="stu"] .railtile.stuself{display:block}
+.room[data-mode="stu-mat"] .railtile.teachermini{display:block;background:#2f2f34}
+.stuself .strip{position:absolute;left:6px;top:6px;right:6px;display:flex;align-items:center;gap:6px;
+  background:rgba(14,14,16,.6);border-radius:6px;padding:4px 8px}
+.stuself .vl{font:500 10px var(--mono);color:#fff}
+.mates{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:8px}
+.room[data-mode^="stu"] .mates{display:grid}
+.mates{display:none}
+.mates div{aspect-ratio:16/10;border-radius:7px;background:#2b2b2f;position:relative}
+.mates div:nth-child(2){background:#333338}.mates div:nth-child(3){background:#2e2e33}
+.mates div:nth-child(4){background:#303035}.mates div:nth-child(5){background:#28282c}
+.mates div:nth-child(6){background:#323237}.mates div:nth-child(7){background:#2c2c31}
+.mates span{position:absolute;left:5px;bottom:4px;font:400 9px var(--mono);color:#ddd}
+
+@media (prefers-reduced-motion:reduce){.tiles,.tile,.app{transition:none}}
+@media (max-width:820px){.layout{grid-template-columns:1fr}.rail{flex-direction:row}.railtile{width:150px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Атлас · Лист 01 — Live-комната</h1>
+  <p class="sub">Полный атлас live-комнаты: 9 режимов × 6 состояний. Правка владельца: НИКАКИХ наложений на видео и материал. Свой тайл учителя и превью «что видит ученик» живут в постоянной правой колонке — сцена всегда полностью видна. «Весь экран» — видео + отдельная нижняя полоса (имя · внимание · свой тайл), тоже без перекрытий. Тайлы кликабельны, Esc — назад.</p>
+  <div class="modes" role="group" aria-label="Режимы">
+    <span class="grp">учитель:</span>
+    <button data-m="grid" aria-pressed="true">класс</button>
+    <button data-m="focus" aria-pressed="false">фокус на ученике</button>
+    <button data-m="mat-slides" aria-pressed="false">презентация</button>
+    <button data-m="mat-board" aria-pressed="false">доска</button>
+    <button data-m="mat-video" aria-pressed="false">видео</button>
+    <button data-m="full" aria-pressed="false">весь экран</button>
+    <button data-m="proj" aria-pressed="false">планшет</button>
+    <span class="grp" style="margin-left:10px">ученик:</span>
+    <button data-m="stu" aria-pressed="false">урок</button>
+    <button data-m="stu-mat" aria-pressed="false">материал</button>
+  </div>
+  <div class="modes" role="group" aria-label="Состояния">
+    <span class="grp">состояние:</span>
+    <button data-c="none" aria-pressed="true">эфир</button>
+    <button data-c="prejoin" aria-pressed="false">до входа</button>
+    <button data-c="denied" aria-pressed="false">камера запрещена</button>
+    <button data-c="reconnect" aria-pressed="false">переподключение</button>
+    <button data-c="lost" aria-pressed="false">связь потеряна</button>
+    <button data-c="nodata" aria-pressed="false">нет данных (тайл)</button>
+  </div>
+
+  <div class="room" data-mode="grid" data-cond="none" id="room">
+    <div class="app">
+      <div class="topbar">
+        <span class="dot"></span><b>Алгебра — линейные уравнения</b>
+        <span class="livepill">● live · 23:14</span>
+        
+      </div>
+
+      <div class="prejoin pj-ok">
+        <h3>Алгебра — линейные уравнения</h3>
+        <p>Занятие идёт. Камера и микрофон включатся после входа; анализ внимания работает на устройствах учеников — кадры никуда не передаются.</p>
+        <button class="btnP">Войти в эфир</button>
+      </div>
+      <div class="prejoin pj-denied">
+        <h3>Нет доступа к камере</h3>
+        <p class="err">Камера запрещена в настройках браузера</p>
+        <p>Разреши доступ к камере и микрофону для этого сайта и попробуй снова.</p>
+        <button class="btnP">Повторить</button><button class="btnQ">Как разрешить?</button>
+      </div>
+      <div class="reconnBanner">⟳ Связь прервана — переподключаемся…</div>
+      <div class="lostOverlay"><div class="lostCard"><p>Соединение с эфиром потеряно.</p><button class="btnP">Переподключиться</button></div></div>
+      <div class="layout">
+        <div class="stagecol">
+          <div class="material mat-slides"><span class="tag">презентация · слайд 4 из 12</span>
+            <div class="slide"><b>Линейное уравнение</b><span>ax + b = 0 · один корень: x = −b/a</span></div>
+            <span class="pgr">4 / 12</span>
+          </div>
+          <div class="material mat-board"><span class="tag">доска</span>
+            <svg viewBox="0 0 800 340" aria-hidden="true">
+              <path d="M80 240 L 340 80" stroke="#1d1d1f" stroke-width="3" fill="none"/>
+              <path d="M60 260 L 520 260 M 100 300 L 100 60" stroke="#c4c4c1" stroke-width="2" fill="none"/>
+              <text x="360" y="80" font-family="JetBrains Mono" font-size="26" fill="#1d1d1f">y = 2x − 3</text>
+              <circle cx="215" cy="157" r="6" fill="#e14e1f"/>
+              <text x="232" y="150" font-family="JetBrains Mono" font-size="16" fill="#c23f14">корень</text>
+            </svg>
+            <div class="toolbar"><span data-on>перо</span><span>текст</span><span>фигуры</span><span>ластик</span></div>
+          </div>
+          <div class="material mat-video"><span class="tag">видео · Хан Академия — уравнения</span>
+            <div class="play">▶</div>
+            <div class="vbar"><span>04:12</span><span class="vtrack"><i></i></span><span>11:20</span></div>
+          </div>
+
+          <div class="teacherwrap">
+            <div class="teacher-stage">
+              <span class="nm">Мария Петровна</span>
+              <div class="stu-mat"><div class="slide"><b>Линейное уравнение</b><span>ax + b = 0 · слайд 4 из 12</span></div></div>
+            </div>
+            <div class="mates">
+              <div><span>Вера</span></div><div><span>Тимур</span></div><div><span>Костя</span></div>
+              <div><span>Лиза</span></div><div><span>Марк</span></div><div><span>Аня</span></div><div><span>Дима</span></div>
+            </div>
+          </div>
+
+          <div class="tiles" id="tiles"></div>
+        </div>
+
+        <div class="rail">
+          <div class="fsinfo"><span class="who">Тимур</span><span class="meter"><i style="width:41%"></i></span><span class="vl">41</span><span class="wt">нужно внимание</span><span class="esc">Esc — выйти</span></div>
+          <div class="railtile teacherself"><span class="oncam">● в эфире</span><span class="nm">ты · Мария Петровна</span></div>
+          <p class="railcap teachercap">так тебя видят ученики</p>
+        </div>
+      </div>
+
+      <div class="controls">
+        <button class="pill" data-on>камера</button><button class="pill">микрофон</button>
+        <button class="pill">демонстрация</button><button class="pill">материалы ▾</button>
+        <button class="pill">завершить</button>
+        <span class="privacy">анализ внимания — на устройствах · уходят только агрегаты</span>
+      </div>
+    </div>
+
+    <div class="projector">
+      <div class="pad">
+        <div class="big"><span class="nm">Тимур · 41</span></div>
+        <div class="stripe"><i style="background:#2b2b2f"></i><i style="background:#333338"></i><i style="background:#303035"></i><i style="background:#323237"></i><i style="background:#2e2e33"></i></div>
+      </div>
+      <div class="codebox">
+        <div class="t">Подключение как расшаривание экрана</div>
+        <div class="d">На ноутбуке — «На второй экран» показывает код. На планшете вводишь:</div>
+        <div class="code">7 3 4 2</div>
+        <div class="ttl">5 минут · без логина · только просмотр · гаснет с уроком</div>
+      </div>
+    </div>
+  </div>
+  <p class="hint">сцена никогда не перекрывается: свой тайл и превью — в правой колонке · «весь экран» = видео + нижняя полоса · в режимах материалов лента класса под сценой</p>
+</div>
+
+<script>
+const students=[["Саша",86],["Вера",72],["Тимур",41],["Костя",64],["Лиза",78],["Марк",69],["Аня",81],["Дима",74]];
+const tiles=document.getElementById('tiles');
+students.forEach(([n,v])=>{
+  const b=document.createElement('button');b.className='tile';
+  b.setAttribute('aria-label','Развернуть видео: '+n);
+  if(v<50)b.setAttribute('data-alert','');
+  b.innerHTML=`<div class="focusbar"><span class="lb">внимание</span><span class="meter"><i style="width:${v}%"></i></span>
+      <span class="vl">${v}</span>${v<50?'<span class="wt">нужно внимание</span>':''}
+      <span class="fbtn" data-a="full">⛶ весь экран</span><span class="fbtn" data-a="proj">▷ на второй экран</span></div>
+    <span class="nm nm-live">${n} · ${v}</span>${n==='Тимур'?'<span class="nm nm-nodata">Тимур · нет данных</span>':''}${v<50?'<span class="warn">нужно внимание</span>':''}`;
+  tiles.appendChild(b);
+});
+const room=document.getElementById('room');
+const btns=[...document.querySelectorAll('.modes button')];
+function focusedTile(){return tiles.querySelector('[data-focused]')}
+function ensureFocused(){if(!focusedTile()){const t=tiles.children[2]||tiles.children[0];t&&t.setAttribute('data-focused','');}}
+function setMode(m){
+  if(m==='full'||m==='focus')ensureFocused();
+  const f=focusedTile();
+  if(f){const [n,v]=[f.querySelector('.nm').textContent.split(' ·')[0],f.querySelector('.vl')?.textContent||''];
+    const fi=document.querySelector('.fsinfo');
+    fi.querySelector('.who').textContent=n;fi.querySelector('.vl').textContent=v;
+    fi.querySelector('.meter i').style.width=v+'%';fi.querySelector('.wt').style.display=(+v<50)?'inline':'none';}
+  room.dataset.mode=m;btns.forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.m===m)));
+}
+btns.forEach(b=>b.addEventListener('click',()=>setMode(b.dataset.m)));
+const condBtns=[...document.querySelectorAll('[data-c]')];
+condBtns.forEach(b=>b.addEventListener('click',()=>{
+  room.dataset.cond=b.dataset.c;
+  condBtns.forEach(x=>x.setAttribute('aria-pressed',String(x===b)));
+}));
+
+tiles.addEventListener('click',e=>{
+  const act=e.target.closest('.fbtn');const t=e.target.closest('.tile');if(!t)return;
+  if(act){e.stopPropagation();if(!t.hasAttribute('data-focused')){[...tiles.children].forEach(x=>x.removeAttribute('data-focused'));t.setAttribute('data-focused','');}setMode(act.dataset.a);return;}
+  const m=room.dataset.mode;
+  if(m==='grid'){[...tiles.children].forEach(x=>x.removeAttribute('data-focused'));t.setAttribute('data-focused','');setMode('focus');}
+  else if(m==='focus'||m==='full'){
+    if(t.hasAttribute('data-focused')){t.removeAttribute('data-focused');setMode('grid');}
+    else{[...tiles.children].forEach(x=>x.removeAttribute('data-focused'));t.setAttribute('data-focused','');setMode(m==='full'?'focus':m);}
+  }
+});
+document.addEventListener('keydown',e=>{
+  if(e.key!=='Escape')return;
+  const m=room.dataset.mode;
+  if(m==='full')setMode('focus');
+  else if(m==='focus'){[...tiles.children].forEach(x=>x.removeAttribute('data-focused'));setMode('grid');}
+});
+</script>
+</body>
+</html>
