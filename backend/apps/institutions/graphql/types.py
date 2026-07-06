@@ -2,12 +2,14 @@
 
 from __future__ import annotations
 
+import strawberry
 import strawberry_django
 from strawberry import auto
 from strawberry.scalars import JSON
 
 from apps.accounts.graphql.types import StudentProfileType, TeacherProfileType, UserType
-from apps.institutions import models
+from apps.institutions import models, services
+from common.auth import get_current_user
 from common.enums import InstitutionStatus, MembershipRole, MembershipStatus
 
 
@@ -76,9 +78,11 @@ class Group:
         return self.institution
 
     @strawberry_django.field
-    def students(self) -> list[StudentProfileType]:
-        return [m.student for m in self.memberships.select_related("student__user")]
+    def students(self, info: strawberry.Info) -> list[StudentProfileType]:
+        # A-C2: minors' roster — per-resolver scoped (own-institution admin / assigned
+        # teacher / staff); everyone else reads []. Same leak class as the b2782ba fix.
+        return services.group_students_for(get_current_user(info), self)
 
     @strawberry_django.field
-    def teachers(self) -> list[GroupTeacher]:
-        return list(self.group_teachers.select_related("teacher__user"))
+    def teachers(self, info: strawberry.Info) -> list[GroupTeacher]:
+        return services.group_teachers_for(get_current_user(info), self)

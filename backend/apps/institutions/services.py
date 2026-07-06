@@ -68,6 +68,35 @@ def _admin_group(user, group_id) -> Group:
     return group
 
 
+# --- group roster (children PII — per-resolver scoped, A-C2) ------------------
+def _can_view_group_roster(user, group: Group) -> bool:
+    """The group roster (minors' names — PII, 152-FZ) is visible ONLY to platform staff,
+    an active admin of the group's OWN institution, or a teacher ASSIGNED to this group
+    (same leak class as the attendance fix b2782ba). Everyone else reads []."""
+    if getattr(user, "is_staff", False):
+        return True
+    if _is_active_admin(user, group.institution):
+        return True
+    user_id = getattr(user, "id", None)
+    if user_id is None:
+        return False
+    return GroupTeacher.objects.filter(group=group, teacher__user_id=user_id).exists()
+
+
+def group_students_for(user, group: Group) -> list[StudentProfile]:
+    """Group.students resolver body: the roster for authorized viewers, else []."""
+    if not _can_view_group_roster(user, group):
+        return []
+    return [m.student for m in group.memberships.select_related("student__user")]
+
+
+def group_teachers_for(user, group: Group) -> list[GroupTeacher]:
+    """Group.teachers resolver body: assignments for authorized viewers, else []."""
+    if not _can_view_group_roster(user, group):
+        return []
+    return list(group.group_teachers.select_related("teacher__user"))
+
+
 # --- onboarding (back-office; not exposed via GraphQL) -----------------------
 @transaction.atomic
 def add_admin(user, *, institution_id, admin_user_id) -> InstitutionMembership:

@@ -211,3 +211,40 @@ def test_queries_are_admin_scoped():
     assert services.get_institution(outsider, inst.id) is None
     with pytest.raises(PermissionDenied):
         services.list_groups(outsider, inst.id)
+
+
+# --- group roster scoping (A-C2: children PII per-resolver, like b2782ba) ----
+def test_group_roster_scoped_to_own_admin_and_assigned_teacher():
+    staff = make_staff()
+    admin_a = make_admin("admin.a@example.com")
+    admin_b = make_admin("admin.b@example.com")
+    s1 = make_student("roster.s1@example.com")
+    student_viewer = make_student("roster.viewer@example.com")
+    assigned = make_teacher("roster.assigned@example.com")
+    outsider_teacher = make_teacher("roster.outsider@example.com")
+
+    inst_a = institution_with_admin(staff, admin_a)
+    inst_b = services.create_institution(staff, name="Школа Б")
+    services.add_admin(staff, institution_id=inst_b.id, admin_user_id=admin_b.id)
+
+    group = services.create_group(admin_a, institution_id=inst_a.id, name="7А", level="7")
+    services.add_students_to_group(admin_a, group.id, [s1.id])
+    services.assign_teacher(admin_a, group.id, assigned.id, "Математика")
+
+    # positive: own-institution admin and the ASSIGNED teacher see the roster
+    assert [p.user.email for p in services.group_students_for(admin_a, group)] == [
+        "roster.s1@example.com"
+    ]
+    assert len(services.group_teachers_for(admin_a, group)) == 1
+    assert [p.user.email for p in services.group_students_for(assigned, group)] == [
+        "roster.s1@example.com"
+    ]
+
+    # negative: an admin of ANOTHER institution, an unassigned teacher, a student,
+    # and an anonymous caller all read [] (children PII never leaks)
+    assert services.group_students_for(admin_b, group) == []
+    assert services.group_teachers_for(admin_b, group) == []
+    assert services.group_students_for(outsider_teacher, group) == []
+    assert services.group_students_for(student_viewer, group) == []
+    assert services.group_teachers_for(student_viewer, group) == []
+    assert services.group_students_for(None, group) == []
