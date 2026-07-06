@@ -179,7 +179,7 @@ describe('LiveRoomScreen', () => {
     expect(await screen.findByText(/Камера в эфире/)).toBeInTheDocument();
   });
 
-  it('teacher view renders the ambient class field (orb + name + %) from attentionUpdates', async () => {
+  it('teacher view (v3): attentionUpdates feeds the class average + report; orb field retired', async () => {
     const subMock = {
       request: { query: AttentionUpdatesDocument, variables: { sessionId: 'sess-1' } },
       result: {
@@ -228,13 +228,14 @@ describe('LiveRoomScreen', () => {
     };
     renderRoom([meMock('TEACHER'), sessionRoomMock, subMock, attendeesMock]);
 
-    // Ambient field: the orb's name + exact % (engagement only — no sub-metric strip).
-    expect(await screen.findByText('Иван Петров')).toBeInTheDocument();
-    expect(await screen.findByText('80%')).toBeInTheDocument();
-    // Class average in the field top bar; report still available; 80 ≥ cutoff → no accent tag.
-    expect(screen.getByText(/Среднее по классу/)).toBeInTheDocument();
+    // Owner v3 (f9eff3d): the orb field is retired from the live view. Per-student
+    // attention now lives on the video-tile chips (join-time; covered by
+    // VideoRoom.focus.test.tsx). Pre-join, the subscription still feeds the class
+    // average line, and the report stays on demand.
+    expect(await screen.findByText('Среднее по классу: 80')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Отчёт/ })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Скрыть имена/ })).toBeInTheDocument();
+    // Orb-field surfaces must be gone from the live view.
     expect(screen.queryByText('нужно внимание')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Скрыть имена/ })).not.toBeInTheDocument();
   });
 });
