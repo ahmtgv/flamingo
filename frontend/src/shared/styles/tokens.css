@@ -262,3 +262,15 @@
    6. Breakpoints (reference — use in media queries / JS)
    xs 320  ·  sm 480  ·  md 768  ·  lg 1024  ·  xl 1280  ·  2xl 1536
    ------------------------------------------------------------ */
+
+/* ------------------------------------------------------------
+   7. Global voice (audit B-7). This is the ONLY global rule: without it, any element a
+   CSS module does not explicitly style inherits the BROWSER default (serif Times) — the
+   room subtitle / privacy indicator rendered serif on the 2026-07-06 screenshots. The
+   UI voice cascades from body; mono/heading voices stay opt-in per component.
+   ------------------------------------------------------------ */
+body {
+  font-family: var(--font-body);
+  color: var(--color-text);
+  background: var(--color-bg);
+}
