@@ -7,6 +7,21 @@ This doc lets a fresh session resume cleanly. It references files by path — re
 
 ## 0. Current state — read this first
 
+🧩 **2026-07-06 — ревьюерские решения по отчёту №3 (три concern'а, три коммита):** гейт
+**BE 88→89 pytest** + ruff/black + `makemigrations --check` чисто; **FE build/lint + vitest 121→115**
+(−6: удалён ClassField.test).
+- **teacherName `01eb6a7`** — SDL hand-add `LessonSession.teacherName: String` (diff живой схемы vs SDL
+  = только это поле на LessonSession); backend `services.teacher_name_for` (owner→«Имя Фамилия»), тонкий
+  резолвер, доступен только через access-гейтнутый `get_session`; FE SessionRoom query + codegen,
+  студенческий тайл учителя подписан именем (применяется при ровно одном remote — демо/1:1; при
+  одноклассниках flat-имя не сматчить с id учителя → id-slice до S1, см. отчёт). +1 pytest.
+- **icons `3a2ec09`** — `shared/ui/iconSizes.ts` (ICON_SM/MD/LG=16/20/24, зеркало `--icon-size-*`);
+  мигрированы 25 TSX (15/16→SM, 18/20→MD, 22/28→LG); суб-16 микро-глифы (12–14px) оставлены литералами
+  и задокументированы; в src нет 36/44/56 (только в design-previews).
+- **ClassField `d35a291`** — удалён (мёртв с v3); `FieldStudent`→`features/lesson/types.ts`; вычищены
+  сиротские `strip.gaze/eyes/head/alertness/valuePct/meterAria/headAria` + весь `field.*`;
+  `strip.headState.*` СОХРАНЁН (читает фокус-бар VideoRoom).
+
 🔒 **2026-07-06 — промпт №2, backend security (аудит раздел A): три CRITICAL закрыты, +HIGH индексы.**
 Гейт: **pytest 84 → 88**, ruff/black clean, `makemigrations --check` чисто. Один concern — один коммит:
 - **A-C1 `f30b365`** — `lesson`-query гейтится через `can_access_course` (был доступен любому/анониму);
