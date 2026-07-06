@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>АТЛАС 05 — Расписание (ученик · учитель, все состояния)</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f1f1ef;--surface:#fff;--subtle:#e9e9e6;--border:#d9d9d6;--border-s:#c4c4c1;
+  --ink:#1d1d1f;--sec:#6e6e73;--ter:#98989e;
+  --coral:#e14e1f;--coral-t:#c23f14;--coral-soft:#fdeee7;
+  --ui:-apple-system,'SF Pro Display',Inter,system-ui,sans-serif;
+  --mono:'JetBrains Mono','SF Mono',ui-monospace,monospace;
+  --ease:cubic-bezier(.2,0,0,1);
+  --fs-body:1.0625rem;--fs-small:.875rem;--fs-cap:.8125rem;--fs-micro:.75rem;--fs-h1:2rem;
+}
+[data-theme="dark"]{
+  --bg:#101012;--surface:#1a1a1c;--subtle:#242426;--border:#2e2e31;--border-s:#3f3f43;
+  --ink:#f2f2f0;--sec:#98989e;--ter:#6e6e73;
+  --coral:#ff7040;--coral-t:#ff8a5f;--coral-soft:#33201a;
+}
+*{box-sizing:border-box;margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--ui);font-size:var(--fs-body);
+  line-height:1.6;padding:32px 24px 96px;transition:background .32s var(--ease),color .32s var(--ease)}
+.wrap{max-width:1080px;margin:0 auto}
+h1{font-size:1.4rem;font-weight:600;letter-spacing:-.015em}
+.sub{color:var(--sec);font-size:var(--fs-small);margin:6px 0 18px;max-width:72ch}
+.bar{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:18px;position:sticky;top:8px;z-index:5}
+.bar .grp{font:500 10px var(--mono);color:var(--ter)}
+.bar button{font:500 12px var(--mono);color:var(--sec);background:var(--bg);border:1px solid var(--border);
+  border-radius:999px;padding:7px 13px;cursor:pointer}
+.bar button[aria-pressed="true"]{color:var(--ink);border-color:var(--border-s);background:var(--surface)}
+.bar button:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(225,78,31,.4)}
+
+.screen{background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow:hidden}
+.topnav{display:flex;align-items:center;gap:10px;padding:12px 20px;border-bottom:1px solid var(--border)}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--coral)}
+.topnav b{font-size:14px;font-weight:500}
+.topnav .avatar{margin-left:auto;width:28px;height:28px;border-radius:50%;background:var(--subtle);
+  display:grid;place-content:center;font:500 10px var(--mono);color:var(--sec)}
+.page{padding:40px 48px 48px;min-height:560px}
+
+.headrow{display:flex;justify-content:space-between;align-items:center;gap:16px}
+.h-title{font-size:var(--fs-h1);font-weight:600;letter-spacing:-.02em}
+.weeknav{display:flex;align-items:center;gap:6px}
+.weeknav button{width:34px;height:34px;border:1px solid var(--border);border-radius:10px;background:none;color:var(--sec);cursor:pointer}
+.weeknav button:hover{border-color:var(--border-s);color:var(--ink)}
+.weeknav button:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(225,78,31,.4)}
+.weeknav .range{font:500 var(--fs-cap) var(--mono);color:var(--sec);font-variant-numeric:tabular-nums;padding:0 8px}
+.todayBtn{font:500 var(--fs-micro) var(--mono);color:var(--sec);border:1px solid var(--border);border-radius:999px;padding:5px 12px;background:none;cursor:pointer}
+
+.dayCap{font:500 var(--fs-micro) var(--mono);color:var(--ter);margin:28px 0 2px;font-variant-numeric:tabular-nums}
+.dayCap[data-today]{color:var(--coral-t)}
+.rows>*{display:grid;grid-template-columns:72px 1fr auto;gap:20px;align-items:center;padding:16px 0;border-bottom:1px solid var(--border)}
+.rows>*:last-child{border-bottom:none}
+.time{font:500 var(--fs-small) var(--mono);color:var(--sec);font-variant-numeric:tabular-nums}
+.t{font-weight:500}
+.s{font-size:var(--fs-cap);color:var(--sec)}
+.past{opacity:.55}
+.st{font:500 var(--fs-micro) var(--mono)}
+.st[data-k="live"]{color:var(--coral-t)}
+.st[data-k="sched"]{color:var(--ter)}
+.st[data-k="ended"]{color:var(--sec)}
+.st[data-k="canceled"]{color:var(--ter);text-decoration:line-through}
+.live-btn{display:inline-flex;align-items:center;gap:8px;font:500 var(--fs-small) var(--ui);
+  color:#fff;background:var(--coral);border:none;border-radius:10px;padding:9px 18px;cursor:pointer}
+.live-btn .d{width:6px;height:6px;border-radius:50%;background:#fff}
+@media (prefers-reduced-motion:no-preference){.live-btn .d{animation:pulse 2.4s ease-in-out infinite}}
+@keyframes pulse{50%{opacity:.35}}
+.btnQ{font:500 var(--fs-small) var(--ui);color:var(--ink);background:none;border:1px solid var(--border-s);border-radius:10px;height:38px;padding:0 16px;cursor:pointer}
+.ghost{font:400 var(--fs-cap) var(--mono);color:var(--ter)}
+
+/* role switching */
+.only-teacher{display:none}
+.page[data-role="teacher"] .only-teacher{display:grid}
+.page[data-role="teacher"] .only-teacher.inlineFlex{display:inline-flex}
+.page[data-role="teacher"] .only-student{display:none}
+
+/* states */
+.empty,.skel{display:none;text-align:center;padding:90px 0}
+.empty h3{font-size:1.3rem;font-weight:600}
+.empty p{color:var(--sec);max-width:46ch;margin:10px auto 24px}
+.btnP{font:500 var(--fs-body) var(--ui);color:#fff;background:var(--coral);border:none;border-radius:10px;height:44px;padding:0 26px;cursor:pointer}
+.skel{text-align:left}
+.skel i{display:block;background:var(--subtle);border-radius:8px;animation:sh 1.4s ease-in-out infinite}
+@keyframes sh{50%{opacity:.55}}
+@media (prefers-reduced-motion:reduce){.skel i,.live-btn .d{animation:none}}
+.page[data-state="empty"] .filled{display:none}.page[data-state="empty"] .empty{display:block}
+.page[data-state="skeleton"] .filled{display:none}.page[data-state="skeleton"] .skel{display:block}
+
+.q{margin-top:28px;padding:20px;border:1px dashed var(--border-s);border-radius:12px}
+.q h4{font:500 12px var(--mono);color:var(--coral-t);margin-bottom:8px}
+.q p{font-size:var(--fs-cap);color:var(--sec)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Атлас · Лист 05 — Расписание недели</h1>
+  <p class="sub">Неделя списком по дням (сегодня подсвечен, прошедшее приглушено). Статусы текстом, не светофором; единственный акцент — LIVE-занятие. Ученик подключается, учитель — начинает/завершает и создаёт занятия.</p>
+  <div class="bar" role="group" aria-label="Режимы">
+    <span class="grp">роль:</span>
+    <button data-k="role" data-v="student" aria-pressed="true">ученик</button>
+    <button data-k="role" data-v="teacher" aria-pressed="false">учитель</button>
+    <span class="grp" style="margin-left:10px">данные:</span>
+    <button data-k="state" data-v="week" aria-pressed="true">обычная неделя</button>
+    <button data-k="state" data-v="empty" aria-pressed="false">пустая неделя</button>
+    <button data-k="state" data-v="skeleton" aria-pressed="false">загрузка</button>
+    <span class="grp" style="margin-left:10px">вид:</span>
+    <button data-k="theme" data-v="dark" aria-pressed="false">тёмная</button>
+  </div>
+
+  <div class="screen">
+    <div class="topnav"><span class="dot"></span><b>flamingo</b><span class="avatar">СИ</span></div>
+    <div class="page" data-role="student" data-state="week" id="page">
+      <div class="headrow">
+        <span class="h-title">Расписание</span>
+        <div class="weeknav">
+          <button aria-label="Предыдущая неделя">←</button>
+          <span class="range">30.06 – 06.07</span>
+          <button aria-label="Следующая неделя">→</button>
+          <button class="todayBtn">сегодня</button>
+          <button class="btnQ only-teacher inlineFlex" style="margin-left:10px">+ Занятие</button>
+        </div>
+      </div>
+
+      <div class="filled">
+        <p class="dayCap">СР · 02.07</p>
+        <div class="rows">
+          <div class="past">
+            <span class="time">14:00</span>
+            <div><div class="t">Алгебра — повторение</div><div class="s only-student">посещено</div><div class="s only-teacher" style="display:none">4 из 4 были · отчёт внимания готов</div></div>
+            <span class="st" data-k="ended">завершено</span>
+          </div>
+          <div class="past">
+            <span class="time">17:00</span>
+            <div><div class="t">Английский — чтение</div><div class="s">отменено преподавателем</div></div>
+            <span class="st" data-k="canceled">отменено</span>
+          </div>
+        </div>
+
+        <p class="dayCap" data-today>ЧТ · 03.07 · СЕГОДНЯ</p>
+        <div class="rows">
+          <div>
+            <span class="time">14:00</span>
+            <div><div class="t">Алгебра — линейные уравнения</div><div class="s only-student">Мария Петровна · 45 мин</div><div class="s only-teacher" style="display:none">4 ученика в эфире · 23 мин</div></div>
+            <span style="display:flex;gap:8px;align-items:center">
+              <button class="live-btn only-student"><span class="d"></span>Подключиться</button>
+              <button class="live-btn only-teacher inlineFlex"><span class="d"></span>Вернуться в эфир</button>
+              <button class="btnQ only-teacher inlineFlex">Завершить</button>
+            </span>
+          </div>
+          <div>
+            <span class="time">16:30</span>
+            <div><div class="t">Английский — Present Perfect</div><div class="s only-student">Илья Сергеевич · 60 мин</div><div class="s only-teacher" style="display:none">3 записаны</div></div>
+            <span style="display:flex;gap:8px;align-items:center">
+              <span class="ghost only-student">через 2 ч 28 мин</span>
+              <button class="btnQ only-teacher inlineFlex">Начать</button>
+              <span class="st only-teacher inlineFlex" data-k="sched">запланировано</span>
+            </span>
+          </div>
+        </div>
+
+        <p class="dayCap">ПТ · 04.07</p>
+        <div class="rows">
+          <div>
+            <span class="time">10:00</span>
+            <div><div class="t">Физика — разбор задач</div><div class="s">Дмитрий А. · 45 мин</div></div>
+            <span class="st" data-k="sched">запланировано</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="empty">
+        <h3>На этой неделе занятий нет</h3>
+        <p class="only-student" style="display:block">Загляни в каталог — новые курсы стартуют каждую неделю.</p>
+        <button class="btnP only-student" style="display:inline-block">Найти курс</button>
+        <p class="only-teacher" style="display:none">Создай занятие из курса — ученики увидят его здесь и получат напоминание.</p>
+        <button class="btnP only-teacher" style="display:none">+ Занятие</button>
+      </div>
+
+      <div class="skel">
+        <i style="width:30%;height:34px;margin-bottom:32px"></i>
+        <i style="width:18%;height:14px;margin-bottom:14px"></i>
+        <i style="height:56px;margin-bottom:10px"></i><i style="height:56px;margin-bottom:28px"></i>
+        <i style="width:18%;height:14px;margin-bottom:14px"></i>
+        <i style="height:56px"></i>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="q">
+    <h4>ОТКРЫТЫЕ ВОПРОСЫ ВЛАДЕЛЬЦУ · лист 05</h4>
+    <p>1. Неделя списком по дням (как здесь) — или нужна сетка-календарь по часам? Список проще и лучше живёт на телефоне; сетка привычнее школе.<br>
+    2. Учителю прямо в строке завершённого занятия даём ссылку «отчёт внимания готов» — согласен?<br>
+    3. Отменённые занятия показываем зачёркнутым статусом в истории — или скрывать совсем?</p>
+  </div>
+</div>
+
+<script>
+const root=document.documentElement,page=document.getElementById('page');
+document.querySelectorAll('.bar button').forEach(b=>b.addEventListener('click',()=>{
+  const k=b.dataset.k,v=b.dataset.v;
+  if(k==='theme'){const on=b.getAttribute('aria-pressed')!=='true';b.setAttribute('aria-pressed',String(on));
+    on?root.setAttribute('data-theme',v):root.removeAttribute('data-theme');return;}
+  page.dataset[k]=v;
+  document.querySelectorAll(`[data-k="${k}"]`).forEach(x=>x.setAttribute('aria-pressed',String(x===b)));
+  // role: toggle only-* visibility (inline style variants for flex/grid contexts)
+  if(k==='role'){
+    const teacher=v==='teacher';
+    document.querySelectorAll('.only-teacher').forEach(el=>{el.style.display=teacher?(el.classList.contains('inlineFlex')?'inline-flex':'block'):'none';});
+    document.querySelectorAll('.only-student').forEach(el=>{el.style.display=teacher?'none':(el.tagName==='BUTTON'?'inline-flex':'block');});
+  }
+}));
+</script>
+</body>
+</html>
