@@ -108,9 +108,18 @@ ctx.onmessage = async (e: MessageEvent<InMsg>) => {
     const result = landmarker.detectForVideo(msg.bitmap, msg.ts);
     msg.bitmap.close(); // discard the frame immediately — never stored or sent
     const signals = extractSignals(result, msg.ts);
+    if (!signals.facePresent) {
+      // B-9 (0-vs-null): a no-face frame is NOT "attention 0". It is marked (face:false,
+      // on-device only), does not move the EMA, and does not feed the bucket — a window
+      // with no valid frames is never emitted (Bucketer skips empty flushes), so
+      // reportAttention is skipped instead of egressing false zeros. Egress schema is
+      // unchanged: still the same 8 aggregate scalars whenever a bucket IS reported.
+      ctx.postMessage({ type: 'score', value: emaScore < 0 ? 0 : emaScore, face: false });
+      return;
+    }
     const raw = engagementScore(signals, baseline);
     emaScore = emaScore < 0 ? raw : Math.round(ema(emaScore, raw));
-    ctx.postMessage({ type: 'score', value: emaScore }); // per-frame, stays on device (local chart)
+    ctx.postMessage({ type: 'score', value: emaScore, face: true }); // per-frame, stays on device
     // Per-frame sub-metric SAMPLES feed the bucket; only the per-bucket AVERAGE is emitted/leaves.
     bucketer.add(msg.ts, {
       engagement: emaScore,

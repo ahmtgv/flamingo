@@ -11,12 +11,13 @@ import {
   useSessionRoomQuery,
 } from '@/entities/graphql/generated';
 import { AttentionChart, PrivacyIndicator, startAttentionPipeline } from '@/seedum';
+import { CMF } from '@/seedum/cmfConfig';
 import { CmfDebugHud, type CmfHudFeed } from '@/seedum/ui/CmfDebugHud';
 import { loadUbp } from '@/seedum/ubp';
 import { LIVEKIT_URL } from '@/shared/lib/env';
 import { Button, Logo } from '@/shared/ui';
 
-import { classAverage, heldValue, summaryStats } from '../attentionView';
+import { classAverage, freshValue, heldValue, summaryStats } from '../attentionView';
 import { type CameraErrorKind, classifyMediaError } from '../mediaError';
 
 import { useLiveKitRoom } from '../livekit/useLiveKitRoom';
@@ -296,7 +297,8 @@ function TeacherRoom({ sessionId, roomToken, isLive }: RoomProps) {
   // Per-student state keyed by studentId: engagement + the live-only sub-metrics (display only,
   // never persisted/egressed — revealed on orb click). Insertion order is preserved (UUID keys),
   // which the ambient field relies on to keep orbs in STABLE positions (never reordered).
-  const studentsRef = useRef<Record<string, FieldStudent>>({});
+  // `at` = wall-clock of the last received bucket (B-9 staleness: no buckets → «нет данных»).
+  const studentsRef = useRef<Record<string, FieldStudent & { at: number }>>({});
   // Real (non-zero) class aggregates received this session — the post-session report summary
   // is computed from THESE only, never from between-bucket gaps / zero (no-reading) buckets.
   const receivedRef = useRef<number[]>([]);
@@ -322,6 +324,7 @@ function TeacherRoom({ sessionId, roomToken, isLive }: RoomProps) {
           headYaw: metric.headYaw ?? null,
           headPitch: metric.headPitch ?? null,
           alert: metric.alertness ?? null,
+          at: Date.now(),
         },
       };
       const students = Object.values(studentsRef.current);
@@ -338,15 +341,28 @@ function TeacherRoom({ sessionId, roomToken, isLive }: RoomProps) {
 
   // F1: latest live attention for every tile chip + the focused tile's info bar. Reads the
   // mutable ref (kept current by the subscription above); identity == studentId == user id.
+  // B-9: a record is only served while FRESH — no-face buckets are never reported, so a
+  // silent student honestly degrades to null («нет данных»), never a frozen «· 0».
   const attentionFor = useCallback(
-    (identity: string) => studentsRef.current[identity]?.value ?? null,
+    (identity: string) =>
+      freshValue(studentsRef.current[identity], Date.now(), CMF.liveAttentionStaleMs)?.value ??
+      null,
     [],
   );
   // F1.1 (owner v3): full sub-metrics for the focused tile (live-only, display-only).
   const metricsFor = useCallback(
-    (identity: string) => studentsRef.current[identity] ?? null,
+    (identity: string) =>
+      freshValue(studentsRef.current[identity], Date.now(), CMF.liveAttentionStaleMs),
     [],
   );
+  // Staleness must surface even when no new subscription data arrives (silence IS the
+  // signal) — a light tick re-renders the tiles while the teacher is in the room.
+  const [, setStaleTick] = useState(0);
+  useEffect(() => {
+    if (!joined) return undefined;
+    const iv = setInterval(() => setStaleTick((n) => n + 1), 2_000);
+    return () => clearInterval(iv);
+  }, [joined]);
 
   const join = useCallback(async () => {
     const s = await acquire();

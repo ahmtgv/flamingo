@@ -15,6 +15,24 @@ describe('bucketing', () => {
     expect(bucketStartFor(BUCKET_MS + 5)).toBe(BUCKET_MS);
   });
 
+  it('B-9: a window with no samples is never emitted (no-face frames are skipped upstream)', () => {
+    const out: Array<[number, Sample]> = [];
+    const b = new Bucketer((start, avg) => out.push([start, avg]));
+    b.add(0, { engagement: 80 }); // bucket 0 (face present)
+    // bucket 1 window passes with NO adds (face absent) …
+    b.add(BUCKET_MS * 2 + 10, { engagement: 60 }); // bucket 2 → flushes bucket 0 only
+    b.flush();
+    // bucket 1 never appears — no false zero bucket, reportAttention is simply skipped.
+    expect(out.map(([start]) => start)).toEqual([0, BUCKET_MS * 2]);
+  });
+
+  it('B-9: flush() with zero collected samples emits nothing', () => {
+    const out: Array<[number, Sample]> = [];
+    const b = new Bucketer((start, avg) => out.push([start, avg]));
+    b.flush();
+    expect(out).toEqual([]);
+  });
+
   it('emits one aggregate RECORD per closed bucket (per-key averages; raw samples never escape)', () => {
     const out: Array<[number, Sample]> = [];
     const b = new Bucketer((start, avg) => out.push([start, avg]));

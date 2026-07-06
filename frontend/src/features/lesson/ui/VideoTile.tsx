@@ -64,9 +64,11 @@ export function VideoTile({
   const name = displayName;
 
   // One accessible name for the whole tile (role="img" makes the media subtree atomic to AT).
+  // B-9: attention === null (prop passed, no fresh data) reads «нет данных» — never a fake 0.
   const label = [
     name,
     attention != null ? t('focus.attentionValue', { n: attention }) : '',
+    attention === null ? t('tile.noData') : '',
     alert ? t('focus.needsAttention') : '',
     cameraOff ? t('tile.cameraOff') : '',
     micMuted ? t('tile.micOff') : '',
@@ -84,11 +86,14 @@ export function VideoTile({
         </span>
       )}
       {focused && focusBar}
-      {/* Owner v3: the live attention value lives ON the tile at all times (mono chip). */}
+      {/* Owner v3: the live attention value lives ON the tile at all times (mono chip).
+          B-9: null (no fresh buckets — student out of frame) shows «нет данных», not «· 0». */}
       <span className={styles.name}>
         {micMuted && <MicOff size={12} aria-hidden="true" />}
         {name}
-        {attention != null && <span className={styles.nameValue}>· {attention}</span>}
+        {attention !== undefined && (
+          <span className={styles.nameValue}>· {attention ?? t('tile.noData')}</span>
+        )}
       </span>
       {alert && !focused && (
         <span className={styles.tileWarn} aria-hidden="true">

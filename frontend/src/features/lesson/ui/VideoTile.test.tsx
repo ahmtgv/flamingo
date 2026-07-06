@@ -73,3 +73,44 @@ describe('VideoTile remote mute / camera-off', () => {
     expect(screen.getByRole('img', { name: 'Иван Петров' })).toBeInTheDocument();
   });
 });
+
+describe('B-9 — no fresh data reads «нет данных», never a fake zero', () => {
+  it('attention === null (teacher view, no fresh buckets) → chip + label say «нет данных»', () => {
+    renderWithProviders(
+      <VideoTile
+        participant={makeParticipant({ camTrack: true, micMuted: false })}
+        version={0}
+        displayName="Стёпа"
+        attention={null}
+      />,
+    );
+    expect(screen.getByText(/нет данных/)).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: /нет данных/ })).toBeInTheDocument();
+    expect(screen.queryByText('· 0')).not.toBeInTheDocument();
+  });
+
+  it('attention === 0 (real face-present zero) still shows the number, not «нет данных»', () => {
+    renderWithProviders(
+      <VideoTile
+        participant={makeParticipant({ camTrack: true, micMuted: false })}
+        version={0}
+        displayName="Стёпа"
+        attention={0}
+      />,
+    );
+    expect(screen.getByText('· 0')).toBeInTheDocument();
+    expect(screen.queryByText(/нет данных/)).not.toBeInTheDocument();
+  });
+
+  it('attention undefined (student layout — no CMF surface) → no chip at all', () => {
+    renderWithProviders(
+      <VideoTile
+        participant={makeParticipant({ camTrack: true, micMuted: false })}
+        version={0}
+        displayName="Одноклассник"
+      />,
+    );
+    expect(screen.queryByText(/нет данных/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/·/)).not.toBeInTheDocument();
+  });
+});

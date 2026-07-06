@@ -16,6 +16,20 @@ export function heldValue(prevClassAvg: number, avg: number): number {
   return avg > 0 ? avg : prevClassAvg;
 }
 
+/**
+ * B-9 (0-vs-null): a reading is only live while buckets keep arriving. No-face buckets are
+ * never reported (the worker skips them), so a student who left the frame simply goes
+ * silent — after `staleMs` the tile honestly shows «нет данных» instead of a frozen number.
+ */
+export function freshValue<T>(
+  rec: (T & { at: number }) | undefined,
+  nowMs: number,
+  staleMs: number,
+): T | null {
+  if (!rec) return null;
+  return nowMs - rec.at <= staleMs ? rec : null;
+}
+
 /** Append one reading to a per-student series, capped to the most recent `cap` points
  *  (keeps each student's live sparkline bounded — purely a display buffer). */
 export function pushSeries(prev: number[], value: number, cap = 60): number[] {

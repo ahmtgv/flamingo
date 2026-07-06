@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { classAverage, heldValue, pushSeries, summaryStats } from './attentionView';
+import { classAverage, freshValue, heldValue, pushSeries, summaryStats } from './attentionView';
 
 describe('attentionView (teacher live class attention)', () => {
   it('classAverage ignores no-reading (0) students; 0 only when nobody is readable', () => {
@@ -20,6 +20,14 @@ describe('attentionView (teacher live class attention)', () => {
     // A steadily-attentive student (~89) never looks like Среднее 10 / Минимум 0.
     expect(summaryStats([88, 90, 89, 91])).toEqual({ averageAttention: 90, peak: 91, low: 88 });
     expect(summaryStats([])).toBeNull(); // nothing received yet → no misleading zeros
+  });
+
+  it('B-9 freshValue: stale/absent records read as null («нет данных»), fresh ones pass through', () => {
+    const rec = { value: 73, at: 10_000 };
+    expect(freshValue(rec, 12_000, 6_000)).toBe(rec); // 2s old, fresh
+    expect(freshValue(rec, 16_000, 6_000)).toBe(rec); // exactly at the limit — still fresh
+    expect(freshValue(rec, 16_001, 6_000)).toBeNull(); // buckets stopped → «нет данных»
+    expect(freshValue(undefined, 12_000, 6_000)).toBeNull(); // never reported
   });
 
   it('pushSeries appends and caps to the most recent N (per-student sparkline buffer)', () => {

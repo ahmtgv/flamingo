@@ -51,4 +51,7 @@ export const CMF = {
   // --- teacher live-view (DISPLAY-ONLY; governs the teacher class field UI, NOT on-device
   //     math and NOT the egress payload) ---
   liveAttentionAlertBelow: 50, // engagement below this → "needs attention" accent in the field
+  // B-9: a student whose buckets stopped arriving (no face → buckets are skipped, never
+  // reported as zeros) degrades to «нет данных» on the teacher tile after this long.
+  liveAttentionStaleMs: 6_000,
 } as const;
