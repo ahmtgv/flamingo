@@ -12,6 +12,7 @@ import {
 } from '@/entities/graphql/generated';
 import { AttentionChart, AttentionStrip, PrivacyIndicator, startAttentionPipeline } from '@/seedum';
 import type { BucketAggregate } from '@/seedum';
+import { CmfDebugHud, type CmfHudFeed } from '@/seedum/ui/CmfDebugHud';
 import { loadUbp } from '@/seedum/ubp';
 import { LIVEKIT_URL } from '@/shared/lib/env';
 import { Button, Logo } from '@/shared/ui';
@@ -151,6 +152,11 @@ function StudentRoom({ sessionId, roomToken, isLive }: RoomProps) {
   // Latest per-bucket aggregate (~2.5s) for the live attention strip — same on-device
   // data already sent via reportAttention; kept here for display only.
   const [breakdown, setBreakdown] = useState<BucketAggregate | null>(null);
+  // D0 diagnostics (dev-only, ?cmfDebug=1): the HUD renders on-device values only and adds
+  // ZERO egress — reportAttention below is byte-identical with or without it.
+  const hudEnabled =
+    import.meta.env.DEV && new URLSearchParams(window.location.search).has('cmfDebug');
+  const hudRef = useRef<CmfHudFeed | null>(null);
 
   const lk = useLiveKitRoom({ url: LIVEKIT_URL, token: roomToken, stream, active: joined });
 
@@ -166,7 +172,10 @@ function StudentRoom({ sessionId, roomToken, isLive }: RoomProps) {
       pipelineRef.current = startAttentionPipeline(video, stored?.baseline, {
         onReady: () => setCmfStatus('running'),
         onUnavailable: () => setCmfStatus('unavailable'),
+        // Dev HUD taps the per-frame score that ALREADY stays on-device (local chart data).
+        onScore: (value) => hudRef.current?.pushScore(value),
         onBucket: (bucketStartMs, bucket) => {
+          hudRef.current?.pushBucket(bucket); // dev HUD (on-device; not egress)
           setBreakdown(bucket); // drive the live on-device sub-metric breakdown (display only)
           // worker buckets in performance-clock ms → map to wall-clock for the server.
           // Per-bucket AGGREGATE scalars only (sub-metrics live-only server-side); no raw data.
@@ -256,6 +265,7 @@ function StudentRoom({ sessionId, roomToken, isLive }: RoomProps) {
             />
             {/* Hidden CMF source — same stream, analysed on-device, frames discarded. */}
             <video ref={cmfVideoRef} className={styles.cmfHidden} muted playsInline aria-hidden="true" />
+            {hudEnabled && <CmfDebugHud ref={hudRef} status={cmfStatus} />}
             <p className={styles.privacyFootnote}>
               <ShieldCheck size={13} /> {t('room.studentSub')}
             </p>
