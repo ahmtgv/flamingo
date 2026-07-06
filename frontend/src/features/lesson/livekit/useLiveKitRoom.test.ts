@@ -150,8 +150,8 @@ describe('useLiveKitRoom', () => {
     expect(video.enabled).toBe(true); // camera (and the CMF feed) keeps running
   });
 
-  it('≤5 soft guard: blocks the 6th joiner — no publish, roomFull set', async () => {
-    lk.remoteCount = 5; // 5 already present → this client would be the 6th
+  it('≤8 soft guard: blocks the 9th joiner — no publish, roomFull set', async () => {
+    lk.remoteCount = 8; // 8 already present → this client would be the 9th
     const { stream } = fakeStream();
     const { result } = renderHook(() =>
       useLiveKitRoom({ url: 'wss://x', token: 'tok-1', stream, active: true }),

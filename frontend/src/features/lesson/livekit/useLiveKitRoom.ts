@@ -18,8 +18,9 @@ import {
 } from 'livekit-client';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-/** MVP soft cap (total participants incl. self). Hard cap is server-side (deferred). */
-export const MAX_PARTICIPANTS = 5;
+/** MVP soft cap (total participants incl. self) — owner decision: class size up to 8.
+ *  Hard cap is server-side (deferred backlog: livekit-api max_participants=8). */
+export const MAX_PARTICIPANTS = 8;
 
 /** How long the "reconnected" success notice lingers before settling to 'connected'. */
 const RECONNECTED_NOTICE_MS = 2500;
@@ -185,7 +186,7 @@ export function useLiveKitRoom({ url, token, stream, active }: UseLiveKitRoomArg
       try {
         await room.connect(url, token);
         if (cancelled) return;
-        // ≤5 soft guard: if MAX others are already here, this would be the (MAX+1)th.
+        // ≤8 soft guard: if MAX others are already here, this would be the (MAX+1)th.
         if (room.remoteParticipants.size >= MAX_PARTICIPANTS) {
           setRoomFull(true);
           await room.disconnect();

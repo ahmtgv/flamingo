@@ -22,7 +22,7 @@ import { type CameraErrorKind, classifyMediaError } from '../mediaError';
 import { useLiveKitRoom } from '../livekit/useLiveKitRoom';
 import { ClassField, type FieldStudent } from './ClassField';
 import styles from './liveroom.module.css';
-import { VideoRoom } from './VideoRoom';
+import { StudentViewPreview, VideoRoom } from './VideoRoom';
 
 /** Shared chrome. The CMF on-device privacy indicator stays (it is still true — see
  * the wording in ru/seedum.json); the CALL camera honesty lives in VideoRoom. */
@@ -333,6 +333,13 @@ function TeacherRoom({ sessionId, roomToken, isLive }: RoomProps) {
   const report = summary ? { ...summary, points: receivedRef.current } : null;
   const classAvg = view.classAvg;
 
+  // F1: latest live attention for the focused tile's info bar. Reads the mutable ref (kept
+  // current by the subscription above); identity == studentId == user id.
+  const attentionFor = useCallback(
+    (identity: string) => studentsRef.current[identity]?.value ?? null,
+    [],
+  );
+
   const join = useCallback(async () => {
     const s = await acquire();
     if (s) setJoined(true);
@@ -386,6 +393,10 @@ function TeacherRoom({ sessionId, roomToken, isLive }: RoomProps) {
             onRejoin={lk.rejoin}
             onLeave={leave}
             nameFor={nameFor}
+            focusable
+            attentionFor={attentionFor}
+            selfInRail
+            rail={<StudentViewPreview stream={stream} peers={lk.participants.length} />}
           />
         )}
       </div>

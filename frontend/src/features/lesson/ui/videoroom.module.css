@@ -123,6 +123,169 @@
   font-size: var(--text-small);
   color: var(--color-text-secondary);
 }
+
+/* ---- F1: no-overlap layout — stage column + permanent side rail (final design v2).
+   The rail hosts the teacher's own tile + the student-view preview; NOTHING overlays the
+   stage, so the teacher never loses sight of a student or the material. ---- */
+.roomGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 188px;
+  gap: var(--space-3);
+  align-items: start;
+}
+@media (max-width: 820px) {
+  .roomGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+.stageArea {
+  min-width: 0;
+}
+.rail {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.railTile {
+  position: relative;
+  aspect-ratio: 16 / 10;
+  border-radius: var(--radius-control);
+  overflow: hidden;
+  background: var(--color-surface-hover);
+  border: 1px solid var(--color-border);
+}
+.railCap {
+  font-family: var(--font-mono);
+  font-size: var(--text-overline);
+  color: var(--color-text-tertiary);
+}
+
+/* ---- F1: click-to-focus. Layout flips via data attributes ONLY on the one stable
+   .tiles container (the 7686a9c rule) — tiles never change parent, keys stay stable,
+   so no <video> ever remounts when entering/leaving focus. ---- */
+.tileBtn {
+  display: block;
+  width: 100%;
+  padding: 0;
+  cursor: pointer;
+  text-align: start;
+  font: inherit;
+  color: inherit;
+}
+.tileBtn:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+.tiles[data-focus='true'] {
+  grid-template-columns: repeat(7, 1fr);
+}
+.tiles[data-focus='true'] > [data-focused='true'] {
+  grid-column: 1 / -1;
+  grid-row: 1;
+  aspect-ratio: 16 / 8;
+  cursor: zoom-out;
+}
+/* Focus bar: frosted info strip pinned to the TOP of the focused tile (video-overlay glass
+   is sanctioned over live video; it never covers other tiles or the rail). */
+.focusBar {
+  position: absolute;
+  inset-inline: var(--space-3);
+  top: var(--space-3);
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  background: var(--color-overlay);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  color: var(--color-text-inverse);
+}
+.focusLabel {
+  font-family: var(--font-mono);
+  font-size: var(--text-overline);
+  opacity: 0.75;
+}
+.focusValue {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  min-inline-size: 3ch;
+  text-align: end;
+  font-size: var(--text-small);
+  font-weight: var(--weight-medium);
+}
+.focusAlert {
+  font-family: var(--font-mono);
+  font-size: var(--text-overline);
+  font-weight: var(--weight-medium);
+  color: var(--color-accent);
+}
+.focusEsc {
+  font-family: var(--font-mono);
+  font-size: var(--text-overline);
+  opacity: 0.6;
+  margin-inline-start: auto;
+}
+
+/* ---- F1: «что видит ученик» preview (rail card; render of local state, NOT a stream). */
+.svToggle {
+  font-family: var(--font-mono);
+  font-size: var(--text-overline);
+  font-weight: var(--weight-medium);
+  color: var(--color-text-secondary);
+  background: none;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  padding: var(--space-1) var(--space-3);
+  cursor: pointer;
+}
+.svToggle[aria-pressed='true'] {
+  color: var(--color-text);
+  border-color: var(--color-border-strong);
+  background: var(--color-surface-subtle);
+}
+.svToggle:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+.svCard {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  overflow: hidden;
+}
+.svStage {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  margin: var(--space-1);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  background: var(--color-surface-hover);
+}
+.svName {
+  position: absolute;
+  left: var(--space-1);
+  bottom: var(--space-1);
+  font-family: var(--font-mono);
+  font-size: var(--text-overline);
+  color: var(--color-text-on-accent);
+  background: var(--color-overlay);
+  border-radius: var(--radius-xs);
+  padding: 0 var(--space-1);
+}
+.svRow {
+  display: flex;
+  gap: var(--space-1);
+  padding: 0 var(--space-1) var(--space-1);
+}
+.svRow i {
+  flex: 1;
+  aspect-ratio: 16 / 10;
+  border-radius: var(--radius-xs);
+  background: var(--color-surface-hover);
+  display: block;
+}
 .controls {
   display: flex;
   justify-content: center;

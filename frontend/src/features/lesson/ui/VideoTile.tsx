@@ -1,23 +1,37 @@
 import { type RemoteParticipant, type Track } from 'livekit-client';
 import { Track as TrackNs } from 'livekit-client';
 import { MicOff, VideoOff } from 'lucide-react';
-import { useCallback, useEffect, useRef } from 'react';
+import { type ReactNode, useCallback, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import styles from './videoroom.module.css';
 
-/** One remote participant's CAMERA tile (attaches camera video + audio). */
+/** One remote participant's CAMERA tile (attaches camera video + audio).
+ *
+ * With `onClick` (teacher, F1 focus mode) the tile roots as a real `<button>`
+ * (`aria-pressed` = focused). The root element is chosen ONCE per role at mount and never
+ * flips mid-session; entering/leaving focus only toggles data attributes, so the inner
+ * `<video>` is never remounted (the 7686a9c rule). */
 export function VideoTile({
   participant,
   version,
   active,
   displayName,
+  onClick,
+  focused,
+  focusBar,
 }: {
   participant: RemoteParticipant;
   version: number;
   active?: boolean;
   /** Resolved name (teacher: real name; otherwise an id-slice) — labels the tile. */
   displayName: string;
+  /** Teacher focus mode (F1): makes the tile a real button that toggles focus. */
+  onClick?: () => void;
+  /** Whether this tile is the focused stage (drives aria-pressed + data-focused). */
+  focused?: boolean;
+  /** Info strip rendered inside the tile while focused (name · attention · esc hint). */
+  focusBar?: ReactNode;
 }) {
   const { t } = useTranslation('lesson');
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -48,8 +62,8 @@ export function VideoTile({
     .filter(Boolean)
     .join(', ');
 
-  return (
-    <div className={styles.tile} data-active={!!active} role="img" aria-label={label}>
+  const inner = (
+    <>
       <video ref={videoRef} className={styles.video} autoPlay playsInline />
       <audio ref={audioRef} autoPlay />
       {cameraOff && (
@@ -57,10 +71,33 @@ export function VideoTile({
           <VideoOff size={20} />
         </span>
       )}
+      {focused && focusBar}
       <span className={styles.name}>
         {micMuted && <MicOff size={12} aria-hidden="true" />}
         {name}
       </span>
+    </>
+  );
+
+  if (onClick) {
+    return (
+      <button
+        type="button"
+        className={`${styles.tile} ${styles.tileBtn}`}
+        data-active={!!active}
+        data-focused={!!focused}
+        aria-pressed={!!focused}
+        aria-label={focused ? t('focus.collapse', { name: label }) : t('focus.expand', { name: label })}
+        onClick={onClick}
+      >
+        {inner}
+      </button>
+    );
+  }
+
+  return (
+    <div className={styles.tile} data-active={!!active} role="img" aria-label={label}>
+      {inner}
     </div>
   );
 }
