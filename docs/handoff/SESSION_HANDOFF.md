@@ -7,6 +7,24 @@ This doc lets a fresh session resume cleanly. It references files by path — re
 
 ## 0. Current state — read this first
 
+🔄 **2026-07-06 (вечер) — промпт №3, frontend-полировка (аудит B/B+):** гейты зелёные на каждый
+коммит; итог **FE build/lint + 121 vitest** (116 → 119 → 125 → 121: +3 B-6, +6 B-9, −4 удалён
+мёртвый AttentionStrip), **BE 84 pytest** + ruff/black (не тронут). Коммиты: **B-6 `eabb7ce`**
+(data-count без фантомного тайла при selfInRail + сетка 1–8: 1→wide, 2→2, 3–4→2×2, 5–6→3, 7–8→4;
+live-пруф: data-count=1 → одна колонка 398px, CSS-проба 1..8), **B-9 `7ba7f8d`** (0-vs-null:
+no-face кадр не двигает EMA и не попадает в бакет → пустой бакет НЕ репортится; учительский чип
+при отсутствии свежих бакетов честно «имя · нет данных» (staleness `liveAttentionStaleMs` в
+cmfConfig); live-пруф: чип «Стёпа Ученик · нет данных» при синтетике no-face; эгресс-схема
+НЕ менялась), **B-7 `57d551b`** (serif был НАСТОЯЩИЙ баг: глобального font-family не существовало —
+добавлен body-блок в tokens.css §7; live: Times → SF/Inter), **B-1 `67a3c6f`** (токены
+--icon-size-*/--icon-stroke/--content-max-*/--blur-frosted + миграция ширин/blur/statNum→
+--text-metric/Badge/Segmented), **B-2 `52c0092`** (tabular-nums на sessionTime/statsRow/
+courseStat/lessonMeta), **B-3 `5192a14`** (AttentionStrip удалён; strip.headState.* СОХРАНЁН —
+его читает фокус-бар VideoRoom; ClassField не рендерится с v3 — следующий кандидат на чистку).
+**Имя учителя ученику — СТОП:** пути lesson→course→owner в SDL НЕТ (Lesson без upward-ссылок) →
+нужен SDL hand-add → не делал, предложение в отчёте. Скрин «после»:
+`docs/handoff/shots/shot-after-B6-grid-1student-B9-nodata-1440.jpeg`.
+
 🔄 **2026-07-06 — исполнительский прогон F1+D0 (пост-ревьюерские коммиты 41c6fc9/f0392b8 Air,
 4107daf F1, 97e3040 D0-HUD, f9eff3d owner-v3):** гейты приведены к зелёным — backend **84 pytest**
 + ruff/black clean; frontend **build/lint clean + 116 vitest** (до: 115/1 fail — стейл-тест
