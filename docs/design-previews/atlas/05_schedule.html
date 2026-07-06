@@ -50,6 +50,33 @@ h1{font-size:1.4rem;font-weight:600;letter-spacing:-.015em}
 .weeknav .range{font:500 var(--fs-cap) var(--mono);color:var(--sec);font-variant-numeric:tabular-nums;padding:0 8px}
 .todayBtn{font:500 var(--fs-micro) var(--mono);color:var(--sec);border:1px solid var(--border);border-radius:999px;padding:5px 12px;background:none;cursor:pointer}
 
+.segWrap{display:inline-flex;gap:2px;background:var(--subtle);border:1px solid var(--border);border-radius:10px;padding:2px;margin-left:10px}
+.seg{font:500 var(--fs-micro) var(--mono);color:var(--sec);background:none;border:none;border-radius:8px;padding:5px 12px;cursor:pointer}
+.seg[aria-pressed="true"]{color:var(--ink);background:var(--surface)}
+.seg:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(225,78,31,.4)}
+.hideCanceled{display:inline-flex;align-items:center;gap:6px;font:400 var(--fs-micro) var(--mono);color:var(--ter);margin-left:10px;cursor:pointer}
+.page[data-hidec="on"] .row-canceled{display:none}
+/* calendar views */
+.calWeek,.calMonth{display:none;margin-top:28px}
+.page[data-cal="week"] .filled .listView{display:none}
+.page[data-cal="week"] .filled .calWeek{display:grid}
+.page[data-cal="month"] .filled .listView{display:none}
+.page[data-cal="month"] .filled .calMonth{display:grid}
+.calWeek{grid-template-columns:repeat(7,1fr);gap:8px}
+.cw-day{border:1px solid var(--border);border-radius:10px;min-height:180px;padding:8px}
+.cw-day[data-today]{border-color:var(--coral)}
+.cw-cap{font:500 var(--fs-micro) var(--mono);color:var(--ter);margin-bottom:8px;font-variant-numeric:tabular-nums}
+.cw-day[data-today] .cw-cap{color:var(--coral-t)}
+.cw-ev{font:500 var(--fs-micro) var(--mono);background:var(--subtle);border-radius:6px;padding:4px 7px;margin-bottom:5px}
+.cw-ev[data-live]{background:var(--coral-soft);color:var(--coral-t)}
+.cw-ev[data-cancel]{color:var(--ter);text-decoration:line-through}
+.calMonth{grid-template-columns:repeat(7,1fr);gap:6px}
+.cm-day{border:1px solid var(--border);border-radius:8px;aspect-ratio:1;padding:6px;font:400 var(--fs-micro) var(--mono);color:var(--sec);font-variant-numeric:tabular-nums;position:relative}
+.cm-day[data-out]{opacity:.35}
+.cm-day[data-today]{border-color:var(--coral)}
+.cm-dots{position:absolute;left:6px;bottom:6px;display:flex;gap:3px}
+.cm-dots i{width:5px;height:5px;border-radius:50%;background:var(--sec);display:block}
+.cm-dots i[data-live]{background:var(--coral)}
 .dayCap{font:500 var(--fs-micro) var(--mono);color:var(--ter);margin:28px 0 2px;font-variant-numeric:tabular-nums}
 .dayCap[data-today]{color:var(--coral-t)}
 .rows>*{display:grid;grid-template-columns:72px 1fr auto;gap:20px;align-items:center;padding:16px 0;border-bottom:1px solid var(--border)}
@@ -120,11 +147,18 @@ h1{font-size:1.4rem;font-weight:600;letter-spacing:-.015em}
           <span class="range">30.06 – 06.07</span>
           <button aria-label="Следующая неделя">→</button>
           <button class="todayBtn">сегодня</button>
+          <span class="segWrap" role="group" aria-label="Вид расписания">
+            <button class="seg" data-cal="list" aria-pressed="true">список</button>
+            <button class="seg" data-cal="week" aria-pressed="false">неделя</button>
+            <button class="seg" data-cal="month" aria-pressed="false">месяц</button>
+          </span>
+          <label class="hideCanceled"><input type="checkbox" id="hideC"> скрыть отменённые</label>
           <button class="btnQ only-teacher inlineFlex" style="margin-left:10px">+ Занятие</button>
         </div>
       </div>
 
       <div class="filled">
+        <div class="listView">
         <p class="dayCap">СР · 02.07</p>
         <div class="rows">
           <div class="past">
@@ -132,7 +166,7 @@ h1{font-size:1.4rem;font-weight:600;letter-spacing:-.015em}
             <div><div class="t">Алгебра — повторение</div><div class="s only-student">посещено</div><div class="s only-teacher" style="display:none">4 из 4 были · отчёт внимания готов</div></div>
             <span class="st" data-k="ended">завершено</span>
           </div>
-          <div class="past">
+          <div class="past row-canceled">
             <span class="time">17:00</span>
             <div><div class="t">Английский — чтение</div><div class="s">отменено преподавателем</div></div>
             <span class="st" data-k="canceled">отменено</span>
@@ -169,6 +203,27 @@ h1{font-size:1.4rem;font-weight:600;letter-spacing:-.015em}
             <span class="st" data-k="sched">запланировано</span>
           </div>
         </div>
+        </div>
+
+        <div class="calWeek" aria-label="Неделя сеткой">
+          <div class="cw-day"><div class="cw-cap">ПН 30</div></div>
+          <div class="cw-day"><div class="cw-cap">ВТ 01</div></div>
+          <div class="cw-day"><div class="cw-cap">СР 02</div><div class="cw-ev">14:00 Алгебра</div><div class="cw-ev row-canceled" data-cancel>17:00 Английский</div></div>
+          <div class="cw-day" data-today><div class="cw-cap">ЧТ 03</div><div class="cw-ev" data-live>14:00 Алгебра · LIVE</div><div class="cw-ev">16:30 Английский</div></div>
+          <div class="cw-day"><div class="cw-cap">ПТ 04</div><div class="cw-ev">10:00 Физика</div></div>
+          <div class="cw-day"><div class="cw-cap">СБ 05</div></div>
+          <div class="cw-day"><div class="cw-cap">ВС 06</div></div>
+        </div>
+
+        <div class="calMonth" aria-label="Месяц сеткой">
+          <div class="cm-day" data-out>30<span class="cm-dots"><i></i></span></div>
+          <div class="cm-day">01</div>
+          <div class="cm-day">02<span class="cm-dots"><i></i><i class="row-canceled"></i></span></div>
+          <div class="cm-day" data-today>03<span class="cm-dots"><i data-live></i><i></i></span></div>
+          <div class="cm-day">04<span class="cm-dots"><i></i></span></div>
+          <div class="cm-day">05</div><div class="cm-day">06</div>
+          <div class="cm-day">07</div><div class="cm-day">08<span class="cm-dots"><i></i></span></div><div class="cm-day">09</div><div class="cm-day">10<span class="cm-dots"><i></i></span></div><div class="cm-day">11</div><div class="cm-day">12</div><div class="cm-day">13</div>
+        </div>
       </div>
 
       <div class="empty">
@@ -191,10 +246,10 @@ h1{font-size:1.4rem;font-weight:600;letter-spacing:-.015em}
   </div>
 
   <div class="q">
-    <h4>ОТКРЫТЫЕ ВОПРОСЫ ВЛАДЕЛЬЦУ · лист 05</h4>
-    <p>1. Неделя списком по дням (как здесь) — или нужна сетка-календарь по часам? Список проще и лучше живёт на телефоне; сетка привычнее школе.<br>
-    2. Учителю прямо в строке завершённого занятия даём ссылку «отчёт внимания готов» — согласен?<br>
-    3. Отменённые занятия показываем зачёркнутым статусом в истории — или скрывать совсем?</p>
+    <h4>✅ РЕШЕНИЯ ВЛАДЕЛЬЦА ВНЕСЕНЫ · 2026-07-06</h4>
+    <p>1. Дефолт — список; добавлен переключатель «список · неделя · месяц» (сетки нарисованы в этом листе).<br>
+    2. Учителю в строке завершённого — ссылка «отчёт внимания готов»: да.<br>
+    3. Отменённые показываются зачёркнутыми + чекбокс «скрыть отменённые» (работает во всех трёх видах).</p>
   </div>
 </div>
 
@@ -206,6 +261,7 @@ document.querySelectorAll('.bar button').forEach(b=>b.addEventListener('click',(
     on?root.setAttribute('data-theme',v):root.removeAttribute('data-theme');return;}
   page.dataset[k]=v;
   document.querySelectorAll(`[data-k="${k}"]`).forEach(x=>x.setAttribute('aria-pressed',String(x===b)));
+  // (calendar/hide handled below)
   // role: toggle only-* visibility (inline style variants for flex/grid contexts)
   if(k==='role'){
     const teacher=v==='teacher';
@@ -213,6 +269,11 @@ document.querySelectorAll('.bar button').forEach(b=>b.addEventListener('click',(
     document.querySelectorAll('.only-student').forEach(el=>{el.style.display=teacher?'none':(el.tagName==='BUTTON'?'inline-flex':'block');});
   }
 }));
+document.querySelectorAll('.seg').forEach(b=>b.addEventListener('click',()=>{
+  page.dataset.cal=b.dataset.cal;
+  document.querySelectorAll('.seg').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));
+}));
+document.getElementById('hideC').addEventListener('change',e=>{page.dataset.hidec=e.target.checked?'on':'off';});
 </script>
 </body>
 </html>
