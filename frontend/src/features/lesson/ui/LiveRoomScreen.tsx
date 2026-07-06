@@ -21,8 +21,9 @@ import { Button, Logo } from '@/shared/ui';
 import { classAverage, freshValue, heldValue, summaryStats } from '../attentionView';
 import { type CameraErrorKind, classifyMediaError } from '../mediaError';
 
+import { type FieldStudent } from '../types';
+
 import { useLiveKitRoom } from '../livekit/useLiveKitRoom';
-import { type FieldStudent } from './ClassField';
 import styles from './liveroom.module.css';
 import { VideoRoom } from './VideoRoom';
 

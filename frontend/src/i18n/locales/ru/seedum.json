@@ -27,26 +27,10 @@
     "nextStep": "Дальше"
   },
   "strip": {
-    "gaze": "Взгляд на экране",
-    "eyes": "Глаза открыты",
-    "head": "Голова в кадре",
-    "alertness": "Бодрость",
-    "valuePct": "{{n}} %",
-    "meterAria": "{{label}}: {{n}} из 100",
     "headState": {
       "in": "в кадре",
       "out": "вне кадра",
       "unknown": "нет данных"
-    },
-    "headAria": "Голова: {{state}}"
-  },
-  "field": {
-    "classAverage": "Среднее по классу: {{n}}",
-    "hideNames": "Скрыть имена",
-    "showNames": "Показать имена",
-    "needsAttention": "нужно внимание",
-    "waiting": "Ожидаем данные от учеников…",
-    "valuePct": "{{n}}%",
-    "orbAria": "{{name}}: внимание {{n}} из 100"
+    }
   }
 }
