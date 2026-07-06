@@ -1,0 +1,278 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>АТЛАС 06 — Домашние задания (сдача · проверка)</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f1f1ef;--surface:#fff;--subtle:#e9e9e6;--border:#d9d9d6;--border-s:#c4c4c1;
+  --ink:#1d1d1f;--sec:#6e6e73;--ter:#98989e;
+  --coral:#e14e1f;--coral-t:#c23f14;--coral-soft:#fdeee7;
+  --err:#a82a1f;--err-bg:#fae5e2;
+  --ui:-apple-system,'SF Pro Display',Inter,system-ui,sans-serif;
+  --mono:'JetBrains Mono','SF Mono',ui-monospace,monospace;
+  --ease:cubic-bezier(.2,0,0,1);
+  --fs-body:1.0625rem;--fs-small:.875rem;--fs-cap:.8125rem;--fs-micro:.75rem;--fs-h1:2rem;--fs-h3:1.1875rem;
+}
+[data-theme="dark"]{
+  --bg:#101012;--surface:#1a1a1c;--subtle:#242426;--border:#2e2e31;--border-s:#3f3f43;
+  --ink:#f2f2f0;--sec:#98989e;--ter:#6e6e73;
+  --coral:#ff7040;--coral-t:#ff8a5f;--coral-soft:#33201a;
+  --err:#ff9d8f;--err-bg:#351d19;
+}
+*{box-sizing:border-box;margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--ui);font-size:var(--fs-body);
+  line-height:1.6;padding:32px 24px 96px;transition:background .32s var(--ease),color .32s var(--ease)}
+.wrap{max-width:1080px;margin:0 auto}
+h1{font-size:1.4rem;font-weight:600;letter-spacing:-.015em}
+.sub{color:var(--sec);font-size:var(--fs-small);margin:6px 0 18px;max-width:72ch}
+.bar{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:18px;position:sticky;top:8px;z-index:5}
+.bar .grp{font:500 10px var(--mono);color:var(--ter)}
+.bar button{font:500 12px var(--mono);color:var(--sec);background:var(--bg);border:1px solid var(--border);
+  border-radius:999px;padding:7px 13px;cursor:pointer}
+.bar button[aria-pressed="true"]{color:var(--ink);border-color:var(--border-s);background:var(--surface)}
+.bar button:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(225,78,31,.4)}
+
+.screen{background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow:hidden}
+.topnav{display:flex;align-items:center;gap:10px;padding:12px 20px;border-bottom:1px solid var(--border)}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--coral)}
+.topnav b{font-size:14px;font-weight:500}
+.topnav .avatar{margin-left:auto;width:28px;height:28px;border-radius:50%;background:var(--subtle);
+  display:grid;place-content:center;font:500 10px var(--mono);color:var(--sec)}
+.page{padding:40px 48px 48px;min-height:560px}
+.view{display:none}
+.page[data-view="stu-list"] .v-stulist{display:block}
+.page[data-view="stu-submit"] .v-stusubmit{display:block}
+.page[data-view="t-queue"] .v-tqueue{display:block}
+.page[data-view="t-grade"] .v-tgrade{display:block}
+
+.h-title{font-size:var(--fs-h1);font-weight:600;letter-spacing:-.02em}
+.crumb{font:400 var(--fs-micro) var(--mono);color:var(--ter);margin-bottom:8px}
+.secTitle{font:500 var(--fs-micro) var(--mono);color:var(--ter);margin:32px 0 4px}
+.rows>*{display:grid;grid-template-columns:1fr auto auto;gap:20px;align-items:center;padding:18px 0;border-bottom:1px solid var(--border)}
+.rows>*:last-child{border-bottom:none}
+.t{font-weight:500}
+.s{font-size:var(--fs-cap);color:var(--sec)}
+.due{font:500 var(--fs-micro) var(--mono);color:var(--ter);font-variant-numeric:tabular-nums}
+.due[data-hot]{color:var(--coral-t)}
+.st{font:500 var(--fs-micro) var(--mono);color:var(--sec)}
+.grade{font:500 var(--fs-body) var(--mono);font-variant-numeric:tabular-nums}
+.btnP{font:500 var(--fs-small) var(--ui);color:#fff;background:var(--coral);border:none;border-radius:10px;height:40px;padding:0 20px;cursor:pointer}
+.btnQ{font:500 var(--fs-small) var(--ui);color:var(--ink);background:none;border:1px solid var(--border-s);border-radius:10px;height:40px;padding:0 18px;cursor:pointer}
+
+/* submit view */
+.split{display:grid;grid-template-columns:1.4fr .9fr;gap:44px;align-items:start}
+.taskBox{font-size:var(--fs-small);color:var(--sec);border-left:2px solid var(--border-s);padding-left:16px;margin:20px 0 28px}
+label.lbl{display:block;font:500 var(--fs-micro) var(--mono);color:var(--sec);margin:0 0 6px}
+.ta{width:100%;min-height:160px;border:1px solid var(--border-s);border-radius:10px;background:var(--surface);
+  color:var(--ink);font:400 var(--fs-body) var(--ui);padding:12px 16px;resize:vertical}
+.ta:focus-visible{outline:none;border-color:var(--coral);box-shadow:0 0 0 3px rgba(225,78,31,.25)}
+.drop{border:1px dashed var(--border-s);border-radius:12px;padding:28px;text-align:center;color:var(--sec);font-size:var(--fs-cap)}
+.drop .hint{font:400 var(--fs-micro) var(--mono);color:var(--ter);margin-top:4px}
+.fileRow{display:flex;align-items:center;gap:10px;font:400 var(--fs-cap) var(--mono);color:var(--sec);margin-top:10px;font-variant-numeric:tabular-nums}
+.fileRow .ok{color:var(--sec)}
+.fileRow .x{margin-left:auto;border:none;background:none;color:var(--ter);cursor:pointer;font-size:14px}
+.fileErr{display:none;margin-top:10px;padding:10px 14px;border-radius:10px;background:var(--err-bg);color:var(--err);font:500 var(--fs-cap) var(--ui)}
+.fileErr button{margin-left:10px;font:500 var(--fs-micro) var(--mono);border:1px solid currentColor;background:none;color:inherit;border-radius:999px;padding:3px 10px;cursor:pointer}
+.page[data-uperr="on"] .fileErr{display:block}
+.submitRow{display:flex;gap:10px;margin-top:24px;align-items:center}
+.autosave{font:400 var(--fs-micro) var(--mono);color:var(--ter)}
+
+/* teacher grade view */
+.answerBox{border:1px solid var(--border);border-radius:12px;padding:20px;margin:16px 0}
+.answerBox .who{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px}
+.answerBox .who b{font-weight:500}
+.answerBox .who span{font:400 var(--fs-micro) var(--mono);color:var(--ter);font-variant-numeric:tabular-nums}
+.gradeRow{display:flex;gap:8px;align-items:center;margin-top:20px}
+.gr{width:44px;height:44px;border:1px solid var(--border-s);border-radius:10px;background:none;color:var(--ink);
+  font:500 var(--fs-body) var(--mono);cursor:pointer}
+.gr[aria-pressed="true"]{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+.gr:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(225,78,31,.4)}
+.comment{flex:1}
+.comment input{width:100%;height:44px;border:1px solid var(--border-s);border-radius:10px;background:var(--surface);color:var(--ink);font:400 var(--fs-small) var(--ui);padding:0 14px}
+.queueNav{display:flex;justify-content:space-between;align-items:center;margin-top:24px}
+.qn{font:400 var(--fs-micro) var(--mono);color:var(--ter);font-variant-numeric:tabular-nums}
+
+.empty{display:none;text-align:center;padding:90px 0}
+.empty h3{font-size:1.3rem;font-weight:600}
+.empty p{color:var(--sec);max-width:44ch;margin:10px auto 0}
+.page[data-data="empty"] .v-stulist .filled,.page[data-data="empty"] .v-tqueue .filled{display:none}
+.page[data-data="empty"] .empty{display:block}
+
+.q{margin-top:28px;padding:20px;border:1px dashed var(--border-s);border-radius:12px}
+.q h4{font:500 12px var(--mono);color:var(--coral-t);margin-bottom:8px}
+.q p{font-size:var(--fs-cap);color:var(--sec)}
+@media(max-width:860px){.split{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Атлас · Лист 06 — Домашние задания</h1>
+  <p class="sub">Ученик: список с честными статусами (акцент — только у ближайшего дедлайна) и «виртуальный рабочий стол» сдачи (текст + файлы, ошибки загрузки не молчат). Учитель: очередь проверки, отсортированная по возрасту сдачи, и карточка проверки с оценкой в один клик.</p>
+  <div class="bar" role="group" aria-label="Виды">
+    <span class="grp">экран:</span>
+    <button data-k="view" data-v="stu-list" aria-pressed="true">ученик · список</button>
+    <button data-k="view" data-v="stu-submit" aria-pressed="false">ученик · сдача</button>
+    <button data-k="view" data-v="t-queue" aria-pressed="false">учитель · очередь</button>
+    <button data-k="view" data-v="t-grade" aria-pressed="false">учитель · проверка</button>
+    <span class="grp" style="margin-left:10px">данные:</span>
+    <button data-k="data" data-v="full" aria-pressed="true">обычно</button>
+    <button data-k="data" data-v="empty" aria-pressed="false">пусто</button>
+    <span class="grp" style="margin-left:10px">сдача:</span>
+    <button data-k="uperr" data-v="on" aria-pressed="false">ошибка загрузки файла</button>
+    <span class="grp" style="margin-left:10px">вид:</span>
+    <button data-k="theme" data-v="dark" aria-pressed="false">тёмная</button>
+  </div>
+
+  <div class="screen">
+    <div class="topnav"><span class="dot"></span><b>flamingo</b><span class="avatar">СИ</span></div>
+    <div class="page" data-view="stu-list" data-data="full" data-uperr="off" id="page">
+
+      <!-- ============ УЧЕНИК · СПИСОК ============ -->
+      <div class="view v-stulist">
+        <span class="h-title">Домашние задания</span>
+        <div class="filled">
+          <div class="rows" style="margin-top:24px">
+            <div>
+              <div><div class="t">Линейные уравнения — задачи 12–18</div><div class="s">Алгебра · Мария Петровна · выдано 01.07</div></div>
+              <span class="due" data-hot>до пт 23:59</span>
+              <button class="btnP">Сдать</button>
+            </div>
+            <div>
+              <div><div class="t">Present Perfect — письмо другу</div><div class="s">Английский · Илья Сергеевич · сдано 30.06</div></div>
+              <span class="st">проверяется</span><span></span>
+            </div>
+            <div>
+              <div><div class="t">Задачи на движение</div><div class="s">Физика · Дмитрий А. · сдано 27.06 · проверено 28.06</div></div>
+              <span class="grade">5 <span class="s">отлично</span></span><span></span>
+            </div>
+            <div style="opacity:.55">
+              <div><div class="t">Сочинение «Моё лето»</div><div class="s">Русский · Анна В. · срок прошёл 25.06, не сдано</div></div>
+              <span class="st">просрочено</span>
+              <button class="btnQ">Сдать позже</button>
+            </div>
+          </div>
+        </div>
+        <div class="empty">
+          <h3>Домашних заданий нет</h3>
+          <p>Когда преподаватель выдаст задание, оно появится здесь и в кабинете «Сегодня».</p>
+        </div>
+      </div>
+
+      <!-- ============ УЧЕНИК · СДАЧА ============ -->
+      <div class="view v-stusubmit">
+        <div class="crumb">домашка → алгебра → задачи 12–18</div>
+        <span class="h-title">Линейные уравнения — задачи 12–18</span>
+        <div class="split" style="margin-top:8px">
+          <div>
+            <p class="taskBox">Реши задачи 12–18 из учебника (стр. 84). Ход решения обязателен — фото тетради или текстом. Срок: пятница, 23:59.</p>
+            <label class="lbl" for="ans">текстовый ответ</label>
+            <textarea class="ta" id="ans" placeholder="Запиши решение или добавь пояснение к фото…"></textarea>
+            <div class="submitRow">
+              <button class="btnP">Отправить на проверку</button>
+              <span class="autosave">черновик сохранён · 14:02</span>
+            </div>
+          </div>
+          <div>
+            <label class="lbl">файлы решения</label>
+            <div class="drop">Перетащи фото тетради или выбери файл<div class="hint">jpg · png · pdf · до 20 МБ · до 5 файлов</div></div>
+            <div class="fileRow"><span>📄 решение_12-15.jpg · 2.4 MB</span><span class="ok">✓</span><button class="x" aria-label="Удалить файл">✕</button></div>
+            <div class="fileRow"><span>📄 решение_16-18.jpg · 3.1 MB</span><span class="ok">✓</span><button class="x" aria-label="Удалить файл">✕</button></div>
+            <div class="fileErr" role="alert">Файл «страница3.heic» не загрузился: формат не поддерживается. <button>Повторить</button></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ УЧИТЕЛЬ · ОЧЕРЕДЬ ============ -->
+      <div class="view v-tqueue">
+        <span class="h-title">Проверка</span>
+        <div class="filled">
+          <p class="secTitle">ЖДУТ ПРОВЕРКИ · СНАЧАЛА СТАРШИЕ</p>
+          <div class="rows">
+            <div>
+              <div><div class="t">Тимур · Линейные уравнения 12–18</div><div class="s">Алгебра 7 · сдано 2 дня назад · 2 файла + текст</div></div>
+              <span class="due" data-hot>2 дня ждёт</span>
+              <button class="btnP">Проверить</button>
+            </div>
+            <div>
+              <div><div class="t">Вера · Линейные уравнения 12–18</div><div class="s">Алгебра 7 · сдано вчера · текст</div></div>
+              <span class="due">1 день</span>
+              <button class="btnQ">Проверить</button>
+            </div>
+            <div>
+              <div><div class="t">Саша · Системы уравнений, №3</div><div class="s">Алгебра 7 · сдано сегодня 12:40 · 1 файл</div></div>
+              <span class="due">сегодня</span>
+              <button class="btnQ">Проверить</button>
+            </div>
+          </div>
+          <p class="secTitle" style="margin-top:36px">ПРОВЕРЕНО НЕДАВНО</p>
+          <div class="rows">
+            <div style="opacity:.55">
+              <div><div class="t">Лиза · Задачи на движение</div><div class="s">оценка 5 · проверено вчера</div></div>
+              <span></span><span></span>
+            </div>
+          </div>
+        </div>
+        <div class="empty">
+          <h3>Всё проверено</h3>
+          <p>Новые сдачи появятся здесь — старые сверху, чтобы никто не ждал дольше нужного.</p>
+        </div>
+      </div>
+
+      <!-- ============ УЧИТЕЛЬ · ПРОВЕРКА ============ -->
+      <div class="view v-tgrade">
+        <div class="crumb">проверка → алгебра 7 → линейные уравнения 12–18</div>
+        <span class="h-title">Тимур · задачи 12–18</span>
+        <div class="answerBox">
+          <div class="who"><b>Ответ ученика</b><span>сдано 04.07 · 18:22 · ждёт 2 дня</span></div>
+          <p style="font-size:var(--fs-small);color:var(--sec)">Задачи 12–15 решил через перенос слагаемых, 16–18 — через умножение обеих частей. В №17 не уверен в знаке.</p>
+          <div class="fileRow"><span>📄 решение_12-15.jpg · 2.4 MB</span></div>
+          <div class="fileRow"><span>📄 решение_16-18.jpg · 3.1 MB</span></div>
+        </div>
+        <label class="lbl">оценка</label>
+        <div class="gradeRow">
+          <button class="gr" aria-pressed="false">2</button>
+          <button class="gr" aria-pressed="false">3</button>
+          <button class="gr" aria-pressed="true">4</button>
+          <button class="gr" aria-pressed="false">5</button>
+          <span class="comment"><input placeholder="Комментарий ученику (увидит сразу): в №17 знак верный, смелее!"></span>
+        </div>
+        <div class="queueNav">
+          <button class="btnP">Сохранить и следующая →</button>
+          <span class="qn">2 из 7 в очереди</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="q">
+    <h4>ОТКРЫТЫЕ ВОПРОСЫ ВЛАДЕЛЬЦУ · лист 06</h4>
+    <p>1. Просроченное ДЗ: ученику даём «Сдать позже» (сдача после срока с пометкой «late») — или после дедлайна сдача закрыта?<br>
+    2. Оценка — пятибалльная кнопочная шкала 2–5 (как нарисовано)? Или нужны «зачёт/незачёт» и произвольные баллы?<br>
+    3. «Сохранить и следующая» — учитель проверяет очередь подряд без возврата к списку. Ок?</p>
+  </div>
+</div>
+
+<script>
+const root=document.documentElement,page=document.getElementById('page');
+document.querySelectorAll('.bar button').forEach(b=>b.addEventListener('click',()=>{
+  const k=b.dataset.k,v=b.dataset.v;
+  if(k==='theme'){const on=b.getAttribute('aria-pressed')!=='true';b.setAttribute('aria-pressed',String(on));
+    on?root.setAttribute('data-theme',v):root.removeAttribute('data-theme');return;}
+  if(k==='uperr'){const on=b.getAttribute('aria-pressed')!=='true';b.setAttribute('aria-pressed',String(on));
+    page.dataset.uperr=on?'on':'off';
+    if(on){page.dataset.view='stu-submit';
+      document.querySelectorAll('[data-k="view"]').forEach(x=>x.setAttribute('aria-pressed',String(x.dataset.v==='stu-submit')));}
+    return;}
+  page.dataset[k]=v;
+  document.querySelectorAll(`[data-k="${k}"]`).forEach(x=>x.setAttribute('aria-pressed',String(x===b)));
+}));
+document.querySelectorAll('.gr').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('.gr').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));
+}));
+</script>
+</body>
+</html>
