@@ -6,6 +6,19 @@ This doc lets a fresh session resume cleanly. It references files by path — re
 ---
 
 ## 0. Current state — read this first
+
+🔄 **2026-07-06 — исполнительский прогон F1+D0 (пост-ревьюерские коммиты 41c6fc9/f0392b8 Air,
+4107daf F1, 97e3040 D0-HUD, f9eff3d owner-v3):** гейты приведены к зелёным — backend **84 pytest**
++ ruff/black clean; frontend **build/lint clean + 116 vitest** (до: 115/1 fail — стейл-тест
+орб-поля переписан под v3, `ce06841`; app-код не тронут). Browser-верификация live-комнаты
+(Playwright, синтетическая canvas-камера): v3-композиция подтверждена — чип «имя · внимание» +
+«нужно внимание» на тайле, клик→фокус (полная разбивка, Esc), свой тайл один в rail, ученик БЕЗ
+своих метрик; соосность 16:10 Δ≤1px; egress = ровно 8 агрегатных скаляров (Network-перехват).
+**`docs/handoff/D0_FINDINGS.md` создан** (синтетическая база: 5/5 Hz, gap ≤216 ms, jitter ±0;
+подтверждён дефект 0-vs-null; гипотезы по компонентам) — **5 сценариев с реальной камерой = owner
+real-run, PENDING**. Скриншоты: `docs/handoff/shots/`. Мастер-план §7 обновлён; чекбоксы D0/F1 НЕ
+закрыты до owner-протокола. **NEXT: owner real-run (2 окна + D0-протокол) → C1 (калибровка).**
+
 ✅ **SEduM Lite COMPLETE (a+b+c) — CMF browser-verified LIVE.** ✅ **LiveKit video room — slice 1
 (1:1 + shared camera) AND slice 2 (group ≤5 + screen share) DONE & green, with all reported
 regressions fixed.** ✅ **LiveKit slice 3 COMPLETE & green** — 3.1 connection lifecycle `404fc6f`,
