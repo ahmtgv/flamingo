@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>АТЛАС 04 — Каталог · Курс · Конструктор</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f1f1ef;--surface:#fff;--subtle:#e9e9e6;--border:#d9d9d6;--border-s:#c4c4c1;
+  --ink:#1d1d1f;--sec:#6e6e73;--ter:#98989e;
+  --coral:#e14e1f;--coral-t:#c23f14;--coral-soft:#fdeee7;
+  --ui:-apple-system,'SF Pro Display',Inter,system-ui,sans-serif;
+  --mono:'JetBrains Mono','SF Mono',ui-monospace,monospace;
+  --ease:cubic-bezier(.2,0,0,1);
+  --fs-body:1.0625rem;--fs-small:.875rem;--fs-cap:.8125rem;--fs-micro:.75rem;
+  --fs-h1:2rem;--fs-h3:1.1875rem;
+}
+[data-theme="dark"]{
+  --bg:#101012;--surface:#1a1a1c;--subtle:#242426;--border:#2e2e31;--border-s:#3f3f43;
+  --ink:#f2f2f0;--sec:#98989e;--ter:#6e6e73;
+  --coral:#ff7040;--coral-t:#ff8a5f;--coral-soft:#33201a;
+}
+*{box-sizing:border-box;margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--ui);font-size:var(--fs-body);
+  line-height:1.6;padding:32px 24px 96px;transition:background .32s var(--ease),color .32s var(--ease)}
+.wrap{max-width:1080px;margin:0 auto}
+h1{font-size:1.4rem;font-weight:600;letter-spacing:-.015em}
+.sub{color:var(--sec);font-size:var(--fs-small);margin:6px 0 18px;max-width:72ch}
+.bar{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:18px;position:sticky;top:8px;z-index:5}
+.bar .grp{font:500 10px var(--mono);color:var(--ter)}
+.bar button{font:500 12px var(--mono);color:var(--sec);background:var(--bg);border:1px solid var(--border);
+  border-radius:999px;padding:7px 13px;cursor:pointer}
+.bar button[aria-pressed="true"]{color:var(--ink);border-color:var(--border-s);background:var(--surface)}
+.bar button:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(225,78,31,.4)}
+
+.screen{background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow:hidden}
+.topnav{display:flex;align-items:center;gap:10px;padding:12px 20px;border-bottom:1px solid var(--border)}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--coral)}
+.topnav b{font-size:14px;font-weight:500}
+.topnav .avatar{margin-left:auto;width:28px;height:28px;border-radius:50%;background:var(--subtle);
+  display:grid;place-content:center;font:500 10px var(--mono);color:var(--sec)}
+.page{padding:40px 48px 48px;min-height:560px}
+.view{display:none}
+.page[data-view="catalog"] .v-catalog{display:block}
+.page[data-view="guest"] .v-guest{display:block}
+.page[data-view="enrolled"] .v-enrolled{display:block}
+.page[data-view="constructor"] .v-constructor{display:block}
+
+.headrow{display:flex;justify-content:space-between;align-items:baseline;gap:24px}
+.h-title{font-size:var(--fs-h1);font-weight:600;letter-spacing:-.02em}
+.meta{font:400 var(--fs-cap) var(--mono);color:var(--ter);font-variant-numeric:tabular-nums}
+.search{display:flex;gap:10px;margin:28px 0 24px}
+.search input{flex:1;height:42px;border:1px solid var(--border-s);border-radius:10px;background:var(--surface);
+  color:var(--ink);font:400 var(--fs-body) var(--ui);padding:0 16px}
+.search input::placeholder{color:var(--ter)}
+.search input:focus-visible{outline:none;border-color:var(--coral);box-shadow:0 0 0 3px rgba(225,78,31,.25)}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:24px}
+.chip{font:500 var(--fs-micro) var(--mono);color:var(--sec);border:1px solid var(--border);border-radius:999px;padding:5px 12px;background:none;cursor:pointer}
+.chip[data-on]{color:var(--ink);border-color:var(--border-s);background:var(--subtle)}
+
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:22px;cursor:pointer;
+  text-align:start;font:inherit;color:inherit;transition:all .2s var(--ease)}
+.card:hover{border-color:var(--border-s);transform:translateY(-2px)}
+.card:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(225,78,31,.4)}
+.card .subj{font:400 var(--fs-micro) var(--mono);color:var(--ter);margin-bottom:8px}
+.card h4{font-size:var(--fs-h3);font-weight:600;letter-spacing:-.01em;margin-bottom:6px}
+.card p{font-size:var(--fs-cap);color:var(--sec);margin-bottom:16px}
+.card .m{display:flex;justify-content:space-between;font:400 var(--fs-micro) var(--mono);color:var(--ter);font-variant-numeric:tabular-nums}
+.cat-empty,.cat-zero{display:none;text-align:center;padding:80px 0}
+.page[data-cat="noresults"] .cards{display:none}
+.page[data-cat="noresults"] .cat-empty{display:block}
+.page[data-cat="zero"] .cards,.page[data-cat="zero"] .search,.page[data-cat="zero"] .chips{display:none}
+.page[data-cat="zero"] .cat-zero{display:block}
+.cat-empty h3,.cat-zero h3{font-size:1.3rem;font-weight:600}
+.cat-empty p,.cat-zero p{color:var(--sec);max-width:44ch;margin:10px auto 24px}
+.btnP{font:500 var(--fs-body) var(--ui);color:#fff;background:var(--coral);border:none;border-radius:10px;height:44px;padding:0 26px;cursor:pointer}
+.btnQ{font:500 var(--fs-small) var(--ui);color:var(--ink);background:none;border:1px solid var(--border-s);border-radius:10px;height:40px;padding:0 18px;cursor:pointer}
+
+/* course detail */
+.detail{display:grid;grid-template-columns:1.5fr .8fr;gap:48px;align-items:start}
+.d-subj{font:400 var(--fs-micro) var(--mono);color:var(--ter);margin-bottom:10px}
+.d-desc{color:var(--sec);max-width:56ch;margin-top:16px}
+.secTitle{font:500 var(--fs-micro) var(--mono);color:var(--ter);margin:36px 0 4px}
+.rows>*{display:grid;grid-template-columns:44px 1fr auto;gap:16px;align-items:center;padding:16px 0;border-bottom:1px solid var(--border)}
+.rows>*:last-child{border-bottom:none}
+.idx{font:500 var(--fs-cap) var(--mono);color:var(--ter);font-variant-numeric:tabular-nums}
+.t{font-weight:500}
+.s{font-size:var(--fs-cap);color:var(--sec)}
+.lock{font:400 var(--fs-micro) var(--mono);color:var(--ter)}
+.done{font:500 var(--fs-micro) var(--mono);color:var(--sec)}
+.aside{position:sticky;top:80px;display:grid;gap:14px}
+.aside .price{font:500 2.2rem/1 var(--mono);letter-spacing:-.02em}
+.aside .note{font-size:var(--fs-cap);color:var(--sec)}
+.aside .teach{font:400 var(--fs-micro) var(--mono);color:var(--ter)}
+.progressLine{height:3px;background:var(--subtle);border-radius:999px;overflow:hidden}
+.progressLine i{display:block;height:100%;width:33%;background:var(--sec)}
+
+/* constructor */
+.c-row{display:grid;grid-template-columns:44px 1fr auto;gap:16px;align-items:center;padding:14px 0;border-bottom:1px solid var(--border)}
+.c-controls{display:flex;gap:6px}
+.mini{width:30px;height:30px;display:grid;place-content:center;border:1px solid var(--border);border-radius:8px;background:none;color:var(--sec);cursor:pointer;font-size:13px}
+.mini:hover{border-color:var(--border-s);color:var(--ink)}
+.mini:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(225,78,31,.4)}
+.addRow{display:flex;gap:10px;margin-top:16px}
+.dashBtn{font:500 var(--fs-small) var(--ui);color:var(--sec);background:none;border:1px dashed var(--border-s);border-radius:10px;height:40px;padding:0 18px;cursor:pointer}
+.pill{font:500 var(--fs-micro) var(--mono);color:var(--sec);border:1px solid var(--border);border-radius:999px;padding:3px 10px}
+.pill[data-draft]{color:var(--ter);border-style:dashed}
+.matChip{display:inline-flex;align-items:center;gap:6px;font:400 var(--fs-micro) var(--mono);color:var(--sec);
+  border:1px solid var(--border);border-radius:8px;padding:4px 10px;margin:4px 6px 0 0}
+
+.q{margin-top:28px;padding:20px;border:1px dashed var(--border-s);border-radius:12px}
+.q h4{font:500 12px var(--mono);color:var(--coral-t);margin-bottom:8px}
+.q p{font-size:var(--fs-cap);color:var(--sec)}
+@media(max-width:860px){.cards{grid-template-columns:1fr}.detail{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Атлас · Лист 04 — Каталог · Курс · Конструктор</h1>
+  <p class="sub">Один курс — три взгляда: гость (открытая витрина: программа видна, контент заперт, один акцент «Записаться»), записанный ученик (программа = навигация, прогресс, продолжить), владелец (конструктор: разделы/уроки, reorder, материалы, публикация). Каталог — с поиском, пустым результатом и нулевым состоянием новой платформы.</p>
+  <div class="bar" role="group" aria-label="Виды">
+    <span class="grp">экран:</span>
+    <button data-k="view" data-v="catalog" aria-pressed="true">каталог</button>
+    <button data-k="view" data-v="guest" aria-pressed="false">курс · гость</button>
+    <button data-k="view" data-v="enrolled" aria-pressed="false">курс · записан</button>
+    <button data-k="view" data-v="constructor" aria-pressed="false">курс · владелец</button>
+    <span class="grp" style="margin-left:10px">каталог-данные:</span>
+    <button data-k="cat" data-v="full" aria-pressed="true">142 курса</button>
+    <button data-k="cat" data-v="noresults" aria-pressed="false">поиск: пусто</button>
+    <button data-k="cat" data-v="zero" aria-pressed="false">платформа новая (0)</button>
+    <span class="grp" style="margin-left:10px">вид:</span>
+    <button data-k="theme" data-v="dark" aria-pressed="false">тёмная</button>
+  </div>
+
+  <div class="screen">
+    <div class="topnav"><span class="dot"></span><b>flamingo</b><span class="avatar">СИ</span></div>
+    <div class="page" data-view="catalog" data-cat="full" id="page">
+
+      <!-- ================= КАТАЛОГ ================= -->
+      <div class="view v-catalog">
+        <div class="headrow"><span class="h-title">Курсы</span><span class="meta">142 курса · 12 предметов</span></div>
+        <div class="search"><input placeholder="Найти курс, предмет или преподавателя" aria-label="Поиск по каталогу"></div>
+        <div class="chips">
+          <button class="chip" data-on>все</button><button class="chip">математика</button><button class="chip">языки</button>
+          <button class="chip">физика</button><button class="chip">7 класс</button><button class="chip">ОГЭ</button>
+        </div>
+        <div class="cards">
+          <button class="card"><div class="subj">математика · 7 класс</div><h4>Алгебра: от уравнений к функциям</h4><p>36 занятий · домашние с проверкой преподавателем</p><div class="m"><span>Мария Петровна</span><span>18 учеников</span></div></button>
+          <button class="card"><div class="subj">языки · A2</div><h4>Английский: разговорная практика</h4><p>Группы до 5 человек, живой разбор ошибок</p><div class="m"><span>Илья Сергеевич</span><span>12 учеников</span></div></button>
+          <button class="card"><div class="subj">физика · ОГЭ</div><h4>Решаем вторую часть</h4><p>Интенсив по задачам с развёрнутым ответом</p><div class="m"><span>Дмитрий А.</span><span>новый</span></div></button>
+        </div>
+        <div class="cat-empty">
+          <h3>Ничего не нашлось</h3>
+          <p>По запросу «квантовая механика» курсов нет. Попробуй другой предмет или сбрось фильтры.</p>
+          <button class="btnQ">Сбросить фильтры</button>
+        </div>
+        <div class="cat-zero">
+          <h3>Каталог наполняется</h3>
+          <p>Первые курсы появятся здесь совсем скоро. Оставь почту при регистрации — расскажем, когда откроются записи.</p>
+        </div>
+      </div>
+
+      <!-- ================= КУРС · ГОСТЬ ================= -->
+      <div class="view v-guest">
+        <div class="detail">
+          <div>
+            <div class="d-subj">математика · 7 класс · 36 занятий · 3 раздела</div>
+            <span class="h-title">Алгебра: от уравнений к функциям</span>
+            <p class="d-desc">Системный курс на учебный год: линейные уравнения, системы, функции и графики. Каждое занятие — живой разбор с преподавателем и домашнее задание с проверкой.</p>
+            <p class="secTitle">ПРОГРАММА</p>
+            <div class="rows">
+              <div><span class="idx">01</span><div><div class="t">Линейные уравнения</div><div class="s">4 занятия · 4 домашних</div></div><span class="lock">после записи</span></div>
+              <div><span class="idx">02</span><div><div class="t">Системы уравнений</div><div class="s">6 занятий · 5 домашних</div></div><span class="lock">после записи</span></div>
+              <div><span class="idx">03</span><div><div class="t">Функции и графики</div><div class="s">8 занятий · 6 домашних</div></div><span class="lock">после записи</span></div>
+            </div>
+          </div>
+          <aside class="aside">
+            <div class="price">бесплатно</div>
+            <p class="note">Доступ к занятиям, материалам и проверке домашних — после записи.</p>
+            <button class="btnP">Записаться на курс</button>
+            <p class="teach">Мария Петровна · 18 учеников на курсе</p>
+          </aside>
+        </div>
+      </div>
+
+      <!-- ================= КУРС · ЗАПИСАН ================= -->
+      <div class="view v-enrolled">
+        <div class="detail">
+          <div>
+            <div class="d-subj">математика · 7 класс · вы записаны</div>
+            <span class="h-title">Алгебра: от уравнений к функциям</span>
+            <p class="secTitle">ПРОГРАММА · 12 из 36 пройдено</p>
+            <div class="rows">
+              <div><span class="idx">01</span><div><div class="t">Линейные уравнения</div><div class="s">4 занятия · пройден</div></div><span class="done">✓ раздел пройден</span></div>
+              <div><span class="idx">02</span><div><div class="t">Системы уравнений</div><div class="s">урок 3 из 6 · далее: метод подстановки</div></div><button class="btnP" style="height:38px;padding:0 18px">Продолжить</button></div>
+              <div><span class="idx">03</span><div><div class="t">Функции и графики</div><div class="s">откроется после раздела 02</div></div><span class="lock">впереди</span></div>
+            </div>
+          </div>
+          <aside class="aside">
+            <p class="note">Прогресс курса</p>
+            <div class="progressLine"><i></i></div>
+            <p class="teach">12/36 занятий · 10 домашних сдано · ср. оценка 4.8</p>
+            <button class="btnQ">Материалы курса</button>
+            <button class="btnQ">Расписание занятий</button>
+          </aside>
+        </div>
+      </div>
+
+      <!-- ================= КУРС · ВЛАДЕЛЕЦ (КОНСТРУКТОР) ================= -->
+      <div class="view v-constructor">
+        <div class="headrow">
+          <div>
+            <div class="d-subj"><span class="pill">опубликован</span> · 18 учеников · обновлён вчера</div>
+            <span class="h-title">Алгебра: от уравнений к функциям</span>
+          </div>
+          <div style="display:flex;gap:8px"><button class="btnQ">Редактировать описание</button><button class="btnQ">Снять с публикации</button></div>
+        </div>
+        <p class="secTitle">РАЗДЕЛ 01 · ЛИНЕЙНЫЕ УРАВНЕНИЯ</p>
+        <div>
+          <div class="c-row"><span class="idx">1.1</span><div><div class="t">Что такое уравнение</div><div class="s">видео · 2 материала · ДЗ</div><div><span class="matChip">📄 конспект.pdf</span><span class="matChip">🔗 тренажёр</span></div></div><div class="c-controls"><button class="mini" aria-label="Вверх">↑</button><button class="mini" aria-label="Вниз">↓</button><button class="mini" aria-label="Редактировать">✎</button></div></div>
+          <div class="c-row"><span class="idx">1.2</span><div><div class="t">Перенос слагаемых</div><div class="s">1 материал · ДЗ</div></div><div class="c-controls"><button class="mini" aria-label="Вверх">↑</button><button class="mini" aria-label="Вниз">↓</button><button class="mini" aria-label="Редактировать">✎</button></div></div>
+        </div>
+        <div class="addRow"><button class="dashBtn">+ Урок</button><button class="dashBtn">+ Материал</button></div>
+        <p class="secTitle">РАЗДЕЛ 02 · СИСТЕМЫ УРАВНЕНИЙ <span class="pill" data-draft style="margin-left:8px">черновик</span></p>
+        <div>
+          <div class="c-row"><span class="idx">2.1</span><div><div class="t">Метод подстановки</div><div class="s">без материалов</div></div><div class="c-controls"><button class="mini" aria-label="Вверх">↑</button><button class="mini" aria-label="Вниз">↓</button><button class="mini" aria-label="Редактировать">✎</button></div></div>
+        </div>
+        <div class="addRow"><button class="dashBtn">+ Урок</button><button class="dashBtn">+ Раздел</button></div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="q">
+    <h4>ОТКРЫТЫЕ ВОПРОСЫ ВЛАДЕЛЬЦУ · лист 04</h4>
+    <p>1. Гость видит программу целиком (названия разделов/уроков), но контент «после записи» — согласен? Альтернатива: показывать только первый раздел.<br>
+    2. У записанного ученика разделы открываются последовательно («03 — после раздела 02») — или все открыты сразу?<br>
+    3. Цена: сейчас все курсы бесплатны, плашка «бесплатно». Когда появится оплата — то же место (сумма + «Записаться» становится «Купить»). Ок как задел?</p>
+  </div>
+</div>
+
+<script>
+const root=document.documentElement,page=document.getElementById('page');
+document.querySelectorAll('.bar button').forEach(b=>b.addEventListener('click',()=>{
+  const k=b.dataset.k,v=b.dataset.v;
+  if(k==='theme'){const on=b.getAttribute('aria-pressed')!=='true';b.setAttribute('aria-pressed',String(on));
+    on?root.setAttribute('data-theme',v):root.removeAttribute('data-theme');return;}
+  page.dataset[k]=v;
+  document.querySelectorAll(`[data-k="${k}"]`).forEach(x=>x.setAttribute('aria-pressed',String(x===b)));
+  if(k==='cat'){page.dataset.view='catalog';
+    document.querySelectorAll('[data-k="view"]').forEach(x=>x.setAttribute('aria-pressed',String(x.dataset.v==='catalog')));}
+}));
+</script>
+</body>
+</html>
