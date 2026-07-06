@@ -4,7 +4,7 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { renderWithProviders } from '@/test/renderWithProviders';
 
-import { StudentViewPreview, VideoRoom } from './VideoRoom';
+import { VideoRoom } from './VideoRoom';
 
 // VideoRoom pulls in VideoTile, which imports Track from livekit-client. We render VideoRoom
 // directly (no Room is created), so a tiny value-only mock is enough.
@@ -19,6 +19,10 @@ function fakeParticipant(sid: string, identity: string): RemoteParticipant {
 
 const NAMES: Record<string, string> = { u1: 'Тимур', u2: 'Вера' };
 const ATTENTION: Record<string, number> = { u1: 41, u2: 86 };
+const METRICS: Record<string, { gaze: number | null; eyes: number | null; headYaw: number | null; headPitch: number | null; alert: number | null }> = {
+  u1: { gaze: 38, eyes: 70, headYaw: 25, headPitch: -4, alert: 55 },
+  u2: { gaze: 92, eyes: 84, headYaw: 2, headPitch: 1, alert: 90 },
+};
 
 function renderTeacherRoom(
   participants: RemoteParticipant[] = [fakeParticipant('s1', 'u1'), fakeParticipant('s2', 'u2')],
@@ -45,6 +49,7 @@ function renderTeacherRoom(
       nameFor={(id) => NAMES[id] ?? id}
       focusable
       attentionFor={(id) => ATTENTION[id] ?? null}
+      metricsFor={(id) => METRICS[id] ?? null}
       selfInRail
     />,
   );
@@ -70,8 +75,12 @@ describe('VideoRoom F1 — teacher focus mode (final design v2, no overlap)', ()
     expect(container.querySelector('[data-focus="true"]')).toBeTruthy();
     // Focus bar: value + the below-threshold text accent (41 < liveAttentionAlertBelow).
     expect(screen.getByText('41')).toBeInTheDocument();
-    expect(screen.getByText('нужно внимание')).toBeInTheDocument();
+    expect(screen.getAllByText('нужно внимание').length).toBeGreaterThan(0);
     expect(screen.getByText('Esc — свернуть')).toBeInTheDocument();
+    // Owner v3: the focused bar carries the full live sub-metrics for the teacher.
+    expect(screen.getByText('взгляд')).toBeInTheDocument();
+    expect(screen.getByText('38')).toBeInTheDocument();
+    expect(screen.getByText('вне кадра')).toBeInTheDocument();
     // Collapse via a second click (button label flips to «Свернуть видео…»).
     fireEvent.click(screen.getByRole('button', { name: /Свернуть видео: Тимур/ }));
     expect(container.querySelector('[data-focus="true"]')).toBeNull();
@@ -79,10 +88,13 @@ describe('VideoRoom F1 — teacher focus mode (final design v2, no overlap)', ()
 
   it('no «нужно внимание» accent for a student above the threshold', () => {
     renderTeacherRoom();
-    const [vera] = screen.getAllByRole('button', { name: /Развернуть видео: Вера/ });
-    fireEvent.click(vera);
-    expect(screen.getByText('86')).toBeInTheDocument();
-    expect(screen.queryByText('нужно внимание')).toBeNull();
+    const [veraBtn] = screen.getAllByRole('button', { name: /Развернуть видео: Вера/ });
+    fireEvent.click(veraBtn);
+    expect(screen.getAllByText('86').length).toBeGreaterThan(0);
+    expect(screen.getByRole('button', { name: /Свернуть видео: Вера/ })).toHaveAttribute(
+      'data-alert',
+      'false',
+    );
   });
 
   it('Esc collapses the focus', () => {
@@ -136,6 +148,7 @@ describe('VideoRoom F1 — teacher focus mode (final design v2, no overlap)', ()
         nameFor={(id) => NAMES[id] ?? id}
         focusable
         attentionFor={(id) => ATTENTION[id] ?? null}
+        metricsFor={(id) => METRICS[id] ?? null}
         selfInRail
       />,
     );
@@ -143,15 +156,17 @@ describe('VideoRoom F1 — teacher focus mode (final design v2, no overlap)', ()
   });
 });
 
-describe('StudentViewPreview («что видит ученик»)', () => {
-  it('is a toggle; opens the local-state preview card (no second stream)', () => {
-    renderWithProviders(<StudentViewPreview stream={null} peers={3} />);
-    const toggle = screen.getByRole('button', { name: 'Что видит ученик' });
-    expect(toggle).toHaveAttribute('aria-pressed', 'false');
-    fireEvent.click(toggle);
-    expect(toggle).toHaveAttribute('aria-pressed', 'true');
-    expect(screen.getByRole('img', { name: 'Экран ученика — макет' })).toBeInTheDocument();
-    fireEvent.click(toggle);
-    expect(screen.queryByRole('img', { name: 'Экран ученика — макет' })).toBeNull();
+describe('owner v3 — parameters live ON the tiles at all times', () => {
+  it('every tile chip shows name · attention; the low tile carries the alert ring + text', () => {
+    renderTeacherRoom();
+    // Name chips include the live value even WITHOUT focusing.
+    expect(screen.getByText(/Тимур/)).toBeInTheDocument();
+    expect(screen.getByText('· 41')).toBeInTheDocument();
+    expect(screen.getByText('· 86')).toBeInTheDocument();
+    const [timur] = screen.getAllByRole('button', { name: /Развернуть видео: Тимур/ });
+    expect(timur).toHaveAttribute('data-alert', 'true');
+    expect(screen.getByText('нужно внимание')).toBeInTheDocument();
+    const [vera] = screen.getAllByRole('button', { name: /Развернуть видео: Вера/ });
+    expect(vera).toHaveAttribute('data-alert', 'false');
   });
 });

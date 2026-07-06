@@ -56,16 +56,38 @@
 }
 .tile {
   position: relative;
-  aspect-ratio: 4 / 3;
+  aspect-ratio: 16 / 10;
   border-radius: var(--radius-control);
   overflow: hidden;
   background: var(--color-surface-hover);
   border: 1px solid var(--color-border);
 }
-/* Active-speaker ring. */
+/* Active-speaker ring — NEUTRAL (informational): the coral ring is reserved for
+   «нужно внимание» (accent = action needed, never two accent meanings on one grid). */
 .tile[data-active='true'] {
+  border-color: var(--color-border-strong);
+  box-shadow: 0 0 0 2px var(--color-border-strong);
+}
+/* Below-threshold attention: the ONE accent mark, always paired with the text label. */
+.tile[data-alert='true'] {
   border-color: var(--color-accent);
   box-shadow: 0 0 0 2px var(--color-accent);
+}
+.tileWarn {
+  position: absolute;
+  right: var(--space-2);
+  top: var(--space-2);
+  font-family: var(--font-mono);
+  font-size: var(--text-overline);
+  font-weight: var(--weight-medium);
+  color: var(--color-accent);
+  background: var(--color-overlay);
+  border-radius: var(--radius-pill);
+  padding: 2px var(--space-2);
+}
+.nameValue {
+  font-variant-numeric: tabular-nums;
+  margin-inline-start: var(--space-1);
 }
 /* Screen-share main stage (camera filmstrip is .tiles[data-screen='true'] above). */
 .stage {
@@ -227,65 +249,20 @@
   opacity: 0.6;
   margin-inline-start: auto;
 }
-
-/* ---- F1: «что видит ученик» preview (rail card; render of local state, NOT a stream). */
-.svToggle {
-  font-family: var(--font-mono);
-  font-size: var(--text-overline);
-  font-weight: var(--weight-medium);
-  color: var(--color-text-secondary);
-  background: none;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-pill);
-  padding: var(--space-1) var(--space-3);
-  cursor: pointer;
-}
-.svToggle[aria-pressed='true'] {
-  color: var(--color-text);
-  border-color: var(--color-border-strong);
-  background: var(--color-surface-subtle);
-}
-.svToggle:focus-visible {
-  outline: none;
-  box-shadow: var(--focus-ring);
-}
-.svCard {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-control);
-  overflow: hidden;
-}
-.svStage {
-  position: relative;
-  aspect-ratio: 16 / 9;
-  margin: var(--space-1);
-  border-radius: var(--radius-sm);
-  overflow: hidden;
-  background: var(--color-surface-hover);
-}
-.svName {
-  position: absolute;
-  left: var(--space-1);
-  bottom: var(--space-1);
-  font-family: var(--font-mono);
-  font-size: var(--text-overline);
-  color: var(--color-text-on-accent);
-  background: var(--color-overlay);
-  border-radius: var(--radius-xs);
-  padding: 0 var(--space-1);
-}
-.svRow {
+.focusSub {
   display: flex;
-  gap: var(--space-1);
-  padding: 0 var(--space-1) var(--space-1);
+  gap: var(--space-4);
+  font-family: var(--font-mono);
+  font-size: var(--text-overline);
+  font-variant-numeric: tabular-nums;
 }
-.svRow i {
-  flex: 1;
-  aspect-ratio: 16 / 10;
-  border-radius: var(--radius-xs);
-  background: var(--color-surface-hover);
-  display: block;
+.focusSub b {
+  font-weight: var(--weight-medium);
 }
+.focusSub span {
+  opacity: 0.75;
+}
+
 .controls {
   display: flex;
   justify-content: center;

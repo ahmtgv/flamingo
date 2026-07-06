@@ -202,7 +202,7 @@ h1{font-size:1.5rem;font-weight:600;letter-spacing:-.015em}
       <div class="topbar">
         <span class="dot"></span><b>Алгебра — линейные уравнения</b>
         <span class="livepill">● live · 23:14</span>
-        <button class="svtoggle" id="sv" aria-pressed="false">что видит ученик</button>
+        
       </div>
 
       <div class="layout">
@@ -244,14 +244,6 @@ h1{font-size:1.5rem;font-weight:600;letter-spacing:-.015em}
           <div class="fsinfo"><span class="who">Тимур</span><span class="meter"><i style="width:41%"></i></span><span class="vl">41</span><span class="wt">нужно внимание</span><span class="esc">Esc — выйти</span></div>
           <div class="railtile teacherself"><span class="oncam">● в эфире</span><span class="nm">ты · Мария Петровна</span></div>
           <p class="railcap teachercap">так тебя видят ученики</p>
-          <div class="studentpip" aria-label="Предпросмотр экрана ученика">
-            <div class="cap">что видит ученик · Саша</div>
-            <div class="mini"><span class="nm">Мария Петровна</span></div>
-            <div class="row"><i></i><i></i><i></i><i></i><i></i></div>
-          </div>
-          <div class="railtile stuself"><div class="strip"><span class="meter" style="flex:1"><i style="width:84%"></i></span><span class="vl">84</span></div><span class="nm">ты</span></div>
-          <p class="railcap stucap">твоя камера · анализ на устройстве</p>
-          <div class="railtile teachermini"><span class="nm">Мария Петровна</span></div>
         </div>
       </div>
 
@@ -306,8 +298,7 @@ function setMode(m){
   room.dataset.mode=m;btns.forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.m===m)));
 }
 btns.forEach(b=>b.addEventListener('click',()=>setMode(b.dataset.m)));
-const sv=document.getElementById('sv');
-sv.addEventListener('click',()=>{const on=room.dataset.sv!=='on';room.dataset.sv=on?'on':'off';sv.setAttribute('aria-pressed',String(on));});
+
 tiles.addEventListener('click',e=>{
   const act=e.target.closest('.fbtn');const t=e.target.closest('.tile');if(!t)return;
   if(act){e.stopPropagation();if(!t.hasAttribute('data-focused')){[...tiles.children].forEach(x=>x.removeAttribute('data-focused'));t.setAttribute('data-focused','');}setMode(act.dataset.a);return;}

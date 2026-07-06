@@ -20,6 +20,8 @@ export function VideoTile({
   onClick,
   focused,
   focusBar,
+  attention,
+  alert,
 }: {
   participant: RemoteParticipant;
   version: number;
@@ -32,6 +34,10 @@ export function VideoTile({
   focused?: boolean;
   /** Info strip rendered inside the tile while focused (name · attention · esc hint). */
   focusBar?: ReactNode;
+  /** Teacher view: live attention (0–100) shown ON the tile at all times (owner v3). */
+  attention?: number | null;
+  /** Teacher view: below-threshold accent — coral ring + «нужно внимание» text. */
+  alert?: boolean;
 }) {
   const { t } = useTranslation('lesson');
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -58,7 +64,13 @@ export function VideoTile({
   const name = displayName;
 
   // One accessible name for the whole tile (role="img" makes the media subtree atomic to AT).
-  const label = [name, cameraOff ? t('tile.cameraOff') : '', micMuted ? t('tile.micOff') : '']
+  const label = [
+    name,
+    attention != null ? t('focus.attentionValue', { n: attention }) : '',
+    alert ? t('focus.needsAttention') : '',
+    cameraOff ? t('tile.cameraOff') : '',
+    micMuted ? t('tile.micOff') : '',
+  ]
     .filter(Boolean)
     .join(', ');
 
@@ -72,10 +84,17 @@ export function VideoTile({
         </span>
       )}
       {focused && focusBar}
+      {/* Owner v3: the live attention value lives ON the tile at all times (mono chip). */}
       <span className={styles.name}>
         {micMuted && <MicOff size={12} aria-hidden="true" />}
         {name}
+        {attention != null && <span className={styles.nameValue}>· {attention}</span>}
       </span>
+      {alert && !focused && (
+        <span className={styles.tileWarn} aria-hidden="true">
+          {t('focus.needsAttention')}
+        </span>
+      )}
     </>
   );
 
@@ -86,6 +105,7 @@ export function VideoTile({
         className={`${styles.tile} ${styles.tileBtn}`}
         data-active={!!active}
         data-focused={!!focused}
+        data-alert={!!alert}
         aria-pressed={!!focused}
         aria-label={focused ? t('focus.collapse', { name: label }) : t('focus.expand', { name: label })}
         onClick={onClick}
@@ -96,7 +116,7 @@ export function VideoTile({
   }
 
   return (
-    <div className={styles.tile} data-active={!!active} role="img" aria-label={label}>
+    <div className={styles.tile} data-active={!!active} data-alert={!!alert} role="img" aria-label={label}>
       {inner}
     </div>
   );

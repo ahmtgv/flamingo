@@ -3,6 +3,7 @@ import { Radio, RefreshCw, Wifi, WifiOff } from 'lucide-react';
 import { type ReactNode, useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { headState } from '@/seedum';
 import { CMF } from '@/seedum/cmfConfig';
 import { Meter } from '@/seedum/ui/Meter';
 import { Button } from '@/shared/ui';
@@ -50,6 +51,7 @@ export function VideoRoom({
   localOverlay,
   focusable = false,
   attentionFor,
+  metricsFor,
   selfInRail = false,
   rail,
 }: {
@@ -77,14 +79,22 @@ export function VideoRoom({
   localOverlay?: ReactNode;
   /** F1: click-to-focus on remote tiles (teacher). */
   focusable?: boolean;
-  /** F1: latest live attention (0–100) for a participant identity — feeds the focus bar. */
+  /** F1: latest live attention (0–100) for a participant identity — shown ON every tile. */
   attentionFor?: (identity: string) => number | null;
+  /** F1.1 (owner v3): full live sub-metrics for the focused tile's bar (gaze/eyes/head/alert). */
+  metricsFor?: (identity: string) => {
+    gaze: number | null;
+    eyes: number | null;
+    headYaw: number | null;
+    headPitch: number | null;
+    alert: number | null;
+  } | null;
   /** F1: render the local self-view in the side rail (teacher) instead of inside the grid. */
   selfInRail?: boolean;
   /** F1: extra rail content under the self tile (e.g. «что видит ученик» preview). */
   rail?: ReactNode;
 }) {
-  const { t } = useTranslation('lesson');
+  const { t } = useTranslation(['lesson', 'seedum']);
   // Terminal states render an overlay OVER the still-mounted tiles (never an early return).
   const terminal = connectionState === 'disconnected' || connectionState === 'failed';
 
@@ -159,7 +169,9 @@ export function VideoRoom({
   // · «нужно внимание» text (threshold from cmfConfig ONLY) · Esc hint. Display-only.
   const focusBarFor = (p: RemoteParticipant): ReactNode => {
     const value = attentionFor ? attentionFor(p.identity) : null;
+    const m = metricsFor ? metricsFor(p.identity) : null;
     const name = nameFor ? nameFor(p.identity) : p.identity.slice(0, 8);
+    const head = m ? headState(m.headYaw, m.headPitch) : 'unknown';
     return (
       <span className={styles.focusBar}>
         <span className={styles.focusLabel}>{t('focus.attention')}</span>
@@ -167,6 +179,22 @@ export function VideoRoom({
         <span className={styles.focusValue}>{value ?? '—'}</span>
         {value != null && value < CMF.liveAttentionAlertBelow && (
           <span className={styles.focusAlert}>{t('focus.needsAttention')}</span>
+        )}
+        {m && (
+          <span className={styles.focusSub}>
+            <span>
+              {t('focus.gaze')} <b>{m.gaze ?? '—'}</b>
+            </span>
+            <span>
+              {t('focus.eyes')} <b>{m.eyes ?? '—'}</b>
+            </span>
+            <span>
+              {t('focus.alertness')} <b>{m.alert ?? '—'}</b>
+            </span>
+            <span>
+              {t('focus.head')} <b>{t(`seedum:strip.headState.${head}`)}</b>
+            </span>
+          </span>
         )}
         <span className={styles.focusEsc}>{t('focus.escHint')}</span>
       </span>
@@ -222,6 +250,15 @@ export function VideoRoom({
           onClick={focusable ? () => toggleFocus(p.sid) : undefined}
           focused={focusable && p.sid === focusedSid}
           focusBar={focusable && p.sid === focusedSid ? focusBarFor(p) : undefined}
+          attention={attentionFor ? attentionFor(p.identity) : undefined}
+          alert={
+            attentionFor
+              ? (() => {
+                  const v = attentionFor(p.identity);
+                  return v != null && v < CMF.liveAttentionAlertBelow;
+                })()
+              : undefined
+          }
         />
       ))}
     </div>
@@ -305,47 +342,3 @@ export function VideoRoom({
   );
 }
 
-/** F1: «что видит ученик» — a rail preview card the teacher can toggle. It renders from
- *  LOCAL state (the same published stream + a placeholder strip for the classmates row);
- *  it is NOT a second video stream and adds zero network traffic. */
-export function StudentViewPreview({
-  stream,
-  peers,
-}: {
-  stream: MediaStream | null;
-  peers: number;
-}) {
-  const { t } = useTranslation('lesson');
-  const [open, setOpen] = useState(false);
-  const attach = useCallback(
-    (el: HTMLVideoElement | null) => {
-      if (el && stream) el.srcObject = stream;
-    },
-    [stream],
-  );
-  return (
-    <>
-      <button
-        type="button"
-        className={styles.svToggle}
-        aria-pressed={open}
-        onClick={() => setOpen((o) => !o)}
-      >
-        {t('studentView.toggle')}
-      </button>
-      {open && (
-        <div className={styles.svCard} role="img" aria-label={t('studentView.caption')}>
-          <div className={styles.svStage}>
-            <video ref={attach} className={styles.videoMirror} autoPlay playsInline muted />
-            <span className={styles.svName}>{t('studentView.teacherLabel')}</span>
-          </div>
-          <div className={styles.svRow} aria-hidden="true">
-            {Array.from({ length: Math.min(Math.max(peers, 1), 8) }).map((_, i) => (
-              <i key={i} />
-            ))}
-          </div>
-        </div>
-      )}
-    </>
-  );
-}

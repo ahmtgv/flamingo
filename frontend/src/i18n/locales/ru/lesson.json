@@ -43,14 +43,14 @@
     "needsAttention": "нужно внимание",
     "escHint": "Esc — свернуть",
     "expand": "Развернуть видео: {{name}}",
-    "collapse": "Свернуть видео: {{name}}"
+    "collapse": "Свернуть видео: {{name}}",
+    "attentionValue": "внимание {{n}}",
+    "gaze": "взгляд",
+    "eyes": "глаза",
+    "alertness": "бодрость",
+    "head": "голова"
   },
   "rail": {
     "selfCaption": "Так вас видят ученики"
-  },
-  "studentView": {
-    "toggle": "Что видит ученик",
-    "caption": "Экран ученика — макет",
-    "teacherLabel": "вы у ученика"
   }
 }

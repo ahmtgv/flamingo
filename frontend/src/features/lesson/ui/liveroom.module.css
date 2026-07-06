@@ -142,3 +142,17 @@
   color: var(--color-text-secondary);
   margin-bottom: var(--space-3);
 }
+
+/* Owner v3: live per-student parameters moved onto the video tiles; this card keeps only
+   the class average (mono) + the on-demand report. */
+.reportHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+.classAvgLabel {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--text-small);
+  color: var(--color-text-secondary);
+}

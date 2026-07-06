@@ -10,8 +10,7 @@ import {
   useSessionAttendeesQuery,
   useSessionRoomQuery,
 } from '@/entities/graphql/generated';
-import { AttentionChart, AttentionStrip, PrivacyIndicator, startAttentionPipeline } from '@/seedum';
-import type { BucketAggregate } from '@/seedum';
+import { AttentionChart, PrivacyIndicator, startAttentionPipeline } from '@/seedum';
 import { CmfDebugHud, type CmfHudFeed } from '@/seedum/ui/CmfDebugHud';
 import { loadUbp } from '@/seedum/ubp';
 import { LIVEKIT_URL } from '@/shared/lib/env';
@@ -21,9 +20,9 @@ import { classAverage, heldValue, summaryStats } from '../attentionView';
 import { type CameraErrorKind, classifyMediaError } from '../mediaError';
 
 import { useLiveKitRoom } from '../livekit/useLiveKitRoom';
-import { ClassField, type FieldStudent } from './ClassField';
+import { type FieldStudent } from './ClassField';
 import styles from './liveroom.module.css';
-import { StudentViewPreview, VideoRoom } from './VideoRoom';
+import { VideoRoom } from './VideoRoom';
 
 /** Shared chrome. The CMF on-device privacy indicator stays (it is still true — see
  * the wording in ru/seedum.json); the CALL camera honesty lives in VideoRoom. */
@@ -149,9 +148,6 @@ function StudentRoom({ sessionId, roomToken, isLive }: RoomProps) {
   const cmfVideoRef = useRef<HTMLVideoElement>(null);
   const pipelineRef = useRef<{ stop: () => void } | null>(null);
   const [cmfStatus, setCmfStatus] = useState<'starting' | 'running' | 'unavailable'>('starting');
-  // Latest per-bucket aggregate (~2.5s) for the live attention strip — same on-device
-  // data already sent via reportAttention; kept here for display only.
-  const [breakdown, setBreakdown] = useState<BucketAggregate | null>(null);
   // D0 diagnostics (dev-only, ?cmfDebug=1): the HUD renders on-device values only and adds
   // ZERO egress — reportAttention below is byte-identical with or without it.
   const hudEnabled =
@@ -176,7 +172,6 @@ function StudentRoom({ sessionId, roomToken, isLive }: RoomProps) {
         onScore: (value) => hudRef.current?.pushScore(value),
         onBucket: (bucketStartMs, bucket) => {
           hudRef.current?.pushBucket(bucket); // dev HUD (on-device; not egress)
-          setBreakdown(bucket); // drive the live on-device sub-metric breakdown (display only)
           // worker buckets in performance-clock ms → map to wall-clock for the server.
           // Per-bucket AGGREGATE scalars only (sub-metrics live-only server-side); no raw data.
           const bucketStart = new Date(performance.timeOrigin + bucketStartMs).toISOString();
@@ -216,7 +211,6 @@ function StudentRoom({ sessionId, roomToken, isLive }: RoomProps) {
     release();
     setJoined(false);
     setCmfStatus('starting');
-    setBreakdown(null);
   }, [lk, release]);
 
   return (
@@ -261,7 +255,6 @@ function StudentRoom({ sessionId, roomToken, isLive }: RoomProps) {
               onToggleScreenShare={lk.toggleScreenShare}
               onRejoin={lk.rejoin}
               onLeave={leave}
-              localOverlay={<AttentionStrip bucket={breakdown} status={cmfStatus} />}
             />
             {/* Hidden CMF source — same stream, analysed on-device, frames discarded. */}
             <video ref={cmfVideoRef} className={styles.cmfHidden} muted playsInline aria-hidden="true" />
@@ -343,10 +336,15 @@ function TeacherRoom({ sessionId, roomToken, isLive }: RoomProps) {
   const report = summary ? { ...summary, points: receivedRef.current } : null;
   const classAvg = view.classAvg;
 
-  // F1: latest live attention for the focused tile's info bar. Reads the mutable ref (kept
-  // current by the subscription above); identity == studentId == user id.
+  // F1: latest live attention for every tile chip + the focused tile's info bar. Reads the
+  // mutable ref (kept current by the subscription above); identity == studentId == user id.
   const attentionFor = useCallback(
     (identity: string) => studentsRef.current[identity]?.value ?? null,
+    [],
+  );
+  // F1.1 (owner v3): full sub-metrics for the focused tile (live-only, display-only).
+  const metricsFor = useCallback(
+    (identity: string) => studentsRef.current[identity] ?? null,
     [],
   );
 
@@ -405,14 +403,18 @@ function TeacherRoom({ sessionId, roomToken, isLive }: RoomProps) {
             nameFor={nameFor}
             focusable
             attentionFor={attentionFor}
+            metricsFor={metricsFor}
             selfInRail
-            rail={<StudentViewPreview stream={stream} peers={lk.participants.length} />}
           />
         )}
       </div>
 
       <div className={styles.card}>
-        <ClassField students={view.students} nameFor={nameFor} classAvg={classAvg} />
+        {/* Owner v3: the per-student parameters live ON the video tiles now; the ambient
+            orb field is retired from the live view (report stays on demand). */}
+        <div className={styles.reportHead}>
+          <span className={styles.classAvgLabel}>{t('room.classAvg', { n: classAvg })}</span>
+        </div>
         <div className={styles.actions}>
           <Button
             variant="secondary"
