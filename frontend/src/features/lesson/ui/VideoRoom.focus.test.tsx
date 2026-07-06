@@ -156,6 +156,49 @@ describe('VideoRoom F1 — teacher focus mode (final design v2, no overlap)', ()
   });
 });
 
+describe('B-6 — data-count matches the tiles actually in the grid', () => {
+  it('selfInRail: local tile is NOT counted (1 student → wide stage, no empty column)', () => {
+    const { container } = renderTeacherRoom([fakeParticipant('s1', 'u1')]);
+    const tiles = container.querySelector('[data-count]')!;
+    expect(tiles.getAttribute('data-count')).toBe('1');
+    expect(tiles.querySelectorAll('button').length).toBe(1);
+  });
+
+  it('selfInRail: 3 students → data-count 3 (2×2 grid, no phantom 4th slot)', () => {
+    const { container } = renderTeacherRoom([
+      fakeParticipant('s1', 'u1'),
+      fakeParticipant('s2', 'u2'),
+      fakeParticipant('s3', 'u3'),
+    ]);
+    expect(container.querySelector('[data-count]')!.getAttribute('data-count')).toBe('3');
+  });
+
+  it('without selfInRail (student layout): the local tile IS counted', () => {
+    const { container } = renderWithProviders(
+      <VideoRoom
+        localStream={null}
+        liveBadgeLabel="Камера в эфире"
+        connecting={false}
+        connectionState="connected"
+        roomFull={false}
+        micEnabled
+        cameraEnabled={false}
+        screenSharing={false}
+        participants={[fakeParticipant('s1', 'u1')]}
+        version={0}
+        activeSpeakers={new Set<string>()}
+        screenShare={null}
+        onToggleMic={vi.fn()}
+        onToggleCamera={vi.fn()}
+        onToggleScreenShare={vi.fn()}
+        onRejoin={vi.fn()}
+        onLeave={vi.fn()}
+      />,
+    );
+    expect(container.querySelector('[data-count]')!.getAttribute('data-count')).toBe('2');
+  });
+});
+
 describe('owner v3 — parameters live ON the tiles at all times', () => {
   it('every tile chip shows name · attention; the low tile carries the alert ring + text', () => {
     renderTeacherRoom();

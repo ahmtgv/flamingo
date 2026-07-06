@@ -228,11 +228,13 @@ export function VideoRoom({
   );
 
   // ONE stable container; grid vs filmstrip vs focus is CSS-only via data attributes.
+  // data-count = tiles ACTUALLY in the grid: with selfInRail the local tile lives in the
+  // rail, not here — counting it left an empty grid column (audit B-6).
   const tiles = (
     <div
       className={styles.tiles}
       data-screen={!!screenShare}
-      data-count={participants.length + 1}
+      data-count={participants.length + (selfInRail ? 0 : 1)}
       data-focus={!!focusedSid}
     >
       {!selfInRail && (

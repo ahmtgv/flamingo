@@ -33,6 +33,8 @@
   gap: var(--space-3);
   grid-template-columns: 1fr;
 }
+/* Grid sized by the tiles REALLY in it (see data-count in VideoRoom.tsx, audit B-6):
+   1 → wide stage, 2 → two columns, 3–4 → 2×2, 5–6 → 3 columns, 7–8 → 4 columns. */
 .tiles[data-count='2'] {
   grid-template-columns: repeat(2, 1fr);
 }
@@ -40,8 +42,13 @@
 .tiles[data-count='4'] {
   grid-template-columns: repeat(2, 1fr);
 }
-.tiles[data-count='5'] {
+.tiles[data-count='5'],
+.tiles[data-count='6'] {
   grid-template-columns: repeat(3, 1fr);
+}
+.tiles[data-count='7'],
+.tiles[data-count='8'] {
+  grid-template-columns: repeat(4, 1fr);
 }
 /* When a screen is the main stage, cameras drop to a horizontal filmstrip below it. */
 .tiles[data-screen='true'] {
