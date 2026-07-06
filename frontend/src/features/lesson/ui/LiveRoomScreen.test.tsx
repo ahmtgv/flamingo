@@ -66,6 +66,7 @@ const sessionRoomMock = {
         id: 'sess-1',
         status: 'LIVE',
         roomToken: 'tok-1',
+        teacherName: 'Тимур Учитель',
         lesson: { __typename: 'Lesson', id: 'l1', title: 'Урок' },
       },
     },

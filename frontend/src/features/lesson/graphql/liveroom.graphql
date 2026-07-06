@@ -42,6 +42,7 @@ query SessionRoom($id: ID!) {
     id
     status
     roomToken
+    teacherName
     lesson {
       id
       title

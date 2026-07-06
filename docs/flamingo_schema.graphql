@@ -189,6 +189,7 @@ type LessonSession {
   status: SessionStatus!
   recordingUrl: String
   roomToken: String            # null unless viewer is a participant of a live session
+  teacherName: String          # course owner's display name; any session participant (NOT the roster)
   attendance: [Attendance!]!
   attentionSummary: AttentionSummary   # teacher: class summary after the session
 }

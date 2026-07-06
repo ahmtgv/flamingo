@@ -64,6 +64,12 @@ class LessonSession:
     def room_token(self, info: strawberry.Info) -> str | None:
         return services.room_token_for(get_current_user(info), self)
 
+    @strawberry_django.field
+    def teacher_name(self) -> str | None:
+        # Course owner's display name (not the roster) — labels the teacher tile for students.
+        # Reachable only via an access-gated session (get_session), so no per-field check needed.
+        return services.teacher_name_for(self)
+
 
 @strawberry.type
 class SessionJoin:

@@ -196,3 +196,42 @@ def test_group_delivered_student_joins_without_personal_enrollment():
     joined, token = scheduling.join_session(group_student, session.id)
     assert joined.id == session.id and token
     assert Attendance.objects.filter(session=session, student__user=group_student).exists()
+
+
+def test_teacher_name_exposed_to_participant_via_session():
+    """SDL hand-add LessonSession.teacherName: a session participant sees the course owner's
+    display name (labels the teacher tile); a non-participant cannot reach the session at all
+    (get_session gate), so the field is never exposed to outsiders."""
+    from types import SimpleNamespace
+
+    from django.contrib.auth.models import AnonymousUser
+
+    from api.schema import schema
+
+    teacher, student, course, lesson = _setup()
+    session = scheduling.schedule_session(teacher, lesson_id=lesson.id, start_at=timezone.now())
+    scheduling.start_session(teacher, session.id)
+
+    # service returns "Имя Фамилия" (registered as Т/П in _setup)
+    session.refresh_from_db()
+    assert scheduling.teacher_name_for(session) == "Т П"
+
+    q = "query($id: ID!){ session(id: $id){ id teacherName } }"
+
+    def ctx(u):
+        return SimpleNamespace(request=SimpleNamespace(META={}, user=u or AnonymousUser()))
+
+    # participant (the enrolled student) sees the name
+    res = schema.execute_sync(
+        q, variable_values={"id": str(session.id)}, context_value=ctx(student)
+    )
+    assert res.errors is None, res.errors
+    assert res.data["session"]["teacherName"] == "Т П"
+
+    # a non-participant cannot reach the session (existing get_session gate) → no name leak
+    outsider = _student("tn.out@e.com")
+    res = schema.execute_sync(
+        q, variable_values={"id": str(session.id)}, context_value=ctx(outsider)
+    )
+    assert res.errors is None, res.errors
+    assert res.data["session"] is None

@@ -452,6 +452,7 @@ export type LessonSession = {
   roomToken?: Maybe<Scalars['String']['output']>;
   startAt: Scalars['DateTime']['output'];
   status: SessionStatus;
+  teacherName?: Maybe<Scalars['String']['output']>;
 };
 
 export type LessonStatus =
@@ -1781,7 +1782,7 @@ export type SessionRoomQueryVariables = Exact<{
 }>;
 
 
-export type SessionRoomQuery = { __typename?: 'Query', session?: { __typename?: 'LessonSession', id: string, status: SessionStatus, roomToken?: string | null, lesson: { __typename?: 'Lesson', id: string, title: string } } | null };
+export type SessionRoomQuery = { __typename?: 'Query', session?: { __typename?: 'LessonSession', id: string, status: SessionStatus, roomToken?: string | null, teacherName?: string | null, lesson: { __typename?: 'Lesson', id: string, title: string } } | null };
 
 export type SessionAttendeesQueryVariables = Exact<{
   id: Scalars['ID']['input'];
@@ -3878,6 +3879,7 @@ export const SessionRoomDocument = gql`
     id
     status
     roomToken
+    teacherName
     lesson {
       id
       title

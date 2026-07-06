@@ -154,3 +154,13 @@ def room_token_for(user, session: LessonSession) -> str | None:
     if can_access_course(user, session.lesson.section.course):
         return room_token(identity=str(user.id), room=str(session.id))
     return None
+
+
+def teacher_name_for(session: LessonSession) -> str | None:
+    """Display name of the session's teacher (the course owner) — so a student sees a real
+    name on the teacher tile instead of an id-slice. This is a SINGLE public-facing name, NOT
+    the attendance roster; the resolver is reachable only via a session the viewer may read
+    (get_session is already access-gated), so no extra check is needed here."""
+    owner = session.lesson.section.course.owner
+    user = owner.user
+    return f"{user.first_name} {user.last_name}".strip() or None
