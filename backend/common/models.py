@@ -46,7 +46,9 @@ class SoftDeleteManager(models.Manager):
 class SoftDeleteModel(BaseModel):
     """User-facing content (course, lesson, homework) soft-deletes."""
 
-    deleted_at = models.DateTimeField(null=True, blank=True)
+    # A-H2: every read filters deleted_at IS NULL (SoftDeleteManager) — index it so the
+    # soft-delete predicate never forces a seq scan on hot content tables.
+    deleted_at = models.DateTimeField(null=True, blank=True, db_index=True)
 
     objects = SoftDeleteManager()
     all_objects = models.Manager()

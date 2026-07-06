@@ -54,6 +54,10 @@ class Course(SoftDeleteModel):
         on_delete=models.SET_NULL,
     )
 
+    class Meta:
+        # A-H2: catalog + course query filter by status (hot); owner/group are FKs (auto-indexed).
+        indexes = [models.Index(fields=["status"])]
+
     def __str__(self) -> str:
         return self.title
 
@@ -83,6 +87,8 @@ class Lesson(SoftDeleteModel):
 
     class Meta:
         ordering = ["order"]
+        # A-H2: lesson lists / published filters hit status; section is a FK (auto-indexed).
+        indexes = [models.Index(fields=["status"])]
 
 
 class Material(BaseModel):
@@ -123,3 +129,7 @@ class Enrollment(BaseModel):
         constraints = [
             models.UniqueConstraint(fields=["student", "course"], name="uniq_enrollment")
         ]
+        # A-H2: can_access_course + my_schedule filter a student's enrollments by access_status
+        # (the ACTIVE gate). student/course are FKs (auto-indexed); this composite serves the
+        # "this student's active enrollments" lookup.
+        indexes = [models.Index(fields=["student", "access_status"])]

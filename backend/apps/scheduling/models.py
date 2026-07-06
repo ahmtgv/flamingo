@@ -26,6 +26,11 @@ class LessonSession(BaseModel):
 
     class Meta:
         ordering = ["start_at"]
+        # A-H2: my_schedule range-filters start_at; room/live paths filter status.
+        indexes = [
+            models.Index(fields=["start_at"]),
+            models.Index(fields=["status"]),
+        ]
 
 
 class Attendance(BaseModel):
