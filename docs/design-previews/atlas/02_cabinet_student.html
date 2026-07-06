@@ -93,8 +93,14 @@ h1{font-size:1.4rem;font-weight:600;letter-spacing:-.015em}
 .page[data-state="skeleton"] .filled{display:none}.page[data-state="skeleton"] .skel{display:block}
 .page[data-state="error"] .filled{display:none}.page[data-state="error"] .error{display:block}
 .page[data-state="busy"] .only-normal{display:none}
-.page[data-state="normal"] .only-busy{display:none}
-.page[data-state="empty"] .only-busy,.page[data-state="skeleton"] .only-busy,.page[data-state="error"] .only-busy{display:none}
+.page[data-state="marathon"] .only-normal{display:none}
+.page[data-state="normal"] .only-busy,.page[data-state="normal"] .only-marathon{display:none}
+.page[data-state="busy"] .only-marathon{display:none}
+.page[data-state="marathon"] .more-row{display:grid}
+.more-row{display:none;grid-template-columns:72px 1fr auto}
+.more-row button{font:500 var(--fs-small) var(--ui);color:var(--ink);background:none;border:1px solid var(--border-s);border-radius:10px;height:38px;padding:0 18px;cursor:pointer;justify-self:start}
+.page[data-state="empty"] .only-busy,.page[data-state="skeleton"] .only-busy,.page[data-state="error"] .only-busy,
+.page[data-state="empty"] .only-marathon,.page[data-state="skeleton"] .only-marathon,.page[data-state="error"] .only-marathon{display:none}
 
 .q{margin-top:28px;padding:20px;border:1px dashed var(--border-s);border-radius:12px}
 .q h4{font:500 12px var(--mono);color:var(--coral-t);margin-bottom:8px}
@@ -108,7 +114,8 @@ h1{font-size:1.4rem;font-weight:600;letter-spacing:-.015em}
   <div class="bar" role="group" aria-label="Состояния">
     <span class="grp">данные:</span>
     <button data-k="state" data-v="normal" aria-pressed="true">обычный день</button>
-    <button data-k="state" data-v="busy" aria-pressed="false">плотный день</button>
+    <button data-k="state" data-v="busy" aria-pressed="false">плотный день (5)</button>
+    <button data-k="state" data-v="marathon" aria-pressed="false">марафон (12)</button>
     <button data-k="state" data-v="empty" aria-pressed="false">пусто (новичок)</button>
     <button data-k="state" data-v="skeleton" aria-pressed="false">загрузка</button>
     <button data-k="state" data-v="error" aria-pressed="false">ошибка сети</button>
@@ -134,9 +141,9 @@ h1{font-size:1.4rem;font-weight:600;letter-spacing:-.015em}
         </div>
 
         <div class="metrics">
-          <div><div class="num only-normal">2</div><div class="num only-busy">5</div><div class="cap">занятия сегодня</div></div>
-          <div><div class="num">84<small>/100</small></div><div class="cap">внимание за неделю</div><div class="note">считается на этом устройстве</div></div>
-          <div><div class="num only-normal">1</div><div class="num only-busy">4</div><div class="cap">домашка ждёт сдачи</div><div class="note">ближайшая — до пт 23:59</div></div>
+          <div><div class="num only-normal">2</div><div class="num only-busy">5</div><div class="num only-marathon">12</div><div class="cap">занятия сегодня</div></div>
+          <div><div class="num">12<small>/36</small></div><div class="cap">занятий пройдено · Алгебра 7</div><div class="note">весь прогресс и сводка — в личном кабинете</div></div>
+          <div><div class="num only-normal">1</div><div class="num only-busy">4</div><div class="num only-marathon">6</div><div class="cap">домашка ждёт сдачи</div><div class="note">ближайшая — до пт 23:59</div></div>
         </div>
 
         <div class="rows">
@@ -165,6 +172,11 @@ h1{font-size:1.4rem;font-weight:600;letter-spacing:-.015em}
             <div><div class="t">Информатика — алгоритмы</div><div class="s">Пётр К. · 45 мин</div></div>
             <span class="ghost">через 5 ч 28 мин</span>
           </div>
+          <div class="only-marathon"><span class="time">19:30</span><div><div class="t">Информатика — алгоритмы</div><div class="s">Пётр К. · 45 мин</div></div><span class="ghost"></span></div>
+          <div class="only-marathon"><span class="time">20:15</span><div><div class="t">История — XIX век</div><div class="s">Ольга Н. · 40 мин</div></div><span class="ghost"></span></div>
+          <div class="only-marathon"><span class="time">21:00</span><div><div class="t">Химия — растворы</div><div class="s">Игорь С. · 40 мин</div></div><span class="ghost"></span></div>
+          <div class="only-marathon"><span class="time">21:45</span><div><div class="t">Биология — клетка</div><div class="s">Нина Р. · 40 мин</div></div><span class="ghost"></span></div>
+          <div class="more-row"><span></span><button type="button">Ещё 3 занятия ↓</button><span></span></div>
         </div>
       </div>
 
@@ -172,7 +184,7 @@ h1{font-size:1.4rem;font-weight:600;letter-spacing:-.015em}
       <div class="empty">
         <h3>Сегодня занятий нет</h3>
         <p>Запишись на курс — расписание, домашние задания и прогресс появятся здесь.</p>
-        <button class="btn-primary">Найти курс</button><button class="btn-quiet">Как это работает?</button>
+        <button class="btn-primary">Найти курс</button>
       </div>
 
       <!-- SKELETON -->
@@ -195,10 +207,10 @@ h1{font-size:1.4rem;font-weight:600;letter-spacing:-.015em}
   </div>
 
   <div class="q">
-    <h4>ОТКРЫТЫЕ ВОПРОСЫ ВЛАДЕЛЬЦУ · лист 02</h4>
-    <p>1. Показывать ли ученику «внимание за неделю» на дашборде — или, по логике v3 (метрики только учителю), убрать и заменить на «прогресс по курсам»?<br>
-    2. Плотный день: после какого числа занятий сворачивать в «+ ещё N» (сейчас показываем все 5)?<br>
-    3. Пустое состояние: «Как это работает?» ведёт на онбординг-тур — нужен ли такой тур в MVP?</p>
+    <h4>РЕШЕНИЯ ВЛАДЕЛЬЦА · лист 02 · 2026-07-06</h4>
+    <p>1. Внимание НЕ показывается ученику на дашборде — метрика заменена на «прогресс по курсам»; агрегированная сводка внимания доступна ученику только в личном кабинете (лист 10). Live-метрики в уроке — только учителю (v3).<br>
+    2. День сворачивается в «Ещё N занятий» начиная с 10 занятий (состояние «марафон»: видно 8 + кнопка).<br>
+    3. Онбординг-тур в MVP не делаем (решение ревьюера по поручению): пустое состояние несёт одну ясную CTA «Найти курс» — один акцент, ноль лишних сущностей. Вернёмся к туру после real-user-теста, если новички будут теряться.</p>
   </div>
 </div>
 
