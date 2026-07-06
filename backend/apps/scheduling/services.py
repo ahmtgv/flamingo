@@ -8,6 +8,7 @@ from django.db import transaction
 from django.utils import timezone
 
 from apps.accounts.models import StudentProfile
+from apps.courses.access import can_access_course
 from apps.courses.models import Enrollment, Lesson
 from common.enums import AttendanceStatus, Role, SessionStatus
 from common.exceptions import NotFound, PermissionDenied, ValidationError
@@ -42,17 +43,10 @@ def _owned_session(user, session_id) -> LessonSession:
     return session
 
 
-def _enrollment(user, course) -> Enrollment | None:
-    if getattr(user, "role", None) != Role.STUDENT.value:
-        return None
-    profile = StudentProfile.objects.filter(user=user).first()
-    if profile is None:
-        return None
-    return Enrollment.objects.filter(student=profile, course=course).first()
-
-
-def _is_participant(user, course) -> bool:
-    return course.owner_id == getattr(user, "id", None) or _enrollment(user, course) is not None
+# A-C3: session participation IS course-content access — one chokepoint, no drift.
+# can_access_course = owner / institutional group / ACTIVE enrollment; pending_payment,
+# unenrolled and anonymous are denied. (The old local _enrollment helper ignored
+# access_status and group delivery — the two divergences this fix closes.)
 
 
 # --- lifecycle --------------------------------------------------------------
@@ -86,18 +80,20 @@ def join_session(user, session_id) -> tuple[LessonSession, str]:
     if session is None:
         raise NotFound("Session not found")
     course = session.lesson.section.course
-    enrollment = _enrollment(user, course)
-    is_owner = course.owner_id == getattr(user, "id", None)
-    if enrollment is None and not is_owner:
+    if not can_access_course(user, course):
         raise PermissionDenied("Not a participant of this session")
     if session.status != SessionStatus.LIVE.value:
         raise ValidationError("Session is not live")
-    if enrollment is not None:
-        Attendance.objects.update_or_create(
-            session=session,
-            student=enrollment.student,
-            defaults={"status": AttendanceStatus.PRESENT.value, "joined_at": timezone.now()},
-        )
+    # Attendance for ANY participating student — group-delivered students have no personal
+    # enrollment but still attend (A-C3); teachers/owners are not attendance rows.
+    if getattr(user, "role", None) == Role.STUDENT.value:
+        profile = StudentProfile.objects.filter(user=user).first()
+        if profile is not None:
+            Attendance.objects.update_or_create(
+                session=session,
+                student=profile,
+                defaults={"status": AttendanceStatus.PRESENT.value, "joined_at": timezone.now()},
+            )
     token = room_token(identity=str(user.id), room=str(session.id))
     return session, token
 
@@ -138,7 +134,7 @@ def get_session(user, session_id) -> LessonSession | None:
     )
     if session is None:
         return None
-    return session if _is_participant(user, session.lesson.section.course) else None
+    return session if can_access_course(user, session.lesson.section.course) else None
 
 
 def attendance_for(user, session: LessonSession) -> list[Attendance]:
@@ -155,6 +151,6 @@ def room_token_for(user, session: LessonSession) -> str | None:
     """Per-viewer roomToken: only a participant of a LIVE session gets one."""
     if user is None or session.status != SessionStatus.LIVE.value:
         return None
-    if _is_participant(user, session.lesson.section.course):
+    if can_access_course(user, session.lesson.section.course):
         return room_token(identity=str(user.id), room=str(session.id))
     return None

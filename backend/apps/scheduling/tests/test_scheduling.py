@@ -133,3 +133,66 @@ def test_attendance_roster_is_teacher_only():
     assert scheduling.attendance_for(student, session) == []
     # …and an anonymous viewer gets nothing.
     assert scheduling.attendance_for(None, session) == []
+
+
+# --- A-C3: session participation == course access (one chokepoint) -----------
+def test_pending_payment_enrollment_cannot_join():
+    """A-C3 negative: an enrollment with access_status=pending_payment must NOT admit —
+    the old _enrollment helper ignored access_status entirely."""
+    from apps.courses.models import Enrollment
+    from common.enums import AccessStatus
+
+    teacher, student, course, lesson = _setup()
+    session = scheduling.schedule_session(
+        teacher, lesson_id=lesson.id, start_at=timezone.now() + timedelta(hours=1)
+    )
+    scheduling.start_session(teacher, session.id)
+
+    Enrollment.objects.filter(student__user=student, course=course).update(
+        access_status=AccessStatus.PENDING_PAYMENT.value
+    )
+    with pytest.raises(PermissionDenied):
+        scheduling.join_session(student, session.id)
+    # and no per-viewer roomToken either
+    assert scheduling.room_token_for(student, session) is None
+
+
+def test_group_delivered_student_joins_without_personal_enrollment():
+    """A-C3 positive: institutional (group) delivery admits a student with NO personal
+    enrollment — and records their attendance row."""
+    from apps.institutions import services as institutions
+
+    teacher, _, course, lesson = _setup()
+    group_student = _student("group.kid@e.com")
+
+    staff = accounts.register_user(
+        email="staff.sched@e.com",
+        password="strongpass1!",
+        first_name="С",
+        last_name="Т",
+        role=Role.ADMIN,
+    )
+    staff.is_staff = True
+    staff.save(update_fields=["is_staff"])
+    admin = accounts.register_user(
+        email="admin.sched@e.com",
+        password="strongpass1!",
+        first_name="А",
+        last_name="Д",
+        role=Role.ADMIN,
+    )
+    inst = institutions.create_institution(staff, name="Школа")
+    institutions.add_admin(staff, institution_id=inst.id, admin_user_id=admin.id)
+    group = institutions.create_group(admin, institution_id=inst.id, name="7А")
+    institutions.add_students_to_group(admin, group.id, [group_student.id])
+    course.group = group
+    course.save(update_fields=["group"])
+
+    session = scheduling.schedule_session(
+        teacher, lesson_id=lesson.id, start_at=timezone.now() + timedelta(hours=1)
+    )
+    scheduling.start_session(teacher, session.id)
+
+    joined, token = scheduling.join_session(group_student, session.id)
+    assert joined.id == session.id and token
+    assert Attendance.objects.filter(session=session, student__user=group_student).exists()
