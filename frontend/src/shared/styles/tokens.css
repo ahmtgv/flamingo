@@ -99,6 +99,19 @@
   /* NEW (v2): translucent nav material — the ONE sanctioned UI glass */
   --nav-material: rgba(241, 241, 239, 0.78);
   --nav-blur: 20px;
+  /* B-1: the SECOND sanctioned glass — frosted overlays over live video (focus bar). */
+  --blur-frosted: 16px;
+
+  /* B-1: icon scale (lucide) — one stroke, three sizes; kids mode may bump these. */
+  --icon-size-sm: 16px;
+  --icon-size-md: 20px;
+  --icon-size-lg: 24px;
+  --icon-stroke: 1.75;
+
+  /* B-1: content column widths (replace scattered 640/760/920/1000px max-widths). */
+  --content-max-narrow: 640px;
+  --content-max-base: 920px;
+  --content-max-wide: 1120px;
 
   /* ---------- Typography: two voices ---------- */
   /* UI voice — SF on Apple devices, Inter elsewhere (SIL OFL) */
