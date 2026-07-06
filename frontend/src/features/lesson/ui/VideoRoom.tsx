@@ -1,3 +1,4 @@
+import { ICON_LG, ICON_SM } from '@/shared/ui/iconSizes';
 import { type RemoteParticipant } from 'livekit-client';
 import { Radio, RefreshCw, Wifi, WifiOff } from 'lucide-react';
 import { type ReactNode, useCallback, useEffect, useRef, useState } from 'react';
@@ -324,7 +325,7 @@ export function VideoRoom({
       {terminal && (
         <div className={styles.disconnectedOverlay}>
           <div className={styles.disconnectedCard} role="alert">
-            <WifiOff size={22} aria-hidden="true" />
+            <WifiOff size={ICON_LG} aria-hidden="true" />
             <p className={styles.disconnectedText}>
               {connectionState === 'failed' ? t('connectionFailed') : t('connectionLost')}
             </p>
@@ -332,7 +333,7 @@ export function VideoRoom({
               ref={rejoinRef}
               variant="primary"
               size="sm"
-              icon={<RefreshCw size={15} />}
+              icon={<RefreshCw size={ICON_SM} />}
               onClick={onRejoin}
             >
               {t('rejoin')}

@@ -1,3 +1,4 @@
+import { ICON_LG } from '@/shared/ui/iconSizes';
 import { BookOpen, Building2, GraduationCap, type LucideIcon, Users } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
@@ -38,7 +39,7 @@ export function RoleSelectScreen() {
               onClick={() => navigate(`/register/${role}`)}
             >
               <span className={styles.roleIcon}>
-                <Icon size={22} />
+                <Icon size={ICON_LG} />
               </span>
               <h3 className={styles.roleTitle}>{t(`roles.${role}.title`)}</h3>
               <p className={styles.roleDesc}>{t(`roles.${role}.desc`)}</p>

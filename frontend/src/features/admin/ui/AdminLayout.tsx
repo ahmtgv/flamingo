@@ -1,3 +1,4 @@
+import { ICON_MD } from '@/shared/ui/iconSizes';
 import { LogOut, Moon, Sun } from 'lucide-react';
 import { type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -36,7 +37,7 @@ export function AdminLayout({ children }: { children: ReactNode }) {
             onClick={() => dispatch(toggleTheme())}
             aria-label={goingDark ? t('common:theme.toDark') : t('common:theme.toLight')}
           >
-            {goingDark ? <Moon size={18} /> : <Sun size={18} />}
+            {goingDark ? <Moon size={ICON_MD} /> : <Sun size={ICON_MD} />}
           </button>
           <button
             type="button"
@@ -44,7 +45,7 @@ export function AdminLayout({ children }: { children: ReactNode }) {
             onClick={() => void logout()}
             aria-label={t('cabinet:signOut')}
           >
-            <LogOut size={18} />
+            <LogOut size={ICON_MD} />
           </button>
         </div>
       </header>

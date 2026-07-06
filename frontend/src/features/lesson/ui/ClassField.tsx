@@ -1,3 +1,4 @@
+import { ICON_SM } from '@/shared/ui/iconSizes';
 import { Eye, EyeOff } from 'lucide-react';
 import { useEffect, useId, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -83,7 +84,7 @@ export function ClassField({
           aria-pressed={hideNames}
           onClick={() => setHideNames((v) => !v)}
         >
-          {hideNames ? <EyeOff size={15} aria-hidden="true" /> : <Eye size={15} aria-hidden="true" />}
+          {hideNames ? <EyeOff size={ICON_SM} aria-hidden="true" /> : <Eye size={ICON_SM} aria-hidden="true" />}
           {hideNames ? t('field.showNames') : t('field.hideNames')}
         </button>
       </div>

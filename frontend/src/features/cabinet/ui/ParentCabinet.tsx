@@ -1,3 +1,4 @@
+import { ICON_MD, ICON_SM } from '@/shared/ui/iconSizes';
 import { AlertCircle, BarChart3, Bell, LayoutDashboard, UserPlus } from 'lucide-react';
 import { type FormEvent, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -79,7 +80,7 @@ export function ParentCabinet({ me, refetchMe }: { me: Me; refetchMe: () => Prom
         <div className={styles.sectionActions}>
           <span />
           {!open && (
-            <Button variant="primary" size="sm" icon={<UserPlus size={16} />} onClick={() => setOpen(true)}>
+            <Button variant="primary" size="sm" icon={<UserPlus size={ICON_SM} />} onClick={() => setOpen(true)}>
               {t('parent.addChild')}
             </Button>
           )}
@@ -90,7 +91,7 @@ export function ParentCabinet({ me, refetchMe }: { me: Me; refetchMe: () => Prom
             <form noValidate onSubmit={handleSubmit}>
               {formError && (
                 <p className={styles.formError} role="alert">
-                  <AlertCircle size={16} aria-hidden="true" />
+                  <AlertCircle size={ICON_SM} aria-hidden="true" />
                   {formError}
                 </p>
               )}
@@ -162,7 +163,7 @@ export function ParentCabinet({ me, refetchMe }: { me: Me; refetchMe: () => Prom
 
         <Card>
           {children.length === 0 ? (
-            <Empty icon={<UserPlus size={20} />} text={t('parent.empty')} />
+            <Empty icon={<UserPlus size={ICON_MD} />} text={t('parent.empty')} />
           ) : (
             children.map((child) => (
               <div className={styles.childCard} key={child.user.id}>

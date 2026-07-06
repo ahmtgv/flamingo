@@ -1,3 +1,4 @@
+import { ICON_SM } from '@/shared/ui/iconSizes';
 import { AlertCircle, ArrowLeft } from 'lucide-react';
 import { type FormEvent, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -57,7 +58,7 @@ export function CreateCourseScreen() {
     <CoursesLayout>
       <div className={styles.content}>
         <button type="button" className={styles.back} onClick={() => navigate('/courses')}>
-          <ArrowLeft size={15} /> {t('catalog.title')}
+          <ArrowLeft size={ICON_SM} /> {t('catalog.title')}
         </button>
         <div className={styles.pageHead}>
           <div>
@@ -69,7 +70,7 @@ export function CreateCourseScreen() {
           <form noValidate onSubmit={handleSubmit}>
             {formError && (
               <p className={styles.formError} role="alert">
-                <AlertCircle size={16} aria-hidden="true" />
+                <AlertCircle size={ICON_SM} aria-hidden="true" />
                 {formError}
               </p>
             )}

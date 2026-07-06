@@ -1,3 +1,4 @@
+import { ICON_SM } from '@/shared/ui/iconSizes';
 import { ArrowLeft, BarChart3, RefreshCw, ShieldCheck, Video } from 'lucide-react';
 import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -47,7 +48,7 @@ function RoomShell({ subtitle, children }: { subtitle: string; children: ReactNo
       </header>
       <div className={styles.content}>
         <button type="button" className={styles.back} onClick={() => navigate('/schedule')}>
-          <ArrowLeft size={15} /> {t('room.back')}
+          <ArrowLeft size={ICON_SM} /> {t('room.back')}
         </button>
         <h1 className={styles.pageTitle}>{t('room.title')}</h1>
         <p className={styles.pageSub}>{subtitle}</p>
@@ -119,7 +120,7 @@ function CameraErrorNote({
         <Button
           variant="primary"
           size="sm"
-          icon={<RefreshCw size={15} />}
+          icon={<RefreshCw size={ICON_SM} />}
           disabled={disabled}
           onClick={onRetry}
         >
@@ -244,7 +245,7 @@ function StudentRoom({ sessionId, roomToken, isLive, teacherName }: RoomProps) {
                 <Button
                   variant="primary"
                   size="sm"
-                  icon={<Video size={15} />}
+                  icon={<Video size={ICON_SM} />}
                   disabled={!isLive}
                   onClick={() => void join()}
                 >
@@ -406,7 +407,7 @@ function TeacherRoom({ sessionId, roomToken, isLive }: RoomProps) {
                 <Button
                   variant="primary"
                   size="sm"
-                  icon={<Video size={15} />}
+                  icon={<Video size={ICON_SM} />}
                   disabled={!isLive}
                   onClick={() => void join()}
                 >
@@ -453,7 +454,7 @@ function TeacherRoom({ sessionId, roomToken, isLive }: RoomProps) {
           <Button
             variant="secondary"
             size="sm"
-            icon={<BarChart3 size={15} />}
+            icon={<BarChart3 size={ICON_SM} />}
             onClick={() => setShowReport(true)}
           >
             {t('room.report')}

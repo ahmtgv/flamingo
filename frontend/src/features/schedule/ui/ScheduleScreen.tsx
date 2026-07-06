@@ -1,3 +1,4 @@
+import { ICON_MD, ICON_SM } from '@/shared/ui/iconSizes';
 import {
   ArrowLeft,
   BarChart3,
@@ -94,17 +95,17 @@ export function ScheduleScreen() {
             onClick={() => dispatch(toggleTheme())}
             aria-label={goingDark ? t('common:theme.toDark') : t('common:theme.toLight')}
           >
-            {goingDark ? <Moon size={18} /> : <Sun size={18} />}
+            {goingDark ? <Moon size={ICON_MD} /> : <Sun size={ICON_MD} />}
           </button>
           <button type="button" className={styles.iconBtn} onClick={() => void logout()} aria-label={t('common:actions.loading')}>
-            <LogOut size={18} />
+            <LogOut size={ICON_MD} />
           </button>
         </div>
       </header>
 
       <div className={styles.content}>
         <button type="button" className={styles.back} onClick={() => navigate('/app')}>
-          <ArrowLeft size={15} /> {t('back')}
+          <ArrowLeft size={ICON_SM} /> {t('back')}
         </button>
         <h1 className={styles.pageTitle}>{t('title')}</h1>
         <p className={styles.pageSub}>{t('subtitle')}</p>
@@ -114,7 +115,7 @@ export function ScheduleScreen() {
         ) : (
           sessions.map((s) => (
             <div className={styles.session} key={s.id}>
-              <Video size={18} />
+              <Video size={ICON_MD} />
               <div className={styles.sessionMain}>
                 <div className={styles.sessionTitle}>{s.lesson?.title ?? t('noLesson')}</div>
                 <div className={styles.sessionTime}>{formatTime(s.startAt)}</div>
@@ -127,7 +128,7 @@ export function ScheduleScreen() {
                   <Button
                     variant="secondary"
                     size="sm"
-                    icon={<Play size={15} />}
+                    icon={<Play size={ICON_SM} />}
                     onClick={async () => {
                       await startSession({ variables: { sessionId: s.id } });
                       await refetch();
@@ -141,7 +142,7 @@ export function ScheduleScreen() {
                     <Button
                       variant="primary"
                       size="sm"
-                      icon={<Radio size={15} />}
+                      icon={<Radio size={ICON_SM} />}
                       onClick={() => navigate(`/sessions/${s.id}/room`)}
                     >
                       {t('actions.room')}
@@ -149,7 +150,7 @@ export function ScheduleScreen() {
                     <Button
                       variant="secondary"
                       size="sm"
-                      icon={<Square size={15} />}
+                      icon={<Square size={ICON_SM} />}
                       onClick={async () => {
                         await endSession({ variables: { sessionId: s.id } });
                         await refetch();
@@ -163,7 +164,7 @@ export function ScheduleScreen() {
                   <Button
                     variant="ghost"
                     size="sm"
-                    icon={<BarChart3 size={15} />}
+                    icon={<BarChart3 size={ICON_SM} />}
                     onClick={() => navigate(`/sessions/${s.id}/room`)}
                   >
                     {t('actions.report')}
@@ -178,7 +179,7 @@ export function ScheduleScreen() {
                     <Button
                       variant="primary"
                       size="sm"
-                      icon={<Radio size={15} />}
+                      icon={<Radio size={ICON_SM} />}
                       onClick={() => handleJoin(s.id)}
                     >
                       {t('actions.join')}

@@ -1,3 +1,4 @@
+import { ICON_MD } from '@/shared/ui/iconSizes';
 import {
   BarChart3,
   BookOpen,
@@ -69,7 +70,7 @@ export function TeacherCabinet({ me }: { me: Me }) {
             </span>
             <span className={styles.cardTitle}>{t('teacher.courses')}</span>
           </div>
-          <Empty icon={<BookOpen size={20} />} text={t('teacher.coursesEmpty')} />
+          <Empty icon={<BookOpen size={ICON_MD} />} text={t('teacher.coursesEmpty')} />
         </div>
       </div>
     </CabinetLayout>

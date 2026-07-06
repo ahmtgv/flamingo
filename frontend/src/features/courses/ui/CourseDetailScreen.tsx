@@ -1,3 +1,4 @@
+import { ICON_SM } from '@/shared/ui/iconSizes';
 import {
   ArrowLeft,
   BookOpen,
@@ -92,7 +93,7 @@ export function CourseDetailScreen() {
     <CoursesLayout>
       <div className={styles.content}>
         <button type="button" className={styles.back} onClick={() => navigate('/courses')}>
-          <ArrowLeft size={15} /> {t('catalog.title')}
+          <ArrowLeft size={ICON_SM} /> {t('catalog.title')}
         </button>
 
         {!course ? (
@@ -165,7 +166,7 @@ export function CourseDetailScreen() {
                           <Button
                             variant="ghost"
                             size="sm"
-                            icon={<ChevronUp size={15} />}
+                            icon={<ChevronUp size={ICON_SM} />}
                             aria-label={t('manage.moveUp')}
                             disabled={sectionIndex === 0}
                             onClick={async () => {
@@ -181,7 +182,7 @@ export function CourseDetailScreen() {
                           <Button
                             variant="ghost"
                             size="sm"
-                            icon={<ChevronDown size={15} />}
+                            icon={<ChevronDown size={ICON_SM} />}
                             aria-label={t('manage.moveDown')}
                             disabled={sectionIndex === sectionIds.length - 1}
                             onClick={async () => {
@@ -197,7 +198,7 @@ export function CourseDetailScreen() {
                           <Button
                             variant="ghost"
                             size="sm"
-                            icon={<Trash2 size={15} />}
+                            icon={<Trash2 size={ICON_SM} />}
                             onClick={async () => {
                               await deleteSection({ variables: { id: section.id } });
                               await reload();
@@ -211,7 +212,7 @@ export function CourseDetailScreen() {
                     {lessons.map((lesson, lessonIndex) => (
                       <div key={lesson.id}>
                         <div className={styles.lessonRow}>
-                          <BookOpen size={16} />
+                          <BookOpen size={ICON_SM} />
                           <span className={styles.lessonName}>{lesson.title}</span>
                           {lesson.durationMin > 0 && (
                             <span className={styles.lessonMeta}>
@@ -223,7 +224,7 @@ export function CourseDetailScreen() {
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                icon={<ChevronUp size={15} />}
+                                icon={<ChevronUp size={ICON_SM} />}
                                 aria-label={t('manage.moveUp')}
                                 disabled={lessonIndex === 0}
                                 onClick={async () => {
@@ -243,7 +244,7 @@ export function CourseDetailScreen() {
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                icon={<ChevronDown size={15} />}
+                                icon={<ChevronDown size={ICON_SM} />}
                                 aria-label={t('manage.moveDown')}
                                 disabled={lessonIndex === section.lessons.length - 1}
                                 onClick={async () => {
@@ -279,7 +280,7 @@ export function CourseDetailScreen() {
                             <Button
                               variant="ghost"
                               size="sm"
-                              icon={<Trash2 size={15} />}
+                              icon={<Trash2 size={ICON_SM} />}
                               onClick={async () => {
                                 await deleteLesson({ variables: { id: lesson.id } });
                                 await reload();
@@ -292,7 +293,7 @@ export function CourseDetailScreen() {
                             <Button
                               variant="ghost"
                               size="sm"
-                              icon={<FileText size={15} />}
+                              icon={<FileText size={ICON_SM} />}
                               onClick={() => navigate(`/lessons/${lesson.id}/homework`)}
                             >
                               {t('homework:lesson.title')}
@@ -360,7 +361,7 @@ export function CourseDetailScreen() {
                 {enrollment ? (
                   <>
                     <span className={styles.enrollStatus}>
-                      <Check size={16} /> {t('detail.enrolled')} ·{' '}
+                      <Check size={ICON_SM} /> {t('detail.enrolled')} ·{' '}
                       {t('detail.progress', { pct: enrollment.progressPct })}
                     </span>
                     <Button
@@ -377,7 +378,7 @@ export function CourseDetailScreen() {
                 ) : (
                   <>
                     <span className={styles.enrollStatus}>
-                      <ShieldCheck size={16} /> {course.title}
+                      <ShieldCheck size={ICON_SM} /> {course.title}
                     </span>
                     <Button
                       variant="primary"
@@ -420,7 +421,7 @@ function AddSectionForm({ courseId, onDone }: { courseId: string; onDone: () => 
         value={title}
         onChange={(e) => setTitle(e.target.value)}
       />
-      <Button type="submit" variant="secondary" icon={<Plus size={16} />} loading={loading}>
+      <Button type="submit" variant="secondary" icon={<Plus size={ICON_SM} />} loading={loading}>
         {t('manage.addSection')}
       </Button>
     </form>
@@ -461,7 +462,7 @@ function AddLessonForm({ sectionId, onDone }: { sectionId: string; onDone: () =>
           onChange={(e) => setDuration(e.target.value)}
         />
       </div>
-      <Button type="submit" variant="ghost" icon={<Plus size={16} />} loading={loading}>
+      <Button type="submit" variant="ghost" icon={<Plus size={ICON_SM} />} loading={loading}>
         {t('manage.addLesson')}
       </Button>
     </form>
@@ -496,7 +497,7 @@ function ScheduleSessionForm({ lessonId }: { lessonId: string }) {
       <Button
         variant="ghost"
         size="sm"
-        icon={<CalendarPlus size={15} />}
+        icon={<CalendarPlus size={ICON_SM} />}
         onClick={() => setOpen(true)}
       >
         {t('lessonForm.schedule')}
@@ -661,7 +662,7 @@ function EditCourseForm({
       <Button
         variant="secondary"
         size="sm"
-        icon={<Pencil size={15} />}
+        icon={<Pencil size={ICON_SM} />}
         onClick={() => setOpen(true)}
       >
         {t('manage.editCourse')}

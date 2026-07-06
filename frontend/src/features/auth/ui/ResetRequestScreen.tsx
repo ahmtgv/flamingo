@@ -1,3 +1,4 @@
+import { ICON_LG, ICON_SM } from '@/shared/ui/iconSizes';
 import { ArrowLeft, Check } from 'lucide-react';
 import { type FormEvent, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -36,7 +37,7 @@ export function ResetRequestScreen() {
       <AuthLayout>
         <Card className={styles.success}>
           <div className={styles.successIcon}>
-            <Check size={28} strokeWidth={2.5} />
+            <Check size={ICON_LG} strokeWidth={2.5} />
           </div>
           <h2 className={styles.successTitle}>{t('reset.sentTitle')}</h2>
           <p className={styles.successText}>{t('reset.sentText')}</p>
@@ -51,7 +52,7 @@ export function ResetRequestScreen() {
   return (
     <AuthLayout>
       <button type="button" className={styles.back} onClick={() => navigate('/login')}>
-        <ArrowLeft size={15} /> {t('reset.backToLogin')}
+        <ArrowLeft size={ICON_SM} /> {t('reset.backToLogin')}
       </button>
       <div className={styles.head}>
         <span className={styles.eyebrow}>{t('reset.eyebrow')}</span>

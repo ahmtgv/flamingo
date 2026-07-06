@@ -1,3 +1,4 @@
+import { ICON_SM } from '@/shared/ui/iconSizes';
 import { ArrowLeft, CheckCircle2, ClipboardList, Paperclip, Plus, Send, Trash2 } from 'lucide-react';
 import { type FormEvent, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -59,7 +60,7 @@ export function LessonHomeworkScreen() {
     <HomeworkLayout>
       <div className={styles.content}>
         <button type="button" className={styles.back} onClick={() => navigate(-1)}>
-          <ArrowLeft size={15} /> {t('back')}
+          <ArrowLeft size={ICON_SM} /> {t('back')}
         </button>
         <h1 className={styles.pageTitle}>{t('lesson.title')}</h1>
         <p className={styles.pageSub}>{isTeacher ? t('lesson.subtitleTeacher') : t('lesson.subtitle')}</p>
@@ -136,7 +137,7 @@ function CreateHomeworkForm({ lessonId, onDone }: { lessonId: string; onDone: ()
         {t('create.allowRedo')}
       </Checkbox>
       <div className={styles.actionsRow}>
-        <Button type="submit" variant="primary" icon={<Plus size={16} />} loading={loading}>
+        <Button type="submit" variant="primary" icon={<Plus size={ICON_SM} />} loading={loading}>
           {t('create.submit')}
         </Button>
       </div>
@@ -186,7 +187,7 @@ function TeacherHomeworkCard({ hw, onDone }: { hw: HomeworkRow; onDone: () => vo
         <Button
           variant="ghost"
           size="sm"
-          icon={<ClipboardList size={15} />}
+          icon={<ClipboardList size={ICON_SM} />}
           onClick={() => setGrading((v) => !v)}
         >
           {grading ? t('actions.hideGrading') : t('actions.grade')}
@@ -194,7 +195,7 @@ function TeacherHomeworkCard({ hw, onDone }: { hw: HomeworkRow; onDone: () => vo
         <Button
           variant="ghost"
           size="sm"
-          icon={<Trash2 size={15} />}
+          icon={<Trash2 size={ICON_SM} />}
           loading={deleting}
           onClick={async () => {
             await deleteHomework({ variables: { id: hw.id } });
@@ -366,7 +367,7 @@ function SubmitForm({
         onChange={(e) => setText(e.target.value)}
       />
       <label className={styles.fileLabel}>
-        <Paperclip size={15} /> {t('upload:uploadFile')}
+        <Paperclip size={ICON_SM} /> {t('upload:uploadFile')}
         <input
           type="file"
           multiple
@@ -401,7 +402,7 @@ function SubmitForm({
         </p>
       )}
       <div className={styles.actionsRow}>
-        <Button type="submit" variant="primary" icon={<Send size={15} />} loading={busy}>
+        <Button type="submit" variant="primary" icon={<Send size={ICON_SM} />} loading={busy}>
           {resubmit ? t('actions.resubmit') : t('actions.submit')}
         </Button>
       </div>

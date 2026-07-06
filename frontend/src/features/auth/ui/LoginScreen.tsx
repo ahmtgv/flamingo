@@ -1,3 +1,4 @@
+import { ICON_SM } from '@/shared/ui/iconSizes';
 import { AlertCircle } from 'lucide-react';
 import { type FormEvent, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -48,7 +49,7 @@ export function LoginScreen() {
         <form noValidate onSubmit={handleSubmit}>
           {formError && (
             <p className={styles.formError} role="alert">
-              <AlertCircle size={16} aria-hidden="true" />
+              <AlertCircle size={ICON_SM} aria-hidden="true" />
               {formError}
             </p>
           )}

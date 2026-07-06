@@ -1,3 +1,4 @@
+import { ICON_MD } from '@/shared/ui/iconSizes';
 import { BarChart3, BookOpen, Calendar, FileText, LayoutDashboard, ShieldCheck, Sparkles } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
@@ -59,7 +60,7 @@ export function StudentCabinet({ me }: { me: Me }) {
               </span>
               <span className={styles.cardTitle}>{t('student.today')}</span>
             </div>
-            <Empty icon={<Calendar size={20} />} text={t('student.todayEmpty')} />
+            <Empty icon={<Calendar size={ICON_MD} />} text={t('student.todayEmpty')} />
           </div>
         </div>
 
@@ -70,7 +71,7 @@ export function StudentCabinet({ me }: { me: Me }) {
             </span>
             <span className={styles.cardTitle}>{t('student.courses')}</span>
           </div>
-          <Empty icon={<BookOpen size={20} />} text={t('student.coursesEmpty')} />
+          <Empty icon={<BookOpen size={ICON_MD} />} text={t('student.coursesEmpty')} />
         </div>
 
         <div className={`${styles.card} ${styles.privacy}`}>

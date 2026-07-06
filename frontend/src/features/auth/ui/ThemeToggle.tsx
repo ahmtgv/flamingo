@@ -1,3 +1,4 @@
+import { ICON_MD } from '@/shared/ui/iconSizes';
 import { Moon, Sun } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
@@ -19,7 +20,7 @@ export function ThemeToggle() {
       onClick={() => dispatch(toggleTheme())}
       aria-label={goingDark ? t('theme.toDark') : t('theme.toLight')}
     >
-      {goingDark ? <Moon size={18} /> : <Sun size={18} />}
+      {goingDark ? <Moon size={ICON_MD} /> : <Sun size={ICON_MD} />}
     </button>
   );
 }

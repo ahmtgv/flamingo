@@ -1,3 +1,4 @@
+import { ICON_LG } from '@/shared/ui/iconSizes';
 import { Check } from 'lucide-react';
 import { type FormEvent, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -55,7 +56,7 @@ export function ResetConfirmScreen() {
       <AuthLayout>
         <Card className={styles.success}>
           <div className={styles.successIcon}>
-            <Check size={28} strokeWidth={2.5} />
+            <Check size={ICON_LG} strokeWidth={2.5} />
           </div>
           <h2 className={styles.successTitle}>{t('reset.doneTitle')}</h2>
           <p className={styles.successText}>{t('reset.doneText')}</p>

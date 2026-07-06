@@ -1,3 +1,4 @@
+import { ICON_MD } from '@/shared/ui/iconSizes';
 import { BarChart3, Building2, LayoutDashboard, Users, UsersRound } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
@@ -36,7 +37,7 @@ export function AdminCabinet({ me }: { me: Me }) {
             </span>
             <span className={styles.cardTitle}>{t('admin.institution')}</span>
           </div>
-          <Empty icon={<Building2 size={20} />} text={t('admin.empty')} />
+          <Empty icon={<Building2 size={ICON_MD} />} text={t('admin.empty')} />
         </div>
       </div>
     </CabinetLayout>

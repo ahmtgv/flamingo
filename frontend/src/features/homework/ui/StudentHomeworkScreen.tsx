@@ -1,3 +1,4 @@
+import { ICON_SM } from '@/shared/ui/iconSizes';
 import { ArrowLeft } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
@@ -25,7 +26,7 @@ export function StudentHomeworkScreen() {
     <HomeworkLayout>
       <div className={styles.content}>
         <button type="button" className={styles.back} onClick={() => navigate('/app')}>
-          <ArrowLeft size={15} /> {t('back')}
+          <ArrowLeft size={ICON_SM} /> {t('back')}
         </button>
         <h1 className={styles.pageTitle}>{t('my.title')}</h1>
         <p className={styles.pageSub}>{t('my.subtitle')}</p>

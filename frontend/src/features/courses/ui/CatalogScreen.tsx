@@ -1,3 +1,4 @@
+import { ICON_SM } from '@/shared/ui/iconSizes';
 import { ArrowLeft, Plus } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -26,7 +27,7 @@ export function CatalogScreen() {
     <CoursesLayout>
       <div className={styles.content}>
         <button type="button" className={styles.back} onClick={() => navigate('/app')}>
-          <ArrowLeft size={15} /> {t('back')}
+          <ArrowLeft size={ICON_SM} /> {t('back')}
         </button>
         <div className={styles.pageHead}>
           <div>
@@ -34,7 +35,7 @@ export function CatalogScreen() {
             <p className={styles.pageSub}>{t('catalog.subtitle')}</p>
           </div>
           {isTeacher && (
-            <Button variant="primary" icon={<Plus size={16} />} onClick={() => navigate('/courses/new')}>
+            <Button variant="primary" icon={<Plus size={ICON_SM} />} onClick={() => navigate('/courses/new')}>
               {t('catalog.create')}
             </Button>
           )}

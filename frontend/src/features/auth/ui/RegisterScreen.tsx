@@ -1,3 +1,4 @@
+import { ICON_SM } from '@/shared/ui/iconSizes';
 import { AlertCircle, ArrowLeft, Mail, ShieldCheck, Users } from 'lucide-react';
 import { type ChangeEvent, type FormEvent, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -89,7 +90,7 @@ function RegisterForm({ role }: { role: UiRole }) {
   return (
     <AuthLayout>
       <button type="button" className={styles.back} onClick={() => navigate('/register')}>
-        <ArrowLeft size={15} /> {t('register.backToRoles')}
+        <ArrowLeft size={ICON_SM} /> {t('register.backToRoles')}
       </button>
 
       <div className={styles.head}>
@@ -118,7 +119,7 @@ function RegisterForm({ role }: { role: UiRole }) {
 
           {formError && (
             <p className={styles.formError} role="alert">
-              <AlertCircle size={16} aria-hidden="true" />
+              <AlertCircle size={ICON_SM} aria-hidden="true" />
               {formError}
             </p>
           )}

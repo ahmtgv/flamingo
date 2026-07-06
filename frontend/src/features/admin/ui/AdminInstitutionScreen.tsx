@@ -1,3 +1,4 @@
+import { ICON_SM } from '@/shared/ui/iconSizes';
 import { ArrowLeft, Plus, Trash2, X } from 'lucide-react';
 import { type FormEvent, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -48,7 +49,7 @@ export function AdminInstitutionScreen() {
     <AdminLayout>
       <div className={styles.content}>
         <button type="button" className={styles.back} onClick={() => navigate('/app')}>
-          <ArrowLeft size={15} /> {t('back')}
+          <ArrowLeft size={ICON_SM} /> {t('back')}
         </button>
         <h1 className={styles.pageTitle}>{t('title')}</h1>
         {!institution ? (
@@ -248,7 +249,7 @@ function MembersSection({
           </SelectField>
         </div>
         <div className={styles.actionsRow}>
-          <Button type="submit" variant="primary" size="sm" icon={<Plus size={15} />} loading={inviting}>
+          <Button type="submit" variant="primary" size="sm" icon={<Plus size={ICON_SM} />} loading={inviting}>
             {t('members.invite')}
           </Button>
         </div>
@@ -300,7 +301,7 @@ function GroupsSection({ institutionId }: { institutionId: string }) {
           />
         </div>
         <div className={styles.actionsRow}>
-          <Button type="submit" variant="primary" size="sm" icon={<Plus size={15} />} loading={creating}>
+          <Button type="submit" variant="primary" size="sm" icon={<Plus size={ICON_SM} />} loading={creating}>
             {t('groups.create')}
           </Button>
         </div>

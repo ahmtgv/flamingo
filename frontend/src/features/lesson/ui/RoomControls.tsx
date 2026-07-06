@@ -1,3 +1,4 @@
+import { ICON_MD } from '@/shared/ui/iconSizes';
 import { Mic, MicOff, MonitorUp, PhoneOff, Video, VideoOff } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
@@ -33,7 +34,7 @@ export function RoomControls({
         aria-label={micEnabled ? t('mic.on') : t('mic.off')}
         title={micEnabled ? t('mic.on') : t('mic.off')}
       >
-        {micEnabled ? <Mic size={18} /> : <MicOff size={18} />}
+        {micEnabled ? <Mic size={ICON_MD} /> : <MicOff size={ICON_MD} />}
       </button>
       <button
         type="button"
@@ -44,7 +45,7 @@ export function RoomControls({
         aria-label={cameraEnabled ? t('camera.on') : t('camera.off')}
         title={cameraEnabled ? t('camera.on') : t('camera.off')}
       >
-        {cameraEnabled ? <Video size={18} /> : <VideoOff size={18} />}
+        {cameraEnabled ? <Video size={ICON_MD} /> : <VideoOff size={ICON_MD} />}
       </button>
       <button
         type="button"
@@ -55,7 +56,7 @@ export function RoomControls({
         aria-label={screenSharing ? t('screenShare.off') : t('screenShare.on')}
         title={screenSharing ? t('screenShare.off') : t('screenShare.on')}
       >
-        <MonitorUp size={18} />
+        <MonitorUp size={ICON_MD} />
       </button>
       <button
         type="button"
@@ -64,7 +65,7 @@ export function RoomControls({
         aria-label={t('leave')}
         title={t('leave')}
       >
-        <PhoneOff size={18} />
+        <PhoneOff size={ICON_MD} />
       </button>
     </div>
   );

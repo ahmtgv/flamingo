@@ -1,3 +1,4 @@
+import { ICON_MD } from '@/shared/ui/iconSizes';
 import { type RemoteParticipant, type Track } from 'livekit-client';
 import { Track as TrackNs } from 'livekit-client';
 import { MicOff, VideoOff } from 'lucide-react';
@@ -82,7 +83,7 @@ export function VideoTile({
       <audio ref={audioRef} autoPlay />
       {cameraOff && (
         <span className={styles.camOff} aria-hidden="true">
-          <VideoOff size={20} />
+          <VideoOff size={ICON_MD} />
         </span>
       )}
       {focused && focusBar}
