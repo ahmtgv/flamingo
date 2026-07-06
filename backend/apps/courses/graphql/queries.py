@@ -3,6 +3,7 @@
 import strawberry
 
 from apps.courses import models, services
+from apps.courses.access import can_access_course
 from common.auth import get_current_user, require_user
 from common.enums import CourseLevel, CourseStatus
 from common.pagination import paginate
@@ -51,8 +52,16 @@ class CoursesQuery:
         return course
 
     @strawberry.field
-    def lesson(self, id: strawberry.ID) -> Lesson | None:
-        return models.Lesson.objects.filter(id=id).first()
+    def lesson(self, info: strawberry.Info, id: strawberry.ID) -> Lesson | None:
+        # Lesson CONTENT is enrollment-controlled (A-C1): routed through the single
+        # can_access_course chokepoint (owner / institutional group / ACTIVE enrollment).
+        # Denial convention matches `course` above: None, never an object leak.
+        obj = models.Lesson.objects.select_related("section__course").filter(id=id).first()
+        if obj is None:
+            return None
+        if not can_access_course(get_current_user(info), obj.section.course):
+            return None
+        return obj
 
     @strawberry.field
     def my_courses(self, info: strawberry.Info) -> list[Course]:

@@ -16,7 +16,6 @@ wire them through it then so the chokepoint doesn't drift from reality:
 
     TODO(payments): route through can_access_course when gating is introduced:
       - apps/courses/graphql/queries.py :: CoursesQuery.course   (draft/owner check only)
-      - apps/courses/graphql/queries.py :: CoursesQuery.lesson   (currently ungated)
       - apps/courses/services.py        :: enroll                (no access check)
       - apps/courses/services.py        :: mark_lesson_viewed    (enrollment-only check)
 

@@ -80,3 +80,57 @@ def test_course_flow_through_schema():
     )
     assert res.errors is None, res.errors
     assert res.data["course"]["viewerEnrollment"]["status"] == "ACTIVE"
+
+
+LESSON = "query($id: ID!) { lesson(id: $id) { id title } }"
+
+
+def test_lesson_query_is_enrollment_gated():
+    """A-C1: lesson CONTENT goes through can_access_course — owner and ACTIVE-enrolled
+    students see it; unenrolled/anonymous get None (the file's denial convention)."""
+    from apps.courses import services as courses
+
+    teacher = accounts.register_user(
+        email="lg.teacher@example.com",
+        password="strongpass1!",
+        first_name="И",
+        last_name="П",
+        role=Role.TEACHER,
+        specialty="Математика",
+    )
+    enrolled = accounts.register_user(
+        email="lg.enrolled@example.com",
+        password="strongpass1!",
+        first_name="П",
+        last_name="С",
+        role=Role.STUDENT,
+        birth_date=date(2008, 1, 1),
+    )
+    stranger = accounts.register_user(
+        email="lg.stranger@example.com",
+        password="strongpass1!",
+        first_name="Ч",
+        last_name="У",
+        role=Role.STUDENT,
+        birth_date=date(2008, 1, 1),
+    )
+
+    course = courses.create_course(teacher, title="Алгебра", subject="Математика", level="grade_7")
+    courses.publish_course(teacher, course.id)
+    section = courses.create_section(teacher, course.id, title="Раздел 1")
+    lesson = courses.create_lesson(teacher, section.id, title="Урок 1")
+    courses.enroll(enrolled, course.id)
+
+    def fetch(user):
+        res = schema.execute_sync(
+            LESSON, variable_values={"id": str(lesson.id)}, context_value=_ctx(user)
+        )
+        assert res.errors is None, res.errors
+        return res.data["lesson"]
+
+    # positive: the owner and an ACTIVE-enrolled student see the lesson
+    assert fetch(teacher)["title"] == "Урок 1"
+    assert fetch(enrolled)["id"] == str(lesson.id)
+    # negative: an authenticated-but-unenrolled student and an anonymous user are denied
+    assert fetch(stranger) is None
+    assert fetch(None) is None
