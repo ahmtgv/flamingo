@@ -167,6 +167,7 @@
 }
 .courseStat {
   font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
   font-size: var(--text-caption);
   color: var(--color-text-tertiary);
 }
@@ -231,6 +232,7 @@
 }
 .lessonMeta {
   font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
   font-size: var(--text-caption);
   color: var(--color-text-tertiary);
 }
