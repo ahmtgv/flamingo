@@ -57,3 +57,6 @@
 - **№2 (готов):** backend security — A-C1/A-C2/A-C3 + permission-тесты на каждый; затем A-H1..H3.
 - **№3:** frontend token-долг — B-1/B-2/B-3 (иконки/ширины/blur/статы → токены; tabular-nums; чистка AttentionStrip).
 - **№4 (после D0-замеров + решений владельца):** SEduM-NG — детальный R&D-план отдельным документом: calibration-first, iris-gaze, smoothing, eval-harness.
+
+### Статус исполнения очереди (2026-07-06)
+- №1 ✅ (гейты зелёные, D0 частично — сценарии с камерой за владельцем) · №3 ✅ (121 vitest) · **№2 ✅ (A-C1/C2/C3 закрыты, +индексы; pytest 88)** · №3.1 — у владельца · A-H1 (N+1) → отдельный perf-промпт «№5: query-root prefetch/dataloader» (решение ревьюера: согласовано с исполнителем) · A-H3 (refresh-revocation) → в №5 же.
