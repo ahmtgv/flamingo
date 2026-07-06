@@ -7,6 +7,20 @@ This doc lets a fresh session resume cleanly. It references files by path — re
 
 ## 0. Current state — read this first
 
+🔒 **2026-07-06 — промпт №2, backend security (аудит раздел A): три CRITICAL закрыты, +HIGH индексы.**
+Гейт: **pytest 84 → 88**, ruff/black clean, `makemigrations --check` чисто. Один concern — один коммит:
+- **A-C1 `f30b365`** — `lesson`-query гейтится через `can_access_course` (был доступен любому/анониму);
+  discovery не тронут; +1 schema-тест (владелец/ACTIVE — да; unenrolled/anon — None).
+- **A-C2 `8751c7e`** — `Group.students/teachers` (PII детей) скоуп в services: staff / админ своего
+  учреждения / назначенный на группу преподаватель — видят, остальные `[]` (класс дыры b2782ba); +1 тест.
+- **A-C3 `6a8f1ae`** — участие в сессии (`join_session`/`get_session`/`room_token_for`) через тот же
+  `can_access_course`: `pending_payment` — отказ, студент группы без личного enrollment — входит и
+  получает attendance-строку; локальные `_enrollment/_is_participant` удалены (не дрейфует); +2 теста.
+- **A-H2 `27b1af6`** — индексы: `deleted_at` на всех soft-delete таблицах + `status`/`start_at`/
+  `(student, access_status)` на горячих фильтрах (один index-migration на приложение; SQL в отчёте).
+- **A-H1 (N+1) — ОТЛОЖЕНО:** leaf-резолверы `self.X.all()` не имеют вложенных select; корректный фикс —
+  prefetch на корне query/dataloader, это отдельная perf-задача, не поле-твик (в отчёте).
+
 🔄 **2026-07-06 (вечер) — промпт №3, frontend-полировка (аудит B/B+):** гейты зелёные на каждый
 коммит; итог **FE build/lint + 121 vitest** (116 → 119 → 125 → 121: +3 B-6, +6 B-9, −4 удалён
 мёртвый AttentionStrip), **BE 84 pytest** + ruff/black (не тронут). Коммиты: **B-6 `eabb7ce`**
