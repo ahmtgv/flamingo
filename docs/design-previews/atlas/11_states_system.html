@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>АТЛАС 11 — Системные состояния (404 · офлайн · ошибка · тосты)</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f1f1ef;--surface:#fff;--subtle:#e9e9e6;--border:#d9d9d6;--border-s:#c4c4c1;
+--ink:#1d1d1f;--sec:#6e6e73;--ter:#98989e;--coral:#e14e1f;--coral-t:#c23f14;--coral-soft:#fdeee7;
+--ok:#226741;--ok-bg:#e7f2ea;--err:#a82a1f;--err-bg:#fae5e2;--warn:#7d570c;--warn-bg:#f6eed9;
+--ui:-apple-system,'SF Pro Display',Inter,system-ui,sans-serif;--mono:'JetBrains Mono','SF Mono',ui-monospace,monospace;
+--ease:cubic-bezier(.2,0,0,1);--fs-body:1.0625rem;--fs-small:.875rem;--fs-cap:.8125rem;--fs-micro:.75rem}
+[data-theme="dark"]{--bg:#101012;--surface:#1a1a1c;--subtle:#242426;--border:#2e2e31;--border-s:#3f3f43;
+--ink:#f2f2f0;--sec:#98989e;--ter:#6e6e73;--coral:#ff7040;--coral-t:#ff8a5f;--coral-soft:#33201a;
+--ok:#9fd8ae;--ok-bg:#1c2f24;--err:#ff9d8f;--err-bg:#351d19;--warn:#e0c37a;--warn-bg:#2e2712}
+*{box-sizing:border-box;margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--ui);font-size:var(--fs-body);line-height:1.6;padding:32px 24px 96px;transition:all .32s var(--ease)}
+.wrap{max-width:1080px;margin:0 auto}
+h1{font-size:1.4rem;font-weight:600;letter-spacing:-.015em}
+.sub{color:var(--sec);font-size:var(--fs-small);margin:6px 0 18px;max-width:72ch}
+.bar{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:18px}
+.bar button{font:500 12px var(--mono);color:var(--sec);background:var(--bg);border:1px solid var(--border);border-radius:999px;padding:7px 13px;cursor:pointer}
+.bar button[aria-pressed="true"]{color:var(--ink);border-color:var(--border-s);background:var(--surface)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.demo{background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow:hidden}
+.demo .cap{font:500 var(--fs-micro) var(--mono);color:var(--ter);padding:10px 16px;border-bottom:1px solid var(--border)}
+.demo .body{min-height:280px;display:grid;place-content:center;text-align:center;padding:32px;position:relative}
+.code{font:500 3.2rem/1 var(--mono);letter-spacing:-.03em;color:var(--ter)}
+.demo h3{font-size:1.2rem;font-weight:600;margin:14px 0 6px}
+.demo p{color:var(--sec);font-size:var(--fs-small);max-width:38ch;margin:0 auto 22px}
+.btnP{font:500 var(--fs-small) var(--ui);color:#fff;background:var(--coral);border:none;border-radius:10px;height:42px;padding:0 22px;cursor:pointer}
+.btnQ{font:500 var(--fs-small) var(--ui);color:var(--ink);background:none;border:1px solid var(--border-s);border-radius:10px;height:42px;padding:0 20px;cursor:pointer;margin-left:8px}
+/* offline banner */
+.offbar{position:absolute;inset-inline:0;top:0;background:var(--warn-bg);color:var(--warn);
+  font:500 var(--fs-cap) var(--ui);padding:9px 16px;display:flex;align-items:center;gap:10px}
+.offbar .dot{width:7px;height:7px;border-radius:50%;background:currentColor}
+.ghosted{filter:grayscale(.2);opacity:.6}
+/* toasts */
+.toasts{display:grid;gap:10px;justify-items:end;align-content:center}
+.toast{display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--border);
+  border-radius:12px;padding:12px 16px;font-size:var(--fs-small);box-shadow:0 8px 24px rgba(0,0,0,.08);min-width:300px}
+.toast .ic{width:26px;height:26px;border-radius:50%;display:grid;place-content:center;font-size:13px;flex:none}
+.toast[data-k="ok"] .ic{background:var(--ok-bg);color:var(--ok)}
+.toast[data-k="err"] .ic{background:var(--err-bg);color:var(--err)}
+.toast[data-k="info"] .ic{background:var(--subtle);color:var(--sec)}
+.toast .x{margin-left:auto;border:none;background:none;color:var(--ter);cursor:pointer;font-size:14px}
+.toast .act{font:500 var(--fs-cap) var(--ui);color:var(--coral-t);border:none;background:none;cursor:pointer}
+.q{margin-top:28px;padding:20px;border:1px dashed var(--border-s);border-radius:12px}
+.q h4{font:500 12px var(--mono);color:var(--coral-t);margin-bottom:8px}
+.q p{font-size:var(--fs-cap);color:var(--sec)}
+@media(max-width:860px){.grid2{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Атлас · Лист 11 — Системные состояния</h1>
+  <p class="sub">Ошибки говорят, что случилось и что делать; никогда не обвиняют. Офлайн не блокирует чтение уже загруженного. Тосты — короткие, с иконкой-кругом и действием, исчезают сами (кроме ошибок — их закрывает пользователь).</p>
+  <div class="bar"><button data-k="theme" data-v="dark" aria-pressed="false">тёмная</button></div>
+
+  <div class="grid2">
+    <div class="demo">
+      <div class="cap">404 · страница не найдена</div>
+      <div class="body">
+        <div><div class="code">404</div>
+        <h3>Такой страницы нет</h3>
+        <p>Возможно, курс переехал или ссылка устарела.</p>
+        <div><button class="btnP">На главную</button><button class="btnQ">В каталог</button></div></div>
+      </div>
+    </div>
+
+    <div class="demo">
+      <div class="cap">офлайн · баннер поверх любого экрана</div>
+      <div class="body">
+        <div class="offbar"><span class="dot"></span>Нет подключения — показываем последнее загруженное. Проверим снова через 5 с…</div>
+        <div class="ghosted" style="margin-top:20px">
+          <h3 style="text-align:left">Добрый день, Саша</h3>
+          <p style="text-align:left;margin:6px 0 0">Расписание от 14:02 · данные могли устареть</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="demo">
+      <div class="cap">глобальная ошибка · крэш экрана</div>
+      <div class="body">
+        <div><div class="code">···</div>
+        <h3>Что-то сломалось у нас</h3>
+        <p>Уже знаем и чиним. Твои данные целы. Попробуй обновить страницу.</p>
+        <div><button class="btnP">Обновить</button><button class="btnQ">На главную</button></div></div>
+      </div>
+    </div>
+
+    <div class="demo">
+      <div class="cap">тосты · успех / ошибка / инфо</div>
+      <div class="body">
+        <div class="toasts">
+          <div class="toast" data-k="ok"><span class="ic">✓</span>Домашнее отправлено на проверку<button class="x" aria-label="Закрыть">✕</button></div>
+          <div class="toast" data-k="err"><span class="ic">!</span>Файл не загрузился<button class="act">Повторить</button><button class="x" aria-label="Закрыть">✕</button></div>
+          <div class="toast" data-k="info"><span class="ic">i</span>Занятие начнётся через 10 минут<button class="act">В комнату</button><button class="x" aria-label="Закрыть">✕</button></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="q">
+    <h4>ОТКРЫТЫЕ ВОПРОСЫ ВЛАДЕЛЬЦУ · лист 11</h4>
+    <p>1. Тост «занятие через 10 минут» — это уже модуль notifications; включаем его в ближайшую реализацию или после real-user-теста?<br>
+    2. Офлайн: достаточно баннера + чтения загруженного, или нужно офлайн-хранение материалов (это большая работа, была в планах mobile-этапа)?</p>
+  </div>
+</div>
+<script>
+const root=document.documentElement;
+document.querySelectorAll('.bar button').forEach(b=>b.addEventListener('click',()=>{
+  const on=b.getAttribute('aria-pressed')!=='true';b.setAttribute('aria-pressed',String(on));
+  on?root.setAttribute('data-theme','dark'):root.removeAttribute('data-theme');
+}));
+</script>
+</body>
+</html>

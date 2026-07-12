@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>АТЛАС 10 — Профиль · Настройки · Приватность · Моё внимание</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f1f1ef;--surface:#fff;--subtle:#e9e9e6;--border:#d9d9d6;--border-s:#c4c4c1;
+--ink:#1d1d1f;--sec:#6e6e73;--ter:#98989e;--coral:#e14e1f;--coral-t:#c23f14;--coral-soft:#fdeee7;
+--ui:-apple-system,'SF Pro Display',Inter,system-ui,sans-serif;--mono:'JetBrains Mono','SF Mono',ui-monospace,monospace;
+--ease:cubic-bezier(.2,0,0,1);--fs-body:1.0625rem;--fs-small:.875rem;--fs-cap:.8125rem;--fs-micro:.75rem;--fs-h1:2rem;--fs-metric:3rem}
+[data-theme="dark"]{--bg:#101012;--surface:#1a1a1c;--subtle:#242426;--border:#2e2e31;--border-s:#3f3f43;
+--ink:#f2f2f0;--sec:#98989e;--ter:#6e6e73;--coral:#ff7040;--coral-t:#ff8a5f;--coral-soft:#33201a}
+*{box-sizing:border-box;margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--ui);font-size:var(--fs-body);line-height:1.6;padding:32px 24px 96px;transition:all .32s var(--ease)}
+.wrap{max-width:1080px;margin:0 auto}
+h1{font-size:1.4rem;font-weight:600;letter-spacing:-.015em}
+.sub{color:var(--sec);font-size:var(--fs-small);margin:6px 0 18px;max-width:72ch}
+.bar{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:18px;position:sticky;top:8px;z-index:5}
+.bar .grp{font:500 10px var(--mono);color:var(--ter)}
+.bar button{font:500 12px var(--mono);color:var(--sec);background:var(--bg);border:1px solid var(--border);border-radius:999px;padding:7px 13px;cursor:pointer}
+.bar button[aria-pressed="true"]{color:var(--ink);border-color:var(--border-s);background:var(--surface)}
+.bar button:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(225,78,31,.4)}
+.screen{background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow:hidden}
+.topnav{display:flex;align-items:center;gap:10px;padding:12px 20px;border-bottom:1px solid var(--border)}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--coral)}
+.topnav b{font-size:14px;font-weight:500}
+.topnav .avatar{margin-left:auto;width:28px;height:28px;border-radius:50%;background:var(--subtle);display:grid;place-content:center;font:500 10px var(--mono);color:var(--sec)}
+.page{padding:40px 48px 48px;min-height:560px}
+.view{display:none}
+.page[data-view="profile"] .v-profile{display:block}
+.page[data-view="privacy"] .v-privacy{display:block}
+.page[data-view="attention"] .v-attention{display:block}
+.h-title{font-size:var(--fs-h1);font-weight:600;letter-spacing:-.02em}
+.split{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:start;margin-top:28px}
+.form{display:grid;gap:16px;max-width:380px}
+label.lbl{display:block;font:500 var(--fs-micro) var(--mono);color:var(--sec);margin-bottom:6px}
+.inp{width:100%;height:44px;border:1px solid var(--border-s);border-radius:10px;background:var(--surface);color:var(--ink);font:400 var(--fs-body) var(--ui);padding:0 14px}
+.inp:focus-visible{outline:none;border-color:var(--coral);box-shadow:0 0 0 3px rgba(225,78,31,.25)}
+.btnQ{font:500 var(--fs-small) var(--ui);color:var(--ink);background:none;border:1px solid var(--border-s);border-radius:10px;height:42px;padding:0 20px;cursor:pointer;justify-self:start}
+.rows>*{display:grid;grid-template-columns:1fr auto;gap:16px;align-items:center;padding:18px 0;border-bottom:1px solid var(--border)}
+.rows>*:last-child{border-bottom:none}
+.t{font-weight:500;font-size:var(--fs-small)}
+.s{font:400 var(--fs-micro) var(--mono);color:var(--ter)}
+.segWrap{display:inline-flex;gap:2px;background:var(--subtle);border:1px solid var(--border);border-radius:10px;padding:2px}
+.seg{font:500 var(--fs-micro) var(--mono);color:var(--sec);background:none;border:none;border-radius:8px;padding:5px 12px;cursor:pointer}
+.seg[aria-pressed="true"]{color:var(--ink);background:var(--surface)}
+.pill{font:500 var(--fs-micro) var(--mono);color:var(--sec);border:1px solid var(--border);border-radius:999px;padding:4px 12px}
+.secTitle{font:500 var(--fs-micro) var(--mono);color:var(--ter);margin:28px 0 4px}
+/* attention page */
+.attnHead{display:grid;grid-template-columns:repeat(3,1fr);gap:48px;margin:28px 0 32px;padding-bottom:28px;border-bottom:1px solid var(--border)}
+.num{font:500 var(--fs-metric)/1 var(--mono);letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.cap{color:var(--sec);font-size:var(--fs-small);margin-top:8px}
+.chart{height:120px;display:flex;align-items:flex-end;gap:6px;margin:8px 0 6px}
+.chart i{flex:1;background:var(--subtle);border-radius:4px 4px 0 0;display:block}
+.chart i[data-hi]{background:var(--sec)}
+.axis{display:flex;justify-content:space-between;font:400 var(--fs-micro) var(--mono);color:var(--ter)}
+.hint{font-size:var(--fs-cap);color:var(--sec);margin-top:20px;max-width:56ch}
+.q{margin-top:28px;padding:20px;border:1px dashed var(--border-s);border-radius:12px}
+.q h4{font:500 12px var(--mono);color:var(--coral-t);margin-bottom:8px}
+.q p{font-size:var(--fs-cap);color:var(--sec)}
+@media(max-width:860px){.split{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Атлас · Лист 10 — Профиль · Настройки · Приватность · «Моё внимание»</h1>
+  <p class="sub">Здесь живёт сводка внимания ученика (решение владельца: не на дашборде — только тут). Приватность — витрина принципа: UBP на устройстве, бэкап выключен по умолчанию и шифруется до отправки, калибровку можно пройти заново. Тон — «это подсказки для тебя, не оценка».</p>
+  <div class="bar" role="group">
+    <span class="grp">экран:</span>
+    <button data-k="view" data-v="profile" aria-pressed="true">профиль + настройки</button>
+    <button data-k="view" data-v="privacy" aria-pressed="false">приватность · SEduM</button>
+    <button data-k="view" data-v="attention" aria-pressed="false">моё внимание (ученик)</button>
+    <span class="grp" style="margin-left:10px">вид:</span>
+    <button data-k="theme" data-v="dark" aria-pressed="false">тёмная</button>
+  </div>
+
+  <div class="screen">
+    <div class="topnav"><span class="dot"></span><b>flamingo</b><span class="avatar">СИ</span></div>
+    <div class="page" data-view="profile" id="page">
+
+      <div class="view v-profile">
+        <span class="h-title">Профиль</span>
+        <div class="split">
+          <div class="form">
+            <div><label class="lbl" for="p-n">имя и фамилия</label><input class="inp" id="p-n" value="Саша Иванов"></div>
+            <div><label class="lbl" for="p-e">почта</label><input class="inp" id="p-e" value="sasha@example.ru"></div>
+            <div><label class="lbl" for="p-g">класс</label><input class="inp" id="p-g" value="7"></div>
+            <button class="btnQ">Сохранить</button>
+          </div>
+          <div class="rows">
+            <div><div><div class="t">Тема</div><div class="s">следует за системой или фиксированная</div></div>
+              <span class="segWrap"><button class="seg" aria-pressed="true">системная</button><button class="seg" aria-pressed="false">светлая</button><button class="seg" aria-pressed="false">тёмная</button></span></div>
+            <div><div><div class="t">Крупный интерфейс (1–4 класс)</div><div class="s">больше кегль, кнопки и отступы</div></div><span class="pill">выкл</span></div>
+            <div><div><div class="t">Язык</div><div class="s">пока только русский</div></div><span class="pill">русский</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="view v-privacy">
+        <span class="h-title">Приватность и SEduM</span>
+        <div class="rows" style="margin-top:28px;max-width:720px">
+          <div><div><div class="t">Анализ внимания на занятиях</div><div class="s">выполняется на этом устройстве · кадры не передаются · серверу уходят только агрегаты</div></div><span class="pill">вкл</span></div>
+          <div><div><div class="t">Биологический паспорт (UBP)</div><div class="s">хранится в этом браузере · IndexedDB · сервер его не видит</div></div><span class="pill">на устройстве</span></div>
+          <div><div><div class="t">Резервная копия UBP</div><div class="s">шифруется на устройстве до отправки · сервер хранит нечитаемый блоб</div></div><span class="pill">выкл</span></div>
+          <div><div><div class="t">Калибровка «база тест»</div><div class="s">персональная базовая линия внимания · ~1 минута</div></div><button class="btnQ" style="height:36px">Пройти заново</button></div>
+          <div><div><div class="t">Согласие на обработку данных</div><div class="s">дано родителем 02.06.2026 · можно отозвать</div></div><button class="btnQ" style="height:36px">Отозвать</button></div>
+        </div>
+      </div>
+
+      <div class="view v-attention">
+        <span class="h-title">Моё внимание</span>
+        <div class="attnHead">
+          <div><div class="num">84</div><div class="cap">среднее за неделю</div></div>
+          <div><div class="num">91</div><div class="cap">лучший день · вт</div></div>
+          <div><div class="num">16:00</div><div class="cap">твой пик формы</div></div>
+        </div>
+        <div class="chart" role="img" aria-label="Внимание по дням недели: от 71 до 91">
+          <i style="height:62%"></i><i style="height:88%" data-hi></i><i style="height:74%"></i><i style="height:81%" data-hi></i><i style="height:57%"></i><i style="height:66%"></i><i style="height:70%"></i>
+        </div>
+        <div class="axis"><span>пн</span><span>вт</span><span>ср</span><span>чт</span><span>пт</span><span>сб</span><span>вс</span></div>
+        <p class="hint">Это подсказки для тебя, не оценка. Похоже, сложные темы лучше заходят во второй половине дня — попробуй ставить их на 16:00–18:00.</p>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="q">
+    <h4>ОТКРЫТЫЕ ВОПРОСЫ ВЛАДЕЛЬЦУ · лист 10</h4>
+    <p>1. «Моё внимание» — сводка + один совет (как нарисовано). Добавлять ли разбивку по предметам (математика vs языки)?<br>
+    2. «Отозвать согласие» — что происходит: блокировка аккаунта до нового согласия или удаление аккаунта? (юридически важный флоу, нужно решение)<br>
+    3. Переключатель «крупный интерфейс» доступен всем или только при возрасте 7–11 из профиля?</p>
+  </div>
+</div>
+<script>
+const root=document.documentElement,page=document.getElementById('page');
+document.querySelectorAll('.bar button').forEach(b=>b.addEventListener('click',()=>{
+  const k=b.dataset.k,v=b.dataset.v;
+  if(k==='theme'){const on=b.getAttribute('aria-pressed')!=='true';b.setAttribute('aria-pressed',String(on));on?root.setAttribute('data-theme',v):root.removeAttribute('data-theme');return;}
+  page.dataset.view=v;document.querySelectorAll('[data-k="view"]').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));
+}));
+document.querySelectorAll('.seg').forEach(b=>b.addEventListener('click',()=>{
+  b.parentElement.querySelectorAll('.seg').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));
+}));
+</script>
+</body>
+</html>

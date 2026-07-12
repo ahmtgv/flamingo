@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>АТЛАС 08 — Кабинет родителя</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f1f1ef;--surface:#fff;--subtle:#e9e9e6;--border:#d9d9d6;--border-s:#c4c4c1;
+--ink:#1d1d1f;--sec:#6e6e73;--ter:#98989e;--coral:#e14e1f;--coral-t:#c23f14;--coral-soft:#fdeee7;
+--ui:-apple-system,'SF Pro Display',Inter,system-ui,sans-serif;--mono:'JetBrains Mono','SF Mono',ui-monospace,monospace;
+--ease:cubic-bezier(.2,0,0,1);--fs-body:1.0625rem;--fs-small:.875rem;--fs-cap:.8125rem;--fs-micro:.75rem;--fs-h1:2rem;--fs-metric:3.5rem}
+[data-theme="dark"]{--bg:#101012;--surface:#1a1a1c;--subtle:#242426;--border:#2e2e31;--border-s:#3f3f43;
+--ink:#f2f2f0;--sec:#98989e;--ter:#6e6e73;--coral:#ff7040;--coral-t:#ff8a5f;--coral-soft:#33201a}
+*{box-sizing:border-box;margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--ui);font-size:var(--fs-body);line-height:1.6;padding:32px 24px 96px;transition:all .32s var(--ease)}
+.wrap{max-width:1080px;margin:0 auto}
+h1{font-size:1.4rem;font-weight:600;letter-spacing:-.015em}
+.sub{color:var(--sec);font-size:var(--fs-small);margin:6px 0 18px;max-width:72ch}
+.bar{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:18px;position:sticky;top:8px;z-index:5}
+.bar .grp{font:500 10px var(--mono);color:var(--ter)}
+.bar button{font:500 12px var(--mono);color:var(--sec);background:var(--bg);border:1px solid var(--border);border-radius:999px;padding:7px 13px;cursor:pointer}
+.bar button[aria-pressed="true"]{color:var(--ink);border-color:var(--border-s);background:var(--surface)}
+.bar button:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(225,78,31,.4)}
+.screen{background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow:hidden}
+.topnav{display:flex;align-items:center;gap:10px;padding:12px 20px;border-bottom:1px solid var(--border)}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--coral)}
+.topnav b{font-size:14px;font-weight:500}
+.topnav .avatar{margin-left:auto;width:28px;height:28px;border-radius:50%;background:var(--subtle);display:grid;place-content:center;font:500 10px var(--mono);color:var(--sec)}
+.page{padding:40px 48px 48px;min-height:560px}
+.view{display:none}
+.page[data-view="summary"] .v-summary{display:block}
+.page[data-view="add"] .v-add{display:block}
+.page[data-view="empty"] .v-empty{display:block}
+.h-title{font-size:var(--fs-h1);font-weight:600;letter-spacing:-.02em}
+.kidsTabs{display:flex;gap:6px;margin:4px 0 32px}
+.kidTab{font:500 var(--fs-cap) var(--mono);color:var(--sec);border:1px solid var(--border);border-radius:999px;padding:6px 16px;background:none;cursor:pointer}
+.kidTab[aria-pressed="true"]{color:var(--ink);border-color:var(--border-s);background:var(--subtle)}
+.kidTab.add{border-style:dashed;color:var(--ter)}
+.metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:48px;margin:0 0 36px;padding-bottom:32px;border-bottom:1px solid var(--border)}
+.num{font:500 var(--fs-metric)/1 var(--mono);letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.num small{font-size:40%;color:var(--ter);font-weight:400}
+.cap{color:var(--sec);font-size:var(--fs-small);margin-top:8px}
+.note{font:400 var(--fs-micro) var(--mono);color:var(--ter);margin-top:4px}
+.secTitle{font:500 var(--fs-micro) var(--mono);color:var(--ter);margin:28px 0 4px}
+.rows>*{display:grid;grid-template-columns:110px 1fr auto;gap:18px;align-items:center;padding:16px 0;border-bottom:1px solid var(--border)}
+.rows>*:last-child{border-bottom:none}
+.when{font:400 var(--fs-micro) var(--mono);color:var(--ter);font-variant-numeric:tabular-nums}
+.ev{font-size:var(--fs-small)}
+.ev b{font-weight:500}
+.miss{color:var(--coral-t);font-weight:500}
+.gr{font:500 var(--fs-small) var(--mono)}
+.form{display:grid;gap:16px;max-width:380px}
+label.lbl{display:block;font:500 var(--fs-micro) var(--mono);color:var(--sec);margin-bottom:6px}
+.inp{width:100%;height:44px;border:1px solid var(--border-s);border-radius:10px;background:var(--surface);color:var(--ink);font:400 var(--fs-body) var(--ui);padding:0 14px}
+.inp:focus-visible{outline:none;border-color:var(--coral);box-shadow:0 0 0 3px rgba(225,78,31,.25)}
+.cCheck{display:flex;gap:12px;align-items:flex-start;font-size:var(--fs-small);cursor:pointer}
+.cCheck input{width:18px;height:18px;margin-top:3px;accent-color:var(--coral)}
+.btnP{font:500 var(--fs-body) var(--ui);color:#fff;background:var(--coral);border:none;border-radius:10px;height:46px;padding:0 28px;cursor:pointer}
+.emptyBox{text-align:center;padding:90px 0}
+.emptyBox h3{font-size:1.3rem;font-weight:600}
+.emptyBox p{color:var(--sec);max-width:46ch;margin:10px auto 26px}
+.q{margin-top:28px;padding:20px;border:1px dashed var(--border-s);border-radius:12px}
+.q h4{font:500 12px var(--mono);color:var(--coral-t);margin-bottom:8px}
+.q p{font-size:var(--fs-cap);color:var(--sec)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Атлас · Лист 08 — Кабинет родителя</h1>
+  <p class="sub">Родитель приходит с вопросом «как дела у ребёнка?». Ответ — три числа + лента событий; единственный акцент — пропуск без предупреждения. Несколько детей — вкладки. Добавление ребёнка = данные + согласие 152-ФЗ (родитель даёт его здесь же, он и есть законный представитель).</p>
+  <div class="bar" role="group">
+    <span class="grp">экран:</span>
+    <button data-k="view" data-v="summary" aria-pressed="true">сводка</button>
+    <button data-k="view" data-v="add" aria-pressed="false">добавить ребёнка</button>
+    <button data-k="view" data-v="empty" aria-pressed="false">пусто (нет детей)</button>
+    <span class="grp" style="margin-left:10px">вид:</span>
+    <button data-k="theme" data-v="dark" aria-pressed="false">тёмная</button>
+  </div>
+
+  <div class="screen">
+    <div class="topnav"><span class="dot"></span><b>flamingo</b><span class="avatar">ОИ</span></div>
+    <div class="page" data-view="summary" id="page">
+
+      <div class="view v-summary">
+        <span class="h-title">Дети</span>
+        <div class="kidsTabs">
+          <button class="kidTab" aria-pressed="true">Саша · 7 класс</button>
+          <button class="kidTab" aria-pressed="false">Мила · 3 класс</button>
+          <button class="kidTab add" aria-pressed="false">+ ребёнок</button>
+        </div>
+        <div class="metrics">
+          <div><div class="num">4.8</div><div class="cap">средняя оценка · июнь</div></div>
+          <div><div class="num">92<small>%</small></div><div class="cap">посещаемость</div></div>
+          <div><div class="num">81</div><div class="cap">внимание · среднее</div><div class="note">только агрегаты · анализ на устройстве ребёнка</div></div>
+        </div>
+        <p class="secTitle">СОБЫТИЯ</p>
+        <div class="rows">
+          <div><span class="when">сегодня 14:00</span><div class="ev">Алгебра — идёт сейчас, Саша подключён</div><span></span></div>
+          <div><span class="when">вчера 18:20</span><div class="ev">Домашнее по физике — <b>5, «отлично»</b></div><span class="gr">5</span></div>
+          <div><span class="when">30.06 16:30</span><div class="ev"><span class="miss">Пропуск:</span> Английский — без предупреждения</div><span></span></div>
+          <div><span class="when">29.06 12:00</span><div class="ev">Записан на курс «Физика: решаем вторую часть»</div><span></span></div>
+        </div>
+      </div>
+
+      <div class="view v-add">
+        <span class="h-title">Добавить ребёнка</span>
+        <div class="form" style="margin-top:28px">
+          <div><label class="lbl" for="k-n">имя и фамилия</label><input class="inp" id="k-n"></div>
+          <div><label class="lbl" for="k-bd">дата рождения</label><input class="inp" id="k-bd" placeholder="дд.мм.гггг"></div>
+          <div><label class="lbl" for="k-em">почта ребёнка (для входа)</label><input class="inp" id="k-em" type="email"></div>
+          <label class="cCheck"><input type="checkbox"><span>Я — родитель (законный представитель) и даю согласие на обработку данных ребёнка (152-ФЗ). Видео и биометрия не покидают устройство ребёнка.</span></label>
+          <button class="btnP">Создать аккаунт ребёнка</button>
+        </div>
+      </div>
+
+      <div class="view v-empty">
+        <div class="emptyBox">
+          <h3>Добавьте ребёнка</h3>
+          <p>Вы увидите расписание, оценки, посещаемость и сводку внимания — всё в одном месте.</p>
+          <button class="btnP">+ Добавить ребёнка</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="q">
+    <h4>ОТКРЫТЫЕ ВОПРОСЫ ВЛАДЕЛЬЦУ · лист 08</h4>
+    <p>1. Пропуск «без предупреждения» — акцент в ленте. Нужны ли родителю push/почта-уведомления о пропуске (модуль notifications)?<br>
+    2. Показывать ли родителю СПИСОК домашних с оценками отдельной вкладкой — или ленты событий достаточно?</p>
+  </div>
+</div>
+<script>
+const root=document.documentElement,page=document.getElementById('page');
+document.querySelectorAll('.bar button').forEach(b=>b.addEventListener('click',()=>{
+  const k=b.dataset.k,v=b.dataset.v;
+  if(k==='theme'){const on=b.getAttribute('aria-pressed')!=='true';b.setAttribute('aria-pressed',String(on));on?root.setAttribute('data-theme',v):root.removeAttribute('data-theme');return;}
+  page.dataset.view=v;document.querySelectorAll('[data-k="view"]').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));
+}));
+document.querySelectorAll('.kidTab:not(.add)').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('.kidTab:not(.add)').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));
+}));
+</script>
+</body>
+</html>
