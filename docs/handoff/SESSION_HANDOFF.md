@@ -7,6 +7,25 @@ This doc lets a fresh session resume cleanly. It references files by path — re
 
 ## 0. Current state — read this first
 
+🧹 **2026-07-13 — промпт №6, ФАЗА 1 (ИНВЕНТАРИЗАЦИЯ, ничего не удалено):** новый
+`docs/handoff/CLEAN_AUDIT_FINDINGS.md` — таблицы с file:line + доказательством по A (мёртвый
+код/деп/ассеты/i18n/CSS), B (роуты/GraphQL-контракт/SDL-дрейф/codegen/doc-rot/тесты), C
+(промисы/error-boundary/таймеры/деление/транзакции/секреты в истории). Гейты подтверждены:
+**BE 89 pytest** + ruff + `makemigrations --check` чисто; **FE 115 vitest** + codegen без diff
+(поправка: в промпте «88/121» устарело). **Ключевое:** секретов в истории НЕТ (C5 чисто, `.env`
+не трекается); ни одна FE-операция не ссылается на непостроенное SDL-поле (contract-runtime чист);
+деление в агрегациях защищено; таймеры/слушатели чистятся. Мал и низкориск actionable-набор:
+- **SAFE-удаления:** мёртвые экспорты `setTheme`/`UI_ROLES`/`isEmail`/`MAX_PARTICIPANTS` (0 внешних
+  ссылок), мёртвый CSS `.rowName`/`.rowMeta`/`.formGrid`/`.videoWrap`, i18n `common:actions.continue`.
+- **deps:** `celery` 100% не используется (нет `config/celery.py`/тасков/`CELERY_*`), `redis`
+  транзитивен через `channels-redis`; `graphql-ws` импортируется, но НЕ объявлен в package.json.
+- **doc-rot:** CLAUDE.md §4 обещает `config/celery.py` — файла нет.
+- **robustness:** НЕТ Error Boundary (любой throw → белый экран); `loadUbp().then` без `.catch`
+  (LiveRoomScreen:186); JWT-ключ < 32 байт (`SECRET_KEY=change-me` в .env.example).
+- **KEEP-DORMANT** (SEduM-NG): `ubp.ts` saveUbp/clearUbp, calibration.* ; **KEEP-PLANNED**: SDL-only
+  роуты (сертификаты/уведомления/ревью/дашборды/чат, 3 из 4 подписок), 404-страница.
+- **НУЖНО РЕШЕНИЕ** (6 пунктов) + предложенные Batch 1–4 — в отчёте. **ФАЗА 2 НЕ начата — жду добро.**
+
 🧩 **2026-07-06 — ревьюерские решения по отчёту №3 (три concern'а, три коммита):** гейт
 **BE 88→89 pytest** + ruff/black + `makemigrations --check` чисто; **FE build/lint + vitest 121→115**
 (−6: удалён ClassField.test).
