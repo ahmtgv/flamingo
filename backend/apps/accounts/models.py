@@ -30,6 +30,9 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
     is_email_verified = models.BooleanField(default=False)
+    # A-authz-3: bumped on logout / password-reset to invalidate every outstanding token
+    # (embedded as the `tv` claim; auth rejects a token whose tv != this).
+    token_version = models.PositiveIntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -109,3 +112,12 @@ class VerificationDocument(BaseModel):
     status = models.CharField(
         max_length=12, choices=choices(VerificationStatus), default=VerificationStatus.PENDING.value
     )
+
+
+class RevokedToken(BaseModel):
+    """A-authz-3: server-side revocation list for refresh-token ``jti``s. A refresh token whose
+    jti is here is rejected — used to invalidate the presented token on rotation (refresh) so a
+    rotated/leaked refresh token cannot be replayed. Expired entries are safe to prune."""
+
+    jti = models.UUIDField(unique=True)
+    expires_at = models.DateTimeField()

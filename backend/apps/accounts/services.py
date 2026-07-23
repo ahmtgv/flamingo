@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import datetime as dt
 import logging
 import secrets
 from datetime import date
@@ -9,6 +10,7 @@ from datetime import date
 from django.contrib.auth import authenticate
 from django.core import signing
 from django.db import transaction
+from django.db.models import F
 from django.utils import timezone
 
 from common.auth import decode_token, issue_tokens
@@ -27,6 +29,7 @@ from .models import (
     AdminProfile,
     Guardianship,
     ParentProfile,
+    RevokedToken,
     StudentProfile,
     TeacherProfile,
     User,
@@ -140,13 +143,34 @@ def login(*, email: str, password: str) -> tuple[User, dict[str, str]]:
     return user, issue_tokens(user)
 
 
+@transaction.atomic
 def refresh(refresh_token: str) -> tuple[User, dict[str, str]]:
     payload = decode_token(refresh_token, expected_type="refresh")
     try:
         user = User.objects.get(id=payload["sub"], is_active=True)
     except User.DoesNotExist as exc:
         raise AuthError("Invalid token") from exc
-    return user, issue_tokens(user)  # rotation: a fresh pair each refresh
+    # A-authz-3: reject a token from an invalidated session (logout/reset bumped token_version)
+    # or one that was already rotated/revoked (its jti is on the denylist).
+    if payload.get("tv") != user.token_version:
+        raise AuthError("Invalid token")
+    jti = payload.get("jti")
+    if jti is None or RevokedToken.objects.filter(jti=jti).exists():
+        raise AuthError("Invalid token")
+    # Rotation: revoke the presented refresh token so it cannot be replayed, then mint a fresh
+    # pair (with a new jti). expires_at follows the token's own exp so the row can be pruned.
+    RevokedToken.objects.get_or_create(
+        jti=jti,
+        defaults={"expires_at": dt.datetime.fromtimestamp(payload["exp"], tz=dt.UTC)},
+    )
+    return user, issue_tokens(user)
+
+
+def logout(user: User) -> bool:
+    """A-authz-3: revoke every outstanding token for the user (sign out on all devices) by
+    bumping token_version — subsequent access/refresh tokens with the old tv are rejected."""
+    User.objects.filter(id=user.id).update(token_version=F("token_version") + 1)
+    return True
 
 
 # --- guardianship ------------------------------------------------------------
@@ -289,4 +313,6 @@ def reset_password(token: str, new_password: str) -> None:
     except User.DoesNotExist as exc:
         raise NotFound("User not found") from exc
     user.set_password(new_password)
-    user.save(update_fields=["password"])
+    # A-authz-3: a password reset invalidates all existing sessions (bump token_version).
+    user.token_version = user.token_version + 1
+    user.save(update_fields=["password", "token_version"])

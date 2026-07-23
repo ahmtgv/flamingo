@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import datetime as dt
+import uuid
 from typing import Any
 
 import jwt
@@ -21,24 +22,25 @@ def _ttl_refresh() -> dt.timedelta:
     return dt.timedelta(days=getattr(settings, "REFRESH_TOKEN_LIFETIME_DAYS", 14))
 
 
-def _encode(user_id: Any, token_type: str, ttl: dt.timedelta) -> str:
+def _encode(user_id: Any, token_type: str, ttl: dt.timedelta, extra: dict | None = None) -> str:
     now = dt.datetime.now(dt.UTC)
     payload = {"sub": str(user_id), "type": token_type, "iat": now, "exp": now + ttl}
+    if extra:
+        payload.update(extra)
     return jwt.encode(payload, settings.SECRET_KEY, algorithm=ALGORITHM)
 
 
-def create_access_token(user_id: Any) -> str:
-    return _encode(user_id, "access", _ttl_access())
-
-
-def create_refresh_token(user_id: Any) -> str:
-    return _encode(user_id, "refresh", _ttl_refresh())
-
-
 def issue_tokens(user) -> dict[str, str]:
+    """Mint an access+refresh pair. Both carry the user's ``token_version`` (A-authz-3): a
+    logout/password-reset bumps it and instantly invalidates every outstanding token. The
+    refresh token additionally carries a unique ``jti`` so a rotated/revoked refresh token can
+    be denylisted individually (see accounts.services.refresh)."""
+    tv = getattr(user, "token_version", 0)
     return {
-        "token": create_access_token(user.id),
-        "refresh_token": create_refresh_token(user.id),
+        "token": _encode(user.id, "access", _ttl_access(), {"tv": tv}),
+        "refresh_token": _encode(
+            user.id, "refresh", _ttl_refresh(), {"tv": tv, "jti": str(uuid.uuid4())}
+        ),
     }
 
 
@@ -66,9 +68,14 @@ def authenticate_request(request):
     from apps.accounts.models import User
 
     try:
-        return User.objects.get(id=payload["sub"], is_active=True)
+        user = User.objects.get(id=payload["sub"], is_active=True)
     except (User.DoesNotExist, ValueError):
         return None
+    # A-authz-3: a token is valid only while its token_version matches the user's current one;
+    # logout / password-reset bump token_version, so stale access tokens are rejected here.
+    if payload.get("tv") != user.token_version:
+        return None
+    return user
 
 
 # --- resolver helpers -------------------------------------------------------

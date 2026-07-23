@@ -1,16 +1,23 @@
 """Service-level tests for the accounts domain."""
 
 from datetime import date
+from types import SimpleNamespace
 
 import pytest
+from django.core import signing
 
 from apps.accounts import services
 from apps.accounts.models import Guardianship, StudentProfile, TeacherProfile, User
 from common import storage
+from common.auth import authenticate_request
 from common.enums import AgeBand, GuardianshipStatus, Role
 from common.exceptions import AuthError, PermissionDenied, ValidationError
 
 pytestmark = pytest.mark.django_db
+
+
+def _auth_request(token: str):
+    return SimpleNamespace(META={"HTTP_AUTHORIZATION": f"Bearer {token}"})
 
 
 def test_register_student_creates_profile_and_age_band():
@@ -93,6 +100,57 @@ def test_login_wrong_password_fails():
     )
     with pytest.raises(AuthError):
         services.login(email="login2@example.com", password="wrong")
+
+
+# --- A-authz-3: refresh-token revocation ------------------------------------
+def test_logout_revokes_outstanding_tokens():
+    """logout bumps token_version, so the outstanding access token stops authenticating."""
+    services.register_user(
+        email="lo@example.com",
+        password="strongpass1!",
+        first_name="A",
+        last_name="B",
+        role=Role.PARENT,
+    )
+    user, tokens = services.login(email="lo@example.com", password="strongpass1!")
+    assert authenticate_request(_auth_request(tokens["token"])) is not None
+    services.logout(user)
+    assert authenticate_request(_auth_request(tokens["token"])) is None
+
+
+def test_refresh_rotates_and_revokes_the_presented_token():
+    """refresh mints a fresh pair and denylists the presented refresh token (no replay)."""
+    services.register_user(
+        email="rf@example.com",
+        password="strongpass1!",
+        first_name="A",
+        last_name="B",
+        role=Role.PARENT,
+    )
+    _u, tokens = services.login(email="rf@example.com", password="strongpass1!")
+    old_refresh = tokens["refresh_token"]
+    _u2, new_tokens = services.refresh(old_refresh)
+    assert new_tokens["refresh_token"] != old_refresh
+    assert authenticate_request(_auth_request(new_tokens["token"])) is not None
+    # replaying the rotated refresh token is rejected
+    with pytest.raises(AuthError):
+        services.refresh(old_refresh)
+
+
+def test_password_reset_invalidates_existing_sessions():
+    """A password reset bumps token_version, invalidating pre-reset refresh tokens."""
+    user = services.register_user(
+        email="rs@example.com",
+        password="strongpass1!",
+        first_name="A",
+        last_name="B",
+        role=Role.PARENT,
+    )
+    _u, tokens = services.login(email="rs@example.com", password="strongpass1!")
+    reset_token = signing.dumps({"uid": str(user.id)}, salt=services._RESET_SALT)
+    services.reset_password(reset_token, "newstrongpass2!")
+    with pytest.raises(AuthError):
+        services.refresh(tokens["refresh_token"])
 
 
 def test_add_child_creates_guardianship_with_consent():

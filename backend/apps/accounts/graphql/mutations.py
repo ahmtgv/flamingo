@@ -7,7 +7,7 @@ import datetime as dt
 import strawberry
 
 from apps.accounts import services
-from common.auth import issue_tokens, require_user
+from common.auth import get_current_user, issue_tokens, require_user
 from common.enums import Role
 
 from .types import AuthPayload, GuardianshipType, UserType, VerificationDocumentType
@@ -87,8 +87,12 @@ class AccountsMutation:
         return AuthPayload(token=tokens["token"], refresh_token=tokens["refresh_token"], user=user)
 
     @strawberry.mutation
-    def logout(self) -> bool:
-        # Stateless JWT: the client discards tokens. Refresh blocklist is future work.
+    def logout(self, info: strawberry.Info) -> bool:
+        # A-authz-3: server-side revocation — bump the user's token_version so every outstanding
+        # access/refresh token is rejected. Anonymous callers are a no-op success.
+        user = get_current_user(info)
+        if user is not None:
+            services.logout(user)
         return True
 
     @strawberry.mutation
