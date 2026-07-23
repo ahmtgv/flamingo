@@ -7,6 +7,28 @@ This doc lets a fresh session resume cleanly. It references files by path — re
 
 ## 0. Current state — read this first
 
+🔐 **2026-07-23 — промпт №9, ФАЗА 2 · ГРУППА 1 «БЕЗОПАСНОСТЬ» (по REVIEWER DECISIONS `14dd7c2`), СТОП на ревью:**
+все 4 security-эскалации закрыты, один концерн — один коммит, с anon/negative-тестами. Гейты:
+**BE 89→95 pytest** (+6) / ruff / black / `makemigrations --check` — чисто; **FE не тронут (131 vitest)**.
+- **A-authz-1/2 `961ef32`** — закрыт обход авторизации: `course→sections→lessons→materials` больше не
+  отдаёт закрытый контент анониму/незаписанному. Discovery = published-syllabus (курс + разделы +
+  заголовки опубликованных уроков); DRAFT — только владельцу; `description`/материалы — через
+  `can_access_course`. Логика в `courses/services` (`visible_lessons`/`lesson_content_visible`/
+  `visible_materials`), резолверы тонкие. +anon-тест (guest/stranger/enrolled/owner).
+- **A-152fz-1 `f0c8cd0`** — `UserType.email/phone` под field-authz (`services.contact_visible`): только
+  сам пользователь или ACTIVE-админ его учреждения; публичная карточка преподавателя = имя+специальность.
+  login/register/refresh ставят `request.user` → AuthPayload видит свой email. email/phone стали
+  nullable в ЖИВОЙ схеме (SDL держит `String!` — форвард-контракт, не регенерил).
+- **A-authz-4 `5e04279`** — `record_attention` гейтится участием в сессии (`can_access_course`), не-участник
+  → PermissionDenied, ничего не пишется/не броадкастится. studentId по-прежнему из auth (приватность цела).
+- **A-authz-3 `6ed51f4`** — серверный отзыв refresh-токенов: `User.token_version` (claim `tv`, миграция
+  accounts/0002) — logout и reset_password бампят его (отзыв всех токенов); `refresh` проверяет tv +
+  denylist `RevokedToken(jti)` и отзывает предъявленный refresh при ротации (реплей отклоняется).
+  logout-мутация теперь реально отзывает.
+- **Форма 8-скалярного эгресса / demo-preview / VITE_PREVIEW — не тронуты.** Дальше по очереди:
+  ГРУППА 2 «ЧИСТКА» (resilience→SAFE-REMOVE+deps→N+1→group_id) и ГРУППА 3 «UI» (AIR+SEduM null+docs).
+  **СТОП — жду ревью группы «Безопасность».**
+
 🔬 **2026-07-23 — промпт №9, ФАЗА 1 (глубокий аудит A–E + additive SAFE-фиксы), СТОП перед деструктивом:**
 новый `docs/handoff/DEEP_AUDIT_FINDINGS_2026-07.md` — исчерпывающий инвентарь (7 параллельных
 анализаторов, ~60 находок с file:line + доказательством + классификацией + NEEDS-DECISION). Гейты:
