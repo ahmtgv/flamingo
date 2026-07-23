@@ -112,8 +112,10 @@ def set_attendance(user, session_id, student_id, status) -> Attendance:
 # --- reads ------------------------------------------------------------------
 def my_schedule(user, start: dt.datetime, end: dt.datetime) -> list[LessonSession]:
     role = getattr(user, "role", None)
+    # select_related down to owner__user so LessonSession.teacherName (owner.user full name)
+    # resolves without an extra query per row (A-H1).
     qs = LessonSession.objects.filter(start_at__gte=start, start_at__lte=end).select_related(
-        "lesson__section__course"
+        "lesson__section__course__owner__user"
     )
     if role == Role.TEACHER.value:
         return list(qs.filter(lesson__section__course__owner_id=user.id))
@@ -129,7 +131,7 @@ def my_schedule(user, start: dt.datetime, end: dt.datetime) -> list[LessonSessio
 def get_session(user, session_id) -> LessonSession | None:
     session = (
         LessonSession.objects.filter(id=session_id)
-        .select_related("lesson__section__course")
+        .select_related("lesson__section__course__owner__user")
         .first()
     )
     if session is None:
@@ -143,7 +145,9 @@ def attendance_for(user, session: LessonSession) -> list[Attendance]:
     attendance list MUST NOT be exposed to non-owners — any other viewer gets an empty list."""
     course = session.lesson.section.course
     if user is not None and course.owner_id == getattr(user, "id", None):
-        return list(session.attendances.all())
+        # select_related student__user so each Attendance.student.user (name) is one query,
+        # not one per attendee (A-H1).
+        return list(session.attendances.select_related("student__user"))
     return []
 
 
