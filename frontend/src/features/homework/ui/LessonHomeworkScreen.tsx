@@ -306,7 +306,7 @@ function StudentHomeworkCard({ hw, onDone }: { hw: HomeworkRow; onDone: () => vo
         ) : (
           <Badge tone="neutral">{t('notSubmitted')}</Badge>
         )}
-        {sub?.score != null && <Badge tone="accent">{t('my.score', { n: sub.score })}</Badge>}
+        {sub?.score != null && <Badge tone="neutral">{t('my.score', { n: sub.score })}</Badge>}
       </div>
       {hw.description && <p className={styles.submissionBody}>{hw.description}</p>}
       {hw.dueAt && <p className={styles.muted}>{t('due', { date: formatDate(hw.dueAt) })}</p>}

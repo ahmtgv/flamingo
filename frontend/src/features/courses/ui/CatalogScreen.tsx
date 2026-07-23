@@ -63,7 +63,7 @@ export function CatalogScreen() {
                   onClick={() => navigate(`/courses/${c.id}`)}
                 >
                   <div className={styles.courseMetaRow} style={{ marginTop: 0 }}>
-                    <Badge tone="accent">{t(`level.${c.level}`)}</Badge>
+                    <Badge tone="neutral">{t(`level.${c.level}`)}</Badge>
                     <Badge tone={c.status === 'PUBLISHED' ? 'success' : 'neutral'}>
                       {t(`status.${c.status}`)}
                     </Badge>
@@ -96,7 +96,7 @@ export function CatalogScreen() {
                 className={styles.courseCard}
                 onClick={() => navigate(`/courses/${c.id}`)}
               >
-                <Badge tone="accent">{t(`level.${c.level}`)}</Badge>
+                <Badge tone="neutral">{t(`level.${c.level}`)}</Badge>
                 <div className={styles.courseTitle}>{c.title}</div>
                 {c.description && <div className={styles.courseDesc}>{c.description}</div>}
                 <div className={styles.courseTeacher}>

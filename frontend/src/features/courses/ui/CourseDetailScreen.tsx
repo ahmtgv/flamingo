@@ -104,7 +104,7 @@ export function CourseDetailScreen() {
           <>
             <div className={styles.detailHead}>
               <h1 className={styles.pageTitle}>{course.title}</h1>
-              <Badge tone="accent">{t(`level.${course.level}`)}</Badge>
+              <Badge tone="neutral">{t(`level.${course.level}`)}</Badge>
               {isOwner && (
                 <Badge tone={course.status === 'PUBLISHED' ? 'success' : 'neutral'}>
                   {t(`status.${course.status}`)}

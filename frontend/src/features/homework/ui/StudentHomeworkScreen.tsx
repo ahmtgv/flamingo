@@ -41,7 +41,7 @@ export function StudentHomeworkScreen() {
               <div className={styles.cardHead}>
                 <span className={styles.cardTitle}>{s.homework.title}</span>
                 <Badge tone={STATUS_TONE[s.status]}>{t(`status.${s.status}`)}</Badge>
-                {s.score != null && <Badge tone="accent">{t('my.score', { n: s.score })}</Badge>}
+                {s.score != null && <Badge tone="neutral">{t('my.score', { n: s.score })}</Badge>}
               </div>
               {s.comment && <p className={styles.submissionBody}>{s.comment}</p>}
             </div>

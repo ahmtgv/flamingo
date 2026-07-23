@@ -30,11 +30,13 @@ import { Badge, type BadgeTone, Button, ErrorState, Logo } from '@/shared/ui';
 
 import styles from './schedule.module.css';
 
+// AIR: exactly one coral accent per screen-state — LIVE is the "act now" state, so it carries
+// the accent; the rest are muted neutral (no green/red traffic-light, per approved sheet 05).
 const STATUS_TONE: Record<SessionStatus, BadgeTone> = {
   SCHEDULED: 'neutral',
-  LIVE: 'success',
+  LIVE: 'accent',
   ENDED: 'neutral',
-  CANCELED: 'error',
+  CANCELED: 'neutral',
 };
 
 function formatTime(iso: string): string {

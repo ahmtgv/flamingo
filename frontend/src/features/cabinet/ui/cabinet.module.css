@@ -54,8 +54,11 @@
   box-shadow: var(--focus-ring);
 }
 .navActive {
-  background: var(--color-accent-subtle);
-  color: var(--color-accent-text);
+  /* AIR: the active nav item is emphasised with a neutral surface + strong text, not coral —
+     coral is reserved for the single action-needed element on a screen. */
+  background: var(--color-surface-hover);
+  color: var(--color-text);
+  font-weight: var(--weight-medium);
 }
 .navItem:disabled {
   cursor: not-allowed;
@@ -208,16 +211,17 @@
   width: 36px;
   height: 36px;
   border-radius: var(--radius-sm);
-  background: var(--color-accent-subtle);
-  color: var(--color-accent-text);
+  /* AIR: decorative card icons are neutral, not coral (see .navActive). */
+  background: var(--color-surface-hover);
+  color: var(--color-text-secondary);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
 }
 .cardHeadIcon svg {
-  width: 18px;
-  height: 18px;
+  width: var(--icon-size-md);
+  height: var(--icon-size-md);
 }
 .cardTitle {
   font-family: var(--font-heading);
@@ -230,7 +234,8 @@
   font-size: var(--text-metric);
   font-weight: var(--weight-semibold);
   line-height: 1;
-  color: var(--color-accent-text);
+  /* AIR: the metric reads as a strong number, not a coral accent. */
+  color: var(--color-text);
 }
 
 /* Child cards */
