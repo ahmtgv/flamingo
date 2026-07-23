@@ -7,6 +7,32 @@ This doc lets a fresh session resume cleanly. It references files by path — re
 
 ## 0. Current state — read this first
 
+🖥️ **2026-07-23 — промпт №8, браузерный демо-слой ($0, всё в браузере, ноль egress):** превью-сборка
+(`VITE_PREVIEW=1`) теперь работает ПОЛНОСТЬЮ на синтетике в браузере — без сервера, без сети.
+Гейты: **FE 115 → 129 vitest** (+14 демо-тестов), `tsc -b` + `vite build` + `eslint` — зелено.
+Новый модуль `frontend/src/shared/demo/`: `demoRole` (`?role=` → student/teacher/parent/admin, дефолт
+teacher), `demoData` (типизированная синтетика по атласу — Гимназия №1 / Мария Петровна / Саша Иванов /
+Ольга И. / Галина А.), `resolveDemoOperation` (все query/mutation типизированы generated-типами; AddChild/
+Enroll оптимистично меняют in-memory стор; **ReportAttention — no-op, биометрия никуда не уходит**),
+`demoLink` (терминирующий ApolloLink; AttentionUpdates — синтетические тики), `DemoRoleSwitcher`
+(плавающий переключатель ролей, только в превью).
+- **Коммиты (один концерн — один коммит):** `d000d53` демо-слой+тесты+vite-env; `417a5b6` apolloClient→demoLink
+  (`VITE_PREVIEW` за флагом) + `useUpload` no-op (ноль PUT); `cd0d7c9` `PreviewRoom` (комната без камеры и
+  LiveKit: плейсхолдер-тайлы, у учителя синтетическое внимание + «нужно внимание» + отчёт, ученик своих
+  метрик НЕ видит); `3ace54c` role-switcher + App.
+- **Браузерная приёмка (localhost, VITE_PREVIEW=1):** все 4 кабинета наполнены — teacher (дашборд/каталог+
+  «Мои курсы»/деталь-конструктор/расписание с LIVE/грейдинг-очередь Тимур·Вера·Саша/комната с 8 тайлами
+  внимания+отчёт), student (дашборд/деталь «Вы записаны 33%»/домашки список+сдача/комната БЕЗ своих метрик),
+  parent (Саша+Мила), admin (Гимназия №1 + 6 участников, 2 «Ожидает» + 3 группы 7А/7Б/8А с ростерами).
+  **DevTools → Network: ноль POST `/graphql/`** (только Vite-модули GET). Консоль без ошибок.
+- **Обычный режим не сломан:** без флага `/app` → redirect `/login` (гейт входа активен), демо-слой выключен,
+  реальный split-link. Проверено live (сервер поднят с временным gitignored `.env.local`, удалён после).
+- **⚠️ Временно:** `VITE_PREVIEW` + весь `shared/demo/` + `PreviewRoom` + guard'ы в `apolloClient`/`useUpload`/
+  `LiveRoomScreen`/`App` — СНЯТЬ к реальному запуску (backend-задача отдельно). Все помечены комментарием
+  «TEMPORARY … remove with the demo layer».
+- **Побочно (вне рамок, зафлагано чипом):** на `ScheduleScreen.tsx:100` у кнопки выхода `aria-label` =
+  `common:actions.loading` («Загрузка…») вместо «Выйти» — предсуществующий a11y-баг, не трогал.
+
 🧹 **2026-07-13 — промпт №6, ФАЗА 1 (ИНВЕНТАРИЗАЦИЯ, ничего не удалено):** новый
 `docs/handoff/CLEAN_AUDIT_FINDINGS.md` — таблицы с file:line + доказательством по A (мёртвый
 код/деп/ассеты/i18n/CSS), B (роуты/GraphQL-контракт/SDL-дрейф/codegen/doc-rot/тесты), C
