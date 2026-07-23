@@ -12,9 +12,29 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # in dev, CI secrets) still win — this only fills what is unset.
 load_dotenv(BASE_DIR / ".env")
 
-SECRET_KEY = os.environ.get("SECRET_KEY", "dev-insecure-change-me")
+_INSECURE_SECRET = "dev-insecure-change-me"
+SECRET_KEY = os.environ.get("SECRET_KEY", _INSECURE_SECRET)
 DEBUG = os.environ.get("DEBUG", "1") == "1"
 ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "*").split(",")
+
+
+# A-settings hardening: dev-friendly defaults above stay permissive for local work, but a
+# production boot (DEBUG=0) must never run with a placeholder/weak SECRET_KEY or a wildcard
+# ALLOWED_HOSTS — fail fast rather than start insecurely.
+def _check_prod_security(debug: bool, secret_key: str, allowed_hosts: list[str]) -> None:
+    if debug:
+        return
+    from django.core.exceptions import ImproperlyConfigured
+
+    if secret_key == _INSECURE_SECRET or len(secret_key) < 32:
+        raise ImproperlyConfigured(
+            "SECRET_KEY must be set to a strong value (>= 32 chars) when DEBUG is off."
+        )
+    if "*" in allowed_hosts:
+        raise ImproperlyConfigured("ALLOWED_HOSTS must be an explicit host list when DEBUG is off.")
+
+
+_check_prod_security(DEBUG, SECRET_KEY, ALLOWED_HOSTS)
 
 INSTALLED_APPS = [
     "django.contrib.auth",
