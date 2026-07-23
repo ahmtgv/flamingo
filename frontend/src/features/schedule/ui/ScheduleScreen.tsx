@@ -97,7 +97,7 @@ export function ScheduleScreen() {
           >
             {goingDark ? <Moon size={ICON_MD} /> : <Sun size={ICON_MD} />}
           </button>
-          <button type="button" className={styles.iconBtn} onClick={() => void logout()} aria-label={t('common:actions.loading')}>
+          <button type="button" className={styles.iconBtn} onClick={() => void logout()} aria-label={t('common:actions.signOut')}>
             <LogOut size={ICON_MD} />
           </button>
         </div>

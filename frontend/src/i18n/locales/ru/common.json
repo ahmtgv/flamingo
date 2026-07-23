@@ -6,7 +6,8 @@
   "actions": {
     "back": "Назад",
     "continue": "Продолжить",
-    "loading": "Загрузка…"
+    "loading": "Загрузка…",
+    "signOut": "Выйти"
   },
   "theme": {
     "toLight": "Светлая тема",
