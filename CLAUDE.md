@@ -16,7 +16,7 @@ The differentiator is **SEduM** — on-device attention analysis (CMF) that pers
 6. **Design tokens, not literals.** No hardcoded colors/sizes/fonts in UI — consume semantic tokens from `tokens.css` (see design system).
 
 ## 3. Stack
-**Backend** — Python 3.12, Django 5, **Strawberry GraphQL** (`strawberry-django`), PostgreSQL 16, Celery + Redis, Django Channels (Redis channel layer) for GraphQL subscriptions over WebSocket (`graphql-ws`). ASGI (uvicorn). LiveKit (self-hosted) for video; the API only issues room tokens.
+**Backend** — Python 3.12, Django 5, **Strawberry GraphQL** (`strawberry-django`), PostgreSQL 16, Redis (Django Channels channel layer) for GraphQL subscriptions over WebSocket (`graphql-ws`). ASGI (uvicorn). LiveKit (self-hosted) for video; the API only issues room tokens. **Celery is DEFERRED** — no async tasks/worker are built yet (Redis is used only as the Channels layer, not a Celery broker).
 **Frontend** — **TypeScript**, React 18, Vite, **Apollo Client** (server cache/state), **Redux Toolkit** (local/UI state only), GraphQL Code Generator (typed operations), CSS Modules + `tokens.css` (no utility-CSS framework — the brand is custom). On-device ML: MediaPipe Tasks Vision (`FaceLandmarker`) in a Web Worker.
 **Infra** — Docker + docker-compose (dev); Kubernetes later; Yandex Cloud; S3-compatible object storage (Yandex Object Storage; MinIO locally).
 
@@ -26,18 +26,20 @@ The differentiator is **SEduM** — on-device attention analysis (CMF) that pers
 ```
 flamingo/
   backend/
-    config/            # Django project: settings/, asgi.py, urls.py, celery.py
+    config/            # Django project: settings.py + settings_test.py (a MODULE, not a settings/ package), asgi.py, urls.py (no celery.py — async is DEFERRED)
     common/            # BaseModel (uuid PK, timestamps, soft-delete), enums, permissions, storage (S3 keys)
-    apps/
-      accounts/        # USER, *_PROFILE, auth (JWT), GUARDIANSHIP, VERIFICATION_DOCUMENT
+    apps/              # BUILT: accounts, institutions, courses, scheduling, homework, seedum, files
+      accounts/        # USER, *_PROFILE, auth (JWT), GUARDIANSHIP, VERIFICATION_DOCUMENT, REVOKED_TOKEN
       institutions/    # INSTITUTION, INSTITUTION_MEMBERSHIP, GROUP, GROUP_MEMBERSHIP, GROUP_TEACHER
       courses/         # COURSE, SECTION, LESSON, MATERIAL, ENROLLMENT
       scheduling/      # LESSON_SESSION, ATTENDANCE, LiveKit room tokens
       homework/        # HOMEWORK, SUBMISSION, SUBMISSION_FILE, grading
       seedum/          # ATTENTION_METRIC, UBP_BACKUP, RECOMMENDATION, analytics rollups
-      engagement/      # ACHIEVEMENT, USER_ACHIEVEMENT, POINT_EVENT, REVIEW, leaderboard
-      certificates/    # CERTIFICATE + public verification
-      notifications/   # NOTIFICATION, NOTIFICATION_PREFERENCE, channel fan-out
+      files/           # presigned S3 upload tickets + bind-time validation
+      # --- FORWARD-PLAN (NOT built yet; models/apps to add later) ---
+      # engagement/    # ACHIEVEMENT, USER_ACHIEVEMENT, POINT_EVENT, REVIEW, leaderboard
+      # certificates/  # CERTIFICATE + public verification
+      # notifications/ # NOTIFICATION, NOTIFICATION_PREFERENCE, channel fan-out
     api/               # schema.py (root), each app exposes graphql/{types,queries,mutations,subscriptions}.py
     tests/
     pyproject.toml  Dockerfile
@@ -64,7 +66,7 @@ Models map 1:1 to `docs/flamingo_erd.md`. The API mirrors `docs/flamingo_schema.
 - Files: store only the object **key** (string). Uploads go through `requestUpload` → presigned S3 URL → client uploads → mutation receives `fileKey`. Never stream file bytes through GraphQL.
 - GraphQL resolvers stay **thin**: validate input, check permissions, delegate to a service function (`apps/<x>/services.py`). Business logic and DB writes live in services, not resolvers.
 - **Authorization is server-side and per-resolver/field.** Never trust a client-provided role or id for access decisions. A student can only read their own metrics/submissions; a parent only their linked children (via `GUARDIANSHIP`); a teacher only their courses/groups; an admin only their institution.
-- Celery tasks: recording post-processing, weekly parent digests, recommendation batch, certificate PDF generation. Redis is broker + channel layer.
+- Celery tasks (**DEFERRED — not built**): recording post-processing, weekly parent digests, recommendation batch, certificate PDF generation. Email/reset currently run inline (stubs). Redis is the Channels layer only (no Celery broker until async lands).
 - Subscriptions (`attentionUpdates`, `sessionStatusChanged`, `chatMessageReceived`, `notificationReceived`) run over Channels; `attentionUpdates` payloads are aggregates only.
 
 ## 6. Frontend conventions
@@ -91,7 +93,10 @@ docker compose -f infra/docker-compose.yml up
 cd backend
 python manage.py migrate
 uvicorn config.asgi:application --reload          # ASGI (HTTP + WS)
-python manage.py export_schema api.schema > ../docs/flamingo_schema.graphql   # keep SDL in sync
+python manage.py export_schema api.schema                                     # INSPECT the live schema only
+# NOTE: docs/flamingo_schema.graphql is a HAND-MAINTAINED forward contract — do NOT
+# overwrite it with export_schema. It intentionally leads the live schema (extra ops/types not yet
+# resolved) and differs cosmetically (User vs UserType, ID vs UUID). Record drift; hand-edit the SDL.
 pytest
 ruff check . && black .
 
