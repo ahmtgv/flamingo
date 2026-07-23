@@ -1,5 +1,11 @@
 import { GRAPHQL_HTTP_URL } from './env';
-import { clearSession, getRefreshToken, markUnauthenticated, setSession } from './session';
+import {
+  clearSession,
+  enterPreviewSession,
+  getRefreshToken,
+  markUnauthenticated,
+  setSession,
+} from './session';
 
 /**
  * Exchanges the stored refresh token for a fresh pair via a raw fetch, bypassing
@@ -47,6 +53,12 @@ export function refreshAccessToken(): Promise<boolean> {
 
 /** Restore a session on app boot: refresh if a token exists, else go anonymous. */
 export async function bootstrapSession(): Promise<void> {
+  // TEMPORARY: preview builds (VITE_PREVIEW=1) skip auth so the design can be
+  // browsed without a backend while testing. Remove before real launch.
+  if (import.meta.env.VITE_PREVIEW === '1') {
+    enterPreviewSession();
+    return;
+  }
   if (getRefreshToken()) {
     await refreshAccessToken();
   } else {

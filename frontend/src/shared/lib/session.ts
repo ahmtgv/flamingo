@@ -76,3 +76,14 @@ export function markUnauthenticated(): void {
   status = 'unauthenticated';
   emit();
 }
+
+/**
+ * TEMPORARY preview mode (VITE_PREVIEW=1): mark the session authenticated with no
+ * real token, so the app can be browsed without a backend while testing the design.
+ * Remove this together with the bootstrapSession() short-circuit before real launch.
+ */
+export function enterPreviewSession(): void {
+  accessToken = null;
+  status = 'authenticated';
+  emit();
+}
