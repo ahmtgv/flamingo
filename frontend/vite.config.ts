@@ -47,7 +47,10 @@ export default defineConfig({
     },
   },
   server: {
-    port: 5173,
+    // Honor a PORT assigned by the harness (preview autoPort) so the dev server binds the
+    // port the tooling expects; falls back to the conventional 5173 for a plain `npm run dev`.
+    port: Number(process.env.PORT) || 5173,
+    strictPort: false,
     // Forward GraphQL to the API so the browser stays same-origin (no CORS).
     proxy: {
       '/graphql': {
