@@ -68,8 +68,7 @@
   margin-left: auto;
   font-family: var(--font-mono);
   font-size: 0.625rem;
-  text-transform: uppercase;
-  letter-spacing: var(--tracking-wide);
+  /* uppercase + wide tracking is latin-only — keep the «скоро» tag in natural Cyrillic case. */
   color: var(--color-text-tertiary);
 }
 .navSep {

@@ -271,8 +271,7 @@
 .panelTitle {
   font-family: var(--font-heading);
   font-size: var(--text-overline);
-  text-transform: uppercase;
-  letter-spacing: var(--tracking-wide);
+  /* uppercase + wide tracking is latin-only (tokens.css) — natural Cyrillic case for the label. */
   font-weight: var(--weight-semibold);
   color: var(--color-text-secondary);
   margin-bottom: var(--space-3);
