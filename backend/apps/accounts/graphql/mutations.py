@@ -52,7 +52,7 @@ class AddChildInput:
 @strawberry.type
 class AccountsMutation:
     @strawberry.mutation
-    def register_user(self, input: RegisterUserInput) -> AuthPayload:
+    def register_user(self, info: strawberry.Info, input: RegisterUserInput) -> AuthPayload:
         s, t = input.student, input.teacher
         user = services.register_user(
             email=input.email,
@@ -69,16 +69,21 @@ class AccountsMutation:
             experience=getattr(t, "experience", None) if t else None,
         )
         tokens = issue_tokens(user)
+        # The caller is now authenticated as `user` for the rest of THIS request, so the
+        # AuthPayload's own user resolves self-visible contact fields (email/phone). A-152fz-1.
+        info.context.request.user = user
         return AuthPayload(token=tokens["token"], refresh_token=tokens["refresh_token"], user=user)
 
     @strawberry.mutation
-    def login(self, email: str, password: str) -> AuthPayload:
+    def login(self, info: strawberry.Info, email: str, password: str) -> AuthPayload:
         user, tokens = services.login(email=email, password=password)
+        info.context.request.user = user
         return AuthPayload(token=tokens["token"], refresh_token=tokens["refresh_token"], user=user)
 
     @strawberry.mutation
-    def refresh_token(self, refresh_token: str) -> AuthPayload:
+    def refresh_token(self, info: strawberry.Info, refresh_token: str) -> AuthPayload:
         user, tokens = services.refresh(refresh_token)
+        info.context.request.user = user
         return AuthPayload(token=tokens["token"], refresh_token=tokens["refresh_token"], user=user)
 
     @strawberry.mutation

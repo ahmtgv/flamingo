@@ -8,9 +8,9 @@ import strawberry
 import strawberry_django
 from strawberry import auto
 
-from apps.accounts import models
+from apps.accounts import models, services
 from common import storage
-from common.auth import require_user
+from common.auth import get_current_user, require_user
 from common.enums import (
     AgeBand,
     GuardianshipStatus,
@@ -103,13 +103,21 @@ class ParentProfileType:
 @strawberry_django.type(models.User)
 class UserType:
     id: auto
-    email: auto
-    phone: auto
     first_name: auto
     last_name: auto
     locale: auto
     is_active: auto
     created_at: auto
+
+    @strawberry_django.field
+    def email(self, info: strawberry.Info) -> str | None:
+        # 152-FZ (A-152fz-1): contact PII only to self or a same-institution ACTIVE admin;
+        # the public catalog owner / teacher card sees None.
+        return self.email if services.contact_visible(get_current_user(info), self) else None
+
+    @strawberry_django.field
+    def phone(self, info: strawberry.Info) -> str | None:
+        return self.phone if services.contact_visible(get_current_user(info), self) else None
 
     @strawberry_django.field
     def role(self) -> Role:

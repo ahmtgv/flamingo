@@ -12,7 +12,15 @@ from django.db import transaction
 from django.utils import timezone
 
 from common.auth import decode_token, issue_tokens
-from common.enums import AgeBand, GuardianshipStatus, Role, UploadPurpose, VerificationStatus
+from common.enums import (
+    AgeBand,
+    GuardianshipStatus,
+    MembershipRole,
+    MembershipStatus,
+    Role,
+    UploadPurpose,
+    VerificationStatus,
+)
 from common.exceptions import AuthError, NotFound, PermissionDenied, ValidationError
 
 from .models import (
@@ -213,6 +221,32 @@ def set_avatar(user: User, file_key: str) -> User:
     profile.avatar_key = file_key
     profile.save(update_fields=["avatar_key"])
     return user
+
+
+# --- contact PII visibility (A-152fz-1) --------------------------------------
+def contact_visible(viewer, target: User) -> bool:
+    """Whether ``viewer`` may see ``target``'s contact PII (email/phone). 152-FZ: contact data
+    is returned only to the user themselves or to an ACTIVE admin of an institution the target
+    belongs to. Anonymous and unrelated viewers (e.g. the public catalog / teacher card) get None.
+    """
+    if viewer is None or not getattr(viewer, "is_authenticated", False):
+        return False
+    if viewer.id == target.id:
+        return True
+    from apps.institutions.models import InstitutionMembership  # lazy: avoid app import cycle
+
+    admin_institution_ids = list(
+        InstitutionMembership.objects.filter(
+            user=viewer,
+            role=MembershipRole.ADMIN.value,
+            status=MembershipStatus.ACTIVE.value,
+        ).values_list("institution_id", flat=True)
+    )
+    if not admin_institution_ids:
+        return False
+    return InstitutionMembership.objects.filter(
+        user=target, institution_id__in=admin_institution_ids
+    ).exists()
 
 
 # --- teacher verification ----------------------------------------------------
