@@ -2,6 +2,7 @@ import { type ReactNode, useEffect } from 'react';
 
 import { DemoRoleSwitcher } from '@/shared/demo/DemoRoleSwitcher';
 import { bootstrapSession } from '@/shared/lib/refresh';
+import { ErrorBoundary } from '@/shared/ui';
 
 import { Providers } from './providers';
 import { AppRouter } from './router';
@@ -19,11 +20,13 @@ function Boot({ children }: { children: ReactNode }) {
 export function App() {
   return (
     <Providers>
-      <Boot>
-        <AppRouter />
-        {/* TEMPORARY: preview-only role switcher (remove with the demo layer). */}
-        {IS_PREVIEW && <DemoRoleSwitcher />}
-      </Boot>
+      <ErrorBoundary>
+        <Boot>
+          <AppRouter />
+          {/* TEMPORARY: preview-only role switcher (remove with the demo layer). */}
+          {IS_PREVIEW && <DemoRoleSwitcher />}
+        </Boot>
+      </ErrorBoundary>
     </Providers>
   );
 }

@@ -21,3 +21,4 @@ export { Card } from './Card/Card';
 export { Segmented } from './Segmented/Segmented';
 export type { SegmentedOption, SegmentedProps } from './Segmented/Segmented';
 export { Logo } from './Logo/Logo';
+export { ErrorBoundary } from './ErrorBoundary/ErrorBoundary';
