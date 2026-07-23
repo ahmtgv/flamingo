@@ -63,7 +63,7 @@ def _coerce_role(role) -> Role:
     return role if isinstance(role, Role) else Role(role)
 
 
-# --- email stubs (replaced by Celery email tasks) --------------------------
+# --- email stubs (inline for now; async delivery is deferred) --------------
 def _send_verification_email(user: User) -> None:
     token = signing.dumps({"uid": str(user.id)}, salt=_EMAIL_SALT)
     logger.info("verification email -> %s token=%s", user.email, token)

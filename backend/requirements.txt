@@ -4,7 +4,8 @@ strawberry-graphql[django]>=0.235
 strawberry-graphql-django>=0.40
 psycopg[binary]>=3.1
 PyJWT>=2.8
-celery>=5.3
+# redis is an explicit floor pin; it is also pulled transitively by channels-redis (the
+# GraphQL-subscriptions Channels layer). (Celery is deferred — no async tasks are built yet.)
 redis>=5.0
 channels>=4.1
 channels-redis>=4.2
