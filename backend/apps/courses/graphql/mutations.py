@@ -83,6 +83,8 @@ class CoursesMutation:
             description=input.description or "",
             language=input.language,
             cover_key=input.cover_key or "",
+            institution_id=input.institution_id,
+            group_id=input.group_id,
         )
 
     @strawberry.mutation
@@ -96,6 +98,8 @@ class CoursesMutation:
             description=input.description,
             language=input.language,
             cover_key=input.cover_key,
+            institution_id=input.institution_id,
+            group_id=input.group_id,
         )
 
     @strawberry.mutation

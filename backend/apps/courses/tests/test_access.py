@@ -152,3 +152,65 @@ def test_paid_course_access_via_group_membership():
     # the group member gets access (no individual enrollment); the outsider does not
     assert can_access_course(in_group, course) is True
     assert can_access_course(outsider, course) is False
+
+
+def test_create_course_persists_and_honors_institutional_group():
+    """A-drop-course-inst-group: create_course now PERSISTS the institutional group binding
+    (validated) — not via a manual DB update — and can_access_course honors it. A teacher who is
+    not a member of the institution cannot bind a course to its group."""
+    from apps.institutions.models import InstitutionMembership
+    from common.enums import MembershipRole, MembershipStatus
+    from common.exceptions import PermissionDenied
+
+    teacher = make_teacher()
+    in_group = make_student("ig2@example.com")
+    outsider = make_student("out2@example.com")
+    staff = accounts.register_user(
+        email="staff2@example.com",
+        password="strongpass1!",
+        first_name="S",
+        last_name="T",
+        role=Role.ADMIN,
+    )
+    staff.is_staff = True
+    staff.save(update_fields=["is_staff"])
+    admin = accounts.register_user(
+        email="adm2@example.com",
+        password="strongpass1!",
+        first_name="A",
+        last_name="D",
+        role=Role.ADMIN,
+    )
+    inst = institutions.create_institution(staff, name="Гимназия №2")
+    institutions.add_admin(staff, institution_id=inst.id, admin_user_id=admin.id)
+    group = institutions.create_group(admin, institution_id=inst.id, name="8Б")
+    institutions.add_students_to_group(admin, group.id, [in_group.id])
+    InstitutionMembership.objects.create(
+        user=teacher,
+        institution=inst,
+        role=MembershipRole.TEACHER.value,
+        status=MembershipStatus.ACTIVE.value,
+    )
+
+    # Bind THROUGH the service (not a raw update).
+    course = services.create_course(
+        teacher,
+        title="Курс",
+        subject="Математика",
+        level="grade_7",
+        institution_id=str(inst.id),
+        group_id=str(group.id),
+    )
+    services.publish_course(teacher, course.id)
+    course.refresh_from_db()
+    assert str(course.group_id) == str(group.id)
+    assert str(course.institution_id) == str(inst.id)
+    assert can_access_course(in_group, course) is True
+    assert can_access_course(outsider, course) is False
+
+    # A teacher who is NOT a member of the institution cannot bind to its group.
+    stranger = make_teacher("stranger.teacher@example.com")
+    with pytest.raises(PermissionDenied):
+        services.create_course(
+            stranger, title="X", subject="Математика", level="grade_7", group_id=str(group.id)
+        )

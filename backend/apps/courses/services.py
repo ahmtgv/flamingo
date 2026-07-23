@@ -13,6 +13,7 @@ from common.enums import (
     EnrollmentStatus,
     LessonStatus,
     MaterialType,
+    MembershipStatus,
     Role,
     UploadPurpose,
 )
@@ -65,6 +66,34 @@ def _owned_course(user, course_id) -> Course:
     return course
 
 
+def _resolve_institutional(user, institution_id, group_id):
+    """Validate + resolve (institution, group) for an institutional (Option A) course binding.
+    The acting teacher MUST be an ACTIVE member of the institution, and the group (if given) must
+    belong to it — this is what makes ``can_access_course``'s group path grant content access to
+    the group's students. B2C courses pass both as None → (None, None)."""
+    if institution_id is None and group_id is None:
+        return None, None
+    from apps.institutions.models import Group, Institution, InstitutionMembership
+
+    group = None
+    if group_id is not None:
+        group = Group.objects.select_related("institution").filter(id=group_id).first()
+        if group is None:
+            raise NotFound("Group not found")
+        institution = group.institution
+        if institution_id is not None and str(institution.id) != str(institution_id):
+            raise ValidationError("Group does not belong to the institution")
+    else:
+        institution = Institution.objects.filter(id=institution_id).first()
+        if institution is None:
+            raise NotFound("Institution not found")
+    if not InstitutionMembership.objects.filter(
+        user=user, institution=institution, status=MembershipStatus.ACTIVE.value
+    ).exists():
+        raise PermissionDenied("Not a member of this institution")
+    return institution, group
+
+
 def _owned_section(user, section_id) -> Section:
     section = Section.objects.filter(id=section_id).select_related("course").first()
     if section is None:
@@ -94,8 +123,11 @@ def create_course(
     description: str = "",
     language: str = "ru",
     cover_key: str = "",
+    institution_id=None,
+    group_id=None,
 ) -> Course:
     profile = _teacher_profile(user)
+    institution, group = _resolve_institutional(user, institution_id, group_id)
     return Course.objects.create(
         owner=profile,
         title=title,
@@ -104,6 +136,8 @@ def create_course(
         description=description or "",
         language=language or "ru",
         cover_key=cover_key or "",
+        institution=institution,
+        group=group,
     )
 
 
@@ -114,6 +148,14 @@ def update_course(user, course_id, **fields) -> Course:
     for key, value in fields.items():
         if key in allowed and value is not None:
             setattr(course, key, _val(value))
+    # Institutional (Option A) binding is validated, not set blindly (authz reach: group binding
+    # grants group-member content access via can_access_course).
+    if fields.get("institution_id") is not None or fields.get("group_id") is not None:
+        institution, group = _resolve_institutional(
+            user, fields.get("institution_id"), fields.get("group_id")
+        )
+        course.institution = institution
+        course.group = group
     course.save()
     return course
 
