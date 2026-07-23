@@ -7,6 +7,30 @@ This doc lets a fresh session resume cleanly. It references files by path — re
 
 ## 0. Current state — read this first
 
+🎨 **2026-07-23 — промпт №9, ФАЗА 2 · ГРУППА 3 «UI» (6 коммитов), СТОП на ревью:**
+Гейты: **FE 135 vitest / tsc / eslint / build — чисто; BE не тронут (102 pytest)**. Демо-слой/
+`VITE_PREVIEW`/8-скалярный эгресс не тронуты; SDL не регенерировался.
+- **Batch 6 (AIR-дисциплина, ТОЛЬКО существующие экраны, с before/after):** `03d5604` один
+  коралловый акцент на состояние (schedule: LIVE→коралл, CANCELED/ENDED→нейтраль, без green/red
+  светофора; каталог/деталь: уровень-бейдж→нейтраль; кабинет: актив-нав/иконки-карточек/число
+  баллов→нейтраль; ДЗ: оценка→нейтраль); `15e3753` кириллица sentence-case (auth .eyebrow,
+  cabinet .navSoon, courses .panelTitle — uppercase+tracking latin-only), eyebrow off-коралл;
+  `9e0f002` empty-state CTA (Empty.cta-слот; студ-дашборд «Открыть каталог»; каталог: search-empty
+  ≠ platform-empty + «Сбросить поиск»); `7b4243f` icon-токены (cabinet svg → `--icon-size-md`).
+- **SEduM (безопасное) `1f04a11` — C-display-1:** настоящий 0 («присутствует, но отвлёкся») теперь
+  СЧИТАЕТСЯ в среднем класса; «нет чтения» = отсутствие (no-face бакеты не репортятся → запись
+  устаревает → null, исключается), не 0. `classAverage`→`number|null`, учитель усредняет только
+  свежие чтения (вкл. 0), отчёт включает их. Эгресс из 8 скаляров НЕ тронут. EMA-float/C-RC3 —
+  ОТЛОЖЕНО до D0 владельца (как договорились).
+- **Docs `4f3f7ab` (недеструктивно):** README-статус (фронт построен + 7 backend-приложений, 102
+  pytest); CLAUDE.md §3/§5 Celery/async → DEFERRED; §4 config = модуль (нет celery.py), + files-app,
+  engagement/certificates/notifications помечены forward-plan; §8 export_schema = только инспекция
+  (SDL — ручной форвард-контракт, не перезаписывать). SDL drift зафиксирован (в DEEP_AUDIT E-sdl-8/9),
+  НЕ регенерировался.
+- **Осталось из аудита (отдельные задачи, НЕ в этой группе):** реализация атлас 03/04/05 в кабинеты/
+  расписание (D-state-1/2, D-hw-1); SEduM-NG (C-RC1/RC2/RC5, eval-harness, EMA-float) — после D0.
+  **СТОП — жду ревью группы «UI». Фаза 2 промпта №9 завершена.**
+
 🧹 **2026-07-23 — промпт №9, ФАЗА 2 · ГРУППА 2 «ЧИСТКА» (16 коммитов, один концерн — один), СТОП на ревью:**
 Гейты: **BE 95→102 pytest** (+7) / ruff / black / `makemigrations --check` — чисто; **FE 131→135 vitest** (+4)
 / tsc / eslint / build — чисто. Демо-слой/`VITE_PREVIEW`/8-скалярный эгресс не тронуты; SDL/docs — нет.
