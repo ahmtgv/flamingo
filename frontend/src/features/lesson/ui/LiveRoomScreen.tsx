@@ -25,6 +25,7 @@ import { type FieldStudent } from '../types';
 
 import { useLiveKitRoom } from '../livekit/useLiveKitRoom';
 import styles from './liveroom.module.css';
+import { PreviewRoom } from './PreviewRoom';
 import { VideoRoom } from './VideoRoom';
 
 /** Shared chrome. The CMF on-device privacy indicator stays (it is still true — see
@@ -477,7 +478,7 @@ function TeacherRoom({ sessionId, roomToken, isLive }: RoomProps) {
 }
 
 /** Live room. Role-aware: students publish + run on-device CMF; teachers watch. */
-export function LiveRoomScreen() {
+function LiveRoomRealScreen() {
   const { sessionId } = useParams<{ sessionId: string }>();
   const { data: meData, loading: meLoading } = useMeQuery();
   const { data: sessionData, loading: sessionLoading } = useSessionRoomQuery({
@@ -499,4 +500,11 @@ export function LiveRoomScreen() {
     teacherName: session?.teacherName ?? null,
   };
   return meData?.me?.role === 'TEACHER' ? <TeacherRoom {...props} /> : <StudentRoom {...props} />;
+}
+
+/** TEMPORARY: preview (VITE_PREVIEW=1) swaps the real LiveKit/CMF room for a camera-free,
+ *  network-free display shell. Remove with the demo layer before real launch. */
+export function LiveRoomScreen() {
+  if (import.meta.env.VITE_PREVIEW === '1') return <PreviewRoom />;
+  return <LiveRoomRealScreen />;
 }
