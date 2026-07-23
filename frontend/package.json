@@ -19,6 +19,7 @@
     "@mediapipe/tasks-vision": "^0.10.35",
     "@reduxjs/toolkit": "^2.5.0",
     "graphql": "^16.10.0",
+    "graphql-ws": "^6.0.8",
     "i18next": "^24.2.0",
     "idb": "^8.0.3",
     "livekit-client": "^2.19.2",
