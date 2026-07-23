@@ -7,6 +7,29 @@ This doc lets a fresh session resume cleanly. It references files by path — re
 
 ## 0. Current state — read this first
 
+🧹 **2026-07-23 — промпт №9, ФАЗА 2 · ГРУППА 2 «ЧИСТКА» (16 коммитов, один концерн — один), СТОП на ревью:**
+Гейты: **BE 95→102 pytest** (+7) / ruff / black / `makemigrations --check` — чисто; **FE 131→135 vitest** (+4)
+/ tsc / eslint / build — чисто. Демо-слой/`VITE_PREVIEW`/8-скалярный эгресс не тронуты; SDL/docs — нет.
+- **Batch 3 (resilience):** `62cbe34` shared **ErrorState** (atlas 11, «Повторить»→refetch) + error-ветки на
+  Catalog/CourseDetail/Schedule/StudentHomework/LessonHomework/Admin (раньше ошибка выглядела как «пусто»);
+  `954ea99` Cabinet больше НЕ выкидывает на /login при transient me-error (retry вместо bounce);
+  `e16bed4` LiveRoom initial-load — лоадер вместо пустого экрана.
+- **Batch 1 (SAFE-REMOVE, re-grep пруф в каждом):** `da3f774` celery-пин (redis/channels-redis сохранены,
+  explicit redis — floor с комментом); `67f2498` мёртвый CSS (cabinet .row/.rowName/.rowMeta/.formGrid;
+  liveroom .video/.videoWrap — videoroom .video НЕ тронут); `1f8842f` мёртвые i18n (auth home.*, common
+  actions.back/continue, courses detail.lessonDraft, schedule lessonForm.cancel, lesson joining/noAccess);
+  `dd11f4d` uiSlice setTheme; `f5142e7` seedum/.gitkeep.
+- **Batch 2 (deps/config):** `016c85b` graphql-ws задекларирован (был транзитивным); `0aacf8b` frontend
+  .env.example VITE_GRAPHQL_WS_URL; `2e61414` compose→CHANNELS_REDIS_URL (Redis channel-layer теперь
+  активируется); `097e8c3` prod fail-fast (DEBUG=0 + слабый SECRET_KEY/ALLOWED_HOSTS=* → отказ старта) +test.
+- **Batch 4 (N+1):** `c6fe57b` select_related teacherName + attendance-роутер; `07dd309` annotate
+  catalog lesson/enrollment counts (distinct → без умножения) +test.
+- **Batch 5 (group_id):** `7046237` create/update_course персистят+валидируют institution/group
+  (can_access_course честно даёт доступ члену группы) +test; `b472df0` schedule_session персистит group_id
+  в рамках институции курса +test.
+- **Дальше:** ГРУППА 3 «UI» — AIR-дисциплина только по существующим экранам (коралл/Cyrillic-регистр/
+  empty-CTA), SEduM no-face→null + C-display-1 (EMA/C-RC3 — ПОСЛЕ D0), docs-батч. **СТОП — жду ревью «Чистки».**
+
 🔐 **2026-07-23 — промпт №9, ФАЗА 2 · ГРУППА 1 «БЕЗОПАСНОСТЬ» (по REVIEWER DECISIONS `14dd7c2`), СТОП на ревью:**
 все 4 security-эскалации закрыты, один концерн — один коммит, с anon/negative-тестами. Гейты:
 **BE 89→95 pytest** (+6) / ruff / black / `makemigrations --check` — чисто; **FE не тронут (131 vitest)**.
