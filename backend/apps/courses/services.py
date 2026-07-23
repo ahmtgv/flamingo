@@ -346,6 +346,38 @@ def mark_lesson_viewed(user, lesson_id) -> Enrollment:
     return enrollment
 
 
+# --- content visibility (A-authz-1/2) ---------------------------------------
+def _is_course_owner(user, course: Course) -> bool:
+    if user is None or not getattr(user, "is_authenticated", False):
+        return False
+    return course.owner_id == user.id
+
+
+def visible_lessons(user, section: Section) -> list[Lesson]:
+    """Lessons of a section as a viewer may see them. The owner sees all (incl. DRAFT);
+    everyone else — enrolled or anonymous — sees only PUBLISHED lessons. Draft content stays
+    owner-only, while published titles are discovery-safe (atlas-04 "guest sees the program")."""
+    qs = section.lessons.all()
+    if not _is_course_owner(user, section.course):
+        qs = qs.filter(status=LessonStatus.PUBLISHED.value)
+    return list(qs)
+
+
+def lesson_content_visible(user, lesson: Lesson) -> bool:
+    """Whether a viewer may read a lesson's gated content (description + materials). Gated by
+    can_access_course (owner / institutional group / ACTIVE enrollment). Guests and unenrolled
+    users see only the published title (discovery), never the description/body/materials."""
+    return can_access_course(user, lesson.section.course)
+
+
+def visible_materials(user, lesson: Lesson) -> list[Material]:
+    """A lesson's materials for viewers who pass can_access_course; [] otherwise (a guest or
+    unenrolled viewer never sees material bodies/urls/files)."""
+    if not lesson_content_visible(user, lesson):
+        return []
+    return list(lesson.materials.all())
+
+
 # --- catalog ----------------------------------------------------------------
 def published_courses(*, level=None, subject=None, language=None, search=None):
     qs = Course.objects.filter(status=CourseStatus.PUBLISHED.value).select_related("owner__user")

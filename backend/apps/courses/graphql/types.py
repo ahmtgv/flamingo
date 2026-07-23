@@ -66,9 +66,18 @@ class Material:
 class Lesson:
     id: auto
     title: auto
-    description: auto
     duration_min: auto
     order: auto
+
+    @strawberry_django.field
+    def description(self, info: strawberry.Info) -> str | None:
+        # Gated content (A-authz-1): guests/unenrolled see the published title only, never the
+        # body. The owner and enrolled students (via can_access_course) see the description.
+        return (
+            self.description
+            if services.lesson_content_visible(get_current_user(info), self)
+            else None
+        )
 
     @strawberry_django.field
     def options(self) -> LessonOptions:
@@ -89,8 +98,9 @@ class Lesson:
         return LessonStatus(self.status)
 
     @strawberry_django.field
-    def materials(self) -> list[Material]:
-        return list(self.materials.all())
+    def materials(self, info: strawberry.Info) -> list[Material]:
+        # Gated content (A-authz-1): only enrolled/owner viewers see materials; [] otherwise.
+        return services.visible_materials(get_current_user(info), self)
 
 
 @strawberry_django.type(models.Section)
@@ -105,8 +115,10 @@ class Section:
         return f"/files/{self.cover_key}" if self.cover_key else None
 
     @strawberry_django.field
-    def lessons(self) -> list[Lesson]:
-        return list(self.lessons.all())
+    def lessons(self, info: strawberry.Info) -> list[Lesson]:
+        # A-authz-2: DRAFT lessons are owner-only; non-owners see published lessons (titles are
+        # discovery-safe). Gated content on each lesson (description/materials) is a further gate.
+        return services.visible_lessons(get_current_user(info), self)
 
 
 @strawberry_django.type(models.Enrollment)
