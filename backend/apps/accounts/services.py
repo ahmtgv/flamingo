@@ -216,6 +216,7 @@ def set_avatar(user: User, file_key: str) -> User:
 
 
 # --- teacher verification ----------------------------------------------------
+@transaction.atomic
 def submit_verification_document(user: User, file_key: str) -> VerificationDocument:
     if user.role != Role.TEACHER.value:
         raise PermissionDenied("Only a teacher can submit verification documents")
