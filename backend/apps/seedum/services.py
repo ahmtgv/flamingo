@@ -21,6 +21,7 @@ from django.db.models import Avg
 from django.db.models.functions import ExtractIsoWeekDay
 
 from apps.accounts.models import Guardianship
+from apps.courses.access import can_access_course
 from apps.courses.models import Enrollment
 from apps.courses.services import _student_profile
 from apps.scheduling.models import LessonSession
@@ -86,6 +87,10 @@ def record_attention(
 ) -> bool:
     profile = _student_profile(user)  # studentId == the auth user, never from input
     session = _get_session(session_id)
+    # A-authz-4: only a participant of THIS session may record attention (mirrors join_session's
+    # gate) — an authenticated student cannot inject rows into an arbitrary session.
+    if not can_access_course(user, session.lesson.section.course):
+        raise PermissionDenied("Not a participant of this session")
     value = max(0, min(100, int(avg_attention)))
     metric, _ = AttentionMetric.objects.update_or_create(
         lesson_session=session,

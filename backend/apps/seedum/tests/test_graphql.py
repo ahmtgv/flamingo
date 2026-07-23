@@ -55,6 +55,7 @@ def test_report_and_session_attention_through_schema(monkeypatch):
     lesson = courses.create_lesson(teacher, section.id, title="Урок 1", duration_min=40)
     courses.publish_lesson(teacher, lesson.id)
     courses.publish_course(teacher, course.id)
+    courses.enroll(student, course.id)  # A-authz-4: reporter must be a session participant
     session = LessonSession.objects.create(lesson=lesson, start_at=timezone.now())
 
     res = schema.execute_sync(

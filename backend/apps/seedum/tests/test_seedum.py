@@ -66,7 +66,8 @@ def test_record_attention_persists_and_derives_student(monkeypatch):
     monkeypatch.setattr(services, "get_channel_layer", lambda: fake)
     teacher = make_teacher()
     student = make_student()
-    _c, _l, session = setup_session(teacher)
+    course, _l, session = setup_session(teacher)
+    courses.enroll(student, course.id)  # A-authz-4: reporter must be a session participant
     now = timezone.now()
 
     assert (
@@ -101,6 +102,23 @@ def test_record_attention_persists_and_derives_student(monkeypatch):
     }
 
 
+def test_record_attention_rejects_non_participant(monkeypatch):
+    """A-authz-4: an authenticated but non-participant student cannot inject attention rows
+    into a session they have no access to."""
+    fake = _FakeLayer()
+    monkeypatch.setattr(services, "get_channel_layer", lambda: fake)
+    teacher = make_teacher()
+    stranger = make_student("stranger@example.com")
+    _course, _l, session = setup_session(teacher)  # stranger is NOT enrolled
+
+    with pytest.raises(PermissionDenied):
+        services.record_attention(
+            stranger, session_id=session.id, bucket_start=timezone.now(), avg_attention=90
+        )
+    assert not AttentionMetric.objects.filter(lesson_session=session).exists()
+    assert fake.sent == []  # nothing broadcast either
+
+
 def test_sub_metrics_are_broadcast_but_not_persisted(monkeypatch):
     """Sub-metrics ride the live broadcast (realtime teacher view) but are LIVE-ONLY: the stored
     row keeps only avg_attention (no migration / new columns)."""
@@ -108,7 +126,8 @@ def test_sub_metrics_are_broadcast_but_not_persisted(monkeypatch):
     monkeypatch.setattr(services, "get_channel_layer", lambda: fake)
     teacher = make_teacher()
     student = make_student()
-    _c, _l, session = setup_session(teacher)
+    course, _l, session = setup_session(teacher)
+    courses.enroll(student, course.id)  # A-authz-4: reporter must be a session participant
 
     services.record_attention(
         student,
@@ -160,7 +179,8 @@ def test_session_attention_teacher_only(monkeypatch):
     teacher = make_teacher()
     other = make_teacher("other@example.com")
     student = make_student()
-    _c, _l, session = setup_session(teacher)
+    course, _l, session = setup_session(teacher)
+    courses.enroll(student, course.id)  # A-authz-4: reporter must be a session participant
     base = timezone.now()
     for i, v in enumerate([60, 80, 40]):
         services.record_attention(
@@ -185,7 +205,8 @@ def test_attention_analytics_self_and_authz(monkeypatch):
     teacher = make_teacher()
     student = make_student()
     outsider = make_student("out@example.com")
-    _c, _l, session = setup_session(teacher)
+    course, _l, session = setup_session(teacher)
+    courses.enroll(student, course.id)  # A-authz-4: reporter must be a session participant
     services.record_attention(
         student, session_id=session.id, bucket_start=timezone.now(), avg_attention=85
     )
@@ -205,7 +226,8 @@ def test_recommendations_generated_and_dismissed(monkeypatch):
     monkeypatch.setattr(services, "get_channel_layer", lambda: _FakeLayer())
     teacher = make_teacher()
     student = make_student()
-    _c, _l, session = setup_session(teacher)
+    course, _l, session = setup_session(teacher)
+    courses.enroll(student, course.id)  # A-authz-4: reporter must be a session participant
     base = timezone.now()
     # attention drops over the session (early high, late low)
     for i, v in enumerate([90, 85, 80, 30, 25, 20]):
