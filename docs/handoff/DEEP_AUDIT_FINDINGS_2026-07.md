@@ -189,3 +189,32 @@ Gates after Phase 1: **backend 89 pytest / ruff / black / migrations clean**; **
 - **Batch 7 — SEduM SAFE-FIX (after owner D0):** EMA float (C-RC3).
 - **Security batches (on decision):** A-authz-1/2, A-152fz-1, A-authz-3, A-authz-4, A-drop-course-inst-group, A-settings hardening.
 - **Docs batch (on decision):** README + CLAUDE.md §3/§4/§5/§8 + schema.py docstring + SECRET_KEY placeholder.
+
+---
+
+## REVIEWER DECISIONS — Phase 1 accepted → Phase 2 go-ahead (2026-07-23)
+
+Phase 1 verified against git (commits `97c6703`, `d1ee240`, `3c3cf83`, `dd4b55d`, `c764ed9`; ErrorBoundary wraps the router in `App.tsx`; **A-authz-1 confirmed real** in `courses/graphql/types.py` — `sections/lessons/materials` resolvers ungated + no draft filter; `test_privacy.py` present). **Accepted.**
+
+**Escalation rulings (architect):**
+- **A-authz-1 / A-authz-2 → FIX.** Gate nested content behind `can_access_course`. Guest/unenrolled discovery = **published syllabus only** (course + section titles + published lesson titles + `lesson_count`). DRAFT lessons hidden from non-owners. Lesson `description`/body, TEXT material `body`, LINK `url`, material files → enrolled/owner only. Consistent with **atlas-04 "guest sees full program"** = titles/outline, NOT materials/bodies. Add anon-access regression tests.
+- **A-152fz-1 → FIX.** `UserType.email/phone` field-level authz (self + own-institution admin only). Public teacher card = name + specialty only.
+- **A-authz-3 (refresh revocation, A-H3) → FIX.** logout revokes; refresh rotates/invalidates the presented token; reset_password invalidates sessions. Server-side revocation list.
+- **A-authz-4 → FIX.** `record_attention` gated by session participation (attendee-only).
+- **A-drop-course-inst-group / group_id → FIX (persist + honor).** Persist `course.group`; `can_access_course` honors group membership (documented access path). +test.
+- **A-settings hardening → FIX.** Fail-fast in prod: `DEBUG=0` + default `SECRET_KEY` / `ALLOWED_HOSTS='*'` → refuse boot.
+- **D-auth-1 (consent <18) → PARTIAL now, full at launch.** FIX the consent-not-transmitted **bug** now (must carry `consent152fz`). Extending coverage to all <18 is correct per CLAUDE.md, but the teen-signup flow (age gate, parental email) is a launch-time product/legal item — LOW priority now (no real users).
+- **C-display-1 → DECIDE:** a genuine 0 (present-but-disengaged) **counts** in class avg; only no-face/no-reading is excluded (→ null). Pairs with the no-face-null safe fix.
+
+**Batch go-ahead + ordering:**
+1. **Security first:** A-authz-1/2, A-152fz-1, A-authz-4, A-authz-3 (one concern/commit, with anon-access tests).
+2. **Batch 3 (resilience)** — high value (fixes real-mode blank/bounce).
+3. **Batch 1 (SAFE-REMOVE)** + **Batch 2 (deps/config).** Keep `redis`/`channels-redis`; keep the explicit `redis` floor pin WITH a comment (no churn); SECRET_KEY placeholder ≥32.
+4. **Batch 4 (N+1)**, **Batch 5 (group_id).**
+5. **Batch 6 (AIR discipline)** — ONLY on existing screens; do **NOT** rebuild cabinets/schedule to atlas here (separate implementation effort). `app.name` → wire into `<title>`; upload-validation keys → add client validation (keep keys).
+6. **SEduM:** no-face → null + C-display-1 now (safe); **DEFER C-RC3 (EMA float) until owner D0.**
+7. **Docs batch** — GO; reviewer reviews. Fix README status, CLAUDE.md §3/§4/§5, mark celery/async deferred. SDL: record drift only, **NO regen/prune** (forward contract).
+
+**Out of scope for this audit (separate efforts):** implement approved atlas 03/04/05 into the app (D-state-1/2, D-hw-1); SEduM-NG (C-RC1/RC2/RC5, eval harness) — pending D0.
+
+**Guardrails:** one concern/commit; gates green each (base 89 pytest / 131 vitest); re-grep proof per removal; never touch `VITE_PREVIEW`/demo layer or the 8-scalar egress; SDL/docs non-destructive. Report per phase: hashes, gate numbers, files+reasons, screenshots (Batch 6), `SESSION_HANDOFF` §0.
