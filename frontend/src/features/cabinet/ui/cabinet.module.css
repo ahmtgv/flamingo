@@ -41,8 +41,8 @@
     color var(--duration-fast) var(--ease-standard);
 }
 .navItem svg {
-  width: 20px;
-  height: 20px;
+  width: var(--icon-size-md);
+  height: var(--icon-size-md);
   flex-shrink: 0;
 }
 .navItem:hover:not(:disabled) {
@@ -146,8 +146,8 @@
   box-shadow: var(--focus-ring);
 }
 .iconBtn svg {
-  width: 18px;
-  height: 18px;
+  width: var(--icon-size-md);
+  height: var(--icon-size-md);
 }
 
 .content {
