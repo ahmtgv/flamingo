@@ -26,7 +26,7 @@ import {
   useMyScheduleQuery,
   useStartSessionMutation,
 } from '@/entities/graphql/generated';
-import { Badge, type BadgeTone, Button, Logo } from '@/shared/ui';
+import { Badge, type BadgeTone, Button, ErrorState, Logo } from '@/shared/ui';
 
 import styles from './schedule.module.css';
 
@@ -61,7 +61,7 @@ export function ScheduleScreen() {
     return { from, to };
   }, []);
 
-  const { data, loading, refetch } = useMyScheduleQuery({ variables: range });
+  const { data, loading, error, refetch } = useMyScheduleQuery({ variables: range });
   const { data: meData } = useMeQuery();
   const isTeacher = meData?.me?.role === 'TEACHER';
 
@@ -110,7 +110,9 @@ export function ScheduleScreen() {
         <h1 className={styles.pageTitle}>{t('title')}</h1>
         <p className={styles.pageSub}>{t('subtitle')}</p>
 
-        {sessions.length === 0 ? (
+        {error && sessions.length === 0 ? (
+          <ErrorState onRetry={() => void refetch()} />
+        ) : sessions.length === 0 ? (
           <p className={styles.empty}>{loading ? t('common:actions.loading') : t('empty')}</p>
         ) : (
           sessions.map((s) => (

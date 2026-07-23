@@ -22,7 +22,7 @@ import {
   useUpdateInstitutionMutation,
   useUpdateMembershipMutation,
 } from '@/entities/graphql/generated';
-import { Badge, type BadgeTone, Button, Input, Select, SelectField, TextField } from '@/shared/ui';
+import { Badge, type BadgeTone, Button, ErrorState, Input, Select, SelectField, TextField } from '@/shared/ui';
 
 import { AdminLayout } from './AdminLayout';
 import styles from './admin.module.css';
@@ -42,7 +42,7 @@ type Group = InstitutionGroupsQuery['groups'][number];
 export function AdminInstitutionScreen() {
   const { t } = useTranslation(['admin', 'common']);
   const navigate = useNavigate();
-  const { data, loading, refetch } = useAdminInstitutionQuery();
+  const { data, loading, error, refetch } = useAdminInstitutionQuery();
   const institution = data?.me?.adminProfile?.institution ?? null;
 
   return (
@@ -52,7 +52,9 @@ export function AdminInstitutionScreen() {
           <ArrowLeft size={ICON_SM} /> {t('back')}
         </button>
         <h1 className={styles.pageTitle}>{t('title')}</h1>
-        {!institution ? (
+        {error && !institution ? (
+          <ErrorState onRetry={() => void refetch()} />
+        ) : !institution ? (
           <p className={styles.empty}>
             {loading ? t('common:actions.loading') : t('noInstitution')}
           </p>

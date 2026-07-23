@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
 import { type SubmissionStatus, useMySubmissionsQuery } from '@/entities/graphql/generated';
-import { Badge, type BadgeTone } from '@/shared/ui';
+import { Badge, type BadgeTone, ErrorState } from '@/shared/ui';
 
 import { HomeworkLayout } from './HomeworkLayout';
 import styles from './homework.module.css';
@@ -18,7 +18,7 @@ const STATUS_TONE: Record<SubmissionStatus, BadgeTone> = {
 export function StudentHomeworkScreen() {
   const { t } = useTranslation(['homework', 'common']);
   const navigate = useNavigate();
-  const { data, loading } = useMySubmissionsQuery();
+  const { data, loading, error, refetch } = useMySubmissionsQuery();
 
   const submissions = data?.mySubmissions ?? [];
 
@@ -31,7 +31,9 @@ export function StudentHomeworkScreen() {
         <h1 className={styles.pageTitle}>{t('my.title')}</h1>
         <p className={styles.pageSub}>{t('my.subtitle')}</p>
 
-        {submissions.length === 0 ? (
+        {error && submissions.length === 0 ? (
+          <ErrorState onRetry={() => void refetch()} />
+        ) : submissions.length === 0 ? (
           <p className={styles.empty}>{loading ? t('common:actions.loading') : t('my.empty')}</p>
         ) : (
           submissions.map((s) => (

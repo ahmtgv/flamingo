@@ -16,7 +16,7 @@ import {
   useSubmitHomeworkMutation,
 } from '@/entities/graphql/generated';
 import { useUpload } from '@/shared/lib/useUpload';
-import { Badge, type BadgeTone, Button, Checkbox, Input, TextArea, TextField } from '@/shared/ui';
+import { Badge, type BadgeTone, Button, Checkbox, ErrorState, Input, TextArea, TextField } from '@/shared/ui';
 
 import { HomeworkLayout } from './HomeworkLayout';
 import styles from './homework.module.css';
@@ -45,7 +45,7 @@ export function LessonHomeworkScreen() {
   const { t } = useTranslation(['homework', 'common']);
   const navigate = useNavigate();
   const { data: meData } = useMeQuery();
-  const { data, loading, refetch } = useLessonHomeworkQuery({
+  const { data, loading, error, refetch } = useLessonHomeworkQuery({
     variables: { lessonId },
     skip: !lessonId,
   });
@@ -67,7 +67,9 @@ export function LessonHomeworkScreen() {
 
         {isTeacher && <CreateHomeworkForm lessonId={lessonId} onDone={reload} />}
 
-        {items.length === 0 ? (
+        {error && items.length === 0 ? (
+          <ErrorState onRetry={() => void refetch()} />
+        ) : items.length === 0 ? (
           <p className={styles.empty}>
             {loading ? t('common:actions.loading') : isTeacher ? t('lesson.emptyTeacher') : t('lesson.empty')}
           </p>

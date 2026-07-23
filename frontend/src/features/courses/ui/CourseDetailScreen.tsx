@@ -41,7 +41,7 @@ import {
   useUpdateCourseMutation,
 } from '@/entities/graphql/generated';
 import { useUpload } from '@/shared/lib/useUpload';
-import { Badge, Button, Input, Select, SelectField, TextField } from '@/shared/ui';
+import { Badge, Button, ErrorState, Input, Select, SelectField, TextField } from '@/shared/ui';
 
 import { CoursesLayout } from './CoursesLayout';
 import styles from './courses.module.css';
@@ -66,7 +66,7 @@ export function CourseDetailScreen() {
   const { id = '' } = useParams();
   const { t } = useTranslation(['courses', 'common']);
   const navigate = useNavigate();
-  const { data, loading, refetch } = useCourseDetailQuery({ variables: { id }, skip: !id });
+  const { data, loading, error, refetch } = useCourseDetailQuery({ variables: { id }, skip: !id });
   const { data: meData } = useMeQuery();
 
   const [enroll, { loading: enrolling }] = useEnrollMutation();
@@ -96,7 +96,9 @@ export function CourseDetailScreen() {
           <ArrowLeft size={ICON_SM} /> {t('catalog.title')}
         </button>
 
-        {!course ? (
+        {error && !course ? (
+          <ErrorState onRetry={() => void refetch()} />
+        ) : !course ? (
           <p className={styles.empty}>{loading ? t('common:actions.loading') : t('catalog.empty')}</p>
         ) : (
           <>

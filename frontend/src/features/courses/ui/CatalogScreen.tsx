@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
 import { useCatalogQuery, useMeQuery, useMyCoursesQuery } from '@/entities/graphql/generated';
-import { Badge, Button, Input } from '@/shared/ui';
+import { Badge, Button, ErrorState, Input } from '@/shared/ui';
 
 import { CoursesLayout } from './CoursesLayout';
 import styles from './courses.module.css';
@@ -14,7 +14,7 @@ export function CatalogScreen() {
   const { t } = useTranslation(['courses', 'common']);
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
-  const { data, loading } = useCatalogQuery({
+  const { data, loading, error, refetch } = useCatalogQuery({
     variables: { first: 50, filter: search ? { search } : null },
   });
   const { data: meData } = useMeQuery();
@@ -83,7 +83,9 @@ export function CatalogScreen() {
           </>
         )}
 
-        {nodes.length === 0 ? (
+        {error && nodes.length === 0 ? (
+          <ErrorState onRetry={() => void refetch()} />
+        ) : nodes.length === 0 ? (
           <p className={styles.empty}>{loading ? t('common:actions.loading') : t('catalog.empty')}</p>
         ) : (
           <div className={styles.grid}>

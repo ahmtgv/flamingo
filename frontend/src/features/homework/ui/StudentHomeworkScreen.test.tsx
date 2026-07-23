@@ -36,4 +36,14 @@ describe('StudentHomeworkScreen', () => {
     expect(screen.getByText('Оценено')).toBeInTheDocument();
     expect(screen.getByText('Оценка: 92')).toBeInTheDocument();
   });
+
+  it('shows a retryable error state (not the empty placeholder) when the query fails (B-states-1)', async () => {
+    renderWithProviders(<StudentHomeworkScreen />, {
+      mocks: [{ request: { query: MySubmissionsDocument, variables: {} }, error: new Error('down') }],
+      route: '/homework',
+    });
+    const alert = await screen.findByRole('alert');
+    expect(alert).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Повторить' })).toBeInTheDocument();
+  });
 });
