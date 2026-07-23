@@ -3,17 +3,17 @@ import { describe, expect, it } from 'vitest';
 import { classAverage, freshValue, heldValue, pushSeries, summaryStats } from './attentionView';
 
 describe('attentionView (teacher live class attention)', () => {
-  it('classAverage ignores no-reading (0) students; 0 only when nobody is readable', () => {
+  it('classAverage counts genuine 0s (present-but-disengaged); null when no fresh readings', () => {
     expect(classAverage([88, 90])).toBe(89);
-    expect(classAverage([88, 0])).toBe(88); // a no-reading student does not drag the average down
+    expect(classAverage([88, 0])).toBe(44); // C-display-1: a present-but-disengaged 0 counts
     expect(classAverage([0, 0])).toBe(0);
-    expect(classAverage([])).toBe(0);
+    expect(classAverage([])).toBeNull(); // no fresh readings — caller holds the previous value
   });
 
-  it('heldValue holds the last value across a no-reading bucket (no decay to 0)', () => {
+  it('heldValue holds only across a no-reading gap (null); a genuine 0 replaces the held value', () => {
     expect(heldValue(89, 91)).toBe(91); // real bucket → update
-    expect(heldValue(89, 0)).toBe(89); // no reading → hold, never drop to 0
-    expect(heldValue(0, 0)).toBe(0); // nothing yet
+    expect(heldValue(89, 0)).toBe(0); // genuine 0 = everyone disengaged → real value, not a gap
+    expect(heldValue(89, null)).toBe(89); // no reading (stale/no-face) → hold
   });
 
   it('summaryStats uses real received buckets only — between-bucket zeros never counted', () => {

@@ -349,8 +349,15 @@ function TeacherRoom({ sessionId, roomToken, isLive }: RoomProps) {
         },
       };
       const students = Object.values(studentsRef.current);
-      const avg = classAverage(students.map((s) => s.value));
-      if (avg > 0) receivedRef.current.push(avg); // stats from real buckets only
+      // C-display-1: only students with a FRESH reading count. A genuine 0 (present but
+      // disengaged) IS counted; a silent/no-face student goes stale and is excluded (null),
+      // never read as 0. The report stats include those genuine 0s.
+      const nowMs = Date.now();
+      const freshValues = students
+        .filter((s) => nowMs - s.at <= CMF.liveAttentionStaleMs)
+        .map((s) => s.value);
+      const avg = classAverage(freshValues);
+      if (avg != null) receivedRef.current.push(avg);
       setView((prev) => ({ students, classAvg: heldValue(prev.classAvg, avg) }));
     },
   });

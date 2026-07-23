@@ -1,19 +1,21 @@
-// Pure helpers for the teacher's live class-attention view. The DATA is correct
-// (one aggregate per ~10s bucket); these keep the RENDERING honest:
-//  - a 0 means "no reading this bucket" (no face) — NOT "0 attention";
-//  - the live line HOLDS the last real value across no-reading buckets (no saw-tooth);
-//  - the summary is computed from real (non-zero) received buckets only — never from gaps.
+// Pure helpers for the teacher's live class-attention view. The DATA is correct (one aggregate
+// per ~10s bucket); these keep the RENDERING honest under the C-display-1 rule:
+//  - a genuine 0 = "present but fully disengaged" and COUNTS in the class average;
+//  - "no reading" is ABSENCE — no-face buckets are never reported, so the record goes stale
+//    (freshValue → null); such students are EXCLUDED from the average (not read as 0);
+//  - the live line HOLDS the last class value only across a no-reading gap (null), not a 0.
 
-/** Class average over students with a real (non-zero) reading this bucket; 0 if none. */
-export function classAverage(latestPerStudent: number[]): number {
-  const live = latestPerStudent.filter((v) => v > 0);
-  if (live.length === 0) return 0;
-  return Math.round(live.reduce((a, b) => a + b, 0) / live.length);
+/** Class average over the FRESH readings, INCLUDING genuine 0s (present-but-disengaged).
+ *  Returns null when there are no fresh readings — the caller holds the previous value. */
+export function classAverage(freshValues: number[]): number | null {
+  if (freshValues.length === 0) return null;
+  return Math.round(freshValues.reduce((a, b) => a + b, 0) / freshValues.length);
 }
 
-/** Step/hold: a no-reading bucket (avg 0) holds the previous value instead of decaying to 0. */
-export function heldValue(prevClassAvg: number, avg: number): number {
-  return avg > 0 ? avg : prevClassAvg;
+/** Hold the previous class average only across a no-reading gap (avg null); a genuine 0
+ *  (everyone present-but-disengaged) is a real value and replaces the held one. */
+export function heldValue(prevClassAvg: number, avg: number | null): number {
+  return avg == null ? prevClassAvg : avg;
 }
 
 /**
