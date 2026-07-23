@@ -12,6 +12,7 @@ import { GraphQLWsLink } from '@apollo/client/link/subscriptions';
 import { getMainDefinition } from '@apollo/client/utilities';
 import { createClient } from 'graphql-ws';
 
+import { demoLink } from '@/shared/demo/demoLink';
 import { GRAPHQL_HTTP_URL, GRAPHQL_WS_URL } from '@/shared/lib/env';
 import { refreshAccessToken } from '@/shared/lib/refresh';
 import { clearSession, getAccessToken, getRefreshToken } from '@/shared/lib/session';
@@ -69,7 +70,12 @@ const splitLink = split(
   httpChain,
 );
 
+// TEMPORARY: preview builds (VITE_PREVIEW=1) run entirely on the in-browser demo layer —
+// the demo link terminates every operation locally, so there is NO network traffic to
+// `/graphql/` (nothing leaves the device). Remove with the demo layer before real launch.
+const link = import.meta.env.VITE_PREVIEW === '1' ? demoLink : splitLink;
+
 export const apolloClient = new ApolloClient({
-  link: splitLink,
+  link,
   cache: new InMemoryCache(),
 });

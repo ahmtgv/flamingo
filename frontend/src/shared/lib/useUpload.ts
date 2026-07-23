@@ -17,6 +17,11 @@ export function useUpload() {
 
   const upload = useCallback(
     async (file: File, purpose: UploadPurpose): Promise<string> => {
+      // TEMPORARY: preview (VITE_PREVIEW=1) has no backend/S3 — resolve to a synthetic key
+      // WITHOUT any network (no requestUpload, no PUT), so nothing leaves the device.
+      if (import.meta.env.VITE_PREVIEW === '1') {
+        return `preview/${purpose.toLowerCase()}/${file.name}`;
+      }
       const contentType = file.type || 'application/octet-stream';
       const { data } = await requestUpload({
         variables: { input: { filename: file.name, contentType, purpose } },
