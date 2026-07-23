@@ -178,10 +178,18 @@ class Course:
 
     @strawberry_django.field
     def lesson_count(self) -> int:
+        # Use the catalog annotation when present (A-H1: no per-node COUNT); else fall back
+        # (e.g. course detail fetches a single course without the annotation).
+        annotated = getattr(self, "_lesson_count", None)
+        if annotated is not None:
+            return annotated
         return models.Lesson.objects.filter(section__course=self).count()
 
     @strawberry_django.field
     def enrollment_count(self) -> int:
+        annotated = getattr(self, "_enrollment_count", None)
+        if annotated is not None:
+            return annotated
         return self.enrollments.count()
 
     @strawberry_django.field

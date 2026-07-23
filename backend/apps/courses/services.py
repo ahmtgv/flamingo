@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from django.db import transaction
-from django.db.models import Max
+from django.db.models import Count, Max, Q
 
 from apps.accounts.models import StudentProfile, TeacherProfile
 from apps.files import services as files
@@ -380,7 +380,21 @@ def visible_materials(user, lesson: Lesson) -> list[Material]:
 
 # --- catalog ----------------------------------------------------------------
 def published_courses(*, level=None, subject=None, language=None, search=None):
-    qs = Course.objects.filter(status=CourseStatus.PUBLISHED.value).select_related("owner__user")
+    # Annotate the per-card counts so the catalog does not run 2 COUNT queries per course
+    # (A-H1). distinct=True avoids the multiple-aggregate row multiplication; the lesson count
+    # excludes soft-deleted lessons to match the Lesson (SoftDeleteManager) default.
+    qs = (
+        Course.objects.filter(status=CourseStatus.PUBLISHED.value)
+        .select_related("owner__user")
+        .annotate(
+            _lesson_count=Count(
+                "sections__lessons",
+                distinct=True,
+                filter=Q(sections__lessons__deleted_at__isnull=True),
+            ),
+            _enrollment_count=Count("enrollments", distinct=True),
+        )
+    )
     if level:
         qs = qs.filter(level=_val(level))
     if subject:
@@ -388,8 +402,6 @@ def published_courses(*, level=None, subject=None, language=None, search=None):
     if language:
         qs = qs.filter(language=language)
     if search:
-        from django.db.models import Q
-
         qs = qs.filter(Q(title__icontains=search) | Q(description__icontains=search))
     return qs.order_by("-created_at", "id")
 

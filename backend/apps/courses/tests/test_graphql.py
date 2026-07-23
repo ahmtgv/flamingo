@@ -213,3 +213,43 @@ def test_course_discovery_hides_gated_content_and_drafts():
     # Owner: sees the DRAFT lesson too.
     owner_titles = {lsn["title"] for lsn in sections_for(teacher)[0]["lessons"]}
     assert owner_titles == {"Открытый урок", "Черновик урока"}
+
+
+CATALOG_COUNTS = "query { catalog { nodes { id lessonCount enrollmentCount } } }"
+
+
+def test_catalog_counts_are_accurate_not_multiplied():
+    """A-H1: the annotated catalog counts equal the real counts. With BOTH multiple lessons
+    AND multiple enrollments on one course, a non-distinct annotate would multiply (2×2=4) —
+    assert distinct keeps them at 2/2."""
+    from apps.courses import services as courses
+
+    teacher = accounts.register_user(
+        email="cnt.teacher@example.com",
+        password="strongpass1!",
+        first_name="И",
+        last_name="П",
+        role=Role.TEACHER,
+        specialty="Математика",
+    )
+    course = courses.create_course(teacher, title="Счёт", subject="Математика", level="grade_7")
+    courses.publish_course(teacher, course.id)
+    section = courses.create_section(teacher, course.id, title="Раздел 1")
+    courses.create_lesson(teacher, section.id, title="Урок 1")
+    courses.create_lesson(teacher, section.id, title="Урок 2")
+    for i in range(2):
+        student = accounts.register_user(
+            email=f"cnt.s{i}@example.com",
+            password="strongpass1!",
+            first_name="С",
+            last_name="У",
+            role=Role.STUDENT,
+            birth_date=date(2008, 1, 1),
+        )
+        courses.enroll(student, course.id)
+
+    res = schema.execute_sync(CATALOG_COUNTS, context_value=_ctx())
+    assert res.errors is None, res.errors
+    node = next(n for n in res.data["catalog"]["nodes"] if n["id"] == str(course.id))
+    assert node["lessonCount"] == 2
+    assert node["enrollmentCount"] == 2
