@@ -479,6 +479,7 @@ function TeacherRoom({ sessionId, roomToken, isLive }: RoomProps) {
 
 /** Live room. Role-aware: students publish + run on-device CMF; teachers watch. */
 function LiveRoomRealScreen() {
+  const { t } = useTranslation('common');
   const { sessionId } = useParams<{ sessionId: string }>();
   const { data: meData, loading: meLoading } = useMeQuery();
   const { data: sessionData, loading: sessionLoading } = useSessionRoomQuery({
@@ -489,10 +490,17 @@ function LiveRoomRealScreen() {
   if (!sessionId) return <Navigate to="/schedule" replace />;
 
   const session = sessionData?.session ?? null;
-  // Loader ONLY on the initial load. An in-flight refetch keeps cached data, so we must
-  // NOT unmount the joined room (that would run useSharedCamera cleanup → stop the shared
-  // camera track → black tile + CMF→0). Once we have session data, never return null.
-  if ((meLoading || sessionLoading) && !session) return null;
+  // Loader ONLY on the initial load (B-states-3: a plain loader, not a blank screen). An
+  // in-flight refetch keeps cached data, so we must NOT unmount the joined room (that would run
+  // useSharedCamera cleanup → stop the shared camera track → black tile + CMF→0). Once we have
+  // session data, never render this loader.
+  if ((meLoading || sessionLoading) && !session) {
+    return (
+      <div className={styles.shell} style={{ alignItems: 'center', justifyContent: 'center' }}>
+        <p className={styles.note}>{t('actions.loading')}</p>
+      </div>
+    );
+  }
   const props: RoomProps = {
     sessionId,
     roomToken: session?.roomToken ?? null,
