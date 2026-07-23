@@ -36,14 +36,11 @@ const uiSlice = createSlice({
     toggleTheme(state) {
       state.theme = state.theme === 'light' ? 'dark' : 'light';
     },
-    setTheme(state, action: PayloadAction<Theme>) {
-      state.theme = action.payload;
-    },
     setAgeMode(state, action: PayloadAction<AgeMode>) {
       state.ageMode = action.payload;
     },
   },
 });
 
-export const { toggleTheme, setTheme, setAgeMode } = uiSlice.actions;
+export const { toggleTheme, setAgeMode } = uiSlice.actions;
 export default uiSlice.reducer;
