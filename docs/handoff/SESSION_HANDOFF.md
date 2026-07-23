@@ -7,6 +7,28 @@ This doc lets a fresh session resume cleanly. It references files by path — re
 
 ## 0. Current state — read this first
 
+🔬 **2026-07-23 — промпт №9, ФАЗА 1 (глубокий аудит A–E + additive SAFE-фиксы), СТОП перед деструктивом:**
+новый `docs/handoff/DEEP_AUDIT_FINDINGS_2026-07.md` — исчерпывающий инвентарь (7 параллельных
+анализаторов, ~60 находок с file:line + доказательством + классификацией + NEEDS-DECISION). Гейты:
+**BE 89 pytest / ruff / black / migrations — чисто; FE 129→131 vitest (+2 ErrorBoundary) / tsc / eslint /
+build — чисто.** Здоровье в целом хорошее: **инвариант приватности ДЕРЖИТСЯ и покрыт тестом**
+(`apps/seedum/tests/test_privacy.py`); **секретов в истории git НЕТ**; codegen свеж; миграции без дрейфа.
+- **Phase-1 additive-фиксы (закоммичены, не могут ничего сломать):** `97c6703` глобальный **ErrorBoundary**
+  (atlas 11, `common:crash.*`, +2 теста); `d1ee240` a11y — кнопка выхода ScheduleScreen озвучивает «Выйти»
+  (`common:actions.signOut`), не «Загрузка…»; `3c3cf83` `submit_verification_document` → `@transaction.atomic`;
+  `dd4b55d` `.env.example` → `CHANNELS_REDIS_URL`+`S3_REGION`.
+- **🔴 Топ-эскалации (NEEDS-DECISION, в отчёте):** **A-authz-1/2** — HIGH обход авторизации: аноним/незаписанный
+  читает закрытый контент урока (описания, тела/URL материалов, ДАЖE черновики) через discovery-путь
+  `course→sections→lessons→materials` (top-level `lesson()` закрыт, discovery — нет); **A-152fz-1** — email+phone
+  преподавателя утекают анониму через каталог/`teacher(id)`; **A-authz-3** — нет отзыва refresh-токена (A-H3);
+  **A-authz-4** — `record_attention` без проверки участия; **D-auth-1** — 152-ФЗ consent только для junior,
+  подростки <18 не покрыты. Фиксы меняют форму публичного API/схему → не делал односторонне.
+- **Phase-2 (жду добро):** SAFE-REMOVE (celery-пин, мёртвый CSS/i18n, `setTheme`, `seedum/.gitkeep` — все с
+  re-grep пруфом), deps (`graphql-ws`, compose `CHANNELS_REDIS_URL`), resilience (shared ErrorState + error-ветки
+  экранов, Cabinet me-error, LiveRoom loader), N+1 (catalog counts, select_related), `schedule_session` group_id,
+  UI/UX AIR (коралловая дисциплина, Cyrillic-регистр, empty-CTA), SEduM C-RC3 EMA-float (после D0), docs-партия,
+  security-партии по решениям. **СТОП — жду ревью Фазы 1.**
+
 🖥️ **2026-07-23 — промпт №8, браузерный демо-слой ($0, всё в браузере, ноль egress):** превью-сборка
 (`VITE_PREVIEW=1`) теперь работает ПОЛНОСТЬЮ на синтетике в браузере — без сервера, без сети.
 Гейты: **FE 115 → 129 vitest** (+14 демо-тестов), `tsc -b` + `vite build` + `eslint` — зелено.
