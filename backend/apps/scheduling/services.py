@@ -51,8 +51,20 @@ def _owned_session(user, session_id) -> LessonSession:
 
 # --- lifecycle --------------------------------------------------------------
 def schedule_session(user, *, lesson_id, start_at: dt.datetime, group_id=None) -> LessonSession:
-    _lesson_owned_by(user, lesson_id)
-    return LessonSession.objects.create(lesson_id=lesson_id, start_at=start_at)
+    lesson = _lesson_owned_by(user, lesson_id)
+    group = None
+    if group_id is not None:
+        # Institutional (Option A) session: the target group must belong to the course's
+        # institution (which was itself validated at course-creation). B2C sessions leave it null.
+        from apps.institutions.models import Group
+
+        group = Group.objects.filter(id=group_id).first()
+        if group is None:
+            raise NotFound("Group not found")
+        course = lesson.section.course
+        if course.institution_id is None or str(group.institution_id) != str(course.institution_id):
+            raise ValidationError("Group must belong to the course's institution")
+    return LessonSession.objects.create(lesson_id=lesson_id, start_at=start_at, group=group)
 
 
 def start_session(user, session_id) -> LessonSession:

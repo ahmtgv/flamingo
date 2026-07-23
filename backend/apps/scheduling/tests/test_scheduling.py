@@ -48,6 +48,73 @@ def _setup():
     return teacher, student, course, lesson
 
 
+def test_schedule_session_persists_group_within_institution():
+    """A-drop-session-group: schedule_session persists a target group when it belongs to the
+    course's institution; a group on a non-institutional course is rejected."""
+    from apps.institutions import services as institutions
+    from apps.institutions.models import InstitutionMembership
+    from common.enums import MembershipRole, MembershipStatus
+
+    teacher = accounts.register_user(
+        email="sg.teacher@e.com",
+        password="strongpass1!",
+        first_name="Т",
+        last_name="П",
+        role=Role.TEACHER,
+        specialty="Математика",
+    )
+    staff = accounts.register_user(
+        email="sg.staff@e.com",
+        password="strongpass1!",
+        first_name="S",
+        last_name="T",
+        role=Role.ADMIN,
+    )
+    staff.is_staff = True
+    staff.save(update_fields=["is_staff"])
+    admin = accounts.register_user(
+        email="sg.adm@e.com",
+        password="strongpass1!",
+        first_name="A",
+        last_name="D",
+        role=Role.ADMIN,
+    )
+    inst = institutions.create_institution(staff, name="Гимназия №3")
+    institutions.add_admin(staff, institution_id=inst.id, admin_user_id=admin.id)
+    group = institutions.create_group(admin, institution_id=inst.id, name="7А")
+    InstitutionMembership.objects.create(
+        user=teacher,
+        institution=inst,
+        role=MembershipRole.TEACHER.value,
+        status=MembershipStatus.ACTIVE.value,
+    )
+
+    inst_course = courses.create_course(
+        teacher,
+        title="Институт-курс",
+        subject="Математика",
+        level="grade_7",
+        institution_id=str(inst.id),
+        group_id=str(group.id),
+    )
+    inst_section = courses.create_section(teacher, inst_course.id, title="Раздел")
+    inst_lesson = courses.create_lesson(teacher, inst_section.id, title="Урок", duration_min=30)
+
+    session = scheduling.schedule_session(
+        teacher, lesson_id=inst_lesson.id, start_at=timezone.now(), group_id=str(group.id)
+    )
+    assert str(session.group_id) == str(group.id)
+
+    # A B2C course (no institution) cannot bind a session to a group.
+    b2c = courses.create_course(teacher, title="B2C", subject="Математика", level="grade_7")
+    b2c_section = courses.create_section(teacher, b2c.id, title="Р")
+    b2c_lesson = courses.create_lesson(teacher, b2c_section.id, title="У", duration_min=30)
+    with pytest.raises(ValidationError):
+        scheduling.schedule_session(
+            teacher, lesson_id=b2c_lesson.id, start_at=timezone.now(), group_id=str(group.id)
+        )
+
+
 def test_schedule_requires_owner():
     teacher, student, course, lesson = _setup()
     with pytest.raises(PermissionDenied):
