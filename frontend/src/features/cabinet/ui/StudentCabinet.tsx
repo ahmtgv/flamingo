@@ -1,8 +1,10 @@
-import { ICON_MD } from '@/shared/ui/iconSizes';
-import { BarChart3, BookOpen, Calendar, FileText, LayoutDashboard, ShieldCheck, Sparkles } from 'lucide-react';
+import { ICON_MD, ICON_SM } from '@/shared/ui/iconSizes';
+import { ArrowRight, BarChart3, BookOpen, Calendar, FileText, LayoutDashboard, ShieldCheck, Sparkles } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 
 import type { MeQuery } from '@/entities/graphql/generated';
+import { Button } from '@/shared/ui';
 
 import { CabinetLayout, type CabinetNavItem } from './CabinetLayout';
 import styles from './cabinet.module.css';
@@ -13,6 +15,7 @@ type Me = NonNullable<MeQuery['me']>;
 
 export function StudentCabinet({ me }: { me: Me }) {
   const { t } = useTranslation('cabinet');
+  const navigate = useNavigate();
   const sp = me.studentProfile;
   const isJunior = sp?.ageBand === 'JUNIOR';
 
@@ -71,7 +74,20 @@ export function StudentCabinet({ me }: { me: Me }) {
             </span>
             <span className={styles.cardTitle}>{t('student.courses')}</span>
           </div>
-          <Empty icon={<BookOpen size={ICON_MD} />} text={t('student.coursesEmpty')} />
+          <Empty
+            icon={<BookOpen size={ICON_MD} />}
+            text={t('student.coursesEmpty')}
+            cta={
+              <Button
+                variant="primary"
+                size="sm"
+                icon={<ArrowRight size={ICON_SM} />}
+                onClick={() => navigate('/courses')}
+              >
+                {t('student.openCatalog')}
+              </Button>
+            }
+          />
         </div>
 
         <div className={`${styles.card} ${styles.privacy}`}>

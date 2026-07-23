@@ -85,8 +85,18 @@ export function CatalogScreen() {
 
         {error && nodes.length === 0 ? (
           <ErrorState onRetry={() => void refetch()} />
+        ) : nodes.length === 0 && loading ? (
+          <p className={styles.empty}>{t('common:actions.loading')}</p>
+        ) : nodes.length === 0 && search ? (
+          // A no-match search is distinct from a genuinely empty catalog — offer a reset (D-state-3).
+          <div className={styles.empty}>
+            <p>{t('catalog.searchEmpty')}</p>
+            <Button variant="secondary" size="sm" onClick={() => setSearch('')}>
+              {t('catalog.reset')}
+            </Button>
+          </div>
         ) : nodes.length === 0 ? (
-          <p className={styles.empty}>{loading ? t('common:actions.loading') : t('catalog.empty')}</p>
+          <p className={styles.empty}>{t('catalog.empty')}</p>
         ) : (
           <div className={styles.grid}>
             {nodes.map((c) => (
