@@ -78,24 +78,6 @@
   opacity: 0;
   pointer-events: none;
 }
-.videoWrap {
-  position: relative;
-  width: 100%;
-  aspect-ratio: 16 / 9;
-  border-radius: var(--radius-control);
-  overflow: hidden;
-  background: var(--color-surface-hover);
-  display: none;
-}
-.videoWrap[data-active='true'] {
-  display: block;
-}
-.video {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transform: scaleX(-1); /* mirror the self-view */
-}
 .liveBadge {
   position: absolute;
   top: var(--space-2);

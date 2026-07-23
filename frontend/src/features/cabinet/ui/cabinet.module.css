@@ -233,26 +233,6 @@
   color: var(--color-accent-text);
 }
 
-/* Generic row */
-.row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-3);
-  padding: var(--space-3) 0;
-  border-bottom: 1px solid var(--color-border);
-}
-.row:last-child {
-  border-bottom: 0;
-}
-.rowName {
-  font-size: var(--text-body);
-}
-.rowMeta {
-  font-size: var(--text-caption);
-  color: var(--color-text-tertiary);
-}
-
 /* Child cards */
 .childCard {
   display: flex;
@@ -364,16 +344,6 @@
   gap: var(--space-3);
   margin-bottom: var(--space-4);
   flex-wrap: wrap;
-}
-.formGrid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0 var(--space-3);
-}
-@media (max-width: 520px) {
-  .formGrid {
-    grid-template-columns: 1fr;
-  }
 }
 .formError {
   display: flex;
