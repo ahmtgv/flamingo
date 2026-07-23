@@ -1,0 +1,118 @@
+/**
+ * TEMPORARY browser demo dataset (VITE_PREVIEW=1) — synthetic, client-only, $0.
+ *
+ * A single source of truth for the preview personas + entities, aligned with the design
+ * atlas (docs/design-previews/atlas/): Гимназия №1, teacher Мария Петровна, student
+ * Саша Иванов, parent Ольга И., admin Галина А., the «Алгебра» course + live session, etc.
+ *
+ * Nothing here ever leaves the device: the demo Apollo link resolves entirely in-memory
+ * (see demoLink.ts / resolveDemoOperation.ts). Remove this module with the VITE_PREVIEW
+ * short-circuit before real launch.
+ */
+import type { AgeBand, MeQuery } from '@/entities/graphql/generated';
+
+// --- shared user leaf refs (id + name [+ email]) -----------------------------------------
+type UserRef = {
+  __typename: 'User';
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+};
+
+export const users = {
+  sasha: { __typename: 'User', id: 'u-sasha', firstName: 'Саша', lastName: 'Иванов', email: 'sasha@example.ru' },
+  maria: { __typename: 'User', id: 'u-maria', firstName: 'Мария', lastName: 'Петровна', email: 'maria@gymnasium1.ru' },
+  ilya: { __typename: 'User', id: 'u-ilya', firstName: 'Илья', lastName: 'Сергеевич', email: 'ilya@gymnasium1.ru' },
+  dmitry: { __typename: 'User', id: 'u-dmitry', firstName: 'Дмитрий', lastName: 'Абрамов', email: 'dmitry@gymnasium1.ru' },
+  olga: { __typename: 'User', id: 'u-olga', firstName: 'Ольга', lastName: 'Иванова', email: 'olga@example.ru' },
+  galina: { __typename: 'User', id: 'u-galina', firstName: 'Галина', lastName: 'Андреева', email: 'admin@gymnasium1.ru' },
+  mila: { __typename: 'User', id: 'u-mila', firstName: 'Мила', lastName: 'Иванова', email: 'mila@example.ru' },
+  vera: { __typename: 'User', id: 'u-vera', firstName: 'Вера', lastName: 'Смирнова', email: 'vera@example.ru' },
+  timur: { __typename: 'User', id: 'u-timur', firstName: 'Тимур', lastName: 'Ибрагимов', email: 'timur@example.ru' },
+  kostya: { __typename: 'User', id: 'u-kostya', firstName: 'Костя', lastName: 'Орлов', email: 'kostya@example.ru' },
+  liza: { __typename: 'User', id: 'u-liza', firstName: 'Лиза', lastName: 'Козлова', email: 'liza@example.ru' },
+  mark: { __typename: 'User', id: 'u-mark', firstName: 'Марк', lastName: 'Волков', email: 'mark@example.ru' },
+  anya: { __typename: 'User', id: 'u-anya', firstName: 'Аня', lastName: 'Морозова', email: 'anya@example.ru' },
+  dima: { __typename: 'User', id: 'u-dima', firstName: 'Дима', lastName: 'Соколов', email: 'dima@example.ru' },
+  annaR: { __typename: 'User', id: 'u-anna-r', firstName: 'Анна', lastName: 'Рожкова', email: 'anna.r@example.ru' },
+  petrK: { __typename: 'User', id: 'u-petr-k', firstName: 'Пётр', lastName: 'Ковалёв', email: 'petr.k@example.ru' },
+} satisfies Record<string, UserRef>;
+
+// The live-session cohort (8 pupils) with a live attention score — used by the teacher's
+// class view / preview room (avgAttention only; Тимур is the «нужно внимание» outlier).
+export const cohort: { user: UserRef; attention: number }[] = [
+  { user: users.sasha, attention: 86 },
+  { user: users.vera, attention: 72 },
+  { user: users.timur, attention: 41 },
+  { user: users.kostya, attention: 64 },
+  { user: users.liza, attention: 78 },
+  { user: users.mark, attention: 69 },
+  { user: users.anya, attention: 81 },
+  { user: users.dima, attention: 74 },
+];
+
+// --- canonical ids -----------------------------------------------------------------------
+export const IDS = {
+  institution: 'inst-gymnasium-1',
+  course: { algebra: 'c-algebra', english: 'c-english', physics: 'c-physics', geometry: 'c-geometry' },
+  session: { live: 'ses-algebra-live', english: 'ses-english', physics: 'ses-physics', past: 'ses-past', canceled: 'ses-canceled' },
+  homework: { linear: 'hw-linear', present: 'hw-present', motion: 'hw-motion', essay: 'hw-essay' },
+  group: { g7a: 'grp-7a', g7b: 'grp-7b', g8a: 'grp-8a' },
+} as const;
+
+// --- time helpers (relative to the real run date, so «сегодня» always reads as today) ----
+function at(dayOffset: number, h: number, m: number): string {
+  const d = new Date();
+  d.setDate(d.getDate() + dayOffset);
+  d.setHours(h, m, 0, 0);
+  return d.toISOString();
+}
+export const times = {
+  todayLive: at(0, 14, 0),
+  todayLiveEnd: at(0, 14, 45),
+  todayEnglish: at(0, 16, 30),
+  tomorrowPhysics: at(1, 10, 0),
+  yesterdayPast: at(-1, 14, 0),
+  yesterdayCanceled: at(-1, 17, 0),
+};
+
+// --- mutable store (optimistic in-memory updates for a few visible flows) ----------------
+type MeChild = NonNullable<NonNullable<MeQuery['me']>['parentProfile']>['children'][number];
+
+const initialChildren: MeChild[] = [
+  { __typename: 'StudentProfile', ageBand: 'TEEN', gradeLevel: '7 класс', user: { __typename: 'User', id: users.sasha.id, firstName: users.sasha.firstName, lastName: users.sasha.lastName } },
+  { __typename: 'StudentProfile', ageBand: 'JUNIOR', gradeLevel: '3 класс', user: { __typename: 'User', id: users.mila.id, firstName: users.mila.firstName, lastName: users.mila.lastName } },
+];
+
+export const store = {
+  /** Parent's linked children — AddChild appends here so refetch(Me) reflects it. */
+  children: [...initialChildren],
+  /** Course ids the student is enrolled in — Enroll/Unenroll toggle these. */
+  enrolled: new Set<string>([IDS.course.algebra]),
+  /** Monotonic counter for synthetic ids minted by create-mutations. */
+  seq: 1000,
+};
+
+export function resetDemoStore(): void {
+  store.children = [...initialChildren];
+  store.enrolled = new Set<string>([IDS.course.algebra]);
+  store.seq = 1000;
+}
+
+export function nextId(prefix: string): string {
+  store.seq += 1;
+  return `${prefix}-${store.seq}`;
+}
+
+/** Build a fresh MeChild for AddChild (ageBand inferred loosely from the grade text). */
+export function makeChild(firstName: string, lastName: string, gradeLevel: string | null): MeChild {
+  const gradeNum = gradeLevel ? parseInt(gradeLevel, 10) : NaN;
+  const ageBand: AgeBand = !Number.isNaN(gradeNum) && gradeNum <= 4 ? 'JUNIOR' : 'TEEN';
+  return {
+    __typename: 'StudentProfile',
+    ageBand,
+    gradeLevel,
+    user: { __typename: 'User', id: nextId('u-child'), firstName, lastName: lastName || '' },
+  };
+}
