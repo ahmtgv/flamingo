@@ -442,6 +442,8 @@ type TeacherDashboard {
   courses: [Course!]!
   upcomingSessions: [LessonSession!]!
   pendingSubmissions: [Submission!]!
+  studentCount: Int!
+  newStudentsThisWeek: Int!
   classAttentionAverage: Int
 }
 

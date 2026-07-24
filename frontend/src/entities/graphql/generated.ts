@@ -1330,7 +1330,9 @@ export type TeacherDashboard = {
   __typename?: 'TeacherDashboard';
   classAttentionAverage?: Maybe<Scalars['Int']['output']>;
   courses: Array<Course>;
+  newStudentsThisWeek: Scalars['Int']['output'];
   pendingSubmissions: Array<Submission>;
+  studentCount: Scalars['Int']['output'];
   upcomingSessions: Array<LessonSession>;
 };
 

@@ -465,3 +465,24 @@ def teacher_courses(user) -> list[Course]:
     if profile is None:
         return []
     return list(Course.objects.filter(owner=profile).order_by("-created_at", "id"))
+
+
+def teacher_student_count(user) -> int:
+    """Distinct students enrolled across the teacher's own courses (0 for non-teachers)."""
+    if getattr(user, "role", None) != Role.TEACHER.value:
+        return 0
+    return (
+        Enrollment.objects.filter(course__owner__user=user).values("student_id").distinct().count()
+    )
+
+
+def teacher_new_students_this_week(user, since) -> int:
+    """Distinct students who enrolled in the teacher's courses on/after ``since`` (weekly delta)."""
+    if getattr(user, "role", None) != Role.TEACHER.value:
+        return 0
+    return (
+        Enrollment.objects.filter(course__owner__user=user, created_at__gte=since)
+        .values("student_id")
+        .distinct()
+        .count()
+    )

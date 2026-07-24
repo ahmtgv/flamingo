@@ -52,6 +52,52 @@ def make_homework(teacher, lesson, **kw):
     )
 
 
+# --- teacher dashboard: grading queue + student counts (atlas 03) -----------
+def test_teacher_pending_submissions_is_owner_scoped():
+    """The grading queue = pending (SUBMITTED/LATE) submissions on the teacher's OWN courses,
+    oldest first. A teacher never sees another teacher's queue; grading drops it; non-teacher → [].
+    """
+    teacher_a = make_teacher("dash.a@example.com")
+    teacher_b = make_teacher("dash.b@example.com")
+    student = make_student("dash.s@example.com")
+    other = make_student("dash.o@example.com")
+
+    course_a, lesson_a = published_course_with_lesson(teacher_a)
+    hw_a = make_homework(teacher_a, lesson_a)
+    services.publish_homework(teacher_a, hw_a.id)
+    courses.enroll(student, course_a.id)
+    sub_a = services.submit_homework(student, homework_id=hw_a.id, content_text="ответ A")
+
+    course_b, lesson_b = published_course_with_lesson(teacher_b)
+    hw_b = make_homework(teacher_b, lesson_b)
+    services.publish_homework(teacher_b, hw_b.id)
+    courses.enroll(other, course_b.id)
+    services.submit_homework(other, homework_id=hw_b.id, content_text="ответ B")
+
+    # A sees only A's pending submission — not B's.
+    assert [s.id for s in services.teacher_pending_submissions(teacher_a)] == [sub_a.id]
+    # Grading it removes it from the queue.
+    services.grade_submission(teacher_a, submission_id=sub_a.id, score=5)
+    assert services.teacher_pending_submissions(teacher_a) == []
+    # A non-teacher has no queue.
+    assert services.teacher_pending_submissions(student) == []
+
+
+def test_teacher_student_counts():
+    teacher = make_teacher("cnt.t@example.com")
+    course, _lesson = published_course_with_lesson(teacher)
+    s1 = make_student("cnt.s1@example.com")
+    s2 = make_student("cnt.s2@example.com")
+    courses.enroll(s1, course.id)
+    courses.enroll(s2, course.id)
+
+    assert courses.teacher_student_count(teacher) == 2
+    week_ago = timezone.now() - timedelta(days=7)
+    assert courses.teacher_new_students_this_week(teacher, week_ago) == 2
+    # scoped: a student is not a teacher → 0
+    assert courses.teacher_student_count(s1) == 0
+
+
 def test_create_requires_teacher_and_ownership():
     teacher = make_teacher()
     other_teacher = make_teacher("other@example.com")

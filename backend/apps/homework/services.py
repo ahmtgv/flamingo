@@ -249,6 +249,27 @@ def homework_submissions(user, homework_id) -> list[Submission]:
     )
 
 
+def teacher_pending_submissions(user) -> list[Submission]:
+    """The teacher's cross-course grading queue: submissions awaiting grading (SUBMITTED/LATE)
+    on homework in courses THIS teacher owns, oldest first. Per-resolver authz — scoped to the
+    caller's own courses (homework attaches to a course directly or via its lesson), so a teacher
+    never sees another teacher's queue; empty for non-teachers."""
+    if getattr(user, "role", None) != Role.TEACHER.value:
+        return []
+    pending = [SubmissionStatus.SUBMITTED.value, SubmissionStatus.LATE.value]
+    return list(
+        Submission.objects.filter(status__in=pending)
+        .filter(
+            Q(homework__course__owner__user=user)
+            | Q(homework__lesson__section__course__owner__user=user)
+        )
+        .select_related(
+            "student__user", "homework", "homework__lesson__section__course", "homework__course"
+        )
+        .order_by("submitted_at", "id")
+    )
+
+
 def my_submissions(user, course_id=None) -> list[Submission]:
     """The signed-in student's own submissions, optionally scoped to a course."""
     if getattr(user, "role", None) != Role.STUDENT.value:
