@@ -107,6 +107,10 @@ class CoursesMutation:
         return services.publish_course(require_user(info), id)
 
     @strawberry.mutation
+    def unpublish_course(self, info: strawberry.Info, id: strawberry.ID) -> Course:
+        return services.unpublish_course(require_user(info), id)
+
+    @strawberry.mutation
     def archive_course(self, info: strawberry.Info, id: strawberry.ID) -> Course:
         return services.archive_course(require_user(info), id)
 

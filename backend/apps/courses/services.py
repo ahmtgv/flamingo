@@ -167,6 +167,15 @@ def publish_course(user, course_id) -> Course:
     return course
 
 
+def unpublish_course(user, course_id) -> Course:
+    """Atlas 04 owner control "Снять с публикации": PUBLISHED → DRAFT (reversible, distinct from
+    archive_course which is the terminal ARCHIVED state). Owner-only via _owned_course."""
+    course = _owned_course(user, course_id)
+    course.status = CourseStatus.DRAFT.value
+    course.save(update_fields=["status", "updated_at"])
+    return course
+
+
 def archive_course(user, course_id) -> Course:
     course = _owned_course(user, course_id)
     course.status = CourseStatus.ARCHIVED.value

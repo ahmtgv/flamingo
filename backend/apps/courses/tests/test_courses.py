@@ -64,6 +64,19 @@ def test_non_owner_cannot_edit_course():
         services.update_course(other, course.id, title="Взлом")
 
 
+def test_unpublish_course_is_owner_only_and_reversible():
+    """Atlas 04 "Снять с публикации": PUBLISHED → DRAFT, owner-only (distinct from archive)."""
+    owner = make_teacher("unpub.owner@example.com")
+    other = make_teacher("unpub.other@example.com")
+    course = services.create_course(owner, title="Алгебра", subject="Математика", level="grade_7")
+    services.publish_course(owner, course.id)
+
+    with pytest.raises(PermissionDenied):
+        services.unpublish_course(other, course.id)
+    unpublished = services.unpublish_course(owner, course.id)
+    assert unpublished.status == CourseStatus.DRAFT.value  # back to draft, not ARCHIVED
+
+
 def test_catalog_returns_only_published():
     teacher = make_teacher()
     draft = services.create_course(teacher, title="Черновик", subject="Физика", level="grade_8")

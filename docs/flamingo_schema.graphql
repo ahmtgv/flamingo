@@ -148,6 +148,7 @@ type Course {
   enrollmentCount: Int!
   rating: Float
   createdAt: DateTime!
+  updatedAt: DateTime!
   viewerEnrollment: Enrollment   # the calling student's enrollment, if any
 }
 
@@ -210,6 +211,7 @@ type Enrollment {
   course: Course!
   status: EnrollmentStatus!
   progressPct: Int!
+  viewedLessonIds: [ID!]!
   enrolledAt: DateTime!
 }
 
@@ -638,6 +640,7 @@ type Mutation {
   createCourse(input: CourseInput!): Course!
   updateCourse(id: ID!, input: CourseInput!): Course!
   publishCourse(id: ID!): Course!
+  unpublishCourse(id: ID!): Course!
   archiveCourse(id: ID!): Course!
   deleteCourse(id: ID!): Boolean!
   createSection(courseId: ID!, input: SectionInput!): Section!

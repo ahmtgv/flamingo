@@ -253,3 +253,56 @@ def test_catalog_counts_are_accurate_not_multiplied():
     node = next(n for n in res.data["catalog"]["nodes"] if n["id"] == str(course.id))
     assert node["lessonCount"] == 2
     assert node["enrollmentCount"] == 2
+
+
+ENROLLED_VIEW = (
+    "query($id: ID!) { course(id: $id) { updatedAt "
+    "viewerEnrollment { progressPct viewedLessonIds } } }"
+)
+UNPUBLISH = "mutation($id: ID!) { unpublishCourse(id: $id) { id status } }"
+
+
+def test_enrolled_view_fields_and_unpublish_through_schema():
+    """Atlas 04 course detail: Course.updatedAt renders, viewerEnrollment.viewedLessonIds carries
+    the student's completed lessons (powers sequential-unlock client-side), and unpublishCourse
+    sends a PUBLISHED course back to DRAFT."""
+    from apps.courses import services as courses
+
+    teacher = accounts.register_user(
+        email="ev.teacher@example.com",
+        password="strongpass1!",
+        first_name="И",
+        last_name="П",
+        role=Role.TEACHER,
+        specialty="Математика",
+    )
+    student = accounts.register_user(
+        email="ev.student@example.com",
+        password="strongpass1!",
+        first_name="П",
+        last_name="С",
+        role=Role.STUDENT,
+        birth_date=date(2008, 1, 1),
+    )
+    course = courses.create_course(teacher, title="Алгебра", subject="Математика", level="grade_7")
+    section = courses.create_section(teacher, course.id, title="Раздел 1")
+    l1 = courses.create_lesson(teacher, section.id, title="Урок 1", duration_min=30)
+    courses.create_lesson(teacher, section.id, title="Урок 2", duration_min=30)
+    courses.publish_lesson(teacher, l1.id)
+    courses.publish_course(teacher, course.id)
+    courses.enroll(student, course.id)
+    courses.mark_lesson_viewed(student, l1.id)
+
+    res = schema.execute_sync(
+        ENROLLED_VIEW, variable_values={"id": str(course.id)}, context_value=_ctx(student)
+    )
+    assert res.errors is None, res.errors
+    assert res.data["course"]["updatedAt"] is not None
+    assert res.data["course"]["viewerEnrollment"]["viewedLessonIds"] == [str(l1.id)]
+
+    # Owner sends it back to draft; the catalog then hides it.
+    res = schema.execute_sync(
+        UNPUBLISH, variable_values={"id": str(course.id)}, context_value=_ctx(teacher)
+    )
+    assert res.errors is None, res.errors
+    assert res.data["unpublishCourse"]["status"] == "DRAFT"

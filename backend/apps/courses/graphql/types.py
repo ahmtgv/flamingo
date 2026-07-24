@@ -127,6 +127,13 @@ class Enrollment:
     progress_pct: auto
 
     @strawberry_django.field
+    def viewed_lesson_ids(self) -> list[strawberry.ID]:
+        # The viewer's completed-lesson ids (own enrollment via Course.viewer_enrollment).
+        # Powers the atlas-04 enrolled projection: per-section done/in-progress/locked +
+        # sequential unlock are computed client-side from real completion data.
+        return [strawberry.ID(str(x)) for x in (self.viewed_lesson_ids or [])]
+
+    @strawberry_django.field
     def student(self) -> StudentProfileType:
         return self.student
 
@@ -151,6 +158,7 @@ class Course:
     subject: auto
     language: auto
     created_at: auto
+    updated_at: auto  # atlas-04 owner headrow "обновлён …"
 
     @strawberry_django.field
     def level(self) -> CourseLevel:
