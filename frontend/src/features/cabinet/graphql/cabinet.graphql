@@ -1,0 +1,50 @@
+# Teacher cabinet operations. Fragment-free (bridges the committed SDL vs the live
+# backend); type names (Course/LessonSession/Submission) match the SDL. The composite
+# teacherDashboard answers the teacher's "what needs me right now?" (atlas sheet 03):
+# today's sessions, the cross-course grading queue, and student counts — every part is
+# owner-scoped server-side. classAttentionAverage is intentionally omitted here (owner
+# decision: attention analytics live post-lesson / in settings, never on the dashboard).
+
+query TeacherDashboard {
+  teacherDashboard {
+    studentCount
+    newStudentsThisWeek
+    courses {
+      id
+      title
+      status
+      lessonCount
+      enrollmentCount
+    }
+    upcomingSessions {
+      id
+      startAt
+      endAt
+      status
+      lesson {
+        id
+        title
+      }
+    }
+    pendingSubmissions {
+      id
+      submittedAt
+      status
+      student {
+        user {
+          id
+          firstName
+          lastName
+        }
+      }
+      homework {
+        id
+        title
+        lesson {
+          id
+          title
+        }
+      }
+    }
+  }
+}

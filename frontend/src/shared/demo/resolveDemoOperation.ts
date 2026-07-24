@@ -59,6 +59,7 @@ import type {
   StartSessionMutation,
   SubmitHomeworkMutation,
   SubmitVerificationDocumentMutation,
+  TeacherDashboardQuery,
   UpdateBrandingMutation,
   UpdateCourseMutation,
   UpdateInstitutionMutation,
@@ -231,6 +232,71 @@ function homeworkSubmissions(): HomeworkSubmissionsQuery {
   };
 }
 
+// --- Teacher dashboard (atlas 03) --------------------------------------------------------
+/** Calm-day teacher dashboard: 3 upcoming sessions (nearest is startable), a 7-deep grading
+ *  queue (oldest 2 days, one LATE), 23 students (+2). Times are relative to the real run
+ *  clock so "сегодня"/countdowns always read correctly. No LIVE session by default (the
+ *  sheet's default state is "обычный день"). */
+function teacherDashboard(): TeacherDashboardQuery {
+  const now = Date.now();
+  const inMin = (n: number) => new Date(now + n * 60_000).toISOString();
+  const daysAgo = (d: number, h: number) =>
+    new Date(now - d * 86_400_000 - h * 3_600_000).toISOString();
+  const lesson = (id: string, title: string) => ({ __typename: 'Lesson' as const, id, title });
+  const pending = (
+    id: string,
+    u: (typeof users)[keyof typeof users],
+    status: 'SUBMITTED' | 'LATE',
+    submittedAt: string,
+    hwTitle: string,
+    les: { id: string; title: string },
+  ) => ({
+    __typename: 'Submission' as const,
+    id,
+    submittedAt,
+    status,
+    student: {
+      __typename: 'StudentProfile' as const,
+      user: { __typename: 'User' as const, id: u.id, firstName: u.firstName, lastName: u.lastName },
+    },
+    homework: {
+      __typename: 'Homework' as const,
+      id: `hw-${id}`,
+      title: hwTitle,
+      lesson: { __typename: 'Lesson' as const, ...les },
+    },
+  });
+  const linear = { id: 'les-1-1', title: 'Линейные уравнения' };
+  const systems = { id: 'les-2-1', title: 'Системы уравнений' };
+  const functions = { id: 'les-3-1', title: 'Функции и графики' };
+  return {
+    __typename: 'Query',
+    teacherDashboard: {
+      __typename: 'TeacherDashboard',
+      studentCount: 23,
+      newStudentsThisWeek: 2,
+      courses: [
+        { __typename: 'Course', id: IDS.course.algebra, title: 'Алгебра: от уравнений к функциям', status: 'PUBLISHED', lessonCount: 36, enrollmentCount: 18 },
+        { __typename: 'Course', id: IDS.course.geometry, title: 'Геометрия: планиметрия с нуля', status: 'DRAFT', lessonCount: 4, enrollmentCount: 0 },
+      ],
+      upcomingSessions: [
+        { __typename: 'LessonSession', id: IDS.session.live, startAt: inMin(-3), endAt: inMin(42), status: 'SCHEDULED', lesson: lesson('les-1-1', 'Алгебра — линейные уравнения') },
+        { __typename: 'LessonSession', id: IDS.session.english, startAt: inMin(90), endAt: null, status: 'SCHEDULED', lesson: lesson('les-2-1', 'Алгебра — системы уравнений') },
+        { __typename: 'LessonSession', id: IDS.session.physics, startAt: inMin(210), endAt: null, status: 'SCHEDULED', lesson: lesson('les-3-1', 'Консультация — подготовка к контрольной') },
+      ],
+      pendingSubmissions: [
+        pending('pq-timur', users.timur, 'LATE', daysAgo(2, 3), 'Линейные уравнения — задачи 12–18', linear),
+        pending('pq-vera', users.vera, 'SUBMITTED', daysAgo(2, 1), 'Линейные уравнения — задачи 12–18', linear),
+        pending('pq-sasha', users.sasha, 'SUBMITTED', daysAgo(1, 5), 'Системы уравнений — самостоятельная', systems),
+        pending('pq-kostya', users.kostya, 'SUBMITTED', daysAgo(1, 2), 'Системы уравнений — самостоятельная', systems),
+        pending('pq-liza', users.liza, 'SUBMITTED', daysAgo(0, 6), 'Функции — построить графики', functions),
+        pending('pq-mark', users.mark, 'SUBMITTED', daysAgo(0, 3), 'Функции — построить графики', functions),
+        pending('pq-anya', users.anya, 'SUBMITTED', daysAgo(0, 1), 'Функции — построить графики', functions),
+      ],
+    },
+  };
+}
+
 // --- Admin -------------------------------------------------------------------------------
 function adminInstitution(): AdminInstitutionQuery {
   return {
@@ -355,6 +421,7 @@ export function resolveDemoOperation(operationName: string | undefined, variable
     case 'MySubmissions': return mySubmissions();
     case 'LessonHomework': return lessonHomework();
     case 'HomeworkSubmissions': return homeworkSubmissions();
+    case 'TeacherDashboard': return teacherDashboard();
     case 'AdminInstitution': return adminInstitution();
     case 'InstitutionMembers': return institutionMembers();
     case 'InstitutionGroups': return institutionGroups();

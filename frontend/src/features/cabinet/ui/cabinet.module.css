@@ -371,3 +371,309 @@
   gap: var(--space-3);
   margin-top: var(--space-4);
 }
+
+/* --- Teacher dashboard (atlas sheet 03) ------------------------------------
+   "What needs me right now?" — three metrics, today's sessions, my courses.
+   AIR: exactly one coral accent per screen-state. In a calm day the accent is
+   the "ungraded homework" task-metric; a LIVE session intercepts it (then the
+   task-metric goes neutral and the live button carries the single coral). */
+.headRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+.headMeta {
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  color: var(--color-text-tertiary);
+  font-variant-numeric: tabular-nums;
+}
+
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-8);
+  margin: var(--space-8) 0;
+  padding-bottom: var(--space-7);
+  border-bottom: 1px solid var(--color-border);
+}
+@media (max-width: 720px) {
+  .metrics {
+    grid-template-columns: 1fr;
+    gap: var(--space-6);
+  }
+}
+.metric {
+  min-width: 0;
+}
+.metricNum {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--text-metric);
+  font-weight: var(--weight-medium);
+  line-height: 1;
+  letter-spacing: var(--tracking-tight);
+  /* AIR: a metric reads as a strong number, not a coral accent (see .metricAccent). */
+  color: var(--color-text);
+}
+.metricCap {
+  color: var(--color-text-secondary);
+  font-size: var(--text-small);
+  margin-top: var(--space-2);
+}
+.metricNote {
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  color: var(--color-text-tertiary);
+  margin-top: 4px;
+}
+/* Metric-as-task: ungraded homework is the teacher's clickable task. */
+.metricLink {
+  display: block;
+  width: 100%;
+  border: 0;
+  background: none;
+  padding: 0;
+  text-align: start;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+  border-radius: var(--radius-sm);
+}
+.metricLink:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+.metricLink .metricCap {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: var(--color-border-strong);
+}
+/* The single coral accent of a calm day (removed when a LIVE session takes it). */
+.metricAccent .metricNum {
+  color: var(--color-accent-text);
+}
+
+.secTitle {
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  color: var(--color-text-tertiary);
+  margin: var(--space-7) 0 var(--space-1);
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 72px 1fr auto;
+  gap: var(--space-5);
+  align-items: center;
+  padding: var(--space-4) 0;
+  border-bottom: 1px solid var(--color-border);
+}
+.row:last-child {
+  border-bottom: 0;
+}
+@media (max-width: 560px) {
+  .row {
+    grid-template-columns: 56px 1fr;
+  }
+  .rowAction {
+    grid-column: 2;
+    justify-self: start;
+    margin-top: var(--space-2);
+  }
+}
+.rowTime {
+  font-family: var(--font-mono);
+  font-size: var(--text-small);
+  color: var(--color-text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+.rowTitle {
+  font-weight: var(--weight-medium);
+}
+.rowSub {
+  font-size: var(--text-caption);
+  color: var(--color-text-secondary);
+  margin-top: 2px;
+}
+.rowGhost {
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  color: var(--color-text-tertiary);
+  font-variant-numeric: tabular-nums;
+}
+.rowEmpty {
+  font-size: var(--text-small);
+  color: var(--color-text-secondary);
+  padding: var(--space-4) 0;
+}
+.liveBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-family: var(--font-heading);
+  font-size: var(--text-small);
+  font-weight: var(--weight-medium);
+  color: var(--color-text-on-accent);
+  background: var(--color-accent-strong);
+  border: 0;
+  border-radius: var(--radius-sm);
+  padding: 0 20px;
+  min-height: var(--tap-min);
+  cursor: pointer;
+  transition: background var(--duration-fast) var(--ease-standard);
+}
+.liveBtn:hover {
+  background: var(--color-accent-hover);
+}
+.liveBtn:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+.liveDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .liveDot {
+    animation: cabinetPulse 2.4s ease-in-out infinite;
+  }
+}
+@keyframes cabinetPulse {
+  50% {
+    opacity: 0.35;
+  }
+}
+
+/* Courses strip — a card per clickable course + a dashed "new course" affordance. */
+.courses {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-4);
+  margin-top: var(--space-2);
+}
+@media (max-width: 720px) {
+  .courses {
+    grid-template-columns: 1fr;
+  }
+}
+.course {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  padding: var(--space-5);
+  cursor: pointer;
+  text-align: start;
+  font: inherit;
+  color: inherit;
+  transition:
+    border-color var(--duration-fast) var(--ease-standard),
+    transform var(--duration-fast) var(--ease-standard);
+}
+.course:hover {
+  border-color: var(--color-border-strong);
+  transform: translateY(-2px);
+}
+.course:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+.courseHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+}
+.courseTitle {
+  font-family: var(--font-heading);
+  font-size: var(--text-h3);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-snug);
+  margin-bottom: 6px;
+}
+.courseMeta {
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  color: var(--color-text-tertiary);
+  font-variant-numeric: tabular-nums;
+}
+.pill {
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  color: var(--color-text-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  padding: 3px 10px;
+}
+.pillDraft {
+  color: var(--color-text-tertiary);
+  border-style: dashed;
+}
+.newCourse {
+  border-style: dashed;
+  display: grid;
+  place-content: center;
+  color: var(--color-text-secondary);
+  font-size: var(--text-small);
+  min-height: 118px;
+}
+
+/* New-teacher empty (no courses yet). */
+.emptyBig {
+  text-align: center;
+  padding: var(--space-8) 0;
+}
+.emptyBig h2 {
+  font-family: var(--font-heading);
+  font-size: var(--text-h1);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-snug);
+}
+.emptyBig p {
+  color: var(--color-text-secondary);
+  max-width: 46ch;
+  margin: var(--space-3) auto var(--space-6);
+}
+
+/* Loading skeleton (shape-matched to the filled layout). */
+.skelBar {
+  display: block;
+  background: var(--color-surface-subtle);
+  border-radius: var(--radius-sm);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .skelBar {
+    animation: cabinetShimmer 1.4s ease-in-out infinite;
+  }
+}
+@keyframes cabinetShimmer {
+  50% {
+    opacity: 0.55;
+  }
+}
+.skelMetrics {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-8);
+  margin: var(--space-8) 0;
+}
+@media (max-width: 720px) {
+  .skelMetrics {
+    grid-template-columns: 1fr;
+  }
+}
+.skelCourses {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-4);
+}
+@media (max-width: 720px) {
+  .skelCourses {
+    grid-template-columns: 1fr;
+  }
+}

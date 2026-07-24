@@ -1578,6 +1578,11 @@ export type SetAvatarMutationVariables = Exact<{
 
 export type SetAvatarMutation = { __typename?: 'Mutation', setAvatar: { __typename?: 'User', id: string, avatarUrl?: string | null } };
 
+export type TeacherDashboardQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type TeacherDashboardQuery = { __typename?: 'Query', teacherDashboard: { __typename?: 'TeacherDashboard', studentCount: number, newStudentsThisWeek: number, courses: Array<{ __typename?: 'Course', id: string, title: string, status: CourseStatus, lessonCount: number, enrollmentCount: number }>, upcomingSessions: Array<{ __typename?: 'LessonSession', id: string, startAt: string, endAt?: string | null, status: SessionStatus, lesson: { __typename?: 'Lesson', id: string, title: string } }>, pendingSubmissions: Array<{ __typename?: 'Submission', id: string, submittedAt?: string | null, status: SubmissionStatus, student: { __typename?: 'StudentProfile', user: { __typename?: 'User', id: string, firstName: string, lastName: string } }, homework: { __typename?: 'Homework', id: string, title: string, lesson?: { __typename?: 'Lesson', id: string, title: string } | null } }> } };
+
 export type CatalogQueryVariables = Exact<{
   filter?: InputMaybe<CourseFilter>;
   first?: InputMaybe<Scalars['Int']['input']>;
@@ -2742,6 +2747,86 @@ export function useSetAvatarMutation(baseOptions?: Apollo.MutationHookOptions<Se
 export type SetAvatarMutationHookResult = ReturnType<typeof useSetAvatarMutation>;
 export type SetAvatarMutationResult = Apollo.MutationResult<SetAvatarMutation>;
 export type SetAvatarMutationOptions = Apollo.BaseMutationOptions<SetAvatarMutation, SetAvatarMutationVariables>;
+export const TeacherDashboardDocument = gql`
+    query TeacherDashboard {
+  teacherDashboard {
+    studentCount
+    newStudentsThisWeek
+    courses {
+      id
+      title
+      status
+      lessonCount
+      enrollmentCount
+    }
+    upcomingSessions {
+      id
+      startAt
+      endAt
+      status
+      lesson {
+        id
+        title
+      }
+    }
+    pendingSubmissions {
+      id
+      submittedAt
+      status
+      student {
+        user {
+          id
+          firstName
+          lastName
+        }
+      }
+      homework {
+        id
+        title
+        lesson {
+          id
+          title
+        }
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useTeacherDashboardQuery__
+ *
+ * To run a query within a React component, call `useTeacherDashboardQuery` and pass it any options that fit your needs.
+ * When your component renders, `useTeacherDashboardQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useTeacherDashboardQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useTeacherDashboardQuery(baseOptions?: Apollo.QueryHookOptions<TeacherDashboardQuery, TeacherDashboardQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<TeacherDashboardQuery, TeacherDashboardQueryVariables>(TeacherDashboardDocument, options);
+      }
+export function useTeacherDashboardLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<TeacherDashboardQuery, TeacherDashboardQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<TeacherDashboardQuery, TeacherDashboardQueryVariables>(TeacherDashboardDocument, options);
+        }
+// @ts-ignore
+export function useTeacherDashboardSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<TeacherDashboardQuery, TeacherDashboardQueryVariables>): Apollo.UseSuspenseQueryResult<TeacherDashboardQuery, TeacherDashboardQueryVariables>;
+export function useTeacherDashboardSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<TeacherDashboardQuery, TeacherDashboardQueryVariables>): Apollo.UseSuspenseQueryResult<TeacherDashboardQuery | undefined, TeacherDashboardQueryVariables>;
+export function useTeacherDashboardSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<TeacherDashboardQuery, TeacherDashboardQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<TeacherDashboardQuery, TeacherDashboardQueryVariables>(TeacherDashboardDocument, options);
+        }
+export type TeacherDashboardQueryHookResult = ReturnType<typeof useTeacherDashboardQuery>;
+export type TeacherDashboardLazyQueryHookResult = ReturnType<typeof useTeacherDashboardLazyQuery>;
+export type TeacherDashboardSuspenseQueryHookResult = ReturnType<typeof useTeacherDashboardSuspenseQuery>;
+export type TeacherDashboardQueryResult = Apollo.QueryResult<TeacherDashboardQuery, TeacherDashboardQueryVariables>;
 export const CatalogDocument = gql`
     query Catalog($filter: CourseFilter, $first: Int, $after: String) {
   catalog(filter: $filter, first: $first, after: $after) {

@@ -12,7 +12,11 @@ import {
 import { Cabinet } from '@/features/cabinet';
 import { AdminInstitutionScreen } from '@/features/admin';
 import { CatalogScreen, CourseDetailScreen, CreateCourseScreen } from '@/features/courses';
-import { LessonHomeworkScreen, StudentHomeworkScreen } from '@/features/homework';
+import {
+  GradingQueueScreen,
+  LessonHomeworkScreen,
+  StudentHomeworkScreen,
+} from '@/features/homework';
 import { LiveRoomScreen } from '@/features/lesson';
 import { ScheduleScreen } from '@/features/schedule';
 import { useSession } from '@/shared/hooks/useSession';
@@ -129,6 +133,14 @@ export function AppRouter() {
           element={
             <ProtectedRoute>
               <StudentHomeworkScreen />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/grading"
+          element={
+            <ProtectedRoute>
+              <GradingQueueScreen />
             </ProtectedRoute>
           }
         />
