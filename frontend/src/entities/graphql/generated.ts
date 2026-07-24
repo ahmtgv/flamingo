@@ -171,6 +171,7 @@ export type Course = {
   status: CourseStatus;
   subject: Scalars['String']['output'];
   title: Scalars['String']['output'];
+  updatedAt: Scalars['DateTime']['output'];
   viewerEnrollment?: Maybe<Enrollment>;
 };
 
@@ -178,6 +179,7 @@ export type CourseConnection = {
   __typename?: 'CourseConnection';
   nodes: Array<Course>;
   pageInfo: PageInfo;
+  subjectCount: Scalars['Int']['output'];
   totalCount: Scalars['Int']['output'];
 };
 
@@ -232,6 +234,7 @@ export type Enrollment = {
   progressPct: Scalars['Int']['output'];
   status: EnrollmentStatus;
   student: StudentProfile;
+  viewedLessonIds: Array<Scalars['ID']['output']>;
 };
 
 export type EnrollmentStatus =
@@ -551,6 +554,7 @@ export type Mutation = {
   submitHomework: Submission;
   submitVerificationDocument: VerificationDocument;
   unenroll: Scalars['Boolean']['output'];
+  unpublishCourse: Course;
   updateBranding: Institution;
   updateCourse: Course;
   updateGroup: Group;
@@ -833,6 +837,11 @@ export type MutationSubmitVerificationDocumentArgs = {
 
 export type MutationUnenrollArgs = {
   courseId: Scalars['ID']['input'];
+};
+
+
+export type MutationUnpublishCourseArgs = {
+  id: Scalars['ID']['input'];
 };
 
 
@@ -1590,7 +1599,7 @@ export type CatalogQueryVariables = Exact<{
 }>;
 
 
-export type CatalogQuery = { __typename?: 'Query', catalog: { __typename?: 'CourseConnection', totalCount: number, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null }, nodes: Array<{ __typename?: 'Course', id: string, title: string, description?: string | null, subject: string, level: CourseLevel, status: CourseStatus, lessonCount: number, enrollmentCount: number, owner: { __typename?: 'TeacherProfile', specialty?: string | null, user: { __typename?: 'User', id: string, firstName: string, lastName: string } } }> } };
+export type CatalogQuery = { __typename?: 'Query', catalog: { __typename?: 'CourseConnection', totalCount: number, subjectCount: number, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null }, nodes: Array<{ __typename?: 'Course', id: string, title: string, description?: string | null, subject: string, level: CourseLevel, status: CourseStatus, lessonCount: number, enrollmentCount: number, owner: { __typename?: 'TeacherProfile', specialty?: string | null, user: { __typename?: 'User', id: string, firstName: string, lastName: string } } }> } };
 
 export type CourseDetailQueryVariables = Exact<{
   id: Scalars['ID']['input'];
@@ -2831,6 +2840,7 @@ export const CatalogDocument = gql`
     query Catalog($filter: CourseFilter, $first: Int, $after: String) {
   catalog(filter: $filter, first: $first, after: $after) {
     totalCount
+    subjectCount
     pageInfo {
       hasNextPage
       endCursor

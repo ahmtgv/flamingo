@@ -1,17 +1,40 @@
 {
   "back": "В кабинет",
   "catalog": {
-    "title": "Каталог курсов",
+    "title": "Курсы",
     "subtitle": "Выберите курс и запишитесь",
-    "searchPh": "Поиск по названию",
+    "searchPh": "Найти курс, предмет или преподавателя",
+    "searchAria": "Поиск по каталогу",
     "empty": "Опубликованных курсов пока нет.",
-    "searchEmpty": "По запросу ничего не найдено.",
-    "reset": "Сбросить поиск",
-    "create": "Создать курс",
-    "mine": "Мои курсы",
-    "all": "Все курсы",
+    "reset": "Сбросить фильтры",
     "lessons": "Уроков: {{n}}",
-    "students": "Учеников: {{n}}"
+    "students": "Учеников: {{n}}",
+    "coursesCount_one": "{{count}} курс",
+    "coursesCount_few": "{{count}} курса",
+    "coursesCount_many": "{{count}} курсов",
+    "subjectsCount_one": "{{count}} предмет",
+    "subjectsCount_few": "{{count}} предмета",
+    "subjectsCount_many": "{{count}} предметов",
+    "cardStudents_one": "{{count}} ученик",
+    "cardStudents_few": "{{count}} ученика",
+    "cardStudents_many": "{{count}} учеников",
+    "cardNew": "новый",
+    "chips": {
+      "all": "все",
+      "math": "математика",
+      "langs": "языки",
+      "physics": "физика",
+      "grade7": "7 класс",
+      "oge": "ОГЭ"
+    },
+    "noResults": {
+      "title": "Ничего не нашлось",
+      "body": "По запросу «{{query}}» курсов нет. Попробуйте другой предмет или сбросьте фильтры."
+    },
+    "zero": {
+      "title": "Каталог наполняется",
+      "body": "Первые курсы появятся здесь совсем скоро. Оставьте почту при регистрации — расскажем, когда откроются записи."
+    }
   },
   "level": {
     "GRADE_1": "1 класс",

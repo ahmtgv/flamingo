@@ -105,6 +105,99 @@
   margin-top: var(--space-2);
 }
 
+/* --- Catalog (atlas sheet 04) --------------------------------------------- */
+.catHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+.catMeta {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--text-caption);
+  color: var(--color-text-tertiary);
+}
+.catSearch {
+  margin: var(--space-6) 0 var(--space-4);
+  max-width: 520px;
+}
+.chips {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  margin-bottom: var(--space-6);
+}
+.chip {
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  color: var(--color-text-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  padding: 5px 12px;
+  background: none;
+  cursor: pointer;
+  min-height: var(--tap-min);
+}
+.chip:hover {
+  border-color: var(--color-border-strong);
+  color: var(--color-text);
+}
+.chip:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+.chipOn {
+  /* AIR: an active chip is a neutral emphasis (surface + strong text), not coral. */
+  color: var(--color-text);
+  border-color: var(--color-border-strong);
+  background: var(--color-surface-subtle);
+}
+.catCards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-4);
+}
+@media (max-width: 860px) {
+  .catCards {
+    grid-template-columns: 1fr;
+  }
+}
+.cardSubj {
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  color: var(--color-text-tertiary);
+  /* mono subj-meta reads lowercase per the sheet; Cyrillic lowercase is tracking-free (AIR). */
+  text-transform: lowercase;
+}
+.cardMetaRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-top: auto;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--text-caption);
+  color: var(--color-text-tertiary);
+}
+.catState {
+  text-align: center;
+  padding: var(--space-9) 0;
+}
+.catState h2 {
+  font-family: var(--font-heading);
+  font-size: var(--text-h2);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-snug);
+}
+.catState p {
+  color: var(--color-text-secondary);
+  max-width: 46ch;
+  margin: var(--space-3) auto var(--space-5);
+}
+
 /* Search */
 .toolbar {
   margin-bottom: var(--space-5);

@@ -4,6 +4,7 @@
 query Catalog($filter: CourseFilter, $first: Int, $after: String) {
   catalog(filter: $filter, first: $first, after: $after) {
     totalCount
+    subjectCount
     pageInfo {
       hasNextPage
       endCursor

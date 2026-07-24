@@ -114,20 +114,59 @@ function me(): MeQuery {
 }
 
 // --- Courses -----------------------------------------------------------------------------
-function catalog(): CatalogQuery {
-  return {
+/** Preview-only platform-zero toggle for the catalog (?catalog=zero) — mirrors demoRole's
+ *  ?role= convention so the "Каталог наполняется" state is reachable in the preview. */
+function catalogIsZero(): boolean {
+  try {
+    return new URLSearchParams(window.location.search).get('catalog') === 'zero';
+  } catch {
+    return false;
+  }
+}
+
+type CatalogNode = CatalogQuery['catalog']['nodes'][number];
+
+function catalog(vars: Vars): CatalogQuery {
+  const conn = (nodes: CatalogNode[], totalCount: number, subjectCount: number): CatalogQuery => ({
     __typename: 'Query',
     catalog: {
       __typename: 'CourseConnection',
-      totalCount: 142,
+      totalCount,
+      subjectCount,
       pageInfo: { __typename: 'PageInfo', hasNextPage: false, endCursor: null },
-      nodes: [
-        { __typename: 'Course', id: IDS.course.algebra, title: 'Алгебра: от уравнений к функциям', description: 'Системный курс на учебный год: линейные уравнения, системы, функции и графики.', subject: 'Математика', level: 'GRADE_7', status: 'PUBLISHED', lessonCount: 36, enrollmentCount: 18, owner: owner(users.maria, 'Математика') },
-        { __typename: 'Course', id: IDS.course.english, title: 'Английский: разговорная практика', description: 'Группы до 5 человек, живой разбор ошибок.', subject: 'Языки', level: 'GRADE_7', status: 'PUBLISHED', lessonCount: 24, enrollmentCount: 12, owner: owner(users.ilya, 'Английский язык') },
-        { __typename: 'Course', id: IDS.course.physics, title: 'Физика: решаем вторую часть', description: 'Интенсив по задачам с развёрнутым ответом (ОГЭ).', subject: 'Физика', level: 'GRADE_9', status: 'PUBLISHED', lessonCount: 16, enrollmentCount: 5, owner: owner(users.dmitry, 'Физика') },
-      ],
+      nodes,
     },
-  };
+  });
+  if (catalogIsZero()) return conn([], 0, 0);
+
+  const all: CatalogNode[] = [
+    { __typename: 'Course', id: IDS.course.algebra, title: 'Алгебра: от уравнений к функциям', description: 'Системный курс на учебный год: линейные уравнения, системы, функции и графики.', subject: 'Математика', level: 'GRADE_7', status: 'PUBLISHED', lessonCount: 36, enrollmentCount: 18, owner: owner(users.maria, 'Математика') },
+    { __typename: 'Course', id: IDS.course.english, title: 'Английский: разговорная практика', description: 'Группы до 5 человек, живой разбор ошибок.', subject: 'Языки', level: 'GRADE_7', status: 'PUBLISHED', lessonCount: 24, enrollmentCount: 12, owner: owner(users.ilya, 'Английский язык') },
+    { __typename: 'Course', id: IDS.course.physics, title: 'Физика: решаем вторую часть', description: 'Интенсив по задачам с развёрнутым ответом (ОГЭ).', subject: 'Физика', level: 'GRADE_9', status: 'PUBLISHED', lessonCount: 16, enrollmentCount: 0, owner: owner(users.dmitry, 'Физика') },
+  ];
+
+  const f = (vars.filter as Vars | null) ?? {};
+  const search = typeof f.search === 'string' ? f.search.trim().toLowerCase() : '';
+  const subject = typeof f.subject === 'string' ? f.subject.trim().toLowerCase() : '';
+  const level = typeof f.level === 'string' ? f.level : '';
+  const hasFilter = Boolean(search || subject || level);
+
+  let nodes = all;
+  if (subject) nodes = nodes.filter((n) => n.subject.toLowerCase().includes(subject));
+  if (level) nodes = nodes.filter((n) => n.level === level);
+  if (search) {
+    nodes = nodes.filter((n) =>
+      [n.title, n.description ?? '', n.subject, n.owner.user.firstName, n.owner.user.lastName]
+        .join(' ')
+        .toLowerCase()
+        .includes(search),
+    );
+  }
+  // Unfiltered meta mirrors the atlas illusion of a large catalog (142 · 12); a filter narrows
+  // both counts to the matching set.
+  const totalCount = hasFilter ? nodes.length : 142;
+  const subjectCount = hasFilter ? new Set(nodes.map((n) => n.subject)).size : 12;
+  return conn(nodes, totalCount, subjectCount);
 }
 
 function myCourses(): MyCoursesQuery {
@@ -414,7 +453,7 @@ export function resolveDemoOperation(operationName: string | undefined, variable
   switch (operationName) {
     // queries
     case 'Me': return me();
-    case 'Catalog': return catalog();
+    case 'Catalog': return catalog(variables);
     case 'MyCourses': return myCourses();
     case 'CourseDetail': return courseDetail(variables);
     case 'MySchedule': return mySchedule();
