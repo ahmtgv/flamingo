@@ -61,7 +61,8 @@ export function CatalogScreen() {
 
         <div className={styles.catHead}>
           <h1 className={styles.pageTitle}>{t('catalog.title')}</h1>
-          {!isZero && (
+          {/* Counts only once resolved — never assert "0 курсов" while the query is in flight. */}
+          {!isZero && data && (
             <span className={styles.catMeta}>
               {t('catalog.coursesCount', { count: totalCount })} ·{' '}
               {t('catalog.subjectsCount', { count: subjectCount })}
@@ -76,7 +77,12 @@ export function CatalogScreen() {
                 type="search"
                 placeholder={t('catalog.searchPh')}
                 value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                onChange={(e) => {
+                  setSearch(e.target.value);
+                  // A chip that carries its own search term (ОГЭ) can't AND with free text —
+                  // release it rather than leave it pressed while its filter is overridden.
+                  if (chipFilter.search && e.target.value.trim()) setChip('all');
+                }}
                 aria-label={t('catalog.searchAria')}
               />
             </div>

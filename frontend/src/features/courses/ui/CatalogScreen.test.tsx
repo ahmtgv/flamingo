@@ -83,6 +83,39 @@ describe('CatalogScreen — atlas 04', () => {
     expect(screen.queryByRole('button', { name: 'все' })).not.toBeInTheDocument();
   });
 
+  it('never asserts "0 курсов" while the query is still in flight', async () => {
+    const data = connection([node({ id: 'c-alg' })], 142, 12);
+    renderWithProviders(<CatalogScreen />, {
+      mocks: [{ ...catalogMock(null, data), delay: 30 }],
+      route: '/courses',
+    });
+    // headrow stays silent rather than claiming an empty catalog while loading
+    expect(screen.queryByText(/0 курсов/)).not.toBeInTheDocument();
+    expect(await screen.findByText(/142 курса · 12 предметов/)).toBeInTheDocument();
+  });
+
+  it('typing a search releases a chip whose own filter it would override (ОГЭ)', async () => {
+    const user = userEvent.setup();
+    const data = connection([node({ id: 'c-alg' })], 142, 12);
+    renderWithProviders(<CatalogScreen />, {
+      mocks: [
+        catalogMock(null, data),
+        catalogMock({ search: 'ОГЭ' }, data),
+        catalogMock({ search: 'а' }, data),
+      ],
+      route: '/courses',
+    });
+    await screen.findByText('Алгебра: от уравнений к функциям');
+
+    await user.click(screen.getByRole('button', { name: 'ОГЭ' }));
+    expect(screen.getByRole('button', { name: 'ОГЭ' })).toHaveAttribute('aria-pressed', 'true');
+
+    await user.type(screen.getByRole('searchbox', { name: 'Поиск по каталогу' }), 'а');
+    // the chip no longer claims to be filtering — its search term was overridden
+    expect(screen.getByRole('button', { name: 'ОГЭ' })).toHaveAttribute('aria-pressed', 'false');
+    expect(screen.getByRole('button', { name: 'все' })).toHaveAttribute('aria-pressed', 'true');
+  });
+
   it('no-results under a chip filter: shows "Ничего не нашлось" + reset', async () => {
     const user = userEvent.setup();
     renderWithProviders(<CatalogScreen />, {

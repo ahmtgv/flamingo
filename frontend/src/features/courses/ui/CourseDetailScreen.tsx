@@ -205,6 +205,9 @@ function EnrolledView({ course }: { course: CourseT }) {
           {rows.map((r, i) => {
             const active = i === activeIdx;
             const locked = activeIdx !== -1 && i > activeIdx;
+            // "Done" means it actually had published lessons and all of them are viewed — a
+            // section with nothing published yet is neither done nor startable.
+            const complete = r.pub.length > 0 && r.done === r.pub.length;
             const next = r.pub.find((l) => !viewed.has(l.id));
             return (
               <div className={styles.progRow} key={r.s.id}>
@@ -218,8 +221,9 @@ function EnrolledView({ course }: { course: CourseT }) {
                           total: r.pub.length,
                           next: next?.title ?? '',
                         })
-                      : locked
-                        ? t('detail.sectionLocked', { n: idx2(activeIdx + 1) })
+                      : // a locked section opens after its OWN predecessor, not after the active one
+                        locked
+                        ? t('detail.sectionLocked', { n: idx2(i) })
                         : t('detail.sectionLessons', { count: r.pub.length })}
                   </div>
                 </div>
@@ -233,11 +237,11 @@ function EnrolledView({ course }: { course: CourseT }) {
                   </Button>
                 ) : locked ? (
                   <span className={styles.progLock}>{t('detail.ahead')}</span>
-                ) : (
+                ) : complete ? (
                   <span className={styles.progDone}>
                     <Check /> {t('detail.sectionDone')}
                   </span>
-                )}
+                ) : null}
               </div>
             );
           })}

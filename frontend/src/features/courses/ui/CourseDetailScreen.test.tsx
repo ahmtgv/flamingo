@@ -124,6 +124,33 @@ describe('CourseDetailScreen — atlas 04 projections', () => {
     expect(screen.getByRole('button', { name: 'Продолжить' })).toBeInTheDocument();
   });
 
+  it('enrolled: an all-draft section is not "пройден", and a locked row cites its own predecessor', async () => {
+    const data = course({
+      viewerEnrollment: {
+        __typename: 'Enrollment',
+        id: 'e1',
+        status: 'ACTIVE',
+        progressPct: 25,
+        viewedLessonIds: ['l1'],
+      },
+      sections: [
+        section('s1', 'Готовый раздел', [lesson('l1')], 1), // done
+        section('s2', 'Ещё не опубликован', [lesson('ld', 'DRAFT')], 2), // 0 published
+        section('s3', 'Текущий', [lesson('l3')], 3), // active
+        section('s4', 'Следующий', [lesson('l4')], 4), // locked, predecessor = 03
+        section('s5', 'Дальний', [lesson('l5')], 5), // locked, predecessor = 04
+      ],
+    });
+    render([me('s1', 'STUDENT'), detailMock(data)]);
+
+    await screen.findByText('Текущий');
+    // only the genuinely finished section is marked done — an all-draft section is not
+    expect(screen.getAllByText('раздел пройден')).toHaveLength(1);
+    // each locked row names the section it actually waits on, not the active one
+    expect(screen.getByText('откроется после раздела 03')).toBeInTheDocument();
+    expect(screen.getByText('откроется после раздела 04')).toBeInTheDocument();
+  });
+
   it('owner: constructor headrow (unpublish) + editable section, reorder fires', async () => {
     const user = userEvent.setup();
     let reordered = false;
