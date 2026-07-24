@@ -60,7 +60,10 @@ import type {
   SubmitHomeworkMutation,
   SubmitVerificationDocumentMutation,
   TeacherDashboardQuery,
+  UnpublishCourseMutation,
   UpdateBrandingMutation,
+  UpdateLessonMutation,
+  UpdateSectionMutation,
   UpdateCourseMutation,
   UpdateInstitutionMutation,
   UpdateMembershipMutation,
@@ -179,46 +182,116 @@ function myCourses(): MyCoursesQuery {
   };
 }
 
+type DetailLesson = NonNullable<CourseDetailQuery['course']>['sections'][number]['lessons'][number];
+
+const detailMaterial = (mid: string, type: 'FILE' | 'LINK' | 'TEXT', title: string, order: number) => ({
+  __typename: 'Material' as const,
+  id: mid,
+  type,
+  title,
+  url: type === 'LINK' ? 'https://example.ru/тренажёр' : null,
+  body: type === 'TEXT' ? 'Краткий конспект урока.' : null,
+  fileUrl: type === 'FILE' ? 'https://example.ru/конспект.pdf' : null,
+  order,
+});
+
+const detailLesson = (
+  id: string,
+  title: string,
+  order: number,
+  opts: { status?: 'PUBLISHED' | 'DRAFT'; homework?: boolean; materials?: DetailLesson['materials'] } = {},
+): DetailLesson => ({
+  __typename: 'Lesson',
+  id,
+  title,
+  durationMin: 45,
+  status: opts.status ?? 'PUBLISHED',
+  order,
+  options: { __typename: 'LessonOptions', homework: opts.homework ?? false },
+  materials: opts.materials ?? [],
+});
+
+/** DRAFT geometry course — the owner/constructor projection (publish CTA + draft pills). */
+function courseDetailGeometry(id: string): CourseDetailQuery {
+  return {
+    __typename: 'Query',
+    course: {
+      __typename: 'Course',
+      id,
+      title: 'Геометрия: планиметрия с нуля',
+      description: 'Курс в разработке: разделы, уроки и материалы наполняются.',
+      subject: 'Математика',
+      level: 'GRADE_7',
+      status: 'DRAFT',
+      lessonCount: 4,
+      enrollmentCount: 0,
+      updatedAt: new Date(Date.now() - 4 * 3_600_000).toISOString(),
+      owner: owner(users.maria, 'Математика'),
+      sections: [
+        {
+          __typename: 'Section', id: 'sec-g-01', title: 'Планиметрия', description: '', order: 1,
+          lessons: [
+            detailLesson('les-g-1', 'Точка, прямая, плоскость', 1, { status: 'PUBLISHED', homework: true, materials: [detailMaterial('mat-g-1', 'FILE', 'конспект.pdf', 1), detailMaterial('mat-g-2', 'LINK', 'тренажёр', 2)] }),
+            detailLesson('les-g-2', 'Углы и их измерение', 2, { status: 'DRAFT', materials: [detailMaterial('mat-g-3', 'TEXT', 'памятка', 1)] }),
+          ],
+        },
+        {
+          __typename: 'Section', id: 'sec-g-02', title: 'Треугольники', description: '', order: 2,
+          lessons: [detailLesson('les-g-3', 'Признаки равенства', 1, { status: 'DRAFT' })],
+        },
+      ],
+      viewerEnrollment: null,
+    },
+  };
+}
+
 function courseDetail(vars: Vars): CourseDetailQuery {
   const id = typeof vars.id === 'string' ? vars.id : IDS.course.algebra;
+  if (id === IDS.course.geometry) return courseDetailGeometry(id);
+
   const enrolled = store.enrolled.has(id);
-  const material = (mid: string, type: 'FILE' | 'LINK' | 'TEXT', title: string, order: number) =>
-    ({ __typename: 'Material' as const, id: mid, type, title, url: type === 'LINK' ? 'https://example.ru/тренажёр' : null, body: type === 'TEXT' ? 'Краткий конспект урока.' : null, fileUrl: type === 'FILE' ? 'https://example.ru/конспект.pdf' : null, order });
   return {
     __typename: 'Query',
     course: {
       __typename: 'Course',
       id,
       title: 'Алгебра: от уравнений к функциям',
-      description: 'Системный курс на учебный год: линейные уравнения, системы, функции и графики.',
+      description: 'Системный курс на учебный год: линейные уравнения, системы, функции и графики. Каждое занятие — живой разбор с преподавателем и домашнее задание с проверкой.',
       subject: 'Математика',
       level: 'GRADE_7',
       status: 'PUBLISHED',
-      lessonCount: 36,
+      lessonCount: 7,
       enrollmentCount: 18,
+      updatedAt: new Date(Date.now() - 26 * 3_600_000).toISOString(),
       owner: owner(users.maria, 'Математика'),
       sections: [
         {
-          __typename: 'Section', id: 'sec-01', title: 'Линейные уравнения', description: '4 занятия · 4 домашних', order: 1,
+          __typename: 'Section', id: 'sec-01', title: 'Линейные уравнения', description: '', order: 1,
           lessons: [
-            { __typename: 'Lesson', id: 'les-1-1', title: 'Что такое уравнение', durationMin: 45, status: 'PUBLISHED', order: 1, materials: [material('mat-1', 'FILE', 'Конспект.pdf', 1), material('mat-2', 'LINK', 'Тренажёр', 2)] },
-            { __typename: 'Lesson', id: 'les-1-2', title: 'Перенос слагаемых', durationMin: 45, status: 'PUBLISHED', order: 2, materials: [material('mat-3', 'TEXT', 'Памятка', 1)] },
+            detailLesson('les-1-1', 'Что такое уравнение', 1, { homework: true, materials: [detailMaterial('mat-1', 'FILE', 'конспект.pdf', 1), detailMaterial('mat-2', 'LINK', 'тренажёр', 2)] }),
+            detailLesson('les-1-2', 'Перенос слагаемых', 2, { homework: true, materials: [detailMaterial('mat-3', 'TEXT', 'памятка', 1)] }),
           ],
         },
         {
-          __typename: 'Section', id: 'sec-02', title: 'Системы уравнений', description: '6 занятий · 5 домашних', order: 2,
+          __typename: 'Section', id: 'sec-02', title: 'Системы уравнений', description: '', order: 2,
           lessons: [
-            { __typename: 'Lesson', id: 'les-2-1', title: 'Метод подстановки', durationMin: 45, status: 'PUBLISHED', order: 1, materials: [] },
+            detailLesson('les-2-1', 'Метод подстановки', 1, { homework: true }),
+            detailLesson('les-2-2', 'Метод сложения', 2),
+            detailLesson('les-2-3', 'Задачи на системы', 3, { homework: true }),
           ],
         },
         {
-          __typename: 'Section', id: 'sec-03', title: 'Функции и графики', description: '8 занятий · 6 домашних', order: 3,
+          __typename: 'Section', id: 'sec-03', title: 'Функции и графики', description: '', order: 3,
           lessons: [
-            { __typename: 'Lesson', id: 'les-3-1', title: 'Что такое функция', durationMin: 45, status: 'PUBLISHED', order: 1, materials: [] },
+            detailLesson('les-3-1', 'Что такое функция', 1),
+            detailLesson('les-3-2', 'График линейной функции', 2, { homework: true }),
           ],
         },
       ],
-      viewerEnrollment: enrolled ? { __typename: 'Enrollment', id: 'enr-1', status: 'ACTIVE', progressPct: 33 } : null,
+      // Section 01 fully viewed → done; 02 in-progress; 03 locked (sequential unlock).
+      viewerEnrollment: enrolled
+        ? { __typename: 'Enrollment', id: 'enr-1', status: 'ACTIVE', progressPct: 29, viewedLessonIds: ['les-1-1', 'les-1-2'] }
+        : null,
     },
   };
 }
@@ -491,6 +564,9 @@ export function resolveDemoOperation(operationName: string | undefined, variable
     case 'CreateCourse': return { createCourse: { __typename: 'Course', id: nextId('course'), status: 'DRAFT' } } satisfies CreateCourseMutation;
     case 'UpdateCourse': return { updateCourse: { __typename: 'Course', id: String(variables.id ?? IDS.course.algebra), title: String(input(variables).title ?? 'Курс') } } satisfies UpdateCourseMutation;
     case 'PublishCourse': return { publishCourse: { __typename: 'Course', id: String(variables.id ?? IDS.course.algebra), status: 'PUBLISHED' } } satisfies PublishCourseMutation;
+    case 'UnpublishCourse': return { unpublishCourse: { __typename: 'Course', id: String(variables.id ?? IDS.course.geometry), status: 'DRAFT' } } satisfies UnpublishCourseMutation;
+    case 'UpdateSection': return { updateSection: { __typename: 'Section', id: String(variables.id ?? 'sec-01'), title: String(input(variables).title ?? 'Раздел') } } satisfies UpdateSectionMutation;
+    case 'UpdateLesson': return { updateLesson: { __typename: 'Lesson', id: String(variables.id ?? 'les-1-1'), title: String(input(variables).title ?? 'Урок') } } satisfies UpdateLessonMutation;
     case 'CreateSection': return { createSection: { __typename: 'Section', id: nextId('sec'), title: String(input(variables).title ?? 'Новый раздел'), order: 99 } } satisfies CreateSectionMutation;
     case 'CreateLesson': return { createLesson: { __typename: 'Lesson', id: nextId('les'), title: String(input(variables).title ?? 'Новый урок'), status: 'DRAFT' } } satisfies CreateLessonMutation;
     case 'PublishLesson': return { publishLesson: { __typename: 'Lesson', id: String(variables.id ?? 'les-1-1'), status: 'PUBLISHED' } } satisfies PublishLessonMutation;

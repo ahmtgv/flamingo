@@ -40,6 +40,7 @@ query CourseDetail($id: ID!) {
     status
     lessonCount
     enrollmentCount
+    updatedAt
     owner {
       specialty
       user {
@@ -59,6 +60,9 @@ query CourseDetail($id: ID!) {
         durationMin
         status
         order
+        options {
+          homework
+        }
         materials {
           id
           type
@@ -74,6 +78,7 @@ query CourseDetail($id: ID!) {
       id
       status
       progressPct
+      viewedLessonIds
     }
   }
 }
@@ -104,11 +109,32 @@ mutation PublishCourse($id: ID!) {
   }
 }
 
+mutation UnpublishCourse($id: ID!) {
+  unpublishCourse(id: $id) {
+    id
+    status
+  }
+}
+
 mutation CreateSection($courseId: ID!, $input: SectionInput!) {
   createSection(courseId: $courseId, input: $input) {
     id
     title
     order
+  }
+}
+
+mutation UpdateSection($id: ID!, $input: SectionInput!) {
+  updateSection(id: $id, input: $input) {
+    id
+    title
+  }
+}
+
+mutation UpdateLesson($id: ID!, $input: LessonInput!) {
+  updateLesson(id: $id, input: $input) {
+    id
+    title
   }
 }
 

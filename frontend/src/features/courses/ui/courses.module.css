@@ -496,3 +496,265 @@
   outline: none;
   box-shadow: var(--focus-ring);
 }
+
+/* --- Course detail: guest / enrolled projections (atlas 04) --------------- */
+.detailGrid {
+  display: grid;
+  grid-template-columns: 1.5fr 0.8fr;
+  gap: var(--space-8);
+  align-items: start;
+}
+@media (max-width: 860px) {
+  .detailGrid {
+    grid-template-columns: 1fr;
+    gap: var(--space-6);
+  }
+}
+.dSubj {
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  color: var(--color-text-tertiary);
+  text-transform: lowercase;
+  margin-bottom: var(--space-2);
+}
+.dDesc {
+  color: var(--color-text-secondary);
+  max-width: 56ch;
+  margin-top: var(--space-4);
+  line-height: var(--leading-snug);
+}
+.secOverline {
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  color: var(--color-text-tertiary);
+  margin: var(--space-7) 0 var(--space-1);
+}
+.progRow {
+  display: grid;
+  grid-template-columns: 44px 1fr auto;
+  gap: var(--space-4);
+  align-items: center;
+  padding: var(--space-4) 0;
+  border-bottom: 1px solid var(--color-border);
+  text-align: start;
+}
+.progRow:last-child {
+  border-bottom: 0;
+}
+button.progRow {
+  background: none;
+  border-left: 0;
+  border-right: 0;
+  border-top: 0;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+  width: 100%;
+}
+button.progRow:hover {
+  background: var(--color-surface-hover);
+}
+button.progRow:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+.progIdx {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--text-caption);
+  color: var(--color-text-tertiary);
+}
+.progTitle {
+  font-weight: var(--weight-medium);
+}
+.progSub {
+  font-size: var(--text-caption);
+  color: var(--color-text-secondary);
+  margin-top: 2px;
+}
+.progLock {
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  color: var(--color-text-tertiary);
+  justify-self: end;
+}
+.progDone {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  color: var(--color-text-secondary);
+  justify-self: end;
+}
+.progDone svg {
+  width: 14px;
+  height: 14px;
+}
+.aside {
+  position: sticky;
+  top: 88px;
+  display: grid;
+  gap: var(--space-3);
+  align-content: start;
+}
+.asideNote {
+  font-size: var(--text-caption);
+  color: var(--color-text-secondary);
+}
+.asideTeach {
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  color: var(--color-text-tertiary);
+}
+.progressLine {
+  height: 4px;
+  background: var(--color-surface-subtle);
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+}
+.progressLine i {
+  display: block;
+  height: 100%;
+  /* AIR: progress is a neutral meter, not a coral accent. */
+  background: var(--color-text-secondary);
+}
+
+/* --- Course constructor (owner, atlas 04) -------------------------------- */
+.cHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+  margin-bottom: var(--space-4);
+}
+.cHeadActions {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+.pill {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  color: var(--color-text-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  padding: 3px 10px;
+}
+.pillDraft {
+  color: var(--color-text-tertiary);
+  border-style: dashed;
+}
+.cSecTitle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  color: var(--color-text-tertiary);
+  margin: var(--space-6) 0 var(--space-1);
+}
+.cRow {
+  display: grid;
+  grid-template-columns: 44px 1fr auto;
+  gap: var(--space-4);
+  align-items: start;
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--color-border);
+}
+.cControls {
+  display: flex;
+  gap: var(--space-1);
+}
+.mini {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-content: center;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xs);
+  background: none;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+}
+.mini:hover:not(:disabled) {
+  border-color: var(--color-border-strong);
+  color: var(--color-text);
+}
+.mini:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.mini:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+.mini svg {
+  width: 15px;
+  height: 15px;
+}
+.matChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+.matChip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  color: var(--color-text-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xs);
+  padding: 4px 8px;
+}
+.matChip svg {
+  width: 13px;
+  height: 13px;
+  color: var(--color-text-tertiary);
+}
+.matChipDelete {
+  background: none;
+  border: 0;
+  cursor: pointer;
+  color: var(--color-text-tertiary);
+  padding: 0 0 0 2px;
+  display: inline-flex;
+}
+.matChipDelete:hover {
+  color: var(--color-error-text);
+}
+.matChipDelete:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+.addRow {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  margin: var(--space-3) 0 var(--space-2);
+}
+.dashBtn {
+  font-family: var(--font-heading);
+  font-size: var(--text-small);
+  font-weight: var(--weight-medium);
+  color: var(--color-text-secondary);
+  background: none;
+  border: 1px dashed var(--color-border-strong);
+  border-radius: var(--radius-control);
+  min-height: var(--tap-min);
+  padding: 0 18px;
+  cursor: pointer;
+}
+.dashBtn:hover {
+  color: var(--color-text);
+  background: var(--color-surface-hover);
+}
+.dashBtn:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
