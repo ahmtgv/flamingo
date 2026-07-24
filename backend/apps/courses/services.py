@@ -421,12 +421,36 @@ def visible_materials(user, lesson: Lesson) -> list[Material]:
 
 
 # --- catalog ----------------------------------------------------------------
+def _published_filtered(*, level=None, subject=None, language=None, search=None):
+    """The published-catalog queryset after applying the (optional) filters — without the
+    per-card annotations, so it can back both the paginated list and the distinct-subject
+    facet count without the annotations distorting a GROUP BY."""
+    qs = Course.objects.filter(status=CourseStatus.PUBLISHED.value)
+    if level:
+        qs = qs.filter(level=_val(level))
+    if subject:
+        qs = qs.filter(subject__icontains=subject)
+    if language:
+        qs = qs.filter(language=language)
+    if search:
+        # Atlas 04 search promises "курс, предмет или преподаватель": match title/description
+        # plus the subject and the owning teacher's name.
+        qs = qs.filter(
+            Q(title__icontains=search)
+            | Q(description__icontains=search)
+            | Q(subject__icontains=search)
+            | Q(owner__user__first_name__icontains=search)
+            | Q(owner__user__last_name__icontains=search)
+        )
+    return qs
+
+
 def published_courses(*, level=None, subject=None, language=None, search=None):
     # Annotate the per-card counts so the catalog does not run 2 COUNT queries per course
     # (A-H1). distinct=True avoids the multiple-aggregate row multiplication; the lesson count
     # excludes soft-deleted lessons to match the Lesson (SoftDeleteManager) default.
-    qs = (
-        Course.objects.filter(status=CourseStatus.PUBLISHED.value)
+    return (
+        _published_filtered(level=level, subject=subject, language=language, search=search)
         .select_related("owner__user")
         .annotate(
             _lesson_count=Count(
@@ -436,16 +460,19 @@ def published_courses(*, level=None, subject=None, language=None, search=None):
             ),
             _enrollment_count=Count("enrollments", distinct=True),
         )
+        .order_by("-created_at", "id")
     )
-    if level:
-        qs = qs.filter(level=_val(level))
-    if subject:
-        qs = qs.filter(subject__icontains=subject)
-    if language:
-        qs = qs.filter(language=language)
-    if search:
-        qs = qs.filter(Q(title__icontains=search) | Q(description__icontains=search))
-    return qs.order_by("-created_at", "id")
+
+
+def published_subject_count(*, level=None, subject=None, language=None, search=None) -> int:
+    """Distinct subjects across the (filtered) published catalog — the "N предметов" meta
+    (atlas 04). Reflects the active filter so the headrow stays consistent with totalCount."""
+    return (
+        _published_filtered(level=level, subject=subject, language=language, search=search)
+        .values("subject")
+        .distinct()
+        .count()
+    )
 
 
 def viewer_enrollment(user, course: Course) -> Enrollment | None:

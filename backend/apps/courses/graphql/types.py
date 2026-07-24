@@ -206,3 +206,4 @@ class CourseConnection:
     nodes: list[Course]
     page_info: PageInfo
     total_count: int
+    subject_count: int  # distinct subjects in the (filtered) catalog — "N предметов" meta

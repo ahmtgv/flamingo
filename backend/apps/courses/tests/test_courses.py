@@ -74,6 +74,41 @@ def test_catalog_returns_only_published():
     assert draft.id not in ids
 
 
+def test_catalog_subject_count_is_distinct_over_published():
+    """Atlas 04 meta "N курса · M предметов": distinct subjects across the PUBLISHED catalog
+    (drafts excluded), reflecting the active filter."""
+    teacher = make_teacher()
+    for title, subj in [
+        ("Алгебра", "Математика"),
+        ("Геометрия", "Математика"),
+        ("Оптика", "Физика"),
+    ]:
+        c = services.create_course(teacher, title=title, subject=subj, level="grade_7")
+        services.publish_course(teacher, c.id)
+    draft = services.create_course(teacher, title="Черновик", subject="Химия", level="grade_7")
+    assert draft.status == CourseStatus.DRAFT.value
+
+    assert services.published_courses().count() == 3  # 3 published (draft/Химия excluded)
+    assert services.published_subject_count() == 2  # Математика, Физика — not Химия
+    # Filtered subject-count stays consistent with the filter.
+    assert services.published_subject_count(subject="Матем") == 1
+
+
+def test_catalog_search_matches_subject_and_teacher_name():
+    """The search box promises "курс, предмет или преподаватель" — match subject and the
+    owning teacher's name, not only title/description (atlas 04)."""
+    teacher = make_teacher("t.search@example.com")  # first_name Иван, last_name Петров
+    course = services.create_course(
+        teacher, title="Готовый курс", subject="Биология", level="grade_9"
+    )
+    services.publish_course(teacher, course.id)
+
+    by_subject = set(services.published_courses(search="биолог").values_list("id", flat=True))
+    by_teacher = set(services.published_courses(search="Петров").values_list("id", flat=True))
+    assert course.id in by_subject
+    assert course.id in by_teacher
+
+
 def test_enroll_published_only_and_no_duplicates():
     teacher = make_teacher()
     student = make_student()

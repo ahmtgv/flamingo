@@ -473,7 +473,7 @@ type GroupStat {
 
 # ----------------------------------------------------------------------------- Pagination
 type PageInfo { hasNextPage: Boolean! endCursor: String }
-type CourseConnection { nodes: [Course!]! pageInfo: PageInfo! totalCount: Int! }
+type CourseConnection { nodes: [Course!]! pageInfo: PageInfo! totalCount: Int! subjectCount: Int! }
 type NotificationConnection { nodes: [Notification!]! pageInfo: PageInfo! totalCount: Int! }
 
 # =============================================================================

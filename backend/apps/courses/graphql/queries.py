@@ -29,14 +29,19 @@ class CoursesQuery:
         after: str | None = None,
     ) -> CourseConnection:
         f = filter or CourseFilter()
-        qs = services.published_courses(
-            level=f.level, subject=f.subject, language=f.language, search=f.search
-        )
+        kwargs = {
+            "level": f.level,
+            "subject": f.subject,
+            "language": f.language,
+            "search": f.search,
+        }
+        qs = services.published_courses(**kwargs)
         page = paginate(qs, first, after)
         return CourseConnection(
             nodes=page.nodes,
             page_info=PageInfo(has_next_page=page.has_next_page, end_cursor=page.end_cursor),
             total_count=page.total_count,
+            subject_count=services.published_subject_count(**kwargs),
         )
 
     @strawberry.field
