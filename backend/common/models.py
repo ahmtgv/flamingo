@@ -5,6 +5,8 @@ import uuid
 from django.db import models
 from django.utils import timezone
 
+from common.enums import Jurisdiction, JurisdictionSource, choices
+
 
 class UUIDModel(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -23,6 +25,30 @@ class TimeStampedModel(models.Model):
 
 class BaseModel(UUIDModel, TimeStampedModel):
     """uuid primary key + created/updated timestamps."""
+
+    class Meta:
+        abstract = True
+
+
+class JurisdictionMixin(models.Model):
+    """Jurisdiction attached to a TENANT (institution; for B2C, the user themself) —
+    never to a session, request or IP (docs/rnd/RND_01_JURISDICTION.md §6.1: a pupil on a
+    VPN does not move their school). An empty ``jurisdiction`` means *not declared*: the
+    resolver then falls back to the deployment contour, and an undeclared contour resolves
+    to UNKNOWN → strictest profile.
+
+    ``jurisdiction_source`` decides whether this record may lower strictness (§6.2): only
+    CONTRACT / KYC_VERIFIED may. A claim (SELF_DECLARED / INFERRED) can only make the
+    profile stricter.
+    """
+
+    jurisdiction = models.CharField(
+        max_length=16, choices=choices(Jurisdiction), blank=True, default=""
+    )
+    jurisdiction_source = models.CharField(
+        max_length=16, choices=choices(JurisdictionSource), blank=True, default=""
+    )
+    jurisdiction_verified_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         abstract = True

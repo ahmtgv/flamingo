@@ -10,10 +10,14 @@ are intentionally absent here. Branding JSON is stored but unused in MVP.
 from django.db import models
 
 from common.enums import InstitutionStatus, MembershipRole, MembershipStatus, choices
-from common.models import BaseModel, SoftDeleteModel
+from common.models import BaseModel, JurisdictionMixin, SoftDeleteModel
 
 
-class Institution(SoftDeleteModel):
+class Institution(JurisdictionMixin, SoftDeleteModel):
+    """An institution is the PRIMARY tenant of the jurisdiction gate: the AI Act attaches
+    to the education institution, so its jurisdiction — not the pupil's location — decides
+    which SEduM features may run (docs/rnd/RND_01_JURISDICTION.md §6.1)."""
+
     name = models.CharField(max_length=200)
     address = models.CharField(max_length=512, blank=True, default="")
     logo_key = models.CharField(max_length=512, blank=True, default="")

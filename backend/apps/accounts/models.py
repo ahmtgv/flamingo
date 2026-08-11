@@ -12,13 +12,17 @@ from common.enums import (
     VerificationStatus,
     choices,
 )
-from common.models import BaseModel, TimeStampedModel
+from common.models import BaseModel, JurisdictionMixin, TimeStampedModel
 
 from .managers import UserManager
 
 
-class User(AbstractBaseUser, PermissionsMixin):
-    """Single account table. Role-specific data lives in 1:1 profiles."""
+class User(JurisdictionMixin, AbstractBaseUser, PermissionsMixin):
+    """Single account table. Role-specific data lives in 1:1 profiles.
+
+    The jurisdiction fields apply to B2C users only: for a user who belongs to an
+    institution, the institution's jurisdiction wins (it is the tenant).
+    """
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     email = models.EmailField(unique=True)

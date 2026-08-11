@@ -204,3 +204,32 @@ class NotificationChannel(Enum):
     PUSH = "push"
     EMAIL = "email"
     IN_APP = "in_app"
+
+
+# --- Jurisdiction gate (docs/rnd/RND_01_JURISDICTION.md) ---------------------
+# Deliberately NOT @strawberry.enum: the compliance layer is server-side only. A client
+# must never be able to read (let alone influence) the jurisdiction decision, and keeping
+# these out of the schema also keeps the published contract free of compliance internals.
+
+
+class Jurisdiction(Enum):
+    """Legal regime a tenant operates under. UNKNOWN is a real, strictest-profile value —
+    never a placeholder to be treated as "probably fine" (fail-closed, red line 7)."""
+
+    RU = "ru"
+    EU = "eu"
+    UNKNOWN = "unknown"
+
+
+class JurisdictionSource(Enum):
+    """How a tenant's jurisdiction was established — governs whether it may *lower*
+    strictness (§6.2). CONTRACT/KYC_VERIFIED are evidence about the tenant; DEPLOYMENT is
+    the operator's own data contour (§6.1: deployment region is the strongest technical
+    criterion). SELF_DECLARED/INFERRED are claims: they may raise strictness, never lower it.
+    IP/locale are INFERRED and are only ever an anomaly signal (§6.1)."""
+
+    CONTRACT = "contract"
+    KYC_VERIFIED = "kyc_verified"
+    DEPLOYMENT = "deployment"
+    SELF_DECLARED = "self_declared"
+    INFERRED = "inferred"
