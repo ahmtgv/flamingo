@@ -1,0 +1,69 @@
+{
+  "policy_version": "2026-08-07.1",
+  "_doc": [
+    "Feature x jurisdiction matrix — policy-as-code (docs/rnd/RND_01_JURISDICTION.md §6.3-6.4).",
+    "This file IS the policy: no jurisdictional 'if' may exist anywhere else in the codebase.",
+    "Changing it changes what the product is legally allowed to do, so it is reviewed like code",
+    "and its version + hash are recorded in PolicyChangeLog on deploy.",
+    "",
+    "Fail-closed by construction: default_state is 'disabled' for every feature, and a",
+    "jurisdiction that is absent from a feature's jurisdiction_policy falls back to it.",
+    "An unregistered feature key is denied outright.",
+    "",
+    "verified_sources: only these may LOWER strictness (§6.2). A self-declared or inferred",
+    "jurisdiction can make the profile stricter, never looser."
+  ],
+  "verified_sources": ["contract", "kyc_verified", "deployment"],
+  "features": {
+    "cmf_attention": {
+      "default_state": "disabled",
+      "requires_verified_jurisdiction": true,
+      "jurisdiction_policy": {
+        "ru": "enabled",
+        "eu": "disabled"
+      },
+      "legal_basis_ref": "RND_01_JURISDICTION.md — matrix row (a); RU: 152-FZ art. 11 (no identity establishment => not biometric PD); EU: AI Act art. 5(1)(f) + Guidelines C(2025) 884 cl. 255 (inferring interest and attention of students is prohibited; on-device processing does not cure it)",
+      "note": "Covers the on-device attention pipeline AND its per-bucket aggregate ingress. EU stays disabled: the output functions as 'attention', which cl. 248 anti-circumvention blocks from being renamed out of scope."
+    },
+    "selfreport_state": {
+      "default_state": "disabled",
+      "requires_verified_jurisdiction": false,
+      "jurisdiction_policy": {
+        "ru": "enabled",
+        "eu": "enabled"
+      },
+      "legal_basis_ref": "RND_01_JURISDICTION.md — matrix row (b); AI Act art. 3(39) requires inference from biometric data, a self-report is not; Guidelines cl. 251/265 place it out of scope. EU conditions: GDPR art. 9 + art. 8 consent, DPIA, and NO fusion with the camera module.",
+      "note": "The primary EU-legal path to the same product value. Enabled in both regimes; still disabled under an unknown jurisdiction, because an unmodelled third regime is not a known-safe one."
+    },
+    "recommend_schedule": {
+      "default_state": "disabled",
+      "requires_verified_jurisdiction": true,
+      "jurisdiction_policy": {
+        "ru": "enabled",
+        "eu": "disabled"
+      },
+      "legal_basis_ref": "RND_01_JURISDICTION.md — matrix row (g); EU: with a camera-derived input the recommendation inherits the art. 5(1)(f) prohibition, and on a self-report input it is likely Annex III 3(b) high-risk with the art. 6(3) profiling filter blocked.",
+      "note": "A future EU variant fed strictly by self-report + explicit preferences must be registered as its own feature key, not smuggled in under this one."
+    },
+    "ubp_profile": {
+      "default_state": "disabled",
+      "requires_verified_jurisdiction": true,
+      "jurisdiction_policy": {
+        "ru": "enabled",
+        "eu": "disabled"
+      },
+      "legal_basis_ref": "RND_01_JURISDICTION.md — matrix row (d); EU: UBP is textbook profiling (GDPR art. 4(4)), and if it steers level or track it lands in Annex III 3(c) => always high-risk under art. 6(3). RU: ordinary personal data, subject to localisation.",
+      "note": "IndexedDB storage does not change the analysis — the rule is about the function, not the storage location."
+    },
+    "face_emotion_recognition": {
+      "default_state": "disabled",
+      "requires_verified_jurisdiction": true,
+      "jurisdiction_policy": {
+        "ru": "disabled",
+        "eu": "disabled"
+      },
+      "legal_basis_ref": "RND_01_JURISDICTION.md — matrix row (c) and red line 2; EU: prohibited unconditionally, consent cannot cure it (up to EUR 35M / 7%). RU: legally arguable but a reputational red line the product does not cross.",
+      "note": "Registered precisely because it is never to be built: the matrix is the machine-checkable form of that red line, so any future call site fails closed instead of quietly working."
+    }
+  }
+}

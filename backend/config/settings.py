@@ -48,7 +48,25 @@ INSTALLED_APPS = [
     "apps.institutions",
     "apps.seedum",
     "apps.files",
+    "apps.compliance",
 ]
+
+# --- Jurisdiction gate (docs/rnd/RND_01_JURISDICTION.md §6.1-6.2) ------------------------
+# The legal regime of THIS deployment's data circuit. RU and EU are separate circuits, not
+# replicas (§5(v)), so the circuit a request is served from is itself a jurisdictional fact
+# — and the deployment region is the strongest technical criterion available (§6.1).
+#
+# This repository is the RF circuit: personal data of RF citizens is stored in RF (152-FZ
+# art. 18(5)), and the owner's decision is that the RF profile runs with everything on.
+# An EU deployment MUST set FLAMINGO_JURISDICTION=eu, which turns the camera-derived
+# features off at the API. Any unrecognised value resolves to UNKNOWN → strictest profile,
+# so a misconfigured deployment fails closed rather than open.
+DEPLOYMENT_JURISDICTION = os.environ.get("FLAMINGO_JURISDICTION", "ru")
+
+# How long an identical refusal is suppressed before it is written to PolicyDecisionLog
+# again (per process). Refusals are evidence of unavailability; the four-hundredth identical
+# one within the hour adds no evidence and is a write-amplification vector.
+POLICY_AUDIT_THROTTLE_SECONDS = int(os.environ.get("POLICY_AUDIT_THROTTLE_SECONDS", "3600"))
 
 # Realtime (GraphQL subscriptions over WebSocket / graphql-ws). In-memory channel
 # layer for native dev (single process); env-switch to Redis for prod/multi-worker.
