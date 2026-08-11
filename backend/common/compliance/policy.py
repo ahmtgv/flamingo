@@ -122,6 +122,11 @@ def is_feature_allowed(subject, feature: str) -> Decision:
 def require_feature(subject, feature: str) -> Decision:
     """``is_feature_allowed`` for call sites that should abort. Raises PermissionDenied.
 
+    **Call this before opening a transaction.** A refusal writes to the evidence ledger and
+    then raises; inside an ``atomic`` block that raise rolls the evidence back, so the one
+    record proving the feature was blocked disappears with it. Treat the gate as a
+    precondition, not as part of the write.
+
     The message is deliberately terse: a caller learns the feature is unavailable in their
     jurisdiction, not how the gate is wired.
     """

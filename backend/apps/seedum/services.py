@@ -25,10 +25,15 @@ from apps.courses.access import can_access_course
 from apps.courses.models import Enrollment
 from apps.courses.services import _student_profile
 from apps.scheduling.models import LessonSession
+from common.compliance import require_feature
 from common.enums import GuardianshipStatus, RecommendationKind, Role
 from common.exceptions import NotFound, PermissionDenied, ValidationError
 
 from .models import AttentionMetric, Recommendation, UbpBackup
+
+# Registered in common/compliance/matrix.json. The gate is asked by key, so the matrix — not
+# this module — decides where the feature may run.
+CMF_FEATURE = "cmf_attention"
 
 
 # --- helpers ----------------------------------------------------------------
@@ -72,8 +77,41 @@ def _assert_can_view_student(user, student_user_id) -> None:
 
 
 # --- attention --------------------------------------------------------------
-@transaction.atomic
 def record_attention(
+    user,
+    *,
+    session_id,
+    bucket_start,
+    avg_attention,
+    gaze_on_screen=None,
+    eye_openness=None,
+    head_yaw=None,
+    head_pitch=None,
+    alertness=None,
+) -> bool:
+    """Ingest one per-bucket aggregate, if this tenant's regime permits the feature at all.
+
+    The jurisdiction gate runs OUTSIDE the write transaction on purpose. A refusal writes a
+    row to the evidence ledger, and an enclosing atomic block would roll that row back along
+    with the exception — leaving us unable to prove the refusal ever happened, which is the
+    one thing the ledger exists for (RND_01_JURISDICTION.md §6.4).
+    """
+    require_feature(user, CMF_FEATURE)
+    return _record_attention_bucket(
+        user,
+        session_id=session_id,
+        bucket_start=bucket_start,
+        avg_attention=avg_attention,
+        gaze_on_screen=gaze_on_screen,
+        eye_openness=eye_openness,
+        head_yaw=head_yaw,
+        head_pitch=head_pitch,
+        alertness=alertness,
+    )
+
+
+@transaction.atomic
+def _record_attention_bucket(
     user,
     *,
     session_id,
