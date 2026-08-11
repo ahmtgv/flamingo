@@ -14,7 +14,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
 import { AttentionChart, PrivacyIndicator } from '@/seedum';
-import { CMF } from '@/seedum/cmfConfig';
+import { CMF } from '@/seedum/cmf/cmfConfig';
 import { attentionPoints } from '@/shared/demo/resolveDemoOperation';
 import { cohort, users } from '@/shared/demo/demoData';
 import { demoRole } from '@/shared/demo/demoRole';

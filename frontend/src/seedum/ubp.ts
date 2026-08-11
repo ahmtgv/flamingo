@@ -5,7 +5,7 @@
 
 import { type DBSchema, type IDBPDatabase, openDB } from 'idb';
 
-import type { Baseline } from './score';
+import type { Baseline } from './cmf/score';
 
 export interface Ubp {
   baseline: Baseline;

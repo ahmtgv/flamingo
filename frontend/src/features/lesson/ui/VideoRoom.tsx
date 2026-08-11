@@ -5,7 +5,7 @@ import { type ReactNode, useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next';
 
 import { headState } from '@/seedum';
-import { CMF } from '@/seedum/cmfConfig';
+import { CMF } from '@/seedum/cmf/cmfConfig';
 import { Meter } from '@/seedum/ui/Meter';
 import { Button } from '@/shared/ui';
 

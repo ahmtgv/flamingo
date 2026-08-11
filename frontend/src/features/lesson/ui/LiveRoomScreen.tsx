@@ -12,7 +12,7 @@ import {
   useSessionRoomQuery,
 } from '@/entities/graphql/generated';
 import { AttentionChart, PrivacyIndicator, startAttentionPipeline } from '@/seedum';
-import { CMF } from '@/seedum/cmfConfig';
+import { CMF } from '@/seedum/cmf/cmfConfig';
 import { CmfDebugHud, type CmfHudFeed } from '@/seedum/ui/CmfDebugHud';
 import { loadUbp } from '@/seedum/ubp';
 import { LIVEKIT_URL } from '@/shared/lib/env';

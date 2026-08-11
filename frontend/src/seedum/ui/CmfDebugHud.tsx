@@ -7,8 +7,8 @@
 
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
 
-import type { BucketAggregate } from '../attention';
-import { CMF } from '../cmfConfig';
+import type { BucketAggregate } from '../cmf/attention';
+import { CMF } from '../cmf/cmfConfig';
 import styles from './seedum.module.css';
 
 /** Imperative feed: the room pushes; the HUD samples on its own slow clock (2 Hz) so
