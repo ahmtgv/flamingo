@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>АТЛАС 12 — Внешние источники: 3 варианта в предмете · 3 варианта хаба</title>
+<title>АТЛАС 12 — Внешние источники: в предмете (рельс + ключевые точки) · ХАБ (3 раздела)</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -24,7 +24,7 @@ body{background:var(--bg);color:var(--ink);font-family:var(--ui);font-size:var(-
   line-height:1.6;padding:32px 24px 120px;transition:background .32s var(--ease),color .32s var(--ease)}
 .wrap{max-width:1120px;margin:0 auto}
 h1{font-size:1.4rem;font-weight:600;letter-spacing:-.015em}
-.sub{color:var(--sec);font-size:var(--fs-small);margin:6px 0 20px;max-width:76ch}
+.sub{color:var(--sec);font-size:var(--fs-small);margin:6px 0 20px;max-width:78ch}
 .bar{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:20px;position:sticky;top:8px;z-index:5;
   background:var(--bg);padding:8px 0}
 .bar .grp{font:500 10px var(--mono);color:var(--ter);letter-spacing:.1em;text-transform:uppercase;margin-right:2px}
@@ -36,13 +36,17 @@ h1{font-size:1.4rem;font-weight:600;letter-spacing:-.015em}
 .screen{background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow:hidden}
 .topnav{display:flex;align-items:center;gap:10px;padding:12px 20px;border-bottom:1px solid var(--border)}
 .dot{width:7px;height:7px;border-radius:50%;background:var(--coral)}
-.topnav b{font-size:14px;font-weight:500}
+.topnav b{font-size:14px;font-weight:500;letter-spacing:-.01em}
+.hubMark{font:500 10px var(--mono);color:var(--coral-t);border:1px solid var(--coral);border-radius:5px;
+  padding:2px 7px;letter-spacing:.14em;margin-inline-start:2px}
 .topnav .avatar{margin-left:auto;width:28px;height:28px;border-radius:50%;background:var(--subtle);
   display:grid;place-content:center;font:500 10px var(--mono);color:var(--sec)}
-.page{padding:36px 44px 48px;min-height:600px}
+.page{padding:36px 44px 48px;min-height:640px}
 .view{display:none}
-.page[data-v="a1"] .v-a1,.page[data-v="a2"] .v-a2,.page[data-v="a3"] .v-a3,
+.page[data-v="ax"] .v-ax,.page[data-v="a1"] .v-a1,.page[data-v="a2"] .v-a2,.page[data-v="a3"] .v-a3,
 .page[data-v="b1"] .v-b1,.page[data-v="b2"] .v-b2,.page[data-v="b3"] .v-b3{display:block}
+.page[data-v="b1"] .hubOnly,.page[data-v="b2"] .hubOnly,.page[data-v="b3"] .hubOnly{display:flex}
+.hubOnly{display:none}
 
 .h-title{font-size:var(--fs-h1);font-weight:600;letter-spacing:-.02em}
 .h-sub{color:var(--sec);font-size:var(--fs-cap);margin-top:4px}
@@ -50,7 +54,15 @@ h1{font-size:1.4rem;font-weight:600;letter-spacing:-.015em}
   margin:32px 0 12px;display:flex;align-items:center;gap:10px}
 .secLbl::after{content:'';flex:1;height:1px;background:var(--border)}
 
-/* --- source card primitives --- */
+/* hub internal tabs */
+.hubTabs{gap:4px;align-items:center;margin-bottom:26px;border-bottom:1px solid var(--border);padding-bottom:0}
+.hubTab{font:500 var(--fs-cap) var(--ui);color:var(--sec);background:none;border:none;border-bottom:2px solid transparent;
+  padding:10px 14px;cursor:pointer;transition:all .18s var(--ease);display:flex;align-items:center;gap:7px}
+.hubTab:hover{color:var(--ink)}
+.hubTab[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--coral)}
+.hubTab:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(225,78,31,.4)}
+
+/* source card */
 .src{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 18px;
   display:grid;gap:6px;text-align:start;font:inherit;color:inherit;cursor:pointer;transition:all .18s var(--ease)}
 .src:hover{border-color:var(--border-s);transform:translateY(-1px)}
@@ -58,10 +70,11 @@ h1{font-size:1.4rem;font-weight:600;letter-spacing:-.015em}
 .src .inst{font:400 var(--fs-micro) var(--mono);color:var(--ter)}
 .src .name{font-weight:500;font-size:.9375rem;letter-spacing:-.01em;display:flex;align-items:center;gap:6px}
 .src .desc{font-size:var(--fs-cap);color:var(--sec)}
-.src .foot{display:flex;align-items:center;gap:8px;margin-top:4px}
-.lic{font:500 10px var(--mono);color:var(--sec);border:1px solid var(--border);border-radius:5px;padding:2px 6px}
-.lic[data-open]{color:#226741;border-color:#bcd9c6}
-[data-theme="dark"] .lic[data-open]{color:#9fd8ae;border-color:#2c4a37}
+.src .foot{display:flex;align-items:center;gap:8px;margin-top:4px;flex-wrap:wrap}
+.use{font:400 var(--fs-micro) var(--ui);color:var(--sec)}
+.use[data-free]{color:#226741}
+[data-theme="dark"] .use[data-free]{color:#9fd8ae}
+.lic{font:500 10px var(--mono);color:var(--ter);border:1px solid var(--border);border-radius:5px;padding:2px 6px}
 .ext{font:500 10px var(--mono);color:var(--ter)}
 .live{display:inline-flex;align-items:center;gap:5px;font:500 10px var(--mono);color:var(--coral-t);
   letter-spacing:.06em;text-transform:uppercase}
@@ -69,14 +82,9 @@ h1{font-size:1.4rem;font-weight:600;letter-spacing:-.015em}
 @media (prefers-reduced-motion:no-preference){.live i{animation:pulse 2.4s ease-in-out infinite}}
 @keyframes pulse{50%{opacity:.3}}
 
-/* A1 shelf */
-.shelf{display:flex;gap:12px;overflow-x:auto;padding-bottom:6px;scrollbar-width:thin}
-.shelf .src{min-width:236px;flex:0 0 236px}
-.lessonBody{color:var(--sec);max-width:64ch;font-size:.9375rem;margin-top:14px}
-
-/* A2 rail */
-.railWrap{display:grid;grid-template-columns:1fr 300px;gap:40px;align-items:start;margin-top:24px}
-.rail{border-inline-start:1px solid var(--border);padding-inline-start:24px;display:grid;gap:2px}
+/* A combined: rail + inline */
+.railWrap{display:grid;grid-template-columns:1fr 292px;gap:40px;align-items:start;margin-top:22px}
+.rail{border-inline-start:1px solid var(--border);padding-inline-start:24px;display:grid;gap:2px;position:sticky;top:16px}
 .railSec{font:500 var(--fs-micro) var(--mono);color:var(--ter);letter-spacing:.08em;text-transform:uppercase;margin:20px 0 8px}
 .railSec:first-child{margin-top:0}
 .railItem{display:grid;gap:2px;padding:10px 0;border-bottom:1px solid var(--border);cursor:pointer;
@@ -85,8 +93,7 @@ h1{font-size:1.4rem;font-weight:600;letter-spacing:-.015em}
 .railItem:hover .rn{color:var(--coral-t)}
 .rn{font-weight:500;font-size:.875rem;display:flex;align-items:center;gap:6px;transition:color .18s var(--ease)}
 .rd{font:400 var(--fs-micro) var(--mono);color:var(--ter)}
-
-/* A3 inline */
+.para{color:var(--sec);font-size:.9375rem;max-width:62ch;margin-bottom:14px}
 .inlineBlock{border:1px solid var(--border);border-inline-start:2px solid var(--coral);border-radius:0 12px 12px 0;
   padding:18px 20px;margin:20px 0;background:var(--surface)}
 .inlineBlock .kicker{font:500 var(--fs-micro) var(--mono);color:var(--coral-t);letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px}
@@ -95,14 +102,19 @@ h1{font-size:1.4rem;font-weight:600;letter-spacing:-.015em}
 .inlineAct{display:flex;gap:8px;align-items:center;margin-top:12px;flex-wrap:wrap}
 .btnS{font:500 var(--fs-cap) var(--ui);color:#fff;background:var(--coral);border:none;border-radius:9px;padding:8px 15px;cursor:pointer}
 .btnQ{font:500 var(--fs-cap) var(--ui);color:var(--ink);background:none;border:1px solid var(--border-s);border-radius:9px;padding:8px 15px;cursor:pointer}
-.para{color:var(--sec);font-size:.9375rem;max-width:62ch;margin-bottom:14px}
+.shelf{display:flex;gap:12px;overflow-x:auto;padding-bottom:6px}
+.shelf .src{min-width:236px;flex:0 0 236px}
+.lessonBody{color:var(--sec);max-width:64ch;font-size:.9375rem;margin-top:14px}
 
-/* B1 catalog */
-.searchRow{display:flex;gap:10px;margin:24px 0 16px}
+/* B1 */
+.searchRow{display:flex;gap:10px;margin:0 0 16px}
 .searchRow input{flex:1;height:42px;border:1px solid var(--border-s);border-radius:10px;background:var(--surface);
   color:var(--ink);font:400 var(--fs-body) var(--ui);padding:0 16px}
 .searchRow input::placeholder{color:var(--ter)}
 .searchRow input:focus-visible{outline:none;border-color:var(--coral);box-shadow:0 0 0 3px rgba(225,78,31,.25)}
+.langSel{height:42px;border:1px solid var(--border-s);border-radius:10px;background:var(--surface);color:var(--ink);
+  font:500 var(--fs-cap) var(--mono);padding:0 12px;cursor:pointer;min-width:150px}
+.langSel:focus-visible{outline:none;border-color:var(--coral);box-shadow:0 0 0 3px rgba(225,78,31,.25)}
 .chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:26px}
 .chip{font:500 var(--fs-micro) var(--mono);color:var(--sec);border:1px solid var(--border);border-radius:999px;
   padding:5px 12px;background:none;cursor:pointer}
@@ -110,7 +122,7 @@ h1{font-size:1.4rem;font-weight:600;letter-spacing:-.015em}
 .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
 .meta{font:400 var(--fs-cap) var(--mono);color:var(--ter);font-variant-numeric:tabular-nums}
 
-/* B2 atlas */
+/* B2 */
 .atlasRow{display:grid;grid-template-columns:170px 1fr;gap:28px;padding:20px 0;border-bottom:1px solid var(--border);align-items:start}
 .atlasRow:last-child{border-bottom:none}
 .region{font-weight:500;font-size:.9375rem}
@@ -122,18 +134,38 @@ h1{font-size:1.4rem;font-weight:600;letter-spacing:-.015em}
 .inst-chip .n{font-weight:500;font-size:.8125rem;display:flex;align-items:center;gap:5px}
 .inst-chip .t{font:400 10px var(--mono);color:var(--ter)}
 
-/* B3 feed */
-.feedHead{display:flex;align-items:baseline;justify-content:space-between;gap:16px;margin:28px 0 14px}
+/* B3 — video previews */
+.heroWrap{margin-top:4px}
+.vid{position:relative;border-radius:12px;overflow:hidden;background:#17171a;border:1px solid var(--border);
+  display:grid;place-content:center;aspect-ratio:16/9}
+[data-theme="dark"] .vid{background:#0b0b0d}
+.vid .play{width:46px;height:46px;border-radius:50%;border:1.5px solid rgba(255,255,255,.5);display:grid;place-content:center}
+.vid .play::after{content:'';border-inline-start:11px solid rgba(255,255,255,.85);border-top:7px solid transparent;
+  border-bottom:7px solid transparent;margin-inline-start:3px}
+.vid .badge{position:absolute;left:10px;top:10px;display:inline-flex;align-items:center;gap:5px;
+  background:rgba(0,0,0,.55);border-radius:6px;padding:4px 8px;font:500 10px var(--mono);color:#fff;letter-spacing:.06em;text-transform:uppercase}
+.vid .badge i{width:5px;height:5px;border-radius:50%;background:var(--coral);display:block}
+.vid .viewers{position:absolute;right:10px;top:10px;background:rgba(0,0,0,.55);border-radius:6px;padding:4px 8px;
+  font:500 10px var(--mono);color:#fff;font-variant-numeric:tabular-nums}
+.vid.small{aspect-ratio:16/10}
+.vid.small .play{width:34px;height:34px}
+.vid.small .play::after{border-inline-start-width:8px;border-top-width:5px;border-bottom-width:5px}
+.hero{display:grid;grid-template-columns:1.35fr 1fr;gap:22px;align-items:center;border:1px solid var(--coral);
+  background:var(--coral-soft);border-radius:16px;padding:18px;cursor:pointer;text-align:start;font:inherit;color:inherit;width:100%}
+.hero h3{font-size:1.35rem;font-weight:600;letter-spacing:-.02em;margin-bottom:6px}
+.hero p{font-size:var(--fs-cap);color:var(--sec);max-width:44ch;margin-bottom:12px}
+.heroTag{font:500 var(--fs-micro) var(--mono);color:var(--coral-t);letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px;display:block}
+.streamGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:14px}
+.stream{border:1px solid var(--border);border-radius:12px;overflow:hidden;cursor:pointer;background:none;
+  text-align:start;font:inherit;color:inherit;transition:all .18s var(--ease);display:grid}
+.stream:hover{border-color:var(--border-s)}
+.stream .body{padding:12px 14px;display:grid;gap:3px}
+.stream .t{font-weight:500;font-size:.875rem;display:flex;align-items:center;gap:5px}
+.stream .s{font:400 var(--fs-micro) var(--mono);color:var(--ter)}
+.feedHead{display:flex;align-items:baseline;justify-content:space-between;gap:16px;margin:32px 0 12px}
 .feedHead .t{font-size:1.15rem;font-weight:600;letter-spacing:-.015em}
-.feedGrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.big{border:1px solid var(--border);border-radius:14px;padding:22px;display:grid;gap:8px;cursor:pointer;
-  background:none;text-align:start;font:inherit;color:inherit;transition:all .18s var(--ease)}
-.big:hover{border-color:var(--border-s)}
-.big.accent{border-color:var(--coral);background:var(--coral-soft)}
-.big h4{font-size:1.05rem;font-weight:600;letter-spacing:-.01em}
-.big p{font-size:var(--fs-cap);color:var(--sec);max-width:48ch}
-.stripList{display:grid;gap:0;margin-top:6px}
-.strip{display:grid;grid-template-columns:96px 1fr auto;gap:16px;align-items:center;padding:14px 0;
+.stripList{display:grid;gap:0}
+.strip{display:grid;grid-template-columns:104px 1fr auto;gap:16px;align-items:center;padding:14px 0;
   border-bottom:1px solid var(--border);cursor:pointer;background:none;border-inline:none;border-top:none;
   text-align:start;font:inherit;color:inherit}
 .strip:last-child{border-bottom:none}
@@ -144,178 +176,205 @@ h1{font-size:1.4rem;font-weight:600;letter-spacing:-.015em}
 .q{margin-top:30px;padding:20px;border:1px dashed var(--border-s);border-radius:12px}
 .q h4{font:500 12px var(--mono);color:var(--coral-t);margin-bottom:8px;letter-spacing:.06em;text-transform:uppercase}
 .q p{font-size:var(--fs-cap);color:var(--sec)}
-.note{font:400 var(--fs-micro) var(--mono);color:var(--ter);margin-top:10px}
-@media(max-width:880px){.grid3,.feedGrid{grid-template-columns:1fr}.railWrap{grid-template-columns:1fr}}
+.note{font:400 var(--fs-micro) var(--mono);color:var(--ter);margin-top:14px}
+@media(max-width:900px){.grid3,.streamGrid{grid-template-columns:1fr 1fr}.railWrap,.hero{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <h1>Атлас · Лист 12 — Внешние источники</h1>
-  <p class="sub">Шесть вариантов: три подачи <b>внутри предмета</b> (астрономия видит только своё) и три варианта <b>общего хаба</b>. Единое правило во всех: <b>живые трансляции открываются в новой вкладке</b> — это и многоэкранность, и требование лицензий (свой ретранслятор запрещён). Лицензия каждого источника видна сразу, машинным голосом.</p>
+  <h1>Атлас · Лист 12 — Внешние источники <span style="font:500 12px var(--mono);color:var(--ter)">ред. 2</span></h1>
+  <p class="sub">В предмете — <b>комбинация: постоянный рельс + врезки в ключевых точках</b> (решение владельца). ХАБ — единый раздел «Ресурсы Flamingo» с тремя вкладками, по умолчанию «Источники мира». Живые трансляции всегда открываются <b>в новой вкладке</b>: это и многоэкранность, и требование лицензий. Лицензия показана <b>двумя языками</b>: ученику — по-человечески, учителю — точным кодом.</p>
 
   <div class="bar" role="group" aria-label="Варианты">
     <span class="grp">в предмете:</span>
-    <button data-v="a1" aria-pressed="true">A1 · полка</button>
-    <button data-v="a2" aria-pressed="false">A2 · рельс</button>
-    <button data-v="a3" aria-pressed="false">A3 · в уроке</button>
+    <button data-v="ax" aria-pressed="true">A · рельс + врезки ✓</button>
+    <button data-v="a1" aria-pressed="false">A1 полка</button>
+    <button data-v="a2" aria-pressed="false">A2 рельс</button>
+    <button data-v="a3" aria-pressed="false">A3 врезки</button>
     <span class="grp" style="margin-left:12px">хаб:</span>
-    <button data-v="b1" aria-pressed="false">B1 · каталог</button>
-    <button data-v="b2" aria-pressed="false">B2 · атлас</button>
-    <button data-v="b3" aria-pressed="false">B3 · лента</button>
+    <button data-v="b1" aria-pressed="false">B1 источники</button>
+    <button data-v="b2" aria-pressed="false">B2 атлас</button>
+    <button data-v="b3" aria-pressed="false">B3 наука онлайн</button>
     <button id="thm" style="margin-left:auto" aria-pressed="false">тёмная</button>
   </div>
 
   <div class="screen">
-    <div class="topnav"><span class="dot"></span><b>flamingo</b><span class="avatar">СИ</span></div>
-    <div class="page" data-v="a1" id="page">
+    <div class="topnav">
+      <span class="dot"></span><b>flamingo</b><span class="hubMark hubOnly">HUB</span>
+      <span class="avatar">СИ</span>
+    </div>
+    <div class="page" data-v="ax" id="page">
 
-      <!-- ============ A1 · ПОЛКА ============ -->
-      <div class="view v-a1">
-        <div class="h-title">Экзопланеты</div>
-        <div class="h-sub">Астрономия · 9 класс · урок 12 из 34</div>
-        <p class="lessonBody">Мы уже знаем, что у других звёзд есть планеты. Сегодня посмотрим, как их находят — и сами построим график по реальному каталогу открытых экзопланет.</p>
-
-        <div class="secLbl">сейчас в эфире</div>
-        <div class="shelf">
-          <button class="src"><span class="inst">NASA</span><span class="name">NASA Live<span class="ext">↗</span></span><span class="desc">Пуски, миссии, эфиры из центра управления</span><span class="foot"><span class="live"><i></i>в эфире</span></span></button>
-          <button class="src"><span class="inst">ESA</span><span class="name">ESA Web TV<span class="ext">↗</span></span><span class="desc">Круглосуточный канал европейских программ</span><span class="foot"><span class="live"><i></i>в эфире</span></span></button>
-          <button class="src"><span class="inst">Royal Observatory Greenwich</span><span class="name">Астрономические явления<span class="ext">↗</span></span><span class="desc">Трансляции с объяснениями</span><span class="foot"><span class="ext">по расписанию</span></span></button>
-        </div>
-
-        <div class="secLbl">данные для задания</div>
-        <div class="shelf">
-          <button class="src"><span class="inst">NASA · Caltech</span><span class="name">Exoplanet Archive</span><span class="desc">Каталог экзопланет: масса, период, звезда</span><span class="foot"><span class="lic" data-open>открытые данные</span><span class="ext">API</span></span></button>
-          <button class="src"><span class="inst">CDS Strasbourg</span><span class="name">SIMBAD</span><span class="desc">База астрономических объектов</span><span class="foot"><span class="lic" data-open>цитирование</span><span class="ext">TAP/ADQL</span></span></button>
-          <button class="src"><span class="inst">STScI</span><span class="name">MAST</span><span class="desc">Данные Hubble, JWST, TESS, Kepler</span><span class="foot"><span class="lic" data-open>открытый архив</span><span class="ext">API</span></span></button>
-          <button class="src"><span class="inst">SDSS</span><span class="name">SkyServer</span><span class="desc">Спектры, изображения, каталоги</span><span class="foot"><span class="lic" data-open>открытые данные</span><span class="ext">SQL</span></span></button>
-        </div>
-
-        <div class="secLbl">заказать наблюдение</div>
-        <div class="shelf">
-          <button class="src" style="border-color:var(--coral)"><span class="inst">Harvard · Smithsonian</span><span class="name">MicroObservatory</span><span class="desc">Твой личный снимок с реального телескопа</span><span class="foot"><span class="lic" data-open>бесплатно</span><span class="ext">снимок за ~48 ч</span></span></button>
-          <button class="src"><span class="inst">ESA / ESO</span><span class="name">Архив снимков</span><span class="desc">Пока телескоп работает — смотри готовое</span><span class="foot"><span class="lic" data-open>CC BY 4.0</span></span></button>
-        </div>
-
-        <p class="note">A1 — источники лежат «полкой» под уроком, сгруппированы по природе: эфир · данные · приборы. Горизонтальная прокрутка, ничего не загораживает урок.</p>
-      </div>
-
-      <!-- ============ A2 · РЕЛЬС ============ -->
-      <div class="view v-a2">
+      <!-- ===== A · КОМБИНАЦИЯ (утверждено) ===== -->
+      <div class="view v-ax">
         <div class="h-title">Экзопланеты</div>
         <div class="h-sub">Астрономия · 9 класс · урок 12 из 34</div>
         <div class="railWrap">
           <div>
             <p class="para">Первую планету у солнцеподобной звезды нашли в 1995 году. Сегодня их известно более пяти тысяч — и почти все обнаружены двумя методами: транзитным и методом лучевых скоростей.</p>
-            <p class="para">Транзитный метод прост по идее: если планета проходит перед диском звезды, блеск звезды на короткое время падает. По глубине и периоду падений можно узнать размер планеты и её год.</p>
-            <p class="para">Мы возьмём настоящий каталог NASA и посмотрим, как распределяются известные экзопланеты по массе и периоду обращения. Заодно увидим, почему первыми находили «горячие юпитеры».</p>
+            <p class="para">Транзитный метод прост по идее: если планета проходит перед диском звезды, её блеск на короткое время падает. По глубине и периоду падений можно узнать размер планеты и длину её года.</p>
+
+            <div class="inlineBlock">
+              <div class="kicker">данные · задание</div>
+              <h4>NASA Exoplanet Archive</h4>
+              <p>Возьми настоящий каталог и построй распределение экзопланет по массе и периоду. Посмотри, где скапливаются «горячие юпитеры» — и подумай почему.</p>
+              <div class="inlineAct"><button class="btnS">Открыть данные</button><span class="use" data-free>можно использовать в своей работе</span></div>
+            </div>
+
+            <p class="para">Второй способ — метод лучевых скоростей. Планета и звезда вращаются вокруг общего центра масс, поэтому звезда слегка «покачивается», и это видно по смещению линий в её спектре.</p>
+
+            <div class="inlineBlock">
+              <div class="kicker">прибор · твой снимок</div>
+              <h4>Закажи наблюдение на MicroObservatory</h4>
+              <p>Настоящий телескоп Гарвард-Смитсоновского центра снимет выбранный объект этой ночью. Снимок придёт в течение двух суток — разберём его на следующем уроке.</p>
+              <div class="inlineAct"><button class="btnS">Выбрать объект</button><button class="btnQ">Пока посмотреть архив</button><span class="ext">бесплатно · ~48 ч</span></div>
+            </div>
+
+            <p class="para">Пока телескоп ждёт ясной ночи, посмотрим, что происходит в космосе прямо сейчас.</p>
+
+            <div class="inlineBlock">
+              <div class="kicker">эфир</div>
+              <h4>NASA Live <span class="live" style="margin-inline-start:6px"><i></i>в эфире</span></h4>
+              <p>Прямая трансляция из центра управления. Откроется в новой вкладке — оставь на втором экране и возвращайся к уроку.</p>
+              <div class="inlineAct"><button class="btnS">Смотреть ↗</button><span class="ext">новая вкладка</span></div>
+            </div>
           </div>
+
           <aside class="rail">
             <div class="railSec">сейчас в эфире</div>
             <button class="railItem"><span class="rn">NASA Live <span class="live"><i></i></span><span class="ext">↗</span></span><span class="rd">пуски и миссии</span></button>
             <button class="railItem"><span class="rn">ESA Web TV <span class="live"><i></i></span><span class="ext">↗</span></span><span class="rd">круглосуточно</span></button>
-
             <div class="railSec">данные к уроку</div>
             <button class="railItem"><span class="rn">Exoplanet Archive</span><span class="rd">NASA · API</span></button>
             <button class="railItem"><span class="rn">SIMBAD</span><span class="rd">CDS · TAP/ADQL</span></button>
             <button class="railItem"><span class="rn">MAST</span><span class="rd">STScI · архив</span></button>
-
             <div class="railSec">посмотреть глубже</div>
             <button class="railItem"><span class="rn">ESA Sky</span><span class="rd">атлас неба</span></button>
             <button class="railItem"><span class="rn">Aladin</span><span class="rd">обзоры и каталоги</span></button>
             <button class="railItem"><span class="rn">MicroObservatory</span><span class="rd">заказать снимок</span></button>
           </aside>
         </div>
-        <p class="note">A2 — тихий рельс справа, всегда под рукой и не перебивает чтение. Сгруппирован по задаче: эфир · данные · глубже.</p>
+        <p class="note">A · комбинация — рельс держит весь набор под рукой, врезки ставят источник ровно там, где он нужен по смыслу. Врезка и рельс не дублируют друг друга: во врезке — действие, в рельсе — доступ.</p>
       </div>
 
-      <!-- ============ A3 · В УРОКЕ ============ -->
+      <!-- ===== A1 полка (для сравнения) ===== -->
+      <div class="view v-a1">
+        <div class="h-title">Экзопланеты</div><div class="h-sub">Астрономия · 9 класс · урок 12 из 34</div>
+        <p class="lessonBody">Мы уже знаем, что у других звёзд есть планеты. Сегодня посмотрим, как их находят — и сами построим график по реальному каталогу.</p>
+        <div class="secLbl">сейчас в эфире</div>
+        <div class="shelf">
+          <button class="src"><span class="inst">NASA</span><span class="name">NASA Live<span class="ext">↗</span></span><span class="desc">Пуски, миссии, эфиры центра управления</span><span class="foot"><span class="live"><i></i>в эфире</span></span></button>
+          <button class="src"><span class="inst">ESA</span><span class="name">ESA Web TV<span class="ext">↗</span></span><span class="desc">Круглосуточный канал</span><span class="foot"><span class="live"><i></i>в эфире</span></span></button>
+        </div>
+        <div class="secLbl">данные для задания</div>
+        <div class="shelf">
+          <button class="src"><span class="inst">NASA · Caltech</span><span class="name">Exoplanet Archive</span><span class="desc">Масса, период, звезда</span><span class="foot"><span class="use" data-free>свободно</span></span></button>
+          <button class="src"><span class="inst">CDS</span><span class="name">SIMBAD</span><span class="desc">База объектов</span><span class="foot"><span class="use" data-free>свободно</span></span></button>
+          <button class="src"><span class="inst">STScI</span><span class="name">MAST</span><span class="desc">Hubble, JWST, TESS</span><span class="foot"><span class="use" data-free>свободно</span></span></button>
+        </div>
+        <p class="note">A1 — оставлен для сравнения. Не выбран.</p>
+      </div>
+
+      <!-- ===== A2 рельс (для сравнения) ===== -->
+      <div class="view v-a2">
+        <div class="h-title">Экзопланеты</div><div class="h-sub">Астрономия · 9 класс · урок 12 из 34</div>
+        <div class="railWrap">
+          <div>
+            <p class="para">Первую планету у солнцеподобной звезды нашли в 1995 году. Сегодня их известно более пяти тысяч.</p>
+            <p class="para">Транзитный метод прост по идее: если планета проходит перед диском звезды, блеск на короткое время падает.</p>
+            <p class="para">Мы возьмём настоящий каталог NASA и посмотрим, как распределяются экзопланеты по массе и периоду.</p>
+          </div>
+          <aside class="rail">
+            <div class="railSec">сейчас в эфире</div>
+            <button class="railItem"><span class="rn">NASA Live <span class="live"><i></i></span><span class="ext">↗</span></span><span class="rd">пуски и миссии</span></button>
+            <div class="railSec">данные к уроку</div>
+            <button class="railItem"><span class="rn">Exoplanet Archive</span><span class="rd">NASA · API</span></button>
+            <button class="railItem"><span class="rn">SIMBAD</span><span class="rd">CDS · TAP/ADQL</span></button>
+          </aside>
+        </div>
+        <p class="note">A2 — только рельс, без врезок. Часть выбранной комбинации.</p>
+      </div>
+
+      <!-- ===== A3 врезки (для сравнения) ===== -->
       <div class="view v-a3">
-        <div class="h-title">Экзопланеты</div>
-        <div class="h-sub">Астрономия · 9 класс · урок 12 из 34</div>
-        <p class="para" style="margin-top:20px">Транзитный метод прост по идее: если планета проходит перед диском звезды, блеск звезды на короткое время падает. По глубине и периоду падений можно узнать размер планеты и её год.</p>
-
+        <div class="h-title">Экзопланеты</div><div class="h-sub">Астрономия · 9 класс · урок 12 из 34</div>
+        <p class="para" style="margin-top:20px">Транзитный метод прост по идее: если планета проходит перед диском звезды, её блеск на короткое время падает.</p>
         <div class="inlineBlock">
-          <div class="kicker">данные · задание</div>
-          <h4>NASA Exoplanet Archive</h4>
-          <p>Возьми настоящий каталог и построй распределение экзопланет по массе и периоду. Посмотри, где скапливаются «горячие юпитеры» — и подумай почему.</p>
-          <div class="inlineAct"><button class="btnS">Открыть данные</button><span class="lic" data-open>открытые данные</span><span class="ext">запрос идёт с нашего сервера</span></div>
+          <div class="kicker">данные · задание</div><h4>NASA Exoplanet Archive</h4>
+          <p>Построй распределение экзопланет по массе и периоду.</p>
+          <div class="inlineAct"><button class="btnS">Открыть данные</button><span class="use" data-free>можно использовать в своей работе</span></div>
         </div>
-
-        <p class="para">Второй способ — метод лучевых скоростей. Планета и звезда вращаются вокруг общего центра масс, поэтому звезда слегка «покачивается», и это видно по смещению линий в её спектре.</p>
-
-        <div class="inlineBlock">
-          <div class="kicker">прибор · твой снимок</div>
-          <h4>Закажи наблюдение на MicroObservatory</h4>
-          <p>Настоящий телескоп Гарвард-Смитсоновского центра снимет выбранный объект этой ночью. Снимок придёт в течение двух суток — разберём его на следующем уроке.</p>
-          <div class="inlineAct"><button class="btnS">Выбрать объект</button><button class="btnQ">Пока посмотреть архив</button><span class="ext">бесплатно · ~48 ч</span></div>
-        </div>
-
-        <p class="para">Пока телескоп ждёт ясной ночи, посмотрим, как это выглядит вживую.</p>
-
-        <div class="inlineBlock" style="border-inline-start-color:var(--coral)">
-          <div class="kicker">эфир</div>
-          <h4>NASA Live <span class="live" style="margin-inline-start:6px"><i></i>в эфире</span></h4>
-          <p>Прямая трансляция из центра управления. Откроется в новой вкладке — можно оставить на втором экране и вернуться к уроку.</p>
-          <div class="inlineAct"><button class="btnS">Смотреть ↗</button><span class="ext">новая вкладка</span></div>
-        </div>
-        <p class="note">A3 — источник появляется ровно там, где он нужен по смыслу урока. Самая сильная педагогика, самая дорогая редактура.</p>
+        <p class="para">Второй способ — метод лучевых скоростей.</p>
+        <p class="note">A3 — только врезки, без рельса. Часть выбранной комбинации.</p>
       </div>
 
-      <!-- ============ B1 · КАТАЛОГ ============ -->
+      <!-- ===== B1 · ИСТОЧНИКИ МИРА (по умолчанию) ===== -->
       <div class="view v-b1">
-        <div style="display:flex;justify-content:space-between;align-items:baseline;gap:24px">
-          <div><div class="h-title">Источники мира</div><div class="h-sub">Проверенные библиотеки, музеи, обсерватории и открытые данные</div></div>
-          <span class="meta">247 источников · 2 языка</span>
+        <div class="bar hubTabs" role="tablist" style="position:static;margin-top:-6px">
+          <button class="hubTab" role="tab" aria-selected="true">Источники мира</button>
+          <button class="hubTab" role="tab" aria-selected="false">Атлас источников</button>
+          <button class="hubTab" role="tab" aria-selected="false"><span class="live"><i></i></span>Сейчас в эфире</button>
         </div>
-        <div class="searchRow"><input placeholder="Поиск по названию, институции или теме"></div>
+        <div style="display:flex;justify-content:space-between;align-items:baseline;gap:24px;margin-bottom:20px">
+          <div><div class="h-title">Ресурсы Flamingo — источники мира</div>
+          <div class="h-sub">Проверенные библиотеки, музеи, обсерватории и открытые данные</div></div>
+          <span class="meta">247 источников</span>
+        </div>
+        <div class="searchRow">
+          <input placeholder="Поиск по названию, институции или теме">
+          <select class="langSel" aria-label="Язык источника">
+            <option>Все языки · 2</option><option>Русский</option><option>English</option>
+            <option disabled>— скоро —</option><option disabled>Español</option><option disabled>Français</option><option disabled>Deutsch</option><option disabled>中文</option>
+          </select>
+        </div>
         <div class="chips">
           <button class="chip" data-on>все</button><button class="chip">астрономия</button><button class="chip">книги</button>
           <button class="chip">музеи</button><button class="chip">природа</button><button class="chip">Земля</button>
           <span style="width:14px"></span>
           <button class="chip">в эфире</button><button class="chip">данные / API</button><button class="chip">коллекция</button><button class="chip">прибор</button>
-          <span style="width:14px"></span>
-          <button class="chip">русский</button><button class="chip">english</button>
         </div>
         <div class="grid3">
-          <button class="src"><span class="inst">NASA</span><span class="name">NASA Live<span class="ext">↗</span></span><span class="desc">Пуски, миссии, эфиры центра управления</span><span class="foot"><span class="live"><i></i>в эфире</span></span></button>
-          <button class="src"><span class="inst">The Metropolitan Museum</span><span class="name">Met Open Access</span><span class="desc">470 000+ объектов, изображения высокого разрешения</span><span class="foot"><span class="lic" data-open>public domain</span><span class="ext">API без ключа</span></span></button>
-          <button class="src"><span class="inst">Internet Archive</span><span class="name">Open Library</span><span class="desc">Международный каталог книг, ISBN, карточки</span><span class="foot"><span class="lic" data-open>открытый API</span></span></button>
-          <button class="src"><span class="inst">Europeana</span><span class="name">Европейское наследие</span><span class="desc">Книги, архивы, искусство тысяч учреждений</span><span class="foot"><span class="lic" data-open>метаданные</span><span class="ext">OAI-PMH</span></span></button>
-          <button class="src"><span class="inst">GBIF</span><span class="name">Биоразнообразие</span><span class="desc">Глобальные записи наблюдений видов</span><span class="foot"><span class="lic" data-open>открытые данные</span><span class="ext">API</span></span></button>
-          <button class="src"><span class="inst">Harvard · Smithsonian</span><span class="name">MicroObservatory</span><span class="desc">Заказать снимок с реального телескопа</span><span class="foot"><span class="lic" data-open>бесплатно</span><span class="ext">~48 ч</span></span></button>
-          <button class="src"><span class="inst">Smithsonian</span><span class="name">Камеры зоопарка<span class="ext">↗</span></span><span class="desc">Панды, слоны, львы — живые камеры</span><span class="foot"><span class="live"><i></i>в эфире</span></span></button>
-          <button class="src"><span class="inst">Project Gutenberg</span><span class="name">Классика в свободном доступе</span><span class="desc">Проверенные тексты public domain</span><span class="foot"><span class="lic" data-open>PD</span><span class="ext">⚠ PD США ≠ ОД РФ</span></span></button>
-          <button class="src"><span class="inst">USGS</span><span class="name">Землетрясения</span><span class="desc">Данные почти в реальном времени</span><span class="foot"><span class="lic" data-open>открытые данные</span><span class="ext">GeoJSON</span></span></button>
+          <button class="src"><span class="inst">NASA</span><span class="name">NASA Live<span class="ext">↗</span></span><span class="desc">Пуски, миссии, эфиры центра управления</span><span class="foot"><span class="live"><i></i>в эфире</span><span class="use">только смотреть</span></span></button>
+          <button class="src"><span class="inst">The Metropolitan Museum</span><span class="name">Met Open Access</span><span class="desc">470 000+ объектов в высоком разрешении</span><span class="foot"><span class="use" data-free>можно использовать в своей работе</span></span></button>
+          <button class="src"><span class="inst">Internet Archive</span><span class="name">Open Library</span><span class="desc">Международный каталог книг</span><span class="foot"><span class="use" data-free>свободно</span></span></button>
+          <button class="src"><span class="inst">Europeana</span><span class="name">Европейское наследие</span><span class="desc">Книги, архивы, искусство тысяч учреждений</span><span class="foot"><span class="use" data-free>свободно</span></span></button>
+          <button class="src"><span class="inst">GBIF</span><span class="name">Биоразнообразие</span><span class="desc">Глобальные наблюдения видов</span><span class="foot"><span class="use" data-free>можно использовать в своей работе</span></span></button>
+          <button class="src"><span class="inst">Harvard · Smithsonian</span><span class="name">MicroObservatory</span><span class="desc">Заказать снимок с реального телескопа</span><span class="foot"><span class="use" data-free>бесплатно</span><span class="ext">~48 ч</span></span></button>
+          <button class="src"><span class="inst">Smithsonian</span><span class="name">Камеры зоопарка<span class="ext">↗</span></span><span class="desc">Панды, слоны, львы — живые камеры</span><span class="foot"><span class="live"><i></i>в эфире</span><span class="use">только смотреть</span></span></button>
+          <button class="src"><span class="inst">Project Gutenberg</span><span class="name">Классика в свободном доступе</span><span class="desc">Проверенные тексты общественного достояния</span><span class="foot"><span class="use" data-free>свободно</span></span></button>
+          <button class="src"><span class="inst">USGS</span><span class="name">Землетрясения</span><span class="desc">Данные почти в реальном времени</span><span class="foot"><span class="use" data-free>свободно</span></span></button>
         </div>
-        <p class="note">B1 — знакомая механика нашего каталога курсов: поиск, фасеты по предмету, природе источника и языку. Масштабируется на тысячи записей и на все языки мира.</p>
+        <p class="note">B1 — вкладка по умолчанию. Языки вынесены в выпадающий список: их будет много. Ученику показано «что можно сделать», точный код лицензии — в карточке источника и в кабинете учителя.</p>
       </div>
 
-      <!-- ============ B2 · АТЛАС ============ -->
+      <!-- ===== B2 · АТЛАС ===== -->
       <div class="view v-b2">
+        <div class="bar hubTabs" role="tablist" style="position:static;margin-top:-6px">
+          <button class="hubTab" role="tab" aria-selected="false">Источники мира</button>
+          <button class="hubTab" role="tab" aria-selected="true">Атлас источников</button>
+          <button class="hubTab" role="tab" aria-selected="false"><span class="live"><i></i></span>Сейчас в эфире</button>
+        </div>
         <div style="display:flex;justify-content:space-between;align-items:baseline;gap:24px">
           <div><div class="h-title">Атлас источников</div><div class="h-sub">Кто в мире открыл свои коллекции и данные</div></div>
           <span class="meta">38 институций · 12 стран</span>
         </div>
-
-        <div style="margin-top:26px">
+        <div style="margin-top:22px">
           <div class="atlasRow">
-            <div><div class="region">Северная Америка</div><div class="regionMeta">14 институций</div></div>
+            <div><div class="region">Мировые сети</div><div class="regionMeta">6 проектов</div></div>
             <div class="instList">
-              <button class="inst-chip"><span class="n">NASA <span class="live"><i></i></span></span><span class="t">эфир · данные · снимки</span></button>
-              <button class="inst-chip"><span class="n">Library of Congress</span><span class="t">книги · карты · звук</span></button>
-              <button class="inst-chip"><span class="n">Smithsonian</span><span class="t">музеи · камеры · API</span></button>
-              <button class="inst-chip"><span class="n">The Met</span><span class="t">искусство · PD</span></button>
-              <button class="inst-chip"><span class="n">Harvard–Smithsonian</span><span class="t">телескоп</span></button>
-              <button class="inst-chip"><span class="n">STScI · MAST</span><span class="t">Hubble · JWST</span></button>
-              <button class="inst-chip"><span class="n">DPLA</span><span class="t">библиотеки США</span></button>
-              <button class="inst-chip"><span class="n">USGS · NOAA</span><span class="t">Земля · погода</span></button>
+              <button class="inst-chip"><span class="n">GBIF</span><span class="t">биоразнообразие</span></button>
+              <button class="inst-chip"><span class="n">iNaturalist</span><span class="t">наблюдения</span></button>
+              <button class="inst-chip"><span class="n">eBird</span><span class="t">птицы</span></button>
+              <button class="inst-chip"><span class="n">Wikisource</span><span class="t">тексты · языки</span></button>
+              <button class="inst-chip"><span class="n">Internet Archive</span><span class="t">всё сразу</span></button>
+              <button class="inst-chip"><span class="n">LCO</span><span class="t">сеть телескопов</span></button>
             </div>
           </div>
           <div class="atlasRow">
             <div><div class="region">Европа</div><div class="regionMeta">13 институций</div></div>
             <div class="instList">
               <button class="inst-chip"><span class="n">ESA <span class="live"><i></i></span></span><span class="t">эфир · Sky · архивы</span></button>
-              <button class="inst-chip"><span class="n">ESO</span><span class="t">телескопы · CC BY 4.0</span></button>
+              <button class="inst-chip"><span class="n">ESO</span><span class="t">телескопы · свободно</span></button>
               <button class="inst-chip"><span class="n">Europeana</span><span class="t">агрегатор наследия</span></button>
               <button class="inst-chip"><span class="n">Rijksmuseum</span><span class="t">искусство · IIIF</span></button>
               <button class="inst-chip"><span class="n">CDS Strasbourg</span><span class="t">SIMBAD · VizieR</span></button>
@@ -334,58 +393,96 @@ h1{font-size:1.4rem;font-weight:600;letter-spacing:-.015em}
             </div>
           </div>
           <div class="atlasRow">
-            <div><div class="region">Мировые сети</div><div class="regionMeta">6 проектов</div></div>
+            <div><div class="region">Северная Америка</div><div class="regionMeta">14 институций</div></div>
             <div class="instList">
-              <button class="inst-chip"><span class="n">GBIF</span><span class="t">биоразнообразие</span></button>
-              <button class="inst-chip"><span class="n">iNaturalist</span><span class="t">наблюдения</span></button>
-              <button class="inst-chip"><span class="n">eBird</span><span class="t">птицы</span></button>
-              <button class="inst-chip"><span class="n">Wikisource</span><span class="t">тексты · языки</span></button>
-              <button class="inst-chip"><span class="n">Internet Archive</span><span class="t">всё сразу</span></button>
-              <button class="inst-chip"><span class="n">LCO</span><span class="t">сеть телескопов</span></button>
+              <button class="inst-chip"><span class="n">NASA <span class="live"><i></i></span></span><span class="t">эфир · данные · снимки</span></button>
+              <button class="inst-chip"><span class="n">Library of Congress</span><span class="t">книги · карты · звук</span></button>
+              <button class="inst-chip"><span class="n">Smithsonian</span><span class="t">музеи · камеры · API</span></button>
+              <button class="inst-chip"><span class="n">The Met</span><span class="t">искусство</span></button>
+              <button class="inst-chip"><span class="n">Harvard–Smithsonian</span><span class="t">телескоп</span></button>
+              <button class="inst-chip"><span class="n">STScI · MAST</span><span class="t">Hubble · JWST</span></button>
+              <button class="inst-chip"><span class="n">DPLA</span><span class="t">библиотеки США</span></button>
+              <button class="inst-chip"><span class="n">USGS · NOAA</span><span class="t">Земля · погода</span></button>
             </div>
           </div>
         </div>
-        <p class="note">B2 — показывает не список ссылок, а масштаб и легитимность: вот кто в мире открыл двери. Сильно смотрится на демонстрации инвестору. Растёт вширь при добавлении языков и стран.</p>
+        <p class="note">B2 — порядок: сначала мировые сети, дальше регионы по алфавиту (Европа · Россия · Северная Америка).</p>
       </div>
 
-      <!-- ============ B3 · ЛЕНТА ============ -->
+      <!-- ===== B3 · НАУКА ОНЛАЙН ===== -->
       <div class="view v-b3">
-        <div style="display:flex;justify-content:space-between;align-items:baseline;gap:24px">
-          <div><div class="h-title">Сегодня в мире</div><div class="h-sub">Что посмотреть, откуда взять данные, куда заглянуть</div></div>
+        <div class="bar hubTabs" role="tablist" style="position:static;margin-top:-6px">
+          <button class="hubTab" role="tab" aria-selected="false">Источники мира</button>
+          <button class="hubTab" role="tab" aria-selected="false">Атлас источников</button>
+          <button class="hubTab" role="tab" aria-selected="true"><span class="live"><i></i></span>Сейчас в эфире</button>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:baseline;gap:24px;margin-bottom:18px">
+          <div class="h-title">Наука онлайн</div>
           <span class="meta">чт · 08.08 · 14:20</span>
         </div>
 
-        <div class="feedHead"><span class="t">Сейчас в эфире</span><span class="meta">4 трансляции</span></div>
-        <div class="feedGrid">
-          <button class="big accent"><span class="live"><i></i>в эфире</span><h4>Стыковка с МКС</h4><p>NASA Live — прямая трансляция из центра управления. Откроется в новой вкладке.</p><span class="ext">NASA · смотреть ↗</span></button>
-          <button class="big"><span class="live"><i></i>в эфире</span><h4>Панды в национальном зоопарке</h4><p>Живая камера Смитсоновского института. Хорошо идёт фоном на втором экране.</p><span class="ext">Smithsonian · смотреть ↗</span></button>
+        <button class="hero">
+          <div class="vid">
+            <span class="badge"><i></i>в эфире</span><span class="viewers">12 480</span>
+            <span class="play"></span>
+          </div>
+          <div>
+            <span class="heroTag">самое просматриваемое</span>
+            <h3>Стыковка с МКС</h3>
+            <p>NASA Live — прямая трансляция из центра управления полётами. Откроется в новой вкладке: можно оставить на втором экране и вернуться к уроку.</p>
+            <span class="ext">NASA · смотреть ↗</span>
+          </div>
+        </button>
+
+        <div class="streamGrid">
+          <button class="stream">
+            <div class="vid small"><span class="badge"><i></i>в эфире</span><span class="viewers">3 210</span><span class="play"></span></div>
+            <div class="body"><span class="t">Панды в национальном зоопарке<span class="ext">↗</span></span><span class="s">Smithsonian · круглосуточно</span></div>
+          </button>
+          <button class="stream">
+            <div class="vid small"><span class="badge"><i></i>в эфире</span><span class="viewers">1 874</span><span class="play"></span></div>
+            <div class="body"><span class="t">ESA Web TV<span class="ext">↗</span></span><span class="s">ESA · европейские миссии</span></div>
+          </button>
+          <button class="stream">
+            <div class="vid small"><span class="badge"><i></i>в эфире</span><span class="viewers">942</span><span class="play"></span></div>
+            <div class="body"><span class="t">Медведи на реке Брукс<span class="ext">↗</span></span><span class="s">Explore.org · Аляска</span></div>
+          </button>
+          <button class="stream">
+            <div class="vid small"><span class="badge" style="background:rgba(0,0,0,.4)">18:00 мск</span><span class="play"></span></div>
+            <div class="body"><span class="t">Обсерватория Гринвич<span class="ext">↗</span></span><span class="s">Royal Observatory · по расписанию</span></div>
+          </button>
+          <button class="stream">
+            <div class="vid small"><span class="badge"><i></i>в эфире</span><span class="viewers">655</span><span class="play"></span></div>
+            <div class="body"><span class="t">Африканская саванна<span class="ext">↗</span></span><span class="s">Explore.org · водопой</span></div>
+          </button>
+          <button class="stream">
+            <div class="vid small"><span class="badge" style="background:rgba(0,0,0,.4)">21:30 мск</span><span class="play"></span></div>
+            <div class="body"><span class="t">Запуск Falcon 9<span class="ext">↗</span></span><span class="s">SpaceX · сегодня</span></div>
+          </button>
         </div>
 
         <div class="feedHead"><span class="t">К твоим урокам</span></div>
         <div class="stripList">
-          <button class="strip"><span class="when">астрономия</span><span><span class="ttl">NASA Exoplanet Archive</span><br><span class="sub2">Данные к уроку «Экзопланеты» — построить распределение</span></span><span class="lic" data-open>открытые</span></button>
-          <button class="strip"><span class="when">русский</span><span><span class="ttl">Викитека</span><br><span class="sub2">Тексты в общественном достоянии для разбора</span></span><span class="lic">CC BY-SA</span></button>
-          <button class="strip"><span class="when">английский</span><span><span class="ttl">Common Voice</span><br><span class="sub2">Живая речь носителей для аудирования</span></span><span class="lic" data-open>CC0</span></button>
-          <button class="strip"><span class="when">биология</span><span><span class="ttl">GBIF</span><br><span class="sub2">Наблюдения видов твоего региона</span></span><span class="lic" data-open>открытые</span></button>
+          <button class="strip"><span class="when">астрономия</span><span><span class="ttl">NASA Exoplanet Archive</span><br><span class="sub2">Данные к уроку «Экзопланеты» — построить распределение</span></span><span class="use" data-free>свободно</span></button>
+          <button class="strip"><span class="when">русский</span><span><span class="ttl">Викитека</span><br><span class="sub2">Тексты в общественном достоянии для разбора</span></span><span class="use" data-free>свободно</span></button>
+          <button class="strip"><span class="when">английский</span><span><span class="ttl">Common Voice</span><br><span class="sub2">Живая речь носителей для аудирования</span></span><span class="use" data-free>свободно</span></button>
         </div>
 
         <div class="feedHead"><span class="t">Открылось недавно</span></div>
         <div class="stripList">
-          <button class="strip"><span class="when">05.08</span><span><span class="ttl">ESO опубликовала архив снимков</span><br><span class="sub2">CC BY 4.0 — можно использовать свободно с указанием автора</span></span><span class="ext">↗</span></button>
+          <button class="strip"><span class="when">05.08</span><span><span class="ttl">ESO опубликовала архив снимков</span><br><span class="sub2">Можно использовать свободно с указанием автора</span></span><span class="ext">↗</span></button>
           <button class="strip"><span class="when">01.08</span><span><span class="ttl">Твой снимок с MicroObservatory готов</span><br><span class="sub2">Туманность Ориона, заказ от 30.07 — посмотреть и измерить</span></span><span class="ext">открыть</span></button>
         </div>
-        <p class="note">B3 — не справочник, а повод зайти. Живое первым, дальше — привязка к текущим урокам. Лучше всего удерживает и красиво показывает «мир внутри платформы».</p>
+        <p class="note">B3 — превью у каждой трансляции; крупным идёт самое просматриваемое (при отсутствии статистики — самая устойчивая). Счётчик зрителей машинным голосом. Всё открывается в новой вкладке.</p>
       </div>
 
     </div>
   </div>
 
   <div class="q">
-    <h4>вопросы владельцу · лист 12</h4>
-    <p><b>1.</b> В предмете — какой вариант: A1 полка (просто, не мешает), A2 рельс (всегда под рукой), A3 в уроке (сильнее всего педагогически, но требует ручной редактуры каждого урока)? Можно комбинировать: A2 как постоянный рельс + A3 в ключевых точках.<br>
-    <b>2.</b> Хаб — B1 каталог (масштабируется на тысячи), B2 атлас (эффектно показывает масштаб), B3 лента (удерживает, возвращает)? Тоже комбинируются: B3 как главная, B1 как «показать все».<br>
-    <b>3.</b> Живые трансляции — подтверждаешь открытие в новой вкладке? (Это и многоэкранность, и обязательное требование лицензий.)<br>
-    <b>4.</b> Показывать ли лицензию ученику, или это только для учителя и наших внутренних проверок?</p>
+    <h4>что изменено · ред. 2</h4>
+    <p><b>A:</b> собрана комбинация «рельс + врезки»; A1/A2/A3 оставлены для сравнения. <b>B1:</b> в шапке появился знак <b>HUB</b>; заголовок «Ресурсы Flamingo — источники мира»; языки вынесены в выпадающий список. <b>B2:</b> сначала мировые сети, дальше регионы по алфавиту. <b>B3:</b> «Наука онлайн», подзаголовок убран, у каждой трансляции превью, самое просматриваемое — крупным блоком. Все три раздела — вкладки одного хаба, по умолчанию «Источники мира».</p>
+    <p style="margin-top:10px"><b>Осталось решить:</b> 1) счётчик зрителей — наш собственный (сколько наших учеников смотрит) или он не нужен вовсе? 2) в рельсе показывать 8 источников или сворачивать до 5 с «ещё N»? 3) знак HUB — только в разделе ресурсов или это отдельный вход в главном меню?</p>
   </div>
 </div>
 <script>
@@ -393,6 +490,10 @@ const root=document.documentElement,page=document.getElementById('page');
 document.querySelectorAll('.bar button[data-v]').forEach(b=>b.addEventListener('click',()=>{
   page.dataset.v=b.dataset.v;
   document.querySelectorAll('.bar button[data-v]').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));
+}));
+document.querySelectorAll('.hubTab').forEach((t,i)=>t.addEventListener('click',()=>{
+  page.dataset.v=['b1','b2','b3'][i%3];
+  document.querySelectorAll('.bar button[data-v]').forEach(x=>x.setAttribute('aria-pressed',String(x.dataset.v===page.dataset.v)));
 }));
 document.getElementById('thm').addEventListener('click',e=>{
   const on=e.target.getAttribute('aria-pressed')!=='true';
