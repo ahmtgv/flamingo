@@ -150,3 +150,29 @@ mutation SetAvatar($fileKey: String!) {
     avatarUrl
   }
 }
+
+# --- learning profiles (R0.2) -------------------------------------------------
+# The educations inside one account (owner req. 15). Data only — the UI composes
+# "Ученик · 9А" from `kind` + `groupName` via i18n, so no display text is fetched.
+
+query LearningProfiles {
+  learningProfiles {
+    id
+    kind
+    institutionId
+    institutionName
+    groupName
+    courseId
+    courseTitle
+    courseCount
+    isActive
+  }
+}
+
+mutation SetActiveLearningProfile($id: ID!) {
+  setActiveLearningProfile(id: $id) {
+    id
+    kind
+    isActive
+  }
+}

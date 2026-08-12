@@ -400,6 +400,24 @@ export type LeaderboardEntry = {
   student: StudentProfile;
 };
 
+export type LearningProfile = {
+  __typename?: 'LearningProfile';
+  courseCount: Scalars['Int']['output'];
+  courseId?: Maybe<Scalars['ID']['output']>;
+  courseTitle?: Maybe<Scalars['String']['output']>;
+  groupName?: Maybe<Scalars['String']['output']>;
+  id: Scalars['ID']['output'];
+  institutionId?: Maybe<Scalars['ID']['output']>;
+  institutionName?: Maybe<Scalars['String']['output']>;
+  isActive: Scalars['Boolean']['output'];
+  kind: LearningProfileKind;
+};
+
+export type LearningProfileKind =
+  | 'CADET'
+  | 'PUPIL'
+  | 'TEACHER';
+
 export type Lesson = {
   __typename?: 'Lesson';
   description?: Maybe<Scalars['String']['output']>;
@@ -548,6 +566,7 @@ export type Mutation = {
   respondGuardianship: Guardianship;
   scheduleSession: LessonSession;
   sendChatMessage: ChatMessage;
+  setActiveLearningProfile: LearningProfile;
   setAttendance: Attendance;
   setAvatar: User;
   startSession: LessonSession;
@@ -808,6 +827,11 @@ export type MutationSendChatMessageArgs = {
 };
 
 
+export type MutationSetActiveLearningProfileArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
 export type MutationSetAttendanceArgs = {
   sessionId: Scalars['ID']['input'];
   status: AttendanceStatus;
@@ -1001,6 +1025,7 @@ export type Query = {
   institution?: Maybe<Institution>;
   institutionMembers: Array<InstitutionMembership>;
   leaderboard: Array<LeaderboardEntry>;
+  learningProfiles: Array<LearningProfile>;
   lesson?: Maybe<Lesson>;
   lessonHomework: Array<Homework>;
   me?: Maybe<User>;
@@ -1586,6 +1611,18 @@ export type SetAvatarMutationVariables = Exact<{
 
 
 export type SetAvatarMutation = { __typename?: 'Mutation', setAvatar: { __typename?: 'User', id: string, avatarUrl?: string | null } };
+
+export type LearningProfilesQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type LearningProfilesQuery = { __typename?: 'Query', learningProfiles: Array<{ __typename?: 'LearningProfile', id: string, kind: LearningProfileKind, institutionId?: string | null, institutionName?: string | null, groupName?: string | null, courseId?: string | null, courseTitle?: string | null, courseCount: number, isActive: boolean }> };
+
+export type SetActiveLearningProfileMutationVariables = Exact<{
+  id: Scalars['ID']['input'];
+}>;
+
+
+export type SetActiveLearningProfileMutation = { __typename?: 'Mutation', setActiveLearningProfile: { __typename?: 'LearningProfile', id: string, kind: LearningProfileKind, isActive: boolean } };
 
 export type TeacherDashboardQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -2779,6 +2816,91 @@ export function useSetAvatarMutation(baseOptions?: Apollo.MutationHookOptions<Se
 export type SetAvatarMutationHookResult = ReturnType<typeof useSetAvatarMutation>;
 export type SetAvatarMutationResult = Apollo.MutationResult<SetAvatarMutation>;
 export type SetAvatarMutationOptions = Apollo.BaseMutationOptions<SetAvatarMutation, SetAvatarMutationVariables>;
+export const LearningProfilesDocument = gql`
+    query LearningProfiles {
+  learningProfiles {
+    id
+    kind
+    institutionId
+    institutionName
+    groupName
+    courseId
+    courseTitle
+    courseCount
+    isActive
+  }
+}
+    `;
+
+/**
+ * __useLearningProfilesQuery__
+ *
+ * To run a query within a React component, call `useLearningProfilesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useLearningProfilesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useLearningProfilesQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useLearningProfilesQuery(baseOptions?: Apollo.QueryHookOptions<LearningProfilesQuery, LearningProfilesQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<LearningProfilesQuery, LearningProfilesQueryVariables>(LearningProfilesDocument, options);
+      }
+export function useLearningProfilesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<LearningProfilesQuery, LearningProfilesQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<LearningProfilesQuery, LearningProfilesQueryVariables>(LearningProfilesDocument, options);
+        }
+// @ts-ignore
+export function useLearningProfilesSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<LearningProfilesQuery, LearningProfilesQueryVariables>): Apollo.UseSuspenseQueryResult<LearningProfilesQuery, LearningProfilesQueryVariables>;
+export function useLearningProfilesSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<LearningProfilesQuery, LearningProfilesQueryVariables>): Apollo.UseSuspenseQueryResult<LearningProfilesQuery | undefined, LearningProfilesQueryVariables>;
+export function useLearningProfilesSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<LearningProfilesQuery, LearningProfilesQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<LearningProfilesQuery, LearningProfilesQueryVariables>(LearningProfilesDocument, options);
+        }
+export type LearningProfilesQueryHookResult = ReturnType<typeof useLearningProfilesQuery>;
+export type LearningProfilesLazyQueryHookResult = ReturnType<typeof useLearningProfilesLazyQuery>;
+export type LearningProfilesSuspenseQueryHookResult = ReturnType<typeof useLearningProfilesSuspenseQuery>;
+export type LearningProfilesQueryResult = Apollo.QueryResult<LearningProfilesQuery, LearningProfilesQueryVariables>;
+export const SetActiveLearningProfileDocument = gql`
+    mutation SetActiveLearningProfile($id: ID!) {
+  setActiveLearningProfile(id: $id) {
+    id
+    kind
+    isActive
+  }
+}
+    `;
+export type SetActiveLearningProfileMutationFn = Apollo.MutationFunction<SetActiveLearningProfileMutation, SetActiveLearningProfileMutationVariables>;
+
+/**
+ * __useSetActiveLearningProfileMutation__
+ *
+ * To run a mutation, you first call `useSetActiveLearningProfileMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useSetActiveLearningProfileMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [setActiveLearningProfileMutation, { data, loading, error }] = useSetActiveLearningProfileMutation({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useSetActiveLearningProfileMutation(baseOptions?: Apollo.MutationHookOptions<SetActiveLearningProfileMutation, SetActiveLearningProfileMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<SetActiveLearningProfileMutation, SetActiveLearningProfileMutationVariables>(SetActiveLearningProfileDocument, options);
+      }
+export type SetActiveLearningProfileMutationHookResult = ReturnType<typeof useSetActiveLearningProfileMutation>;
+export type SetActiveLearningProfileMutationResult = Apollo.MutationResult<SetActiveLearningProfileMutation>;
+export type SetActiveLearningProfileMutationOptions = Apollo.BaseMutationOptions<SetActiveLearningProfileMutation, SetActiveLearningProfileMutationVariables>;
 export const TeacherDashboardDocument = gql`
     query TeacherDashboard {
   teacherDashboard {

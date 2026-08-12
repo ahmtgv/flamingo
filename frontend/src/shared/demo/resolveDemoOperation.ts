@@ -33,6 +33,7 @@ import type {
   InstitutionMembersQuery,
   InviteMemberMutation,
   JoinSessionMutation,
+  LearningProfilesQuery,
   LessonHomeworkQuery,
   LoginMutation,
   MeQuery,
@@ -52,6 +53,7 @@ import type {
   RequestUploadMutation,
   ResetPasswordMutation,
   ScheduleSessionMutation,
+  SetActiveLearningProfileMutation,
   SessionAttendeesQuery,
   SessionAttentionQuery,
   SessionRoomQuery,
@@ -69,7 +71,7 @@ import type {
   UpdateMembershipMutation,
 } from '@/entities/graphql/generated';
 
-import { cohort, IDS, makeChild, nextId, store, times, users } from './demoData';
+import { cohort, IDS, makeChild, nextId, PROFILE_IDS, store, times, users } from './demoData';
 import { demoGraphQLRole } from './demoRole';
 
 type Vars = Record<string, unknown>;
@@ -113,6 +115,69 @@ function me(): MeQuery {
   return {
     __typename: 'Query',
     me: { ...base, id: users.maria.id, email: users.maria.email, firstName: users.maria.firstName, lastName: users.maria.lastName, role: 'TEACHER', teacherProfile: { __typename: 'TeacherProfile', verificationStatus: 'APPROVED', specialty: 'Математика' } },
+  };
+}
+
+// --- Learning profiles (R0.2) --------------------------------------------------------------
+/** The educations inside the demo account, per atlas sheet 00: Аня is a pupil of 9А AND a
+ *  cadet on English A2; Мария teaches at the same school. Shapes and the "<kind>:<uuid>" ids
+ *  mirror the server projection, so the preview exercises the real switch, not a mock of it. */
+function learningProfiles(): LearningProfilesQuery {
+  const role = demoGraphQLRole();
+  const profile = (
+    over: Partial<LearningProfilesQuery['learningProfiles'][number]>,
+  ): LearningProfilesQuery['learningProfiles'][number] => ({
+    __typename: 'LearningProfile',
+    id: '',
+    kind: 'PUPIL',
+    institutionId: null,
+    institutionName: null,
+    groupName: null,
+    courseId: null,
+    courseTitle: null,
+    courseCount: 0,
+    isActive: false,
+    ...over,
+  });
+
+  const profiles =
+    role === 'TEACHER'
+      ? [
+          profile({
+            id: PROFILE_IDS.teacher,
+            kind: 'TEACHER',
+            institutionId: IDS.institution,
+            institutionName: 'Гимназия №1',
+          }),
+        ]
+      : role === 'STUDENT'
+        ? [
+            profile({
+              id: PROFILE_IDS.pupil,
+              kind: 'PUPIL',
+              institutionId: IDS.institution,
+              institutionName: 'Гимназия №1',
+              groupName: '9А',
+              courseCount: 3,
+            }),
+            profile({
+              id: PROFILE_IDS.cadet,
+              kind: 'CADET',
+              courseId: IDS.course.english,
+              courseTitle: 'English A2',
+              courseCount: 1,
+            }),
+          ]
+        : []; // parent/admin hold no learning profile of their own
+
+  if (profiles.length === 0) return { __typename: 'Query', learningProfiles: [] };
+  // Same fallback as the server: an unset or stale choice lands on the first profile.
+  const chosen = profiles.some((p) => p.id === store.activeLearningProfile)
+    ? store.activeLearningProfile
+    : profiles[0].id;
+  return {
+    __typename: 'Query',
+    learningProfiles: profiles.map((p) => ({ ...p, isActive: p.id === chosen })),
   };
 }
 
@@ -526,6 +591,7 @@ export function resolveDemoOperation(operationName: string | undefined, variable
   switch (operationName) {
     // queries
     case 'Me': return me();
+    case 'LearningProfiles': return learningProfiles();
     case 'Catalog': return catalog(variables);
     case 'MyCourses': return myCourses();
     case 'CourseDetail': return courseDetail(variables);
@@ -558,6 +624,12 @@ export function resolveDemoOperation(operationName: string | undefined, variable
       } satisfies AddChildMutation;
     }
     case 'SubmitVerificationDocument': return { submitVerificationDocument: { __typename: 'VerificationDocument', id: nextId('doc'), status: 'PENDING', fileUrl: 'https://example.ru/diploma.pdf', createdAt: iso() } } satisfies SubmitVerificationDocumentMutation;
+    case 'SetActiveLearningProfile': {
+      const id = String(variables.id ?? '');
+      store.activeLearningProfile = id;
+      const kind = id.startsWith('teacher:') ? 'TEACHER' : id.startsWith('cadet:') ? 'CADET' : 'PUPIL';
+      return { setActiveLearningProfile: { __typename: 'LearningProfile', id, kind, isActive: true } } satisfies SetActiveLearningProfileMutation;
+    }
     case 'SetAvatar': return { setAvatar: { __typename: 'User', id: users.maria.id, avatarUrl: null } } satisfies SetAvatarMutation;
 
     // courses (teacher authoring + student enroll)

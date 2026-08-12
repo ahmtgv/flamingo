@@ -127,3 +127,48 @@ describe('demoLink — terminates in the browser with ZERO network', () => {
     for (const v of seen) expect(v).toBeGreaterThanOrEqual(0);
   });
 });
+
+describe('resolveDemoOperation — learning profiles (R0.2)', () => {
+  type Profile = {
+    id: string;
+    kind: string;
+    groupName: string | null;
+    courseTitle: string | null;
+    isActive: boolean;
+  };
+  const profiles = () =>
+    (resolveDemoOperation('LearningProfiles', {}) as { learningProfiles: Profile[] })
+      .learningProfiles;
+
+  it('a schoolchild holds both educations, exactly one of them active', () => {
+    setRole('student');
+    const list = profiles();
+    expect(list.map((p) => p.kind)).toEqual(['PUPIL', 'CADET']);
+    expect(list[0].groupName).toBe('9А'); // atlas sheet 00: "Ученик · 9А"
+    expect(list[1].courseTitle).toBe('English A2');
+    expect(list.filter((p) => p.isActive)).toHaveLength(1);
+  });
+
+  it('the profile carries data, not display text — the UI composes the label', () => {
+    setRole('student');
+    // "Ученик"/"Курсант" must come from i18n, never from the payload.
+    expect(JSON.stringify(profiles())).not.toMatch(/Ученик|Курсант/);
+  });
+
+  it('switching moves the active marker and sticks', () => {
+    setRole('student');
+    const cadetId = profiles()[1].id;
+    resolveDemoOperation('SetActiveLearningProfile', { id: cadetId });
+
+    const after = profiles();
+    expect(after.find((p) => p.isActive)?.id).toBe(cadetId);
+    expect(after.filter((p) => p.isActive)).toHaveLength(1);
+  });
+
+  it('a teacher has a teaching profile; a parent has none', () => {
+    setRole('teacher');
+    expect(profiles().map((p) => p.kind)).toEqual(['TEACHER']);
+    setRole('parent');
+    expect(profiles()).toEqual([]);
+  });
+});

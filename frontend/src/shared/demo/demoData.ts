@@ -85,9 +85,19 @@ const initialChildren: MeChild[] = [
   { __typename: 'StudentProfile', ageBand: 'JUNIOR', gradeLevel: '3 класс', user: { __typename: 'User', id: users.mila.id, firstName: users.mila.firstName, lastName: users.mila.lastName } },
 ];
 
+/** Learning-profile ids for the preview (same "<kind>:<uuid>" shape the server projects). */
+export const PROFILE_IDS = {
+  pupil: `pupil:${IDS.institution}`,
+  cadet: `cadet:${IDS.course.english}`,
+  teacher: `teacher:${IDS.institution}`,
+} as const;
+
 export const store = {
   /** Parent's linked children — AddChild appends here so refetch(Me) reflects it. */
   children: [...initialChildren],
+  /** Which education the demo account is currently in — SetActiveLearningProfile moves it,
+   *  so the switch behaves like the real one (and survives a refetch within the session). */
+  activeLearningProfile: '' as string,
   /** Course ids the student is enrolled in — Enroll/Unenroll toggle these. */
   enrolled: new Set<string>([IDS.course.algebra]),
   /** Monotonic counter for synthetic ids minted by create-mutations. */
@@ -97,6 +107,7 @@ export const store = {
 export function resetDemoStore(): void {
   store.children = [...initialChildren];
   store.enrolled = new Set<string>([IDS.course.algebra]);
+  store.activeLearningProfile = '';
   store.seq = 1000;
 }
 
