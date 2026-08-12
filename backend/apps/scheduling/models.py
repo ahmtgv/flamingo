@@ -22,7 +22,10 @@ class LessonSession(BaseModel):
     status = models.CharField(
         max_length=12, choices=choices(SessionStatus), default=SessionStatus.SCHEDULED.value
     )
-    recording_key = models.CharField(max_length=512, blank=True, default="")
+    # No recording field, deliberately: lesson video and audio are never stored (CLAUDE.md
+    # §2.2, owner decision 2026-08-12). A session is an occurrence for attendance and
+    # attention buckets — the record of what happened is the summary, not a media file.
+    # Enforced by apps/seedum/tests/test_storage_policy.py.
 
     class Meta:
         ordering = ["start_at"]

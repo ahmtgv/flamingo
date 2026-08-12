@@ -469,7 +469,6 @@ export type LessonSession = {
   group?: Maybe<Group>;
   id: Scalars['ID']['output'];
   lesson: Lesson;
-  recordingUrl?: Maybe<Scalars['String']['output']>;
   roomToken?: Maybe<Scalars['String']['output']>;
   startAt: Scalars['DateTime']['output'];
   status: SessionStatus;

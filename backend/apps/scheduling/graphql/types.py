@@ -51,11 +51,6 @@ class LessonSession:
         return SessionStatus(self.status)
 
     @strawberry_django.field
-    def recording_url(self) -> str | None:
-        # Set by the recording egress webhook/worker later.
-        return None
-
-    @strawberry_django.field
     def attendance(self, info: strawberry.Info) -> list[Attendance]:
         # Teacher-only: the roster (student names = PII) is scoped to the course owner.
         return services.attendance_for(get_current_user(info), self)

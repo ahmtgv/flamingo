@@ -170,7 +170,6 @@ erDiagram
     timestamptz start_at
     timestamptz end_at
     enum status
-    string recording_key
   }
   MATERIAL {
     uuid id PK
@@ -373,8 +372,10 @@ pupil joins or leaves a course. Implementation: `backend/apps/accounts/learning.
 **COURSE** `title, description, level enum, subject, language, owner_teacher_id FK, institution_id FK NULL, group_id FK NULL, status enum (draft/published/archived), cover_key, deleted_at`.
 **SECTION** `course_id, title, description, cover_key, order int`.
 **LESSON** `section_id, title, description, duration_min, options jsonb {camera,screen,chat,homework}, schedule_rule jsonb {type:once|weekly, days[], time}, status enum, order int, deleted_at`.
-**LESSON_SESSION** — concrete occurrence (for attendance, recording, CMF).
-`lesson_id, group_id FK NULL, start_at, end_at, status enum (scheduled/live/ended/canceled), recording_key NULL, room_token NULL`.
+**LESSON_SESSION** — concrete occurrence (for attendance and CMF buckets).
+`lesson_id, group_id FK NULL, start_at, end_at, status enum (scheduled/live/ended/canceled), room_token NULL`.
+🔴 **No recording field** — lesson video/audio are never stored (CLAUDE.md §2.2, owner 2026-08-12).
+What remains of a lesson is its summary, not a media file. Gate: `apps/seedum/tests/test_storage_policy.py`.
 **MATERIAL** `lesson_id FK NULL, course_id FK NULL, type enum (file/link/text), title, file_key NULL, url NULL, body text NULL, order`.
 **ENROLLMENT** — individual student ↔ course.
 `student_user_id, course_id, status enum (active/completed/pending), progress_pct int, enrolled_at`. Unique (student, course).
@@ -451,14 +452,14 @@ pupil joins or leaves a course. Implementation: `backend/apps/accounts/learning.
 ## 5. Design decisions & alternatives
 
 1. **Custom USER + role + 1:1 profile tables.** Chosen over (a) one fat user table (sparse columns) and (b) fully separate per-role user tables (breaks auth/relations). Profiles keep role-specific fields clean; `age_band` lives on STUDENT_PROFILE (derived), not as a separate role.
-2. **LESSON (definition) vs LESSON_SESSION (occurrence).** A lesson defines content/options/recurrence; sessions are concrete instances. This is what makes per-occurrence attendance, recordings and CMF metrics possible. Alternative — baking schedule into LESSON and computing occurrences on the fly — was rejected because attendance/recording/metrics need a stable per-occurrence row.
+2. **LESSON (definition) vs LESSON_SESSION (occurrence).** A lesson defines content/options/recurrence; sessions are concrete instances. This is what makes per-occurrence attendance and CMF metrics possible. Alternative — baking schedule into LESSON and computing occurrences on the fly — was rejected because attendance and metrics need a stable per-occurrence row. (Recordings were part of the original rationale and are now excluded by §2.2.)
 3. **Two delivery paths: individual ENROLLMENT and institutional GROUP.** B2C self-enrollment uses ENROLLMENT; schools use GROUP + GROUP_MEMBERSHIP, and a session may target a group. Course may carry an optional `group_id`. Alternative — a single CourseGroup M2M — is cleaner long-term; deferred to keep MVP simple. (Open question §7.)
 4. **Grading inline on SUBMISSION, attempts as rows.** One submission row per attempt; “redo” creates a new attempt. Avoids a separate Grade table for MVP while preserving history. Alternative — dedicated GRADE table — kept in reserve if non-homework assessments arrive.
 5. **CMF: only aggregates server-side; UBP on device + optional encrypted backup.** Core privacy decision (§6). ATTENTION_METRIC stores `avg_attention` per bucket; no raw signals. UBP_BACKUP is opaque to the server.
 6. **Points as append-only POINT_EVENT ledger + cached total.** Auditable and lets leaderboards/streaks recompute; `points_cached` avoids per-request aggregation. Alternative — a single mutable counter — loses history.
 7. **UUID PKs.** Non-enumerable (privacy for student/verification URLs), distribution-friendly, eases the future certificate→NFT bridge. Trade-off: larger indexes vs bigint — fine at MVP scale.
 8. **Institution optional.** Independent teachers/tutors and self-enrolled students operate without an institution; institutional features unlock when present.
-9. **Files in object storage by key.** S3-compatible (Yandex Object Storage); DB stores keys only. Recordings, materials, submission files, certificates, avatars all follow this.
+9. **Files in object storage by key.** S3-compatible (Yandex Object Storage); DB stores keys only. Materials, submission files, certificates and avatars follow this — lesson recordings do **not** exist (§2.2), and no upload purpose accepts an `audio/*` or `video/*` content type.
 
 ---
 

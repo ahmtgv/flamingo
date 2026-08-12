@@ -189,7 +189,6 @@ type LessonSession {
   startAt: DateTime!
   endAt: DateTime
   status: SessionStatus!
-  recordingUrl: String
   roomToken: String            # null unless viewer is a participant of a live session
   teacherName: String          # course owner's display name; any session participant (NOT the roster)
   attendance: [Attendance!]!
@@ -676,7 +675,7 @@ type Mutation {
   # --- scheduling & live sessions
   scheduleSession(input: ScheduleSessionInput!): LessonSession!
   startSession(sessionId: ID!): LessonSession!              # teacher -> LIVE (+roomToken)
-  endSession(sessionId: ID!): LessonSession!                # -> ENDED, recording async
+  endSession(sessionId: ID!): LessonSession!                # -> ENDED (no recording: §2.2)
   joinSession(sessionId: ID!): SessionJoin!                 # student -> roomToken + ATTENDANCE
   setAttendance(sessionId: ID!, studentId: ID!, status: AttendanceStatus!): Attendance!
   sendChatMessage(sessionId: ID!, text: String!): ChatMessage!
