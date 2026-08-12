@@ -277,6 +277,10 @@ h1{font-size:1.4rem;font-weight:600;letter-spacing:-.015em}
             <div data-r="pupil teacher">
               <div class="sect">
                 <div class="sectHead"><span class="sectName">Раздел 2 · Планетные системы</span><span class="of">6 из 8 пройдено</span></div>
+                <div data-r="teacher" style="display:flex;gap:8px;margin:2px 0 6px">
+                  <button class="btn ghost">Редактировать программу</button>
+                  <button class="btn ghost">+ урок</button>
+                  <button class="btn ghost">Порядок уроков</button></div>
 
                 <div class="les" data-done><span class="st">✓</span>
                   <span><span class="lesName">Урок 10 · Как ищут планеты</span>
@@ -310,7 +314,8 @@ h1{font-size:1.4rem;font-weight:600;letter-spacing:-.015em}
                 <div class="les"><span class="st"></span>
                   <span><span class="lesName">Урок 14 · Своё наблюдение</span>
                     <span class="lesSub">Заказ снимка на школьном телескопе MicroObservatory</span>
-                    <span class="lesTags"><span class="chip">прибор</span><span class="chip">снимок ~48 ч</span></span></span>
+                    <span class="lesTags"><span class="chip">внешний прибор</span><span class="chip">снимок ~48 ч</span>
+                      <span class="chip" data-live>откроется страница телескопа</span></span></span>
                   <span class="lesRight"><span class="lesWhen">пн, 18 авг</span></span></div>
               </div>
 
@@ -437,7 +442,8 @@ h1{font-size:1.4rem;font-weight:600;letter-spacing:-.015em}
                 <span><span class="taskName">Кривая блеска · разбор</span>
                   <span class="taskSub">Урок 11 · сдано 11 августа</span>
                   <span class="taskFb">Мария Петровна: глубина посчитана верно, но период — по двум минимумам, а не по одному. Пересчитай, и будет 5.</span></span>
-                <span class="taskRight"><span class="mark">4</span><span class="tagr">можно пересдать</span></span></div>
+                <span class="taskRight"><span class="mark">4</span><span class="tagr">можно пересдать</span>
+                  <span class="tagr" style="color:var(--ter)">новая оценка заменит эту</span></span></div>
 
               <div class="task">
                 <span><span class="taskName">Методы поиска планет · тест</span>
@@ -467,8 +473,9 @@ h1{font-size:1.4rem;font-weight:600;letter-spacing:-.015em}
                 <span class="taskRight"><span class="tagr" data-warn>очередь</span><button class="btn">Проверять</button></span></div>
               <div class="task">
                 <span><span class="taskName">Кривая блеска · разбор</span>
-                  <span class="taskSub">Урок 11 · проверено 24 из 24</span></span>
-                <span class="taskRight"><span class="tagr">закрыто</span></span></div>
+                  <span class="taskSub">Урок 11 · проверено 24 из 24 · 3 пересдачи</span></span>
+                <span class="taskRight"><span class="tagr">закрыто</span>
+                  <span class="tagr" style="color:var(--ter)">история попыток в журнале</span></span></div>
             </div>
           </div>
 
@@ -632,11 +639,11 @@ h1{font-size:1.4rem;font-weight:600;letter-spacing:-.015em}
     </ul>
 
     <h3>Вопросы к тебе</h3>
-    <div class="q"><p>1. Урок 14 «Своё наблюдение» — я поставил в программу заказ снимка на телескопе (первый внешний прибор по дорожной карте).
-    Оставляем его в этом листе как обычный урок особого типа, или прибор заслуживает отдельного экрана?</p></div>
-    <div class="q"><p>2. Пересдача: я показал её как «можно пересдать» с сохранённой оценкой 4 и комментарием учителя. Так и делаем,
-    или пересдача должна затирать прежнюю оценку?</p></div>
-    <div class="q"><p>3. У учителя вкладка «Уроки» сейчас та же, что у ученика, плюс цифры сдачи. Достаточно, или ему нужен режим редактирования программы прямо здесь?</p></div>
+    <div class="q"><p>1. ✅ Телескоп остаётся уроком в программе, но <b>во время выполнения открывается страница прибора</b> —
+    прибор ведёт себя как отдельный предмет со своим экраном. Первый случай общей абстракции внешнего устройства.</p></div>
+    <div class="q"><p>2. ✅ Пересдача: в открытом сценарии <b>показывается новая оценка</b>, прежняя не мозолит глаза.
+    При этом <b>фиксируется всё</b> — каждая попытка пишется в лог и поднимается из журнала преподавателя.</p></div>
+    <div class="q"><p>3. ✅ Режим редактирования программы у учителя нужен: править урок, добавлять урок, менять порядок — прямо здесь.</p></div>
   </div>
 </div>
 
