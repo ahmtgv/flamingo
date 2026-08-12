@@ -45,7 +45,7 @@ h1{font-size:1.4rem;font-weight:600;letter-spacing:-.015em}
 .navBtn .badge{position:absolute;top:-2px;right:-9px;min-width:16px;height:16px;border-radius:8px;background:var(--coral);
   color:#fff;font:500 9px var(--mono);display:grid;place-content:center;padding:0 4px}
 .avatar{width:28px;height:28px;border-radius:50%;background:var(--subtle);display:grid;place-content:center;
-  font:500 10px var(--mono);color:var(--sec)}
+  font:500 10px var(--mono);color:var(--sec);--d:grid}
 .page{padding:34px 44px 48px;min-height:660px}
 
 /* ——— приветствие ——— */
@@ -104,7 +104,7 @@ h1{font-size:1.4rem;font-weight:600;letter-spacing:-.015em}
 /* ——— быстрые входы ——— */
 .quick{display:flex;gap:8px;flex-wrap:wrap}
 .qi{border:1px solid var(--border);border-radius:10px;padding:11px 14px;background:var(--surface);cursor:pointer;
-  display:grid;gap:2px;text-align:start;min-width:132px;transition:border-color .18s var(--ease)}
+  display:grid;gap:2px;text-align:start;min-width:132px;transition:border-color .18s var(--ease);--d:grid}
 .qi:hover{border-color:var(--border-s)}
 .qi:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(225,78,31,.4)}
 .qiName{font-size:var(--fs-cap);font-weight:500;color:var(--ink)}
@@ -143,7 +143,7 @@ h1{font-size:1.4rem;font-weight:600;letter-spacing:-.015em}
 .screen[data-role="cadet"] [data-r~="cadet"],
 .screen[data-role="teacher"] [data-r~="teacher"],
 .screen[data-role="parent"] [data-r~="parent"],
-.screen[data-role="admin"] [data-r~="admin"]{display:revert}
+.screen[data-role="admin"] [data-r~="admin"]{display:var(--d,block)}
 .slot[data-r]{display:none}
 .screen[data-role="pupil"] .slot[data-r~="pupil"],
 .screen[data-role="cadet"] .slot[data-r~="cadet"],
@@ -160,7 +160,8 @@ h1{font-size:1.4rem;font-weight:600;letter-spacing:-.015em}
 .weekNav button{background:none;border:1px solid var(--border);border-radius:7px;width:26px;height:24px;
   color:var(--sec);cursor:pointer;font:500 11px var(--mono)}
 .weekNav button:hover{border-color:var(--border-s);color:var(--ink)}
-.days{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}
+.days:where(:not([data-r])){display:grid}
+.days{grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;--d:grid}
 .day{border:1px solid var(--border);border-radius:10px;padding:8px 9px 9px;min-height:88px;background:var(--surface);
   display:grid;align-content:start;gap:5px;cursor:pointer;transition:border-color .18s var(--ease)}
 .day:hover{border-color:var(--border-s)}
