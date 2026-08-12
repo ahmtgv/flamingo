@@ -332,8 +332,23 @@ erDiagram
 | role | enum user_role | student / parent / teacher / admin |
 | first_name, last_name | varchar | |
 | locale | varchar(8) | default `ru` (i18n-ready) |
+| active_learning_profile | varchar(64) | which education the account is currently in — `"<kind>:<uuid>"`. A pointer only; the profiles themselves are **not stored** (see below) |
 | is_active | bool | |
 | created_at / updated_at | timestamptz | |
+
+**LEARNING PROFILES — a projection, not an entity** (owner req. 15, PROMPT_13 R0.2, verified 2026-08-12).
+One account holds several educations: a schoolchild who also takes evening courses is a *pupil*
+(9А, Гимназия №1) **and** a *cadet* (English A2). No table was added, because the existing relations
+already carry all of it:
+
+| Profile | Derived from |
+|---|---|
+| PUPIL | `INSTITUTION_MEMBERSHIP` (role=student, status=active) + `GROUP_MEMBERSHIP` for the class + count of `ENROLLMENT` in that institution's courses |
+| CADET | `ENROLLMENT` in a course with `institution_id IS NULL` (self-paced) |
+| TEACHER | `INSTITUTION_MEMBERSHIP` (role=teacher, status=active) |
+
+A stored profile row would duplicate enrolment state and drift out of sync with it the first time a
+pupil joins or leaves a course. Implementation: `backend/apps/accounts/learning.py`.
 
 **STUDENT_PROFILE / PARENT_PROFILE / TEACHER_PROFILE / ADMIN_PROFILE** — 1:1 with USER, role-specific fields.
 - STUDENT_PROFILE: `birth_date`, `age_band` enum (junior/teen/adult, derived from birth_date), `grade_level`, `points_cached int`, `institution_id FK NULL`, `avatar_key`.

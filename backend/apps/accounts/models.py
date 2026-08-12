@@ -31,6 +31,12 @@ class User(JurisdictionMixin, AbstractBaseUser, PermissionsMixin):
     first_name = models.CharField(max_length=120)
     last_name = models.CharField(max_length=120)
     locale = models.CharField(max_length=8, default="ru")  # i18n-ready
+    # Which learning profile the account is currently working in ("pupil:<uuid>" /
+    # "cadet:<uuid>" / "teacher:<uuid>"). The profiles themselves are NOT stored — they are
+    # projected from INSTITUTION_MEMBERSHIP and ENROLLMENT (apps/accounts/learning.py); this
+    # is only a pointer, so the choice follows the person between devices. Empty = "not
+    # chosen yet", which resolves to the first available profile.
+    active_learning_profile = models.CharField(max_length=64, blank=True, default="")
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
     is_email_verified = models.BooleanField(default=False)

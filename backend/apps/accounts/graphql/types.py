@@ -14,6 +14,7 @@ from common.auth import get_current_user, require_user
 from common.enums import (
     AgeBand,
     GuardianshipStatus,
+    LearningProfileKind,
     Role,
     VerificationStatus,
 )
@@ -191,3 +192,40 @@ class AuthPayload:
     token: str
     refresh_token: str
     user: UserType
+
+
+@strawberry.type
+class LearningProfile:
+    """One of the educations inside a single account (owner req. 15, atlas sheet 00).
+
+    A projection over INSTITUTION_MEMBERSHIP / ENROLLMENT — nothing here is stored as a row
+    (see apps/accounts/learning.py for why). It deliberately carries data rather than
+    display text: the client builds "Ученик · 9А" from `kind` + `groupName` through i18n, so
+    the server never ships a Russian string.
+    """
+
+    id: strawberry.ID
+    kind: LearningProfileKind
+    institution_id: strawberry.ID | None
+    institution_name: str | None
+    group_name: str | None  # the class, e.g. "9А"
+    course_id: strawberry.ID | None
+    course_title: str | None
+    course_count: int  # subjects studied in this context
+    is_active: bool
+
+    @classmethod
+    def from_projection(cls, profile) -> LearningProfile:
+        return cls(
+            id=strawberry.ID(profile.id),
+            kind=profile.kind,
+            institution_id=(
+                strawberry.ID(profile.institution_id) if profile.institution_id else None
+            ),
+            institution_name=profile.institution_name,
+            group_name=profile.group_name,
+            course_id=strawberry.ID(profile.course_id) if profile.course_id else None,
+            course_title=profile.course_title,
+            course_count=profile.course_count,
+            is_active=profile.is_active,
+        )

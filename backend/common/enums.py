@@ -31,6 +31,24 @@ class AgeBand(Enum):
 
 
 @strawberry.enum
+class LearningProfileKind(Enum):
+    """One learning context inside a single account (owner decision 2026-08-12, req. 15).
+
+    PUPIL — studying inside an institution: class, timetable, deadlines set from outside.
+    CADET — self-paced study on a standalone course.
+    TEACHER — teaching inside an institution.
+
+    A schoolchild taking evening courses holds a PUPIL and a CADET profile at once. These
+    are projections over existing relations (INSTITUTION_MEMBERSHIP / ENROLLMENT), not a
+    stored entity — see apps/accounts/learning.py.
+    """
+
+    PUPIL = "pupil"
+    CADET = "cadet"
+    TEACHER = "teacher"
+
+
+@strawberry.enum
 class VerificationStatus(Enum):
     PENDING = "pending"
     APPROVED = "approved"

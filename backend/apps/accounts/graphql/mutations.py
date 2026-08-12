@@ -6,11 +6,17 @@ import datetime as dt
 
 import strawberry
 
-from apps.accounts import services
+from apps.accounts import learning, services
 from common.auth import get_current_user, issue_tokens, require_user
 from common.enums import Role
 
-from .types import AuthPayload, GuardianshipType, UserType, VerificationDocumentType
+from .types import (
+    AuthPayload,
+    GuardianshipType,
+    LearningProfile,
+    UserType,
+    VerificationDocumentType,
+)
 
 
 @strawberry.input
@@ -141,3 +147,16 @@ class AccountsMutation:
     def set_avatar(self, info: strawberry.Info, file_key: str) -> UserType:
         # Own avatar; the key must be in the caller's own avatar/<userId>/ namespace (service).
         return services.set_avatar(require_user(info), file_key)
+
+    @strawberry.mutation
+    def set_active_learning_profile(
+        self, info: strawberry.Info, id: strawberry.ID
+    ) -> LearningProfile:
+        """Switch the account into one of ITS OWN learning profiles.
+
+        The id is checked against the caller's projected profiles, so an id naming another
+        person's school or course cannot be pinned onto this account (it raises NotFound
+        rather than confirming that the id exists elsewhere).
+        """
+        profile = learning.set_active_learning_profile(require_user(info), str(id))
+        return LearningProfile.from_projection(profile)

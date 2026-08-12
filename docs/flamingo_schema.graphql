@@ -21,6 +21,7 @@ scalar JSON
 # ----------------------------------------------------------------------------- Enums
 enum Role { STUDENT PARENT TEACHER ADMIN }
 enum AgeBand { JUNIOR TEEN ADULT }
+enum LearningProfileKind { PUPIL CADET TEACHER }
 enum VerificationStatus { PENDING APPROVED REJECTED }
 enum InstitutionStatus { PENDING ACTIVE INACTIVE }
 enum MembershipRole { TEACHER STUDENT ADMIN }
@@ -558,12 +559,28 @@ input NotificationPreferenceInput { eventType: NotificationType! channel: Notifi
 
 input CourseFilter { level: CourseLevel subject: String language: String search: String }
 
+# One of the educations inside a single account (owner req. 15, atlas sheet 00).
+# A PROJECTION over INSTITUTION_MEMBERSHIP / ENROLLMENT — no stored entity (R0.2 decision).
+# Carries data, not display text: the client composes "Ученик · 9А" via i18n.
+type LearningProfile {
+  id: ID!                     # stable synthetic key "<kind>:<uuid>"
+  kind: LearningProfileKind!
+  institutionId: ID
+  institutionName: String
+  groupName: String           # the class, e.g. "9А"
+  courseId: ID
+  courseTitle: String
+  courseCount: Int!           # subjects studied in this context
+  isActive: Boolean!
+}
+
 # =============================================================================
 # Query
 # =============================================================================
 type Query {
   # identity
   me: User
+  learningProfiles: [LearningProfile!]!                    # caller's own educations
 
   # catalog & content
   catalog(filter: CourseFilter, first: Int = 20, after: String): CourseConnection!
@@ -628,6 +645,7 @@ type Mutation {
   requestPasswordReset(email: String!): Boolean!
   resetPassword(token: String!, newPassword: String!): Boolean!
   verifyEmail(token: String!): Boolean!
+  setActiveLearningProfile(id: ID!): LearningProfile!     # switch education (own only)
   addChild(input: AddChildInput!): Guardianship!            # parent links/creates a child
   respondGuardianship(id: ID!, accept: Boolean!): Guardianship!   # child confirms request
   submitVerificationDocument(fileKey: String!): VerificationDocument!   # teacher
