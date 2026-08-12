@@ -45,7 +45,7 @@ h1{font-size:1.4rem;font-weight:600;letter-spacing:-.015em}
   display:grid;place-content:center;font:500 10px var(--mono);color:var(--sec)}
 .page{padding:36px 44px 48px;min-height:640px}
 .view{display:none}
-.screen[data-v="ax"] .v-ax,.screen[data-v="b1"] .v-b1,.screen[data-v="b2"] .v-b2,.screen[data-v="b3"] .v-b3{display:block}
+.screen[data-v="ax"] .v-ax,.screen[data-v="b1"] .v-b1,.screen[data-v="b2"] .v-b2,.screen[data-v="b3"] .v-b3,.screen[data-v="mm"] .v-mm{display:block}
 
 .h-title{font-size:var(--fs-h1);font-weight:600;letter-spacing:-.02em}
 .h-sub{color:var(--sec);font-size:var(--fs-cap);margin-top:4px}
@@ -64,8 +64,32 @@ h1{font-size:1.4rem;font-weight:600;letter-spacing:-.015em}
 .thumb .lv i{width:4px;height:4px;border-radius:50%;background:var(--coral);display:block}
 @media (prefers-reduced-motion:no-preference){.thumb .lv i,.live i{animation:pulse 2.4s ease-in-out infinite}}
 @keyframes pulse{50%{opacity:.3}}
-.thumb .vw{position:absolute;right:5px;top:5px;background:rgba(0,0,0,.6);border-radius:4px;padding:2px 5px;
-  font:500 9px var(--mono);color:#fff;font-variant-numeric:tabular-nums}
+/* «+ в мои материалы» — на карточках источников и во врезках */
+.addBtn{background:none;border:1px solid var(--border-s);border-radius:7px;color:var(--sec);
+  font:500 var(--fs-micro) var(--ui);padding:5px 10px;cursor:pointer;transition:all .18s var(--ease);
+  display:inline-flex;align-items:center;gap:5px}
+.addBtn:hover{border-color:var(--coral);color:var(--coral-t)}
+.addBtn:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(225,78,31,.4)}
+.addBtn[data-saved]{border-color:var(--border);color:var(--ter)}
+
+/* мои материалы */
+.mmGroup{margin-top:26px}
+.mmSubj{font:500 var(--fs-micro) var(--mono);color:var(--ter);letter-spacing:.09em;text-transform:uppercase;
+  margin-bottom:10px;display:flex;align-items:center;gap:10px}
+.mmSubj::after{content:'';flex:1;height:1px;background:var(--border)}
+.mmItem{display:grid;grid-template-columns:88px 1fr auto;gap:16px;align-items:start;padding:14px 0;
+  border-bottom:1px solid var(--border)}
+.mmItem.noThumb{grid-template-columns:1fr auto}
+.mmItem:last-child{border-bottom:none}
+.mmName{font-weight:500;font-size:.9375rem;display:flex;align-items:center;gap:6px}
+.mmFrom{font:400 var(--fs-micro) var(--mono);color:var(--ter);margin-top:2px}
+.mmNote{font-size:var(--fs-cap);color:var(--sec);margin-top:6px;padding-inline-start:10px;
+  border-inline-start:2px solid var(--border);max-width:56ch}
+.mmDate{font:500 var(--fs-micro) var(--mono);color:var(--ter);font-variant-numeric:tabular-nums;white-space:nowrap}
+.cabTabs{display:flex;gap:2px;border-bottom:1px solid var(--border);margin:-6px 0 4px}
+.cabTab{font:500 var(--fs-cap) var(--ui);color:var(--sec);background:none;border:none;border-bottom:2px solid transparent;
+  padding:10px 14px;cursor:pointer}
+.cabTab[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--coral)}
 
 .live{display:inline-flex;align-items:center;gap:5px;font:500 10px var(--mono);color:var(--coral-t);
   letter-spacing:.06em;text-transform:uppercase}
@@ -181,7 +205,7 @@ h1{font-size:1.4rem;font-weight:600;letter-spacing:-.015em}
 </head>
 <body>
 <div class="wrap">
-  <h1>Атлас · Лист 12 — Источники <span style="font:500 12px var(--mono);color:var(--ter)">ред. 3</span></h1>
+  <h1>Атлас · Лист 12 — Источники <span style="font:500 12px var(--mono);color:var(--ter)">ред. 4</span></h1>
   <p class="sub">Урок: <b>рельс + врезки</b>, и главное — контент урока задают <b>методика учреждения и преподаватель</b>, а алгоритм только рекомендует, отдельной зоной. ХАБ — три вкладки, по умолчанию «Источники мира»; знак <b>HUB</b> в шапке (в ред. 2 был баг — селектор не срабатывал, исправлено). Везде, где есть трансляция или видео, — <b>маленькое превью</b>. Язык по умолчанию берётся из браузера.</p>
 
   <div class="bar" role="group" aria-label="Экраны">
@@ -191,6 +215,8 @@ h1{font-size:1.4rem;font-weight:600;letter-spacing:-.015em}
     <button data-v="b1" aria-pressed="false">источники мира</button>
     <button data-v="b2" aria-pressed="false">атлас</button>
     <button data-v="b3" aria-pressed="false">наука онлайн</button>
+    <span class="grp" style="margin-left:12px">кабинет:</span>
+    <button data-v="mm" aria-pressed="false">мои материалы</button>
     <button id="thm" style="margin-left:auto" aria-pressed="false">тёмная</button>
   </div>
 
@@ -214,7 +240,7 @@ h1{font-size:1.4rem;font-weight:600;letter-spacing:-.015em}
               <div class="kicker">данные · задание урока</div>
               <h4>NASA Exoplanet Archive</h4>
               <p>Возьми настоящий каталог и построй распределение экзопланет по массе и периоду. Посмотри, где скапливаются «горячие юпитеры» — и подумай почему.</p>
-              <div class="inlineAct"><button class="btnS">Открыть данные</button><span class="use" data-free>можно взять в свою работу</span></div>
+              <div class="inlineAct"><button class="btnS">Открыть данные</button><button class="addBtn">+ в мои материалы</button><span class="use" data-free>можно взять в свою работу</span></div>
             </div>
 
             <p class="para">Второй способ — метод лучевых скоростей. Планета и звезда вращаются вокруг общего центра масс, поэтому звезда слегка «покачивается», и это видно по смещению линий в её спектре.</p>
@@ -226,7 +252,7 @@ h1{font-size:1.4rem;font-weight:600;letter-spacing:-.015em}
                 <div>
                   <h4>Как «качается» звезда</h4>
                   <p>Разбор метода лучевых скоростей — 6 минут. Материал добавлен Марией Петровной к этому уроку.</p>
-                  <div class="inlineAct"><button class="btnS">Смотреть</button><span class="ext">6:12 · встроено в урок</span></div>
+                  <div class="inlineAct"><button class="btnS">Смотреть</button><button class="addBtn">+ в мои материалы</button><span class="ext">6:12 · встроено в урок</span></div>
                 </div>
               </div>
             </div>
@@ -279,15 +305,18 @@ h1{font-size:1.4rem;font-weight:600;letter-spacing:-.015em}
             <!-- ЗОНА 2: рекомендации алгоритма -->
             <div class="railZone rec">
               <div class="zoneTitle">рекомендации по теме</div>
-              <div class="zoneWho">Подобрано автоматически · не входит в программу</div>
+              <div class="zoneWho">Не входит в текущий урок</div>
 
               <button class="railItem">
-                <span class="thumb xs"><span class="lv"><i></i></span><span class="p"></span></span>
-                <span><span class="rn">ESA Web TV<span class="ext">↗</span></span><span class="rd">европейские миссии</span></span>
+                <span class="thumb xs"><span class="p"></span></span>
+                <span><span class="rn">Транзиты: разбор ФИПИ</span><span class="rd">из программы гимназии</span></span>
               </button>
-              <button class="railItem noThumb"><span class="rn">SIMBAD</span><span class="rd">база объектов</span></button>
-              <button class="railItem noThumb"><span class="rn">ESA Sky</span><span class="rd">атлас неба</span></button>
-              <button class="railItem noThumb"><span class="rn">Aladin</span><span class="rd">обзоры и каталоги</span></button>
+              <button class="railItem">
+                <span class="thumb xs"><span class="lv"><i></i></span><span class="p"></span></span>
+                <span><span class="rn">ESA Web TV<span class="ext">↗</span></span><span class="rd">подобрано автоматически</span></span>
+              </button>
+              <button class="railItem noThumb"><span class="rn">SIMBAD</span><span class="rd">подобрано автоматически</span></button>
+              <button class="railItem noThumb"><span class="rn">ESA Sky</span><span class="rd">подобрано автоматически</span></button>
             </div>
           </aside>
         </div>
@@ -329,13 +358,13 @@ h1{font-size:1.4rem;font-weight:600;letter-spacing:-.015em}
         <div class="grid3">
           <button class="src"><span class="thumb"><span class="lv"><i></i>в эфире</span><span class="p"></span></span><span class="inst">NASA</span><span class="name">NASA Live<span class="ext">↗</span></span><span class="desc">Пуски, миссии, эфиры центра управления</span><span class="foot"><span class="use">только посмотреть</span></span></button>
           <button class="src"><span class="thumb"><span class="lv"><i></i>в эфире</span><span class="p"></span></span><span class="inst">Smithsonian</span><span class="name">Камеры зоопарка<span class="ext">↗</span></span><span class="desc">Панды, слоны, львы — живые камеры</span><span class="foot"><span class="use">только посмотреть</span></span></button>
-          <button class="src"><span class="inst">The Metropolitan Museum</span><span class="name">Met Open Access</span><span class="desc">470 000+ объектов в высоком разрешении</span><span class="foot"><span class="use" data-free>можно взять в свою работу</span></span></button>
-          <button class="src"><span class="inst">Internet Archive</span><span class="name">Open Library</span><span class="desc">Международный каталог книг</span><span class="foot"><span class="use" data-free>можно взять в свою работу</span></span></button>
-          <button class="src"><span class="inst">Europeana</span><span class="name">Европейское наследие</span><span class="desc">Книги, архивы, искусство тысяч учреждений</span><span class="foot"><span class="use" data-free>можно взять в свою работу</span></span></button>
-          <button class="src"><span class="inst">GBIF</span><span class="name">Биоразнообразие</span><span class="desc">Глобальные наблюдения видов</span><span class="foot"><span class="use" data-free>можно взять в свою работу</span></span></button>
+          <button class="src"><span class="inst">The Metropolitan Museum</span><span class="name">Met Open Access</span><span class="desc">470 000+ объектов в высоком разрешении</span><span class="foot"><span class="use" data-free>можно взять в свою работу</span><button class="addBtn">+</button></span></button>
+          <button class="src"><span class="inst">Internet Archive</span><span class="name">Open Library</span><span class="desc">Международный каталог книг</span><span class="foot"><span class="use" data-free>можно взять в свою работу</span><button class="addBtn">+</button></span></button>
+          <button class="src"><span class="inst">Europeana</span><span class="name">Европейское наследие</span><span class="desc">Книги, архивы, искусство тысяч учреждений</span><span class="foot"><span class="use" data-free>можно взять в свою работу</span><button class="addBtn">+</button></span></button>
+          <button class="src"><span class="inst">GBIF</span><span class="name">Биоразнообразие</span><span class="desc">Глобальные наблюдения видов</span><span class="foot"><span class="use" data-free>можно взять в свою работу</span><button class="addBtn">+</button></span></button>
           <button class="src"><span class="inst">Harvard · Smithsonian</span><span class="name">MicroObservatory</span><span class="desc">Заказать снимок с реального телескопа</span><span class="foot"><span class="use" data-free>твой снимок — твой</span><span class="ext">~48 ч</span></span></button>
-          <button class="src"><span class="inst">Project Gutenberg</span><span class="name">Классика в свободном доступе</span><span class="desc">Проверенные тексты общественного достояния</span><span class="foot"><span class="use" data-free>можно взять в свою работу</span></span></button>
-          <button class="src"><span class="inst">USGS</span><span class="name">Землетрясения</span><span class="desc">Данные почти в реальном времени</span><span class="foot"><span class="use" data-free>можно взять в свою работу</span></span></button>
+          <button class="src"><span class="inst">Project Gutenberg</span><span class="name">Классика в свободном доступе</span><span class="desc">Проверенные тексты общественного достояния</span><span class="foot"><span class="use" data-free>можно взять в свою работу</span><button class="addBtn">+</button></span></button>
+          <button class="src"><span class="inst">USGS</span><span class="name">Землетрясения</span><span class="desc">Данные почти в реальном времени</span><span class="foot"><span class="use" data-free>можно взять в свою работу</span><button class="addBtn">+</button></span></button>
         </div>
         <p class="note">Язык определяется по браузеру, меняется вручную, есть «Все языки». Ученику вместо кода лицензии — прямой ответ: «можно взять в свою работу» или «только посмотреть». Точный код видит учитель.</p>
       </div>
@@ -415,7 +444,7 @@ h1{font-size:1.4rem;font-weight:600;letter-spacing:-.015em}
         </div>
 
         <button class="hero">
-          <div class="thumb"><span class="lv"><i></i>в эфире</span><span class="vw">12 480</span><span class="p"></span></div>
+          <div class="thumb"><span class="lv"><i></i>в эфире</span><span class="p"></span></div>
           <div>
             <span class="heroTag">самое просматриваемое</span>
             <h3>Стыковка с МКС</h3>
@@ -426,15 +455,15 @@ h1{font-size:1.4rem;font-weight:600;letter-spacing:-.015em}
 
         <div class="streamGrid">
           <button class="stream">
-            <div class="thumb"><span class="lv"><i></i>в эфире</span><span class="vw">3 210</span><span class="p"></span></div>
+            <div class="thumb"><span class="lv"><i></i>в эфире</span><span class="p"></span></div>
             <div class="body"><span class="t">Панды в национальном зоопарке<span class="ext">↗</span></span><span class="s">Smithsonian · круглосуточно</span></div>
           </button>
           <button class="stream">
-            <div class="thumb"><span class="lv"><i></i>в эфире</span><span class="vw">1 874</span><span class="p"></span></div>
+            <div class="thumb"><span class="lv"><i></i>в эфире</span><span class="p"></span></div>
             <div class="body"><span class="t">ESA Web TV<span class="ext">↗</span></span><span class="s">ESA · европейские миссии</span></div>
           </button>
           <button class="stream">
-            <div class="thumb"><span class="lv"><i></i>в эфире</span><span class="vw">942</span><span class="p"></span></div>
+            <div class="thumb"><span class="lv"><i></i>в эфире</span><span class="p"></span></div>
             <div class="body"><span class="t">Медведи на реке Брукс<span class="ext">↗</span></span><span class="s">Explore.org · Аляска</span></div>
           </button>
           <button class="stream">
@@ -442,7 +471,7 @@ h1{font-size:1.4rem;font-weight:600;letter-spacing:-.015em}
             <div class="body"><span class="t">Обсерватория Гринвич<span class="ext">↗</span></span><span class="s">Royal Observatory · по расписанию</span></div>
           </button>
           <button class="stream">
-            <div class="thumb"><span class="lv"><i></i>в эфире</span><span class="vw">655</span><span class="p"></span></div>
+            <div class="thumb"><span class="lv"><i></i>в эфире</span><span class="p"></span></div>
             <div class="body"><span class="t">Африканская саванна<span class="ext">↗</span></span><span class="s">Explore.org · водопой</span></div>
           </button>
           <button class="stream">
@@ -466,17 +495,98 @@ h1{font-size:1.4rem;font-weight:600;letter-spacing:-.015em}
         <p class="note">Превью у каждой трансляции; крупным — самое просматриваемое. Запланированные показаны временем вместо «в эфире». Всё открывается в новой вкладке.</p>
       </div>
 
+      <!-- ===================== КАБИНЕТ · МОИ МАТЕРИАЛЫ ===================== -->
+      <div class="view v-mm">
+        <div class="cabTabs">
+          <button class="cabTab">Сегодня</button>
+          <button class="cabTab">Курсы</button>
+          <button class="cabTab">Расписание</button>
+          <button class="cabTab">Домашние</button>
+          <button class="cabTab" aria-selected="true">Добавленные материалы</button>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:baseline;gap:24px;margin-top:20px">
+          <div><div class="h-title">Добавленные материалы</div>
+          <div class="h-sub">Всё, что ты сохранил из уроков и хаба — с твоими заметками</div></div>
+          <span class="meta">14 материалов</span>
+        </div>
+
+        <div class="mmGroup">
+          <div class="mmSubj">астрономия</div>
+          <div class="mmItem">
+            <span class="thumb"><span class="p"></span></span>
+            <span>
+              <span class="mmName">Как «качается» звезда</span>
+              <span class="mmFrom">видео М. Петровны · урок «Экзопланеты»</span>
+              <div class="mmNote">Пересмотреть перед контрольной — момент с центром масс на 3:40.</div>
+            </span>
+            <span class="mmDate">вчера</span>
+          </div>
+          <div class="mmItem noThumb">
+            <span>
+              <span class="mmName">NASA Exoplanet Archive</span>
+              <span class="mmFrom">данные · NASA · можно взять в работу</span>
+              <div class="mmNote">Отсюда брал таблицу для проекта по горячим юпитерам.</div>
+            </span>
+            <span class="mmDate">03.08</span>
+          </div>
+          <div class="mmItem">
+            <span class="thumb"><span class="p"></span></span>
+            <span>
+              <span class="mmName">Мой снимок: Туманность Ориона</span>
+              <span class="mmFrom">MicroObservatory · заказ от 30.07 · твой снимок — твой</span>
+            </span>
+            <span class="mmDate">01.08</span>
+          </div>
+        </div>
+
+        <div class="mmGroup">
+          <div class="mmSubj">английский</div>
+          <div class="mmItem noThumb">
+            <span>
+              <span class="mmName">Common Voice — речь носителей</span>
+              <span class="mmFrom">аудио · можно взять в работу</span>
+              <div class="mmNote">Тренировать на слух перед аудированием.</div>
+            </span>
+            <span class="mmDate">28.07</span>
+          </div>
+        </div>
+
+        <div class="mmGroup">
+          <div class="mmSubj">найдено в хабе</div>
+          <div class="mmItem">
+            <span class="thumb"><span class="lv"><i></i></span><span class="p"></span></span>
+            <span>
+              <span class="mmName">Панды в национальном зоопарке<span class="ext">↗</span></span>
+              <span class="mmFrom">Smithsonian · только посмотреть</span>
+              <div class="mmNote">Показать младшему брату.</div>
+            </span>
+            <span class="mmDate">26.07</span>
+          </div>
+          <div class="mmItem noThumb">
+            <span>
+              <span class="mmName">Met Open Access</span>
+              <span class="mmFrom">коллекция · можно взять в работу</span>
+            </span>
+            <span class="mmDate">20.07</span>
+          </div>
+        </div>
+        <p class="note">Ученик добавляет материал кнопкой «+ в мои материалы» из урока или хаба. Группируется по предметам, отдельно — найденное самостоятельно. У каждого можно оставить свою заметку — это и есть конспект.</p>
+      </div>
+
     </div>
   </div>
 
   <div class="q">
-    <h4>что исправлено · ред. 3</h4>
+    <h4>решения владельца · ред. 4</h4>
     <p><b>Баг:</b> знак HUB не показывался — состояние висело на <code>.page</code>, а шапка лежит вне неё. Перенёс на <code>.screen</code>, теперь работает (переключи на любую вкладку хаба).<br>
     <b>Урок:</b> рельс разделён на две зоны — «в уроке» (методика + преподаватель, коралловая линия) и «рекомендации по теме» (алгоритм, серая, с пометкой «не входит в программу»). Добавлена врезка с видео преподавателя.<br>
     <b>Превью:</b> добавлены везде — в рельсе, во врезках, на карточках хаба, в «Науке онлайн».<br>
     <b>Язык:</b> по умолчанию из настроек браузера, с подписью; есть «Все языки» и заготовка под остальные.<br>
     <b>Лицензия ученику:</b> «можно взять в свою работу» / «только посмотреть» / «твой снимок — твой».</p>
-    <p style="margin-top:10px"><b>Осталось решить:</b> 1) счётчик зрителей — показывать внешнюю аудиторию мы не можем достоверно; заменить на «смотрят N наших учеников» или убрать? 2) кто наполняет зону «в уроке» — только преподаватель, или методист учреждения тоже? 3) может ли ученик добавить свой источник в личную подборку?</p>
+    <p style="margin-top:10px"><b>Решения владельца, внесены в ред. 4:</b><br>
+    <b>1.</b> Счётчик зрителей — <b>убран</b> (достоверно чужую аудиторию мы не знаем).<br>
+    <b>2.</b> <b>Приоритет у преподавателя.</b> Материал методиста/админа при этом <b>не удаляется</b>, а понижается в «рекомендации по теме» с пометкой «из программы гимназии» — видно, что это не алгоритм, а учреждение.<br>
+    <b>3.</b> Ученик может сохранять источники: кнопка <b>«+ в мои материалы»</b> в уроке и в хабе → вкладка <b>«Добавленные материалы»</b> в личном кабинете, с группировкой по предметам и личными заметками (это и есть конспект/тетрадь).</p>
   </div>
 </div>
 <script>
