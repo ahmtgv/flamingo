@@ -15,6 +15,7 @@ export type Scalars = {
   Boolean: { input: boolean; output: boolean; }
   Int: { input: number; output: number; }
   Float: { input: number; output: number; }
+  Date: { input: any; output: any; }
   DateTime: { input: string; output: string; }
   JSON: { input: Record<string, unknown>; output: Record<string, unknown>; }
 };
@@ -1039,6 +1040,7 @@ export type Query = {
   recommendations: Array<Recommendation>;
   session?: Maybe<LessonSession>;
   sessionAttention: AttentionSummary;
+  startPage: StartPage;
   studentDashboard: StudentDashboard;
   teacher?: Maybe<TeacherProfile>;
   teacherDashboard: TeacherDashboard;
@@ -1254,6 +1256,56 @@ export type SessionStatus =
   | 'ENDED'
   | 'LIVE'
   | 'SCHEDULED';
+
+export type StartDay = {
+  __typename?: 'StartDay';
+  date: Scalars['Date']['output'];
+  entries: Array<StartEntry>;
+  isToday: Scalars['Boolean']['output'];
+};
+
+export type StartEntry = {
+  __typename?: 'StartEntry';
+  ageDays?: Maybe<Scalars['Int']['output']>;
+  at?: Maybe<Scalars['DateTime']['output']>;
+  count?: Maybe<Scalars['Int']['output']>;
+  courseId?: Maybe<Scalars['ID']['output']>;
+  courseTitle?: Maybe<Scalars['String']['output']>;
+  id: Scalars['ID']['output'];
+  isLive: Scalars['Boolean']['output'];
+  kind: StartEntryKind;
+  lessonId?: Maybe<Scalars['ID']['output']>;
+  sessionId?: Maybe<Scalars['ID']['output']>;
+  teacherName?: Maybe<Scalars['String']['output']>;
+  title: Scalars['String']['output'];
+};
+
+export type StartEntryKind =
+  | 'CONTINUE_LESSON'
+  | 'GRADING_QUEUE'
+  | 'HOMEWORK_DUE'
+  | 'HOMEWORK_GRADED'
+  | 'LESSON_SESSION';
+
+export type StartPage = {
+  __typename?: 'StartPage';
+  attention: Array<StartEntry>;
+  continueEntries: Array<StartEntry>;
+  now?: Maybe<StartEntry>;
+  profile?: Maybe<LearningProfile>;
+  progress: Array<StartProgress>;
+  today: Array<StartEntry>;
+  week: Array<StartDay>;
+};
+
+export type StartProgress = {
+  __typename?: 'StartProgress';
+  courseId: Scalars['ID']['output'];
+  courseTitle: Scalars['String']['output'];
+  doneLessons: Scalars['Int']['output'];
+  progressPct: Scalars['Int']['output'];
+  totalLessons: Scalars['Int']['output'];
+};
 
 export type StudentDashboard = {
   __typename?: 'StudentDashboard';
@@ -1901,6 +1953,11 @@ export type JoinSessionMutationVariables = Exact<{
 
 
 export type JoinSessionMutation = { __typename?: 'Mutation', joinSession: { __typename?: 'SessionJoin', roomToken: string, session: { __typename?: 'LessonSession', id: string, status: SessionStatus } } };
+
+export type StartPageQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type StartPageQuery = { __typename?: 'Query', startPage: { __typename?: 'StartPage', profile?: { __typename?: 'LearningProfile', id: string, kind: LearningProfileKind, institutionName?: string | null, groupName?: string | null, courseTitle?: string | null, courseCount: number } | null, now?: { __typename?: 'StartEntry', id: string, kind: StartEntryKind, title: string, courseTitle?: string | null, teacherName?: string | null, at?: string | null, count?: number | null, ageDays?: number | null, sessionId?: string | null, lessonId?: string | null, courseId?: string | null, isLive: boolean } | null, today: Array<{ __typename?: 'StartEntry', id: string, kind: StartEntryKind, title: string, courseTitle?: string | null, teacherName?: string | null, at?: string | null, isLive: boolean, sessionId?: string | null, lessonId?: string | null }>, attention: Array<{ __typename?: 'StartEntry', id: string, kind: StartEntryKind, title: string, courseTitle?: string | null, at?: string | null, count?: number | null, ageDays?: number | null, lessonId?: string | null }>, week: Array<{ __typename?: 'StartDay', date: any, isToday: boolean, entries: Array<{ __typename?: 'StartEntry', id: string, kind: StartEntryKind, title: string, at?: string | null, isLive: boolean }> }>, continueEntries: Array<{ __typename?: 'StartEntry', id: string, kind: StartEntryKind, title: string, courseTitle?: string | null, lessonId?: string | null, courseId?: string | null }>, progress: Array<{ __typename?: 'StartProgress', courseId: string, courseTitle: string, doneLessons: number, totalLessons: number, progressPct: number }> } };
 
 export type RequestUploadMutationVariables = Exact<{
   input: UploadRequestInput;
@@ -4516,6 +4573,116 @@ export function useJoinSessionMutation(baseOptions?: Apollo.MutationHookOptions<
 export type JoinSessionMutationHookResult = ReturnType<typeof useJoinSessionMutation>;
 export type JoinSessionMutationResult = Apollo.MutationResult<JoinSessionMutation>;
 export type JoinSessionMutationOptions = Apollo.BaseMutationOptions<JoinSessionMutation, JoinSessionMutationVariables>;
+export const StartPageDocument = gql`
+    query StartPage {
+  startPage {
+    profile {
+      id
+      kind
+      institutionName
+      groupName
+      courseTitle
+      courseCount
+    }
+    now {
+      id
+      kind
+      title
+      courseTitle
+      teacherName
+      at
+      count
+      ageDays
+      sessionId
+      lessonId
+      courseId
+      isLive
+    }
+    today {
+      id
+      kind
+      title
+      courseTitle
+      teacherName
+      at
+      isLive
+      sessionId
+      lessonId
+    }
+    attention {
+      id
+      kind
+      title
+      courseTitle
+      at
+      count
+      ageDays
+      lessonId
+    }
+    week {
+      date
+      isToday
+      entries {
+        id
+        kind
+        title
+        at
+        isLive
+      }
+    }
+    continueEntries {
+      id
+      kind
+      title
+      courseTitle
+      lessonId
+      courseId
+    }
+    progress {
+      courseId
+      courseTitle
+      doneLessons
+      totalLessons
+      progressPct
+    }
+  }
+}
+    `;
+
+/**
+ * __useStartPageQuery__
+ *
+ * To run a query within a React component, call `useStartPageQuery` and pass it any options that fit your needs.
+ * When your component renders, `useStartPageQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useStartPageQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useStartPageQuery(baseOptions?: Apollo.QueryHookOptions<StartPageQuery, StartPageQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<StartPageQuery, StartPageQueryVariables>(StartPageDocument, options);
+      }
+export function useStartPageLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<StartPageQuery, StartPageQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<StartPageQuery, StartPageQueryVariables>(StartPageDocument, options);
+        }
+// @ts-ignore
+export function useStartPageSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<StartPageQuery, StartPageQueryVariables>): Apollo.UseSuspenseQueryResult<StartPageQuery, StartPageQueryVariables>;
+export function useStartPageSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<StartPageQuery, StartPageQueryVariables>): Apollo.UseSuspenseQueryResult<StartPageQuery | undefined, StartPageQueryVariables>;
+export function useStartPageSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<StartPageQuery, StartPageQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<StartPageQuery, StartPageQueryVariables>(StartPageDocument, options);
+        }
+export type StartPageQueryHookResult = ReturnType<typeof useStartPageQuery>;
+export type StartPageLazyQueryHookResult = ReturnType<typeof useStartPageLazyQuery>;
+export type StartPageSuspenseQueryHookResult = ReturnType<typeof useStartPageSuspenseQuery>;
+export type StartPageQueryResult = Apollo.QueryResult<StartPageQuery, StartPageQueryVariables>;
 export const RequestUploadDocument = gql`
     mutation RequestUpload($input: UploadRequestInput!) {
   requestUpload(input: $input) {

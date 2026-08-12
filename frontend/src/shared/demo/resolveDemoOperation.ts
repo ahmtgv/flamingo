@@ -57,6 +57,7 @@ import type {
   SessionAttendeesQuery,
   SessionAttentionQuery,
   SessionRoomQuery,
+  StartPageQuery,
   SetAvatarMutation,
   StartSessionMutation,
   SubmitHomeworkMutation,
@@ -178,6 +179,139 @@ function learningProfiles(): LearningProfilesQuery {
   return {
     __typename: 'Query',
     learningProfiles: profiles.map((p) => ({ ...p, isActive: p.id === chosen })),
+  };
+}
+
+
+// --- Start page (atlas sheet 00, R0.4) ------------------------------------------------------
+/** The sheet's own scenario: Аня has a lesson starting, homework due and returned feedback;
+ *  as a cadet she has no timetable but something to carry on with; Мария teaches today and
+ *  has a queue waiting. Times are clock-relative so "сегодня" always reads as today. */
+function startPage(): StartPageQuery {
+  const role = demoGraphQLRole();
+  const profiles = learningProfiles().learningProfiles;
+  const active = profiles.find((p) => p.isActive) ?? null;
+  const inMin = (n: number) => new Date(Date.now() + n * 60_000).toISOString();
+  const inDays = (n: number) => new Date(Date.now() + n * 86_400_000).toISOString();
+
+  // `now` carries the widest StartEntry selection in the document — use it as the shape so
+  // rows meant for `now`/`attention` (count, ageDays, courseId) type-check too.
+  type Entry = NonNullable<StartPageQuery['startPage']['now']>;
+  // Defaults cover EVERY field of the widest selection: a row reused across `now`/`today`/
+  // `attention` must satisfy the whole document, or Apollo reports missing fields at runtime.
+  const entry = (over: Partial<Entry> & { id: string; kind: Entry['kind']; title: string }): Entry => ({
+    __typename: 'StartEntry',
+    courseTitle: null,
+    teacherName: null,
+    at: null,
+    count: null,
+    ageDays: null,
+    sessionId: null,
+    lessonId: null,
+    courseId: null,
+    isLive: false,
+    ...over,
+  });
+
+  const emptyWeek = (entries: Record<number, Entry[]> = {}) =>
+    Array.from({ length: 7 }, (_, i) => ({
+      __typename: 'StartDay' as const,
+      date: new Date(Date.now() + i * 86_400_000).toISOString().slice(0, 10),
+      isToday: i === 0,
+      entries: entries[i] ?? [],
+    }));
+
+  if (active?.kind === 'CADET') {
+    const carryOn = entry({
+      id: 'continue:les-en-3',
+      kind: 'CONTINUE_LESSON',
+      title: 'Unit 4 — Travel',
+      courseTitle: 'English A2',
+      lessonId: 'les-en-3',
+      courseId: IDS.course.english,
+    });
+    return {
+      __typename: 'Query',
+      startPage: {
+        __typename: 'StartPage',
+        profile: active,
+        now: carryOn,
+        today: [],
+        attention: [],
+        week: emptyWeek(), // no timetable; repetition load arrives with FSRS (R4.4)
+        continueEntries: [carryOn],
+        progress: [
+          { __typename: 'StartProgress', courseId: IDS.course.english, courseTitle: 'English A2', doneLessons: 5, totalLessons: 24, progressPct: 21 },
+        ],
+      },
+    };
+  }
+
+  if (role === 'TEACHER') {
+    const lesson = entry({
+      id: 'session:ses-1', kind: 'LESSON_SESSION', title: 'Экзопланеты',
+      courseTitle: 'Астрономия · 9А', teacherName: 'Мария Петровна',
+      at: inMin(17), sessionId: IDS.session.live, lessonId: 'les-1-1',
+    });
+    const later = entry({
+      id: 'session:ses-2', kind: 'LESSON_SESSION', title: 'Present Perfect',
+      courseTitle: 'Английский · 7Б', teacherName: 'Мария Петровна',
+      at: inMin(120), sessionId: IDS.session.english, lessonId: 'les-en-1',
+    });
+    return {
+      __typename: 'Query',
+      startPage: {
+        __typename: 'StartPage',
+        profile: active,
+        now: lesson,
+        today: [lesson, later],
+        attention: [
+          entry({ id: 'grading-queue', kind: 'GRADING_QUEUE', title: '', count: 11, ageDays: 2 }),
+        ],
+        week: emptyWeek({ 0: [lesson, later], 2: [later], 4: [lesson] }),
+        continueEntries: [],
+        progress: [],
+      },
+    };
+  }
+
+  const lesson = entry({
+    id: 'session:ses-1', kind: 'LESSON_SESSION', title: 'Экзопланеты',
+    courseTitle: 'Астрономия', teacherName: 'Мария Петровна',
+    at: inMin(17), sessionId: IDS.session.live, lessonId: 'les-1-1',
+  });
+  const english = entry({
+    id: 'session:ses-2', kind: 'LESSON_SESSION', title: 'Present Perfect',
+    courseTitle: 'Английский', teacherName: 'Илья Сергеевич',
+    at: inMin(120), sessionId: IDS.session.english, lessonId: 'les-en-1',
+  });
+  const due = entry({
+    id: 'homework:hw-1', kind: 'HOMEWORK_DUE', title: 'Астрономия · задание',
+    courseTitle: 'Астрономия', at: inDays(1), ageDays: 1, lessonId: 'les-1-1',
+  });
+  const graded = entry({
+    id: 'submission:sub-1', kind: 'HOMEWORK_GRADED', title: 'Английский · эссе',
+    at: inDays(-1), count: 5, lessonId: 'les-en-1',
+  });
+  const carryOn = entry({
+    id: 'continue:les-1-2', kind: 'CONTINUE_LESSON', title: 'Транзитный метод',
+    courseTitle: 'Астрономия', lessonId: 'les-1-2', courseId: IDS.course.algebra,
+  });
+  return {
+    __typename: 'Query',
+    startPage: {
+      __typename: 'StartPage',
+      profile: active,
+      now: lesson,
+      today: [lesson, english],
+      attention: [due, graded],
+      week: emptyWeek({ 0: [lesson, english], 1: [due], 2: [english], 3: [lesson] }),
+      continueEntries: [carryOn],
+      progress: [
+        { __typename: 'StartProgress', courseId: IDS.course.algebra, courseTitle: 'Астрономия', doneLessons: 12, totalLessons: 34, progressPct: 35 },
+        { __typename: 'StartProgress', courseId: IDS.course.english, courseTitle: 'Английский', doneLessons: 8, totalLessons: 24, progressPct: 33 },
+      ],
+    },
   };
 }
 
@@ -592,6 +726,7 @@ export function resolveDemoOperation(operationName: string | undefined, variable
     // queries
     case 'Me': return me();
     case 'LearningProfiles': return learningProfiles();
+    case 'StartPage': return startPage();
     case 'Catalog': return catalog(variables);
     case 'MyCourses': return myCourses();
     case 'CourseDetail': return courseDetail(variables);

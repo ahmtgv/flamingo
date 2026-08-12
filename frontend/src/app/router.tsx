@@ -19,6 +19,7 @@ import {
 } from '@/features/homework';
 import { LiveRoomScreen } from '@/features/lesson';
 import { ScheduleScreen } from '@/features/schedule';
+import { StartScreen } from '@/features/start';
 import { useSession } from '@/shared/hooks/useSession';
 
 import styles from './app.module.css';
@@ -39,14 +40,14 @@ function ProtectedRoute({ children }: { children: ReactNode }) {
 /** Keep authenticated users out of the auth screens. */
 function PublicOnlyRoute({ children }: { children: ReactNode }) {
   const { status } = useSession();
-  if (status === 'authenticated') return <Navigate to="/app" replace />;
+  if (status === 'authenticated') return <Navigate to="/start" replace />;
   return <>{children}</>;
 }
 
 function RootRedirect() {
   const { status } = useSession();
   if (status === 'unknown') return <FullScreenLoader />;
-  return <Navigate to={status === 'authenticated' ? '/app' : '/login'} replace />;
+  return <Navigate to={status === 'authenticated' ? '/start' : '/login'} replace />;
 }
 
 export function AppRouter() {
@@ -93,6 +94,14 @@ export function AppRouter() {
           element={
             <ProtectedRoute>
               <Cabinet />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/start"
+          element={
+            <ProtectedRoute>
+              <StartScreen />
             </ProtectedRoute>
           }
         />

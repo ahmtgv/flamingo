@@ -1,0 +1,514 @@
+import { LogOut, MessageCircle, Moon, Sun, X } from 'lucide-react';
+import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { Navigate, useNavigate } from 'react-router-dom';
+
+import { useAppDispatch, useAppSelector } from '@/app/hooks';
+import { toggleTheme } from '@/app/uiSlice';
+import { useLogout } from '@/app/useLogout';
+import {
+  type StartPageQuery,
+  useLearningProfilesQuery,
+  useMeQuery,
+  useSetActiveLearningProfileMutation,
+  useStartPageQuery,
+} from '@/entities/graphql/generated';
+import { Button, ErrorState, Logo } from '@/shared/ui';
+import { ICON_MD } from '@/shared/ui/iconSizes';
+
+import styles from './start.module.css';
+import { AccountMenu } from './AccountMenu';
+import { clock, countdown, dayNumber, daysUntil, headerStamp, weekday, weekRange } from './startFormat';
+
+type Page = StartPageQuery['startPage'];
+/** The «требует внимания» rows ask for the widest StartEntry selection (count/ageDays). */
+type AttentionEntry = Page['attention'][number];
+
+/**
+ * Start page — atlas sheet 00, the first window after signing in.
+ *
+ * One frame for every role: сейчас → сегодня → требует внимания → неделя → продолжить +
+ * прогресс → быстрые входы. The role never changes the structure, only what fills it, so a
+ * person who switches education does not have to relearn the screen.
+ *
+ * Every row arrives as data (`kind`, times, counts, domain titles) and is worded here through
+ * i18n. AIR: the single coral accent is the «сейчас» card — the one thing asking for action.
+ */
+export function StartScreen() {
+  const { t } = useTranslation(['start', 'common']);
+  const navigate = useNavigate();
+  const dispatch = useAppDispatch();
+  const theme = useAppSelector((s) => s.ui.theme);
+  const logout = useLogout();
+  const goingDark = theme === 'light';
+  const [chatOpen, setChatOpen] = useState(false);
+
+  const { data: meData } = useMeQuery();
+  const { data: profileData, refetch: refetchProfiles } = useLearningProfilesQuery();
+  const { data, loading, error, refetch } = useStartPageQuery();
+  const [setActiveProfile, { loading: switching }] = useSetActiveLearningProfileMutation();
+
+  const me = meData?.me;
+  const profiles = profileData?.learningProfiles ?? [];
+  const page = data?.startPage;
+
+  // Sheet 00 covers the release roles (ученик · курсант · учитель). A parent or an
+  // institution admin has no learning profile of their own, so they keep going to their
+  // existing cabinet instead of meeting an empty start page.
+  if (me?.role === 'PARENT' || me?.role === 'ADMIN') return <Navigate to="/app" replace />;
+  const kind = page?.profile?.kind ?? 'PUPIL';
+  const isTeacher = kind === 'TEACHER';
+  const isCadet = kind === 'CADET';
+  const now = new Date();
+
+  async function switchProfile(id: string) {
+    await setActiveProfile({ variables: { id } });
+    // The whole page is scoped by the active education, so both reads are refetched.
+    await Promise.all([refetch(), refetchProfiles()]);
+  }
+
+  return (
+    <div className={styles.shell}>
+      <header className={styles.topbar}>
+        <button
+          type="button"
+          className={styles.logoBtn}
+          onClick={() => navigate('/start')}
+          aria-label="Flamingo"
+        >
+          <Logo />
+        </button>
+        <div className={styles.navSpace}>
+          <button
+            type="button"
+            className={styles.navBtn}
+            onClick={() => setChatOpen((v) => !v)}
+            aria-expanded={chatOpen}
+          >
+            {t('nav.chat')}
+          </button>
+          <button type="button" className={styles.navBtn} onClick={() => navigate('/courses')}>
+            {t('nav.sources')}
+          </button>
+          <button
+            type="button"
+            className={styles.navBtn}
+            onClick={() => dispatch(toggleTheme())}
+            aria-label={goingDark ? t('common:theme.toDark') : t('common:theme.toLight')}
+          >
+            {goingDark ? <Moon size={ICON_MD} /> : <Sun size={ICON_MD} />}
+          </button>
+          <button
+            type="button"
+            className={styles.navBtn}
+            onClick={() => void logout()}
+            aria-label={t('common:actions.signOut')}
+          >
+            <LogOut size={ICON_MD} />
+          </button>
+          {me && profiles.length > 0 && (
+            <AccountMenu
+              name={{ first: me.firstName, last: me.lastName }}
+              profiles={profiles}
+              onSwitch={(id) => void switchProfile(id)}
+              switching={switching}
+            />
+          )}
+        </div>
+      </header>
+
+      <div className={styles.page}>
+        <div className={styles.hi}>
+          <h1 className={styles.hiName}>
+            {t(isTeacher ? 'greetingTeacher' : 'greeting', { name: me?.firstName ?? '' })}
+          </h1>
+          <span className={styles.hiDate}>{headerStamp(now)}</span>
+        </div>
+
+        {loading && !page ? (
+          <Skeleton />
+        ) : error && !page ? (
+          <ErrorState text={t('error')} onRetry={() => void refetch()} />
+        ) : !page?.profile ? (
+          <NoProfile />
+        ) : (
+          <div className={`${styles.grid} ${isTeacher ? styles.noContinue : ''}`}>
+            <NowSlot page={page} isTeacher={isTeacher} isCadet={isCadet} now={now} />
+
+            <section className={`${styles.slot} ${styles.sToday}`} aria-label={t('slots.today')}>
+              <div className={styles.slotHead}>
+                <span className={styles.slotTitle}>{t('slots.today')}</span>
+                <button type="button" className={styles.more} onClick={() => navigate('/schedule')}>
+                  {t('slots.allSchedule')}
+                </button>
+              </div>
+              {page.today.length === 0 ? (
+                <p className={styles.empty}>{t(isCadet ? 'empty.todayCadet' : 'empty.today')}</p>
+              ) : (
+                page.today.map((entry) => (
+                  <div className={styles.row} key={entry.id}>
+                    <span className={styles.rTime}>{entry.at ? clock(entry.at) : ''}</span>
+                    <span>
+                      <span className={styles.rName}>
+                        {entry.isLive && <span className={styles.rDot} aria-hidden="true" />}
+                        {entry.title}
+                      </span>
+                      <span className={styles.rSub}>
+                        {[entry.courseTitle, entry.teacherName].filter(Boolean).join(' · ')}
+                      </span>
+                    </span>
+                    <span className={`${styles.rTag} ${entry.isLive ? styles.rTagWarn : ''}`}>
+                      {entry.isLive ? t('entry.live') : t('entry.lesson')}
+                    </span>
+                  </div>
+                ))
+              )}
+            </section>
+
+            <section className={`${styles.slot} ${styles.sAttn}`} aria-label={t('slots.attention')}>
+              <div className={styles.slotHead}>
+                <span className={styles.slotTitle}>{t('slots.attention')}</span>
+              </div>
+              {page.attention.length === 0 ? (
+                <p className={styles.empty}>{t('empty.attention')}</p>
+              ) : (
+                page.attention.map((entry) => (
+                  <AttentionRow key={entry.id} entry={entry} now={now} navigate={navigate} />
+                ))
+              )}
+            </section>
+
+            <WeekStrip week={page.week} isCadet={isCadet} />
+
+            {!isTeacher && (
+              <section
+                className={`${styles.slot} ${styles.sContinue}`}
+                aria-label={t('slots.continue')}
+              >
+                <div className={styles.slotHead}>
+                  <span className={styles.slotTitle}>{t('slots.continue')}</span>
+                </div>
+                {page.continueEntries.length === 0 ? (
+                  <p className={styles.empty}>{t('empty.continue')}</p>
+                ) : (
+                  page.continueEntries.map((entry) => (
+                    <div className={`${styles.row} ${styles.rowNoTime}`} key={entry.id}>
+                      <span>
+                        <span className={styles.rName}>{entry.title}</span>
+                        <span className={styles.rSub}>{entry.courseTitle}</span>
+                      </span>
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        onClick={() =>
+                          entry.lessonId && navigate(`/lessons/${entry.lessonId}/homework`)
+                        }
+                      >
+                        {t('now.resume')}
+                      </Button>
+                    </div>
+                  ))
+                )}
+              </section>
+            )}
+
+            <section
+              className={`${styles.slot} ${styles.sProgress}`}
+              aria-label={t('slots.progress')}
+            >
+              <div className={styles.slotHead}>
+                <span className={styles.slotTitle}>{t('slots.progress')}</span>
+              </div>
+              {page.progress.length === 0 ? (
+                <p className={styles.empty}>{t('empty.progress')}</p>
+              ) : (
+                page.progress.map((row) => (
+                  <div className={styles.progRow} key={row.courseId}>
+                    <div className={styles.progName}>{row.courseTitle}</div>
+                    <div className={styles.progMeta}>
+                      <span>
+                        {t('progress.lessons', { done: row.doneLessons, total: row.totalLessons })}
+                      </span>
+                      <span>{row.progressPct}%</span>
+                    </div>
+                    <div
+                      className={styles.progressLine}
+                      role="progressbar"
+                      aria-valuenow={row.progressPct}
+                      aria-valuemin={0}
+                      aria-valuemax={100}
+                      aria-label={row.courseTitle}
+                    >
+                      <i style={{ width: `${row.progressPct}%` }} />
+                    </div>
+                  </div>
+                ))
+              )}
+            </section>
+
+            <section className={`${styles.slot} ${styles.sQuick}`} aria-label={t('slots.quick')}>
+              <div className={styles.slotHead}>
+                <span className={styles.slotTitle}>{t('slots.quick')}</span>
+              </div>
+              <div className={styles.quick}>
+                <button type="button" className={styles.quickBtn} onClick={() => navigate('/courses')}>
+                  {t('quick.courses')}
+                </button>
+                <button
+                  type="button"
+                  className={styles.quickBtn}
+                  onClick={() => navigate('/schedule')}
+                >
+                  {t('quick.schedule')}
+                </button>
+                <button
+                  type="button"
+                  className={styles.quickBtn}
+                  onClick={() => navigate(isTeacher ? '/grading' : '/homework')}
+                >
+                  {t('quick.homework')}
+                </button>
+                <button type="button" className={styles.quickBtn} onClick={() => navigate('/app')}>
+                  {t('quick.cabinet')}
+                </button>
+              </div>
+            </section>
+          </div>
+        )}
+      </div>
+
+      <button
+        type="button"
+        className={styles.fab}
+        onClick={() => setChatOpen((v) => !v)}
+        aria-label={t('nav.openChat')}
+        aria-expanded={chatOpen}
+      >
+        <MessageCircle size={ICON_MD} aria-hidden="true" />
+      </button>
+      {chatOpen && (
+        <div className={styles.chatStub} role="dialog" aria-label={t('nav.chat')}>
+          <div className={styles.chatStubTitle}>{t('nav.chatSoonTitle')}</div>
+          <p className={styles.chatStubBody}>{t('nav.chatSoonBody')}</p>
+          <Button variant="secondary" size="sm" icon={<X size={16} />} onClick={() => setChatOpen(false)}>
+            {t('nav.close')}
+          </Button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// --- «сейчас» ------------------------------------------------------------------------------
+function NowSlot({
+  page,
+  isTeacher,
+  isCadet,
+  now,
+}: {
+  page: Page;
+  isTeacher: boolean;
+  isCadet: boolean;
+  now: Date;
+}) {
+  const { t } = useTranslation('start');
+  const navigate = useNavigate();
+  const entry = page.now;
+
+  if (!entry) {
+    return (
+      <section className={`${styles.slot} ${styles.sNow}`} aria-label={t('slots.now')}>
+        <p className={styles.empty}>
+          {t(isTeacher ? 'now.emptyTeacher' : isCadet ? 'now.emptyCadet' : 'now.empty')}
+        </p>
+      </section>
+    );
+  }
+
+  const isLesson = entry.kind === 'LESSON_SESSION';
+  const kindLabel = entry.isLive
+    ? t('now.live')
+    : !isLesson
+      ? t('now.continue')
+      : isTeacher
+        ? t('now.teaching')
+        : t('now.starting');
+  const until = entry.at ? countdown(entry.at, now) : null;
+
+  return (
+    <section
+      className={`${styles.slot} ${styles.sNow} ${styles.now} ${entry.isLive ? styles.nowLive : ''}`}
+      aria-label={t('slots.now')}
+    >
+      <span className={styles.nowKind}>
+        {(entry.isLive || isLesson) && <span className={styles.nowDot} aria-hidden="true" />}
+        {kindLabel}
+      </span>
+      <div className={styles.nowTitle}>{entry.title}</div>
+      <div className={styles.nowMeta}>
+        {[
+          entry.at && isLesson ? clock(entry.at) : null,
+          entry.courseTitle,
+          entry.teacherName,
+        ]
+          .filter(Boolean)
+          .join(' · ')}
+      </div>
+      <div className={styles.nowRow}>
+        <Button
+          variant="primary"
+          onClick={() =>
+            isLesson && entry.sessionId
+              ? navigate(`/sessions/${entry.sessionId}/room`)
+              : entry.lessonId && navigate(`/lessons/${entry.lessonId}/homework`)
+          }
+        >
+          {isLesson ? (isTeacher ? t('now.start') : t('now.enter')) : t('now.resume')}
+        </Button>
+        {until && isLesson && !entry.isLive && until.count > 0 && (
+          <span className={styles.nowNote}>
+            {t(until.unit === 'hours' ? 'now.inHours' : 'now.inMinutes', { count: until.count })}
+          </span>
+        )}
+      </div>
+    </section>
+  );
+}
+
+// --- «требует внимания» --------------------------------------------------------------------
+function AttentionRow({
+  entry,
+  now,
+  navigate,
+}: {
+  entry: AttentionEntry;
+  now: Date;
+  navigate: ReturnType<typeof useNavigate>;
+}) {
+  const { t } = useTranslation('start');
+
+  if (entry.kind === 'GRADING_QUEUE') {
+    return (
+      <div className={`${styles.row} ${styles.rowNoTime}`}>
+        <span>
+          <span className={styles.rName}>
+            <span className={styles.rDot} aria-hidden="true" />
+            {t('entry.queue', { count: entry.count ?? 0 })}
+          </span>
+          {entry.ageDays != null && entry.ageDays > 0 && (
+            <span className={styles.rSub}>{t('entry.queueAge', { count: entry.ageDays })}</span>
+          )}
+        </span>
+        <Button variant="secondary" size="sm" onClick={() => navigate('/grading')}>
+          {t('entry.openQueue')}
+        </Button>
+      </div>
+    );
+  }
+
+  const due = entry.kind === 'HOMEWORK_DUE' && entry.at ? daysUntil(entry.at, now) : null;
+  const tag =
+    due === null
+      ? t('entry.graded')
+      : due === 0
+        ? t('entry.dueToday')
+        : due === 1
+          ? t('entry.dueTomorrow')
+          : t('entry.dueInDays', { count: due });
+
+  return (
+    <div className={`${styles.row} ${styles.rowNoTime}`}>
+      <span>
+        <span className={styles.rName}>
+          {due !== null && due <= 1 && <span className={styles.rDot} aria-hidden="true" />}
+          {entry.title}
+        </span>
+        <span className={styles.rSub}>
+          {entry.kind === 'HOMEWORK_GRADED' && entry.count != null
+            ? t('entry.score', { score: entry.count })
+            : entry.courseTitle}
+        </span>
+      </span>
+      <span className={`${styles.rTag} ${due !== null && due <= 1 ? styles.rTagWarn : ''}`}>
+        {tag}
+      </span>
+    </div>
+  );
+}
+
+// --- недельный дневник ----------------------------------------------------------------------
+function WeekStrip({ week, isCadet }: { week: Page['week']; isCadet: boolean }) {
+  const { t } = useTranslation('start');
+  const range = weekRange(week);
+  const hasAnything = week.some((day) => day.entries.length > 0);
+
+  return (
+    <section className={`${styles.slot} ${styles.sWeek}`} aria-label={t('slots.week')}>
+      <div className={styles.weekHead}>
+        <span className={styles.slotTitle}>{t('slots.week')}</span>
+        <span className={styles.weekRange}>{t('week.range', range)}</span>
+      </div>
+      {!hasAnything && (
+        // A self-paced learner has no timetable; the sheet fills this with repetition load,
+        // and spaced repetition is a later phase — so we say so instead of inventing counts.
+        <p className={styles.empty}>{t(isCadet ? 'empty.weekCadet' : 'empty.week')}</p>
+      )}
+      <div className={styles.days}>
+        {week.map((day) => (
+          <div
+            className={`${styles.day} ${day.isToday ? styles.dayToday : ''}`}
+            key={day.date}
+            aria-current={day.isToday ? 'date' : undefined}
+          >
+            <div className={styles.dHead}>
+              <span>{weekday(day.date)}</span>
+              <span className={styles.dNum}>{dayNumber(day.date)}</span>
+            </div>
+            {day.entries.slice(0, 3).map((entry) => (
+              <span
+                className={`${styles.ev} ${entry.isLive ? styles.evLive : ''}`}
+                key={entry.id}
+                title={entry.title}
+              >
+                {entry.title}
+                {entry.at ? ` · ${clock(entry.at)}` : ''}
+              </span>
+            ))}
+            {day.entries.length > 3 && (
+              <span className={styles.dMore}>{t('week.more', { count: day.entries.length - 3 })}</span>
+            )}
+            {day.entries.length === 0 && <span className={styles.dMore}>{t('week.free')}</span>}
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+// --- states -----------------------------------------------------------------------------------
+function Skeleton() {
+  return (
+    <div className={styles.grid} data-testid="start-skeleton" aria-busy="true">
+      <span className={`${styles.skel} ${styles.sNow}`} style={{ height: 132 }} />
+      <span className={`${styles.skel} ${styles.sWeek}`} style={{ height: 420 }} />
+      <span className={`${styles.skel} ${styles.sToday}`} style={{ height: 160 }} />
+      <span className={`${styles.skel} ${styles.sAttn}`} style={{ height: 160 }} />
+      <span className={`${styles.skel} ${styles.sContinue}`} style={{ height: 120 }} />
+      <span className={`${styles.skel} ${styles.sProgress}`} style={{ height: 120 }} />
+    </div>
+  );
+}
+
+function NoProfile() {
+  const { t } = useTranslation('start');
+  const navigate = useNavigate();
+  return (
+    <div className={styles.blank}>
+      <h2>{t('noProfile.title')}</h2>
+      <p>{t('noProfile.body')}</p>
+      <Button variant="primary" onClick={() => navigate('/courses')}>
+        {t('noProfile.cta')}
+      </Button>
+    </div>
+  );
+}

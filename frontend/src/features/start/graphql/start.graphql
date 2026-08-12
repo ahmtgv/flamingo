@@ -1,0 +1,76 @@
+# Start page (atlas sheet 00). Fragment-free; selects only live-resolved fields.
+# Rows carry data, not display text — the screen words them from `kind` via i18n.
+
+query StartPage {
+  startPage {
+    profile {
+      id
+      kind
+      institutionName
+      groupName
+      courseTitle
+      courseCount
+    }
+    now {
+      id
+      kind
+      title
+      courseTitle
+      teacherName
+      at
+      count
+      ageDays
+      sessionId
+      lessonId
+      courseId
+      isLive
+    }
+    today {
+      id
+      kind
+      title
+      courseTitle
+      teacherName
+      at
+      isLive
+      sessionId
+      lessonId
+    }
+    attention {
+      id
+      kind
+      title
+      courseTitle
+      at
+      count
+      ageDays
+      lessonId
+    }
+    week {
+      date
+      isToday
+      entries {
+        id
+        kind
+        title
+        at
+        isLive
+      }
+    }
+    continueEntries {
+      id
+      kind
+      title
+      courseTitle
+      lessonId
+      courseId
+    }
+    progress {
+      courseId
+      courseTitle
+      doneLessons
+      totalLessons
+      progressPct
+    }
+  }
+}

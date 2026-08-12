@@ -1,7 +1,7 @@
 import { execute, gql } from '@apollo/client';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { resetDemoStore } from './demoData';
+import { PROFILE_IDS, resetDemoStore } from './demoData';
 import { demoLink } from './demoLink';
 import { resolveDemoOperation } from './resolveDemoOperation';
 
@@ -170,5 +170,68 @@ describe('resolveDemoOperation — learning profiles (R0.2)', () => {
     expect(profiles().map((p) => p.kind)).toEqual(['TEACHER']);
     setRole('parent');
     expect(profiles()).toEqual([]);
+  });
+});
+
+describe('resolveDemoOperation — start page (R0.4)', () => {
+  type Page = {
+    profile: { kind: string } | null;
+    now: { kind: string; title: string } | null;
+    today: unknown[];
+    attention: { kind: string; count: number | null }[];
+    week: { isToday: boolean; entries: unknown[] }[];
+    progress: unknown[];
+  };
+  const page = () => (resolveDemoOperation('StartPage', {}) as { startPage: Page }).startPage;
+
+  it('pupil: a lesson to walk into, a week of seven days with today marked', () => {
+    setRole('student');
+    const data = page();
+    expect(data.profile?.kind).toBe('PUPIL');
+    expect(data.now?.kind).toBe('LESSON_SESSION');
+    expect(data.today.length).toBeGreaterThan(0);
+    expect(data.week).toHaveLength(7);
+    expect(data.week.filter((d) => d.isToday)).toHaveLength(1);
+  });
+
+  it('teacher: a grading queue instead of personal progress', () => {
+    setRole('teacher');
+    const data = page();
+    expect(data.profile?.kind).toBe('TEACHER');
+    expect(data.attention[0].kind).toBe('GRADING_QUEUE');
+    expect(data.attention[0].count).toBe(11);
+    expect(data.progress).toEqual([]);
+  });
+
+  it('every row carries the full StartEntry selection (else Apollo reports missing fields)', () => {
+    // The document asks for the widest set on `now`; a row reused in `today`/`attention`
+    // must satisfy it too, or the preview logs "missing field" for each render.
+    const required = [
+      'id', 'kind', 'title', 'courseTitle', 'teacherName', 'at',
+      'count', 'ageDays', 'sessionId', 'lessonId', 'courseId', 'isLive',
+    ];
+    for (const role of ['student', 'teacher']) {
+      setRole(role);
+      const data = resolveDemoOperation('StartPage', {}) as {
+        startPage: { now: object | null; today: object[]; attention: object[] };
+      };
+      const rows = [data.startPage.now, ...data.startPage.today, ...data.startPage.attention];
+      for (const row of rows.filter(Boolean) as Record<string, unknown>[]) {
+        expect(Object.keys(row).sort()).toEqual(
+          expect.arrayContaining(required.sort()),
+        );
+      }
+    }
+  });
+
+  it('switching to the cadet profile re-scopes the page — no timetable, something to resume', () => {
+    setRole('student');
+    resolveDemoOperation('SetActiveLearningProfile', { id: PROFILE_IDS.cadet });
+    const data = page();
+    expect(data.profile?.kind).toBe('CADET');
+    expect(data.today).toEqual([]);
+    expect(data.now?.kind).toBe('CONTINUE_LESSON');
+    // The week is empty rather than invented: spaced repetition arrives in R4.4.
+    expect(data.week.every((d) => d.entries.length === 0)).toBe(true);
   });
 });
