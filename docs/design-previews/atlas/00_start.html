@@ -34,7 +34,7 @@ h1{font-size:1.4rem;font-weight:600;letter-spacing:-.015em}
 .bar button[aria-pressed="true"]{color:var(--ink);border-color:var(--border-s);background:var(--surface)}
 .bar button:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(225,78,31,.4)}
 
-.screen{background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow:hidden}
+.screen{background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow:hidden;position:relative}
 .topnav{display:flex;align-items:center;gap:10px;padding:12px 20px;border-bottom:1px solid var(--border)}
 .dot{width:7px;height:7px;border-radius:50%;background:var(--coral)}
 .topnav b{font-size:14px;font-weight:500;letter-spacing:-.01em}
@@ -128,7 +128,7 @@ h1{font-size:1.4rem;font-weight:600;letter-spacing:-.015em}
 /* B — действие + рельс */
 .screen[data-var="b"] .grid{grid-template-columns:minmax(0,1fr) 296px;align-items:start}
 .screen[data-var="b"] .sNow,.screen[data-var="b"] .sToday,.screen[data-var="b"] .sContinue{grid-column:1}
-.screen[data-var="b"] .sChat,.screen[data-var="b"] .sAttn,.screen[data-var="b"] .sProg,.screen[data-var="b"] .sQuick{grid-column:2}
+.screen[data-var="b"] .sAttn,.screen[data-var="b"] .sProg,.screen[data-var="b"] .sQuick{grid-column:2}
 /* C — модули */
 .screen[data-var="c"] .grid{grid-template-columns:repeat(3,minmax(0,1fr))}
 .screen[data-var="c"] .sNow{grid-column:1/-1}
@@ -148,6 +148,65 @@ h1{font-size:1.4rem;font-weight:600;letter-spacing:-.015em}
 .screen[data-role="teacher"] .slot[data-r~="teacher"],
 .screen[data-role="parent"] .slot[data-r~="parent"],
 .screen[data-role="admin"] .slot[data-r~="admin"]{display:block}
+
+/* ——— НЕДЕЛЬНЫЙ ДНЕВНИК (полоса внизу) ——— */
+.week{border-top:1px solid var(--border);background:var(--surface);padding:14px 44px 18px;
+  position:sticky;bottom:0;z-index:6}
+.weekHead{display:flex;align-items:baseline;gap:12px;margin-bottom:10px}
+.weekTitle{font:500 var(--fs-micro) var(--mono);color:var(--ter);letter-spacing:.09em;text-transform:uppercase}
+.weekNav{margin-left:auto;display:flex;gap:4px}
+.weekNav button{background:none;border:1px solid var(--border);border-radius:7px;width:26px;height:24px;
+  color:var(--sec);cursor:pointer;font:500 11px var(--mono)}
+.weekNav button:hover{border-color:var(--border-s);color:var(--ink)}
+.days{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}
+.day{border:1px solid var(--border);border-radius:10px;padding:8px 9px 9px;min-height:88px;background:var(--surface);
+  display:grid;align-content:start;gap:5px;cursor:pointer;transition:border-color .18s var(--ease)}
+.day:hover{border-color:var(--border-s)}
+.day[data-today]{border-color:var(--coral);background:var(--coral-soft)}
+.day[data-past]{opacity:.55}
+.dHead{display:flex;align-items:baseline;gap:5px}
+.dDow{font:500 10px var(--mono);color:var(--ter);letter-spacing:.08em;text-transform:uppercase}
+.dNum{font:500 var(--fs-cap) var(--mono);color:var(--ink);font-variant-numeric:tabular-nums;margin-left:auto}
+.day[data-today] .dDow,.day[data-today] .dNum{color:var(--coral-t)}
+.ev{font:400 10px var(--ui);color:var(--sec);line-height:1.35;display:flex;align-items:flex-start;gap:4px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ev::before{content:'';width:4px;height:4px;border-radius:50%;background:var(--ter);flex:none;margin-top:5px}
+.ev[data-live]::before{background:var(--coral)}
+.ev[data-due]{color:var(--coral-t)}
+.ev[data-due]::before{background:var(--coral)}
+.dMore{font:400 10px var(--mono);color:var(--ter)}
+.weekFoot{font:400 10px var(--mono);color:var(--ter);margin-top:8px}
+
+/* ——— ЧАТ КАК ОТДЕЛЬНОЕ ОКНО ——— */
+.chatFab{position:absolute;right:26px;bottom:150px;z-index:8;background:var(--ink);color:var(--surface);border:none;
+  border-radius:999px;padding:12px 18px;font:500 var(--fs-cap) var(--ui);cursor:pointer;display:flex;align-items:center;gap:8px;
+  box-shadow:0 4px 16px rgba(0,0,0,.12)}
+.chatFab .n{background:var(--coral);color:#fff;border-radius:9px;min-width:18px;height:18px;font:500 10px var(--mono);
+  display:grid;place-content:center;padding:0 5px}
+.chatWin{position:absolute;right:26px;bottom:150px;z-index:9;width:352px;height:436px;background:var(--surface);
+  border:1px solid var(--border-s);border-radius:14px;display:none;grid-template-rows:auto auto 1fr auto;overflow:hidden;
+  box-shadow:0 12px 40px rgba(0,0,0,.14)}
+[data-theme="dark"] .chatWin{box-shadow:0 12px 40px rgba(0,0,0,.5)}
+.screen[data-chat] .chatWin{display:grid}
+.screen[data-chat] .chatFab{display:none}
+.cwHead{display:flex;align-items:center;gap:8px;padding:11px 14px;border-bottom:1px solid var(--border)}
+.cwTitle{font-size:var(--fs-cap);font-weight:500}
+.cwHead .x{margin-left:auto;background:none;border:none;color:var(--ter);cursor:pointer;font:500 13px var(--mono)}
+.cwHead .x:hover{color:var(--ink)}
+.cwTabs{display:flex;gap:2px;padding:6px 10px 0;border-bottom:1px solid var(--border);overflow-x:auto}
+.cwTab{font:500 10px var(--mono);color:var(--sec);background:none;border:none;border-bottom:2px solid transparent;
+  padding:6px 8px 8px;cursor:pointer;white-space:nowrap;letter-spacing:.06em;text-transform:uppercase}
+.cwTab[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--coral)}
+.cwBody{overflow:auto;padding:6px 12px}
+.cwGroup{font:500 9px var(--mono);color:var(--ter);letter-spacing:.1em;text-transform:uppercase;margin:12px 0 4px}
+.cwFoot{border-top:1px solid var(--border);padding:9px 12px;display:flex;gap:8px;align-items:center}
+.cwFoot input{flex:1;height:32px;border:1px solid var(--border);border-radius:8px;background:var(--surface);
+  color:var(--ink);font:400 var(--fs-cap) var(--ui);padding:0 11px}
+.cwFoot input::placeholder{color:var(--ter)}
+.cwFoot input:focus-visible{outline:none;border-color:var(--coral);box-shadow:0 0 0 3px rgba(225,78,31,.25)}
+.cwSend{background:var(--coral);border:none;border-radius:8px;color:#fff;width:32px;height:32px;cursor:pointer;
+  font:500 12px var(--mono)}
+.modNote{font:400 9px var(--mono);color:var(--ter);padding:6px 12px 0}
 
 /* ——— заметки ——— */
 .notes{margin-top:28px;border:1px solid var(--border);border-radius:13px;padding:22px 26px;background:var(--surface)}
@@ -353,47 +412,6 @@ h1{font-size:1.4rem;font-weight:600;letter-spacing:-.015em}
           </div>
         </div>
 
-        <!-- ——— ЧАТ ——— -->
-        <div class="slot sChat">
-          <div class="slotHead"><span class="slotTitle">Чат</span><button class="more">открыть →</button></div>
-          <div class="chatList">
-            <div data-r="pupil">
-              <div class="ch"><span><span class="chName">9А · Астрономия</span>
-                <div class="chLast">Мария Петровна: файл к уроку</div></span><span class="chN">2</span></div>
-              <div class="ch"><span><span class="chName">Мария Петровна</span>
-                <div class="chLast">Посмотри комментарий к эссе</div></span><span class="chN">1</span></div>
-              <div class="ch"><span><span class="chName">9А · Английский</span>
-                <div class="chLast">Пары на завтра</div></span><span class="chN" data-mute>—</span></div>
-            </div>
-            <div data-r="cadet">
-              <div class="ch"><span><span class="chName">Преподаватель · English A2</span>
-                <div class="chLast">Разберём th на занятии</div></span><span class="chN">1</span></div>
-              <div class="ch"><span><span class="chName">Разговорный клуб A2</span>
-                <div class="chLast">Тема на четверг: travel</div></span><span class="chN">2</span></div>
-            </div>
-            <div data-r="teacher">
-              <div class="ch"><span><span class="chName">9А · Астрономия</span>
-                <div class="chLast">Аня: а можно взять другой каталог?</div></span><span class="chN">3</span></div>
-              <div class="ch"><span><span class="chName">7Б · Английский</span>
-                <div class="chLast">Вы: материалы к Unit 4</div></span><span class="chN" data-mute>—</span></div>
-              <div class="ch"><span><span class="chName">Учительская · Гимназия №1</span>
-                <div class="chLast">Завуч: график на сентябрь</div></span><span class="chN">1</span></div>
-            </div>
-            <div data-r="parent">
-              <div class="ch"><span><span class="chName">Мария Петровна</span>
-                <div class="chLast">Аня хорошо справилась с эссе</div></span><span class="chN">1</span></div>
-              <div class="ch"><span><span class="chName">Родители 9А</span>
-                <div class="chLast">Классный руководитель: собрание</div></span><span class="chN" data-mute>—</span></div>
-            </div>
-            <div data-r="admin">
-              <div class="ch"><span><span class="chName">Учительская</span>
-                <div class="chLast">График на сентябрь — 4 ответа</div></span><span class="chN">4</span></div>
-              <div class="ch"><span><span class="chName">Техподдержка Flamingo</span>
-                <div class="chLast">Заявка по лицензиям закрыта</div></span><span class="chN" data-mute>—</span></div>
-            </div>
-          </div>
-        </div>
-
         <!-- ——— ПРОГРЕСС ——— -->
         <div class="slot sProg">
           <div class="slotHead"><span class="slotTitle">Прогресс</span></div>
@@ -474,6 +492,128 @@ h1{font-size:1.4rem;font-weight:600;letter-spacing:-.015em}
 
       </div>
     </div>
+
+    <!-- ——— НЕДЕЛЬНЫЙ ДНЕВНИК: полоса внизу ——— -->
+    <div class="week">
+      <div class="weekHead">
+        <span class="weekTitle">Неделя</span>
+        <span class="hiDate">10 — 16 августа</span>
+        <span class="weekNav"><button aria-label="Предыдущая неделя">‹</button><button aria-label="Следующая неделя">›</button><button aria-label="Открыть дневник">…</button></span>
+      </div>
+
+      <!-- расписание: ученик · учитель · родитель · админ -->
+      <div class="days" data-r="pupil teacher parent admin">
+        <div class="day" data-past><div class="dHead"><span class="dDow">пн</span><span class="dNum">10</span></div>
+          <span class="ev">Астрономия</span><span class="ev">Английский</span></div>
+        <div class="day" data-today><div class="dHead"><span class="dDow">вт</span><span class="dNum">12</span></div>
+          <span class="ev" data-live>Астрономия · 10:15</span><span class="ev">Английский · 12:00</span>
+          <span class="ev">Русский · 14:30</span></div>
+        <div class="day"><div class="dHead"><span class="dDow">ср</span><span class="dNum">13</span></div>
+          <span class="ev" data-due>Сдать задание · 18:00</span><span class="ev">Английский · 12:00</span></div>
+        <div class="day"><div class="dHead"><span class="dDow">чт</span><span class="dNum">14</span></div>
+          <span class="ev">Астрономия · 10:15</span><span class="ev">Русский · 14:30</span></div>
+        <div class="day"><div class="dHead"><span class="dDow">пт</span><span class="dNum">15</span></div>
+          <span class="ev" data-due>Упражнение 14</span><span class="ev">Английский · 12:00</span>
+          <span class="dMore">+1</span></div>
+        <div class="day"><div class="dHead"><span class="dDow">сб</span><span class="dNum">16</span></div>
+          <span class="ev">Разбор работ · 11:00</span></div>
+        <div class="day"><div class="dHead"><span class="dDow">вс</span><span class="dNum">17</span></div>
+          <span class="dMore">свободно</span></div>
+      </div>
+
+      <!-- свободный темп: курсант -->
+      <div class="days" data-r="cadet">
+        <div class="day" data-past><div class="dHead"><span class="dDow">пн</span><span class="dNum">10</span></div>
+          <span class="ev">Урок 2 · пройден</span><span class="ev">18 карточек</span></div>
+        <div class="day" data-today><div class="dHead"><span class="dDow">вт</span><span class="dNum">12</span></div>
+          <span class="ev" data-due>12 карточек ждут</span><span class="ev">Unit 4 · урок 3</span>
+          <span class="ev" data-live>Клуб A2 · 19:00</span></div>
+        <div class="day"><div class="dHead"><span class="dDow">ср</span><span class="dNum">13</span></div>
+          <span class="ev">≈9 карточек</span></div>
+        <div class="day"><div class="dHead"><span class="dDow">чт</span><span class="dNum">14</span></div>
+          <span class="ev" data-live>Клуб A2 · 19:00</span><span class="ev">≈14 карточек</span></div>
+        <div class="day"><div class="dHead"><span class="dDow">пт</span><span class="dNum">15</span></div>
+          <span class="ev">Unit 4 · тест</span></div>
+        <div class="day"><div class="dHead"><span class="dDow">сб</span><span class="dNum">16</span></div>
+          <span class="ev">≈11 карточек</span></div>
+        <div class="day"><div class="dHead"><span class="dDow">вс</span><span class="dNum">17</span></div>
+          <span class="dMore">день отдыха · серия сохранится</span></div>
+      </div>
+
+      <div class="weekFoot" data-r="pupil teacher parent admin">точка коралловая — идёт сейчас или срок · тап по дню открывает дневник этого дня</div>
+      <div class="weekFoot" data-r="cadet">жёсткого расписания нет — показано, сколько повторений подойдёт по интервалам</div>
+    </div>
+
+    <!-- ——— ЧАТ: отдельное окно ——— -->
+    <button class="chatFab" id="fab">Чат<span class="n">3</span></button>
+    <div class="chatWin">
+      <div class="cwHead"><span class="dot"></span><span class="cwTitle">Чат</span>
+        <button class="x" id="cwx" aria-label="Свернуть">—</button></div>
+      <div class="cwTabs">
+        <button class="cwTab" aria-selected="true">все</button>
+        <button class="cwTab">предметы</button>
+        <button class="cwTab" data-r="pupil cadet">учителя</button>
+        <button class="cwTab" data-r="pupil">одноклассники</button>
+        <button class="cwTab" data-r="teacher">группы</button>
+        <button class="cwTab" data-r="teacher admin">коллеги</button>
+        <button class="cwTab" data-r="parent">учителя</button>
+      </div>
+      <div class="cwBody">
+        <div data-r="pupil">
+          <div class="cwGroup">Предметы</div>
+          <div class="ch"><span><span class="chName">9А · Астрономия</span>
+            <div class="chLast">Мария Петровна: файл к уроку</div></span><span class="chN">2</span></div>
+          <div class="ch"><span><span class="chName">9А · Английский</span>
+            <div class="chLast">Пары на завтра</div></span><span class="chN" data-mute>—</span></div>
+          <div class="cwGroup">Учителя</div>
+          <div class="ch"><span><span class="chName">Мария Петровна</span>
+            <div class="chLast">Посмотри комментарий к эссе</div></span><span class="chN">1</span></div>
+          <div class="cwGroup">Одноклассники</div>
+          <div class="ch"><span><span class="chName">Петя Ковалёв</span>
+            <div class="chLast">скинь ссылку на каталог</div></span><span class="chN" data-mute>—</span></div>
+          <div class="ch"><span><span class="chName">Проект «Экзопланеты» · 4 чел.</span>
+            <div class="chLast">Лена: я взяла период, ты бери массу</div></span><span class="chN" data-mute>—</span></div>
+        </div>
+        <div data-r="cadet">
+          <div class="cwGroup">Курсы</div>
+          <div class="ch"><span><span class="chName">Разговорный клуб A2</span>
+            <div class="chLast">Тема на четверг: travel</div></span><span class="chN">2</span></div>
+          <div class="cwGroup">Преподаватель</div>
+          <div class="ch"><span><span class="chName">English A2 · преподаватель</span>
+            <div class="chLast">Разберём th на занятии</div></span><span class="chN">1</span></div>
+        </div>
+        <div data-r="teacher">
+          <div class="cwGroup">Группы</div>
+          <div class="ch"><span><span class="chName">9А · Астрономия</span>
+            <div class="chLast">Аня: а можно взять другой каталог?</div></span><span class="chN">3</span></div>
+          <div class="ch"><span><span class="chName">7Б · Английский</span>
+            <div class="chLast">Вы: материалы к Unit 4</div></span><span class="chN" data-mute>—</span></div>
+          <div class="cwGroup">Ученики</div>
+          <div class="ch"><span><span class="chName">Аня Коваль</span>
+            <div class="chLast">Спасибо, поняла!</div></span><span class="chN" data-mute>—</span></div>
+          <div class="cwGroup">Коллеги</div>
+          <div class="ch"><span><span class="chName">Учительская · Гимназия №1</span>
+            <div class="chLast">Завуч: график на сентябрь</div></span><span class="chN">1</span></div>
+        </div>
+        <div data-r="parent">
+          <div class="cwGroup">Учителя</div>
+          <div class="ch"><span><span class="chName">Мария Петровна</span>
+            <div class="chLast">Аня хорошо справилась с эссе</div></span><span class="chN">1</span></div>
+          <div class="cwGroup">Класс</div>
+          <div class="ch"><span><span class="chName">Родители 9А</span>
+            <div class="chLast">Классный руководитель: собрание</div></span><span class="chN" data-mute>—</span></div>
+        </div>
+        <div data-r="admin">
+          <div class="cwGroup">Коллеги</div>
+          <div class="ch"><span><span class="chName">Учительская</span>
+            <div class="chLast">График на сентябрь — 4 ответа</div></span><span class="chN">4</span></div>
+          <div class="ch"><span><span class="chName">Техподдержка Flamingo</span>
+            <div class="chLast">Заявка по лицензиям закрыта</div></span><span class="chN" data-mute>—</span></div>
+        </div>
+        <div class="modNote" data-r="pupil">переписка одноклассников доступна учителю и родителю · есть кнопка «пожаловаться»</div>
+      </div>
+      <div class="cwFoot"><input placeholder="Написать…"><button class="cwSend" aria-label="Отправить">↑</button></div>
+    </div>
   </div>
 
   <!-- ——— ЗАМЕТКИ ——— -->
@@ -501,18 +641,29 @@ h1{font-size:1.4rem;font-weight:600;letter-spacing:-.015em}
       <li><b>C · модули</b> — сетка карточек. Больше всего влезает, потом можно дать пользователю переставлять; но требует дисциплины, иначе превращается в приборную панель.</li>
     </ul>
 
-    <h3>Чат (требование №13 — зафиксировано)</h3>
+    <h3>Чат — отдельное окно (правка владельца 12.08)</h3>
     <ul>
-      <li>Три канала: <b>класс × предмет</b> · <b>ученик ↔ учитель</b> · <b>чат урока</b> (эфемерный).</li>
-      <li><b>Ученик ↔ ученик отключён</b> — решение владельца 12.08.2026. Только учебные каналы.</li>
-      <li>Вход в чат — в шапке и в быстрых входах; непрочитанное дублируется на предмете.</li>
+      <li>Чат <b>убран из сетки</b> и живёт как всплывающее окно поверх страницы: пузырь справа внизу и кнопка в шапке.
+      Окно не уводит со страницы — можно писать и продолжать смотреть занятия.</li>
+      <li>Каналы: <b>класс × предмет</b> · <b>ученик ↔ учитель</b> · <b>ученик ↔ ученик</b> · <b>чат урока</b> (эфемерный) · учительская.</li>
+      <li><b>Переписка между детьми включена</b> (решение владельца 12.08): личные диалоги и проектные группы внутри своей группы.
+      Условия, которые я закладываю по умолчанию и выношу на твоё утверждение: переписка видна учителю и родителю, есть кнопка «пожаловаться»,
+      писать можно только тем, кто в твоих группах. Модерация проектируется отдельно — это детская платформа.</li>
       <li>«Поделиться» из источников кладёт в эти же каналы <b>ссылку</b>, не копию материала.</li>
+    </ul>
+
+    <h3>Недельный дневник — на месте чата, полосой внизу</h3>
+    <ul>
+      <li>Семь дней, прилипшая полоса внизу страницы: занятия, сроки и «идёт сейчас» одним взглядом; сегодня подсвечен коралловым.</li>
+      <li>У <b>курсанта</b> расписания нет — полоса показывает нагрузку повторений по интервалам и записи в клуб. Пропущенный день не «горит» красным.</li>
+      <li>Тап по дню открывает дневник этого дня; стрелки листают недели.</li>
     </ul>
 
     <h3>Вопросы к тебе</h3>
     <div class="q"><p>1. Какой вариант берём контрактом — A, B или C? Можно разный по ролям (например A ученику, B учителю), но это дороже в поддержке.</p></div>
     <div class="q"><p>2. «Курсант» — это отдельная роль в системе или тот же ученик, просто без учреждения? От ответа зависит модель данных.</p></div>
     <div class="q"><p>3. Родителю показывать блок «Прогресс» вообще? Сейчас он есть и намеренно обезличен — только динамика самого ребёнка.</p></div>
+    <div class="q"><p>4. Переписка детей: подтверждаешь условия выше (видна учителю и родителю · только свои группы · жалоба)? Это то, что защищает и детей, и нас.</p></div>
   </div>
 </div>
 
@@ -525,6 +676,14 @@ document.querySelectorAll('.bar button[data-var]').forEach(b=>b.addEventListener
 document.querySelectorAll('.bar button[data-role]').forEach(b=>b.addEventListener('click',()=>{
   document.querySelectorAll('.bar button[data-role]').forEach(x=>x.setAttribute('aria-pressed','false'));
   b.setAttribute('aria-pressed','true');scr.dataset.role=b.dataset.role;
+}));
+document.getElementById('fab').addEventListener('click',()=>scr.setAttribute('data-chat',''));
+document.getElementById('cwx').addEventListener('click',()=>scr.removeAttribute('data-chat'));
+document.querySelectorAll('.navBtn').forEach(b=>{if(b.textContent.trim().startsWith('Чат'))
+  b.addEventListener('click',()=>scr.toggleAttribute('data-chat'))});
+document.querySelectorAll('.cwTab').forEach(t=>t.addEventListener('click',()=>{
+  document.querySelectorAll('.cwTab').forEach(x=>x.setAttribute('aria-selected','false'));
+  t.setAttribute('aria-selected','true');
 }));
 document.getElementById('thm').addEventListener('click',e=>{
   const d=document.documentElement.dataset.theme==='dark';
