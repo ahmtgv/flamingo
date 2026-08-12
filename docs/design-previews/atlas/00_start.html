@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>АТЛАС 00 — Стартовая страница: 3 варианта × 5 ролей</title>
+<title>АТЛАС 00 — Стартовая страница · контракт</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -33,6 +33,8 @@ h1{font-size:1.4rem;font-weight:600;letter-spacing:-.015em}
   border-radius:999px;padding:7px 13px;cursor:pointer;transition:all .18s var(--ease)}
 .bar button[aria-pressed="true"]{color:var(--ink);border-color:var(--border-s);background:var(--surface)}
 .bar button:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(225,78,31,.4)}
+.bar .later{opacity:.45}
+.bar button.later:hover{opacity:1}
 
 .screen{background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow:hidden;position:relative}
 .topnav{display:flex;align-items:center;gap:10px;padding:12px 20px;border-bottom:1px solid var(--border)}
@@ -47,6 +49,34 @@ h1{font-size:1.4rem;font-weight:600;letter-spacing:-.015em}
 .avatar{width:28px;height:28px;border-radius:50%;background:var(--subtle);display:grid;place-content:center;
   font:500 10px var(--mono);color:var(--sec);--d:grid}
 .page{padding:34px 44px 48px;min-height:660px}
+
+/* ——— УЧЁТКА И ПРОФИЛИ ОБУЧЕНИЯ ——— */
+.acc{position:relative}
+.accBtn{display:flex;align-items:center;gap:8px;background:none;border:1px solid var(--border);border-radius:999px;
+  padding:4px 10px 4px 5px;cursor:pointer;transition:border-color .18s var(--ease)}
+.accBtn:hover{border-color:var(--border-s)}
+.accBtn:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(225,78,31,.4)}
+.accWho{display:grid;text-align:start;line-height:1.25}
+.accName{font:500 var(--fs-micro) var(--ui);color:var(--ink)}
+.accCtx{font:400 9px var(--mono);color:var(--ter)}
+.accBtn .chev{font:500 9px var(--mono);color:var(--ter)}
+.accMenu{position:absolute;right:0;top:42px;min-width:268px;background:var(--surface);border:1px solid var(--border-s);
+  border-radius:12px;padding:6px;display:none;z-index:20;box-shadow:0 10px 32px rgba(0,0,0,.10)}
+[data-theme="dark"] .accMenu{box-shadow:0 10px 32px rgba(0,0,0,.45)}
+.acc[data-open] .accMenu{display:grid}
+.accHead{font:500 9px var(--mono);color:var(--ter);letter-spacing:.1em;text-transform:uppercase;padding:8px 10px 4px}
+.accItem{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;background:none;border:none;
+  text-align:start;padding:9px 10px;border-radius:9px;cursor:pointer}
+.accItem:hover{background:var(--subtle)}
+.accItem:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(225,78,31,.4)}
+.accItem .ic{width:26px;height:26px;border-radius:7px;background:var(--subtle);display:grid;place-content:center;
+  font:500 9px var(--mono);color:var(--sec)}
+.accItem[data-on] .ic{background:var(--coral-soft);color:var(--coral-t)}
+.accT{font:500 var(--fs-cap) var(--ui);color:var(--ink)}
+.accS{font:400 10px var(--mono);color:var(--ter)}
+.accItem .mark{font:500 10px var(--mono);color:var(--coral-t)}
+.accSep{height:1px;background:var(--border);margin:5px 2px}
+.accFoot{padding:4px 10px 6px;font:400 9px var(--mono);color:var(--ter);line-height:1.5}
 
 /* ——— приветствие ——— */
 .hi{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:24px}
@@ -122,14 +152,6 @@ h1{font-size:1.4rem;font-weight:600;letter-spacing:-.015em}
 
 /* ——— РАСКЛАДКИ ВАРИАНТОВ ——— */
 .grid{display:grid;gap:16px}
-/* A — лента дня: одна колонка, строгая хронология */
-.screen[data-var="a"] .grid{grid-template-columns:minmax(0,720px);justify-content:center}
-.screen[data-var="a"] .hi{justify-content:center;text-align:center}
-/* B — действие + рельс */
-.screen[data-var="b"] .grid{grid-template-columns:minmax(0,1fr) 296px;align-items:start}
-.screen[data-var="b"] .sNow,.screen[data-var="b"] .sToday{grid-column:1}
-.screen[data-var="b"] .sWeek,.screen[data-var="b"] .pair{grid-column:1/-1}
-.screen[data-var="b"] .sAttn,.screen[data-var="b"] .sQuick{grid-column:2}
 /* C — модули: «сейчас» сжат, справа вертикальная полоса дневника */
 .screen[data-var="c"] .grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr) 268px;align-items:start}
 .screen[data-var="c"] .sNow{grid-column:1/3;grid-row:1}
@@ -244,21 +266,18 @@ h1{font-size:1.4rem;font-weight:600;letter-spacing:-.015em}
 </head>
 <body>
 <div class="wrap">
-  <h1>Атлас 00 — Стартовая страница</h1>
-  <p class="sub">Первое окно после входа. Каркас один для всех ролей, наполнение — своё. Три варианта компоновки на выбор.
-  Переключай вариант и роль: содержимое подменяется, каркас остаётся.</p>
+  <h1>Атлас 00 — Стартовая страница · <span style="color:var(--coral-t)">контракт</span></h1>
+  <p class="sub">Первое окно после входа. Компоновка утверждена владельцем 12.08.2026 (бывший «вариант C»), альтернативы удалены.
+  Каркас один, наполнение зависит от того, каким обучением человек сейчас занят. Переключай роль — каркас остаётся на месте.</p>
 
   <div class="bar">
-    <span class="grp">Вариант</span>
-    <button data-var="a">A · лента дня</button>
-    <button data-var="b">B · действие + рельс</button>
-    <button data-var="c" aria-pressed="true">C · модули</button>
     <span class="grp">Роль</span>
     <button data-role="pupil" aria-pressed="true">ученик</button>
     <button data-role="cadet">курсант</button>
     <button data-role="teacher">учитель</button>
-    <button data-role="parent">родитель</button>
-    <button data-role="admin">админ УЗ</button>
+    <span class="grp later">позже</span>
+    <button data-role="parent" class="later">родитель</button>
+    <button data-role="admin" class="later">админ УЗ</button>
     <span class="grp">Тема</span>
     <button id="thm">тёмная</button>
   </div>
@@ -269,11 +288,44 @@ h1{font-size:1.4rem;font-weight:600;letter-spacing:-.015em}
       <span class="navSpace">
         <button class="navBtn">Чат<span class="badge">3</span></button>
         <button class="navBtn">Источники мира</button>
-        <span class="avatar" data-r="pupil">АК</span>
-        <span class="avatar" data-r="cadet">ИЛ</span>
-        <span class="avatar" data-r="teacher">МП</span>
-        <span class="avatar" data-r="parent">СК</span>
-        <span class="avatar" data-r="admin">АД</span>
+        <span class="acc" id="acc">
+          <button class="accBtn" id="accBtn" aria-expanded="false">
+            <span class="avatar" data-r="pupil cadet">АК</span>
+            <span class="avatar" data-r="teacher">МП</span>
+            <span class="avatar" data-r="parent">СК</span>
+            <span class="avatar" data-r="admin">АД</span>
+            <span class="accWho">
+              <span class="accName" data-r="pupil cadet">Аня Коваль</span>
+              <span class="accName" data-r="teacher">Мария Петровна</span>
+              <span class="accName" data-r="parent">Сергей Коваль</span>
+              <span class="accName" data-r="admin">Гимназия №1</span>
+              <span class="accCtx" data-r="pupil">ученик · 9А, Гимназия №1</span>
+              <span class="accCtx" data-r="cadet">курсант · English A2</span>
+              <span class="accCtx" data-r="teacher">учитель · Гимназия №1</span>
+              <span class="accCtx" data-r="parent">родитель</span>
+              <span class="accCtx" data-r="admin">администрация</span>
+            </span>
+            <span class="chev">▾</span>
+          </button>
+
+          <div class="accMenu">
+            <div class="accHead">Учётная запись · Аня Коваль</div>
+            <button class="accItem" data-on data-r="pupil cadet"><span class="ic">Ш</span>
+              <span><span class="accT">Ученик · 9А</span><span class="accS">Гимназия №1 · 3 предмета</span></span>
+              <span class="mark" data-r="pupil">сейчас</span></button>
+            <button class="accItem" data-r="pupil cadet"><span class="ic">К</span>
+              <span><span class="accT">Курсант · English A2</span><span class="accS">Flamingo · свободный темп</span></span>
+              <span class="mark" data-r="cadet">сейчас</span></button>
+            <button class="accItem" data-r="pupil cadet"><span class="ic">+</span>
+              <span><span class="accT">Добавить обучение</span><span class="accS">курс · школа · вуз</span></span><span></span></button>
+            <div class="accSep"></div>
+            <button class="accItem"><span class="ic">А</span>
+              <span><span class="accT">Моя учётка</span><span class="accS">архив достижений и траектория</span></span><span></span></button>
+            <button class="accItem"><span class="ic">⚙</span>
+              <span><span class="accT">Настройки и приватность</span><span class="accS">камера · данные · согласия</span></span><span></span></button>
+            <div class="accFoot">Одна учётная запись — несколько обучений.<br>Прогресс каждого хранится отдельно, достижения копятся в общий архив.</div>
+          </div>
+        </span>
       </span>
     </div>
 
@@ -660,15 +712,25 @@ h1{font-size:1.4rem;font-weight:600;letter-spacing:-.015em}
       <li><b>Админ УЗ</b> — состояние учреждения; никогда не видит отдельного ребёнка «в разрезе эффективности».</li>
     </ul>
 
-    <h3>Три варианта — чем отличаются</h3>
+    <h3>Компоновка — закреплена</h3>
     <ul>
-      <li><b>A · лента дня</b> — одна колонка по центру, строгая хронология. Самый спокойный и самый понятный ребёнку; хуже всего показывает много всего сразу.</li>
-      <li><b>B · действие + рельс</b> — слева то, что делаешь, справа рельс: чат, сроки, прогресс. Плотнее, взрослее; хорошо для учителя и админа.</li>
-      <li><b>C · модули</b> — сетка карточек. <b>✅ Утверждён владельцем 12.08 как контракт стартовой страницы.</b>
-      В нём «Урок начинается» занимает две колонки из трёх, а освободившаяся правая колонка отдана
-      вертикальной полосе расписания-дневника на всю высоту верхнего блока.</li>
+      <li>Три колонки. «Урок начинается» занимает две из них, третья отдана вертикальной полосе расписания-дневника на всю высоту.</li>
+      <li>Под ним двумя равными колонками: <b>Сегодня</b> и <b>Требует внимания</b>, ещё ниже — <b>Продолжить</b> и <b>Прогресс</b> той же ширины.</li>
+      <li>Снизу — быстрые входы. Чат живёт отдельным окном поверх страницы.</li>
+      <li>Варианты «лента дня» и «действие + рельс» удалены из листа как непринятые.</li>
     </ul>
-    <p>A и B остаются в листе как справочные — на них видно, куда всё переезжает на узком экране и на планшете.</p>
+
+    <h3>Учётная запись и профили обучения (решение владельца 12.08)</h3>
+    <ul>
+      <li><b>Учётка — ядро.</b> Один человек = одна учётная запись, в которой копится всё: знания, достижения, аналитика,
+      траектория от дошкольных занятий через школу и допкурсы до вуза. Это архив, который переживает каждую отдельную школу и курс.</li>
+      <li><b>Внутри учётки — отдельные обучения (аккаунты).</b> Школьник, который ходит на курсы английского, имеет
+      профиль <b>ученика</b> (9А, Гимназия №1) и профиль <b>курсанта</b> (English A2). Это разные учебные контексты
+      со своим расписанием, прогрессом, учителями и чатами — но один человек.</li>
+      <li><b>Переключение — в шапке</b>, через меню учётной записи: «Ученик · 9А» / «Курсант · English A2» / «Добавить обучение».
+      Стартовая страница перерисовывается под выбранное обучение — это ровно то, что показывает переключатель роли на этом листе.</li>
+      <li>Пункт <b>«Моя учётка»</b> ведёт в архив достижений и траекторию — отдельный модуль, проектируется позже.</li>
+    </ul>
 
     <h3>Чат — отдельное окно (правка владельца 12.08)</h3>
     <ul>
@@ -694,23 +756,24 @@ h1{font-size:1.4rem;font-weight:600;letter-spacing:-.015em}
     </ul>
 
     <h3>Вопросы к тебе</h3>
-    <div class="q"><p>1. ✅ Закрыт: контракт — <b>вариант C</b>, «сейчас» сжат до двух колонок, дневник вертикальной полосой справа.</p></div>
-    <div class="q"><p>2. «Курсант» — это отдельная роль в системе или тот же ученик, просто без учреждения? От ответа зависит модель данных.</p></div>
-    <div class="q"><p>3. Родителю показывать блок «Прогресс» вообще? Сейчас он есть и намеренно обезличен — только динамика самого ребёнка.</p></div>
+    <div class="q"><p>1. ✅ Закрыт: компоновка утверждена, альтернативы убраны.</p></div>
+    <div class="q"><p>2. ✅ Закрыт: ученик и курсант — <b>разные обучения внутри одной учётной записи</b>, с переключением в шапке.</p></div>
+    <div class="q"><p>3. Родитель и админ УЗ — отложены владельцем; разметка в листе сохранена и включается кнопками «позже».</p></div>
     <div class="q"><p>4. Переписка детей: подтверждаешь условия выше (видна учителю и родителю · только свои группы · жалоба)? Это то, что защищает и детей, и нас.</p></div>
   </div>
 </div>
 
 <script>
 const scr=document.getElementById('scr');
-document.querySelectorAll('.bar button[data-var]').forEach(b=>b.addEventListener('click',()=>{
-  document.querySelectorAll('.bar button[data-var]').forEach(x=>x.setAttribute('aria-pressed','false'));
-  b.setAttribute('aria-pressed','true');scr.dataset.var=b.dataset.var;
-}));
 document.querySelectorAll('.bar button[data-role]').forEach(b=>b.addEventListener('click',()=>{
   document.querySelectorAll('.bar button[data-role]').forEach(x=>x.setAttribute('aria-pressed','false'));
   b.setAttribute('aria-pressed','true');scr.dataset.role=b.dataset.role;
 }));
+const acc=document.getElementById('acc'),accBtn=document.getElementById('accBtn');
+accBtn.addEventListener('click',e=>{e.stopPropagation();
+  const o=acc.hasAttribute('data-open');
+  acc.toggleAttribute('data-open');accBtn.setAttribute('aria-expanded',String(!o));});
+document.addEventListener('click',()=>{acc.removeAttribute('data-open');accBtn.setAttribute('aria-expanded','false');});
 document.getElementById('fab').addEventListener('click',()=>scr.setAttribute('data-chat',''));
 document.getElementById('cwx').addEventListener('click',()=>scr.removeAttribute('data-chat'));
 document.querySelectorAll('.navBtn').forEach(b=>{if(b.textContent.trim().startsWith('Чат'))
