@@ -28,6 +28,8 @@ enum LessonProgress { DONE CURRENT AHEAD }
 # A telescope lesson stays a lesson in the programme; doing it opens the instrument's page.
 enum LessonKind { STANDARD EXTERNAL_DEVICE }
 enum SavedItemKind { SAVED WATCH_LATER }
+# Where a piece of work stands for a learner (atlas 01, «Задания»).
+enum TaskState { TODO SUBMITTED GRADED OVERDUE }
 enum VerificationStatus { PENDING APPROVED REJECTED }
 enum InstitutionStatus { PENDING ACTIVE INACTIVE }
 enum MembershipRole { TEACHER STUDENT ADMIN }
@@ -529,6 +531,11 @@ input LessonInput {
   durationMin: Int!
   options: LessonOptionsInput
   scheduleRule: JSON
+  # A telescope lesson stays a lesson in the programme and opens the device's page at run
+  # time (atlas 01, owner answer 1). The teacher's edit mode is where this is set; the key
+  # is cleared whenever the kind goes back to STANDARD.
+  kind: LessonKind
+  deviceKey: String
 }
 input MaterialInput {
   lessonId: ID
@@ -695,6 +702,55 @@ type SubjectCabinet {
   nextLesson: SubjectLesson
 }
 
+# Atlas 01, «Задания» (teacher: «На проверке»). The learner fields carry the LATEST graded
+# attempt — a retake replaces the mark shown — while `attempts` says how many there were:
+# no attempt is ever overwritten (owner decision, sheet 01 answer 2). The teacher fields are
+# counts only; no pupil is named.
+type SubjectTask {
+  id: ID!
+  title: String!
+  lessonId: ID
+  lessonLabel: String
+  dueAt: DateTime
+  state: TaskState!
+  submittedAt: DateTime
+  score: Int
+  comment: String
+  attempts: Int!
+  redoOpen: Boolean!
+  submittedBy: Int
+  groupSize: Int
+  gradedCount: Int
+  waitingCount: Int
+  staleCount: Int
+  retakeCount: Int
+}
+
+# One topic (a section) and how it was taken. `pct` is null when nothing is graded yet — a
+# blank, not a zero.
+type SubjectTopic {
+  id: ID!
+  title: String!
+  lessonFrom: String
+  lessonTo: String
+  isCurrent: Boolean!
+  pct: Int
+  previousPct: Int
+  weakCount: Int
+  learnerCount: Int
+}
+
+# Mastery per topic, never one blended percentage. A learner is compared only with their own
+# past (previousPct / previousOverallPct); a teacher sees the group's mastery and a COUNT of
+# who is struggling — sheet 01 rules out efficiency profiles of individual children.
+type SubjectProgress {
+  profileKind: LearningProfileKind!
+  topics: [SubjectTopic!]!
+  overallPct: Int
+  previousOverallPct: Int
+  weakBelowPct: Int!
+}
+
 input SaveItemInput {
   courseId: ID = null
   lessonId: ID = null
@@ -716,6 +772,8 @@ type Query {
   startPage: StartPage!                                   # atlas 00, for the active education
   subjectCabinet(courseId: ID!): SubjectCabinet!          # atlas 01 (access via can_access_course)
   mySavedItems(courseId: ID): [SubjectMaterial!]!         # caller's own saved items
+  subjectTasks(courseId: ID!): [SubjectTask!]!            # atlas 01 «Задания»
+  subjectProgress(courseId: ID!): SubjectProgress!        # atlas 01 «Прогресс»
 
   # catalog & content
   catalog(filter: CourseFilter, first: Int = 20, after: String): CourseConnection!

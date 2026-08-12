@@ -2,13 +2,22 @@
 
 import strawberry
 
-from apps.courses import models, services, subject
+from apps.courses import models, services, subject, tasks_progress
 from apps.courses.access import can_access_course
 from common.auth import get_current_user, require_user
 from common.enums import CourseLevel, CourseStatus
 from common.pagination import paginate
 
-from .types import Course, CourseConnection, Lesson, PageInfo, SubjectCabinet, SubjectMaterial
+from .types import (
+    Course,
+    CourseConnection,
+    Lesson,
+    PageInfo,
+    SubjectCabinet,
+    SubjectMaterial,
+    SubjectProgress,
+    SubjectTask,
+)
 
 
 @strawberry.input
@@ -103,3 +112,23 @@ class CoursesQuery:
             )
             for row in rows
         ]
+
+    @strawberry.field
+    def subject_tasks(self, info: strawberry.Info, course_id: strawberry.ID) -> list[SubjectTask]:
+        """Atlas sheet 01, «Задания» (teacher: «На проверке»).
+
+        A retake shows the NEW mark; every attempt stays in the database and `attempts` says
+        how many there were. Same access chokepoint as the rest of the cabinet.
+        """
+        return [
+            SubjectTask.of(row)
+            for row in tasks_progress.subject_tasks(get_current_user(info), course_id)
+        ]
+
+    @strawberry.field
+    def subject_progress(self, info: strawberry.Info, course_id: strawberry.ID) -> SubjectProgress:
+        """Atlas sheet 01, «Прогресс»: mastery per topic — never one blended percentage, and
+        for a learner never a comparison with anyone but their own past."""
+        return SubjectProgress.of(
+            tasks_progress.subject_progress(get_current_user(info), course_id)
+        )

@@ -11,6 +11,7 @@ from common import storage
 from common.enums import (
     CourseStatus,
     EnrollmentStatus,
+    LessonKind,
     LessonStatus,
     MaterialType,
     MembershipStatus,
@@ -230,6 +231,11 @@ def reorder_sections(user, course_id, ordered_ids: list) -> list[Section]:
 
 
 # --- lessons ----------------------------------------------------------------
+def _lesson_kind(value) -> str:
+    """Accept the enum member or its value; a lesson kind is a closed set."""
+    return LessonKind(getattr(value, "value", value)).value
+
+
 @transaction.atomic
 def create_lesson(
     user,
@@ -240,6 +246,8 @@ def create_lesson(
     duration_min: int = 0,
     options: dict | None = None,
     schedule_rule: dict | None = None,
+    kind: str | None = None,
+    device_key: str | None = None,
 ) -> Lesson:
     section = _owned_section(user, section_id)
     order = (section.lessons.aggregate(m=Max("order"))["m"] or 0) + 1
@@ -253,15 +261,26 @@ def create_lesson(
     }
     if options is not None:
         create_kwargs["options"] = options
+    if kind is not None:
+        create_kwargs["kind"] = _lesson_kind(kind)
+    # Only an external-device lesson may name a device (CLAUDE.md §11: one shared abstraction).
+    if device_key and create_kwargs.get("kind") == LessonKind.EXTERNAL_DEVICE.value:
+        create_kwargs["device_key"] = device_key
     return Lesson.objects.create(**create_kwargs)
 
 
 @transaction.atomic
 def update_lesson(user, lesson_id, **fields) -> Lesson:
     lesson = _owned_lesson(user, lesson_id)
-    for key in ("title", "description", "duration_min", "options", "schedule_rule"):
+    for key in ("title", "description", "duration_min", "options", "schedule_rule", "kind"):
         if fields.get(key) is not None:
-            setattr(lesson, key, fields[key])
+            setattr(lesson, key, _lesson_kind(fields[key]) if key == "kind" else fields[key])
+    # A standard lesson carries no device: clearing the kind clears the key with it, so a
+    # lesson cannot claim a telescope it no longer opens.
+    if fields.get("device_key") is not None:
+        lesson.device_key = fields["device_key"] or ""
+    if lesson.kind != LessonKind.EXTERNAL_DEVICE.value:
+        lesson.device_key = ""
     lesson.save()
     return lesson
 

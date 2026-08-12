@@ -17,6 +17,7 @@ from strawberry.scalars import JSON
 from apps.accounts.graphql.types import StudentProfileType, TeacherProfileType
 from apps.courses import models, services
 from apps.courses.subject import LessonProgress
+from apps.courses.tasks_progress import TaskState
 from apps.institutions.graphql.types import Institution as InstitutionType
 from common.auth import get_current_user, require_user
 from common.enums import (
@@ -369,4 +370,106 @@ class SubjectCabinet:
                 for x in page.sources
             ],
             next_lesson=SubjectLesson.of(page.next_lesson) if page.next_lesson else None,
+        )
+
+
+# --- subject cabinet, second half (atlas sheet 01: задания · прогресс) ----------------------
+@strawberry.type
+class SubjectTask:
+    """One row of «Задания» — or, for a teacher, of «На проверке».
+
+    The learner fields carry the LATEST graded attempt (a retake replaces the mark shown),
+    while `attempts` says how many there were: nothing is overwritten in the database.
+    The teacher fields are counts only — no pupil is named here.
+    """
+
+    id: strawberry.ID
+    title: str
+    lesson_id: strawberry.ID | None
+    lesson_label: str | None
+    due_at: dt.datetime | None
+    state: TaskState
+    submitted_at: dt.datetime | None
+    score: int | None
+    comment: str | None
+    attempts: int
+    redo_open: bool
+    submitted_by: int | None
+    group_size: int | None
+    graded_count: int | None
+    waiting_count: int | None
+    stale_count: int | None
+    retake_count: int | None
+
+    @classmethod
+    def of(cls, x) -> SubjectTask:
+        return cls(
+            id=strawberry.ID(x.id),
+            title=x.title,
+            lesson_id=strawberry.ID(x.lesson_id) if x.lesson_id else None,
+            lesson_label=x.lesson_label,
+            due_at=x.due_at,
+            state=x.state,
+            submitted_at=x.submitted_at,
+            score=x.score,
+            comment=x.comment,
+            attempts=x.attempts,
+            redo_open=x.redo_open,
+            submitted_by=x.submitted_by,
+            group_size=x.group_size,
+            graded_count=x.graded_count,
+            waiting_count=x.waiting_count,
+            stale_count=x.stale_count,
+            retake_count=x.retake_count,
+        )
+
+
+@strawberry.type
+class SubjectTopic:
+    """Mastery of one topic. `pct` is null when nothing is graded yet — a blank, not a zero."""
+
+    id: strawberry.ID
+    title: str
+    lesson_from: str | None
+    lesson_to: str | None
+    is_current: bool
+    pct: int | None
+    previous_pct: int | None
+    weak_count: int | None
+    learner_count: int | None
+
+    @classmethod
+    def of(cls, x) -> SubjectTopic:
+        return cls(
+            id=strawberry.ID(x.id),
+            title=x.title,
+            lesson_from=x.lesson_from,
+            lesson_to=x.lesson_to,
+            is_current=x.is_current,
+            pct=x.pct,
+            previous_pct=x.previous_pct,
+            weak_count=x.weak_count,
+            learner_count=x.learner_count,
+        )
+
+
+@strawberry.type
+class SubjectProgress:
+    """Mastery per topic. A learner is compared only with their own past; a teacher sees the
+    group's mastery and a COUNT of who is struggling, never a per-pupil profile."""
+
+    profile_kind: LearningProfileKind
+    topics: list[SubjectTopic]
+    overall_pct: int | None
+    previous_overall_pct: int | None
+    weak_below_pct: int
+
+    @classmethod
+    def of(cls, x) -> SubjectProgress:
+        return cls(
+            profile_kind=x.profile_kind,
+            topics=[SubjectTopic.of(t) for t in x.topics],
+            overall_pct=x.overall_pct,
+            previous_overall_pct=x.previous_overall_pct,
+            weak_below_pct=x.weak_below_pct,
         )

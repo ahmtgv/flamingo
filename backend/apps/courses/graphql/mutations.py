@@ -7,7 +7,7 @@ from strawberry.scalars import JSON
 
 from apps.courses import services, subject
 from common.auth import require_user
-from common.enums import CourseLevel, MaterialType, SavedItemKind
+from common.enums import CourseLevel, LessonKind, MaterialType, SavedItemKind
 
 from .types import Course, Enrollment, Lesson, Material, Section, SubjectMaterial
 
@@ -46,6 +46,10 @@ class LessonInput:
     description: str | None = None
     options: LessonOptionsInput | None = None
     schedule_rule: JSON | None = None
+    # A telescope lesson stays a lesson in the programme and opens the device's page at run
+    # time (sheet 01, owner answer 1). The teacher's edit mode is where that is set.
+    kind: LessonKind | None = None
+    device_key: str | None = None
 
 
 @strawberry.input
@@ -181,6 +185,8 @@ class CoursesMutation:
             duration_min=input.duration_min,
             options=_options_dict(input.options),
             schedule_rule=input.schedule_rule,
+            kind=input.kind,
+            device_key=input.device_key,
         )
 
     @strawberry.mutation
@@ -193,6 +199,8 @@ class CoursesMutation:
             duration_min=input.duration_min,
             options=_options_dict(input.options),
             schedule_rule=input.schedule_rule,
+            kind=input.kind,
+            device_key=input.device_key,
         )
 
     @strawberry.mutation
