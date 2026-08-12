@@ -1,0 +1,536 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>АТЛАС 00 — Стартовая страница: 3 варианта × 5 ролей</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f1f1ef;--surface:#fff;--subtle:#e9e9e6;--border:#d9d9d6;--border-s:#c4c4c1;
+  --ink:#1d1d1f;--sec:#6e6e73;--ter:#98989e;
+  --coral:#e14e1f;--coral-t:#c23f14;--coral-soft:#fdeee7;
+  --ui:-apple-system,'SF Pro Display',Inter,system-ui,sans-serif;
+  --mono:'JetBrains Mono','SF Mono',ui-monospace,monospace;
+  --ease:cubic-bezier(.2,0,0,1);
+  --fs-body:1.0625rem;--fs-small:.875rem;--fs-cap:.8125rem;--fs-micro:.75rem;--fs-h1:2rem;
+}
+[data-theme="dark"]{
+  --bg:#101012;--surface:#1a1a1c;--subtle:#242426;--border:#2e2e31;--border-s:#3f3f43;
+  --ink:#f2f2f0;--sec:#98989e;--ter:#6e6e73;--coral:#ff7040;--coral-t:#ff8a5f;--coral-soft:#33201a;
+}
+*{box-sizing:border-box;margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--ui);font-size:var(--fs-body);
+  line-height:1.6;padding:32px 24px 120px;transition:background .32s var(--ease),color .32s var(--ease)}
+.wrap{max-width:1160px;margin:0 auto}
+h1{font-size:1.4rem;font-weight:600;letter-spacing:-.015em}
+.sub{color:var(--sec);font-size:var(--fs-small);margin:6px 0 20px;max-width:82ch}
+.bar{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:20px;position:sticky;top:8px;z-index:5;
+  background:var(--bg);padding:8px 0}
+.bar .grp{font:500 10px var(--mono);color:var(--ter);letter-spacing:.1em;text-transform:uppercase;margin:0 2px 0 10px}
+.bar .grp:first-child{margin-left:0}
+.bar button{font:500 12px var(--mono);color:var(--sec);background:var(--bg);border:1px solid var(--border);
+  border-radius:999px;padding:7px 13px;cursor:pointer;transition:all .18s var(--ease)}
+.bar button[aria-pressed="true"]{color:var(--ink);border-color:var(--border-s);background:var(--surface)}
+.bar button:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(225,78,31,.4)}
+
+.screen{background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow:hidden}
+.topnav{display:flex;align-items:center;gap:10px;padding:12px 20px;border-bottom:1px solid var(--border)}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--coral)}
+.topnav b{font-size:14px;font-weight:500;letter-spacing:-.01em}
+.navSpace{margin-left:auto;display:flex;align-items:center;gap:14px}
+.navBtn{position:relative;background:none;border:none;cursor:pointer;color:var(--sec);font:500 var(--fs-cap) var(--ui);
+  padding:4px 2px;border-radius:6px}
+.navBtn:hover{color:var(--ink)}
+.navBtn .badge{position:absolute;top:-2px;right:-9px;min-width:16px;height:16px;border-radius:8px;background:var(--coral);
+  color:#fff;font:500 9px var(--mono);display:grid;place-content:center;padding:0 4px}
+.avatar{width:28px;height:28px;border-radius:50%;background:var(--subtle);display:grid;place-content:center;
+  font:500 10px var(--mono);color:var(--sec)}
+.page{padding:34px 44px 48px;min-height:660px}
+
+/* ——— приветствие ——— */
+.hi{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:24px}
+.hiName{font-size:var(--fs-h1);font-weight:600;letter-spacing:-.02em}
+.hiDate{font:500 var(--fs-cap) var(--mono);color:var(--ter);font-variant-numeric:tabular-nums}
+
+/* ——— карточка-слот ——— */
+.slot{background:var(--surface);border:1px solid var(--border);border-radius:13px;padding:20px 22px}
+.slot.plain{border:none;padding:0;background:none}
+.slotHead{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.slotTitle{font:500 var(--fs-micro) var(--mono);color:var(--ter);letter-spacing:.09em;text-transform:uppercase}
+.slotHead .more{margin-left:auto;font:500 var(--fs-micro) var(--mono);color:var(--ter);background:none;border:none;cursor:pointer}
+.slotHead .more:hover{color:var(--ink)}
+
+/* ——— «сейчас» — главный блок ——— */
+.now{border:1px solid var(--border-s);border-radius:13px;padding:22px 24px;background:var(--surface);position:relative;overflow:hidden}
+.now::before{content:'';position:absolute;inset-inline-start:0;top:0;bottom:0;width:3px;background:var(--coral)}
+.nowKind{font:500 10px var(--mono);color:var(--coral-t);letter-spacing:.12em;text-transform:uppercase;
+  display:inline-flex;align-items:center;gap:6px}
+.nowKind i{width:5px;height:5px;border-radius:50%;background:var(--coral);display:block}
+@media (prefers-reduced-motion:no-preference){.nowKind i{animation:pulse 2.4s ease-in-out infinite}}
+@keyframes pulse{50%{opacity:.3}}
+.nowTitle{font-size:1.35rem;font-weight:600;letter-spacing:-.015em;margin:8px 0 3px}
+.nowMeta{font-size:var(--fs-cap);color:var(--sec)}
+.nowRow{display:flex;align-items:center;gap:14px;margin-top:16px;flex-wrap:wrap}
+.btn{background:var(--coral);color:#fff;border:none;border-radius:9px;padding:11px 20px;font:500 var(--fs-small) var(--ui);
+  cursor:pointer;transition:background .18s var(--ease)}
+.btn:hover{background:var(--coral-t)}
+.btn.ghost{background:none;color:var(--ink);border:1px solid var(--border-s)}
+.btn.ghost:hover{background:var(--subtle)}
+.btn:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(225,78,31,.4)}
+.nowNote{font:400 var(--fs-cap) var(--ui);color:var(--ter)}
+
+/* ——— списки ——— */
+.row{display:grid;grid-template-columns:58px 1fr auto;gap:14px;align-items:baseline;padding:11px 0;
+  border-bottom:1px solid var(--border)}
+.row:last-child{border-bottom:none}
+.row.noTime{grid-template-columns:1fr auto}
+.rTime{font:500 var(--fs-cap) var(--mono);color:var(--ter);font-variant-numeric:tabular-nums}
+.rName{font-size:.9375rem;font-weight:500}
+.rSub{font-size:var(--fs-cap);color:var(--sec)}
+.rTag{font:500 10px var(--mono);color:var(--ter);letter-spacing:.06em;white-space:nowrap}
+.rTag[data-warn]{color:var(--coral-t)}
+.rDot{width:6px;height:6px;border-radius:50%;background:var(--coral);display:inline-block;margin-inline-end:6px}
+
+/* ——— прогресс ——— */
+.prog{display:grid;gap:14px}
+.pLine{display:grid;grid-template-columns:1fr 46px;gap:12px;align-items:center}
+.pName{font-size:var(--fs-cap);color:var(--sec)}
+.pBarWrap{grid-column:1/-1;height:4px;border-radius:2px;background:var(--subtle);overflow:hidden;margin-top:-8px}
+.pBar{height:100%;background:var(--coral);border-radius:2px}
+.pVal{font:500 var(--fs-cap) var(--mono);color:var(--ink);text-align:end;font-variant-numeric:tabular-nums}
+.pSelf{font:400 10px var(--mono);color:var(--ter);margin-top:2px}
+
+/* ——— быстрые входы ——— */
+.quick{display:flex;gap:8px;flex-wrap:wrap}
+.qi{border:1px solid var(--border);border-radius:10px;padding:11px 14px;background:var(--surface);cursor:pointer;
+  display:grid;gap:2px;text-align:start;min-width:132px;transition:border-color .18s var(--ease)}
+.qi:hover{border-color:var(--border-s)}
+.qi:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(225,78,31,.4)}
+.qiName{font-size:var(--fs-cap);font-weight:500;color:var(--ink)}
+.qiSub{font:400 10px var(--mono);color:var(--ter)}
+
+/* ——— чат ——— */
+.chatList{display:grid;gap:2px}
+.ch{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:baseline;padding:10px 0;border-bottom:1px solid var(--border)}
+.ch:last-child{border-bottom:none}
+.chName{font-size:var(--fs-cap);font-weight:500}
+.chLast{font-size:var(--fs-micro);color:var(--ter);margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:30ch}
+.chN{min-width:18px;height:18px;border-radius:9px;background:var(--coral);color:#fff;font:500 10px var(--mono);
+  display:grid;place-content:center;padding:0 5px}
+.chN[data-mute]{background:var(--subtle);color:var(--sec)}
+
+/* ——— РАСКЛАДКИ ВАРИАНТОВ ——— */
+.grid{display:grid;gap:16px}
+/* A — лента дня: одна колонка, строгая хронология */
+.screen[data-var="a"] .grid{grid-template-columns:minmax(0,720px);justify-content:center}
+.screen[data-var="a"] .hi{justify-content:center;text-align:center}
+/* B — действие + рельс */
+.screen[data-var="b"] .grid{grid-template-columns:minmax(0,1fr) 296px;align-items:start}
+.screen[data-var="b"] .sNow,.screen[data-var="b"] .sToday,.screen[data-var="b"] .sContinue{grid-column:1}
+.screen[data-var="b"] .sChat,.screen[data-var="b"] .sAttn,.screen[data-var="b"] .sProg,.screen[data-var="b"] .sQuick{grid-column:2}
+/* C — модули */
+.screen[data-var="c"] .grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+.screen[data-var="c"] .sNow{grid-column:1/-1}
+.screen[data-var="c"] .sQuick{grid-column:1/-1}
+@media (max-width:900px){.screen[data-var] .grid{grid-template-columns:minmax(0,1fr)!important}}
+
+/* ——— ПОКАЗ ПО РОЛЯМ ——— */
+[data-r]{display:none}
+.screen[data-role="pupil"] [data-r~="pupil"],
+.screen[data-role="cadet"] [data-r~="cadet"],
+.screen[data-role="teacher"] [data-r~="teacher"],
+.screen[data-role="parent"] [data-r~="parent"],
+.screen[data-role="admin"] [data-r~="admin"]{display:revert}
+.slot[data-r]{display:none}
+.screen[data-role="pupil"] .slot[data-r~="pupil"],
+.screen[data-role="cadet"] .slot[data-r~="cadet"],
+.screen[data-role="teacher"] .slot[data-r~="teacher"],
+.screen[data-role="parent"] .slot[data-r~="parent"],
+.screen[data-role="admin"] .slot[data-r~="admin"]{display:block}
+
+/* ——— заметки ——— */
+.notes{margin-top:28px;border:1px solid var(--border);border-radius:13px;padding:22px 26px;background:var(--surface)}
+.notes h2{font-size:1rem;font-weight:600;margin-bottom:12px}
+.notes h3{font:500 var(--fs-micro) var(--mono);color:var(--ter);letter-spacing:.09em;text-transform:uppercase;
+  margin:18px 0 8px}
+.notes p,.notes li{font-size:var(--fs-small);color:var(--sec);max-width:88ch}
+.notes ul{padding-inline-start:20px;display:grid;gap:5px}
+.notes b{color:var(--ink);font-weight:500}
+.q{border-inline-start:2px solid var(--coral);padding-inline-start:12px;margin-top:8px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Атлас 00 — Стартовая страница</h1>
+  <p class="sub">Первое окно после входа. Каркас один для всех ролей, наполнение — своё. Три варианта компоновки на выбор.
+  Переключай вариант и роль: содержимое подменяется, каркас остаётся.</p>
+
+  <div class="bar">
+    <span class="grp">Вариант</span>
+    <button data-var="a" aria-pressed="true">A · лента дня</button>
+    <button data-var="b">B · действие + рельс</button>
+    <button data-var="c">C · модули</button>
+    <span class="grp">Роль</span>
+    <button data-role="pupil" aria-pressed="true">ученик</button>
+    <button data-role="cadet">курсант</button>
+    <button data-role="teacher">учитель</button>
+    <button data-role="parent">родитель</button>
+    <button data-role="admin">админ УЗ</button>
+    <span class="grp">Тема</span>
+    <button id="thm">тёмная</button>
+  </div>
+
+  <div class="screen" id="scr" data-var="a" data-role="pupil">
+    <div class="topnav">
+      <span class="dot"></span><b>flamingo</b>
+      <span class="navSpace">
+        <button class="navBtn">Чат<span class="badge">3</span></button>
+        <button class="navBtn">Источники мира</button>
+        <span class="avatar" data-r="pupil">АК</span>
+        <span class="avatar" data-r="cadet">ИЛ</span>
+        <span class="avatar" data-r="teacher">МП</span>
+        <span class="avatar" data-r="parent">СК</span>
+        <span class="avatar" data-r="admin">АД</span>
+      </span>
+    </div>
+
+    <div class="page">
+      <div class="hi">
+        <span class="hiName" data-r="pupil">Привет, Аня</span>
+        <span class="hiName" data-r="cadet">Привет, Илья</span>
+        <span class="hiName" data-r="teacher">Здравствуйте, Мария Петровна</span>
+        <span class="hiName" data-r="parent">Здравствуйте, Сергей</span>
+        <span class="hiName" data-r="admin">Гимназия №1</span>
+        <span class="hiDate">вторник, 12 августа · 09:58</span>
+      </div>
+
+      <div class="grid">
+
+        <!-- ——— СЕЙЧАС ——— -->
+        <div class="slot plain sNow">
+          <div class="now">
+            <div data-r="pupil">
+              <span class="nowKind"><i></i>урок начинается</span>
+              <div class="nowTitle">Астрономия · Экзопланеты</div>
+              <div class="nowMeta">10:15 · 9А · Мария Петровна · урок 12 из 34</div>
+              <div class="nowRow"><button class="btn">Войти в урок</button>
+                <span class="nowNote">через 17 минут · материалы урока уже открыты</span></div>
+            </div>
+            <div data-r="cadet">
+              <span class="nowKind">продолжить</span>
+              <div class="nowTitle">English A2 · Unit 4 — Travel</div>
+              <div class="nowMeta">Урок 3 из 8 · остановился на аудировании · занимаешься когда удобно</div>
+              <div class="nowRow"><button class="btn">Продолжить</button>
+                <button class="btn ghost">Повторение · 12 карточек</button>
+                <span class="nowNote">серия 12 дней</span></div>
+            </div>
+            <div data-r="teacher">
+              <span class="nowKind"><i></i>ведёте сегодня</span>
+              <div class="nowTitle">Астрономия · 9А · Экзопланеты</div>
+              <div class="nowMeta">10:15 · 24 ученика · 3 занятия сегодня · 11 работ ждут проверки</div>
+              <div class="nowRow"><button class="btn">Начать урок</button>
+                <button class="btn ghost">Открыть материалы</button></div>
+            </div>
+            <div data-r="parent">
+              <span class="nowKind">сегодня у Ани</span>
+              <div class="nowTitle">3 занятия · ближайшее в 10:15</div>
+              <div class="nowMeta">Астрономия · Гимназия №1 · Мария Петровна</div>
+              <div class="nowRow"><button class="btn ghost">Расписание Ани</button>
+                <span class="nowNote">за неделю пропусков нет</span></div>
+            </div>
+            <div data-r="admin">
+              <span class="nowKind"><i></i>идёт сейчас</span>
+              <div class="nowTitle">14 занятий · 312 учеников на связи</div>
+              <div class="nowMeta">2 занятия требуют внимания · 1 учитель не вышел</div>
+              <div class="nowRow"><button class="btn">Открыть мониторинг</button>
+                <button class="btn ghost">Расписание дня</button></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ——— СЕГОДНЯ ——— -->
+        <div class="slot sToday">
+          <div class="slotHead"><span class="slotTitle">Сегодня</span><button class="more">всё расписание →</button></div>
+
+          <div data-r="pupil">
+            <div class="row"><span class="rTime">10:15</span>
+              <span><span class="rName">Астрономия</span><div class="rSub">Экзопланеты · Мария Петровна</div></span>
+              <span class="rTag" data-warn>скоро</span></div>
+            <div class="row"><span class="rTime">12:00</span>
+              <span><span class="rName">Английский</span><div class="rSub">Unit 4 · говорение в парах</div></span>
+              <span class="rTag">аудитория</span></div>
+            <div class="row"><span class="rTime">14:30</span>
+              <span><span class="rName">Русский язык</span><div class="rSub">Причастный оборот</div></span>
+              <span class="rTag">лекция</span></div>
+          </div>
+
+          <div data-r="cadet">
+            <div class="row noTime"><span><span class="rName">Повторение</span>
+              <div class="rSub">12 карточек подошли по расписанию</div></span><span class="rTag" data-warn>сегодня</span></div>
+            <div class="row noTime"><span><span class="rName">Unit 4 · урок 3</span>
+              <div class="rSub">Аудирование и произношение</div></span><span class="rTag">20 мин</span></div>
+            <div class="row noTime"><span><span class="rName">Разговорный клуб A2</span>
+              <div class="rSub">19:00 · с преподавателем, 6 человек</div></span><span class="rTag">запись открыта</span></div>
+          </div>
+
+          <div data-r="teacher">
+            <div class="row"><span class="rTime">10:15</span>
+              <span><span class="rName">9А · Астрономия</span><div class="rSub">Экзопланеты · 24 ученика</div></span>
+              <span class="rTag" data-warn>скоро</span></div>
+            <div class="row"><span class="rTime">12:00</span>
+              <span><span class="rName">7Б · Английский</span><div class="rSub">Unit 4 · лабораторная</div></span>
+              <span class="rTag">аудитория</span></div>
+            <div class="row"><span class="rTime">15:00</span>
+              <span><span class="rName">9А · Русский язык</span><div class="rSub">Причастный оборот</div></span>
+              <span class="rTag">лекция</span></div>
+          </div>
+
+          <div data-r="parent">
+            <div class="row"><span class="rTime">10:15</span>
+              <span><span class="rName">Астрономия</span><div class="rSub">Аня · Гимназия №1</div></span><span class="rTag">по плану</span></div>
+            <div class="row"><span class="rTime">12:00</span>
+              <span><span class="rName">Английский</span><div class="rSub">Аня · Гимназия №1</div></span><span class="rTag">по плану</span></div>
+            <div class="row"><span class="rTime">14:30</span>
+              <span><span class="rName">Русский язык</span><div class="rSub">Аня · Гимназия №1</div></span><span class="rTag">по плану</span></div>
+          </div>
+
+          <div data-r="admin">
+            <div class="row"><span class="rTime">10:15</span>
+              <span><span class="rName">6 занятий одновременно</span><div class="rSub">5 учителей · 148 учеников</div></span>
+              <span class="rTag">норма</span></div>
+            <div class="row"><span class="rTime">12:00</span>
+              <span><span class="rName">8 занятий</span><div class="rSub">учитель 7В не подтвердил</div></span>
+              <span class="rTag" data-warn>проверить</span></div>
+            <div class="row"><span class="rTime">15:00</span>
+              <span><span class="rName">4 занятия</span><div class="rSub">все подтверждены</div></span><span class="rTag">норма</span></div>
+          </div>
+        </div>
+
+        <!-- ——— ТРЕБУЕТ ВНИМАНИЯ ——— -->
+        <div class="slot sAttn">
+          <div class="slotHead"><span class="slotTitle">Требует внимания</span></div>
+
+          <div data-r="pupil">
+            <div class="row noTime"><span><span class="rName"><span class="rDot"></span>Астрономия · задание</span>
+              <div class="rSub">Сдать до завтра, 18:00</div></span><span class="rTag" data-warn>1 день</span></div>
+            <div class="row noTime"><span><span class="rName">Английский · эссе</span>
+              <div class="rSub">Проверено, есть комментарий учителя</div></span><span class="rTag">новое</span></div>
+            <div class="row noTime"><span><span class="rName">Русский · упражнение 14</span>
+              <div class="rSub">Сдать до пятницы</div></span><span class="rTag">4 дня</span></div>
+          </div>
+
+          <div data-r="cadet">
+            <div class="row noTime"><span><span class="rName"><span class="rDot"></span>Повторение</span>
+              <div class="rSub">12 карточек ждут — интервал подошёл</div></span><span class="rTag" data-warn>сегодня</span></div>
+            <div class="row noTime"><span><span class="rName">Произношение · th</span>
+              <div class="rSub">Проседает третий урок подряд</div></span><span class="rTag">разобрать</span></div>
+          </div>
+
+          <div data-r="teacher">
+            <div class="row noTime"><span><span class="rName"><span class="rDot"></span>11 работ на проверке</span>
+              <div class="rSub">9А Астрономия · 7 из них старше 2 дней</div></span><span class="rTag" data-warn>очередь</span></div>
+            <div class="row noTime"><span><span class="rName">3 вопроса от учеников</span>
+              <div class="rSub">В чате 9А по астрономии</div></span><span class="rTag">чат</span></div>
+            <div class="row noTime"><span><span class="rName">Материалы к 15:00 не прикреплены</span>
+              <div class="rSub">Русский язык · Причастный оборот</div></span><span class="rTag">урок</span></div>
+          </div>
+
+          <div data-r="parent">
+            <div class="row noTime"><span><span class="rName">Задание по астрономии</span>
+              <div class="rSub">Срок завтра, ещё не сдано</div></span><span class="rTag" data-warn>1 день</span></div>
+            <div class="row noTime"><span><span class="rName">Сообщение от учителя</span>
+              <div class="rSub">Мария Петровна · про эссе</div></span><span class="rTag">новое</span></div>
+          </div>
+
+          <div data-r="admin">
+            <div class="row noTime"><span><span class="rName"><span class="rDot"></span>Учитель 7В не подтвердил занятие</span>
+              <div class="rSub">Начало через 2 часа</div></span><span class="rTag" data-warn>срочно</span></div>
+            <div class="row noTime"><span><span class="rName">4 согласия 152-ФЗ не подписаны</span>
+              <div class="rSub">Новые ученики 5-х классов</div></span><span class="rTag">документы</span></div>
+            <div class="row noTime"><span><span class="rName">2 учителя без загруженных материалов</span>
+              <div class="rSub">На эту неделю</div></span><span class="rTag">методика</span></div>
+          </div>
+        </div>
+
+        <!-- ——— ЧАТ ——— -->
+        <div class="slot sChat">
+          <div class="slotHead"><span class="slotTitle">Чат</span><button class="more">открыть →</button></div>
+          <div class="chatList">
+            <div data-r="pupil">
+              <div class="ch"><span><span class="chName">9А · Астрономия</span>
+                <div class="chLast">Мария Петровна: файл к уроку</div></span><span class="chN">2</span></div>
+              <div class="ch"><span><span class="chName">Мария Петровна</span>
+                <div class="chLast">Посмотри комментарий к эссе</div></span><span class="chN">1</span></div>
+              <div class="ch"><span><span class="chName">9А · Английский</span>
+                <div class="chLast">Пары на завтра</div></span><span class="chN" data-mute>—</span></div>
+            </div>
+            <div data-r="cadet">
+              <div class="ch"><span><span class="chName">Преподаватель · English A2</span>
+                <div class="chLast">Разберём th на занятии</div></span><span class="chN">1</span></div>
+              <div class="ch"><span><span class="chName">Разговорный клуб A2</span>
+                <div class="chLast">Тема на четверг: travel</div></span><span class="chN">2</span></div>
+            </div>
+            <div data-r="teacher">
+              <div class="ch"><span><span class="chName">9А · Астрономия</span>
+                <div class="chLast">Аня: а можно взять другой каталог?</div></span><span class="chN">3</span></div>
+              <div class="ch"><span><span class="chName">7Б · Английский</span>
+                <div class="chLast">Вы: материалы к Unit 4</div></span><span class="chN" data-mute>—</span></div>
+              <div class="ch"><span><span class="chName">Учительская · Гимназия №1</span>
+                <div class="chLast">Завуч: график на сентябрь</div></span><span class="chN">1</span></div>
+            </div>
+            <div data-r="parent">
+              <div class="ch"><span><span class="chName">Мария Петровна</span>
+                <div class="chLast">Аня хорошо справилась с эссе</div></span><span class="chN">1</span></div>
+              <div class="ch"><span><span class="chName">Родители 9А</span>
+                <div class="chLast">Классный руководитель: собрание</div></span><span class="chN" data-mute>—</span></div>
+            </div>
+            <div data-r="admin">
+              <div class="ch"><span><span class="chName">Учительская</span>
+                <div class="chLast">График на сентябрь — 4 ответа</div></span><span class="chN">4</span></div>
+              <div class="ch"><span><span class="chName">Техподдержка Flamingo</span>
+                <div class="chLast">Заявка по лицензиям закрыта</div></span><span class="chN" data-mute>—</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ——— ПРОГРЕСС ——— -->
+        <div class="slot sProg">
+          <div class="slotHead"><span class="slotTitle">Прогресс</span></div>
+          <div class="prog">
+            <div data-r="pupil">
+              <div class="pLine"><span class="pName">Астрономия · тема «Экзопланеты»</span><span class="pVal">62%</span></div>
+              <div class="pBarWrap"><div class="pBar" style="width:62%"></div></div>
+              <div class="pLine" style="margin-top:12px"><span class="pName">Английский · A2</span><span class="pVal">48%</span></div>
+              <div class="pBarWrap"><div class="pBar" style="width:48%"></div></div>
+              <div class="pSelf">на прошлой неделе было 41% — ты вырос на 7</div>
+            </div>
+            <div data-r="cadet">
+              <div class="pLine"><span class="pName">English A2 · курс целиком</span><span class="pVal">34%</span></div>
+              <div class="pBarWrap"><div class="pBar" style="width:34%"></div></div>
+              <div class="pLine" style="margin-top:12px"><span class="pName">Слов в активной памяти</span><span class="pVal">418</span></div>
+              <div class="pBarWrap"><div class="pBar" style="width:56%"></div></div>
+              <div class="pSelf">серия 12 дней · твой рекорд 19</div>
+            </div>
+            <div data-r="teacher">
+              <div class="pLine"><span class="pName">9А · тема пройдена</span><span class="pVal">71%</span></div>
+              <div class="pBarWrap"><div class="pBar" style="width:71%"></div></div>
+              <div class="pLine" style="margin-top:12px"><span class="pName">7Б · Unit 4</span><span class="pVal">40%</span></div>
+              <div class="pBarWrap"><div class="pBar" style="width:40%"></div></div>
+              <div class="pSelf">усвоение по темам, не рейтинг учеников</div>
+            </div>
+            <div data-r="parent">
+              <div class="pLine"><span class="pName">Аня · астрономия</span><span class="pVal">62%</span></div>
+              <div class="pBarWrap"><div class="pBar" style="width:62%"></div></div>
+              <div class="pLine" style="margin-top:12px"><span class="pName">Аня · английский</span><span class="pVal">48%</span></div>
+              <div class="pBarWrap"><div class="pBar" style="width:48%"></div></div>
+              <div class="pSelf">сравнение только с её собственным прошлым результатом</div>
+            </div>
+            <div data-r="admin">
+              <div class="pLine"><span class="pName">Занятия проведены по плану</span><span class="pVal">94%</span></div>
+              <div class="pBarWrap"><div class="pBar" style="width:94%"></div></div>
+              <div class="pLine" style="margin-top:12px"><span class="pName">Работы проверены в срок</span><span class="pVal">78%</span></div>
+              <div class="pBarWrap"><div class="pBar" style="width:78%"></div></div>
+              <div class="pSelf">показатели учреждения, не отдельных детей</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ——— ПРОДОЛЖИТЬ ——— -->
+        <div class="slot sContinue" data-r="pupil cadet">
+          <div class="slotHead"><span class="slotTitle">Продолжить</span></div>
+          <div data-r="pupil">
+            <div class="row noTime"><span><span class="rName">Экзопланеты · конспект урока 11</span>
+              <div class="rSub">Остановилась на транзитном методе</div></span><span class="rTag">вчера</span></div>
+            <div class="row noTime"><span><span class="rName">NASA Exoplanet Archive</span>
+              <div class="rSub">Сохранено из урока · есть твоя заметка</div></span><span class="rTag">мои материалы</span></div>
+          </div>
+          <div data-r="cadet">
+            <div class="row noTime"><span><span class="rName">Unit 4 · аудирование</span>
+              <div class="rSub">Прервано на 3-м задании из 6</div></span><span class="rTag">вчера</span></div>
+            <div class="row noTime"><span><span class="rName">Tatoeba · фразы про дорогу</span>
+              <div class="rSub">Сохранено в мои материалы</div></span><span class="rTag">мои материалы</span></div>
+          </div>
+        </div>
+
+        <!-- ——— БЫСТРЫЕ ВХОДЫ ——— -->
+        <div class="slot plain sQuick">
+          <div class="quick">
+            <button class="qi" data-r="pupil"><span class="qiName">Мои предметы</span><span class="qiSub">3 предмета</span></button>
+            <button class="qi" data-r="cadet"><span class="qiName">Мои курсы</span><span class="qiSub">2 курса</span></button>
+            <button class="qi" data-r="teacher"><span class="qiName">Мои группы</span><span class="qiSub">4 группы</span></button>
+            <button class="qi" data-r="parent"><span class="qiName">Мои дети</span><span class="qiSub">Аня, 9 класс</span></button>
+            <button class="qi" data-r="admin"><span class="qiName">Учителя и группы</span><span class="qiSub">28 · 19</span></button>
+
+            <button class="qi" data-r="teacher"><span class="qiName">Очередь проверки</span><span class="qiSub">11 работ</span></button>
+            <button class="qi" data-r="admin"><span class="qiName">Документы и согласия</span><span class="qiSub">4 не подписаны</span></button>
+
+            <button class="qi" data-r="pupil cadet teacher"><span class="qiName">Источники мира</span><span class="qiSub">библиотеки · музеи · эфир</span></button>
+            <button class="qi" data-r="pupil cadet"><span class="qiName">Добавленные материалы</span><span class="qiSub">23 материала</span></button>
+            <button class="qi" data-r="pupil cadet teacher parent admin"><span class="qiName">Чат</span><span class="qiSub">3 непрочитанных</span></button>
+            <button class="qi" data-r="pupil cadet teacher parent admin"><span class="qiName">Расписание</span><span class="qiSub">на неделю</span></button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ——— ЗАМЕТКИ ——— -->
+  <div class="notes">
+    <h2>Что здесь решено и что решаешь ты</h2>
+
+    <h3>Принцип</h3>
+    <p>Каркас стартовой страницы <b>один для всех ролей</b> — шесть слотов в одном и том же порядке смысла:
+    <b>сейчас → сегодня → требует внимания → чат → прогресс → быстрые входы</b>. Роль не меняет структуру,
+    она меняет содержимое слота. Поэтому человек, сменивший роль (учитель, который ещё и родитель), не переучивается.</p>
+
+    <h3>Роли</h3>
+    <ul>
+      <li><b>Ученик</b> — учится в учреждении: класс, расписание, учитель, дедлайны заданы извне.</li>
+      <li><b>Курсант</b> — учится сам: курсы, свой темп, серия, очередь повторения. Времени в расписании нет — есть «что дальше».</li>
+      <li><b>Учитель</b> — ведёт занятия и проверяет; очередь проверки и вопросы учеников — на первом экране.</li>
+      <li><b>Родитель</b> — видит расписание, сроки и сообщения учителя. <b>Никаких метрик внимания SEduM.</b></li>
+      <li><b>Админ УЗ</b> — состояние учреждения; никогда не видит отдельного ребёнка «в разрезе эффективности».</li>
+    </ul>
+
+    <h3>Три варианта — чем отличаются</h3>
+    <ul>
+      <li><b>A · лента дня</b> — одна колонка по центру, строгая хронология. Самый спокойный и самый понятный ребёнку; хуже всего показывает много всего сразу.</li>
+      <li><b>B · действие + рельс</b> — слева то, что делаешь, справа рельс: чат, сроки, прогресс. Плотнее, взрослее; хорошо для учителя и админа.</li>
+      <li><b>C · модули</b> — сетка карточек. Больше всего влезает, потом можно дать пользователю переставлять; но требует дисциплины, иначе превращается в приборную панель.</li>
+    </ul>
+
+    <h3>Чат (требование №13 — зафиксировано)</h3>
+    <ul>
+      <li>Три канала: <b>класс × предмет</b> · <b>ученик ↔ учитель</b> · <b>чат урока</b> (эфемерный).</li>
+      <li><b>Ученик ↔ ученик отключён</b> — решение владельца 12.08.2026. Только учебные каналы.</li>
+      <li>Вход в чат — в шапке и в быстрых входах; непрочитанное дублируется на предмете.</li>
+      <li>«Поделиться» из источников кладёт в эти же каналы <b>ссылку</b>, не копию материала.</li>
+    </ul>
+
+    <h3>Вопросы к тебе</h3>
+    <div class="q"><p>1. Какой вариант берём контрактом — A, B или C? Можно разный по ролям (например A ученику, B учителю), но это дороже в поддержке.</p></div>
+    <div class="q"><p>2. «Курсант» — это отдельная роль в системе или тот же ученик, просто без учреждения? От ответа зависит модель данных.</p></div>
+    <div class="q"><p>3. Родителю показывать блок «Прогресс» вообще? Сейчас он есть и намеренно обезличен — только динамика самого ребёнка.</p></div>
+  </div>
+</div>
+
+<script>
+const scr=document.getElementById('scr');
+document.querySelectorAll('.bar button[data-var]').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('.bar button[data-var]').forEach(x=>x.setAttribute('aria-pressed','false'));
+  b.setAttribute('aria-pressed','true');scr.dataset.var=b.dataset.var;
+}));
+document.querySelectorAll('.bar button[data-role]').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('.bar button[data-role]').forEach(x=>x.setAttribute('aria-pressed','false'));
+  b.setAttribute('aria-pressed','true');scr.dataset.role=b.dataset.role;
+}));
+document.getElementById('thm').addEventListener('click',e=>{
+  const d=document.documentElement.dataset.theme==='dark';
+  document.documentElement.dataset.theme=d?'':'dark';
+  e.target.textContent=d?'тёмная':'светлая';
+});
+</script>
+</body>
+</html>
