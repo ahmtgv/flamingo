@@ -1,7 +1,7 @@
 import { execute, gql } from '@apollo/client';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { PROFILE_IDS, resetDemoStore } from './demoData';
+import { IDS, PROFILE_IDS, resetDemoStore } from './demoData';
 import { demoLink } from './demoLink';
 import { resolveDemoOperation } from './resolveDemoOperation';
 
@@ -35,7 +35,9 @@ describe('resolveDemoOperation — Me is the role linchpin', () => {
 
   it('parent Me carries a non-empty children roster', () => {
     setRole('parent');
-    const data = resolveDemoOperation('Me', {}) as { me?: { parentProfile?: { children?: unknown[] } } };
+    const data = resolveDemoOperation('Me', {}) as {
+      me?: { parentProfile?: { children?: unknown[] } };
+    };
     expect(data.me?.parentProfile?.children?.length).toBeGreaterThan(0);
   });
 });
@@ -77,19 +79,23 @@ describe('resolveDemoOperation — screens render their populated (non-empty) st
 describe('resolveDemoOperation — mutations succeed and update the store optimistically', () => {
   it('AddChild appends to the parent roster that Me then reflects', () => {
     setRole('parent');
-    const before = (resolveDemoOperation('Me', {}) as { me: { parentProfile: { children: unknown[] } } }).me
-      .parentProfile.children.length;
+    const before = (
+      resolveDemoOperation('Me', {}) as { me: { parentProfile: { children: unknown[] } } }
+    ).me.parentProfile.children.length;
     const res = resolveDemoOperation('AddChild', {
       input: { firstName: 'Кира', lastName: 'Иванова', consent152fz: true, gradeLevel: '2 класс' },
     }) as { addChild: { child: { firstName: string } } };
     expect(res.addChild.child.firstName).toBe('Кира');
-    const after = (resolveDemoOperation('Me', {}) as { me: { parentProfile: { children: unknown[] } } }).me
-      .parentProfile.children.length;
+    const after = (
+      resolveDemoOperation('Me', {}) as { me: { parentProfile: { children: unknown[] } } }
+    ).me.parentProfile.children.length;
     expect(after).toBe(before + 1);
   });
 
   it('ReportAttention is a no-op success (no biometrics leave the device)', () => {
-    expect(resolveDemoOperation('ReportAttention', { input: {} })).toEqual({ reportAttention: true });
+    expect(resolveDemoOperation('ReportAttention', { input: {} })).toEqual({
+      reportAttention: true,
+    });
   });
 });
 
@@ -100,7 +106,16 @@ describe('demoLink — terminates in the browser with ZERO network', () => {
     vi.useFakeTimers();
 
     let result: { data?: { me?: { id?: string } } } | undefined;
-    execute(demoLink, { query: gql`query Me { me { id role } }` }).subscribe((r) => {
+    execute(demoLink, {
+      query: gql`
+        query Me {
+          me {
+            id
+            role
+          }
+        }
+      `,
+    }).subscribe((r) => {
       result = r as typeof result;
     });
     await vi.advanceTimersByTimeAsync(100);
@@ -113,11 +128,17 @@ describe('demoLink — terminates in the browser with ZERO network', () => {
     vi.useFakeTimers();
     const seen: number[] = [];
     const sub = execute(demoLink, {
-      query: gql`subscription AttentionUpdates($sessionId: ID!) { attentionUpdates { avgAttention } }`,
+      query: gql`
+        subscription AttentionUpdates($sessionId: ID!) {
+          attentionUpdates {
+            avgAttention
+          }
+        }
+      `,
       variables: { sessionId: 'ses-algebra-live' },
     }).subscribe((r) => {
-      const v = (r as { data?: { attentionUpdates?: { avgAttention?: number } } }).data?.attentionUpdates
-        ?.avgAttention;
+      const v = (r as { data?: { attentionUpdates?: { avgAttention?: number } } }).data
+        ?.attentionUpdates?.avgAttention;
       if (typeof v === 'number') seen.push(v);
     });
 
@@ -207,8 +228,18 @@ describe('resolveDemoOperation — start page (R0.4)', () => {
     // The document asks for the widest set on `now`; a row reused in `today`/`attention`
     // must satisfy it too, or the preview logs "missing field" for each render.
     const required = [
-      'id', 'kind', 'title', 'courseTitle', 'teacherName', 'at',
-      'count', 'ageDays', 'sessionId', 'lessonId', 'courseId', 'isLive',
+      'id',
+      'kind',
+      'title',
+      'courseTitle',
+      'teacherName',
+      'at',
+      'count',
+      'ageDays',
+      'sessionId',
+      'lessonId',
+      'courseId',
+      'isLive',
     ];
     for (const role of ['student', 'teacher']) {
       setRole(role);
@@ -217,9 +248,7 @@ describe('resolveDemoOperation — start page (R0.4)', () => {
       };
       const rows = [data.startPage.now, ...data.startPage.today, ...data.startPage.attention];
       for (const row of rows.filter(Boolean) as Record<string, unknown>[]) {
-        expect(Object.keys(row).sort()).toEqual(
-          expect.arrayContaining(required.sort()),
-        );
+        expect(Object.keys(row).sort()).toEqual(expect.arrayContaining(required.sort()));
       }
     }
   });
@@ -233,5 +262,124 @@ describe('resolveDemoOperation — start page (R0.4)', () => {
     expect(data.now?.kind).toBe('CONTINUE_LESSON');
     // The week is empty rather than invented: spaced repetition arrives in R4.4.
     expect(data.week.every((d) => d.entries.length === 0)).toBe(true);
+  });
+});
+
+describe('resolveDemoOperation — subject cabinet (R1.1)', () => {
+  type Material = { id: string; savedId: string | null; note: string | null; title: string };
+  type Cabinet = {
+    title: string;
+    profileKind: string;
+    progressPct: number;
+    studentCount: number | null;
+    sections: { doneLessons: number; totalLessons: number; lessons: Record<string, unknown>[] }[];
+    materials: Material[];
+    savedMaterials: Material[];
+    sources: { inLesson: boolean; savedId: string | null; url: string | null }[];
+    nextLesson: { id: string } | null;
+  };
+  const cabinet = (courseId = IDS.course.algebra) =>
+    (resolveDemoOperation('SubjectCabinet', { courseId }) as { subjectCabinet: Cabinet })
+      .subjectCabinet;
+
+  it('every lesson carries the full SubjectLesson selection (else Apollo reports missing fields)', () => {
+    const required = [
+      'id',
+      'title',
+      'subtitle',
+      'progress',
+      'kind',
+      'deviceKey',
+      'orderLabel',
+      'materialCount',
+      'hasHomework',
+      'sessionId',
+      'sessionAt',
+      'isLive',
+      'grade',
+      'completedBy',
+      'groupSize',
+    ];
+    for (const role of ['student', 'teacher']) {
+      setRole(role);
+      const data = cabinet();
+      const rows = [...data.sections.flatMap((s) => s.lessons), data.nextLesson].filter(
+        Boolean,
+      ) as Record<string, unknown>[];
+      expect(rows.length).toBeGreaterThan(0);
+      for (const row of rows) {
+        expect(Object.keys(row).sort()).toEqual(expect.arrayContaining(required.sort()));
+      }
+    }
+  });
+
+  it('pupil: a programme with a lesson going on and one on an external device', () => {
+    setRole('student');
+    const data = cabinet();
+    expect(data.profileKind).toBe('PUPIL');
+    expect(data.sections[0].lessons.some((l) => l.progress === 'CURRENT')).toBe(true);
+    const device = data.sections[0].lessons.find((l) => l.kind === 'EXTERNAL_DEVICE');
+    expect(device?.deviceKey).toBe('microobservatory');
+  });
+
+  it('teacher: the same programme with group numbers, never a per-pupil list', () => {
+    setRole('teacher');
+    const data = cabinet();
+    expect(data.profileKind).toBe('TEACHER');
+    expect(data.studentCount).toBe(24);
+    const rows = data.sections.flatMap((s) => s.lessons);
+    expect(rows.some((l) => l.groupSize === 24)).toBe(true);
+    expect(rows.every((l) => !('students' in l))).toBe(true);
+  });
+
+  it('the kind comes from the course, the way the server derives it', () => {
+    // A course with an institution is a school subject; a standalone one is self-paced.
+    setRole('student');
+    expect(cabinet(IDS.course.algebra).profileKind).toBe('PUPIL');
+    expect(cabinet(IDS.course.english).profileKind).toBe('CADET');
+    expect(cabinet(IDS.course.english).title).toContain('English');
+    setRole('teacher');
+    expect(cabinet(IDS.course.english).profileKind).toBe('TEACHER');
+  });
+
+  it('the quiet corner moves a material into «мои сохранённые» and back', () => {
+    setRole('student');
+    const before = cabinet();
+    const target = before.materials[0];
+    expect(before.savedMaterials.some((m) => m.id === target.id)).toBe(false);
+
+    const saved = resolveDemoOperation('SaveItem', {
+      input: { courseId: IDS.course.algebra, materialId: target.id, note: 'для лабораторной' },
+    }) as { saveItem: { savedId: string } };
+
+    const after = cabinet();
+    const kept = after.savedMaterials.find((m) => m.id === target.id);
+    expect(kept?.savedId).toBe(saved.saveItem.savedId);
+    expect(kept?.note).toBe('для лабораторной');
+    // The teacher block still holds it — the two blocks are views, not a move.
+    expect(after.materials.some((m) => m.id === target.id)).toBe(true);
+
+    resolveDemoOperation('RemoveSavedItem', { id: saved.saveItem.savedId });
+    expect(cabinet().savedMaterials.some((m) => m.id === target.id)).toBe(false);
+  });
+
+  it('a source kept from the rail keeps only a link, and shows up as a personal find', () => {
+    setRole('student');
+    const src = cabinet().sources[0];
+    resolveDemoOperation('SaveItem', {
+      input: { courseId: IDS.course.algebra, title: src.url, url: src.url, sourceName: 'NASA' },
+    });
+
+    const after = cabinet();
+    expect(after.sources[0].savedId).not.toBeNull();
+    const kept = after.savedMaterials.find((m) => m.title === src.url);
+    expect(kept).toBeDefined();
+  });
+
+  it('the rail splits sources into «в уроке» and recommendations, and invents neither', () => {
+    setRole('student');
+    const data = cabinet();
+    expect(data.sources.length).toBeGreaterThan(0);
+    expect(data.sources.every((s) => s.inLesson)).toBe(true);
   });
 });

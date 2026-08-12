@@ -1,0 +1,122 @@
+{
+  "back": {
+    "pupil": "← мои предметы",
+    "cadet": "← мои курсы",
+    "teacher": "← мои группы"
+  },
+  "head": {
+    "pupilMeta": "{{group}} · {{institution}} · {{teacher}}",
+    "pupilMetaNoGroup": "{{institution}} · {{teacher}}",
+    "cadetMeta": "Свой темп · с тобой преподаватель {{teacher}}",
+    "teacherMeta_one": "{{institution}} · {{count}} ученик",
+    "teacherMeta_few": "{{institution}} · {{count}} ученика",
+    "teacherMeta_many": "{{institution}} · {{count}} учеников",
+    "lessons_one": "{{count}} урок",
+    "lessons_few": "{{count}} урока",
+    "lessons_many": "{{count}} уроков",
+    "doneCap": "пройдено по программе",
+    "doneCapTeacher": "программа группы",
+    "progressLabel": "Прогресс по программе"
+  },
+  "tabs": {
+    "lessons": "Уроки",
+    "materials": "Материалы",
+    "tasks": "Задания",
+    "tasksTeacher": "На проверке",
+    "progress": "Мой прогресс",
+    "progressTeacher": "Усвоение темы",
+    "soon": "скоро"
+  },
+  "lessons": {
+    "ordinal": "Урок {{n}}",
+    "ofDone": "{{done}} из {{total}} пройдено",
+    "ahead": "впереди",
+    "enter": "Войти в урок",
+    "start": "Начать урок",
+    "resume": "Продолжить",
+    "openDevice": "Открыть прибор",
+    "done": "пройден",
+    "empty": "Программа появится, когда преподаватель добавит уроки",
+    "chip": {
+      "materials_one": "{{count}} материал",
+      "materials_few": "{{count}} материала",
+      "materials_many": "{{count}} материалов",
+      "homework": "задание",
+      "device": "внешний прибор",
+      "live": "идёт сейчас",
+      "at": "{{time}}"
+    },
+    "groupDone": "{{done}} из {{total}}",
+    "grade": "оценка {{value}}"
+  },
+  "materials": {
+    "fromTeacher": "От учителя и по программе",
+    "mine": "Что я сохранил по этому предмету",
+    "allMine": "все мои материалы →",
+    "emptyTeacher": "Материалов пока нет",
+    "emptyMine": "Здесь появится то, что вы сохраните — уголком «^» на любой карточке",
+    "type": {
+      "LINK": "ссылка",
+      "FILE": "файл",
+      "TEXT": "конспект"
+    },
+    "newTab": "Открывается в новой вкладке",
+    "savedFrom": "Сохранено из урока {{n}}",
+    "watchLater": "посмотреть позднее",
+    "myNote": "моя заметка"
+  },
+  "quiet": {
+    "open": "Действия",
+    "save": "В мои материалы",
+    "saveHint": "+ заметка",
+    "watchLater": "Посмотреть позднее",
+    "remove": "Убрать из моих",
+    "share": "Поделиться",
+    "shareHint": "ссылка",
+    "shareCopied": "Ссылка скопирована",
+    "shareSoon": "Отправка в чат появится вместе с чатом",
+    "notePlaceholder": "Зачем сохраняю",
+    "noteSave": "Сохранить",
+    "cancel": "Отмена"
+  },
+  "rail": {
+    "next": "Ближайшее действие",
+    "who": "Кто ведёт",
+    "whoTeacher": "Группа",
+    "sources": "Источники",
+    "allSources": "все →",
+    "inLesson": "в уроке · программа и учитель",
+    "recommended": "рекомендации по теме · не входит в урок",
+    "recommendedEmpty": "Появятся вместе с хабом источников",
+    "write": "Написать",
+    "openJournal": "Открыть журнал",
+    "nothingNext": "Ближайшего действия нет",
+    "students_one": "{{count}} ученик",
+    "students_few": "{{count}} ученика",
+    "students_many": "{{count}} учеников",
+    "courseTeacher": "преподаватель курса"
+  },
+  "device": {
+    "title": "Урок на внешнем приборе",
+    "body": "Этот урок выполняется на приборе: откроется его страница. Сейчас идёт подключение прибора — страница появится в следующей фазе.",
+    "key": "прибор: {{key}}",
+    "close": "Понятно"
+  },
+  "error": "Не получилось загрузить предмет. Проверьте подключение.",
+  "notFound": {
+    "title": "Предмет недоступен",
+    "body": "Возможно, вы не записаны на этот курс или ссылка устарела.",
+    "cta": "К моим предметам"
+  },
+  "when": {
+    "today": "сегодня {{time}}",
+    "yesterday": "вчера",
+    "date": "{{date}}"
+  },
+  "chat": {
+    "open": "Чат предмета",
+    "soonTitle": "Чат предмета появится в следующей фазе",
+    "soonBody": "Он останется окном, а не вкладкой — чтобы не отбирать внимание у учёбы.",
+    "close": "Закрыть"
+  }
+}

@@ -18,7 +18,15 @@ import { ICON_MD } from '@/shared/ui/iconSizes';
 
 import styles from './start.module.css';
 import { AccountMenu } from './AccountMenu';
-import { clock, countdown, dayNumber, daysUntil, headerStamp, weekday, weekRange } from './startFormat';
+import {
+  clock,
+  countdown,
+  dayNumber,
+  daysUntil,
+  headerStamp,
+  weekday,
+  weekRange,
+} from './startFormat';
 
 type Page = StartPageQuery['startPage'];
 /** The «требует внимания» rows ask for the widest StartEntry selection (count/ageDays). */
@@ -223,7 +231,13 @@ export function StartScreen() {
                 <p className={styles.empty}>{t('empty.progress')}</p>
               ) : (
                 page.progress.map((row) => (
-                  <div className={styles.progRow} key={row.courseId}>
+                  // This is where «мои предметы» leads (atlas sheet 01): the subject cabinet.
+                  <button
+                    type="button"
+                    className={styles.progRow}
+                    key={row.courseId}
+                    onClick={() => navigate(`/subjects/${row.courseId}`)}
+                  >
                     <div className={styles.progName}>{row.courseTitle}</div>
                     <div className={styles.progMeta}>
                       <span>
@@ -241,7 +255,7 @@ export function StartScreen() {
                     >
                       <i style={{ width: `${row.progressPct}%` }} />
                     </div>
-                  </div>
+                  </button>
                 ))
               )}
             </section>
@@ -251,7 +265,11 @@ export function StartScreen() {
                 <span className={styles.slotTitle}>{t('slots.quick')}</span>
               </div>
               <div className={styles.quick}>
-                <button type="button" className={styles.quickBtn} onClick={() => navigate('/courses')}>
+                <button
+                  type="button"
+                  className={styles.quickBtn}
+                  onClick={() => navigate('/courses')}
+                >
                   {t('quick.courses')}
                 </button>
                 <button
@@ -290,7 +308,12 @@ export function StartScreen() {
         <div className={styles.chatStub} role="dialog" aria-label={t('nav.chat')}>
           <div className={styles.chatStubTitle}>{t('nav.chatSoonTitle')}</div>
           <p className={styles.chatStubBody}>{t('nav.chatSoonBody')}</p>
-          <Button variant="secondary" size="sm" icon={<X size={16} />} onClick={() => setChatOpen(false)}>
+          <Button
+            variant="secondary"
+            size="sm"
+            icon={<X size={16} />}
+            onClick={() => setChatOpen(false)}
+          >
             {t('nav.close')}
           </Button>
         </div>
@@ -346,11 +369,7 @@ function NowSlot({
       </span>
       <div className={styles.nowTitle}>{entry.title}</div>
       <div className={styles.nowMeta}>
-        {[
-          entry.at && isLesson ? clock(entry.at) : null,
-          entry.courseTitle,
-          entry.teacherName,
-        ]
+        {[entry.at && isLesson ? clock(entry.at) : null, entry.courseTitle, entry.teacherName]
           .filter(Boolean)
           .join(' · ')}
       </div>
@@ -475,7 +494,9 @@ function WeekStrip({ week, isCadet }: { week: Page['week']; isCadet: boolean }) 
               </span>
             ))}
             {day.entries.length > 3 && (
-              <span className={styles.dMore}>{t('week.more', { count: day.entries.length - 3 })}</span>
+              <span className={styles.dMore}>
+                {t('week.more', { count: day.entries.length - 3 })}
+              </span>
             )}
             {day.entries.length === 0 && <span className={styles.dMore}>{t('week.free')}</span>}
           </div>

@@ -1,0 +1,104 @@
+# Subject cabinet (atlas sheet 01). Fragment-free; data only — the screen words
+# "6 из 8 пройдено" and the lesson chips from `progress`/`kind` through i18n.
+
+query SubjectCabinet($courseId: ID!) {
+  subjectCabinet(courseId: $courseId) {
+    courseId
+    title
+    profileKind
+    institutionName
+    groupName
+    teacherName
+    teacherId
+    lessonCount
+    studentCount
+    progressPct
+    sections {
+      id
+      title
+      doneLessons
+      totalLessons
+      lessons {
+        id
+        title
+        subtitle
+        progress
+        kind
+        deviceKey
+        orderLabel
+        materialCount
+        hasHomework
+        sessionId
+        sessionAt
+        isLive
+        grade
+        completedBy
+        groupSize
+      }
+    }
+    materials {
+      id
+      title
+      subtitle
+      type
+      url
+      fromLabel
+      lessonId
+      savedId
+      note
+      savedKind
+    }
+    savedMaterials {
+      id
+      title
+      subtitle
+      type
+      url
+      fromLabel
+      lessonId
+      savedId
+      note
+      savedKind
+    }
+    sources {
+      id
+      name
+      sourceName
+      url
+      note
+      inLesson
+      savedId
+    }
+    nextLesson {
+      id
+      title
+      subtitle
+      progress
+      kind
+      deviceKey
+      orderLabel
+      materialCount
+      hasHomework
+      sessionId
+      sessionAt
+      isLive
+      grade
+      completedBy
+      groupSize
+    }
+  }
+}
+
+mutation SaveItem($input: SaveItemInput!) {
+  saveItem(input: $input) {
+    id
+    title
+    savedId
+    note
+    savedKind
+  }
+}
+
+mutation RemoveSavedItem($id: ID!) {
+  removeSavedItem(id: $id)
+}

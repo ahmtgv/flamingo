@@ -523,8 +523,28 @@
 }
 
 /* --- progress -------------------------------------------------------------- */
+.progRow {
+  display: block;
+  width: 100%;
+  padding: var(--space-2);
+  margin-inline: calc(var(--space-2) * -1);
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: inherit;
+  font-family: var(--font-body);
+  text-align: left;
+  cursor: pointer;
+}
+.progRow:hover {
+  background: var(--color-surface-subtle);
+}
+.progRow:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
 .progRow + .progRow {
-  margin-top: var(--space-3);
+  margin-top: var(--space-1);
 }
 .progName {
   font-size: var(--text-small);

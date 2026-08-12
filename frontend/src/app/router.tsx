@@ -20,6 +20,7 @@ import {
 import { LiveRoomScreen } from '@/features/lesson';
 import { ScheduleScreen } from '@/features/schedule';
 import { StartScreen } from '@/features/start';
+import { SubjectScreen } from '@/features/subject';
 import { useSession } from '@/shared/hooks/useSession';
 
 import styles from './app.module.css';
@@ -126,6 +127,14 @@ export function AppRouter() {
           element={
             <ProtectedRoute>
               <CourseDetailScreen />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/subjects/:courseId"
+          element={
+            <ProtectedRoute>
+              <SubjectScreen />
             </ProtectedRoute>
           }
         />

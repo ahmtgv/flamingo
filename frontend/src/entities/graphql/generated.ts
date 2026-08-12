@@ -447,6 +447,10 @@ export type LessonInput = {
   title: Scalars['String']['input'];
 };
 
+export type LessonKind =
+  | 'EXTERNAL_DEVICE'
+  | 'STANDARD';
+
 export type LessonOptions = {
   __typename?: 'LessonOptions';
   camera: Scalars['Boolean']['output'];
@@ -461,6 +465,11 @@ export type LessonOptionsInput = {
   homework?: InputMaybe<Scalars['Boolean']['input']>;
   screen?: InputMaybe<Scalars['Boolean']['input']>;
 };
+
+export type LessonProgress =
+  | 'AHEAD'
+  | 'CURRENT'
+  | 'DONE';
 
 export type LessonSession = {
   __typename?: 'LessonSession';
@@ -556,6 +565,7 @@ export type Mutation = {
   refreshToken: AuthPayload;
   registerUser: AuthPayload;
   removeMember: Scalars['Boolean']['output'];
+  removeSavedItem: Scalars['Boolean']['output'];
   removeStudentFromGroup: Group;
   reorderLessons: Array<Lesson>;
   reorderSections: Array<Section>;
@@ -564,6 +574,7 @@ export type Mutation = {
   requestUpload: UploadTicket;
   resetPassword: Scalars['Boolean']['output'];
   respondGuardianship: Guardianship;
+  saveItem: SubjectMaterial;
   scheduleSession: LessonSession;
   sendChatMessage: ChatMessage;
   setActiveLearningProfile: LearningProfile;
@@ -771,6 +782,11 @@ export type MutationRemoveMemberArgs = {
 };
 
 
+export type MutationRemoveSavedItemArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
 export type MutationRemoveStudentFromGroupArgs = {
   groupId: Scalars['ID']['input'];
   studentId: Scalars['ID']['input'];
@@ -813,6 +829,11 @@ export type MutationResetPasswordArgs = {
 export type MutationRespondGuardianshipArgs = {
   accept: Scalars['Boolean']['input'];
   id: Scalars['ID']['input'];
+};
+
+
+export type MutationSaveItemArgs = {
+  input: SaveItemInput;
 };
 
 
@@ -1031,6 +1052,7 @@ export type Query = {
   me?: Maybe<User>;
   myAchievements: Array<UserAchievement>;
   myCourses: Array<Course>;
+  mySavedItems: Array<SubjectMaterial>;
   mySchedule: Array<LessonSession>;
   mySubmissions: Array<Submission>;
   notificationPreferences: Array<NotificationPreference>;
@@ -1042,6 +1064,7 @@ export type Query = {
   sessionAttention: AttentionSummary;
   startPage: StartPage;
   studentDashboard: StudentDashboard;
+  subjectCabinet: SubjectCabinet;
   teacher?: Maybe<TeacherProfile>;
   teacherDashboard: TeacherDashboard;
   teacherReviews: Array<Review>;
@@ -1126,6 +1149,11 @@ export type QueryLessonHomeworkArgs = {
 };
 
 
+export type QueryMySavedItemsArgs = {
+  courseId?: InputMaybe<Scalars['ID']['input']>;
+};
+
+
 export type QueryMyScheduleArgs = {
   from: Scalars['DateTime']['input'];
   to: Scalars['DateTime']['input'];
@@ -1156,6 +1184,11 @@ export type QuerySessionArgs = {
 
 export type QuerySessionAttentionArgs = {
   sessionId: Scalars['ID']['input'];
+};
+
+
+export type QuerySubjectCabinetArgs = {
+  courseId: Scalars['ID']['input'];
 };
 
 
@@ -1222,6 +1255,21 @@ export type Role =
   | 'PARENT'
   | 'STUDENT'
   | 'TEACHER';
+
+export type SaveItemInput = {
+  courseId?: InputMaybe<Scalars['ID']['input']>;
+  kind?: InputMaybe<SavedItemKind>;
+  lessonId?: InputMaybe<Scalars['ID']['input']>;
+  materialId?: InputMaybe<Scalars['ID']['input']>;
+  note?: InputMaybe<Scalars['String']['input']>;
+  sourceName?: InputMaybe<Scalars['String']['input']>;
+  title?: InputMaybe<Scalars['String']['input']>;
+  url?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type SavedItemKind =
+  | 'SAVED'
+  | 'WATCH_LATER';
 
 export type ScheduleSessionInput = {
   groupId?: InputMaybe<Scalars['ID']['input']>;
@@ -1344,6 +1392,78 @@ export type SubjectAttention = {
   __typename?: 'SubjectAttention';
   averageAttention: Scalars['Int']['output'];
   subject: Scalars['String']['output'];
+};
+
+export type SubjectCabinet = {
+  __typename?: 'SubjectCabinet';
+  courseId: Scalars['ID']['output'];
+  groupName?: Maybe<Scalars['String']['output']>;
+  institutionName?: Maybe<Scalars['String']['output']>;
+  lessonCount: Scalars['Int']['output'];
+  materials: Array<SubjectMaterial>;
+  nextLesson?: Maybe<SubjectLesson>;
+  profileKind: LearningProfileKind;
+  progressPct: Scalars['Int']['output'];
+  savedMaterials: Array<SubjectMaterial>;
+  sections: Array<SubjectSection>;
+  sources: Array<SubjectSource>;
+  studentCount?: Maybe<Scalars['Int']['output']>;
+  teacherId?: Maybe<Scalars['ID']['output']>;
+  teacherName?: Maybe<Scalars['String']['output']>;
+  title: Scalars['String']['output'];
+};
+
+export type SubjectLesson = {
+  __typename?: 'SubjectLesson';
+  completedBy?: Maybe<Scalars['Int']['output']>;
+  deviceKey?: Maybe<Scalars['String']['output']>;
+  grade?: Maybe<Scalars['Int']['output']>;
+  groupSize?: Maybe<Scalars['Int']['output']>;
+  hasHomework: Scalars['Boolean']['output'];
+  id: Scalars['ID']['output'];
+  isLive: Scalars['Boolean']['output'];
+  kind: LessonKind;
+  materialCount: Scalars['Int']['output'];
+  orderLabel: Scalars['String']['output'];
+  progress: LessonProgress;
+  sessionAt?: Maybe<Scalars['DateTime']['output']>;
+  sessionId?: Maybe<Scalars['ID']['output']>;
+  subtitle?: Maybe<Scalars['String']['output']>;
+  title: Scalars['String']['output'];
+};
+
+export type SubjectMaterial = {
+  __typename?: 'SubjectMaterial';
+  fromLabel?: Maybe<Scalars['String']['output']>;
+  id: Scalars['ID']['output'];
+  lessonId?: Maybe<Scalars['ID']['output']>;
+  note?: Maybe<Scalars['String']['output']>;
+  savedId?: Maybe<Scalars['ID']['output']>;
+  savedKind?: Maybe<SavedItemKind>;
+  subtitle?: Maybe<Scalars['String']['output']>;
+  title: Scalars['String']['output'];
+  type?: Maybe<MaterialType>;
+  url?: Maybe<Scalars['String']['output']>;
+};
+
+export type SubjectSection = {
+  __typename?: 'SubjectSection';
+  doneLessons: Scalars['Int']['output'];
+  id: Scalars['ID']['output'];
+  lessons: Array<SubjectLesson>;
+  title: Scalars['String']['output'];
+  totalLessons: Scalars['Int']['output'];
+};
+
+export type SubjectSource = {
+  __typename?: 'SubjectSource';
+  id: Scalars['ID']['output'];
+  inLesson: Scalars['Boolean']['output'];
+  name: Scalars['String']['output'];
+  note?: Maybe<Scalars['String']['output']>;
+  savedId?: Maybe<Scalars['ID']['output']>;
+  sourceName?: Maybe<Scalars['String']['output']>;
+  url?: Maybe<Scalars['String']['output']>;
 };
 
 export type Submission = {
@@ -1958,6 +2078,27 @@ export type StartPageQueryVariables = Exact<{ [key: string]: never; }>;
 
 
 export type StartPageQuery = { __typename?: 'Query', startPage: { __typename?: 'StartPage', profile?: { __typename?: 'LearningProfile', id: string, kind: LearningProfileKind, institutionName?: string | null, groupName?: string | null, courseTitle?: string | null, courseCount: number } | null, now?: { __typename?: 'StartEntry', id: string, kind: StartEntryKind, title: string, courseTitle?: string | null, teacherName?: string | null, at?: string | null, count?: number | null, ageDays?: number | null, sessionId?: string | null, lessonId?: string | null, courseId?: string | null, isLive: boolean } | null, today: Array<{ __typename?: 'StartEntry', id: string, kind: StartEntryKind, title: string, courseTitle?: string | null, teacherName?: string | null, at?: string | null, isLive: boolean, sessionId?: string | null, lessonId?: string | null }>, attention: Array<{ __typename?: 'StartEntry', id: string, kind: StartEntryKind, title: string, courseTitle?: string | null, at?: string | null, count?: number | null, ageDays?: number | null, lessonId?: string | null }>, week: Array<{ __typename?: 'StartDay', date: any, isToday: boolean, entries: Array<{ __typename?: 'StartEntry', id: string, kind: StartEntryKind, title: string, at?: string | null, isLive: boolean }> }>, continueEntries: Array<{ __typename?: 'StartEntry', id: string, kind: StartEntryKind, title: string, courseTitle?: string | null, lessonId?: string | null, courseId?: string | null }>, progress: Array<{ __typename?: 'StartProgress', courseId: string, courseTitle: string, doneLessons: number, totalLessons: number, progressPct: number }> } };
+
+export type SubjectCabinetQueryVariables = Exact<{
+  courseId: Scalars['ID']['input'];
+}>;
+
+
+export type SubjectCabinetQuery = { __typename?: 'Query', subjectCabinet: { __typename?: 'SubjectCabinet', courseId: string, title: string, profileKind: LearningProfileKind, institutionName?: string | null, groupName?: string | null, teacherName?: string | null, teacherId?: string | null, lessonCount: number, studentCount?: number | null, progressPct: number, sections: Array<{ __typename?: 'SubjectSection', id: string, title: string, doneLessons: number, totalLessons: number, lessons: Array<{ __typename?: 'SubjectLesson', id: string, title: string, subtitle?: string | null, progress: LessonProgress, kind: LessonKind, deviceKey?: string | null, orderLabel: string, materialCount: number, hasHomework: boolean, sessionId?: string | null, sessionAt?: string | null, isLive: boolean, grade?: number | null, completedBy?: number | null, groupSize?: number | null }> }>, materials: Array<{ __typename?: 'SubjectMaterial', id: string, title: string, subtitle?: string | null, type?: MaterialType | null, url?: string | null, fromLabel?: string | null, lessonId?: string | null, savedId?: string | null, note?: string | null, savedKind?: SavedItemKind | null }>, savedMaterials: Array<{ __typename?: 'SubjectMaterial', id: string, title: string, subtitle?: string | null, type?: MaterialType | null, url?: string | null, fromLabel?: string | null, lessonId?: string | null, savedId?: string | null, note?: string | null, savedKind?: SavedItemKind | null }>, sources: Array<{ __typename?: 'SubjectSource', id: string, name: string, sourceName?: string | null, url?: string | null, note?: string | null, inLesson: boolean, savedId?: string | null }>, nextLesson?: { __typename?: 'SubjectLesson', id: string, title: string, subtitle?: string | null, progress: LessonProgress, kind: LessonKind, deviceKey?: string | null, orderLabel: string, materialCount: number, hasHomework: boolean, sessionId?: string | null, sessionAt?: string | null, isLive: boolean, grade?: number | null, completedBy?: number | null, groupSize?: number | null } | null } };
+
+export type SaveItemMutationVariables = Exact<{
+  input: SaveItemInput;
+}>;
+
+
+export type SaveItemMutation = { __typename?: 'Mutation', saveItem: { __typename?: 'SubjectMaterial', id: string, title: string, savedId?: string | null, note?: string | null, savedKind?: SavedItemKind | null } };
+
+export type RemoveSavedItemMutationVariables = Exact<{
+  id: Scalars['ID']['input'];
+}>;
+
+
+export type RemoveSavedItemMutation = { __typename?: 'Mutation', removeSavedItem: boolean };
 
 export type RequestUploadMutationVariables = Exact<{
   input: UploadRequestInput;
@@ -4683,6 +4824,199 @@ export type StartPageQueryHookResult = ReturnType<typeof useStartPageQuery>;
 export type StartPageLazyQueryHookResult = ReturnType<typeof useStartPageLazyQuery>;
 export type StartPageSuspenseQueryHookResult = ReturnType<typeof useStartPageSuspenseQuery>;
 export type StartPageQueryResult = Apollo.QueryResult<StartPageQuery, StartPageQueryVariables>;
+export const SubjectCabinetDocument = gql`
+    query SubjectCabinet($courseId: ID!) {
+  subjectCabinet(courseId: $courseId) {
+    courseId
+    title
+    profileKind
+    institutionName
+    groupName
+    teacherName
+    teacherId
+    lessonCount
+    studentCount
+    progressPct
+    sections {
+      id
+      title
+      doneLessons
+      totalLessons
+      lessons {
+        id
+        title
+        subtitle
+        progress
+        kind
+        deviceKey
+        orderLabel
+        materialCount
+        hasHomework
+        sessionId
+        sessionAt
+        isLive
+        grade
+        completedBy
+        groupSize
+      }
+    }
+    materials {
+      id
+      title
+      subtitle
+      type
+      url
+      fromLabel
+      lessonId
+      savedId
+      note
+      savedKind
+    }
+    savedMaterials {
+      id
+      title
+      subtitle
+      type
+      url
+      fromLabel
+      lessonId
+      savedId
+      note
+      savedKind
+    }
+    sources {
+      id
+      name
+      sourceName
+      url
+      note
+      inLesson
+      savedId
+    }
+    nextLesson {
+      id
+      title
+      subtitle
+      progress
+      kind
+      deviceKey
+      orderLabel
+      materialCount
+      hasHomework
+      sessionId
+      sessionAt
+      isLive
+      grade
+      completedBy
+      groupSize
+    }
+  }
+}
+    `;
+
+/**
+ * __useSubjectCabinetQuery__
+ *
+ * To run a query within a React component, call `useSubjectCabinetQuery` and pass it any options that fit your needs.
+ * When your component renders, `useSubjectCabinetQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useSubjectCabinetQuery({
+ *   variables: {
+ *      courseId: // value for 'courseId'
+ *   },
+ * });
+ */
+export function useSubjectCabinetQuery(baseOptions: Apollo.QueryHookOptions<SubjectCabinetQuery, SubjectCabinetQueryVariables> & ({ variables: SubjectCabinetQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<SubjectCabinetQuery, SubjectCabinetQueryVariables>(SubjectCabinetDocument, options);
+      }
+export function useSubjectCabinetLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<SubjectCabinetQuery, SubjectCabinetQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<SubjectCabinetQuery, SubjectCabinetQueryVariables>(SubjectCabinetDocument, options);
+        }
+// @ts-ignore
+export function useSubjectCabinetSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<SubjectCabinetQuery, SubjectCabinetQueryVariables>): Apollo.UseSuspenseQueryResult<SubjectCabinetQuery, SubjectCabinetQueryVariables>;
+export function useSubjectCabinetSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<SubjectCabinetQuery, SubjectCabinetQueryVariables>): Apollo.UseSuspenseQueryResult<SubjectCabinetQuery | undefined, SubjectCabinetQueryVariables>;
+export function useSubjectCabinetSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<SubjectCabinetQuery, SubjectCabinetQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<SubjectCabinetQuery, SubjectCabinetQueryVariables>(SubjectCabinetDocument, options);
+        }
+export type SubjectCabinetQueryHookResult = ReturnType<typeof useSubjectCabinetQuery>;
+export type SubjectCabinetLazyQueryHookResult = ReturnType<typeof useSubjectCabinetLazyQuery>;
+export type SubjectCabinetSuspenseQueryHookResult = ReturnType<typeof useSubjectCabinetSuspenseQuery>;
+export type SubjectCabinetQueryResult = Apollo.QueryResult<SubjectCabinetQuery, SubjectCabinetQueryVariables>;
+export const SaveItemDocument = gql`
+    mutation SaveItem($input: SaveItemInput!) {
+  saveItem(input: $input) {
+    id
+    title
+    savedId
+    note
+    savedKind
+  }
+}
+    `;
+export type SaveItemMutationFn = Apollo.MutationFunction<SaveItemMutation, SaveItemMutationVariables>;
+
+/**
+ * __useSaveItemMutation__
+ *
+ * To run a mutation, you first call `useSaveItemMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useSaveItemMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [saveItemMutation, { data, loading, error }] = useSaveItemMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useSaveItemMutation(baseOptions?: Apollo.MutationHookOptions<SaveItemMutation, SaveItemMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<SaveItemMutation, SaveItemMutationVariables>(SaveItemDocument, options);
+      }
+export type SaveItemMutationHookResult = ReturnType<typeof useSaveItemMutation>;
+export type SaveItemMutationResult = Apollo.MutationResult<SaveItemMutation>;
+export type SaveItemMutationOptions = Apollo.BaseMutationOptions<SaveItemMutation, SaveItemMutationVariables>;
+export const RemoveSavedItemDocument = gql`
+    mutation RemoveSavedItem($id: ID!) {
+  removeSavedItem(id: $id)
+}
+    `;
+export type RemoveSavedItemMutationFn = Apollo.MutationFunction<RemoveSavedItemMutation, RemoveSavedItemMutationVariables>;
+
+/**
+ * __useRemoveSavedItemMutation__
+ *
+ * To run a mutation, you first call `useRemoveSavedItemMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useRemoveSavedItemMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [removeSavedItemMutation, { data, loading, error }] = useRemoveSavedItemMutation({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useRemoveSavedItemMutation(baseOptions?: Apollo.MutationHookOptions<RemoveSavedItemMutation, RemoveSavedItemMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<RemoveSavedItemMutation, RemoveSavedItemMutationVariables>(RemoveSavedItemDocument, options);
+      }
+export type RemoveSavedItemMutationHookResult = ReturnType<typeof useRemoveSavedItemMutation>;
+export type RemoveSavedItemMutationResult = Apollo.MutationResult<RemoveSavedItemMutation>;
+export type RemoveSavedItemMutationOptions = Apollo.BaseMutationOptions<RemoveSavedItemMutation, RemoveSavedItemMutationVariables>;
 export const RequestUploadDocument = gql`
     mutation RequestUpload($input: UploadRequestInput!) {
   requestUpload(input: $input) {

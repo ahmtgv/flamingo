@@ -195,7 +195,9 @@ describe('StartScreen — atlas sheet 00', () => {
       pageMock(page({ profile: activeCadet, now: null, today: [], week: week() })),
     ]);
 
-    expect(await screen.findByText('Расписания нет — занимайтесь когда удобно')).toBeInTheDocument();
+    expect(
+      await screen.findByText('Расписания нет — занимайтесь когда удобно'),
+    ).toBeInTheDocument();
     expect(screen.getByText(/Жёсткого расписания нет/)).toBeInTheDocument();
   });
 
@@ -293,5 +295,28 @@ describe('StartScreen — atlas sheet 00', () => {
     const bar = await screen.findByRole('progressbar', { name: 'Астрономия' });
     expect(bar).toHaveAttribute('aria-valuenow', '35');
     expect(screen.getByText('12/34 занятий')).toBeInTheDocument();
+  });
+
+  it('a progress row is the way into the subject cabinet (atlas sheet 01)', async () => {
+    render([
+      meMock(),
+      profilesMock(),
+      pageMock(
+        page({
+          progress: [
+            {
+              __typename: 'StartProgress',
+              courseId: 'c1',
+              courseTitle: 'Астрономия',
+              doneLessons: 12,
+              totalLessons: 34,
+              progressPct: 35,
+            },
+          ],
+        }),
+      ),
+    ]);
+
+    expect(await screen.findByRole('button', { name: /Астрономия/ })).toBeInTheDocument();
   });
 });
