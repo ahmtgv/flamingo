@@ -127,12 +127,14 @@ h1{font-size:1.4rem;font-weight:600;letter-spacing:-.015em}
 .screen[data-var="a"] .hi{justify-content:center;text-align:center}
 /* B — действие + рельс */
 .screen[data-var="b"] .grid{grid-template-columns:minmax(0,1fr) 296px;align-items:start}
-.screen[data-var="b"] .sNow,.screen[data-var="b"] .sToday,.screen[data-var="b"] .sContinue{grid-column:1}
-.screen[data-var="b"] .sAttn,.screen[data-var="b"] .sProg,.screen[data-var="b"] .sQuick{grid-column:2}
+.screen[data-var="b"] .sNow,.screen[data-var="b"] .sToday{grid-column:1}
+.screen[data-var="b"] .sWeek,.screen[data-var="b"] .pair{grid-column:1/-1}
+.screen[data-var="b"] .sAttn,.screen[data-var="b"] .sQuick{grid-column:2}
 /* C — модули */
 .screen[data-var="c"] .grid{grid-template-columns:repeat(3,minmax(0,1fr))}
 .screen[data-var="c"] .sNow{grid-column:1/-1}
 .screen[data-var="c"] .sQuick{grid-column:1/-1}
+.screen[data-var="c"] .sWeek,.screen[data-var="c"] .pair{grid-column:1/-1}
 @media (max-width:900px){.screen[data-var] .grid{grid-template-columns:minmax(0,1fr)!important}}
 
 /* ——— ПОКАЗ ПО РОЛЯМ ——— */
@@ -150,8 +152,8 @@ h1{font-size:1.4rem;font-weight:600;letter-spacing:-.015em}
 .screen[data-role="admin"] .slot[data-r~="admin"]{display:block}
 
 /* ——— НЕДЕЛЬНЫЙ ДНЕВНИК (полоса внизу) ——— */
-.week{border-top:1px solid var(--border);background:var(--surface);padding:14px 44px 18px;
-  position:sticky;bottom:0;z-index:6}
+.week{padding:16px 18px 18px}
+.pair{display:grid;grid-template-columns:repeat(auto-fit,minmax(272px,1fr));gap:16px;align-items:start}
 .weekHead{display:flex;align-items:baseline;gap:12px;margin-bottom:10px}
 .weekTitle{font:500 var(--fs-micro) var(--mono);color:var(--ter);letter-spacing:.09em;text-transform:uppercase}
 .weekNav{margin-left:auto;display:flex;gap:4px}
@@ -412,89 +414,9 @@ h1{font-size:1.4rem;font-weight:600;letter-spacing:-.015em}
           </div>
         </div>
 
-        <!-- ——— ПРОГРЕСС ——— -->
-        <div class="slot sProg">
-          <div class="slotHead"><span class="slotTitle">Прогресс</span></div>
-          <div class="prog">
-            <div data-r="pupil">
-              <div class="pLine"><span class="pName">Астрономия · тема «Экзопланеты»</span><span class="pVal">62%</span></div>
-              <div class="pBarWrap"><div class="pBar" style="width:62%"></div></div>
-              <div class="pLine" style="margin-top:12px"><span class="pName">Английский · A2</span><span class="pVal">48%</span></div>
-              <div class="pBarWrap"><div class="pBar" style="width:48%"></div></div>
-              <div class="pSelf">на прошлой неделе было 41% — ты вырос на 7</div>
-            </div>
-            <div data-r="cadet">
-              <div class="pLine"><span class="pName">English A2 · курс целиком</span><span class="pVal">34%</span></div>
-              <div class="pBarWrap"><div class="pBar" style="width:34%"></div></div>
-              <div class="pLine" style="margin-top:12px"><span class="pName">Слов в активной памяти</span><span class="pVal">418</span></div>
-              <div class="pBarWrap"><div class="pBar" style="width:56%"></div></div>
-              <div class="pSelf">серия 12 дней · твой рекорд 19</div>
-            </div>
-            <div data-r="teacher">
-              <div class="pLine"><span class="pName">9А · тема пройдена</span><span class="pVal">71%</span></div>
-              <div class="pBarWrap"><div class="pBar" style="width:71%"></div></div>
-              <div class="pLine" style="margin-top:12px"><span class="pName">7Б · Unit 4</span><span class="pVal">40%</span></div>
-              <div class="pBarWrap"><div class="pBar" style="width:40%"></div></div>
-              <div class="pSelf">усвоение по темам, не рейтинг учеников</div>
-            </div>
-            <div data-r="parent">
-              <div class="pLine"><span class="pName">Аня · астрономия</span><span class="pVal">62%</span></div>
-              <div class="pBarWrap"><div class="pBar" style="width:62%"></div></div>
-              <div class="pLine" style="margin-top:12px"><span class="pName">Аня · английский</span><span class="pVal">48%</span></div>
-              <div class="pBarWrap"><div class="pBar" style="width:48%"></div></div>
-              <div class="pSelf">сравнение только с её собственным прошлым результатом</div>
-            </div>
-            <div data-r="admin">
-              <div class="pLine"><span class="pName">Занятия проведены по плану</span><span class="pVal">94%</span></div>
-              <div class="pBarWrap"><div class="pBar" style="width:94%"></div></div>
-              <div class="pLine" style="margin-top:12px"><span class="pName">Работы проверены в срок</span><span class="pVal">78%</span></div>
-              <div class="pBarWrap"><div class="pBar" style="width:78%"></div></div>
-              <div class="pSelf">показатели учреждения, не отдельных детей</div>
-            </div>
-          </div>
-        </div>
 
-        <!-- ——— ПРОДОЛЖИТЬ ——— -->
-        <div class="slot sContinue" data-r="pupil cadet">
-          <div class="slotHead"><span class="slotTitle">Продолжить</span></div>
-          <div data-r="pupil">
-            <div class="row noTime"><span><span class="rName">Экзопланеты · конспект урока 11</span>
-              <div class="rSub">Остановилась на транзитном методе</div></span><span class="rTag">вчера</span></div>
-            <div class="row noTime"><span><span class="rName">NASA Exoplanet Archive</span>
-              <div class="rSub">Сохранено из урока · есть твоя заметка</div></span><span class="rTag">мои материалы</span></div>
-          </div>
-          <div data-r="cadet">
-            <div class="row noTime"><span><span class="rName">Unit 4 · аудирование</span>
-              <div class="rSub">Прервано на 3-м задании из 6</div></span><span class="rTag">вчера</span></div>
-            <div class="row noTime"><span><span class="rName">Tatoeba · фразы про дорогу</span>
-              <div class="rSub">Сохранено в мои материалы</div></span><span class="rTag">мои материалы</span></div>
-          </div>
-        </div>
-
-        <!-- ——— БЫСТРЫЕ ВХОДЫ ——— -->
-        <div class="slot plain sQuick">
-          <div class="quick">
-            <button class="qi" data-r="pupil"><span class="qiName">Мои предметы</span><span class="qiSub">3 предмета</span></button>
-            <button class="qi" data-r="cadet"><span class="qiName">Мои курсы</span><span class="qiSub">2 курса</span></button>
-            <button class="qi" data-r="teacher"><span class="qiName">Мои группы</span><span class="qiSub">4 группы</span></button>
-            <button class="qi" data-r="parent"><span class="qiName">Мои дети</span><span class="qiSub">Аня, 9 класс</span></button>
-            <button class="qi" data-r="admin"><span class="qiName">Учителя и группы</span><span class="qiSub">28 · 19</span></button>
-
-            <button class="qi" data-r="teacher"><span class="qiName">Очередь проверки</span><span class="qiSub">11 работ</span></button>
-            <button class="qi" data-r="admin"><span class="qiName">Документы и согласия</span><span class="qiSub">4 не подписаны</span></button>
-
-            <button class="qi" data-r="pupil cadet teacher"><span class="qiName">Источники мира</span><span class="qiSub">библиотеки · музеи · эфир</span></button>
-            <button class="qi" data-r="pupil cadet"><span class="qiName">Добавленные материалы</span><span class="qiSub">23 материала</span></button>
-            <button class="qi" data-r="pupil cadet teacher parent admin"><span class="qiName">Чат</span><span class="qiSub">3 непрочитанных</span></button>
-            <button class="qi" data-r="pupil cadet teacher parent admin"><span class="qiName">Расписание</span><span class="qiSub">на неделю</span></button>
-          </div>
-        </div>
-
-      </div>
-    </div>
-
-    <!-- ——— НЕДЕЛЬНЫЙ ДНЕВНИК: полоса внизу ——— -->
-    <div class="week">
+        <!-- ——— НЕДЕЛЬНЫЙ ДНЕВНИК: полоса на всю ширину ——— -->
+    <div class="slot week sWeek">
       <div class="weekHead">
         <span class="weekTitle">Неделя</span>
         <span class="hiDate">10 — 16 августа</span>
@@ -542,6 +464,89 @@ h1{font-size:1.4rem;font-weight:600;letter-spacing:-.015em}
 
       <div class="weekFoot" data-r="pupil teacher parent admin">точка коралловая — идёт сейчас или срок · тап по дню открывает дневник этого дня</div>
       <div class="weekFoot" data-r="cadet">жёсткого расписания нет — показано, сколько повторений подойдёт по интервалам</div>
+    </div>
+
+        <!-- ——— ПРОДОЛЖИТЬ + ПРОГРЕСС (рядом) ——— -->
+        <div class="pair">
+        <!-- ——— ПРОДОЛЖИТЬ ——— -->
+        <div class="slot sContinue" data-r="pupil cadet">
+          <div class="slotHead"><span class="slotTitle">Продолжить</span></div>
+          <div data-r="pupil">
+            <div class="row noTime"><span><span class="rName">Экзопланеты · конспект урока 11</span>
+              <div class="rSub">Остановилась на транзитном методе</div></span><span class="rTag">вчера</span></div>
+            <div class="row noTime"><span><span class="rName">NASA Exoplanet Archive</span>
+              <div class="rSub">Сохранено из урока · есть твоя заметка</div></span><span class="rTag">мои материалы</span></div>
+          </div>
+          <div data-r="cadet">
+            <div class="row noTime"><span><span class="rName">Unit 4 · аудирование</span>
+              <div class="rSub">Прервано на 3-м задании из 6</div></span><span class="rTag">вчера</span></div>
+            <div class="row noTime"><span><span class="rName">Tatoeba · фразы про дорогу</span>
+              <div class="rSub">Сохранено в мои материалы</div></span><span class="rTag">мои материалы</span></div>
+          </div>
+        </div>
+        <!-- ——— ПРОГРЕСС ——— -->
+        <div class="slot sProg">
+          <div class="slotHead"><span class="slotTitle">Прогресс</span></div>
+          <div class="prog">
+            <div data-r="pupil">
+              <div class="pLine"><span class="pName">Астрономия · тема «Экзопланеты»</span><span class="pVal">62%</span></div>
+              <div class="pBarWrap"><div class="pBar" style="width:62%"></div></div>
+              <div class="pLine" style="margin-top:12px"><span class="pName">Английский · A2</span><span class="pVal">48%</span></div>
+              <div class="pBarWrap"><div class="pBar" style="width:48%"></div></div>
+              <div class="pSelf">на прошлой неделе было 41% — ты вырос на 7</div>
+            </div>
+            <div data-r="cadet">
+              <div class="pLine"><span class="pName">English A2 · курс целиком</span><span class="pVal">34%</span></div>
+              <div class="pBarWrap"><div class="pBar" style="width:34%"></div></div>
+              <div class="pLine" style="margin-top:12px"><span class="pName">Слов в активной памяти</span><span class="pVal">418</span></div>
+              <div class="pBarWrap"><div class="pBar" style="width:56%"></div></div>
+              <div class="pSelf">серия 12 дней · твой рекорд 19</div>
+            </div>
+            <div data-r="teacher">
+              <div class="pLine"><span class="pName">9А · тема пройдена</span><span class="pVal">71%</span></div>
+              <div class="pBarWrap"><div class="pBar" style="width:71%"></div></div>
+              <div class="pLine" style="margin-top:12px"><span class="pName">7Б · Unit 4</span><span class="pVal">40%</span></div>
+              <div class="pBarWrap"><div class="pBar" style="width:40%"></div></div>
+              <div class="pSelf">усвоение по темам, не рейтинг учеников</div>
+            </div>
+            <div data-r="parent">
+              <div class="pLine"><span class="pName">Аня · астрономия</span><span class="pVal">62%</span></div>
+              <div class="pBarWrap"><div class="pBar" style="width:62%"></div></div>
+              <div class="pLine" style="margin-top:12px"><span class="pName">Аня · английский</span><span class="pVal">48%</span></div>
+              <div class="pBarWrap"><div class="pBar" style="width:48%"></div></div>
+              <div class="pSelf">сравнение только с её собственным прошлым результатом</div>
+            </div>
+            <div data-r="admin">
+              <div class="pLine"><span class="pName">Занятия проведены по плану</span><span class="pVal">94%</span></div>
+              <div class="pBarWrap"><div class="pBar" style="width:94%"></div></div>
+              <div class="pLine" style="margin-top:12px"><span class="pName">Работы проверены в срок</span><span class="pVal">78%</span></div>
+              <div class="pBarWrap"><div class="pBar" style="width:78%"></div></div>
+              <div class="pSelf">показатели учреждения, не отдельных детей</div>
+            </div>
+          </div>
+        </div>
+        </div>
+
+        <!-- ——— БЫСТРЫЕ ВХОДЫ ——— -->
+        <div class="slot plain sQuick">
+          <div class="quick">
+            <button class="qi" data-r="pupil"><span class="qiName">Мои предметы</span><span class="qiSub">3 предмета</span></button>
+            <button class="qi" data-r="cadet"><span class="qiName">Мои курсы</span><span class="qiSub">2 курса</span></button>
+            <button class="qi" data-r="teacher"><span class="qiName">Мои группы</span><span class="qiSub">4 группы</span></button>
+            <button class="qi" data-r="parent"><span class="qiName">Мои дети</span><span class="qiSub">Аня, 9 класс</span></button>
+            <button class="qi" data-r="admin"><span class="qiName">Учителя и группы</span><span class="qiSub">28 · 19</span></button>
+
+            <button class="qi" data-r="teacher"><span class="qiName">Очередь проверки</span><span class="qiSub">11 работ</span></button>
+            <button class="qi" data-r="admin"><span class="qiName">Документы и согласия</span><span class="qiSub">4 не подписаны</span></button>
+
+            <button class="qi" data-r="pupil cadet teacher"><span class="qiName">Источники мира</span><span class="qiSub">библиотеки · музеи · эфир</span></button>
+            <button class="qi" data-r="pupil cadet"><span class="qiName">Добавленные материалы</span><span class="qiSub">23 материала</span></button>
+            <button class="qi" data-r="pupil cadet teacher parent admin"><span class="qiName">Чат</span><span class="qiSub">3 непрочитанных</span></button>
+            <button class="qi" data-r="pupil cadet teacher parent admin"><span class="qiName">Расписание</span><span class="qiSub">на неделю</span></button>
+          </div>
+        </div>
+
+      </div>
     </div>
 
     <!-- ——— ЧАТ: отдельное окно ——— -->
@@ -652,9 +657,14 @@ h1{font-size:1.4rem;font-weight:600;letter-spacing:-.015em}
       <li>«Поделиться» из источников кладёт в эти же каналы <b>ссылку</b>, не копию материала.</li>
     </ul>
 
-    <h3>Недельный дневник — на месте чата, полосой внизу</h3>
+    <h3>Порядок слотов (правка владельца 12.08)</h3>
+    <p><b>сейчас → сегодня → требует внимания → неделя (полоса во всю ширину) → продолжить + прогресс (рядом) → быстрые входы.</b>
+    Прогресс ушёл вниз и встал парой с «Продолжить» — оба отвечают на вопрос «где я остановился и куда двигаюсь»,
+    поэтому читаются вместе. Верх экрана остался под то, что требует действия сейчас.</p>
+
+    <h3>Недельный дневник — полосой во всю ширину</h3>
     <ul>
-      <li>Семь дней, прилипшая полоса внизу страницы: занятия, сроки и «идёт сейчас» одним взглядом; сегодня подсвечен коралловым.</li>
+      <li>Семь дней одной полосой посреди страницы: занятия, сроки и «идёт сейчас» одним взглядом; сегодня подсвечен коралловым.</li>
       <li>У <b>курсанта</b> расписания нет — полоса показывает нагрузку повторений по интервалам и записи в клуб. Пропущенный день не «горит» красным.</li>
       <li>Тап по дню открывает дневник этого дня; стрелки листают недели.</li>
     </ul>
