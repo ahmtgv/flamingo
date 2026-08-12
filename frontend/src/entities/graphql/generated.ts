@@ -422,8 +422,10 @@ export type LearningProfileKind =
 export type Lesson = {
   __typename?: 'Lesson';
   description?: Maybe<Scalars['String']['output']>;
+  deviceKey?: Maybe<Scalars['String']['output']>;
   durationMin: Scalars['Int']['output'];
   id: Scalars['ID']['output'];
+  kind: LessonKind;
   materials: Array<Material>;
   options: LessonOptions;
   order: Scalars['Int']['output'];
@@ -441,7 +443,9 @@ export type LessonSessionsArgs = {
 
 export type LessonInput = {
   description?: InputMaybe<Scalars['String']['input']>;
+  deviceKey?: InputMaybe<Scalars['String']['input']>;
   durationMin: Scalars['Int']['input'];
+  kind?: InputMaybe<LessonKind>;
   options?: InputMaybe<LessonOptionsInput>;
   scheduleRule?: InputMaybe<Scalars['JSON']['input']>;
   title: Scalars['String']['input'];
@@ -1065,6 +1069,8 @@ export type Query = {
   startPage: StartPage;
   studentDashboard: StudentDashboard;
   subjectCabinet: SubjectCabinet;
+  subjectProgress: SubjectProgress;
+  subjectTasks: Array<SubjectTask>;
   teacher?: Maybe<TeacherProfile>;
   teacherDashboard: TeacherDashboard;
   teacherReviews: Array<Review>;
@@ -1188,6 +1194,16 @@ export type QuerySessionAttentionArgs = {
 
 
 export type QuerySubjectCabinetArgs = {
+  courseId: Scalars['ID']['input'];
+};
+
+
+export type QuerySubjectProgressArgs = {
+  courseId: Scalars['ID']['input'];
+};
+
+
+export type QuerySubjectTasksArgs = {
   courseId: Scalars['ID']['input'];
 };
 
@@ -1446,6 +1462,15 @@ export type SubjectMaterial = {
   url?: Maybe<Scalars['String']['output']>;
 };
 
+export type SubjectProgress = {
+  __typename?: 'SubjectProgress';
+  overallPct?: Maybe<Scalars['Int']['output']>;
+  previousOverallPct?: Maybe<Scalars['Int']['output']>;
+  profileKind: LearningProfileKind;
+  topics: Array<SubjectTopic>;
+  weakBelowPct: Scalars['Int']['output'];
+};
+
 export type SubjectSection = {
   __typename?: 'SubjectSection';
   doneLessons: Scalars['Int']['output'];
@@ -1464,6 +1489,40 @@ export type SubjectSource = {
   savedId?: Maybe<Scalars['ID']['output']>;
   sourceName?: Maybe<Scalars['String']['output']>;
   url?: Maybe<Scalars['String']['output']>;
+};
+
+export type SubjectTask = {
+  __typename?: 'SubjectTask';
+  attempts: Scalars['Int']['output'];
+  comment?: Maybe<Scalars['String']['output']>;
+  dueAt?: Maybe<Scalars['DateTime']['output']>;
+  gradedCount?: Maybe<Scalars['Int']['output']>;
+  groupSize?: Maybe<Scalars['Int']['output']>;
+  id: Scalars['ID']['output'];
+  lessonId?: Maybe<Scalars['ID']['output']>;
+  lessonLabel?: Maybe<Scalars['String']['output']>;
+  redoOpen: Scalars['Boolean']['output'];
+  retakeCount?: Maybe<Scalars['Int']['output']>;
+  score?: Maybe<Scalars['Int']['output']>;
+  staleCount?: Maybe<Scalars['Int']['output']>;
+  state: TaskState;
+  submittedAt?: Maybe<Scalars['DateTime']['output']>;
+  submittedBy?: Maybe<Scalars['Int']['output']>;
+  title: Scalars['String']['output'];
+  waitingCount?: Maybe<Scalars['Int']['output']>;
+};
+
+export type SubjectTopic = {
+  __typename?: 'SubjectTopic';
+  id: Scalars['ID']['output'];
+  isCurrent: Scalars['Boolean']['output'];
+  learnerCount?: Maybe<Scalars['Int']['output']>;
+  lessonFrom?: Maybe<Scalars['String']['output']>;
+  lessonTo?: Maybe<Scalars['String']['output']>;
+  pct?: Maybe<Scalars['Int']['output']>;
+  previousPct?: Maybe<Scalars['Int']['output']>;
+  title: Scalars['String']['output'];
+  weakCount?: Maybe<Scalars['Int']['output']>;
 };
 
 export type Submission = {
@@ -1530,6 +1589,12 @@ export type SubscriptionChatMessageReceivedArgs = {
 export type SubscriptionSessionStatusChangedArgs = {
   sessionId: Scalars['ID']['input'];
 };
+
+export type TaskState =
+  | 'GRADED'
+  | 'OVERDUE'
+  | 'SUBMITTED'
+  | 'TODO';
 
 export type TeacherDashboard = {
   __typename?: 'TeacherDashboard';
@@ -1864,7 +1929,7 @@ export type UpdateLessonMutationVariables = Exact<{
 }>;
 
 
-export type UpdateLessonMutation = { __typename?: 'Mutation', updateLesson: { __typename?: 'Lesson', id: string, title: string } };
+export type UpdateLessonMutation = { __typename?: 'Mutation', updateLesson: { __typename?: 'Lesson', id: string, title: string, description?: string | null, kind: LessonKind, deviceKey?: string | null } };
 
 export type CreateLessonMutationVariables = Exact<{
   sectionId: Scalars['ID']['input'];
@@ -1872,7 +1937,7 @@ export type CreateLessonMutationVariables = Exact<{
 }>;
 
 
-export type CreateLessonMutation = { __typename?: 'Mutation', createLesson: { __typename?: 'Lesson', id: string, title: string, status: LessonStatus } };
+export type CreateLessonMutation = { __typename?: 'Mutation', createLesson: { __typename?: 'Lesson', id: string, title: string, status: LessonStatus, kind: LessonKind, deviceKey?: string | null } };
 
 export type PublishLessonMutationVariables = Exact<{
   id: Scalars['ID']['input'];
@@ -2099,6 +2164,20 @@ export type RemoveSavedItemMutationVariables = Exact<{
 
 
 export type RemoveSavedItemMutation = { __typename?: 'Mutation', removeSavedItem: boolean };
+
+export type SubjectTasksQueryVariables = Exact<{
+  courseId: Scalars['ID']['input'];
+}>;
+
+
+export type SubjectTasksQuery = { __typename?: 'Query', subjectTasks: Array<{ __typename?: 'SubjectTask', id: string, title: string, lessonId?: string | null, lessonLabel?: string | null, dueAt?: string | null, state: TaskState, submittedAt?: string | null, score?: number | null, comment?: string | null, attempts: number, redoOpen: boolean, submittedBy?: number | null, groupSize?: number | null, gradedCount?: number | null, waitingCount?: number | null, staleCount?: number | null, retakeCount?: number | null }> };
+
+export type SubjectProgressQueryVariables = Exact<{
+  courseId: Scalars['ID']['input'];
+}>;
+
+
+export type SubjectProgressQuery = { __typename?: 'Query', subjectProgress: { __typename?: 'SubjectProgress', profileKind: LearningProfileKind, overallPct?: number | null, previousOverallPct?: number | null, weakBelowPct: number, topics: Array<{ __typename?: 'SubjectTopic', id: string, title: string, lessonFrom?: string | null, lessonTo?: string | null, isCurrent: boolean, pct?: number | null, previousPct?: number | null, weakCount?: number | null, learnerCount?: number | null }> } };
 
 export type RequestUploadMutationVariables = Exact<{
   input: UploadRequestInput;
@@ -3562,6 +3641,9 @@ export const UpdateLessonDocument = gql`
   updateLesson(id: $id, input: $input) {
     id
     title
+    description
+    kind
+    deviceKey
   }
 }
     `;
@@ -3598,6 +3680,8 @@ export const CreateLessonDocument = gql`
     id
     title
     status
+    kind
+    deviceKey
   }
 }
     `;
@@ -5017,6 +5101,122 @@ export function useRemoveSavedItemMutation(baseOptions?: Apollo.MutationHookOpti
 export type RemoveSavedItemMutationHookResult = ReturnType<typeof useRemoveSavedItemMutation>;
 export type RemoveSavedItemMutationResult = Apollo.MutationResult<RemoveSavedItemMutation>;
 export type RemoveSavedItemMutationOptions = Apollo.BaseMutationOptions<RemoveSavedItemMutation, RemoveSavedItemMutationVariables>;
+export const SubjectTasksDocument = gql`
+    query SubjectTasks($courseId: ID!) {
+  subjectTasks(courseId: $courseId) {
+    id
+    title
+    lessonId
+    lessonLabel
+    dueAt
+    state
+    submittedAt
+    score
+    comment
+    attempts
+    redoOpen
+    submittedBy
+    groupSize
+    gradedCount
+    waitingCount
+    staleCount
+    retakeCount
+  }
+}
+    `;
+
+/**
+ * __useSubjectTasksQuery__
+ *
+ * To run a query within a React component, call `useSubjectTasksQuery` and pass it any options that fit your needs.
+ * When your component renders, `useSubjectTasksQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useSubjectTasksQuery({
+ *   variables: {
+ *      courseId: // value for 'courseId'
+ *   },
+ * });
+ */
+export function useSubjectTasksQuery(baseOptions: Apollo.QueryHookOptions<SubjectTasksQuery, SubjectTasksQueryVariables> & ({ variables: SubjectTasksQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<SubjectTasksQuery, SubjectTasksQueryVariables>(SubjectTasksDocument, options);
+      }
+export function useSubjectTasksLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<SubjectTasksQuery, SubjectTasksQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<SubjectTasksQuery, SubjectTasksQueryVariables>(SubjectTasksDocument, options);
+        }
+// @ts-ignore
+export function useSubjectTasksSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<SubjectTasksQuery, SubjectTasksQueryVariables>): Apollo.UseSuspenseQueryResult<SubjectTasksQuery, SubjectTasksQueryVariables>;
+export function useSubjectTasksSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<SubjectTasksQuery, SubjectTasksQueryVariables>): Apollo.UseSuspenseQueryResult<SubjectTasksQuery | undefined, SubjectTasksQueryVariables>;
+export function useSubjectTasksSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<SubjectTasksQuery, SubjectTasksQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<SubjectTasksQuery, SubjectTasksQueryVariables>(SubjectTasksDocument, options);
+        }
+export type SubjectTasksQueryHookResult = ReturnType<typeof useSubjectTasksQuery>;
+export type SubjectTasksLazyQueryHookResult = ReturnType<typeof useSubjectTasksLazyQuery>;
+export type SubjectTasksSuspenseQueryHookResult = ReturnType<typeof useSubjectTasksSuspenseQuery>;
+export type SubjectTasksQueryResult = Apollo.QueryResult<SubjectTasksQuery, SubjectTasksQueryVariables>;
+export const SubjectProgressDocument = gql`
+    query SubjectProgress($courseId: ID!) {
+  subjectProgress(courseId: $courseId) {
+    profileKind
+    overallPct
+    previousOverallPct
+    weakBelowPct
+    topics {
+      id
+      title
+      lessonFrom
+      lessonTo
+      isCurrent
+      pct
+      previousPct
+      weakCount
+      learnerCount
+    }
+  }
+}
+    `;
+
+/**
+ * __useSubjectProgressQuery__
+ *
+ * To run a query within a React component, call `useSubjectProgressQuery` and pass it any options that fit your needs.
+ * When your component renders, `useSubjectProgressQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useSubjectProgressQuery({
+ *   variables: {
+ *      courseId: // value for 'courseId'
+ *   },
+ * });
+ */
+export function useSubjectProgressQuery(baseOptions: Apollo.QueryHookOptions<SubjectProgressQuery, SubjectProgressQueryVariables> & ({ variables: SubjectProgressQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<SubjectProgressQuery, SubjectProgressQueryVariables>(SubjectProgressDocument, options);
+      }
+export function useSubjectProgressLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<SubjectProgressQuery, SubjectProgressQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<SubjectProgressQuery, SubjectProgressQueryVariables>(SubjectProgressDocument, options);
+        }
+// @ts-ignore
+export function useSubjectProgressSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<SubjectProgressQuery, SubjectProgressQueryVariables>): Apollo.UseSuspenseQueryResult<SubjectProgressQuery, SubjectProgressQueryVariables>;
+export function useSubjectProgressSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<SubjectProgressQuery, SubjectProgressQueryVariables>): Apollo.UseSuspenseQueryResult<SubjectProgressQuery | undefined, SubjectProgressQueryVariables>;
+export function useSubjectProgressSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<SubjectProgressQuery, SubjectProgressQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<SubjectProgressQuery, SubjectProgressQueryVariables>(SubjectProgressDocument, options);
+        }
+export type SubjectProgressQueryHookResult = ReturnType<typeof useSubjectProgressQuery>;
+export type SubjectProgressLazyQueryHookResult = ReturnType<typeof useSubjectProgressLazyQuery>;
+export type SubjectProgressSuspenseQueryHookResult = ReturnType<typeof useSubjectProgressSuspenseQuery>;
+export type SubjectProgressQueryResult = Apollo.QueryResult<SubjectProgressQuery, SubjectProgressQueryVariables>;
 export const RequestUploadDocument = gql`
     mutation RequestUpload($input: UploadRequestInput!) {
   requestUpload(input: $input) {

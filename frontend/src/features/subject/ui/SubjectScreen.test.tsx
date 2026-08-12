@@ -9,6 +9,7 @@ import {
   SaveItemDocument,
   SubjectCabinetDocument,
   type SubjectCabinetQuery,
+  SubjectTasksDocument,
 } from '@/entities/graphql/generated';
 import { renderWithProviders } from '@/test/renderWithProviders';
 
@@ -71,14 +72,14 @@ const source = (
 const DONE = lesson({
   id: 'l10',
   title: 'Как ищут планеты',
-  orderLabel: 'Урок 10',
+  orderLabel: '10',
   progress: 'DONE',
   grade: 5,
 });
 const CURRENT = lesson({
   id: 'l12',
   title: 'Экзопланеты',
-  orderLabel: 'Урок 12',
+  orderLabel: '12',
   subtitle: 'Горячие юпитеры',
   progress: 'CURRENT',
   materialCount: 2,
@@ -90,7 +91,7 @@ const CURRENT = lesson({
 const DEVICE = lesson({
   id: 'l14',
   title: 'Своё наблюдение',
-  orderLabel: 'Урок 14',
+  orderLabel: '14',
   progress: 'AHEAD',
   kind: 'EXTERNAL_DEVICE',
   deviceKey: 'microobservatory',
@@ -165,6 +166,16 @@ describe('SubjectScreen — atlas sheet 01', () => {
     expect(screen.getByText(/9А · Гимназия №1 · Мария Петровна/)).toBeInTheDocument();
     expect(screen.getByText('62%')).toBeInTheDocument();
     expect(screen.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '62');
+  });
+
+  it('words the lesson number on the client — the server sends a bare ordinal', async () => {
+    // The projection returns "10"; «Урок 10» is composed here, so the screen stays
+    // translatable. A fixture carrying "Урок 10" would hide exactly this bug.
+    render([cabinetMock(cabinet())]);
+    await screen.findByRole('heading', { name: 'Астрономия' });
+
+    expect(screen.getByRole('button', { name: /^Урок 10 · Как ищут планеты/ })).toBeInTheDocument();
+    expect(screen.queryByText(/Урок Урок/)).not.toBeInTheDocument();
   });
 
   it('marks lessons пройден / идёт / впереди and shows the section tally', async () => {
@@ -343,13 +354,21 @@ describe('SubjectScreen — atlas sheet 01', () => {
     expect(within(rail).getByRole('button', { name: 'Продолжить' })).toBeInTheDocument();
   });
 
-  it('«Задания» and «Прогресс» are visible but not yet wired (R1.2)', async () => {
-    render([cabinetMock(cabinet())]);
+  it('all four tabs of the sheet are live and switchable', async () => {
+    render([
+      cabinetMock(cabinet()),
+      {
+        request: { query: SubjectTasksDocument, variables: { courseId: COURSE } },
+        result: { data: { subjectTasks: [] } },
+      },
+    ]);
     await screen.findByRole('heading', { name: 'Астрономия' });
 
-    expect(screen.getByRole('tab', { name: /Задания/ })).toBeDisabled();
-    expect(screen.getByRole('tab', { name: /Мой прогресс/ })).toBeDisabled();
-    expect(screen.getByRole('tab', { name: /Уроки/ })).toBeEnabled();
+    for (const name of [/Уроки/, /Материалы/, /Задания/, /Мой прогресс/]) {
+      expect(screen.getByRole('tab', { name })).toBeEnabled();
+    }
+    await userEvent.click(screen.getByRole('tab', { name: /Задания/ }));
+    expect(screen.getByRole('tab', { name: /Задания/ })).toHaveAttribute('aria-selected', 'true');
   });
 
   it('empty programme says so instead of showing a blank page', async () => {

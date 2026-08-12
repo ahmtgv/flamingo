@@ -240,6 +240,20 @@ export const store = {
       sourceName: string | null;
     }
   >(),
+  /** Teacher's programme edits (atlas 01 edit mode) — so a reorder or an added lesson
+   *  actually sticks in the preview instead of snapping back on the next read. */
+  programme: {
+    edits: new Map<
+      string,
+      { title?: string; description?: string; kind?: string; deviceKey?: string }
+    >(),
+    order: new Map<string, string[]>(),
+    removed: new Set<string>(),
+    added: new Map<
+      string,
+      { id: string; title: string; description: string; kind: string; deviceKey: string }[]
+    >(),
+  },
   /** Monotonic counter for synthetic ids minted by create-mutations. */
   seq: 1000,
 };
@@ -249,6 +263,7 @@ export function resetDemoStore(): void {
   store.enrolled = new Set<string>([IDS.course.algebra]);
   store.activeLearningProfile = '';
   store.saved = new Map();
+  store.programme = { edits: new Map(), order: new Map(), removed: new Set(), added: new Map() };
   store.seq = 1000;
 }
 

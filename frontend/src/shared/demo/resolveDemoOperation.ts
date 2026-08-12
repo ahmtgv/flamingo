@@ -59,6 +59,8 @@ import type {
   SessionRoomQuery,
   StartPageQuery,
   SubjectCabinetQuery,
+  SubjectProgressQuery,
+  SubjectTasksQuery,
   SaveItemMutation,
   RemoveSavedItemMutation,
   SetAvatarMutation,
@@ -494,6 +496,49 @@ function subjectCabinet(vars: Vars): SubjectCabinetQuery {
       : {}),
   });
 
+  /** Apply the teacher's edit-mode changes to a section's lessons: renames, kind switches,
+   *  removals, additions and the new order. Without this the preview would accept an edit
+   *  and then show the old programme on the next read. */
+  const withEdits = (sectionId: string, base: Lesson[]): Lesson[] => {
+    const edits = store.programme;
+    let list = base.filter((l) => !edits.removed.has(l.id));
+    list = list.map((l) => {
+      const patch = edits.edits.get(l.id);
+      if (!patch) return l;
+      return {
+        ...l,
+        title: patch.title ?? l.title,
+        subtitle: patch.description ?? l.subtitle,
+        kind: (patch.kind as Lesson['kind']) ?? l.kind,
+        deviceKey: patch.deviceKey ?? l.deviceKey,
+      };
+    });
+    for (const extra of edits.added.get(sectionId) ?? []) {
+      list.push(
+        lesson({
+          id: extra.id,
+          title: extra.title,
+          subtitle: extra.description || null,
+          orderLabel: String(list.length + 1),
+          progress: 'AHEAD',
+          kind: extra.kind as Lesson['kind'],
+          deviceKey: extra.deviceKey || null,
+        }),
+      );
+    }
+    const order = edits.order.get(sectionId);
+    if (order) {
+      const byId = new Map(list.map((l) => [l.id, l]));
+      list = [
+        ...order
+          .map((id) => byId.get(id))
+          .filter(Boolean as unknown as (l: Lesson | undefined) => l is Lesson),
+        ...list.filter((l) => !order.includes(l.id)),
+      ];
+    }
+    return list;
+  };
+
   /** Everything the caller kept by hand — the second, never-merged block of the sheet: the
    *  course's own materials they saved, plus finds brought in from outside. */
   const savedBlock = (pool: Material[]): Material[] => {
@@ -519,7 +564,7 @@ function subjectCabinet(vars: Vars): SubjectCabinetQuery {
     const l3 = lesson({
       id: 'les-en-3',
       title: 'Listening: at the station',
-      orderLabel: 'Урок 3',
+      orderLabel: '3',
       subtitle: 'Ты остановился на 3-м задании из 6',
       progress: 'CURRENT',
       materialCount: 2,
@@ -565,11 +610,11 @@ function subjectCabinet(vars: Vars): SubjectCabinetQuery {
             title: 'Unit 4 · Travel',
             doneLessons: 2,
             totalLessons: 8,
-            lessons: [
+            lessons: withEdits('sec-en-4', [
               lesson({
                 id: 'les-en-1',
                 title: 'Words: transport',
-                orderLabel: 'Урок 1',
+                orderLabel: '1',
                 subtitle: '28 слов · карточки и аудирование',
                 progress: 'DONE',
                 materialCount: 1,
@@ -579,7 +624,7 @@ function subjectCabinet(vars: Vars): SubjectCabinetQuery {
               lesson({
                 id: 'les-en-2',
                 title: 'Asking for directions',
-                orderLabel: 'Урок 2',
+                orderLabel: '2',
                 subtitle: 'Диалоги, произношение',
                 progress: 'DONE',
                 materialCount: 1,
@@ -589,7 +634,7 @@ function subjectCabinet(vars: Vars): SubjectCabinetQuery {
               lesson({
                 id: 'les-en-4',
                 title: 'Speaking club',
-                orderLabel: 'Урок 4',
+                orderLabel: '4',
                 subtitle: 'Живое занятие с преподавателем, 6 человек',
                 progress: 'AHEAD',
                 sessionAt: times.tomorrowPhysics,
@@ -597,11 +642,11 @@ function subjectCabinet(vars: Vars): SubjectCabinetQuery {
               lesson({
                 id: 'les-en-5',
                 title: 'Writing: a postcard',
-                orderLabel: 'Урок 5',
+                orderLabel: '5',
                 subtitle: 'Откроется после урока 4',
                 progress: 'AHEAD',
               }),
-            ],
+            ]),
           },
         ],
         materials,
@@ -624,7 +669,7 @@ function subjectCabinet(vars: Vars): SubjectCabinetQuery {
   const l12 = lesson({
     id: 'les-1-12',
     title: 'Экзопланеты',
-    orderLabel: 'Урок 12',
+    orderLabel: '12',
     subtitle: 'Горячие юпитеры, зона обитаемости',
     progress: 'CURRENT',
     materialCount: 2,
@@ -691,11 +736,11 @@ function subjectCabinet(vars: Vars): SubjectCabinetQuery {
           title: 'Раздел 2 · Планетные системы',
           doneLessons: 6,
           totalLessons: 8,
-          lessons: [
+          lessons: withEdits('sec-a-2', [
             lesson({
               id: 'les-1-10',
               title: 'Как ищут планеты',
-              orderLabel: 'Урок 10',
+              orderLabel: '10',
               subtitle: 'Методы поиска, история открытий',
               progress: 'DONE',
               materialCount: 2,
@@ -705,7 +750,7 @@ function subjectCabinet(vars: Vars): SubjectCabinetQuery {
             lesson({
               id: 'les-1-11',
               title: 'Транзитный метод',
-              orderLabel: 'Урок 11',
+              orderLabel: '11',
               subtitle: 'Кривая блеска, глубина и период',
               progress: 'DONE',
               materialCount: 2,
@@ -716,7 +761,7 @@ function subjectCabinet(vars: Vars): SubjectCabinetQuery {
             lesson({
               id: 'les-1-13',
               title: 'Атмосферы далёких миров',
-              orderLabel: 'Урок 13',
+              orderLabel: '13',
               subtitle: 'Спектроскопия, что уже видел JWST',
               progress: 'AHEAD',
               materialCount: 1,
@@ -725,13 +770,13 @@ function subjectCabinet(vars: Vars): SubjectCabinetQuery {
             lesson({
               id: 'les-1-14',
               title: 'Своё наблюдение',
-              orderLabel: 'Урок 14',
+              orderLabel: '14',
               subtitle: 'Заказ снимка на школьном телескопе MicroObservatory',
               progress: 'AHEAD',
               kind: 'EXTERNAL_DEVICE',
               deviceKey: 'microobservatory',
             }),
-          ],
+          ]),
         },
         {
           __typename: 'SubjectSection',
@@ -739,15 +784,15 @@ function subjectCabinet(vars: Vars): SubjectCabinetQuery {
           title: 'Раздел 3 · Звёзды и их жизнь',
           doneLessons: 0,
           totalLessons: 6,
-          lessons: [
+          lessons: withEdits('sec-a-3', [
             lesson({
               id: 'les-1-15',
               title: 'Диаграмма Герцшпрунга — Рессела',
-              orderLabel: 'Урок 15',
+              orderLabel: '15',
               subtitle: 'Откроется после раздела 2',
               progress: 'AHEAD',
             }),
-          ],
+          ]),
         },
       ],
       materials,
@@ -771,6 +816,256 @@ function subjectCabinet(vars: Vars): SubjectCabinetQuery {
         }),
       ],
       nextLesson: l12,
+    },
+  };
+}
+
+/** Apollo normalises `SubjectLesson` by id, so the rail's copy of a lesson and the one in the
+ *  programme are the SAME cache entity. If the two carry different field values the last write
+ *  silently wins — which is how one row kept a stale ordinal after a reorder. The real server
+ *  cannot disagree with itself; the preview must not either. */
+function consistentCabinet(result: SubjectCabinetQuery): SubjectCabinetQuery {
+  const cab = result.subjectCabinet;
+  // Lessons are numbered across the WHOLE programme, section after section — the same rule
+  // `_lesson_ordinals` applies on the server. Numbering per section would restart at 1 in
+  // section 3 and quietly disagree with the real API.
+  let n = 0;
+  const sections = cab.sections.map((section) => ({
+    ...section,
+    lessons: section.lessons.map((l) => ({ ...l, orderLabel: String(++n) })),
+  }));
+  const byId = new Map(sections.flatMap((s) => s.lessons).map((l) => [l.id, l]));
+  return {
+    ...result,
+    subjectCabinet: {
+      ...cab,
+      sections,
+      nextLesson: cab.nextLesson ? (byId.get(cab.nextLesson.id) ?? cab.nextLesson) : null,
+    },
+  };
+}
+
+// --- Subject tasks & progress (atlas sheet 01, R1.2) --------------------------------------
+/** The sheet's own rows. Pupil: a lab due tomorrow, a retake open on the light curve with the
+ *  teacher's words attached, and a test already marked. Teacher: the same work as a queue —
+ *  counts only, never a list of children. */
+function subjectTasks(vars: Vars): SubjectTasksQuery {
+  const isTeacher = demoGraphQLRole() === 'TEACHER';
+  const english = String(vars.courseId ?? '') === IDS.course.english;
+  const inDays = (n: number) => new Date(Date.now() + n * 86_400_000).toISOString();
+
+  type Task = SubjectTasksQuery['subjectTasks'][number];
+  const task = (
+    over: Partial<Task> & { id: string; title: string; state: Task['state'] },
+  ): Task => ({
+    __typename: 'SubjectTask',
+    lessonId: null,
+    lessonLabel: null,
+    dueAt: null,
+    submittedAt: null,
+    score: null,
+    comment: null,
+    attempts: 0,
+    redoOpen: false,
+    submittedBy: null,
+    groupSize: null,
+    gradedCount: null,
+    waitingCount: null,
+    staleCount: null,
+    retakeCount: null,
+    ...over,
+  });
+
+  if (english) {
+    return {
+      __typename: 'Query',
+      subjectTasks: [
+        task({
+          id: 'hw-en-1',
+          title: 'Listening: at the station · упражнения',
+          state: 'TODO',
+          lessonId: 'les-en-3',
+          lessonLabel: '3',
+          dueAt: inDays(2),
+        }),
+        task({
+          id: 'hw-en-2',
+          title: 'Words: transport · тест',
+          state: 'GRADED',
+          lessonId: 'les-en-1',
+          lessonLabel: '1',
+          submittedAt: inDays(-2),
+          score: 92,
+          attempts: 1,
+        }),
+      ],
+    };
+  }
+
+  if (isTeacher) {
+    return {
+      __typename: 'Query',
+      subjectTasks: [
+        task({
+          id: 'hw-lab',
+          title: 'Лабораторная · распределение экзопланет',
+          state: 'SUBMITTED',
+          lessonId: 'les-1-12',
+          lessonLabel: '12',
+          dueAt: inDays(1),
+          submittedBy: 11,
+          groupSize: 24,
+          gradedCount: 0,
+          waitingCount: 11,
+          staleCount: 7,
+          retakeCount: 0,
+        }),
+        task({
+          id: 'hw-curve',
+          title: 'Кривая блеска · разбор',
+          state: 'GRADED',
+          lessonId: 'les-1-11',
+          lessonLabel: '11',
+          submittedBy: 24,
+          groupSize: 24,
+          gradedCount: 24,
+          waitingCount: 0,
+          staleCount: 0,
+          retakeCount: 3,
+        }),
+      ],
+    };
+  }
+
+  return {
+    __typename: 'Query',
+    subjectTasks: [
+      task({
+        id: 'hw-lab',
+        title: 'Лабораторная · распределение экзопланет',
+        state: 'TODO',
+        lessonId: 'les-1-12',
+        lessonLabel: '12',
+        dueAt: inDays(1),
+      }),
+      task({
+        id: 'hw-curve',
+        title: 'Кривая блеска · разбор',
+        state: 'GRADED',
+        lessonId: 'les-1-11',
+        lessonLabel: '11',
+        submittedAt: inDays(-1),
+        score: 64,
+        comment:
+          'Глубина посчитана верно, но период — по двум минимумам, а не по одному. Пересчитай, и будет 5.',
+        attempts: 1,
+        redoOpen: true,
+      }),
+      task({
+        id: 'hw-methods',
+        title: 'Методы поиска планет · тест',
+        state: 'GRADED',
+        lessonId: 'les-1-10',
+        lessonLabel: '10',
+        submittedAt: inDays(-7),
+        score: 88,
+        attempts: 1,
+      }),
+    ],
+  };
+}
+
+/** Mastery per topic. The learner's rows carry a comparison with their own past week; the
+ *  teacher's carry the group's mastery and a COUNT of who is struggling — no names. */
+function subjectProgress(vars: Vars): SubjectProgressQuery {
+  const isTeacher = demoGraphQLRole() === 'TEACHER';
+  const english = String(vars.courseId ?? '') === IDS.course.english;
+
+  type Topic = SubjectProgressQuery['subjectProgress']['topics'][number];
+  const topic = (over: Partial<Topic> & { id: string; title: string }): Topic => ({
+    __typename: 'SubjectTopic',
+    lessonFrom: null,
+    lessonTo: null,
+    isCurrent: false,
+    pct: null,
+    previousPct: null,
+    weakCount: null,
+    learnerCount: null,
+    ...over,
+  });
+
+  if (english) {
+    return {
+      __typename: 'Query',
+      subjectProgress: {
+        __typename: 'SubjectProgress',
+        profileKind: isTeacher ? 'TEACHER' : 'CADET',
+        overallPct: 75,
+        previousOverallPct: isTeacher ? null : 68,
+        weakBelowPct: 60,
+        topics: [
+          topic({
+            id: 'sec-en-4',
+            title: 'Unit 4 · Travel',
+            lessonFrom: '1',
+            lessonTo: '5',
+            pct: 75,
+            previousPct: isTeacher ? null : 68,
+            isCurrent: true,
+            weakCount: isTeacher ? 1 : null,
+            learnerCount: isTeacher ? 6 : null,
+          }),
+        ],
+      },
+    };
+  }
+
+  return {
+    __typename: 'Query',
+    subjectProgress: {
+      __typename: 'SubjectProgress',
+      profileKind: isTeacher ? 'TEACHER' : 'PUPIL',
+      overallPct: isTeacher ? 57 : 62,
+      previousOverallPct: isTeacher ? null : 55,
+      weakBelowPct: 60,
+      topics: [
+        topic({
+          id: 'sec-a-2',
+          title: 'Раздел 2 · Планетные системы',
+          lessonFrom: '10',
+          lessonTo: '14',
+          pct: isTeacher ? 84 : 88,
+          previousPct: isTeacher ? null : 80,
+          weakCount: isTeacher ? 0 : null,
+          learnerCount: isTeacher ? 24 : null,
+        }),
+        topic({
+          id: 'sec-a-2b',
+          title: 'Транзитная кривая блеска',
+          lessonFrom: '11',
+          lessonTo: '11',
+          pct: isTeacher ? 57 : 54,
+          previousPct: isTeacher ? null : 54,
+          weakCount: isTeacher ? 9 : null,
+          learnerCount: isTeacher ? 24 : null,
+        }),
+        topic({
+          id: 'sec-a-2c',
+          title: 'Типы экзопланет',
+          lessonFrom: '12',
+          lessonTo: '12',
+          isCurrent: true,
+          pct: isTeacher ? 29 : 31,
+          weakCount: isTeacher ? 14 : null,
+          learnerCount: isTeacher ? 11 : null,
+        }),
+        topic({
+          id: 'sec-a-3',
+          title: 'Раздел 3 · Звёзды и их жизнь',
+          lessonFrom: '15',
+          lessonTo: '15',
+        }),
+      ],
     },
   };
 }
@@ -1598,7 +1893,11 @@ export function resolveDemoOperation(
     case 'StartPage':
       return startPage();
     case 'SubjectCabinet':
-      return subjectCabinet(variables);
+      return consistentCabinet(subjectCabinet(variables));
+    case 'SubjectTasks':
+      return subjectTasks(variables);
+    case 'SubjectProgress':
+      return subjectProgress(variables);
     case 'Catalog':
       return catalog(variables);
     case 'MyCourses':
@@ -1760,14 +2059,30 @@ export function resolveDemoOperation(
           title: String(input(variables).title ?? 'Раздел'),
         },
       } satisfies UpdateSectionMutation;
-    case 'UpdateLesson':
+    case 'UpdateLesson': {
+      // The edit-mode changes are remembered, so the next read of the cabinet shows them
+      // (a preview that forgets an edit teaches the wrong thing about the feature).
+      const inp = input(variables);
+      const id = String(variables.id ?? 'les-1-1');
+      const kind = inp.kind === 'EXTERNAL_DEVICE' ? 'EXTERNAL_DEVICE' : 'STANDARD';
+      const deviceKey = kind === 'EXTERNAL_DEVICE' ? String(inp.deviceKey ?? '') : '';
+      store.programme.edits.set(id, {
+        title: String(inp.title ?? 'Урок'),
+        description: String(inp.description ?? ''),
+        kind,
+        deviceKey,
+      });
       return {
         updateLesson: {
           __typename: 'Lesson',
-          id: String(variables.id ?? 'les-1-1'),
-          title: String(input(variables).title ?? 'Урок'),
+          id,
+          title: String(inp.title ?? 'Урок'),
+          description: String(inp.description ?? ''),
+          kind,
+          deviceKey: deviceKey || null,
         },
       } satisfies UpdateLessonMutation;
+    }
     case 'CreateSection':
       return {
         createSection: {
@@ -1777,15 +2092,33 @@ export function resolveDemoOperation(
           order: 99,
         },
       } satisfies CreateSectionMutation;
-    case 'CreateLesson':
+    case 'CreateLesson': {
+      const inp = input(variables);
+      const id = nextId('les');
+      const sectionId = String(variables.sectionId ?? '');
+      const kind = inp.kind === 'EXTERNAL_DEVICE' ? 'EXTERNAL_DEVICE' : 'STANDARD';
+      const deviceKey = kind === 'EXTERNAL_DEVICE' ? String(inp.deviceKey ?? '') : '';
+      store.programme.added.set(sectionId, [
+        ...(store.programme.added.get(sectionId) ?? []),
+        {
+          id,
+          title: String(inp.title ?? 'Новый урок'),
+          description: String(inp.description ?? ''),
+          kind,
+          deviceKey,
+        },
+      ]);
       return {
         createLesson: {
           __typename: 'Lesson',
-          id: nextId('les'),
-          title: String(input(variables).title ?? 'Новый урок'),
+          id,
+          title: String(inp.title ?? 'Новый урок'),
           status: 'DRAFT',
+          kind,
+          deviceKey: deviceKey || null,
         },
       } satisfies CreateLessonMutation;
+    }
     case 'PublishLesson':
       return {
         publishLesson: {
@@ -1797,6 +2130,7 @@ export function resolveDemoOperation(
     case 'DeleteSection':
       return { deleteSection: true } satisfies DeleteSectionMutation;
     case 'DeleteLesson':
+      store.programme.removed.add(String(variables.id ?? ''));
       return { deleteLesson: true } satisfies DeleteLessonMutation;
     case 'DeleteMaterial':
       return { deleteMaterial: true } satisfies DeleteMaterialMutation;
@@ -1806,12 +2140,17 @@ export function resolveDemoOperation(
           (id, i) => ({ __typename: 'Section' as const, id: String(id), order: i + 1 }),
         ),
       } satisfies ReorderSectionsMutation;
-    case 'ReorderLessons':
+    case 'ReorderLessons': {
+      const ordered = (Array.isArray(variables.orderedIds) ? variables.orderedIds : []).map(String);
+      store.programme.order.set(String(variables.sectionId ?? ''), ordered);
       return {
-        reorderLessons: (Array.isArray(variables.orderedIds) ? variables.orderedIds : []).map(
-          (id, i) => ({ __typename: 'Lesson' as const, id: String(id), order: i + 1 }),
-        ),
+        reorderLessons: ordered.map((id, i) => ({
+          __typename: 'Lesson' as const,
+          id,
+          order: i + 1,
+        })),
       } satisfies ReorderLessonsMutation;
+    }
     case 'AddMaterial':
       return {
         addMaterial: {

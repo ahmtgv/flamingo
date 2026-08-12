@@ -820,3 +820,253 @@ a.srcName:focus-visible {
   color: var(--color-text-secondary);
   line-height: var(--leading-snug);
 }
+
+/* --- tasks (atlas 01, «Задания» / «На проверке») ----------------------------------- */
+.task {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: var(--space-4);
+  align-items: start;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--color-border);
+}
+.task:last-child {
+  border-bottom: none;
+}
+.taskName {
+  display: block;
+  font-size: 0.9375rem;
+  font-weight: var(--weight-medium);
+}
+.taskSub {
+  display: block;
+  font-size: var(--text-caption);
+  color: var(--color-text-secondary);
+  margin-top: 1px;
+}
+/* The teacher's words are the one thing on this row worth an accent. */
+.taskFb {
+  font-size: var(--text-caption);
+  color: var(--color-text-secondary);
+  margin-top: 7px;
+  padding-inline-start: 10px;
+  border-inline-start: 2px solid var(--color-accent);
+  max-width: 58ch;
+  line-height: var(--leading-snug);
+}
+.taskRight {
+  display: grid;
+  justify-items: end;
+  gap: 6px;
+}
+.taskScore {
+  font-family: var(--font-mono);
+  font-size: var(--text-lead);
+  font-weight: var(--weight-medium);
+  font-variant-numeric: tabular-nums;
+}
+.taskMeta {
+  font-family: var(--font-mono);
+  font-size: var(--text-overline);
+  color: var(--color-text-tertiary);
+  text-align: end;
+}
+
+/* --- progress (atlas 01, «Прогресс» / «Усвоение темы») ------------------------------ */
+.topic {
+  display: grid;
+  grid-template-columns: 1fr 132px 46px;
+  gap: var(--space-4);
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--color-border);
+}
+.topic:last-child {
+  border-bottom: none;
+}
+@media (max-width: 560px) {
+  .topic {
+    grid-template-columns: 1fr 46px;
+  }
+  .topic .tBar {
+    grid-column: 1 / -1;
+    order: 3;
+  }
+}
+.tName {
+  display: block;
+  font-size: var(--text-caption);
+  font-weight: var(--weight-medium);
+}
+.tSub {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: var(--text-overline);
+  color: var(--color-text-tertiary);
+  margin-top: 1px;
+}
+.tBar {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--color-surface-subtle);
+  overflow: hidden;
+}
+.tBar i {
+  display: block;
+  height: 100%;
+  background: var(--color-accent);
+  border-radius: 2px;
+}
+/* A weak topic is grey, not red — it is somewhere to go back to, not a verdict. */
+.tBar[data-weak] i {
+  background: var(--color-text-tertiary);
+}
+.tVal {
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  font-weight: var(--weight-medium);
+  color: var(--color-text);
+  text-align: end;
+  font-variant-numeric: tabular-nums;
+}
+.selfNote {
+  font-family: var(--font-mono);
+  font-size: var(--text-overline);
+  color: var(--color-text-tertiary);
+  margin-top: var(--space-4);
+  line-height: var(--leading-snug);
+  max-width: 70ch;
+}
+
+/* --- programme edit mode (teacher) ---------------------------------------------------- */
+.editBar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-5);
+}
+.editHint {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: var(--text-overline);
+  color: var(--color-text-tertiary);
+}
+.editWrap {
+  display: grid;
+  gap: 2px;
+}
+.editError {
+  font-size: var(--text-caption);
+  color: var(--color-error-text);
+  margin-bottom: var(--space-2);
+}
+.editRow {
+  display: grid;
+  grid-template-columns: 26px 1fr auto;
+  gap: var(--space-4);
+  align-items: center;
+  padding: 10px var(--space-2);
+  border-bottom: 1px solid var(--color-border);
+}
+.editRow:last-of-type {
+  border-bottom: none;
+}
+.editOrder {
+  font-family: var(--font-mono);
+  font-size: var(--text-overline);
+  color: var(--color-text-tertiary);
+  font-variant-numeric: tabular-nums;
+}
+.editActs {
+  display: flex;
+  gap: 2px;
+}
+.iconBtn {
+  width: var(--tap-min);
+  height: var(--tap-min);
+  display: grid;
+  place-content: center;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+}
+.iconBtn:hover:not(:disabled) {
+  background: var(--color-surface-hover);
+  color: var(--color-text);
+}
+.iconBtn:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+.iconBtn:disabled {
+  color: var(--color-text-disabled);
+  cursor: default;
+}
+.addLesson {
+  justify-self: start;
+  min-height: var(--tap-min);
+  padding: 0 var(--space-4);
+  margin-top: var(--space-2);
+  border: 1px dashed var(--color-border-strong);
+  border-radius: var(--radius-control);
+  background: none;
+  color: var(--color-text-secondary);
+  font-family: var(--font-body);
+  font-size: var(--text-small);
+  cursor: pointer;
+}
+.addLesson:hover {
+  color: var(--color-text);
+  border-color: var(--color-text-tertiary);
+}
+.addLesson:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+.editForm {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  margin: var(--space-2) 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+}
+.editField {
+  display: grid;
+  gap: var(--space-1);
+}
+.editLabel {
+  font-family: var(--font-mono);
+  font-size: var(--text-overline);
+  color: var(--color-text-tertiary);
+}
+.editInput {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: var(--tap-min);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  font-size: var(--text-small);
+}
+.editInput:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+.editCheck {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  font-size: var(--text-small);
+  cursor: pointer;
+}
+.editFormActs {
+  display: flex;
+  gap: var(--space-2);
+}

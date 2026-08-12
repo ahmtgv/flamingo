@@ -383,3 +383,191 @@ describe('resolveDemoOperation — subject cabinet (R1.1)', () => {
     expect(data.sources.every((s) => s.inLesson)).toBe(true);
   });
 });
+
+describe('resolveDemoOperation — tasks, progress and the edit mode (R1.2)', () => {
+  type Task = {
+    state: string;
+    score: number | null;
+    attempts: number;
+    redoOpen: boolean;
+    groupSize: number | null;
+  };
+  type Topic = {
+    title: string;
+    pct: number | null;
+    previousPct: number | null;
+    weakCount: number | null;
+  };
+  const tasks = (courseId = IDS.course.algebra) =>
+    (resolveDemoOperation('SubjectTasks', { courseId }) as { subjectTasks: Task[] }).subjectTasks;
+  const progress = (courseId = IDS.course.algebra) =>
+    (
+      resolveDemoOperation('SubjectProgress', { courseId }) as {
+        subjectProgress: {
+          topics: Topic[];
+          overallPct: number | null;
+          previousOverallPct: number | null;
+        };
+      }
+    ).subjectProgress;
+
+  it('every task carries the full SubjectTask selection (else Apollo reports missing fields)', () => {
+    const required = [
+      'id',
+      'title',
+      'lessonId',
+      'lessonLabel',
+      'dueAt',
+      'state',
+      'submittedAt',
+      'score',
+      'comment',
+      'attempts',
+      'redoOpen',
+      'submittedBy',
+      'groupSize',
+      'gradedCount',
+      'waitingCount',
+      'staleCount',
+      'retakeCount',
+    ];
+    for (const role of ['student', 'teacher']) {
+      setRole(role);
+      for (const row of tasks() as unknown as Record<string, unknown>[]) {
+        expect(Object.keys(row).sort()).toEqual(expect.arrayContaining(required.sort()));
+      }
+    }
+  });
+
+  it('every topic carries the full SubjectTopic selection', () => {
+    const required = [
+      'id',
+      'title',
+      'lessonFrom',
+      'lessonTo',
+      'isCurrent',
+      'pct',
+      'previousPct',
+      'weakCount',
+      'learnerCount',
+    ];
+    for (const role of ['student', 'teacher']) {
+      setRole(role);
+      for (const row of progress().topics as unknown as Record<string, unknown>[]) {
+        expect(Object.keys(row).sort()).toEqual(expect.arrayContaining(required.sort()));
+      }
+    }
+  });
+
+  it('pupil: an open retake shows the new mark; teacher: the same work as counts', () => {
+    setRole('student');
+    const retake = tasks().find((t) => t.redoOpen);
+    expect(retake?.score).not.toBeNull();
+    expect(tasks().every((t) => t.groupSize === null)).toBe(true);
+
+    setRole('teacher');
+    expect(tasks().every((t) => t.groupSize === 24)).toBe(true);
+    expect(tasks().every((t) => t.score === null)).toBe(true);
+  });
+
+  it('a learner gets a self-comparison; a teacher never does', () => {
+    setRole('student');
+    expect(progress().previousOverallPct).toBe(55);
+    expect(progress().topics.some((t) => t.weakCount !== null)).toBe(false);
+
+    setRole('teacher');
+    expect(progress().previousOverallPct).toBeNull();
+    expect(progress().topics.some((t) => (t.weakCount ?? 0) > 0)).toBe(true);
+  });
+
+  it('a topic nobody has been marked on stays blank rather than zero', () => {
+    setRole('student');
+    expect(progress().topics.at(-1)?.pct).toBeNull();
+  });
+
+  it('the edit mode sticks: a reorder, a rename and an added lesson survive the next read', () => {
+    setRole('teacher');
+    const cabinet = () =>
+      (
+        resolveDemoOperation('SubjectCabinet', { courseId: IDS.course.algebra }) as {
+          subjectCabinet: {
+            sections: {
+              id: string;
+              lessons: { id: string; title: string; orderLabel: string }[];
+            }[];
+          };
+        }
+      ).subjectCabinet;
+
+    const section = cabinet().sections[0];
+    const ids = section.lessons.map((l) => l.id);
+    const swapped = [ids[1], ids[0], ...ids.slice(2)];
+    resolveDemoOperation('ReorderLessons', { sectionId: section.id, orderedIds: swapped });
+    expect(
+      cabinet()
+        .sections[0].lessons.map((l) => l.id)
+        .slice(0, 2),
+    ).toEqual([ids[1], ids[0]]);
+    // The programme renumbers rather than carrying the old positions around.
+    expect(
+      cabinet()
+        .sections[0].lessons.map((l) => l.orderLabel)
+        .slice(0, 3),
+    ).toEqual(['1', '2', '3']);
+
+    resolveDemoOperation('UpdateLesson', { id: ids[0], input: { title: 'Переименован' } });
+    expect(cabinet().sections[0].lessons.find((l) => l.id === ids[0])?.title).toBe('Переименован');
+
+    resolveDemoOperation('CreateLesson', {
+      sectionId: section.id,
+      input: { title: 'Новый урок', kind: 'EXTERNAL_DEVICE', deviceKey: 'microobservatory' },
+    });
+    expect(cabinet().sections[0].lessons.some((l) => l.title === 'Новый урок')).toBe(true);
+
+    resolveDemoOperation('DeleteLesson', { id: ids[1] });
+    expect(cabinet().sections[0].lessons.some((l) => l.id === ids[1])).toBe(false);
+  });
+
+  it("the rail's lesson agrees with the programme (one entity, one ordinal)", () => {
+    // Apollo normalises by id: two copies of a lesson with different ordinals would let the
+    // last write win, and a row would show a stale number after a reorder.
+    setRole('teacher');
+    const cabinet = () =>
+      (
+        resolveDemoOperation('SubjectCabinet', { courseId: IDS.course.algebra }) as {
+          subjectCabinet: {
+            sections: { id: string; lessons: { id: string; orderLabel: string }[] }[];
+            nextLesson: { id: string; orderLabel: string } | null;
+          };
+        }
+      ).subjectCabinet;
+
+    const next = cabinet().nextLesson;
+    const inProgramme = cabinet()
+      .sections.flatMap((s) => s.lessons)
+      .find((l) => l.id === next?.id);
+    expect(next?.orderLabel).toBe(inProgramme?.orderLabel);
+
+    const section = cabinet().sections[0];
+    const ids = section.lessons.map((l) => l.id);
+    resolveDemoOperation('ReorderLessons', {
+      sectionId: section.id,
+      orderedIds: [ids[2], ...ids.filter((_, i) => i !== 2)],
+    });
+    const moved = cabinet().nextLesson;
+    const movedInProgramme = cabinet()
+      .sections.flatMap((s) => s.lessons)
+      .find((l) => l.id === moved?.id);
+    expect(moved?.orderLabel).toBe(movedInProgramme?.orderLabel);
+  });
+
+  it('the order label is a bare ordinal — the client words «Урок N»', () => {
+    setRole('student');
+    const cabinet = resolveDemoOperation('SubjectCabinet', { courseId: IDS.course.algebra }) as {
+      subjectCabinet: { sections: { lessons: { orderLabel: string }[] }[] };
+    };
+    for (const section of cabinet.subjectCabinet.sections) {
+      for (const lesson of section.lessons) expect(lesson.orderLabel).toMatch(/^\d+$/);
+    }
+  });
+});

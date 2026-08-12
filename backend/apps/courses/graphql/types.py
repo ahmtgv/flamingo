@@ -73,6 +73,11 @@ class Lesson:
     title: auto
     duration_min: auto
     order: auto
+    # What kind of lesson this is (a device lesson opens the device's page at run time) and
+    # which device it opens. Public: the programme is what a learner is shown, and the edit
+    # mode has to read back what it just set.
+    kind: LessonKind
+    device_key: str | None
 
     @strawberry_django.field
     def description(self, info: strawberry.Info) -> str | None:

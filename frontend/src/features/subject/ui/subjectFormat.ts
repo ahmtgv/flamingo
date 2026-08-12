@@ -6,7 +6,7 @@
  * date) and the component turns it into Russian through i18n.
  */
 
-export type WhenBucket = 'today' | 'yesterday' | 'date';
+export type WhenBucket = 'today' | 'tomorrow' | 'yesterday' | 'date';
 
 export interface WhenParts {
   bucket: WhenBucket;
@@ -28,6 +28,7 @@ export function whenParts(iso: string, now: Date): WhenParts {
     day: 'numeric',
     month: 'short',
   }).format(at);
-  const bucket: WhenBucket = days === 0 ? 'today' : days === -1 ? 'yesterday' : 'date';
+  const bucket: WhenBucket =
+    days === 0 ? 'today' : days === 1 ? 'tomorrow' : days === -1 ? 'yesterday' : 'date';
   return { bucket, time, date };
 }

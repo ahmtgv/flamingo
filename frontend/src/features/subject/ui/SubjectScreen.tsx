@@ -16,7 +16,10 @@ import { Button, ErrorState, Logo } from '@/shared/ui';
 import { ICON_MD } from '@/shared/ui/iconSizes';
 
 import styles from './subject.module.css';
+import { ProgrammeEditor } from './ProgrammeEditor';
+import { ProgressPanel } from './ProgressPanel';
 import { QuietCorner } from './QuietCorner';
+import { TasksPanel } from './TasksPanel';
 import { whenParts } from './subjectFormat';
 
 type Cabinet = SubjectCabinetQuery['subjectCabinet'];
@@ -24,8 +27,7 @@ type Lesson = Cabinet['sections'][number]['lessons'][number];
 type Material = Cabinet['materials'][number];
 type Source = Cabinet['sources'][number];
 
-/** The four tabs of sheet 01. «Задания» and «Прогресс» are wired in R1.2 — they stay in the
- *  bar so the frame is the one the sheet approved, but they are visibly not ready yet. */
+/** The four tabs of sheet 01, the same for every role — only their filling differs. */
 const TABS = ['lessons', 'materials', 'tasks', 'progress'] as const;
 type Tab = (typeof TABS)[number];
 
@@ -51,6 +53,7 @@ export function SubjectScreen() {
   const [tab, setTab] = useState<Tab>('lessons');
   const [device, setDevice] = useState<Lesson | null>(null);
   const [chatOpen, setChatOpen] = useState(false);
+  const [editing, setEditing] = useState(false);
 
   const { data, loading, error, refetch } = useSubjectCabinetQuery({
     variables: { courseId },
@@ -198,7 +201,6 @@ export function SubjectScreen() {
 
             <div className={styles.tabs} role="tablist" aria-label={cab.title}>
               {TABS.map((id) => {
-                const ready = id === 'lessons' || id === 'materials';
                 const label =
                   id === 'tasks' && isTeacher
                     ? t('tabs.tasksTeacher')
@@ -213,7 +215,6 @@ export function SubjectScreen() {
                     id={`subject-tab-${id}`}
                     aria-controls={`subject-panel-${id}`}
                     aria-selected={tab === id}
-                    disabled={!ready}
                     className={styles.tab}
                     onClick={() => setTab(id)}
                   >
@@ -223,7 +224,6 @@ export function SubjectScreen() {
                         {cab.materials.length + cab.savedMaterials.length}
                       </span>
                     )}
-                    {!ready && <span className={styles.cnt}>{t('tabs.soon')}</span>}
                   </button>
                 );
               })}
@@ -241,18 +241,29 @@ export function SubjectScreen() {
                     isTeacher={isTeacher}
                     isCadet={isCadet}
                     now={now}
+                    editing={editing}
+                    onToggleEdit={() => setEditing((v) => !v)}
+                    onChanged={() => refetch()}
                     onOpen={(lesson) => {
                       if (lesson.kind === 'EXTERNAL_DEVICE') setDevice(lesson);
                       else if (lesson.sessionId) navigate(`/sessions/${lesson.sessionId}/room`);
                       else navigate(`/lessons/${lesson.id}/homework`);
                     }}
                   />
-                ) : (
+                ) : tab === 'materials' ? (
                   <Materials
                     cab={cab}
                     onKeep={(m, note, later) => void keep(m, note, later)}
                     onDrop={(id) => void drop(id)}
                   />
+                ) : tab === 'tasks' ? (
+                  <TasksPanel
+                    courseId={courseId}
+                    isTeacher={isTeacher}
+                    teacherName={cab.teacherName ?? null}
+                  />
+                ) : (
+                  <ProgressPanel courseId={courseId} isTeacher={isTeacher} />
                 )}
               </main>
 
@@ -325,12 +336,18 @@ function Lessons({
   isTeacher,
   isCadet,
   now,
+  editing,
+  onToggleEdit,
+  onChanged,
   onOpen,
 }: {
   cab: Cabinet;
   isTeacher: boolean;
   isCadet: boolean;
   now: Date;
+  editing: boolean;
+  onToggleEdit: () => void;
+  onChanged: () => Promise<unknown>;
   onOpen: (lesson: Lesson) => void;
 }) {
   const { t } = useTranslation('subject');
@@ -338,6 +355,15 @@ function Lessons({
 
   return (
     <>
+      {/* Owner answer 3: the teacher reshapes the programme here, not on another screen. */}
+      {isTeacher && (
+        <div className={styles.editBar}>
+          <Button size="sm" variant={editing ? 'primary' : 'secondary'} onClick={onToggleEdit}>
+            {t(editing ? 'edit.done' : 'edit.start')}
+          </Button>
+          {editing && <span className={styles.editHint}>{t('edit.order')}</span>}
+        </div>
+      )}
       {cab.sections.map((section) => (
         <section key={section.id} className={styles.sect}>
           <div className={styles.sectHead}>
@@ -346,77 +372,81 @@ function Lessons({
               {t('lessons.ofDone', { done: section.doneLessons, total: section.totalLessons })}
             </span>
           </div>
-          {section.lessons.map((lesson) => (
-            <button
-              key={lesson.id}
-              type="button"
-              className={`${styles.les} ${lesson.progress === 'DONE' ? styles.lesDone : ''}`}
-              onClick={() => onOpen(lesson)}
-            >
-              <span
-                className={`${styles.st} ${
-                  lesson.progress === 'DONE'
-                    ? styles.stDone
-                    : lesson.progress === 'CURRENT'
-                      ? styles.stNow
-                      : ''
-                }`}
-                aria-hidden="true"
+          {editing && isTeacher ? (
+            <ProgrammeEditor section={section} onChanged={onChanged} />
+          ) : (
+            section.lessons.map((lesson) => (
+              <button
+                key={lesson.id}
+                type="button"
+                className={`${styles.les} ${lesson.progress === 'DONE' ? styles.lesDone : ''}`}
+                onClick={() => onOpen(lesson)}
               >
-                {lesson.progress === 'DONE' ? '✓' : lesson.progress === 'CURRENT' ? '›' : ''}
-              </span>
-              <span>
-                <span className={styles.lesName}>
-                  {lesson.orderLabel} · {lesson.title}
+                <span
+                  className={`${styles.st} ${
+                    lesson.progress === 'DONE'
+                      ? styles.stDone
+                      : lesson.progress === 'CURRENT'
+                        ? styles.stNow
+                        : ''
+                  }`}
+                  aria-hidden="true"
+                >
+                  {lesson.progress === 'DONE' ? '✓' : lesson.progress === 'CURRENT' ? '›' : ''}
                 </span>
-                {lesson.subtitle && <span className={styles.lesSub}>{lesson.subtitle}</span>}
-                <span className={styles.lesTags}>
-                  {lesson.kind === 'EXTERNAL_DEVICE' && (
-                    <span className={styles.chip}>{t('lessons.chip.device')}</span>
-                  )}
-                  {lesson.isLive && (
-                    <span className={`${styles.chip} ${styles.chipLive}`}>
-                      {t('lessons.chip.live')}
+                <span>
+                  <span className={styles.lesName}>
+                    {t('lessons.ordinal', { n: lesson.orderLabel })} · {lesson.title}
+                  </span>
+                  {lesson.subtitle && <span className={styles.lesSub}>{lesson.subtitle}</span>}
+                  <span className={styles.lesTags}>
+                    {lesson.kind === 'EXTERNAL_DEVICE' && (
+                      <span className={styles.chip}>{t('lessons.chip.device')}</span>
+                    )}
+                    {lesson.isLive && (
+                      <span className={`${styles.chip} ${styles.chipLive}`}>
+                        {t('lessons.chip.live')}
+                      </span>
+                    )}
+                    {lesson.materialCount > 0 && (
+                      <span className={styles.chip}>
+                        {t('lessons.chip.materials', { count: lesson.materialCount })}
+                      </span>
+                    )}
+                    {lesson.hasHomework && (
+                      <span className={styles.chip}>{t('lessons.chip.homework')}</span>
+                    )}
+                    {/* Screen readers get the state in words; sighted users get the ✓ / › mark. */}
+                    <span className={styles.srOnly}>
+                      {lesson.progress === 'DONE'
+                        ? t('lessons.done')
+                        : lesson.progress === 'AHEAD'
+                          ? t('lessons.ahead')
+                          : t('lessons.resume')}
                     </span>
-                  )}
-                  {lesson.materialCount > 0 && (
-                    <span className={styles.chip}>
-                      {t('lessons.chip.materials', { count: lesson.materialCount })}
-                    </span>
-                  )}
-                  {lesson.hasHomework && (
-                    <span className={styles.chip}>{t('lessons.chip.homework')}</span>
-                  )}
-                  {/* Screen readers get the state in words; sighted users get the ✓ / › mark. */}
-                  <span className={styles.srOnly}>
-                    {lesson.progress === 'DONE'
-                      ? t('lessons.done')
-                      : lesson.progress === 'AHEAD'
-                        ? t('lessons.ahead')
-                        : t('lessons.resume')}
                   </span>
                 </span>
-              </span>
-              <span className={styles.lesRight}>
-                {lesson.sessionAt && (
-                  <When className={styles.lesWhen} iso={lesson.sessionAt} now={now} />
-                )}
-                {isTeacher && lesson.groupSize != null && lesson.completedBy != null ? (
-                  <span className={styles.lesWhen}>
-                    {t('lessons.groupDone', {
-                      done: lesson.completedBy,
-                      total: lesson.groupSize,
-                    })}
-                  </span>
-                ) : (
-                  lesson.grade != null && <span className={styles.lesGrade}>{lesson.grade}</span>
-                )}
-                {isCadet && lesson.progress === 'CURRENT' && (
-                  <span className={styles.lesWhen}>{t('lessons.resume')}</span>
-                )}
-              </span>
-            </button>
-          ))}
+                <span className={styles.lesRight}>
+                  {lesson.sessionAt && (
+                    <When className={styles.lesWhen} iso={lesson.sessionAt} now={now} />
+                  )}
+                  {isTeacher && lesson.groupSize != null && lesson.completedBy != null ? (
+                    <span className={styles.lesWhen}>
+                      {t('lessons.groupDone', {
+                        done: lesson.completedBy,
+                        total: lesson.groupSize,
+                      })}
+                    </span>
+                  ) : (
+                    lesson.grade != null && <span className={styles.lesGrade}>{lesson.grade}</span>
+                  )}
+                  {isCadet && lesson.progress === 'CURRENT' && (
+                    <span className={styles.lesWhen}>{t('lessons.resume')}</span>
+                  )}
+                </span>
+              </button>
+            ))
+          )}
         </section>
       ))}
     </>
@@ -548,7 +578,7 @@ function NextAction({
       ) : (
         <>
           <p className={styles.nextName}>
-            {next.orderLabel} · {next.title}
+            {t('lessons.ordinal', { n: next.orderLabel })} · {next.title}
           </p>
           {next.sessionAt && <When className={styles.nextWhen} iso={next.sessionAt} now={now} />}
           <div className={styles.nextAct}>

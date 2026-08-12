@@ -135,6 +135,9 @@ mutation UpdateLesson($id: ID!, $input: LessonInput!) {
   updateLesson(id: $id, input: $input) {
     id
     title
+    description
+    kind
+    deviceKey
   }
 }
 
@@ -143,6 +146,8 @@ mutation CreateLesson($sectionId: ID!, $input: LessonInput!) {
     id
     title
     status
+    kind
+    deviceKey
   }
 }
 

@@ -179,6 +179,8 @@ type Lesson {
   scheduleRule: JSON           # { type: ONCE|WEEKLY, days: [..], time: "HH:MM" }
   status: LessonStatus!
   order: Int!
+  kind: LessonKind!            # EXTERNAL_DEVICE opens the device's page at run time
+  deviceKey: String            # only ever set on an EXTERNAL_DEVICE lesson
   materials: [Material!]!
   sessions(from: DateTime, to: DateTime): [LessonSession!]!
 }

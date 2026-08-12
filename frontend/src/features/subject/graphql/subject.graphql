@@ -102,3 +102,49 @@ mutation SaveItem($input: SaveItemInput!) {
 mutation RemoveSavedItem($id: ID!) {
   removeSavedItem(id: $id)
 }
+
+# Atlas 01, «Задания» / «На проверке». The learner fields carry the LATEST graded attempt —
+# a retake replaces the mark shown — and `attempts` says how many there were.
+query SubjectTasks($courseId: ID!) {
+  subjectTasks(courseId: $courseId) {
+    id
+    title
+    lessonId
+    lessonLabel
+    dueAt
+    state
+    submittedAt
+    score
+    comment
+    attempts
+    redoOpen
+    submittedBy
+    groupSize
+    gradedCount
+    waitingCount
+    staleCount
+    retakeCount
+  }
+}
+
+# Atlas 01, «Прогресс» / «Усвоение темы»: mastery per topic, and for a learner a comparison
+# with their own past only.
+query SubjectProgress($courseId: ID!) {
+  subjectProgress(courseId: $courseId) {
+    profileKind
+    overallPct
+    previousOverallPct
+    weakBelowPct
+    topics {
+      id
+      title
+      lessonFrom
+      lessonTo
+      isCurrent
+      pct
+      previousPct
+      weakCount
+      learnerCount
+    }
+  }
+}

@@ -9,6 +9,7 @@ describe('whenParts — which day a lesson sits on', () => {
   it('buckets today, yesterday and any other date', () => {
     expect(at('2026-08-12T10:15:00').bucket).toBe('today');
     expect(at('2026-08-11T14:00:00').bucket).toBe('yesterday');
+    expect(at('2026-08-13T14:00:00').bucket).toBe('tomorrow');
     expect(at('2026-08-14T14:00:00').bucket).toBe('date');
     expect(at('2026-08-05T14:00:00').bucket).toBe('date');
   });
