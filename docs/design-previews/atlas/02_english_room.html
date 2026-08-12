@@ -47,6 +47,17 @@ h1{font-size:1.4rem;font-weight:600;letter-spacing:-.015em}
 @media (prefers-reduced-motion:no-preference){.liveTag i{animation:pulse 2.4s ease-in-out infinite}}
 @keyframes pulse{50%{opacity:.3}}
 .topActs{margin-left:auto;display:flex;gap:7px;align-items:center;flex-wrap:wrap}
+/* переключатель окон урока — доступен обеим ролям */
+.winSwitch{display:flex;gap:2px;background:var(--subtle);border-radius:9px;padding:3px;flex-wrap:wrap}
+.win{font:500 10px var(--mono);color:var(--sec);background:none;border:none;border-radius:7px;padding:6px 11px;
+  cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:6px}
+.win:hover{color:var(--ink)}
+.win[aria-selected="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.05)}
+.win:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(225,78,31,.4)}
+.win .pop{font-size:9px;color:var(--ter)}
+.win[aria-selected="true"] .pop:hover{color:var(--coral-t)}
+.switchRow{display:flex;align-items:center;gap:10px;padding:9px 18px;border-bottom:1px solid var(--border);flex-wrap:wrap}
+.switchNote{font:400 9px var(--mono);color:var(--ter);margin-inline-start:auto;max-width:34ch;line-height:1.5}
 .mini{font:500 10px var(--mono);color:var(--sec);background:none;border:1px solid var(--border);border-radius:8px;
   padding:6px 10px;cursor:pointer;white-space:nowrap}
 .mini:hover{border-color:var(--border-s);color:var(--ink)}
@@ -263,6 +274,17 @@ h1{font-size:1.4rem;font-weight:600;letter-spacing:-.015em}
       </span>
     </div>
 
+    <!-- ——— ПЕРЕКЛЮЧАТЕЛЬ ОКОН УРОКА ——— -->
+    <div class="switchRow">
+      <div class="winSwitch">
+        <button class="win" data-scene="board" aria-selected="true">Доска<span class="pop" title="Открыть отдельным окном">↗</span></button>
+        <button class="win" data-scene="material">Методичка<span class="pop" title="Открыть отдельным окном">↗</span></button>
+        <button class="win" data-scene="test">Тест<span class="pop" title="Открыть отдельным окном">↗</span></button>
+        <button class="win" data-scene="summary">Саммари<span class="pop" title="Открыть отдельным окном">↗</span></button>
+      </div>
+      <span class="switchNote">любое окно открывается отдельной вкладкой или уходит на второй экран · инструменты переключаются, урок не прерывается</span>
+    </div>
+
     <div class="room">
       <!-- ————— СЦЕНА ————— -->
       <div class="stage">
@@ -331,7 +353,8 @@ h1{font-size:1.4rem;font-weight:600;letter-spacing:-.015em}
 
               <div class="boardSave">
                 <button class="mini" data-r="teacher">Очистить</button>
-                <button class="mini" data-r="teacher" data-on>Ученики могут писать</button>
+                <button class="mini" data-r="teacher" data-on id="boardAccess">Доска открыта для учеников</button>
+                <span class="mini" data-r="pupil" data-on>преподаватель открыл доску — можно писать</span>
                 <button class="mini">Сохранить доску ↓</button>
               </div>
             </div>
@@ -416,6 +439,7 @@ h1{font-size:1.4rem;font-weight:600;letter-spacing:-.015em}
               <div class="paperHead">
                 <span class="paperTitle">Саммари занятия</span>
                 <span class="draft">черновик · собрано автоматически</span>
+                <span class="paperMeta">речь расшифрована на серверах Flamingo в РФ · согласие дано при регистрации</span>
                 <span class="topActs">
                   <button class="mini" data-r="teacher">Править</button>
                   <button class="mini" data-r="teacher">Отправить группе</button>
@@ -431,6 +455,9 @@ h1{font-size:1.4rem;font-weight:600;letter-spacing:-.015em}
               <div class="sumItem"><span class="sumT">06:20</span>
                 <span><span class="sumTxt">Три конструкции вопроса о дороге, разобраны на доске</span>
                   <span class="sumSub">с доски · 4 узла, добавил Петя</span></span></div>
+              <div class="sumItem"><span class="sumT">11:05</span>
+                <span><span class="sumTxt">Ирина: «на экзамене пишите ahead, on — разговорный вариант»</span>
+                  <span class="sumSub">из речи занятия · расшифровка на сервере</span></span></div>
               <div class="sumItem"><span class="sumT">18:40</span>
                 <span><span class="sumTxt">Аудирование «at the station», два прослушивания</span>
                   <span class="sumSub">из материалов урока</span></span></div>
@@ -511,8 +538,8 @@ h1{font-size:1.4rem;font-weight:600;letter-spacing:-.015em}
                 <button class="mini" data-r="teacher">Показать всем</button>
               </div>
 
-              <div class="wSrc">значения и примеры — открытые словарные базы (Open English WordNet, Tatoeba),
-              озвучка — Common Voice · <b>внешние словари открываются ссылкой в новой вкладке</b></div>
+              <div class="wSrc">встроенная карточка — только открытые базы: Open English WordNet, Tatoeba, Common Voice.
+              <b>Закрытые словари (Cambridge и другие) не втягиваются внутрь, а открываются ссылкой в новой вкладке</b> — решение владельца 12.08</div>
             </div>
 
             <div class="mt" style="margin-top:14px"><span><span class="mtName">Слова этого урока</span>
@@ -562,8 +589,8 @@ h1{font-size:1.4rem;font-weight:600;letter-spacing:-.015em}
 
     <div class="privacy"><span class="sh"></span>
       камера и микрофон обрабатываются на твоём устройстве · наружу уходят только обезличенные показатели внимания ·
-      <span data-r="pupil" style="--d:inline">урок записывается преподавателем</span>
-      <span data-r="teacher" style="--d:inline">запись включена — участники предупреждены</span>
+      <span data-r="pupil" style="--d:inline">урок записывается · речь расшифровывается на серверах Flamingo для саммари — согласие дано при регистрации</span>
+      <span data-r="teacher" style="--d:inline">запись включена · расшифровка речи для саммари — участники предупреждены, согласия собраны</span>
     </div>
   </div>
 
@@ -595,23 +622,31 @@ h1{font-size:1.4rem;font-weight:600;letter-spacing:-.015em}
       <li>Домашнее задание из саммари автоматически попадает в «Задания» предмета.</li>
     </ul>
 
-    <h3>⚠️ Два места, где нужно твоё решение — иначе нарушим свои же правила</h3>
-    <div class="warn"><p><b>Cambridge Dictionary.</b> Это закрытый коммерческий словарь. Ссылаться на него и открывать в новой
-    вкладке — законно, так и сделано в макете. <b>Вытягивать содержимое</b> (значения, примеры, транскрипцию, аудио) в наш
-    интерфейс <b>без договора с Cambridge нельзя</b> — это прямое нарушение и повод для претензии, а в R&D мы уже отклонили
-    похожий обход. Поэтому встроенная карточка слова собрана из открытых баз: Open English WordNet, Tatoeba, Common Voice.
-    Если Cambridge нужен именно встроенным — нужен их платный словарный API и договор. Скажи, идём за лицензией или живём на открытых базах.</p></div>
-    <div class="warn"><p><b>Саммари и запись.</b> Сейчас саммари собирается из того, что и так есть в системе — это безопасно.
-    Если ты хочешь саммари <b>из речи</b>, появляется распознавание: браузерное распознавание Google нам запрещено
-    (аудио уходит на их серверы), значит либо локальная модель в браузере, либо серверная расшифровка с явным согласием
-    участников. Запись урока — отдельная сущность: она нарушает принцип «ничего не уходит с устройства», поэтому должна быть
-    явным режимом с предупреждением всем участникам (в макете такое предупреждение есть).</p></div>
+    <h3>Решения владельца 12.08 — закреплены</h3>
+    <ul>
+      <li><b>Доступ к доске</b> открывает и закрывает преподаватель, кнопкой. Ученик видит текущее состояние —
+      «преподаватель открыл доску», чтобы не тыкать вслепую.</li>
+      <li><b>Словари:</b> встроенная карточка слова — только на открытых базах (Open English WordNet · Tatoeba · Common Voice).
+      Закрытые словари, включая Cambridge, <b>не втягиваются внутрь</b>, а открываются ссылкой в новой вкладке. Это законно и бесплатно.</li>
+      <li><b>Саммари</b> собирается на серверах Flamingo, включая расшифровку речи занятия. Согласие берётся при
+      регистрации — у ученика и у родителя. В макете это видно: у пункта из речи подписан источник, а в нижней строке —
+      предупреждение о записи и расшифровке.</li>
+      <li><b>Переключение окон</b> — отдельная полоса под шапкой: доска · методичка · тест · саммари, каждое можно
+      вынести отдельной вкладкой. Инструменты переключаются, урок не прерывается.</li>
+    </ul>
 
-    <h3>Вопросы к тебе</h3>
-    <div class="q"><p>1. Словарь: идём за лицензией Cambridge или строим на открытых базах, а Cambridge оставляем ссылкой?</p></div>
-    <div class="q"><p>2. Саммари: хватит сборки из доски / теста / чата, или нужна расшифровка речи (тогда решаем, где она считается)?</p></div>
-    <div class="q"><p>3. Доска: ученики пишут по умолчанию, или преподаватель открывает запись руками, когда нужно?</p></div>
-  </div>
+    <h3>Что это меняет юридически (к учёту при реализации)</h3>
+    <ul>
+      <li>Расшифровка речи на сервере — это <b>обработка персональных данных детей</b>, а не только техническая операция.
+      Значит: серверы в РФ (152-ФЗ), согласие ребёнка и родителя <b>в момент регистрации</b> с прямым упоминанием записи и
+      расшифровки занятий, заявленный срок хранения аудио и право его удалить.</li>
+      <li><b>Инвариант SEduM не затронут:</b> он про камеру и биометрию — оттуда по-прежнему уходят только обезличенные
+      показатели внимания. Речь — отдельный поток с отдельным согласием, смешивать их нельзя.</li>
+      <li>Для ЕС эту функцию придётся выключать через матрицу юрисдикций — там записи детских занятий регулируются строже.
+      Механизм для этого уже построен (Фаза 0).</li>
+    </ul>
+
+    </div>
 </div>
 
 <script>
@@ -619,8 +654,17 @@ const scr=document.getElementById('scr');
 function press(sel,key,val){document.querySelectorAll(sel).forEach(x=>x.setAttribute('aria-pressed',String(x.dataset[key]===val)));}
 document.querySelectorAll('.bar button[data-role]').forEach(b=>b.addEventListener('click',()=>{
   scr.dataset.role=b.dataset.role;press('.bar button[data-role]','role',b.dataset.role);}));
-document.querySelectorAll('.bar button[data-scene]').forEach(b=>b.addEventListener('click',()=>{
-  scr.dataset.scene=b.dataset.scene;press('.bar button[data-scene]','scene',b.dataset.scene);}));
+function setScene(v){
+  scr.dataset.scene=v;press('.bar button[data-scene]','scene',v);
+  document.querySelectorAll('.win').forEach(x=>x.setAttribute('aria-selected',String(x.dataset.scene===v)));
+}
+document.querySelectorAll('.bar button[data-scene]').forEach(b=>b.addEventListener('click',()=>setScene(b.dataset.scene)));
+document.querySelectorAll('.win').forEach(b=>b.addEventListener('click',()=>setScene(b.dataset.scene)));
+const ba=document.getElementById('boardAccess');
+if(ba)ba.addEventListener('click',()=>{
+  const on=ba.hasAttribute('data-on');
+  ba.toggleAttribute('data-on');
+  ba.textContent=on?'Доска закрыта для учеников':'Доска открыта для учеников';});
 function setPane(p){
   scr.dataset.pane=p;press('.bar button[data-pane]','pane',p);
   document.querySelectorAll('.sTab').forEach(x=>x.setAttribute('aria-selected',String(x.dataset.pane===p)));
