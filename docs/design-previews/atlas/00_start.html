@@ -131,13 +131,24 @@ h1{font-size:1.4rem;font-weight:600;letter-spacing:-.015em}
 .screen[data-var="b"] .sWeek,.screen[data-var="b"] .pair{grid-column:1/-1}
 .screen[data-var="b"] .sAttn,.screen[data-var="b"] .sQuick{grid-column:2}
 /* C — модули: «сейчас» сжат, справа вертикальная полоса дневника */
-.screen[data-var="c"] .grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr) 268px}
+.screen[data-var="c"] .grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr) 268px;align-items:start}
 .screen[data-var="c"] .sNow{grid-column:1/3;grid-row:1}
-.screen[data-var="c"] .sWeek{grid-column:3;grid-row:1/3}
+.screen[data-var="c"] .sWeek{grid-column:3;grid-row:1/4}
 .screen[data-var="c"] .sToday{grid-column:1;grid-row:2}
 .screen[data-var="c"] .sAttn{grid-column:2;grid-row:2}
-.screen[data-var="c"] .pair{grid-column:1/-1;grid-row:3}
+/* продолжить и прогресс — той же ширины, прямо под ними */
+.screen[data-var="c"] .pair{display:contents}
+.screen[data-var="c"] .sContinue{grid-column:1;grid-row:3}
+.screen[data-var="c"] .sProg{grid-column:2;grid-row:3}
+/* у ролей без «Продолжить» прогресс встаёт в первую колонку */
+.screen[data-var="c"][data-role="teacher"] .sProg,
+.screen[data-var="c"][data-role="parent"] .sProg,
+.screen[data-var="c"][data-role="admin"] .sProg{grid-column:1}
 .screen[data-var="c"] .sQuick{grid-column:1/-1;grid-row:4}
+/* «сейчас» компактнее — второй ряд поднимается выше */
+.screen[data-var="c"] .now{padding:16px 20px 18px}
+.screen[data-var="c"] .nowTitle{font-size:1.2rem;margin:6px 0 2px}
+.screen[data-var="c"] .nowRow{margin-top:12px}
 /* вертикальный дневник: дни столбиком */
 .screen[data-var="c"] .sWeek{align-content:start}
 .screen[data-var="c"] .days{grid-template-columns:minmax(0,1fr);gap:5px}
