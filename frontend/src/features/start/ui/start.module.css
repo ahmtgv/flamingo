@@ -146,7 +146,7 @@
   border-radius: var(--radius-card);
   box-shadow: var(--shadow-lg, var(--shadow-md));
   padding: var(--space-2);
-  z-index: var(--z-popover, 60);
+  z-index: var(--z-dropdown);
 }
 .accHead {
   font-family: var(--font-mono);
@@ -221,6 +221,9 @@
 
 /* --- page ----------------------------------------------------------------- */
 .page {
+  /* Without this the horizontal padding is added OUTSIDE the 100% width and the sheet
+     scrolls sideways on a 375px screen. */
+  box-sizing: border-box;
   width: 100%;
   max-width: var(--content-max-wide);
   margin: 0 auto;
