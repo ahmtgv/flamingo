@@ -5,11 +5,11 @@ from __future__ import annotations
 import strawberry
 from strawberry.scalars import JSON
 
-from apps.courses import services
+from apps.courses import services, subject
 from common.auth import require_user
-from common.enums import CourseLevel, MaterialType
+from common.enums import CourseLevel, MaterialType, SavedItemKind
 
-from .types import Course, Enrollment, Lesson, Material, Section
+from .types import Course, Enrollment, Lesson, Material, Section, SubjectMaterial
 
 
 @strawberry.input
@@ -68,6 +68,21 @@ def _options_dict(opts: LessonOptionsInput | None) -> dict | None:
         "chat": opts.chat,
         "homework": opts.homework,
     }
+
+
+@strawberry.input
+class SaveItemInput:
+    """What to keep. Either a material of a course the caller can open, or an external find
+    (title + link). Never content — see subject.save_item."""
+
+    course_id: strawberry.ID | None = None
+    lesson_id: strawberry.ID | None = None
+    material_id: strawberry.ID | None = None
+    title: str | None = None
+    url: str | None = None
+    source_name: str | None = None
+    note: str | None = None
+    kind: SavedItemKind | None = None
 
 
 @strawberry.type
@@ -224,3 +239,39 @@ class CoursesMutation:
     @strawberry.mutation
     def mark_lesson_viewed(self, info: strawberry.Info, lesson_id: strawberry.ID) -> Enrollment:
         return services.mark_lesson_viewed(require_user(info), lesson_id)
+
+    # --- saved materials (atlas 01 quiet corner) --------------------------------------------
+    @strawberry.mutation
+    def save_item(self, info: strawberry.Info, input: SaveItemInput) -> SubjectMaterial:
+        """Keep a material or an external find in the caller's own list.
+
+        Only a link and a note are stored — never a copy of the content, so licences stay
+        with the source (owner req. 12).
+        """
+        row = subject.save_item(
+            require_user(info),
+            course_id=input.course_id,
+            lesson_id=input.lesson_id,
+            material_id=input.material_id,
+            title=input.title or "",
+            url=input.url or "",
+            source_name=input.source_name or "",
+            note=input.note or "",
+            kind=input.kind or SavedItemKind.SAVED,
+        )
+        return SubjectMaterial(
+            id=strawberry.ID(str(row.id)),
+            title=row.title or (row.material.title if row.material_id else ""),
+            subtitle=None,
+            type=None,
+            url=row.url or None,
+            from_label=row.source_name or None,
+            lesson_id=strawberry.ID(str(row.lesson_id)) if row.lesson_id else None,
+            saved_id=strawberry.ID(str(row.id)),
+            note=row.note or None,
+            saved_kind=SavedItemKind(row.kind),
+        )
+
+    @strawberry.mutation
+    def remove_saved_item(self, info: strawberry.Info, id: strawberry.ID) -> bool:
+        return subject.remove_saved_item(require_user(info), id)

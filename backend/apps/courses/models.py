@@ -7,8 +7,10 @@ from common.enums import (
     CourseLevel,
     CourseStatus,
     EnrollmentStatus,
+    LessonKind,
     LessonStatus,
     MaterialType,
+    SavedItemKind,
     choices,
 )
 from common.models import BaseModel, SoftDeleteModel
@@ -84,6 +86,14 @@ class Lesson(SoftDeleteModel):
         max_length=12, choices=choices(LessonStatus), default=LessonStatus.DRAFT.value
     )
     order = models.PositiveIntegerField(default=0)
+    # Owner decision 2026-08-12 (atlas 01): a telescope lesson stays a lesson in the
+    # programme, but doing it opens the instrument's own page. The kind is the seam for the
+    # shared ExternalDevice abstraction — device_key names WHICH instrument, so a new device
+    # is data, not a new branch in the code.
+    kind = models.CharField(
+        max_length=20, choices=choices(LessonKind), default=LessonKind.STANDARD.value
+    )
+    device_key = models.CharField(max_length=64, blank=True, default="")
 
     class Meta:
         ordering = ["order"]
@@ -133,3 +143,47 @@ class Enrollment(BaseModel):
         # (the ACTIVE gate). student/course are FKs (auto-indexed); this composite serves the
         # "this student's active enrollments" lookup.
         indexes = [models.Index(fields=["student", "access_status"])]
+
+
+class SavedItem(BaseModel):
+    """Something a learner kept for themselves — the "мои сохранённые" half of the materials
+    tab (atlas sheet 01).
+
+    Kept deliberately separate from MATERIAL: the sheet is explicit that a teacher's
+    authority must not be mixed with a learner's own finds. A row is either a pointer to a
+    course material or an external source discovered in the sources hub, never a copy of the
+    content itself (licences travel with the link, not with us).
+    """
+
+    user = models.ForeignKey("accounts.User", related_name="saved_items", on_delete=models.CASCADE)
+    # Which subject it was saved under; null = saved outside any course.
+    course = models.ForeignKey(
+        Course, related_name="saved_items", null=True, blank=True, on_delete=models.CASCADE
+    )
+    lesson = models.ForeignKey(
+        Lesson, related_name="saved_items", null=True, blank=True, on_delete=models.SET_NULL
+    )
+    material = models.ForeignKey(
+        "courses.Material", related_name="saved_by", null=True, blank=True, on_delete=models.CASCADE
+    )
+    # An external find: title + url only (never the content — see the class docstring).
+    title = models.CharField(max_length=200, blank=True, default="")
+    url = models.URLField(max_length=1000, blank=True, default="")
+    source_name = models.CharField(max_length=120, blank=True, default="")  # e.g. "NASA"
+    kind = models.CharField(
+        max_length=16, choices=choices(SavedItemKind), default=SavedItemKind.SAVED.value
+    )
+    note = models.TextField(blank=True, default="")
+
+    class Meta:
+        indexes = [models.Index(fields=["user", "course"])]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "material"],
+                condition=models.Q(material__isnull=False),
+                name="uniq_saved_material_per_user",
+            )
+        ]
+
+    def __str__(self) -> str:
+        return self.title or (self.material.title if self.material_id else str(self.id))

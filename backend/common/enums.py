@@ -112,6 +112,25 @@ class LessonStatus(Enum):
 
 
 @strawberry.enum
+class LessonKind(Enum):
+    """What a lesson runs on. Owner decision 2026-08-12 (atlas sheet 01, question 1): a
+    telescope lesson stays a lesson in the programme, but doing it opens the device's own
+    page — the instrument behaves like a subject of its own. EXTERNAL_DEVICE is the seam for
+    the shared ExternalDevice abstraction (CLAUDE.md §11), not a per-vendor hack."""
+
+    STANDARD = "standard"
+    EXTERNAL_DEVICE = "external_device"
+
+
+@strawberry.enum
+class SavedItemKind(Enum):
+    """Why a learner kept something — the two tags atlas sheet 01 shows on saved items."""
+
+    SAVED = "saved"  # "в мои материалы", usually with a note
+    WATCH_LATER = "watch_later"
+
+
+@strawberry.enum
 class SessionStatus(Enum):
     SCHEDULED = "scheduled"
     LIVE = "live"

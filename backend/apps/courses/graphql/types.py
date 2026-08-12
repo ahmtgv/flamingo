@@ -16,14 +16,18 @@ from strawberry.scalars import JSON
 
 from apps.accounts.graphql.types import StudentProfileType, TeacherProfileType
 from apps.courses import models, services
+from apps.courses.subject import LessonProgress
 from apps.institutions.graphql.types import Institution as InstitutionType
 from common.auth import get_current_user, require_user
 from common.enums import (
     CourseLevel,
     CourseStatus,
     EnrollmentStatus,
+    LearningProfileKind,
+    LessonKind,
     LessonStatus,
     MaterialType,
+    SavedItemKind,
 )
 
 
@@ -215,3 +219,154 @@ class CourseConnection:
     page_info: PageInfo
     total_count: int
     subject_count: int  # distinct subjects in the (filtered) catalog — "N предметов" meta
+
+
+# --- Subject cabinet (atlas sheet 01) ---------------------------------------------------------
+# Rows carry DATA — the client words "6 из 8 пройдено" and the lesson chips through i18n.
+
+
+@strawberry.type
+class SubjectLesson:
+    id: strawberry.ID
+    title: str
+    subtitle: str | None
+    progress: LessonProgress
+    kind: LessonKind
+    device_key: str | None
+    order_label: str
+    material_count: int
+    has_homework: bool
+    session_id: strawberry.ID | None
+    session_at: dt.datetime | None
+    is_live: bool
+    grade: int | None
+    completed_by: int | None
+    group_size: int | None
+
+    @classmethod
+    def of(cls, x) -> SubjectLesson:
+        return cls(
+            id=strawberry.ID(x.id),
+            title=x.title,
+            subtitle=x.subtitle,
+            progress=x.progress,
+            kind=x.kind,
+            device_key=x.device_key,
+            order_label=x.order_label,
+            material_count=x.material_count,
+            has_homework=x.has_homework,
+            session_id=strawberry.ID(x.session_id) if x.session_id else None,
+            session_at=x.session_at,
+            is_live=x.is_live,
+            grade=x.grade,
+            completed_by=x.completed_by,
+            group_size=x.group_size,
+        )
+
+
+@strawberry.type
+class SubjectSection:
+    id: strawberry.ID
+    title: str
+    done_lessons: int
+    total_lessons: int
+    lessons: list[SubjectLesson]
+
+
+@strawberry.type
+class SubjectMaterial:
+    id: strawberry.ID
+    title: str
+    subtitle: str | None
+    type: MaterialType | None
+    url: str | None
+    from_label: str | None
+    lesson_id: strawberry.ID | None
+    saved_id: strawberry.ID | None
+    note: str | None
+    saved_kind: SavedItemKind | None
+
+    @classmethod
+    def of(cls, x) -> SubjectMaterial:
+        return cls(
+            id=strawberry.ID(x.id),
+            title=x.title,
+            subtitle=x.subtitle,
+            type=x.type,
+            url=x.url,
+            from_label=x.from_label,
+            lesson_id=strawberry.ID(x.lesson_id) if x.lesson_id else None,
+            saved_id=strawberry.ID(x.saved_id) if x.saved_id else None,
+            note=x.note,
+            saved_kind=x.saved_kind,
+        )
+
+
+@strawberry.type
+class SubjectSource:
+    id: strawberry.ID
+    name: str
+    source_name: str | None
+    url: str | None
+    note: str | None
+    in_lesson: bool
+    saved_id: strawberry.ID | None
+
+
+@strawberry.type
+class SubjectCabinet:
+    course_id: strawberry.ID
+    title: str
+    profile_kind: LearningProfileKind
+    institution_name: str | None
+    group_name: str | None
+    teacher_name: str | None
+    teacher_id: strawberry.ID | None
+    lesson_count: int
+    student_count: int | None
+    progress_pct: int
+    sections: list[SubjectSection]
+    materials: list[SubjectMaterial]
+    saved_materials: list[SubjectMaterial]
+    sources: list[SubjectSource]
+    next_lesson: SubjectLesson | None
+
+    @classmethod
+    def of(cls, page) -> SubjectCabinet:
+        return cls(
+            course_id=strawberry.ID(page.course_id),
+            title=page.title,
+            profile_kind=page.profile_kind,
+            institution_name=page.institution_name,
+            group_name=page.group_name,
+            teacher_name=page.teacher_name,
+            teacher_id=strawberry.ID(page.teacher_id) if page.teacher_id else None,
+            lesson_count=page.lesson_count,
+            student_count=page.student_count,
+            progress_pct=page.progress_pct,
+            sections=[
+                SubjectSection(
+                    id=strawberry.ID(s.id),
+                    title=s.title,
+                    done_lessons=s.done_lessons,
+                    total_lessons=s.total_lessons,
+                    lessons=[SubjectLesson.of(x) for x in s.lessons],
+                )
+                for s in page.sections
+            ],
+            materials=[SubjectMaterial.of(x) for x in page.materials],
+            saved_materials=[SubjectMaterial.of(x) for x in page.saved_materials],
+            sources=[
+                SubjectSource(
+                    id=strawberry.ID(x.id),
+                    name=x.name,
+                    source_name=x.source_name,
+                    url=x.url,
+                    note=x.note,
+                    in_lesson=x.in_lesson,
+                    saved_id=strawberry.ID(x.saved_id) if x.saved_id else None,
+                )
+                for x in page.sources
+            ],
+            next_lesson=SubjectLesson.of(page.next_lesson) if page.next_lesson else None,
+        )

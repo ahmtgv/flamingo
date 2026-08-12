@@ -24,6 +24,10 @@ enum Role { STUDENT PARENT TEACHER ADMIN }
 enum AgeBand { JUNIOR TEEN ADULT }
 enum LearningProfileKind { PUPIL CADET TEACHER }
 enum StartEntryKind { LESSON_SESSION HOMEWORK_DUE HOMEWORK_GRADED GRADING_QUEUE CONTINUE_LESSON }
+enum LessonProgress { DONE CURRENT AHEAD }
+# A telescope lesson stays a lesson in the programme; doing it opens the instrument's page.
+enum LessonKind { STANDARD EXTERNAL_DEVICE }
+enum SavedItemKind { SAVED WATCH_LATER }
 enum VerificationStatus { PENDING APPROVED REJECTED }
 enum InstitutionStatus { PENDING ACTIVE INACTIVE }
 enum MembershipRole { TEACHER STUDENT ADMIN }
@@ -619,6 +623,89 @@ type StartPage {
   progress: [StartProgress!]!
 }
 
+# ----------------------------------------------------------------------------- Subject cabinet (atlas 01)
+# One frame for pupil, cadet and teacher. Rows carry DATA — "6 из 8 пройдено" and the lesson
+# chips are worded client-side through i18n.
+# Materials are split on purpose: `materials` is what the teacher and the programme gave,
+# `savedMaterials` is what the learner kept. The sheet calls the separation principled.
+type SubjectLesson {
+  id: ID!
+  title: String!
+  subtitle: String
+  progress: LessonProgress!
+  kind: LessonKind!
+  deviceKey: String
+  orderLabel: String!
+  materialCount: Int!
+  hasHomework: Boolean!
+  sessionId: ID
+  sessionAt: DateTime
+  isLive: Boolean!
+  grade: Int
+  completedBy: Int
+  groupSize: Int
+}
+
+type SubjectSection {
+  id: ID!
+  title: String!
+  doneLessons: Int!
+  totalLessons: Int!
+  lessons: [SubjectLesson!]!
+}
+
+type SubjectMaterial {
+  id: ID!
+  title: String!
+  subtitle: String
+  type: MaterialType
+  url: String
+  fromLabel: String
+  lessonId: ID
+  savedId: ID
+  note: String
+  savedKind: SavedItemKind
+}
+
+type SubjectSource {
+  id: ID!
+  name: String!
+  sourceName: String
+  url: String
+  note: String
+  inLesson: Boolean!
+  savedId: ID
+}
+
+type SubjectCabinet {
+  courseId: ID!
+  title: String!
+  profileKind: LearningProfileKind!
+  institutionName: String
+  groupName: String
+  teacherName: String
+  teacherId: ID
+  lessonCount: Int!
+  studentCount: Int
+  progressPct: Int!
+  sections: [SubjectSection!]!
+  materials: [SubjectMaterial!]!
+  savedMaterials: [SubjectMaterial!]!
+  sources: [SubjectSource!]!
+  nextLesson: SubjectLesson
+}
+
+input SaveItemInput {
+  courseId: ID = null
+  lessonId: ID = null
+  materialId: ID = null
+  title: String = null
+  url: String = null
+  sourceName: String = null
+  note: String = null
+  kind: SavedItemKind = null
+}
+
 # =============================================================================
 # Query
 # =============================================================================
@@ -627,6 +714,8 @@ type Query {
   me: User
   learningProfiles: [LearningProfile!]!                    # caller's own educations
   startPage: StartPage!                                   # atlas 00, for the active education
+  subjectCabinet(courseId: ID!): SubjectCabinet!          # atlas 01 (access via can_access_course)
+  mySavedItems(courseId: ID): [SubjectMaterial!]!         # caller's own saved items
 
   # catalog & content
   catalog(filter: CourseFilter, first: Int = 20, after: String): CourseConnection!
@@ -692,6 +781,8 @@ type Mutation {
   resetPassword(token: String!, newPassword: String!): Boolean!
   verifyEmail(token: String!): Boolean!
   setActiveLearningProfile(id: ID!): LearningProfile!     # switch education (own only)
+  saveItem(input: SaveItemInput!): SubjectMaterial!       # keep a link, never a copy
+  removeSavedItem(id: ID!): Boolean!
   addChild(input: AddChildInput!): Guardianship!            # parent links/creates a child
   respondGuardianship(id: ID!, accept: Boolean!): Guardianship!   # child confirms request
   submitVerificationDocument(fileKey: String!): VerificationDocument!   # teacher
