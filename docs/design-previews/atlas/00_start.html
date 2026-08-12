@@ -130,11 +130,20 @@ h1{font-size:1.4rem;font-weight:600;letter-spacing:-.015em}
 .screen[data-var="b"] .sNow,.screen[data-var="b"] .sToday{grid-column:1}
 .screen[data-var="b"] .sWeek,.screen[data-var="b"] .pair{grid-column:1/-1}
 .screen[data-var="b"] .sAttn,.screen[data-var="b"] .sQuick{grid-column:2}
-/* C — модули */
-.screen[data-var="c"] .grid{grid-template-columns:repeat(3,minmax(0,1fr))}
-.screen[data-var="c"] .sNow{grid-column:1/-1}
-.screen[data-var="c"] .sQuick{grid-column:1/-1}
-.screen[data-var="c"] .sWeek,.screen[data-var="c"] .pair{grid-column:1/-1}
+/* C — модули: «сейчас» сжат, справа вертикальная полоса дневника */
+.screen[data-var="c"] .grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr) 268px}
+.screen[data-var="c"] .sNow{grid-column:1/3;grid-row:1}
+.screen[data-var="c"] .sWeek{grid-column:3;grid-row:1/3}
+.screen[data-var="c"] .sToday{grid-column:1;grid-row:2}
+.screen[data-var="c"] .sAttn{grid-column:2;grid-row:2}
+.screen[data-var="c"] .pair{grid-column:1/-1;grid-row:3}
+.screen[data-var="c"] .sQuick{grid-column:1/-1;grid-row:4}
+/* вертикальный дневник: дни столбиком */
+.screen[data-var="c"] .sWeek{align-content:start}
+.screen[data-var="c"] .days{grid-template-columns:minmax(0,1fr);gap:5px}
+.screen[data-var="c"] .day{min-height:auto;padding:7px 9px 8px}
+.screen[data-var="c"] .weekHead{flex-wrap:wrap;gap:4px 10px}
+.screen[data-var="c"] .weekFoot{display:none}
 @media (max-width:900px){.screen[data-var] .grid{grid-template-columns:minmax(0,1fr)!important}}
 
 /* ——— ПОКАЗ ПО РОЛЯМ ——— */
@@ -230,9 +239,9 @@ h1{font-size:1.4rem;font-weight:600;letter-spacing:-.015em}
 
   <div class="bar">
     <span class="grp">Вариант</span>
-    <button data-var="a" aria-pressed="true">A · лента дня</button>
+    <button data-var="a">A · лента дня</button>
     <button data-var="b">B · действие + рельс</button>
-    <button data-var="c">C · модули</button>
+    <button data-var="c" aria-pressed="true">C · модули</button>
     <span class="grp">Роль</span>
     <button data-role="pupil" aria-pressed="true">ученик</button>
     <button data-role="cadet">курсант</button>
@@ -243,7 +252,7 @@ h1{font-size:1.4rem;font-weight:600;letter-spacing:-.015em}
     <button id="thm">тёмная</button>
   </div>
 
-  <div class="screen" id="scr" data-var="a" data-role="pupil">
+  <div class="screen" id="scr" data-var="c" data-role="pupil">
     <div class="topnav">
       <span class="dot"></span><b>flamingo</b>
       <span class="navSpace">
@@ -644,8 +653,11 @@ h1{font-size:1.4rem;font-weight:600;letter-spacing:-.015em}
     <ul>
       <li><b>A · лента дня</b> — одна колонка по центру, строгая хронология. Самый спокойный и самый понятный ребёнку; хуже всего показывает много всего сразу.</li>
       <li><b>B · действие + рельс</b> — слева то, что делаешь, справа рельс: чат, сроки, прогресс. Плотнее, взрослее; хорошо для учителя и админа.</li>
-      <li><b>C · модули</b> — сетка карточек. Больше всего влезает, потом можно дать пользователю переставлять; но требует дисциплины, иначе превращается в приборную панель.</li>
+      <li><b>C · модули</b> — сетка карточек. <b>✅ Утверждён владельцем 12.08 как контракт стартовой страницы.</b>
+      В нём «Урок начинается» занимает две колонки из трёх, а освободившаяся правая колонка отдана
+      вертикальной полосе расписания-дневника на всю высоту верхнего блока.</li>
     </ul>
+    <p>A и B остаются в листе как справочные — на них видно, куда всё переезжает на узком экране и на планшете.</p>
 
     <h3>Чат — отдельное окно (правка владельца 12.08)</h3>
     <ul>
@@ -671,7 +683,7 @@ h1{font-size:1.4rem;font-weight:600;letter-spacing:-.015em}
     </ul>
 
     <h3>Вопросы к тебе</h3>
-    <div class="q"><p>1. Какой вариант берём контрактом — A, B или C? Можно разный по ролям (например A ученику, B учителю), но это дороже в поддержке.</p></div>
+    <div class="q"><p>1. ✅ Закрыт: контракт — <b>вариант C</b>, «сейчас» сжат до двух колонок, дневник вертикальной полосой справа.</p></div>
     <div class="q"><p>2. «Курсант» — это отдельная роль в системе или тот же ученик, просто без учреждения? От ответа зависит модель данных.</p></div>
     <div class="q"><p>3. Родителю показывать блок «Прогресс» вообще? Сейчас он есть и намеренно обезличен — только динамика самого ребёнка.</p></div>
     <div class="q"><p>4. Переписка детей: подтверждаешь условия выше (видна учителю и родителю · только свои группы · жалоба)? Это то, что защищает и детей, и нас.</p></div>
