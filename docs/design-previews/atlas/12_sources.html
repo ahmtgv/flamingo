@@ -64,13 +64,34 @@ h1{font-size:1.4rem;font-weight:600;letter-spacing:-.015em}
 .thumb .lv i{width:4px;height:4px;border-radius:50%;background:var(--coral);display:block}
 @media (prefers-reduced-motion:no-preference){.thumb .lv i,.live i{animation:pulse 2.4s ease-in-out infinite}}
 @keyframes pulse{50%{opacity:.3}}
-/* «+ в мои материалы» — на карточках источников и во врезках */
-.addBtn{background:none;border:1px solid var(--border-s);border-radius:7px;color:var(--sec);
-  font:500 var(--fs-micro) var(--ui);padding:5px 10px;cursor:pointer;transition:all .18s var(--ease);
-  display:inline-flex;align-items:center;gap:5px}
-.addBtn:hover{border-color:var(--coral);color:var(--coral-t)}
-.addBtn:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(225,78,31,.4)}
-.addBtn[data-saved]{border-color:var(--border);color:var(--ter)}
+/* тихий уголок действий: правый нижний угол → меню намерений */
+.hasQuiet{position:relative}
+.quiet{position:absolute;right:8px;bottom:8px;width:24px;height:24px;border-radius:6px;border:none;background:none;
+  color:var(--ter);cursor:pointer;display:grid;place-content:center;opacity:.5;transition:all .18s var(--ease);
+  font:500 11px var(--mono);line-height:1}
+.hasQuiet:hover .quiet{opacity:1}
+.quiet:hover{background:var(--subtle);color:var(--ink);opacity:1}
+.quiet:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(225,78,31,.4);opacity:1}
+.quiet[aria-expanded="true"]{background:var(--subtle);color:var(--ink);opacity:1}
+.qmenu{position:absolute;right:6px;bottom:34px;min-width:210px;background:var(--surface);border:1px solid var(--border-s);
+  border-radius:10px;padding:5px;display:none;z-index:20;box-shadow:0 6px 20px rgba(0,0,0,.07)}
+[data-theme="dark"] .qmenu{box-shadow:0 6px 20px rgba(0,0,0,.4)}
+.qmenu[data-open]{display:grid}
+.qmenu button{background:none;border:none;text-align:start;font:400 var(--fs-cap) var(--ui);color:var(--ink);
+  padding:8px 10px;border-radius:7px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.qmenu button:hover{background:var(--subtle)}
+.qmenu button:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(225,78,31,.4)}
+.qmenu .hint{font:400 10px var(--mono);color:var(--ter)}
+.qmenu .sep{height:1px;background:var(--border);margin:4px 2px}
+.qmenu .saved{color:var(--ter)}
+
+/* строка фильтров, появляется после 20 материалов */
+.mmTools{display:flex;gap:8px;align-items:center;margin:18px 0 4px;flex-wrap:wrap}
+.mmTools input{flex:1;min-width:220px;height:38px;border:1px solid var(--border-s);border-radius:9px;
+  background:var(--surface);color:var(--ink);font:400 var(--fs-cap) var(--ui);padding:0 13px}
+.mmTools input::placeholder{color:var(--ter)}
+.mmTools input:focus-visible{outline:none;border-color:var(--coral);box-shadow:0 0 0 3px rgba(225,78,31,.25)}
+.autoNote{font:400 10px var(--mono);color:var(--ter);margin-top:6px}
 
 /* мои материалы */
 .mmGroup{margin-top:26px}
@@ -236,44 +257,44 @@ h1{font-size:1.4rem;font-weight:600;letter-spacing:-.015em}
             <p class="para">Первую планету у солнцеподобной звезды нашли в 1995 году. Сегодня их известно более пяти тысяч — и почти все обнаружены двумя методами: транзитным и методом лучевых скоростей.</p>
             <p class="para">Транзитный метод прост по идее: если планета проходит перед диском звезды, её блеск на короткое время падает. По глубине и периоду падений можно узнать размер планеты и длину её года.</p>
 
-            <div class="inlineBlock">
+            <div class="inlineBlock hasQuiet">
               <div class="kicker">данные · задание урока</div>
               <h4>NASA Exoplanet Archive</h4>
               <p>Возьми настоящий каталог и построй распределение экзопланет по массе и периоду. Посмотри, где скапливаются «горячие юпитеры» — и подумай почему.</p>
-              <div class="inlineAct"><button class="btnS">Открыть данные</button><button class="addBtn">+ в мои материалы</button><span class="use" data-free>можно взять в свою работу</span></div>
+              <div class="inlineAct"><button class="btnS">Открыть данные</button><span class="use" data-free>можно взять в свою работу</span></div><button class="quiet" aria-label="Действия">^</button>
             </div>
 
             <p class="para">Второй способ — метод лучевых скоростей. Планета и звезда вращаются вокруг общего центра масс, поэтому звезда слегка «покачивается», и это видно по смещению линий в её спектре.</p>
 
-            <div class="inlineBlock">
+            <div class="inlineBlock hasQuiet">
               <div class="kicker">видео · материал преподавателя</div>
               <div class="inlineMedia">
                 <div class="thumb"><span class="p"></span></div>
                 <div>
                   <h4>Как «качается» звезда</h4>
                   <p>Разбор метода лучевых скоростей — 6 минут. Материал добавлен Марией Петровной к этому уроку.</p>
-                  <div class="inlineAct"><button class="btnS">Смотреть</button><button class="addBtn">+ в мои материалы</button><span class="ext">6:12 · встроено в урок</span></div>
+                  <div class="inlineAct"><button class="btnS">Смотреть</button><span class="ext">6:12 · встроено в урок</span></div><button class="quiet" aria-label="Действия">^</button>
                 </div>
               </div>
             </div>
 
-            <div class="inlineBlock">
+            <div class="inlineBlock hasQuiet">
               <div class="kicker">прибор · твой снимок</div>
               <h4>Закажи наблюдение на MicroObservatory</h4>
               <p>Настоящий телескоп Гарвард-Смитсоновского центра снимет выбранный объект этой ночью. Снимок придёт в течение двух суток — разберём его на следующем уроке.</p>
-              <div class="inlineAct"><button class="btnS">Выбрать объект</button><button class="btnQ">Пока посмотреть архив</button><span class="ext">бесплатно · ~48 ч</span></div>
+              <div class="inlineAct"><button class="btnS">Выбрать объект</button><button class="btnQ">Пока посмотреть архив</button><span class="ext">бесплатно · ~48 ч</span></div><button class="quiet" aria-label="Действия">^</button>
             </div>
 
             <p class="para">Пока телескоп ждёт ясной ночи, посмотрим, что происходит в космосе прямо сейчас.</p>
 
-            <div class="inlineBlock">
+            <div class="inlineBlock hasQuiet">
               <div class="kicker">эфир · выбран преподавателем</div>
               <div class="inlineMedia">
                 <div class="thumb"><span class="lv"><i></i>в эфире</span><span class="p"></span></div>
                 <div>
                   <h4>NASA Live</h4>
                   <p>Прямая трансляция из центра управления. Откроется в новой вкладке — оставь на втором экране и возвращайся к уроку.</p>
-                  <div class="inlineAct"><button class="btnS">Смотреть ↗</button><span class="ext">новая вкладка</span><span class="use">только посмотреть</span></div>
+                  <div class="inlineAct"><button class="btnS">Смотреть ↗</button><span class="ext">новая вкладка</span><span class="use">только посмотреть</span></div><button class="quiet" aria-label="Действия">^</button>
                 </div>
               </div>
             </div>
@@ -356,15 +377,25 @@ h1{font-size:1.4rem;font-weight:600;letter-spacing:-.015em}
           <button class="chip">в эфире</button><button class="chip">данные / API</button><button class="chip">коллекция</button><button class="chip">прибор</button>
         </div>
         <div class="grid3">
-          <button class="src"><span class="thumb"><span class="lv"><i></i>в эфире</span><span class="p"></span></span><span class="inst">NASA</span><span class="name">NASA Live<span class="ext">↗</span></span><span class="desc">Пуски, миссии, эфиры центра управления</span><span class="foot"><span class="use">только посмотреть</span></span></button>
-          <button class="src"><span class="thumb"><span class="lv"><i></i>в эфире</span><span class="p"></span></span><span class="inst">Smithsonian</span><span class="name">Камеры зоопарка<span class="ext">↗</span></span><span class="desc">Панды, слоны, львы — живые камеры</span><span class="foot"><span class="use">только посмотреть</span></span></button>
-          <button class="src"><span class="inst">The Metropolitan Museum</span><span class="name">Met Open Access</span><span class="desc">470 000+ объектов в высоком разрешении</span><span class="foot"><span class="use" data-free>можно взять в свою работу</span></span></button>
-          <button class="src"><span class="inst">Internet Archive</span><span class="name">Open Library</span><span class="desc">Международный каталог книг</span><span class="foot"><span class="use" data-free>можно взять в свою работу</span></span></button>
-          <button class="src"><span class="inst">Europeana</span><span class="name">Европейское наследие</span><span class="desc">Книги, архивы, искусство тысяч учреждений</span><span class="foot"><span class="use" data-free>можно взять в свою работу</span></span></button>
-          <button class="src"><span class="inst">GBIF</span><span class="name">Биоразнообразие</span><span class="desc">Глобальные наблюдения видов</span><span class="foot"><span class="use" data-free>можно взять в свою работу</span></span></button>
-          <button class="src"><span class="inst">Harvard · Smithsonian</span><span class="name">MicroObservatory</span><span class="desc">Заказать снимок с реального телескопа</span><span class="foot"><span class="use" data-free>твой снимок — твой</span><span class="ext">~48 ч</span></span></button>
-          <button class="src"><span class="inst">Project Gutenberg</span><span class="name">Классика в свободном доступе</span><span class="desc">Проверенные тексты общественного достояния</span><span class="foot"><span class="use" data-free>можно взять в свою работу</span></span></button>
-          <button class="src"><span class="inst">USGS</span><span class="name">Землетрясения</span><span class="desc">Данные почти в реальном времени</span><span class="foot"><span class="use" data-free>можно взять в свою работу</span></span></button>
+          <div class="src hasQuiet"><span class="thumb"><span class="lv"><i></i>в эфире</span><span class="p"></span></span><span class="inst">NASA</span><span class="name">NASA Live<span class="ext">↗</span></span><span class="desc">Пуски, миссии, эфиры центра управления</span><span class="foot"><span class="use">только посмотреть</span></span><button class="quiet" aria-label="Действия">^</button></div>
+          <div class="src hasQuiet"><span class="thumb"><span class="lv"><i></i>в эфире</span><span class="p"></span></span><span class="inst">Smithsonian</span><span class="name">Камеры зоопарка<span class="ext">↗</span></span><span class="desc">Панды, слоны, львы — живые камеры</span><span class="foot"><span class="use">только посмотреть</span></span><button class="quiet" aria-label="Действия">^</button></div>
+          <div class="src hasQuiet"><span class="inst">The Metropolitan Museum</span><span class="name">Met Open Access</span><span class="desc">470 000+ объектов в высоком разрешении</span><span class="foot"><span class="use" data-free>можно взять в свою работу</span></span>
+            <button class="quiet" aria-label="Действия" aria-expanded="true">^</button>
+            <div class="qmenu" data-open>
+              <button>В избранное</button>
+              <button>Посмотреть позднее</button>
+              <button>Напомнить изучить<span class="hint">выбрать когда</span></button>
+              <div class="sep"></div>
+              <button>В мои материалы<span class="hint">+ заметка</span></button>
+              <button>Поделиться<span class="hint">класс · учитель · ссылка</span></button>
+            </div>
+          </div>
+          <div class="src hasQuiet"><span class="inst">Internet Archive</span><span class="name">Open Library</span><span class="desc">Международный каталог книг</span><span class="foot"><span class="use" data-free>можно взять в свою работу</span></span><button class="quiet" aria-label="Действия">^</button></div>
+          <div class="src hasQuiet"><span class="inst">Europeana</span><span class="name">Европейское наследие</span><span class="desc">Книги, архивы, искусство тысяч учреждений</span><span class="foot"><span class="use" data-free>можно взять в свою работу</span></span><button class="quiet" aria-label="Действия">^</button></div>
+          <div class="src hasQuiet"><span class="inst">GBIF</span><span class="name">Биоразнообразие</span><span class="desc">Глобальные наблюдения видов</span><span class="foot"><span class="use" data-free>можно взять в свою работу</span></span><button class="quiet" aria-label="Действия">^</button></div>
+          <div class="src hasQuiet"><span class="inst">Harvard · Smithsonian</span><span class="name">MicroObservatory</span><span class="desc">Заказать снимок с реального телескопа</span><span class="foot"><span class="use" data-free>твой снимок — твой</span><span class="ext">~48 ч</span></span><button class="quiet" aria-label="Действия">^</button></div>
+          <div class="src hasQuiet"><span class="inst">Project Gutenberg</span><span class="name">Классика в свободном доступе</span><span class="desc">Проверенные тексты общественного достояния</span><span class="foot"><span class="use" data-free>можно взять в свою работу</span></span><button class="quiet" aria-label="Действия">^</button></div>
+          <div class="src hasQuiet"><span class="inst">USGS</span><span class="name">Землетрясения</span><span class="desc">Данные почти в реальном времени</span><span class="foot"><span class="use" data-free>можно взять в свою работу</span></span><button class="quiet" aria-label="Действия">^</button></div>
         </div>
         <p class="note">Язык определяется по браузеру, меняется вручную, есть «Все языки». Ученику вместо кода лицензии — прямой ответ: «можно взять в свою работу» или «только посмотреть». Точный код видит учитель.</p>
       </div>
@@ -507,8 +538,18 @@ h1{font-size:1.4rem;font-weight:600;letter-spacing:-.015em}
         <div style="display:flex;justify-content:space-between;align-items:baseline;gap:24px;margin-top:20px">
           <div><div class="h-title">Добавленные материалы</div>
           <div class="h-sub">Всё, что ты сохранил из уроков и хаба — с твоими заметками</div></div>
-          <span class="meta">14 материалов</span>
+          <span class="meta">23 материала</span>
         </div>
+
+        <div class="mmTools">
+          <input placeholder="Поиск по своим материалам">
+          <button class="chip" data-on>все</button>
+          <button class="chip">избранное</button>
+          <button class="chip">посмотреть позднее</button>
+          <button class="chip">напомнить</button>
+          <button class="chip">видео</button>
+        </div>
+        <div class="autoNote">каталог собрался сам, когда материалов стало больше 20 — до этого был простой список</div>
 
         <div class="mmGroup">
           <div class="mmSubj">астрономия</div>
@@ -570,7 +611,7 @@ h1{font-size:1.4rem;font-weight:600;letter-spacing:-.015em}
             <span class="mmDate">20.07</span>
           </div>
         </div>
-        <p class="note">Ученик добавляет материал кнопкой «+ в мои материалы» из урока или хаба. Группируется по предметам, отдельно — найденное самостоятельно. У каждого можно оставить свою заметку — это и есть конспект.</p>
+        <p class="note">Сохранять можно что угодно — тихим уголком «^» в правом нижнем углу любой карточки или врезки. До 20 материалов это простой список; после — каталог собирается сам в этом же окне: поиск и фильтры по намерению (избранное · посмотреть позднее · напомнить), группировка по предметам. Заметка у материала и есть конспект.</p>
       </div>
 
     </div>
@@ -601,6 +642,29 @@ document.querySelectorAll('.hubTab').forEach(t=>t.addEventListener('click',()=>{
   const label=t.textContent.trim();
   setView(map[label]||'b3');
 }));
+// тихий уголок: открыть/закрыть меню намерений
+document.querySelectorAll('.quiet').forEach(q=>q.addEventListener('click',e=>{
+  e.stopPropagation();
+  const host=q.closest('.hasQuiet');
+  let menu=host.querySelector('.qmenu');
+  if(!menu){
+    menu=document.createElement('div');
+    menu.className='qmenu';
+    menu.innerHTML='<button>В избранное</button><button>Посмотреть позднее</button>'+
+      '<button>Напомнить изучить<span class="hint">выбрать когда</span></button>'+
+      '<div class="sep"></div><button>В мои материалы<span class="hint">+ заметка</span></button>'+
+      '<button>Поделиться<span class="hint">класс · учитель · ссылка</span></button>';
+    host.appendChild(menu);
+  }
+  const open=menu.hasAttribute('data-open');
+  document.querySelectorAll('.qmenu[data-open]').forEach(m=>m.removeAttribute('data-open'));
+  document.querySelectorAll('.quiet[aria-expanded="true"]').forEach(b=>b.setAttribute('aria-expanded','false'));
+  if(!open){menu.setAttribute('data-open','');q.setAttribute('aria-expanded','true');}
+}));
+document.addEventListener('click',()=>{
+  document.querySelectorAll('.qmenu[data-open]').forEach(m=>m.removeAttribute('data-open'));
+  document.querySelectorAll('.quiet[aria-expanded="true"]').forEach(b=>b.setAttribute('aria-expanded','false'));
+});
 document.getElementById('thm').addEventListener('click',e=>{
   const on=e.target.getAttribute('aria-pressed')!=='true';
   e.target.setAttribute('aria-pressed',String(on));
