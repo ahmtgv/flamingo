@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import datetime as dt
 from typing import TYPE_CHECKING, Annotated
 
 import strawberry
@@ -9,6 +10,7 @@ import strawberry_django
 from strawberry import auto
 
 from apps.accounts import models, services
+from apps.accounts.start_page import StartEntryKind
 from common import storage
 from common.auth import get_current_user, require_user
 from common.enums import (
@@ -228,4 +230,98 @@ class LearningProfile:
             course_title=profile.course_title,
             course_count=profile.course_count,
             is_active=profile.is_active,
+        )
+
+
+# --- start page (atlas sheet 00) -----------------------------------------------------------
+@strawberry.type
+class StartEntry:
+    """One row on the start page. Carries DATA — the client words it from `kind` via i18n."""
+
+    id: strawberry.ID
+    kind: StartEntryKind
+    title: str
+    course_title: str | None
+    teacher_name: str | None
+    at: dt.datetime | None
+    count: int | None
+    age_days: int | None
+    session_id: strawberry.ID | None
+    lesson_id: strawberry.ID | None
+    course_id: strawberry.ID | None
+    is_live: bool
+
+    @classmethod
+    def of(cls, entry) -> "StartEntry":
+        return cls(
+            id=strawberry.ID(entry.id),
+            kind=entry.kind,
+            title=entry.title,
+            course_title=entry.course_title,
+            teacher_name=entry.teacher_name,
+            at=entry.at,
+            count=entry.count,
+            age_days=entry.age_days,
+            session_id=strawberry.ID(entry.session_id) if entry.session_id else None,
+            lesson_id=strawberry.ID(entry.lesson_id) if entry.lesson_id else None,
+            course_id=strawberry.ID(entry.course_id) if entry.course_id else None,
+            is_live=entry.is_live,
+        )
+
+
+@strawberry.type
+class StartDay:
+    date: dt.date
+    is_today: bool
+    entries: list[StartEntry]
+
+
+@strawberry.type
+class StartProgress:
+    course_id: strawberry.ID
+    course_title: str
+    done_lessons: int
+    total_lessons: int
+    progress_pct: int
+
+
+@strawberry.type
+class StartPage:
+    """Atlas sheet 00. The frame is the same for every role; the active learning profile
+    decides what fills it."""
+
+    profile: LearningProfile | None
+    now: StartEntry | None
+    today: list[StartEntry]
+    attention: list[StartEntry]
+    week: list[StartDay]
+    continue_entries: list[StartEntry]
+    progress: list[StartProgress]
+
+    @classmethod
+    def of(cls, page) -> "StartPage":
+        return cls(
+            profile=(LearningProfile.from_projection(page.profile) if page.profile else None),
+            now=StartEntry.of(page.now) if page.now else None,
+            today=[StartEntry.of(e) for e in page.today],
+            attention=[StartEntry.of(e) for e in page.attention],
+            week=[
+                StartDay(
+                    date=day.date,
+                    is_today=day.is_today,
+                    entries=[StartEntry.of(e) for e in day.entries],
+                )
+                for day in page.week
+            ],
+            continue_entries=[StartEntry.of(e) for e in page.continue_entries],
+            progress=[
+                StartProgress(
+                    course_id=strawberry.ID(row.course_id),
+                    course_title=row.course_title,
+                    done_lessons=row.done_lessons,
+                    total_lessons=row.total_lessons,
+                    progress_pct=row.progress_pct,
+                )
+                for row in page.progress
+            ],
         )

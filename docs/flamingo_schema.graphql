@@ -16,12 +16,14 @@
 # =============================================================================
 
 scalar DateTime
+scalar Date        # calendar day (no time) — start-page week strip
 scalar JSON
 
 # ----------------------------------------------------------------------------- Enums
 enum Role { STUDENT PARENT TEACHER ADMIN }
 enum AgeBand { JUNIOR TEEN ADULT }
 enum LearningProfileKind { PUPIL CADET TEACHER }
+enum StartEntryKind { LESSON_SESSION HOMEWORK_DUE HOMEWORK_GRADED GRADING_QUEUE CONTINUE_LESSON }
 enum VerificationStatus { PENDING APPROVED REJECTED }
 enum InstitutionStatus { PENDING ACTIVE INACTIVE }
 enum MembershipRole { TEACHER STUDENT ADMIN }
@@ -573,6 +575,50 @@ type LearningProfile {
   isActive: Boolean!
 }
 
+# ----------------------------------------------------------------------------- Start page (atlas 00)
+# The first window after sign-in. One frame for every role; the ACTIVE learning profile
+# decides what fills it, so switching education re-scopes the whole page.
+# Rows carry DATA (domain titles, times, counts) — never UI copy: the client words each row
+# from `kind` through i18n.
+type StartEntry {
+  id: ID!
+  kind: StartEntryKind!
+  title: String!              # lesson / homework title (user content, not UI copy)
+  courseTitle: String
+  teacherName: String
+  at: DateTime                # start time, deadline or grading time
+  count: Int                  # queue size, or the score on a graded row
+  ageDays: Int                # days until a deadline / since the oldest queued work
+  sessionId: ID
+  lessonId: ID
+  courseId: ID
+  isLive: Boolean!
+}
+
+type StartDay {
+  date: Date!
+  isToday: Boolean!
+  entries: [StartEntry!]!
+}
+
+type StartProgress {
+  courseId: ID!
+  courseTitle: String!
+  doneLessons: Int!
+  totalLessons: Int!
+  progressPct: Int!
+}
+
+type StartPage {
+  profile: LearningProfile
+  now: StartEntry              # running lesson, else next today, else what to carry on with
+  today: [StartEntry!]!
+  attention: [StartEntry!]!
+  week: [StartDay!]!           # seven days from today
+  continueEntries: [StartEntry!]!
+  progress: [StartProgress!]!
+}
+
 # =============================================================================
 # Query
 # =============================================================================
@@ -580,6 +626,7 @@ type Query {
   # identity
   me: User
   learningProfiles: [LearningProfile!]!                    # caller's own educations
+  startPage: StartPage!                                   # atlas 00, for the active education
 
   # catalog & content
   catalog(filter: CourseFilter, first: Int = 20, after: String): CourseConnection!

@@ -2,10 +2,10 @@
 
 import strawberry
 
-from apps.accounts import learning, models
+from apps.accounts import learning, models, start_page
 from common.auth import get_current_user
 
-from .types import LearningProfile, TeacherProfileType, UserType
+from .types import LearningProfile, StartPage, TeacherProfileType, UserType
 
 
 @strawberry.type
@@ -27,6 +27,16 @@ class AccountsQuery:
             LearningProfile.from_projection(profile)
             for profile in learning.learning_profiles(get_current_user(info))
         ]
+
+    @strawberry.field
+    def start_page(self, info: strawberry.Info) -> StartPage:
+        """Atlas sheet 00, filled for the caller's ACTIVE learning profile.
+
+        Self-scoped: every slot is assembled from the caller's own schedule, enrolments and
+        (for a teacher) their own courses, through the existing chokepoints. Switching
+        education re-scopes the whole page, which is the point of the sheet.
+        """
+        return StartPage.of(start_page.start_page(get_current_user(info)))
 
     @strawberry.field
     def teacher(self, id: strawberry.ID) -> TeacherProfileType | None:
