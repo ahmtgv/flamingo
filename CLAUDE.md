@@ -9,11 +9,12 @@ The differentiator is **SEduM** — on-device attention analysis (CMF) that pers
 
 ## 2. Non-negotiable principles
 1. **On-device privacy (most important).** Camera/mic frames and frame-level biometric features (gaze, landmarks, expressions) are processed in the browser via MediaPipe and **never sent to the server** — **no raw frames/audio/landmarks/per-frame features ever leave the device.** The only thing that leaves the device is a per-bucket **aggregate** of derived scalars: `{ sessionId, studentId, bucketStart, avgAttention, gazeOnScreen, eyeOpenness, headYaw, headPitch, alertness }` (all per-bucket aggregate scalars — never raw, never per-frame). The sub-metrics beyond `avgAttention` are **live-only**: broadcast for the realtime teacher view but **NOT persisted** — the server stores only `avgAttention` (`studentId` is derived from the authenticated user, never trusted from input). There must be **no server endpoint that accepts raw video/audio/frames**. UBP (biological passport) lives in IndexedDB; an optional cloud backup is **client-side encrypted** (server stores an opaque blob it cannot read).
-2. **Data residency (152-FZ).** Personal data of users is stored on servers in the Russian Federation (Yandex Cloud). Do not introduce data stores for PII outside the RF region. Children < 18 require parental consent (`consent152fz`) captured at registration.
-3. **i18n-ready from day one.** No hardcoded UI strings — everything goes through the i18n layer. `ru` is the only shipped locale, but the code must not assume it.
-4. **Open source only.** No proprietary/closed dependencies.
-5. **Language split.** Product/UI text = Russian. Code, comments, identifiers, technical docs, commit messages = English.
-6. **Design tokens, not literals.** No hardcoded colors/sizes/fonts in UI — consume semantic tokens from `tokens.css` (see design system).
+2. **Storage policy (owner decision 2026-08-12) — as binding as on-device privacy.** **Never stored, anywhere:** lesson **video**, lesson **audio**, and the **verbatim speech transcript**. Speech is processed **as an in-memory stream** solely to build the lesson summary — no file on disk, no DB row, buffer cleared after the summary is assembled; browser `SpeechRecognition` stays banned (it would ship audio to Google). **Stored (whitelist — everything else needs an owner decision):** (1) lesson **summaries**, with the **lesson chat as a section inside the summary**; (2) **boards / mind-maps**, teaching guides, attached materials, tests; (3) **chats** — subject, pupil↔teacher, pupil↔pupil; (4) **student work** — homework, lab work, test answers, every attempt and retake; (5) **grades, indicators, progress, achievements**; (6) **SEduM** `avg_attention` buckets. Enforced by `test_storage_policy.py` next to `test_privacy.py`: it fails if a model or schema type for recordings, audio chunks or raw transcripts appears. Do not name new types `*Recording`, `*Audio*`, `*Transcript*`.
+3. **Data residency (152-FZ).** Personal data of users is stored on servers in the Russian Federation (Yandex Cloud). Do not introduce data stores for PII outside the RF region. Children < 18 require parental consent (`consent152fz`) captured at registration.
+4. **i18n-ready from day one.** No hardcoded UI strings — everything goes through the i18n layer. `ru` is the only shipped locale, but the code must not assume it.
+5. **Open source only.** No proprietary/closed dependencies.
+6. **Language split.** Product/UI text = Russian. Code, comments, identifiers, technical docs, commit messages = English.
+7. **Design tokens, not literals.** No hardcoded colors/sizes/fonts in UI — consume semantic tokens from `tokens.css` (see design system).
 
 ## 3. Stack
 **Backend** — Python 3.12, Django 5, **Strawberry GraphQL** (`strawberry-django`), PostgreSQL 16, Redis (Django Channels channel layer) for GraphQL subscriptions over WebSocket (`graphql-ws`). ASGI (uvicorn). LiveKit (self-hosted) for video; the API only issues room tokens. **Celery is DEFERRED** — no async tasks/worker are built yet (Redis is used only as the Channels layer, not a Celery broker).
@@ -121,6 +122,9 @@ npm test               # Vitest + React Testing Library
 A module is done when: models + migrations, services, GraphQL types/queries/mutations (+ subscriptions where relevant) matching the SDL, FE feature wired with generated types and design-system UI, permission tests, and i18n strings — all in place.
 
 ## 11. Do NOT
+- Store lesson video, lesson audio, or a verbatim speech transcript — see §2.2. Speech is stream-processed for the summary only.
+- Add any persisted entity outside the §2.2 storage whitelist without an explicit owner decision.
+- Redesign approved screens: atlas sheets **00** (start page), **01** (subject cabinet), **02** (english live room), **12** (sources) are the **design contract** — implement them, do not reinvent them.
 - Add any server path that receives raw video/audio/biometric frames.
 - Store PII outside the RF region, or add non-approved data stores for PII.
 - Hardcode UI strings (use i18n) or colors/sizes (use tokens).
@@ -129,6 +133,8 @@ A module is done when: models + migrations, services, GraphQL types/queries/muta
 - Duplicate Apollo server state into Redux.
 
 ## 12. References (in `docs/`)
+- `docs/design-previews/atlas/00_start.html` · `01_subject.html` · `02_english_room.html` · `12_sources.html` — **approved UI/UX contract** (owner, 2026-08-12); each sheet carries a "what is decided" block with the owner's answers.
+- `docs/handoff/PROMPT_13_release_v1.md` — active release plan (R0–R5).
 - `Flamingo_Product_Brief_v1.md` — product decisions (source of truth).
 - `flamingo_ux_foundation_stage1.md` — user stories, flows, screen map (IDs).
 - `flamingo_erd.md` — data model (entities map 1:1 to models).
