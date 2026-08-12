@@ -5,7 +5,7 @@ Repo guidance for Codex. Read this before writing code. Keep changes consistent 
 ## 1. What this is
 Flamingo is a B2C online education platform (pupils grades 1–11 + adult course-takers, plus parents, teachers, institution admins). Markets: Russia & CIS. MVP locale: Russian.
 
-The differentiator is **SEduM** — on-device attention analysis (CMF) that personalises learning under a strict privacy principle: **raw biometrics never leave the user's device**. Deferred to later iterations (DO NOT build now): blockchain/NFT, VR/AR, Open API (labs/observatories/drones), Neo4j recommendations, native mobile. MVP replaces NFT certificates with PDF + QR verification.
+The differentiator is **SEduM** — on-device attention analysis (CMF) that personalises learning under a strict privacy principle: **raw biometrics never leave the user's device**. **Roadmap change — owner decision 2026-08-08:** VR/AR, game mechanics, and external-device integration (observatories/telescopes, drones, manipulators — the former "Open API" track) are **no longer deferred**; they are in the current roadmap. They are still built **in phase order**, never opportunistically — see `docs/handoff/OWNER_SCOPE_2026-08.md` and the phase charter `docs/handoff/PROMPT_11_sedum_and_subjects.md`. Every external device is integrated through **one shared abstraction** (`ExternalDevice`), never as a per-vendor hack, and each is a feature registered in the jurisdiction matrix. Still deferred (DO NOT build now): blockchain/NFT, Neo4j recommendations, native mobile. MVP replaces NFT certificates with PDF + QR verification.
 
 ## 2. Non-negotiable principles
 1. **On-device privacy (most important).** Camera/mic frames and frame-level biometric features (gaze, landmarks, expressions) are processed in the browser via MediaPipe and **never sent to the server** — **no raw frames/audio/landmarks/per-frame features ever leave the device.** The only thing that leaves the device is a per-bucket **aggregate** of derived scalars: `{ sessionId, studentId, bucketStart, avgAttention, gazeOnScreen, eyeOpenness, headYaw, headPitch, alertness }` (all per-bucket aggregate scalars — never raw, never per-frame). The sub-metrics beyond `avgAttention` are **live-only**: broadcast for the realtime teacher view but **NOT persisted** — the server stores only `avgAttention` (`studentId` is derived from the authenticated user, never trusted from input). There must be **no server endpoint that accepts raw video/audio/frames**. UBP (biological passport) lives in IndexedDB; an optional cloud backup is **client-side encrypted** (server stores an opaque blob it cannot read).
@@ -124,7 +124,7 @@ A module is done when: models + migrations, services, GraphQL types/queries/muta
 - Add any server path that receives raw video/audio/biometric frames.
 - Store PII outside the RF region, or add non-approved data stores for PII.
 - Hardcode UI strings (use i18n) or colors/sizes (use tokens).
-- Add closed-source deps, or any deferred feature (blockchain/NFT, VR/AR, Open API, Neo4j, native mobile).
+- Add closed-source deps, or any still-deferred feature (blockchain/NFT, Neo4j, native mobile). VR/AR, game mechanics and external devices are now in-roadmap — build them **only when the current phase calls for them**, through the shared `ExternalDevice` abstraction, and register each as a feature in the jurisdiction matrix.
 - Trust client-supplied role/ids for authorization; bypass per-resolver permission checks.
 - Duplicate Apollo server state into Redux.
 
