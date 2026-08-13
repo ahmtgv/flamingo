@@ -146,6 +146,39 @@ export type CertificateVerification = {
   valid: Scalars['Boolean']['output'];
 };
 
+export type ChannelKind =
+  | 'PEER'
+  | 'PUPIL_TEACHER'
+  | 'STAFF_ROOM'
+  | 'SUBJECT_GROUP';
+
+export type ChannelMessage = {
+  __typename?: 'ChannelMessage';
+  channelId: Scalars['ID']['output'];
+  id: Scalars['ID']['output'];
+  mine: Scalars['Boolean']['output'];
+  senderId: Scalars['ID']['output'];
+  senderName: Scalars['String']['output'];
+  sentAt: Scalars['DateTime']['output'];
+  text: Scalars['String']['output'];
+};
+
+export type ChatChannel = {
+  __typename?: 'ChatChannel';
+  courseId?: Maybe<Scalars['ID']['output']>;
+  courseTitle?: Maybe<Scalars['String']['output']>;
+  groupName?: Maybe<Scalars['String']['output']>;
+  id: Scalars['ID']['output'];
+  institutionName?: Maybe<Scalars['String']['output']>;
+  kind: ChannelKind;
+  lastMessageAt?: Maybe<Scalars['DateTime']['output']>;
+  lastMessageText?: Maybe<Scalars['String']['output']>;
+  openReports: Scalars['Int']['output'];
+  participants: Array<ChatParticipant>;
+  readOnly: Scalars['Boolean']['output'];
+  unread: Scalars['Int']['output'];
+};
+
 export type ChatMessage = {
   __typename?: 'ChatMessage';
   id: Scalars['ID']['output'];
@@ -153,6 +186,32 @@ export type ChatMessage = {
   sentAt: Scalars['DateTime']['output'];
   sessionId: Scalars['ID']['output'];
   text: Scalars['String']['output'];
+};
+
+export type ChatParticipant = {
+  __typename?: 'ChatParticipant';
+  firstName: Scalars['String']['output'];
+  id: Scalars['ID']['output'];
+  lastName: Scalars['String']['output'];
+  role: Scalars['String']['output'];
+};
+
+export type ChatPolicyView = {
+  __typename?: 'ChatPolicyView';
+  directMessages: Scalars['Boolean']['output'];
+  peerChat: Scalars['Boolean']['output'];
+  premoderation: Scalars['Boolean']['output'];
+  teacherVisibleAlways: Scalars['Boolean']['output'];
+};
+
+export type ChatReport = {
+  __typename?: 'ChatReport';
+  channelId: Scalars['ID']['output'];
+  createdAt: Scalars['DateTime']['output'];
+  id: Scalars['ID']['output'];
+  reason?: Maybe<Scalars['String']['output']>;
+  reporterName: Scalars['String']['output'];
+  status: ReportStatus;
 };
 
 export type Course = {
@@ -560,9 +619,13 @@ export type Mutation = {
   login: AuthPayload;
   logout: Scalars['Boolean']['output'];
   markAllNotificationsRead: Scalars['Boolean']['output'];
+  markChannelRead: Scalars['Boolean']['output'];
   markLessonViewed: Enrollment;
   markNotificationRead: Notification;
   moderateReview: Review;
+  openDirectChannel: ChatChannel;
+  openStaffChannel: ChatChannel;
+  openSubjectChannel: ChatChannel;
   publishCourse: Course;
   publishHomework: Homework;
   publishLesson: Lesson;
@@ -574,12 +637,15 @@ export type Mutation = {
   reorderLessons: Array<Lesson>;
   reorderSections: Array<Section>;
   reportAttention: Scalars['Boolean']['output'];
+  reportChannel: ChatReport;
   requestPasswordReset: Scalars['Boolean']['output'];
   requestUpload: UploadTicket;
   resetPassword: Scalars['Boolean']['output'];
+  resolveChatReport: ChatReport;
   respondGuardianship: Guardianship;
   saveItem: SubjectMaterial;
   scheduleSession: LessonSession;
+  sendChannelMessage: ChannelMessage;
   sendChatMessage: ChatMessage;
   setActiveLearningProfile: LearningProfile;
   setAttendance: Attendance;
@@ -740,6 +806,11 @@ export type MutationLoginArgs = {
 };
 
 
+export type MutationMarkChannelReadArgs = {
+  channelId: Scalars['ID']['input'];
+};
+
+
 export type MutationMarkLessonViewedArgs = {
   lessonId: Scalars['ID']['input'];
 };
@@ -753,6 +824,21 @@ export type MutationMarkNotificationReadArgs = {
 export type MutationModerateReviewArgs = {
   id: Scalars['ID']['input'];
   status: ReviewStatus;
+};
+
+
+export type MutationOpenDirectChannelArgs = {
+  userId: Scalars['ID']['input'];
+};
+
+
+export type MutationOpenStaffChannelArgs = {
+  institutionId: Scalars['ID']['input'];
+};
+
+
+export type MutationOpenSubjectChannelArgs = {
+  courseId: Scalars['ID']['input'];
 };
 
 
@@ -814,6 +900,13 @@ export type MutationReportAttentionArgs = {
 };
 
 
+export type MutationReportChannelArgs = {
+  channelId: Scalars['ID']['input'];
+  messageId?: InputMaybe<Scalars['ID']['input']>;
+  reason?: InputMaybe<Scalars['String']['input']>;
+};
+
+
 export type MutationRequestPasswordResetArgs = {
   email: Scalars['String']['input'];
 };
@@ -830,6 +923,12 @@ export type MutationResetPasswordArgs = {
 };
 
 
+export type MutationResolveChatReportArgs = {
+  dismiss?: InputMaybe<Scalars['Boolean']['input']>;
+  reportId: Scalars['ID']['input'];
+};
+
+
 export type MutationRespondGuardianshipArgs = {
   accept: Scalars['Boolean']['input'];
   id: Scalars['ID']['input'];
@@ -843,6 +942,12 @@ export type MutationSaveItemArgs = {
 
 export type MutationScheduleSessionArgs = {
   input: ScheduleSessionInput;
+};
+
+
+export type MutationSendChannelMessageArgs = {
+  channelId: Scalars['ID']['input'];
+  text: Scalars['String']['input'];
 };
 
 
@@ -1041,6 +1146,10 @@ export type Query = {
   attentionAnalytics: AttentionAnalytics;
   catalog: CourseConnection;
   certificate?: Maybe<Certificate>;
+  channelMessages: Array<ChannelMessage>;
+  chatPolicy: ChatPolicyView;
+  chatReports: Array<ChatReport>;
+  chatUnread: Scalars['Int']['output'];
   course?: Maybe<Course>;
   group?: Maybe<Group>;
   groupAnalytics: GroupAnalytics;
@@ -1055,6 +1164,7 @@ export type Query = {
   lessonHomework: Array<Homework>;
   me?: Maybe<User>;
   myAchievements: Array<UserAchievement>;
+  myChannels: Array<ChatChannel>;
   myCourses: Array<Course>;
   mySavedItems: Array<SubjectMaterial>;
   mySchedule: Array<LessonSession>;
@@ -1096,6 +1206,12 @@ export type QueryCatalogArgs = {
 
 export type QueryCertificateArgs = {
   id: Scalars['ID']['input'];
+};
+
+
+export type QueryChannelMessagesArgs = {
+  channelId: Scalars['ID']['input'];
+  limit?: InputMaybe<Scalars['Int']['input']>;
 };
 
 
@@ -1249,6 +1365,11 @@ export type RegisterUserInput = {
   student?: InputMaybe<StudentInfoInput>;
   teacher?: InputMaybe<TeacherInfoInput>;
 };
+
+export type ReportStatus =
+  | 'DISMISSED'
+  | 'OPEN'
+  | 'REVIEWED';
 
 export type Review = {
   __typename?: 'Review';
@@ -1570,6 +1691,7 @@ export type SubmitHomeworkInput = {
 export type Subscription = {
   __typename?: 'Subscription';
   attentionUpdates: AttentionMetric;
+  channelMessageReceived: ChannelMessage;
   chatMessageReceived: ChatMessage;
   notificationReceived: Notification;
   sessionStatusChanged: LessonSession;
@@ -1578,6 +1700,11 @@ export type Subscription = {
 
 export type SubscriptionAttentionUpdatesArgs = {
   sessionId: Scalars['ID']['input'];
+};
+
+
+export type SubscriptionChannelMessageReceivedArgs = {
+  channelId: Scalars['ID']['input'];
 };
 
 
@@ -1864,6 +1991,86 @@ export type TeacherDashboardQueryVariables = Exact<{ [key: string]: never; }>;
 
 
 export type TeacherDashboardQuery = { __typename?: 'Query', teacherDashboard: { __typename?: 'TeacherDashboard', studentCount: number, newStudentsThisWeek: number, courses: Array<{ __typename?: 'Course', id: string, title: string, status: CourseStatus, lessonCount: number, enrollmentCount: number }>, upcomingSessions: Array<{ __typename?: 'LessonSession', id: string, startAt: string, endAt?: string | null, status: SessionStatus, lesson: { __typename?: 'Lesson', id: string, title: string } }>, pendingSubmissions: Array<{ __typename?: 'Submission', id: string, submittedAt?: string | null, status: SubmissionStatus, student: { __typename?: 'StudentProfile', user: { __typename?: 'User', id: string, firstName: string, lastName: string } }, homework: { __typename?: 'Homework', id: string, title: string, lesson?: { __typename?: 'Lesson', id: string, title: string } | null } }> } };
+
+export type MyChannelsQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type MyChannelsQuery = { __typename?: 'Query', myChannels: Array<{ __typename?: 'ChatChannel', id: string, kind: ChannelKind, courseId?: string | null, courseTitle?: string | null, groupName?: string | null, institutionName?: string | null, unread: number, lastMessageAt?: string | null, lastMessageText?: string | null, readOnly: boolean, openReports: number, participants: Array<{ __typename?: 'ChatParticipant', id: string, firstName: string, lastName: string, role: string }> }> };
+
+export type ChatUnreadQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type ChatUnreadQuery = { __typename?: 'Query', chatUnread: number };
+
+export type ChannelMessagesQueryVariables = Exact<{
+  channelId: Scalars['ID']['input'];
+  limit?: InputMaybe<Scalars['Int']['input']>;
+}>;
+
+
+export type ChannelMessagesQuery = { __typename?: 'Query', channelMessages: Array<{ __typename?: 'ChannelMessage', id: string, channelId: string, senderId: string, senderName: string, text: string, sentAt: string, mine: boolean }> };
+
+export type ChatPolicyQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type ChatPolicyQuery = { __typename?: 'Query', chatPolicy: { __typename?: 'ChatPolicyView', peerChat: boolean, directMessages: boolean, teacherVisibleAlways: boolean, premoderation: boolean } };
+
+export type ChatReportsQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type ChatReportsQuery = { __typename?: 'Query', chatReports: Array<{ __typename?: 'ChatReport', id: string, channelId: string, reporterName: string, reason?: string | null, status: ReportStatus, createdAt: string }> };
+
+export type OpenSubjectChannelMutationVariables = Exact<{
+  courseId: Scalars['ID']['input'];
+}>;
+
+
+export type OpenSubjectChannelMutation = { __typename?: 'Mutation', openSubjectChannel: { __typename?: 'ChatChannel', id: string, kind: ChannelKind, courseTitle?: string | null, unread: number } };
+
+export type OpenDirectChannelMutationVariables = Exact<{
+  userId: Scalars['ID']['input'];
+}>;
+
+
+export type OpenDirectChannelMutation = { __typename?: 'Mutation', openDirectChannel: { __typename?: 'ChatChannel', id: string, kind: ChannelKind, unread: number } };
+
+export type SendChannelMessageMutationVariables = Exact<{
+  channelId: Scalars['ID']['input'];
+  text: Scalars['String']['input'];
+}>;
+
+
+export type SendChannelMessageMutation = { __typename?: 'Mutation', sendChannelMessage: { __typename?: 'ChannelMessage', id: string, channelId: string, senderId: string, senderName: string, text: string, sentAt: string, mine: boolean } };
+
+export type MarkChannelReadMutationVariables = Exact<{
+  channelId: Scalars['ID']['input'];
+}>;
+
+
+export type MarkChannelReadMutation = { __typename?: 'Mutation', markChannelRead: boolean };
+
+export type ReportChannelMutationVariables = Exact<{
+  channelId: Scalars['ID']['input'];
+  reason?: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type ReportChannelMutation = { __typename?: 'Mutation', reportChannel: { __typename?: 'ChatReport', id: string, channelId: string, status: ReportStatus } };
+
+export type ResolveChatReportMutationVariables = Exact<{
+  reportId: Scalars['ID']['input'];
+  dismiss?: InputMaybe<Scalars['Boolean']['input']>;
+}>;
+
+
+export type ResolveChatReportMutation = { __typename?: 'Mutation', resolveChatReport: { __typename?: 'ChatReport', id: string, status: ReportStatus } };
+
+export type ChannelMessageReceivedSubscriptionVariables = Exact<{
+  channelId: Scalars['ID']['input'];
+}>;
+
+
+export type ChannelMessageReceivedSubscription = { __typename?: 'Subscription', channelMessageReceived: { __typename?: 'ChannelMessage', id: string, channelId: string, senderId: string, senderName: string, text: string, sentAt: string, mine: boolean } };
 
 export type CatalogQueryVariables = Exact<{
   filter?: InputMaybe<CourseFilter>;
@@ -3257,6 +3464,495 @@ export type TeacherDashboardQueryHookResult = ReturnType<typeof useTeacherDashbo
 export type TeacherDashboardLazyQueryHookResult = ReturnType<typeof useTeacherDashboardLazyQuery>;
 export type TeacherDashboardSuspenseQueryHookResult = ReturnType<typeof useTeacherDashboardSuspenseQuery>;
 export type TeacherDashboardQueryResult = Apollo.QueryResult<TeacherDashboardQuery, TeacherDashboardQueryVariables>;
+export const MyChannelsDocument = gql`
+    query MyChannels {
+  myChannels {
+    id
+    kind
+    courseId
+    courseTitle
+    groupName
+    institutionName
+    unread
+    lastMessageAt
+    lastMessageText
+    readOnly
+    openReports
+    participants {
+      id
+      firstName
+      lastName
+      role
+    }
+  }
+}
+    `;
+
+/**
+ * __useMyChannelsQuery__
+ *
+ * To run a query within a React component, call `useMyChannelsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useMyChannelsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useMyChannelsQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useMyChannelsQuery(baseOptions?: Apollo.QueryHookOptions<MyChannelsQuery, MyChannelsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<MyChannelsQuery, MyChannelsQueryVariables>(MyChannelsDocument, options);
+      }
+export function useMyChannelsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<MyChannelsQuery, MyChannelsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<MyChannelsQuery, MyChannelsQueryVariables>(MyChannelsDocument, options);
+        }
+// @ts-ignore
+export function useMyChannelsSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<MyChannelsQuery, MyChannelsQueryVariables>): Apollo.UseSuspenseQueryResult<MyChannelsQuery, MyChannelsQueryVariables>;
+export function useMyChannelsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<MyChannelsQuery, MyChannelsQueryVariables>): Apollo.UseSuspenseQueryResult<MyChannelsQuery | undefined, MyChannelsQueryVariables>;
+export function useMyChannelsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<MyChannelsQuery, MyChannelsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<MyChannelsQuery, MyChannelsQueryVariables>(MyChannelsDocument, options);
+        }
+export type MyChannelsQueryHookResult = ReturnType<typeof useMyChannelsQuery>;
+export type MyChannelsLazyQueryHookResult = ReturnType<typeof useMyChannelsLazyQuery>;
+export type MyChannelsSuspenseQueryHookResult = ReturnType<typeof useMyChannelsSuspenseQuery>;
+export type MyChannelsQueryResult = Apollo.QueryResult<MyChannelsQuery, MyChannelsQueryVariables>;
+export const ChatUnreadDocument = gql`
+    query ChatUnread {
+  chatUnread
+}
+    `;
+
+/**
+ * __useChatUnreadQuery__
+ *
+ * To run a query within a React component, call `useChatUnreadQuery` and pass it any options that fit your needs.
+ * When your component renders, `useChatUnreadQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useChatUnreadQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useChatUnreadQuery(baseOptions?: Apollo.QueryHookOptions<ChatUnreadQuery, ChatUnreadQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<ChatUnreadQuery, ChatUnreadQueryVariables>(ChatUnreadDocument, options);
+      }
+export function useChatUnreadLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<ChatUnreadQuery, ChatUnreadQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<ChatUnreadQuery, ChatUnreadQueryVariables>(ChatUnreadDocument, options);
+        }
+// @ts-ignore
+export function useChatUnreadSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<ChatUnreadQuery, ChatUnreadQueryVariables>): Apollo.UseSuspenseQueryResult<ChatUnreadQuery, ChatUnreadQueryVariables>;
+export function useChatUnreadSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ChatUnreadQuery, ChatUnreadQueryVariables>): Apollo.UseSuspenseQueryResult<ChatUnreadQuery | undefined, ChatUnreadQueryVariables>;
+export function useChatUnreadSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ChatUnreadQuery, ChatUnreadQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<ChatUnreadQuery, ChatUnreadQueryVariables>(ChatUnreadDocument, options);
+        }
+export type ChatUnreadQueryHookResult = ReturnType<typeof useChatUnreadQuery>;
+export type ChatUnreadLazyQueryHookResult = ReturnType<typeof useChatUnreadLazyQuery>;
+export type ChatUnreadSuspenseQueryHookResult = ReturnType<typeof useChatUnreadSuspenseQuery>;
+export type ChatUnreadQueryResult = Apollo.QueryResult<ChatUnreadQuery, ChatUnreadQueryVariables>;
+export const ChannelMessagesDocument = gql`
+    query ChannelMessages($channelId: ID!, $limit: Int) {
+  channelMessages(channelId: $channelId, limit: $limit) {
+    id
+    channelId
+    senderId
+    senderName
+    text
+    sentAt
+    mine
+  }
+}
+    `;
+
+/**
+ * __useChannelMessagesQuery__
+ *
+ * To run a query within a React component, call `useChannelMessagesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useChannelMessagesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useChannelMessagesQuery({
+ *   variables: {
+ *      channelId: // value for 'channelId'
+ *      limit: // value for 'limit'
+ *   },
+ * });
+ */
+export function useChannelMessagesQuery(baseOptions: Apollo.QueryHookOptions<ChannelMessagesQuery, ChannelMessagesQueryVariables> & ({ variables: ChannelMessagesQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<ChannelMessagesQuery, ChannelMessagesQueryVariables>(ChannelMessagesDocument, options);
+      }
+export function useChannelMessagesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<ChannelMessagesQuery, ChannelMessagesQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<ChannelMessagesQuery, ChannelMessagesQueryVariables>(ChannelMessagesDocument, options);
+        }
+// @ts-ignore
+export function useChannelMessagesSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<ChannelMessagesQuery, ChannelMessagesQueryVariables>): Apollo.UseSuspenseQueryResult<ChannelMessagesQuery, ChannelMessagesQueryVariables>;
+export function useChannelMessagesSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ChannelMessagesQuery, ChannelMessagesQueryVariables>): Apollo.UseSuspenseQueryResult<ChannelMessagesQuery | undefined, ChannelMessagesQueryVariables>;
+export function useChannelMessagesSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ChannelMessagesQuery, ChannelMessagesQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<ChannelMessagesQuery, ChannelMessagesQueryVariables>(ChannelMessagesDocument, options);
+        }
+export type ChannelMessagesQueryHookResult = ReturnType<typeof useChannelMessagesQuery>;
+export type ChannelMessagesLazyQueryHookResult = ReturnType<typeof useChannelMessagesLazyQuery>;
+export type ChannelMessagesSuspenseQueryHookResult = ReturnType<typeof useChannelMessagesSuspenseQuery>;
+export type ChannelMessagesQueryResult = Apollo.QueryResult<ChannelMessagesQuery, ChannelMessagesQueryVariables>;
+export const ChatPolicyDocument = gql`
+    query ChatPolicy {
+  chatPolicy {
+    peerChat
+    directMessages
+    teacherVisibleAlways
+    premoderation
+  }
+}
+    `;
+
+/**
+ * __useChatPolicyQuery__
+ *
+ * To run a query within a React component, call `useChatPolicyQuery` and pass it any options that fit your needs.
+ * When your component renders, `useChatPolicyQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useChatPolicyQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useChatPolicyQuery(baseOptions?: Apollo.QueryHookOptions<ChatPolicyQuery, ChatPolicyQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<ChatPolicyQuery, ChatPolicyQueryVariables>(ChatPolicyDocument, options);
+      }
+export function useChatPolicyLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<ChatPolicyQuery, ChatPolicyQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<ChatPolicyQuery, ChatPolicyQueryVariables>(ChatPolicyDocument, options);
+        }
+// @ts-ignore
+export function useChatPolicySuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<ChatPolicyQuery, ChatPolicyQueryVariables>): Apollo.UseSuspenseQueryResult<ChatPolicyQuery, ChatPolicyQueryVariables>;
+export function useChatPolicySuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ChatPolicyQuery, ChatPolicyQueryVariables>): Apollo.UseSuspenseQueryResult<ChatPolicyQuery | undefined, ChatPolicyQueryVariables>;
+export function useChatPolicySuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ChatPolicyQuery, ChatPolicyQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<ChatPolicyQuery, ChatPolicyQueryVariables>(ChatPolicyDocument, options);
+        }
+export type ChatPolicyQueryHookResult = ReturnType<typeof useChatPolicyQuery>;
+export type ChatPolicyLazyQueryHookResult = ReturnType<typeof useChatPolicyLazyQuery>;
+export type ChatPolicySuspenseQueryHookResult = ReturnType<typeof useChatPolicySuspenseQuery>;
+export type ChatPolicyQueryResult = Apollo.QueryResult<ChatPolicyQuery, ChatPolicyQueryVariables>;
+export const ChatReportsDocument = gql`
+    query ChatReports {
+  chatReports {
+    id
+    channelId
+    reporterName
+    reason
+    status
+    createdAt
+  }
+}
+    `;
+
+/**
+ * __useChatReportsQuery__
+ *
+ * To run a query within a React component, call `useChatReportsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useChatReportsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useChatReportsQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useChatReportsQuery(baseOptions?: Apollo.QueryHookOptions<ChatReportsQuery, ChatReportsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<ChatReportsQuery, ChatReportsQueryVariables>(ChatReportsDocument, options);
+      }
+export function useChatReportsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<ChatReportsQuery, ChatReportsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<ChatReportsQuery, ChatReportsQueryVariables>(ChatReportsDocument, options);
+        }
+// @ts-ignore
+export function useChatReportsSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<ChatReportsQuery, ChatReportsQueryVariables>): Apollo.UseSuspenseQueryResult<ChatReportsQuery, ChatReportsQueryVariables>;
+export function useChatReportsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ChatReportsQuery, ChatReportsQueryVariables>): Apollo.UseSuspenseQueryResult<ChatReportsQuery | undefined, ChatReportsQueryVariables>;
+export function useChatReportsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ChatReportsQuery, ChatReportsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<ChatReportsQuery, ChatReportsQueryVariables>(ChatReportsDocument, options);
+        }
+export type ChatReportsQueryHookResult = ReturnType<typeof useChatReportsQuery>;
+export type ChatReportsLazyQueryHookResult = ReturnType<typeof useChatReportsLazyQuery>;
+export type ChatReportsSuspenseQueryHookResult = ReturnType<typeof useChatReportsSuspenseQuery>;
+export type ChatReportsQueryResult = Apollo.QueryResult<ChatReportsQuery, ChatReportsQueryVariables>;
+export const OpenSubjectChannelDocument = gql`
+    mutation OpenSubjectChannel($courseId: ID!) {
+  openSubjectChannel(courseId: $courseId) {
+    id
+    kind
+    courseTitle
+    unread
+  }
+}
+    `;
+export type OpenSubjectChannelMutationFn = Apollo.MutationFunction<OpenSubjectChannelMutation, OpenSubjectChannelMutationVariables>;
+
+/**
+ * __useOpenSubjectChannelMutation__
+ *
+ * To run a mutation, you first call `useOpenSubjectChannelMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useOpenSubjectChannelMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [openSubjectChannelMutation, { data, loading, error }] = useOpenSubjectChannelMutation({
+ *   variables: {
+ *      courseId: // value for 'courseId'
+ *   },
+ * });
+ */
+export function useOpenSubjectChannelMutation(baseOptions?: Apollo.MutationHookOptions<OpenSubjectChannelMutation, OpenSubjectChannelMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<OpenSubjectChannelMutation, OpenSubjectChannelMutationVariables>(OpenSubjectChannelDocument, options);
+      }
+export type OpenSubjectChannelMutationHookResult = ReturnType<typeof useOpenSubjectChannelMutation>;
+export type OpenSubjectChannelMutationResult = Apollo.MutationResult<OpenSubjectChannelMutation>;
+export type OpenSubjectChannelMutationOptions = Apollo.BaseMutationOptions<OpenSubjectChannelMutation, OpenSubjectChannelMutationVariables>;
+export const OpenDirectChannelDocument = gql`
+    mutation OpenDirectChannel($userId: ID!) {
+  openDirectChannel(userId: $userId) {
+    id
+    kind
+    unread
+  }
+}
+    `;
+export type OpenDirectChannelMutationFn = Apollo.MutationFunction<OpenDirectChannelMutation, OpenDirectChannelMutationVariables>;
+
+/**
+ * __useOpenDirectChannelMutation__
+ *
+ * To run a mutation, you first call `useOpenDirectChannelMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useOpenDirectChannelMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [openDirectChannelMutation, { data, loading, error }] = useOpenDirectChannelMutation({
+ *   variables: {
+ *      userId: // value for 'userId'
+ *   },
+ * });
+ */
+export function useOpenDirectChannelMutation(baseOptions?: Apollo.MutationHookOptions<OpenDirectChannelMutation, OpenDirectChannelMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<OpenDirectChannelMutation, OpenDirectChannelMutationVariables>(OpenDirectChannelDocument, options);
+      }
+export type OpenDirectChannelMutationHookResult = ReturnType<typeof useOpenDirectChannelMutation>;
+export type OpenDirectChannelMutationResult = Apollo.MutationResult<OpenDirectChannelMutation>;
+export type OpenDirectChannelMutationOptions = Apollo.BaseMutationOptions<OpenDirectChannelMutation, OpenDirectChannelMutationVariables>;
+export const SendChannelMessageDocument = gql`
+    mutation SendChannelMessage($channelId: ID!, $text: String!) {
+  sendChannelMessage(channelId: $channelId, text: $text) {
+    id
+    channelId
+    senderId
+    senderName
+    text
+    sentAt
+    mine
+  }
+}
+    `;
+export type SendChannelMessageMutationFn = Apollo.MutationFunction<SendChannelMessageMutation, SendChannelMessageMutationVariables>;
+
+/**
+ * __useSendChannelMessageMutation__
+ *
+ * To run a mutation, you first call `useSendChannelMessageMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useSendChannelMessageMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [sendChannelMessageMutation, { data, loading, error }] = useSendChannelMessageMutation({
+ *   variables: {
+ *      channelId: // value for 'channelId'
+ *      text: // value for 'text'
+ *   },
+ * });
+ */
+export function useSendChannelMessageMutation(baseOptions?: Apollo.MutationHookOptions<SendChannelMessageMutation, SendChannelMessageMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<SendChannelMessageMutation, SendChannelMessageMutationVariables>(SendChannelMessageDocument, options);
+      }
+export type SendChannelMessageMutationHookResult = ReturnType<typeof useSendChannelMessageMutation>;
+export type SendChannelMessageMutationResult = Apollo.MutationResult<SendChannelMessageMutation>;
+export type SendChannelMessageMutationOptions = Apollo.BaseMutationOptions<SendChannelMessageMutation, SendChannelMessageMutationVariables>;
+export const MarkChannelReadDocument = gql`
+    mutation MarkChannelRead($channelId: ID!) {
+  markChannelRead(channelId: $channelId)
+}
+    `;
+export type MarkChannelReadMutationFn = Apollo.MutationFunction<MarkChannelReadMutation, MarkChannelReadMutationVariables>;
+
+/**
+ * __useMarkChannelReadMutation__
+ *
+ * To run a mutation, you first call `useMarkChannelReadMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useMarkChannelReadMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [markChannelReadMutation, { data, loading, error }] = useMarkChannelReadMutation({
+ *   variables: {
+ *      channelId: // value for 'channelId'
+ *   },
+ * });
+ */
+export function useMarkChannelReadMutation(baseOptions?: Apollo.MutationHookOptions<MarkChannelReadMutation, MarkChannelReadMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<MarkChannelReadMutation, MarkChannelReadMutationVariables>(MarkChannelReadDocument, options);
+      }
+export type MarkChannelReadMutationHookResult = ReturnType<typeof useMarkChannelReadMutation>;
+export type MarkChannelReadMutationResult = Apollo.MutationResult<MarkChannelReadMutation>;
+export type MarkChannelReadMutationOptions = Apollo.BaseMutationOptions<MarkChannelReadMutation, MarkChannelReadMutationVariables>;
+export const ReportChannelDocument = gql`
+    mutation ReportChannel($channelId: ID!, $reason: String) {
+  reportChannel(channelId: $channelId, reason: $reason) {
+    id
+    channelId
+    status
+  }
+}
+    `;
+export type ReportChannelMutationFn = Apollo.MutationFunction<ReportChannelMutation, ReportChannelMutationVariables>;
+
+/**
+ * __useReportChannelMutation__
+ *
+ * To run a mutation, you first call `useReportChannelMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useReportChannelMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [reportChannelMutation, { data, loading, error }] = useReportChannelMutation({
+ *   variables: {
+ *      channelId: // value for 'channelId'
+ *      reason: // value for 'reason'
+ *   },
+ * });
+ */
+export function useReportChannelMutation(baseOptions?: Apollo.MutationHookOptions<ReportChannelMutation, ReportChannelMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<ReportChannelMutation, ReportChannelMutationVariables>(ReportChannelDocument, options);
+      }
+export type ReportChannelMutationHookResult = ReturnType<typeof useReportChannelMutation>;
+export type ReportChannelMutationResult = Apollo.MutationResult<ReportChannelMutation>;
+export type ReportChannelMutationOptions = Apollo.BaseMutationOptions<ReportChannelMutation, ReportChannelMutationVariables>;
+export const ResolveChatReportDocument = gql`
+    mutation ResolveChatReport($reportId: ID!, $dismiss: Boolean) {
+  resolveChatReport(reportId: $reportId, dismiss: $dismiss) {
+    id
+    status
+  }
+}
+    `;
+export type ResolveChatReportMutationFn = Apollo.MutationFunction<ResolveChatReportMutation, ResolveChatReportMutationVariables>;
+
+/**
+ * __useResolveChatReportMutation__
+ *
+ * To run a mutation, you first call `useResolveChatReportMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useResolveChatReportMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [resolveChatReportMutation, { data, loading, error }] = useResolveChatReportMutation({
+ *   variables: {
+ *      reportId: // value for 'reportId'
+ *      dismiss: // value for 'dismiss'
+ *   },
+ * });
+ */
+export function useResolveChatReportMutation(baseOptions?: Apollo.MutationHookOptions<ResolveChatReportMutation, ResolveChatReportMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<ResolveChatReportMutation, ResolveChatReportMutationVariables>(ResolveChatReportDocument, options);
+      }
+export type ResolveChatReportMutationHookResult = ReturnType<typeof useResolveChatReportMutation>;
+export type ResolveChatReportMutationResult = Apollo.MutationResult<ResolveChatReportMutation>;
+export type ResolveChatReportMutationOptions = Apollo.BaseMutationOptions<ResolveChatReportMutation, ResolveChatReportMutationVariables>;
+export const ChannelMessageReceivedDocument = gql`
+    subscription ChannelMessageReceived($channelId: ID!) {
+  channelMessageReceived(channelId: $channelId) {
+    id
+    channelId
+    senderId
+    senderName
+    text
+    sentAt
+    mine
+  }
+}
+    `;
+
+/**
+ * __useChannelMessageReceivedSubscription__
+ *
+ * To run a query within a React component, call `useChannelMessageReceivedSubscription` and pass it any options that fit your needs.
+ * When your component renders, `useChannelMessageReceivedSubscription` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the subscription, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useChannelMessageReceivedSubscription({
+ *   variables: {
+ *      channelId: // value for 'channelId'
+ *   },
+ * });
+ */
+export function useChannelMessageReceivedSubscription(baseOptions: Apollo.SubscriptionHookOptions<ChannelMessageReceivedSubscription, ChannelMessageReceivedSubscriptionVariables> & ({ variables: ChannelMessageReceivedSubscriptionVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useSubscription<ChannelMessageReceivedSubscription, ChannelMessageReceivedSubscriptionVariables>(ChannelMessageReceivedDocument, options);
+      }
+export type ChannelMessageReceivedSubscriptionHookResult = ReturnType<typeof useChannelMessageReceivedSubscription>;
+export type ChannelMessageReceivedSubscriptionResult = Apollo.SubscriptionResult<ChannelMessageReceivedSubscription>;
 export const CatalogDocument = gql`
     query Catalog($filter: CourseFilter, $first: Int, $after: String) {
   catalog(filter: $filter, first: $first, after: $after) {

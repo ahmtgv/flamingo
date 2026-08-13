@@ -1,9 +1,10 @@
-import { LogOut, MessageCircle, Moon, Sun, X } from 'lucide-react';
+import { LogOut, Moon, Sun } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Navigate, useNavigate } from 'react-router-dom';
 
 import { useAppDispatch, useAppSelector } from '@/app/hooks';
+import { ChatDock, useChatUnread } from '@/features/chat';
 import { toggleTheme } from '@/app/uiSlice';
 import { useLogout } from '@/app/useLogout';
 import {
@@ -50,6 +51,7 @@ export function StartScreen() {
   const logout = useLogout();
   const goingDark = theme === 'light';
   const [chatOpen, setChatOpen] = useState(false);
+  const unreadChats = useChatUnread();
 
   const { data: meData } = useMeQuery();
   const { data: profileData, refetch: refetchProfiles } = useLearningProfilesQuery();
@@ -94,6 +96,7 @@ export function StartScreen() {
             aria-expanded={chatOpen}
           >
             {t('nav.chat')}
+            {unreadChats > 0 && <span className={styles.badge}>{unreadChats}</span>}
           </button>
           <button type="button" className={styles.navBtn} onClick={() => navigate('/courses')}>
             {t('nav.sources')}
@@ -295,29 +298,9 @@ export function StartScreen() {
         )}
       </div>
 
-      <button
-        type="button"
-        className={styles.fab}
-        onClick={() => setChatOpen((v) => !v)}
-        aria-label={t('nav.openChat')}
-        aria-expanded={chatOpen}
-      >
-        <MessageCircle size={ICON_MD} aria-hidden="true" />
-      </button>
-      {chatOpen && (
-        <div className={styles.chatStub} role="dialog" aria-label={t('nav.chat')}>
-          <div className={styles.chatStubTitle}>{t('nav.chatSoonTitle')}</div>
-          <p className={styles.chatStubBody}>{t('nav.chatSoonBody')}</p>
-          <Button
-            variant="secondary"
-            size="sm"
-            icon={<X size={16} />}
-            onClick={() => setChatOpen(false)}
-          >
-            {t('nav.close')}
-          </Button>
-        </div>
-      )}
+      {/* The chat is a window over the page, never a screen (sheet 00). The header button
+          and the bubble open the same one. */}
+      <ChatDock open={chatOpen} onOpenChange={setChatOpen} />
     </div>
   );
 }

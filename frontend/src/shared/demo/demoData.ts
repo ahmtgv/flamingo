@@ -254,6 +254,13 @@ export const store = {
       { id: string; title: string; description: string; kind: string; deviceKey: string }[]
     >(),
   },
+  /** Chat (R2): messages sent in the preview stay in the conversation, and marking a
+   *  channel read actually clears its badge. */
+  chat: {
+    sent: new Map<string, { id: string; text: string; sentAt: string }[]>(),
+    read: new Set<string>(),
+    reported: new Set<string>(),
+  },
   /** Monotonic counter for synthetic ids minted by create-mutations. */
   seq: 1000,
 };
@@ -264,6 +271,7 @@ export function resetDemoStore(): void {
   store.activeLearningProfile = '';
   store.saved = new Map();
   store.programme = { edits: new Map(), order: new Map(), removed: new Set(), added: new Map() };
+  store.chat = { sent: new Map(), read: new Set(), reported: new Set() };
   store.seq = 1000;
 }
 

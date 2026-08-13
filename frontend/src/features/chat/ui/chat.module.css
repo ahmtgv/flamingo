@@ -1,0 +1,329 @@
+/* Chat — a window over the page (atlas sheet 00), never a screen of its own.
+   The sheet is explicit about why: a conversation that takes the whole page steals
+   attention from the lesson. */
+
+.fab {
+  position: fixed;
+  right: var(--space-6);
+  bottom: var(--space-6);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--tap-min);
+  padding: 0 var(--space-5);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  font-size: var(--text-small);
+  cursor: pointer;
+  box-shadow: var(--shadow-md);
+  z-index: var(--z-dropdown);
+}
+.fab:hover {
+  border-color: var(--color-border-strong);
+}
+.fab:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+/* The one accent the dock is allowed: something is actually waiting for you. */
+.fabCount {
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: var(--radius-pill);
+  background: var(--color-accent);
+  color: var(--color-text-on-accent);
+  font-family: var(--font-mono);
+  font-size: var(--text-overline);
+  display: inline-grid;
+  place-content: center;
+}
+
+.dock {
+  position: fixed;
+  right: var(--space-6);
+  bottom: calc(var(--space-6) + var(--tap-min) + var(--space-3));
+  width: min(380px, calc(100vw - var(--space-8)));
+  max-height: min(560px, calc(100vh - var(--space-12)));
+  display: flex;
+  flex-direction: column;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-lg, var(--shadow-md));
+  z-index: var(--z-dropdown);
+  overflow: hidden;
+}
+.dockHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+}
+.dockTitle {
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  color: var(--color-text-tertiary);
+}
+.back {
+  border: 0;
+  background: none;
+  cursor: pointer;
+  padding: var(--space-1) 0;
+  font-family: var(--font-mono);
+  font-size: var(--text-overline);
+  color: var(--color-text-tertiary);
+  border-radius: var(--radius-xs);
+}
+.back:hover {
+  color: var(--color-text);
+}
+.back:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+.iconBtn {
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-content: center;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+}
+.iconBtn:hover {
+  background: var(--color-surface-hover);
+  color: var(--color-text);
+}
+.iconBtn:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+/* --- channel list ------------------------------------------------------------------ */
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+}
+.row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+  width: 100%;
+  padding: var(--space-3) var(--space-4);
+  border: 0;
+  border-bottom: 1px solid var(--color-border);
+  background: none;
+  text-align: left;
+  cursor: pointer;
+  color: inherit;
+  font-family: var(--font-body);
+}
+.row:hover {
+  background: var(--color-surface-hover);
+}
+.row:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+.rowMain {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.rowName {
+  font-size: var(--text-small);
+  font-weight: var(--weight-medium);
+}
+.rowLast {
+  font-size: var(--text-caption);
+  color: var(--color-text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 240px;
+}
+.rowMeta {
+  display: grid;
+  justify-items: end;
+  gap: 4px;
+  flex: none;
+}
+.rowKind {
+  font-family: var(--font-mono);
+  font-size: var(--text-overline);
+  color: var(--color-text-tertiary);
+}
+.badge {
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: var(--radius-pill);
+  background: var(--color-accent);
+  color: var(--color-text-on-accent);
+  font-family: var(--font-mono);
+  font-size: var(--text-overline);
+  display: inline-grid;
+  place-content: center;
+}
+.reportBadge {
+  font-family: var(--font-mono);
+  font-size: var(--text-overline);
+  color: var(--color-warning-text);
+}
+
+/* --- conversation ------------------------------------------------------------------- */
+.thread {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-4);
+  display: grid;
+  gap: var(--space-2);
+  align-content: start;
+}
+.threadName {
+  font-size: var(--text-caption);
+  font-weight: var(--weight-medium);
+  color: var(--color-text-secondary);
+  margin-bottom: var(--space-1);
+}
+.readOnly {
+  font-family: var(--font-mono);
+  font-size: var(--text-overline);
+  color: var(--color-warning-text);
+  background: var(--color-warning-bg);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2) var(--space-3);
+  line-height: var(--leading-snug);
+}
+.msg {
+  display: grid;
+  gap: 2px;
+  justify-items: start;
+  max-width: 85%;
+}
+.msgMine {
+  justify-self: end;
+  justify-items: end;
+}
+.msgWho {
+  font-family: var(--font-mono);
+  font-size: var(--text-overline);
+  color: var(--color-text-tertiary);
+}
+.msgText {
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-card);
+  background: var(--color-surface-subtle);
+  font-size: var(--text-small);
+  line-height: var(--leading-snug);
+  overflow-wrap: anywhere;
+}
+.msgMine .msgText {
+  background: var(--color-accent-subtle);
+}
+
+.composer {
+  display: flex;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border-top: 1px solid var(--color-border);
+}
+.input {
+  box-sizing: border-box;
+  flex: 1;
+  min-width: 0;
+  min-height: var(--tap-min);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  font-size: var(--text-small);
+}
+.input:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+.failed {
+  font-size: var(--text-caption);
+  color: var(--color-error-text);
+  padding: 0 var(--space-4) var(--space-2);
+}
+
+/* --- report ------------------------------------------------------------------------- */
+.reportRow {
+  padding: var(--space-2) var(--space-4) var(--space-3);
+  border-top: 1px solid var(--color-border);
+}
+.reportBtn {
+  border: 0;
+  background: none;
+  cursor: pointer;
+  padding: var(--space-1) 0;
+  font-family: var(--font-mono);
+  font-size: var(--text-overline);
+  color: var(--color-text-tertiary);
+  border-radius: var(--radius-xs);
+}
+.reportBtn:hover {
+  color: var(--color-text);
+}
+.reportBtn:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+.reportForm {
+  display: grid;
+  gap: var(--space-2);
+}
+.reportTitle {
+  font-size: var(--text-small);
+  font-weight: var(--weight-medium);
+}
+.reportBody {
+  font-size: var(--text-caption);
+  color: var(--color-text-secondary);
+  line-height: var(--leading-snug);
+}
+.reportActs {
+  display: flex;
+  gap: var(--space-2);
+}
+.reportSent {
+  font-family: var(--font-mono);
+  font-size: var(--text-overline);
+  color: var(--color-text-secondary);
+}
+
+/* --- shared ------------------------------------------------------------------------- */
+.empty {
+  padding: var(--space-6) var(--space-4);
+  font-size: var(--text-small);
+  color: var(--color-text-tertiary);
+  line-height: var(--leading-snug);
+  text-align: center;
+}
+.emptyHint {
+  font-size: var(--text-caption);
+  margin-top: var(--space-2);
+}
+.policyNote {
+  padding: var(--space-2) var(--space-4) var(--space-3);
+  font-family: var(--font-mono);
+  font-size: var(--text-overline);
+  color: var(--color-text-tertiary);
+  border-top: 1px solid var(--color-border);
+  line-height: var(--leading-snug);
+}

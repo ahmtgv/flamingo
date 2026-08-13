@@ -1,0 +1,120 @@
+# Chat (R2). Fragment-free, whole-object inputs — same shape rule as every other operation
+# here, so the committed SDL and the live backend stay interchangeable.
+
+query MyChannels {
+  myChannels {
+    id
+    kind
+    courseId
+    courseTitle
+    groupName
+    institutionName
+    unread
+    lastMessageAt
+    lastMessageText
+    readOnly
+    openReports
+    participants {
+      id
+      firstName
+      lastName
+      role
+    }
+  }
+}
+
+query ChatUnread {
+  chatUnread
+}
+
+query ChannelMessages($channelId: ID!, $limit: Int) {
+  channelMessages(channelId: $channelId, limit: $limit) {
+    id
+    channelId
+    senderId
+    senderName
+    text
+    sentAt
+    mine
+  }
+}
+
+query ChatPolicy {
+  chatPolicy {
+    peerChat
+    directMessages
+    teacherVisibleAlways
+    premoderation
+  }
+}
+
+query ChatReports {
+  chatReports {
+    id
+    channelId
+    reporterName
+    reason
+    status
+    createdAt
+  }
+}
+
+mutation OpenSubjectChannel($courseId: ID!) {
+  openSubjectChannel(courseId: $courseId) {
+    id
+    kind
+    courseTitle
+    unread
+  }
+}
+
+mutation OpenDirectChannel($userId: ID!) {
+  openDirectChannel(userId: $userId) {
+    id
+    kind
+    unread
+  }
+}
+
+mutation SendChannelMessage($channelId: ID!, $text: String!) {
+  sendChannelMessage(channelId: $channelId, text: $text) {
+    id
+    channelId
+    senderId
+    senderName
+    text
+    sentAt
+    mine
+  }
+}
+
+mutation MarkChannelRead($channelId: ID!) {
+  markChannelRead(channelId: $channelId)
+}
+
+mutation ReportChannel($channelId: ID!, $reason: String) {
+  reportChannel(channelId: $channelId, reason: $reason) {
+    id
+    channelId
+    status
+  }
+}
+
+mutation ResolveChatReport($reportId: ID!, $dismiss: Boolean) {
+  resolveChatReport(reportId: $reportId, dismiss: $dismiss) {
+    id
+    status
+  }
+}
+
+subscription ChannelMessageReceived($channelId: ID!) {
+  channelMessageReceived(channelId: $channelId) {
+    id
+    channelId
+    senderId
+    senderName
+    text
+    sentAt
+    mine
+  }
+}

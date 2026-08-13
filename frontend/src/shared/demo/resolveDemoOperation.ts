@@ -59,6 +59,15 @@ import type {
   SessionRoomQuery,
   StartPageQuery,
   SubjectCabinetQuery,
+  ChannelMessagesQuery,
+  ChatPolicyQuery,
+  ChatReportsQuery,
+  ChatUnreadQuery,
+  MarkChannelReadMutation,
+  MyChannelsQuery,
+  OpenSubjectChannelMutation,
+  ReportChannelMutation,
+  SendChannelMessageMutation,
   SubjectProgressQuery,
   SubjectTasksQuery,
   SaveItemMutation,
@@ -1070,6 +1079,138 @@ function subjectProgress(vars: Vars): SubjectProgressQuery {
   };
 }
 
+// --- Chat (R2) ------------------------------------------------------------------------------
+/** The channels sheet 00 promises: the subject room, the teacher, a classmate, and — for a
+ *  teacher — the staff room. Membership is the whole authorisation model, so the preview
+ *  simply shows different rooms per role rather than filtering one list. */
+const CHANNEL_IDS = {
+  subject: 'ch-astro',
+  teacher: 'ch-maria',
+  peer: 'ch-vera',
+  staff: 'ch-staff',
+} as const;
+
+function chatChannels(): MyChannelsQuery['myChannels'] {
+  const isTeacher = demoGraphQLRole() === 'TEACHER';
+  type Channel = MyChannelsQuery['myChannels'][number];
+  const person = (u: { id: string; firstName: string; lastName: string }, role: string) => ({
+    __typename: 'ChatParticipant' as const,
+    id: u.id,
+    firstName: u.firstName,
+    lastName: u.lastName,
+    role,
+  });
+  const channel = (over: Partial<Channel> & { id: string; kind: Channel['kind'] }): Channel => {
+    const sent = store.chat.sent.get(over.id) ?? [];
+    const last = sent.at(-1);
+    return {
+      __typename: 'ChatChannel',
+      courseId: null,
+      courseTitle: null,
+      groupName: null,
+      institutionName: null,
+      participants: [],
+      unread: store.chat.read.has(over.id) ? 0 : 0,
+      lastMessageAt: null,
+      lastMessageText: null,
+      readOnly: false,
+      openReports: store.chat.reported.has(over.id) ? 1 : 0,
+      ...over,
+      ...(last ? { lastMessageText: last.text, lastMessageAt: last.sentAt } : {}),
+      ...(store.chat.read.has(over.id) ? { unread: 0 } : {}),
+    };
+  };
+
+  if (isTeacher) {
+    return [
+      channel({
+        id: CHANNEL_IDS.subject,
+        kind: 'SUBJECT_GROUP',
+        courseId: IDS.course.algebra,
+        courseTitle: 'Астрономия',
+        groupName: '9А',
+        institutionName: 'Гимназия №1',
+        unread: store.chat.read.has(CHANNEL_IDS.subject) ? 0 : 2,
+        lastMessageText: 'А лабораторную сдавать до завтра?',
+        participants: [person(users.sasha, 'STUDENT'), person(users.vera, 'STUDENT')],
+      }),
+      channel({
+        id: CHANNEL_IDS.staff,
+        kind: 'STAFF_ROOM',
+        institutionName: 'Гимназия №1',
+        lastMessageText: 'Педсовет перенесли на четверг',
+        participants: [person(users.ilya, 'TEACHER'), person(users.galina, 'ADMIN')],
+      }),
+    ];
+  }
+
+  return [
+    channel({
+      id: CHANNEL_IDS.subject,
+      kind: 'SUBJECT_GROUP',
+      courseId: IDS.course.algebra,
+      courseTitle: 'Астрономия',
+      groupName: '9А',
+      institutionName: 'Гимназия №1',
+      unread: store.chat.read.has(CHANNEL_IDS.subject) ? 0 : 2,
+      lastMessageText: 'Мария Петровна: материалы к уроку 12 добавила',
+      participants: [person(users.maria, 'TEACHER'), person(users.vera, 'STUDENT')],
+    }),
+    channel({
+      id: CHANNEL_IDS.teacher,
+      kind: 'PUPIL_TEACHER',
+      institutionName: 'Гимназия №1',
+      lastMessageText: 'Пересчитай период и присылай',
+      participants: [person(users.maria, 'TEACHER')],
+    }),
+    channel({
+      id: CHANNEL_IDS.peer,
+      kind: 'PEER',
+      institutionName: 'Гимназия №1',
+      lastMessageText: 'скинешь конспект?',
+      participants: [person(users.vera, 'STUDENT')],
+    }),
+  ];
+}
+
+function chatMessages(vars: Vars): ChannelMessagesQuery {
+  const id = String(vars.channelId ?? '');
+  type Message = ChannelMessagesQuery['channelMessages'][number];
+  const seed: Record<string, [string, string, boolean][]> = {
+    [CHANNEL_IDS.subject]: [
+      ['Мария Петровна', 'Материалы к уроку 12 добавила, посмотрите до занятия', false],
+      ['Вера Смирнова', 'А лабораторную сдавать до завтра?', false],
+    ],
+    [CHANNEL_IDS.teacher]: [
+      ['Мария Петровна', 'Глубина посчитана верно, период — по двум минимумам', false],
+      ['Саша Иванов', 'Понял, пересчитаю', true],
+    ],
+    [CHANNEL_IDS.peer]: [['Вера Смирнова', 'скинешь конспект?', false]],
+    [CHANNEL_IDS.staff]: [['Галина Андреева', 'Педсовет перенесли на четверг', false]],
+  };
+  const base: Message[] = (seed[id] ?? []).map(([who, text, mine], i) => ({
+    __typename: 'ChannelMessage',
+    id: `${id}-m${i}`,
+    channelId: id,
+    senderId: mine ? users.sasha.id : users.maria.id,
+    senderName: who,
+    text,
+    sentAt: new Date(Date.now() - (10 - i) * 60_000).toISOString(),
+    mine,
+  }));
+  const mine: Message[] = (store.chat.sent.get(id) ?? []).map((m) => ({
+    __typename: 'ChannelMessage',
+    id: m.id,
+    channelId: id,
+    senderId: users.sasha.id,
+    senderName: 'Саша Иванов',
+    text: m.text,
+    sentAt: m.sentAt,
+    mine: true,
+  }));
+  return { __typename: 'Query', channelMessages: [...base, ...mine] };
+}
+
 // --- Courses -----------------------------------------------------------------------------
 /** Preview-only platform-zero toggle for the catalog (?catalog=zero) — mirrors demoRole's
  *  ?role= convention so the "Каталог наполняется" state is reachable in the preview. */
@@ -1898,6 +2039,27 @@ export function resolveDemoOperation(
       return subjectTasks(variables);
     case 'SubjectProgress':
       return subjectProgress(variables);
+    case 'MyChannels':
+      return { myChannels: chatChannels() } satisfies MyChannelsQuery;
+    case 'ChatUnread':
+      return {
+        chatUnread: chatChannels().reduce((sum, c) => sum + c.unread, 0),
+      } satisfies ChatUnreadQuery;
+    case 'ChannelMessages':
+      return chatMessages(variables);
+    case 'ChatPolicy':
+      // The preview runs a RU tenant, so peer chat is on — the same answer the matrix gives.
+      return {
+        chatPolicy: {
+          __typename: 'ChatPolicyView',
+          peerChat: true,
+          directMessages: true,
+          teacherVisibleAlways: false,
+          premoderation: false,
+        },
+      } satisfies ChatPolicyQuery;
+    case 'ChatReports':
+      return { chatReports: [] } satisfies ChatReportsQuery;
     case 'Catalog':
       return catalog(variables);
     case 'MyCourses':
@@ -1969,6 +2131,55 @@ export function resolveDemoOperation(
       for (const [key, kept] of store.saved) if (kept.savedId === id) store.saved.delete(key);
       return { removeSavedItem: true } satisfies RemoveSavedItemMutation;
     }
+
+    // chat (R2) — the preview keeps what you send, so the window behaves like the real one
+    case 'SendChannelMessage': {
+      const channelId = String(variables.channelId ?? '');
+      const message = {
+        id: nextId('msg'),
+        text: String(variables.text ?? ''),
+        sentAt: iso(),
+      };
+      store.chat.sent.set(channelId, [...(store.chat.sent.get(channelId) ?? []), message]);
+      store.chat.read.add(channelId);
+      return {
+        sendChannelMessage: {
+          __typename: 'ChannelMessage',
+          id: message.id,
+          channelId,
+          senderId: users.sasha.id,
+          senderName: 'Саша Иванов',
+          text: message.text,
+          sentAt: message.sentAt,
+          mine: true,
+        },
+      } satisfies SendChannelMessageMutation;
+    }
+    case 'MarkChannelRead':
+      store.chat.read.add(String(variables.channelId ?? ''));
+      return { markChannelRead: true } satisfies MarkChannelReadMutation;
+    case 'ReportChannel': {
+      const channelId = String(variables.channelId ?? '');
+      store.chat.reported.add(channelId);
+      return {
+        reportChannel: {
+          __typename: 'ChatReport',
+          id: nextId('rep'),
+          channelId,
+          status: 'OPEN',
+        },
+      } satisfies ReportChannelMutation;
+    }
+    case 'OpenSubjectChannel':
+      return {
+        openSubjectChannel: {
+          __typename: 'ChatChannel',
+          id: CHANNEL_IDS.subject,
+          kind: 'SUBJECT_GROUP',
+          courseTitle: 'Астрономия',
+          unread: 0,
+        },
+      } satisfies OpenSubjectChannelMutation;
 
     // profile / parent
     case 'AddChild': {

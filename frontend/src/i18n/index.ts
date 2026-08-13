@@ -10,6 +10,7 @@ import homeworkRu from './locales/ru/homework.json';
 import lessonRu from './locales/ru/lesson.json';
 import scheduleRu from './locales/ru/schedule.json';
 import seedumRu from './locales/ru/seedum.json';
+import chatRu from './locales/ru/chat.json';
 import startRu from './locales/ru/start.json';
 import subjectRu from './locales/ru/subject.json';
 import uploadRu from './locales/ru/upload.json';
@@ -28,6 +29,7 @@ export const resources = {
     homework: homeworkRu,
     admin: adminRu,
     seedum: seedumRu,
+    chat: chatRu,
     start: startRu,
     subject: subjectRu,
     lesson: lessonRu,
@@ -49,6 +51,7 @@ void i18n.use(initReactI18next).init({
     'seedum',
     'lesson',
     'upload',
+    'chat',
     'start',
     'subject',
   ],

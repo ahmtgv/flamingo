@@ -1,9 +1,10 @@
-import { LogOut, MessageCircle, Moon, Sun, X } from 'lucide-react';
+import { LogOut, Moon, Sun } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { useAppDispatch, useAppSelector } from '@/app/hooks';
+import { ChatDock } from '@/features/chat';
 import { toggleTheme } from '@/app/uiSlice';
 import { useLogout } from '@/app/useLogout';
 import {
@@ -52,7 +53,6 @@ export function SubjectScreen() {
 
   const [tab, setTab] = useState<Tab>('lessons');
   const [device, setDevice] = useState<Lesson | null>(null);
-  const [chatOpen, setChatOpen] = useState(false);
   const [editing, setEditing] = useState(false);
 
   const { data, loading, error, refetch } = useSubjectCabinetQuery({
@@ -294,30 +294,9 @@ export function SubjectScreen() {
 
       {device && <DeviceStub lesson={device} onClose={() => setDevice(null)} />}
 
-      {/* The chat stays a window, never a tab (sheet 01) — the window itself lands in R2. */}
-      <button
-        type="button"
-        className={styles.chatFab}
-        onClick={() => setChatOpen((v) => !v)}
-        aria-expanded={chatOpen}
-      >
-        <MessageCircle size={ICON_MD} aria-hidden="true" />
-        {t('chat.open')}
-      </button>
-      {chatOpen && (
-        <div className={styles.chatStub} role="dialog" aria-label={t('chat.open')}>
-          <p className={styles.chatStubTitle}>{t('chat.soonTitle')}</p>
-          <p className={styles.chatStubBody}>{t('chat.soonBody')}</p>
-          <Button
-            variant="secondary"
-            size="sm"
-            icon={<X size={16} />}
-            onClick={() => setChatOpen(false)}
-          >
-            {t('chat.close')}
-          </Button>
-        </div>
-      )}
+      {/* The chat stays a window, never a tab (sheet 01) — and on a subject it opens on
+          that subject's conversation. */}
+      <ChatDock courseId={courseId} />
     </div>
   );
 }

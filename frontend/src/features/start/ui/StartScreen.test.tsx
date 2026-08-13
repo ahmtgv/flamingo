@@ -4,7 +4,10 @@ import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
 
 import {
+  ChatPolicyDocument,
+  ChatUnreadDocument,
   LearningProfilesDocument,
+  MyChannelsDocument,
   type LearningProfilesQuery,
   MeDocument,
   SetActiveLearningProfileDocument,
@@ -263,14 +266,46 @@ describe('StartScreen — atlas sheet 00', () => {
     expect(screen.getByRole('button', { name: 'Повторить' })).toBeInTheDocument();
   });
 
-  it('chat is a labelled stub, not a dead button (the window itself is R2)', async () => {
+  it('chat opens as a window over the page — the header button and the bubble share it', async () => {
+    // R2 replaced the R0.4 stub: the chat is real now, and it is still a window, not a screen.
     const user = userEvent.setup();
-    render([meMock(), profilesMock(), pageMock(page())]);
+    render([
+      meMock(),
+      profilesMock(),
+      pageMock(page()),
+      {
+        request: { query: ChatUnreadDocument, variables: {} },
+        result: { data: { chatUnread: 3 } },
+      },
+      {
+        request: { query: MyChannelsDocument, variables: {} },
+        result: { data: { myChannels: [] } },
+      },
+      {
+        request: { query: ChatPolicyDocument, variables: {} },
+        result: {
+          data: {
+            chatPolicy: {
+              __typename: 'ChatPolicyView',
+              peerChat: true,
+              directMessages: true,
+              teacherVisibleAlways: false,
+              premoderation: false,
+            },
+          },
+        },
+      },
+    ]);
     await screen.findByText('Привет, Аня');
 
-    await user.click(screen.getByRole('button', { name: 'Открыть чат' }));
-    const dialog = screen.getByRole('dialog', { name: 'Чат' });
-    expect(within(dialog).getByText('Чат скоро откроется')).toBeInTheDocument();
+    // The count reaches the header, per the sheet. (The bubble carries it too, hence exact.)
+    const header = screen.getByRole('button', { name: 'Чат 3' });
+    expect(within(header).getByText('3')).toBeInTheDocument();
+
+    await user.click(header);
+    expect(screen.getByRole('region', { name: 'Сообщения' })).toBeInTheDocument();
+    // Still a window: the page underneath is not replaced.
+    expect(screen.getByText('Привет, Аня')).toBeInTheDocument();
   });
 
   it('progress is announced to assistive tech, not just drawn', async () => {

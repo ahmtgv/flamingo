@@ -571,3 +571,100 @@ describe('resolveDemoOperation — tasks, progress and the edit mode (R1.2)', ()
     }
   });
 });
+
+describe('resolveDemoOperation — chat (R2)', () => {
+  type Channel = {
+    id: string;
+    kind: string;
+    unread: number;
+    lastMessageText: string | null;
+    openReports: number;
+    participants: unknown[];
+  };
+  const channels = () =>
+    (resolveDemoOperation('MyChannels', {}) as { myChannels: Channel[] }).myChannels;
+  const messages = (channelId: string) =>
+    (
+      resolveDemoOperation('ChannelMessages', { channelId }) as {
+        channelMessages: { text: string; mine: boolean }[];
+      }
+    ).channelMessages;
+
+  it('every channel carries the full MyChannels selection (else Apollo reports missing fields)', () => {
+    const required = [
+      'id',
+      'kind',
+      'courseId',
+      'courseTitle',
+      'groupName',
+      'institutionName',
+      'unread',
+      'lastMessageAt',
+      'lastMessageText',
+      'readOnly',
+      'openReports',
+      'participants',
+    ];
+    for (const role of ['student', 'teacher']) {
+      setRole(role);
+      const rows = channels() as unknown as Record<string, unknown>[];
+      expect(rows.length).toBeGreaterThan(0);
+      for (const row of rows) {
+        expect(Object.keys(row).sort()).toEqual(expect.arrayContaining(required.sort()));
+      }
+    }
+  });
+
+  it('a pupil gets the subject room, the teacher and a classmate; a teacher gets the staff room', () => {
+    setRole('student');
+    expect(
+      channels()
+        .map((c) => c.kind)
+        .sort(),
+    ).toEqual(['PEER', 'PUPIL_TEACHER', 'SUBJECT_GROUP']);
+    setRole('teacher');
+    expect(channels().map((c) => c.kind)).toContain('STAFF_ROOM');
+    // A teacher has no pupil↔pupil channel of their own — those are not theirs to be in.
+    expect(channels().map((c) => c.kind)).not.toContain('PEER');
+  });
+
+  it('the header count is the sum of the unread channels', () => {
+    setRole('student');
+    const total = (resolveDemoOperation('ChatUnread', {}) as { chatUnread: number }).chatUnread;
+    expect(total).toBe(channels().reduce((sum, c) => sum + c.unread, 0));
+    expect(total).toBeGreaterThan(0);
+  });
+
+  it('sending a message keeps it, and reading a channel clears its badge', () => {
+    setRole('student');
+    const before = messages('ch-vera').length;
+    resolveDemoOperation('SendChannelMessage', { channelId: 'ch-vera', text: 'сейчас' });
+
+    const after = messages('ch-vera');
+    expect(after).toHaveLength(before + 1);
+    expect(after.at(-1)).toMatchObject({ text: 'сейчас', mine: true });
+
+    resolveDemoOperation('MarkChannelRead', { channelId: 'ch-astro' });
+    expect(channels().find((c) => c.id === 'ch-astro')?.unread).toBe(0);
+  });
+
+  it('a complaint shows up on the channel it was filed against', () => {
+    setRole('student');
+    expect(channels().find((c) => c.id === 'ch-vera')?.openReports).toBe(0);
+    resolveDemoOperation('ReportChannel', { channelId: 'ch-vera', reason: 'грубит' });
+    expect(channels().find((c) => c.id === 'ch-vera')?.openReports).toBe(1);
+  });
+
+  it('the preview policy matches the matrix for a RU tenant', () => {
+    setRole('student');
+    const policy = (
+      resolveDemoOperation('ChatPolicy', {}) as {
+        chatPolicy: { peerChat: boolean; teacherVisibleAlways: boolean; premoderation: boolean };
+      }
+    ).chatPolicy;
+    expect(policy.peerChat).toBe(true);
+    // The base mode: nothing stricter is on unless an institution switches it on.
+    expect(policy.teacherVisibleAlways).toBe(false);
+    expect(policy.premoderation).toBe(false);
+  });
+});
