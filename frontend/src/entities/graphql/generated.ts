@@ -601,6 +601,7 @@ export type Mutation = {
   createHomework: Homework;
   createInstitution: Institution;
   createLesson: Lesson;
+  createProjectorCode: ProjectorCast;
   createReview: Review;
   createSection: Section;
   deleteCourse: Scalars['Boolean']['output'];
@@ -629,6 +630,7 @@ export type Mutation = {
   publishCourse: Course;
   publishHomework: Homework;
   publishLesson: Lesson;
+  redeemProjectorCode: ProjectorJoin;
   refreshToken: AuthPayload;
   registerUser: AuthPayload;
   removeMember: Scalars['Boolean']['output'];
@@ -650,6 +652,7 @@ export type Mutation = {
   setActiveLearningProfile: LearningProfile;
   setAttendance: Attendance;
   setAvatar: User;
+  setProjectorFocus: ProjectorFocus;
   startSession: LessonSession;
   submitHomework: Submission;
   submitVerificationDocument: VerificationDocument;
@@ -724,6 +727,11 @@ export type MutationCreateInstitutionArgs = {
 export type MutationCreateLessonArgs = {
   input: LessonInput;
   sectionId: Scalars['ID']['input'];
+};
+
+
+export type MutationCreateProjectorCodeArgs = {
+  sessionId: Scalars['ID']['input'];
 };
 
 
@@ -857,6 +865,11 @@ export type MutationPublishLessonArgs = {
 };
 
 
+export type MutationRedeemProjectorCodeArgs = {
+  code: Scalars['String']['input'];
+};
+
+
 export type MutationRefreshTokenArgs = {
   refreshToken: Scalars['String']['input'];
 };
@@ -971,6 +984,12 @@ export type MutationSetAttendanceArgs = {
 
 export type MutationSetAvatarArgs = {
   fileKey: Scalars['String']['input'];
+};
+
+
+export type MutationSetProjectorFocusArgs = {
+  sessionId: Scalars['ID']['input'];
+  studentId?: InputMaybe<Scalars['ID']['input']>;
 };
 
 
@@ -1139,6 +1158,26 @@ export type PointReason =
   | 'GRADE'
   | 'HOMEWORK'
   | 'STREAK';
+
+export type ProjectorCast = {
+  __typename?: 'ProjectorCast';
+  code: Scalars['String']['output'];
+  expiresAt: Scalars['DateTime']['output'];
+  sessionId: Scalars['ID']['output'];
+};
+
+export type ProjectorFocus = {
+  __typename?: 'ProjectorFocus';
+  sessionId: Scalars['ID']['output'];
+  studentId?: Maybe<Scalars['ID']['output']>;
+};
+
+export type ProjectorJoin = {
+  __typename?: 'ProjectorJoin';
+  lessonTitle: Scalars['String']['output'];
+  roomToken: Scalars['String']['output'];
+  sessionId: Scalars['ID']['output'];
+};
 
 export type Query = {
   __typename?: 'Query';
@@ -1694,6 +1733,7 @@ export type Subscription = {
   channelMessageReceived: ChannelMessage;
   chatMessageReceived: ChatMessage;
   notificationReceived: Notification;
+  projectorFocusChanged: ProjectorFocus;
   sessionStatusChanged: LessonSession;
 };
 
@@ -1709,6 +1749,11 @@ export type SubscriptionChannelMessageReceivedArgs = {
 
 
 export type SubscriptionChatMessageReceivedArgs = {
+  sessionId: Scalars['ID']['input'];
+};
+
+
+export type SubscriptionProjectorFocusChangedArgs = {
   sessionId: Scalars['ID']['input'];
 };
 
@@ -2309,6 +2354,35 @@ export type SessionAttendeesQueryVariables = Exact<{
 
 
 export type SessionAttendeesQuery = { __typename?: 'Query', session?: { __typename?: 'LessonSession', id: string, attendance: Array<{ __typename?: 'Attendance', student: { __typename?: 'StudentProfile', user: { __typename?: 'User', id: string, firstName: string, lastName: string } } }> } | null };
+
+export type CreateProjectorCodeMutationVariables = Exact<{
+  sessionId: Scalars['ID']['input'];
+}>;
+
+
+export type CreateProjectorCodeMutation = { __typename?: 'Mutation', createProjectorCode: { __typename?: 'ProjectorCast', code: string, expiresAt: string, sessionId: string } };
+
+export type RedeemProjectorCodeMutationVariables = Exact<{
+  code: Scalars['String']['input'];
+}>;
+
+
+export type RedeemProjectorCodeMutation = { __typename?: 'Mutation', redeemProjectorCode: { __typename?: 'ProjectorJoin', sessionId: string, lessonTitle: string, roomToken: string } };
+
+export type SetProjectorFocusMutationVariables = Exact<{
+  sessionId: Scalars['ID']['input'];
+  studentId?: InputMaybe<Scalars['ID']['input']>;
+}>;
+
+
+export type SetProjectorFocusMutation = { __typename?: 'Mutation', setProjectorFocus: { __typename?: 'ProjectorFocus', sessionId: string, studentId?: string | null } };
+
+export type ProjectorFocusChangedSubscriptionVariables = Exact<{
+  sessionId: Scalars['ID']['input'];
+}>;
+
+
+export type ProjectorFocusChangedSubscription = { __typename?: 'Subscription', projectorFocusChanged: { __typename?: 'ProjectorFocus', sessionId: string, studentId?: string | null } };
 
 export type MyScheduleQueryVariables = Exact<{
   from: Scalars['DateTime']['input'];
@@ -5303,6 +5377,142 @@ export type SessionAttendeesQueryHookResult = ReturnType<typeof useSessionAttend
 export type SessionAttendeesLazyQueryHookResult = ReturnType<typeof useSessionAttendeesLazyQuery>;
 export type SessionAttendeesSuspenseQueryHookResult = ReturnType<typeof useSessionAttendeesSuspenseQuery>;
 export type SessionAttendeesQueryResult = Apollo.QueryResult<SessionAttendeesQuery, SessionAttendeesQueryVariables>;
+export const CreateProjectorCodeDocument = gql`
+    mutation CreateProjectorCode($sessionId: ID!) {
+  createProjectorCode(sessionId: $sessionId) {
+    code
+    expiresAt
+    sessionId
+  }
+}
+    `;
+export type CreateProjectorCodeMutationFn = Apollo.MutationFunction<CreateProjectorCodeMutation, CreateProjectorCodeMutationVariables>;
+
+/**
+ * __useCreateProjectorCodeMutation__
+ *
+ * To run a mutation, you first call `useCreateProjectorCodeMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreateProjectorCodeMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [createProjectorCodeMutation, { data, loading, error }] = useCreateProjectorCodeMutation({
+ *   variables: {
+ *      sessionId: // value for 'sessionId'
+ *   },
+ * });
+ */
+export function useCreateProjectorCodeMutation(baseOptions?: Apollo.MutationHookOptions<CreateProjectorCodeMutation, CreateProjectorCodeMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<CreateProjectorCodeMutation, CreateProjectorCodeMutationVariables>(CreateProjectorCodeDocument, options);
+      }
+export type CreateProjectorCodeMutationHookResult = ReturnType<typeof useCreateProjectorCodeMutation>;
+export type CreateProjectorCodeMutationResult = Apollo.MutationResult<CreateProjectorCodeMutation>;
+export type CreateProjectorCodeMutationOptions = Apollo.BaseMutationOptions<CreateProjectorCodeMutation, CreateProjectorCodeMutationVariables>;
+export const RedeemProjectorCodeDocument = gql`
+    mutation RedeemProjectorCode($code: String!) {
+  redeemProjectorCode(code: $code) {
+    sessionId
+    lessonTitle
+    roomToken
+  }
+}
+    `;
+export type RedeemProjectorCodeMutationFn = Apollo.MutationFunction<RedeemProjectorCodeMutation, RedeemProjectorCodeMutationVariables>;
+
+/**
+ * __useRedeemProjectorCodeMutation__
+ *
+ * To run a mutation, you first call `useRedeemProjectorCodeMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useRedeemProjectorCodeMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [redeemProjectorCodeMutation, { data, loading, error }] = useRedeemProjectorCodeMutation({
+ *   variables: {
+ *      code: // value for 'code'
+ *   },
+ * });
+ */
+export function useRedeemProjectorCodeMutation(baseOptions?: Apollo.MutationHookOptions<RedeemProjectorCodeMutation, RedeemProjectorCodeMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<RedeemProjectorCodeMutation, RedeemProjectorCodeMutationVariables>(RedeemProjectorCodeDocument, options);
+      }
+export type RedeemProjectorCodeMutationHookResult = ReturnType<typeof useRedeemProjectorCodeMutation>;
+export type RedeemProjectorCodeMutationResult = Apollo.MutationResult<RedeemProjectorCodeMutation>;
+export type RedeemProjectorCodeMutationOptions = Apollo.BaseMutationOptions<RedeemProjectorCodeMutation, RedeemProjectorCodeMutationVariables>;
+export const SetProjectorFocusDocument = gql`
+    mutation SetProjectorFocus($sessionId: ID!, $studentId: ID) {
+  setProjectorFocus(sessionId: $sessionId, studentId: $studentId) {
+    sessionId
+    studentId
+  }
+}
+    `;
+export type SetProjectorFocusMutationFn = Apollo.MutationFunction<SetProjectorFocusMutation, SetProjectorFocusMutationVariables>;
+
+/**
+ * __useSetProjectorFocusMutation__
+ *
+ * To run a mutation, you first call `useSetProjectorFocusMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useSetProjectorFocusMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [setProjectorFocusMutation, { data, loading, error }] = useSetProjectorFocusMutation({
+ *   variables: {
+ *      sessionId: // value for 'sessionId'
+ *      studentId: // value for 'studentId'
+ *   },
+ * });
+ */
+export function useSetProjectorFocusMutation(baseOptions?: Apollo.MutationHookOptions<SetProjectorFocusMutation, SetProjectorFocusMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<SetProjectorFocusMutation, SetProjectorFocusMutationVariables>(SetProjectorFocusDocument, options);
+      }
+export type SetProjectorFocusMutationHookResult = ReturnType<typeof useSetProjectorFocusMutation>;
+export type SetProjectorFocusMutationResult = Apollo.MutationResult<SetProjectorFocusMutation>;
+export type SetProjectorFocusMutationOptions = Apollo.BaseMutationOptions<SetProjectorFocusMutation, SetProjectorFocusMutationVariables>;
+export const ProjectorFocusChangedDocument = gql`
+    subscription ProjectorFocusChanged($sessionId: ID!) {
+  projectorFocusChanged(sessionId: $sessionId) {
+    sessionId
+    studentId
+  }
+}
+    `;
+
+/**
+ * __useProjectorFocusChangedSubscription__
+ *
+ * To run a query within a React component, call `useProjectorFocusChangedSubscription` and pass it any options that fit your needs.
+ * When your component renders, `useProjectorFocusChangedSubscription` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the subscription, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useProjectorFocusChangedSubscription({
+ *   variables: {
+ *      sessionId: // value for 'sessionId'
+ *   },
+ * });
+ */
+export function useProjectorFocusChangedSubscription(baseOptions: Apollo.SubscriptionHookOptions<ProjectorFocusChangedSubscription, ProjectorFocusChangedSubscriptionVariables> & ({ variables: ProjectorFocusChangedSubscriptionVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useSubscription<ProjectorFocusChangedSubscription, ProjectorFocusChangedSubscriptionVariables>(ProjectorFocusChangedDocument, options);
+      }
+export type ProjectorFocusChangedSubscriptionHookResult = ReturnType<typeof useProjectorFocusChangedSubscription>;
+export type ProjectorFocusChangedSubscriptionResult = Apollo.SubscriptionResult<ProjectorFocusChangedSubscription>;
 export const MyScheduleDocument = gql`
     query MySchedule($from: DateTime!, $to: DateTime!) {
   mySchedule(from: $from, to: $to) {

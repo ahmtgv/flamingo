@@ -1,8 +1,8 @@
 import { ICON_SM } from '@/shared/ui/iconSizes';
-import { ArrowLeft, BarChart3, RefreshCw, ShieldCheck, Video } from 'lucide-react';
+import { BarChart3, RefreshCw, ShieldCheck, Video } from 'lucide-react';
 import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Navigate, useNavigate, useParams } from 'react-router-dom';
+import { Navigate, useParams } from 'react-router-dom';
 
 import {
   useAttentionUpdatesSubscription,
@@ -16,7 +16,7 @@ import { CMF } from '@/seedum/cmf/cmfConfig';
 import { CmfDebugHud, type CmfHudFeed } from '@/seedum/ui/CmfDebugHud';
 import { loadUbp } from '@/seedum/ubp';
 import { LIVEKIT_URL } from '@/shared/lib/env';
-import { Button, Logo } from '@/shared/ui';
+import { Button } from '@/shared/ui';
 
 import { classAverage, freshValue, heldValue, summaryStats } from '../attentionView';
 import { type CameraErrorKind, classifyMediaError } from '../mediaError';
@@ -24,39 +24,94 @@ import { type CameraErrorKind, classifyMediaError } from '../mediaError';
 import { type FieldStudent } from '../types';
 
 import { useLiveKitRoom } from '../livekit/useLiveKitRoom';
+import frame from './roomframe.module.css';
 import styles from './liveroom.module.css';
+import { ProjectorCast } from './ProjectorCast';
+import { type Pane, RoomFrame, type Scene } from './RoomFrame';
 import { PreviewRoom } from './PreviewRoom';
 import { VideoRoom } from './VideoRoom';
 
-/** Shared chrome. The CMF on-device privacy indicator stays (it is still true — see
- * the wording in ru/seedum.json); the CALL camera honesty lives in VideoRoom. */
-function RoomShell({ subtitle, children }: { subtitle: string; children: ReactNode }) {
-  const { t } = useTranslation('seedum');
-  const navigate = useNavigate();
+/**
+ * Shared chrome — atlas sheet 02's frame around whatever the room is doing.
+ *
+ * The media internals (join, LiveKit, tiles, the CMF pipeline) are deliberately NOT touched
+ * by this: R3.1 rebuilt the composition, not the video path, so the no-remount rule and the
+ * attention pipeline keep the code that already proved them.
+ */
+function RoomShell({
+  subtitle,
+  sessionId,
+  title,
+  isLive,
+  isTeacher,
+  actions,
+  panel,
+  children,
+}: {
+  subtitle: string;
+  sessionId: string;
+  title?: string | null;
+  isLive: boolean;
+  isTeacher?: boolean;
+  actions?: ReactNode;
+  panel?: ReactNode;
+  children: ReactNode;
+}) {
+  const { t } = useTranslation(['room', 'seedum']);
+  const [scene, setScene] = useState<Scene>('board');
+  const [pane, setPane] = useState<Pane>('people');
+
   return (
-    <div className={styles.shell}>
-      <header className={styles.topbar}>
-        <button
-          type="button"
-          className={styles.logoBtn}
-          onClick={() => navigate('/schedule')}
-          aria-label="Flamingo"
-        >
-          <Logo />
-        </button>
-        <span className={styles.privacyTop}>
+    <RoomFrame
+      title={title || t('seedum:room.title')}
+      meta={subtitle}
+      isLive={isLive}
+      scene={scene}
+      onScene={setScene}
+      pane={pane}
+      onPane={setPane}
+      sessionId={sessionId}
+      actions={
+        <>
+          {actions}
+          {isTeacher && <ProjectorCast sessionId={sessionId} />}
           <PrivacyIndicator />
-        </span>
-      </header>
-      <div className={styles.content}>
-        <button type="button" className={styles.back} onClick={() => navigate('/schedule')}>
-          <ArrowLeft size={ICON_SM} /> {t('room.back')}
-        </button>
-        <h1 className={styles.pageTitle}>{t('room.title')}</h1>
-        <p className={styles.pageSub}>{subtitle}</p>
-        {children}
-      </div>
-    </div>
+        </>
+      }
+      strip={children}
+      panel={panel ?? <RoomPane pane={pane} />}
+    >
+      <SceneBody scene={scene} />
+    </RoomFrame>
+  );
+}
+
+/** The scene the whole room is looking at. R3.1 delivered the frame and the switching; each
+ *  window's content lands in the phase that owns it (the board next, the rest with R4). */
+function SceneBody({ scene }: { scene: Scene }) {
+  const { t } = useTranslation('room');
+  return <p className={frame.sceneSoon}>{t(`scene.${scene}Soon`)}</p>;
+}
+
+/** The personal panel. Participants and materials are real; the dictionary and the lesson
+ *  chat belong to later phases and say so rather than showing an empty box. */
+function RoomPane({ pane }: { pane: Pane }) {
+  const { t } = useTranslation('room');
+  if (pane === 'dict') return <p className={frame.paneEmpty}>{t('dictSoon')}</p>;
+  if (pane === 'chat') return <p className={frame.paneEmpty}>{t('chatSoon')}</p>;
+  if (pane === 'mats') {
+    return (
+      <>
+        <p className={frame.paneTitle}>{t('mats.title')}</p>
+        <p className={frame.paneEmpty}>{t('mats.empty')}</p>
+      </>
+    );
+  }
+  return (
+    <>
+      <p className={frame.paneTitle}>{t('people.title')}</p>
+      <p className={frame.paneEmpty}>{t('people.empty')}</p>
+    </>
   );
 }
 
@@ -196,20 +251,22 @@ function StudentRoom({ sessionId, roomToken, isLive, teacherName }: RoomProps) {
           // worker buckets in performance-clock ms → map to wall-clock for the server.
           // Per-bucket AGGREGATE scalars only (sub-metrics live-only server-side); no raw data.
           const bucketStart = new Date(performance.timeOrigin + bucketStartMs).toISOString();
-          void reportRef.current({
-            variables: {
-              input: {
-                sessionId,
-                bucketStart,
-                avgAttention: bucket.avgAttention,
-                gazeOnScreen: bucket.gazeOnScreen,
-                eyeOpenness: bucket.eyeOpenness,
-                headYaw: bucket.headYaw,
-                headPitch: bucket.headPitch,
-                alertness: bucket.alertness,
+          void reportRef
+            .current({
+              variables: {
+                input: {
+                  sessionId,
+                  bucketStart,
+                  avgAttention: bucket.avgAttention,
+                  gazeOnScreen: bucket.gazeOnScreen,
+                  eyeOpenness: bucket.eyeOpenness,
+                  headYaw: bucket.headYaw,
+                  headPitch: bucket.headPitch,
+                  alertness: bucket.alertness,
+                },
               },
-            },
-          }).catch(() => undefined);
+            })
+            .catch(() => undefined);
         },
       });
     });
@@ -235,7 +292,12 @@ function StudentRoom({ sessionId, roomToken, isLive, teacherName }: RoomProps) {
   }, [lk, release]);
 
   return (
-    <RoomShell subtitle={t('room.studentSub')}>
+    <RoomShell
+      subtitle={t('room.studentSub')}
+      sessionId={sessionId}
+      title={teacherName ? `${t('room.title')} · ${teacherName}` : null}
+      isLive={isLive}
+    >
       <div className={styles.card}>
         {!joined ? (
           <>
@@ -279,7 +341,13 @@ function StudentRoom({ sessionId, roomToken, isLive, teacherName }: RoomProps) {
               nameFor={studentNameFor}
             />
             {/* Hidden CMF source — same stream, analysed on-device, frames discarded. */}
-            <video ref={cmfVideoRef} className={styles.cmfHidden} muted playsInline aria-hidden="true" />
+            <video
+              ref={cmfVideoRef}
+              className={styles.cmfHidden}
+              muted
+              playsInline
+              aria-hidden="true"
+            />
             {hudEnabled && <CmfDebugHud ref={hudRef} status={cmfStatus} />}
             <p className={styles.privacyFootnote}>
               <ShieldCheck size={13} /> {t('room.studentSub')}
@@ -404,7 +472,7 @@ function TeacherRoom({ sessionId, roomToken, isLive }: RoomProps) {
   }, [lk, release]);
 
   return (
-    <RoomShell subtitle={t('room.teacherSub')}>
+    <RoomShell subtitle={t('room.teacherSub')} sessionId={sessionId} isLive={isLive} isTeacher>
       <div className={styles.card}>
         {!joined ? (
           <>

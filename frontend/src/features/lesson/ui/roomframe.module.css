@@ -1,0 +1,463 @@
+/* The live room's frame — atlas sheet 02. Header → video strip → scene → right panel.
+   The grid is the sheet's: minmax(0,1fr) 306px, one column under 900px. */
+
+.shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-6);
+  border-bottom: 1px solid var(--color-border);
+  background: var(--nav-material);
+}
+.logoBtn {
+  background: none;
+  border: 0;
+  cursor: pointer;
+  padding: 0;
+  border-radius: var(--radius-xs);
+}
+.logoBtn:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.screen {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: var(--content-max-wide);
+  margin: var(--space-5) auto;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+}
+
+/* --- header ------------------------------------------------------------------------- */
+.roomTop {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: 11px var(--space-6);
+  border-bottom: 1px solid var(--color-border);
+  flex-wrap: wrap;
+}
+.roomWho {
+  display: grid;
+  gap: 1px;
+  min-width: 0;
+}
+.roomName {
+  font-size: var(--text-small);
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--tracking-snug);
+}
+.roomMeta {
+  font-family: var(--font-mono);
+  font-size: var(--text-overline);
+  color: var(--color-text-tertiary);
+}
+/* The one accent of a running lesson: it is running. */
+.liveTag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--font-mono);
+  font-size: var(--text-overline);
+  color: var(--color-accent-text);
+  border: 1px solid var(--color-accent);
+  border-radius: 5px;
+  padding: 2px 7px;
+  letter-spacing: var(--tracking-wide);
+}
+.liveTag i {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  display: block;
+  animation: pulse 2.4s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .liveTag i {
+    animation: none;
+  }
+}
+.roomActs {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+/* --- two columns --------------------------------------------------------------------- */
+.room {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 306px;
+  min-height: 560px;
+}
+@media (max-width: 900px) {
+  .room {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .side {
+    border-inline-start: 0;
+    border-top: 1px solid var(--color-border);
+  }
+}
+.stage {
+  border-inline-end: 1px solid var(--color-border);
+  display: grid;
+  grid-template-rows: auto auto 1fr;
+  min-width: 0;
+}
+.strip {
+  display: flex;
+  gap: var(--space-3);
+  align-items: center;
+  padding: var(--space-3) var(--space-5);
+  border-bottom: 1px solid var(--color-border);
+  overflow-x: auto;
+}
+/* A tile grid handed to the strip has no width of its own to lay out in — without this it
+   collapses to a few pixels and the class silently disappears from the band. */
+.strip > * {
+  min-width: 0;
+}
+.stripGrow {
+  flex: 1 1 auto;
+}
+
+/* --- window bar ----------------------------------------------------------------------- */
+.wins {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: var(--space-2) var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+  overflow-x: auto;
+}
+.winWrap {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 7px;
+}
+.win {
+  font-family: var(--font-mono);
+  font-size: var(--text-overline);
+  font-weight: var(--weight-medium);
+  color: var(--color-text-secondary);
+  background: none;
+  border: none;
+  border-radius: 7px;
+  padding: 6px 11px;
+  min-height: var(--tap-min);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.win:hover {
+  color: var(--color-text);
+}
+.win[aria-selected='true'] {
+  background: var(--color-surface-subtle);
+  color: var(--color-text);
+}
+.win:focus-visible,
+.pop:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+.pop {
+  border: 0;
+  background: none;
+  cursor: pointer;
+  color: var(--color-text-tertiary);
+  font-size: var(--text-overline);
+  padding: 6px 6px;
+  min-height: var(--tap-min);
+  border-radius: 7px;
+}
+.pop:hover {
+  color: var(--color-accent-text);
+}
+.winsNote {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: var(--text-overline);
+  color: var(--color-text-tertiary);
+  max-width: 34ch;
+  line-height: var(--leading-snug);
+}
+@media (max-width: 900px) {
+  .winsNote {
+    display: none;
+  }
+}
+
+.scene {
+  min-width: 0;
+  padding: var(--space-5);
+  overflow: auto;
+}
+
+/* --- right panel ------------------------------------------------------------------------ */
+.side {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  min-width: 0;
+}
+.sideTabs {
+  display: flex;
+  gap: 1px;
+  border-bottom: 1px solid var(--color-border);
+  padding: 6px 8px 0;
+  overflow-x: auto;
+}
+.sTab {
+  font-family: var(--font-mono);
+  font-size: var(--text-overline);
+  font-weight: var(--weight-medium);
+  color: var(--color-text-secondary);
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  padding: 7px 8px 9px;
+  min-height: var(--tap-min);
+  cursor: pointer;
+  white-space: nowrap;
+  letter-spacing: var(--tracking-wide);
+}
+.sTab[aria-selected='true'] {
+  color: var(--color-text);
+  border-bottom-color: var(--color-accent);
+}
+.sTab:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+.sideBody {
+  padding: var(--space-4) var(--space-5);
+  overflow: auto;
+}
+
+/* --- cast panel (second screen) --------------------------------------------------------- */
+.castPanel {
+  position: fixed;
+  right: var(--space-6);
+  top: calc(var(--tap-min) + var(--space-8));
+  width: min(320px, calc(100vw - var(--space-8)));
+  display: grid;
+  gap: var(--space-2);
+  justify-items: start;
+  padding: var(--space-5);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-lg, var(--shadow-md));
+  z-index: var(--z-dropdown);
+}
+.castHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+.castTitle {
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  color: var(--color-text-tertiary);
+}
+.castClose {
+  border: 0;
+  background: none;
+  cursor: pointer;
+  color: var(--color-text-secondary);
+  border-radius: var(--radius-sm);
+  padding: 2px;
+}
+.castClose:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+.castBody {
+  font-size: var(--text-caption);
+  color: var(--color-text-secondary);
+  line-height: var(--leading-snug);
+}
+.castCode {
+  font-family: var(--font-mono);
+  font-size: var(--text-h2);
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--tracking-wide);
+  color: var(--color-accent-text);
+}
+.castMeta,
+.castHint {
+  font-family: var(--font-mono);
+  font-size: var(--text-overline);
+  color: var(--color-text-tertiary);
+  line-height: var(--leading-snug);
+}
+
+/* --- the second screen itself ------------------------------------------------------------ */
+.projectorJoin {
+  min-height: 100vh;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: var(--space-4);
+  padding: var(--space-8);
+  background: var(--color-bg);
+  color: var(--color-text);
+  text-align: center;
+}
+.projectorTitle {
+  font-family: var(--font-heading);
+  font-size: var(--text-h2);
+  font-weight: var(--weight-semibold);
+}
+.projectorForm {
+  display: flex;
+  gap: var(--space-2);
+}
+.projectorInput {
+  box-sizing: border-box;
+  min-height: var(--control-height-lg);
+  width: 180px;
+  padding: 0 var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-family: var(--font-mono);
+  font-size: var(--text-lead);
+  letter-spacing: var(--tracking-wide);
+  text-align: center;
+}
+.projectorInput:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+.projectorStage {
+  min-height: 100vh;
+  /* A video wall is dark in both themes — that is the surface, not the theme. The pair
+     below is the semantic one for "dark surface, light type on it". */
+  background: var(--fl-dark-bg);
+  display: grid;
+  grid-template-rows: auto 1fr;
+  gap: var(--space-3);
+  padding: var(--space-4);
+}
+.projectorCaption {
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  color: var(--fl-dark-text);
+  opacity: 0.7;
+}
+.projectorGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: var(--space-3);
+  align-content: start;
+}
+.projectorFocus {
+  display: grid;
+  place-items: center;
+}
+
+/* --- source switcher --------------------------------------------------------------------- */
+.sources {
+  display: inline-flex;
+  gap: 2px;
+  padding: 2px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+}
+.sourceBtn {
+  min-height: 30px;
+  padding: 0 var(--space-3);
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: none;
+  color: var(--color-text-secondary);
+  font-family: var(--font-mono);
+  font-size: var(--text-overline);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.sourceBtn[aria-pressed='true'] {
+  background: var(--color-surface-subtle);
+  color: var(--color-text);
+}
+.sourceBtn:disabled {
+  color: var(--color-text-disabled);
+  cursor: default;
+}
+.sourceBtn:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+.sourceNote {
+  font-family: var(--font-mono);
+  font-size: var(--text-overline);
+  color: var(--color-text-tertiary);
+}
+
+/* --- scene placeholders (content arrives in its own phase) -------------------------------- */
+.sceneSoon {
+  display: grid;
+  place-content: center;
+  min-height: 240px;
+  padding: var(--space-6);
+  text-align: center;
+  font-size: var(--text-small);
+  color: var(--color-text-tertiary);
+  line-height: var(--leading-body);
+  max-width: 60ch;
+  margin: 0 auto;
+}
+.paneTitle {
+  font-family: var(--font-mono);
+  font-size: var(--text-overline);
+  color: var(--color-text-tertiary);
+  margin-bottom: var(--space-3);
+}
+.paneRow {
+  display: grid;
+  gap: 1px;
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--color-border);
+}
+.paneRow:last-child {
+  border-bottom: none;
+}
+.paneName {
+  font-size: var(--text-small);
+  font-weight: var(--weight-medium);
+}
+.paneMeta {
+  font-family: var(--font-mono);
+  font-size: var(--text-overline);
+  color: var(--color-text-tertiary);
+}
+.paneEmpty {
+  font-size: var(--text-caption);
+  color: var(--color-text-tertiary);
+  line-height: var(--leading-snug);
+}

@@ -305,7 +305,11 @@ export function SubjectScreen() {
 function When({ iso, now, className }: { iso: string; now: Date; className: string }) {
   const { t } = useTranslation('subject');
   const parts = whenParts(iso, now);
-  return <span className={className}>{t(`when.${parts.bucket}`, parts)}</span>;
+  return (
+    <span className={className}>
+      {t(`when.${parts.bucket}`, { time: parts.time, date: parts.date })}
+    </span>
+  );
 }
 
 /* --- lessons ------------------------------------------------------------------- */

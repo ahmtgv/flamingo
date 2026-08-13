@@ -63,6 +63,9 @@ import type {
   ChatPolicyQuery,
   ChatReportsQuery,
   ChatUnreadQuery,
+  CreateProjectorCodeMutation,
+  RedeemProjectorCodeMutation,
+  SetProjectorFocusMutation,
   MarkChannelReadMutation,
   MyChannelsQuery,
   OpenSubjectChannelMutation,
@@ -2180,6 +2183,35 @@ export function resolveDemoOperation(
           unread: 0,
         },
       } satisfies OpenSubjectChannelMutation;
+
+    // second screen (R3.1) — cast a code, redeem it for a watch-only connection
+    case 'CreateProjectorCode':
+      return {
+        createProjectorCode: {
+          __typename: 'ProjectorCast',
+          code: 'K7M2RQ',
+          expiresAt: new Date(Date.now() + 15 * 60_000).toISOString(),
+          sessionId: String(variables.sessionId ?? IDS.session.live),
+        },
+      } satisfies CreateProjectorCodeMutation;
+    case 'RedeemProjectorCode':
+      return {
+        redeemProjectorCode: {
+          __typename: 'ProjectorJoin',
+          sessionId: IDS.session.live,
+          lessonTitle: 'Экзопланеты',
+          // A demo token is still a watch-only one: the preview never publishes anything.
+          roomToken: 'demo-projector-token',
+        },
+      } satisfies RedeemProjectorCodeMutation;
+    case 'SetProjectorFocus':
+      return {
+        setProjectorFocus: {
+          __typename: 'ProjectorFocus',
+          sessionId: String(variables.sessionId ?? IDS.session.live),
+          studentId: (variables.studentId as string | null) ?? null,
+        },
+      } satisfies SetProjectorFocusMutation;
 
     // profile / parent
     case 'AddChild': {

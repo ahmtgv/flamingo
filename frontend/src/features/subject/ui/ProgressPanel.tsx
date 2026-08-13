@@ -78,7 +78,7 @@ function Row({
     if (topic.pct == null) return t('progress.ahead');
     if (isTeacher) {
       return (topic.weakCount ?? 0) > 0
-        ? t('progress.weak', { count: topic.weakCount })
+        ? t('progress.weak', { count: topic.weakCount ?? 0 })
         : t('progress.confident');
     }
     return topic.lessonFrom && topic.lessonTo && topic.lessonFrom !== topic.lessonTo

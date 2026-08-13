@@ -1,3 +1,5 @@
+import type { TFunction } from 'i18next';
+
 import type { MyChannelsQuery } from '@/entities/graphql/generated';
 
 type Channel = MyChannelsQuery['myChannels'][number];
@@ -9,7 +11,7 @@ type Channel = MyChannelsQuery['myChannels'][number];
  * and the wording happens here. Same rule as every other screen: data from the API, Russian
  * from i18n, so the product stays translatable.
  */
-export function channelTitle(channel: Channel, t: (k: string, o?: object) => string): string {
+export function channelTitle(channel: Channel, t: TFunction<readonly ['chat']>): string {
   const other = channel.participants[0];
   const name = other ? `${other.firstName} ${other.lastName}`.trim() : t('chat:someone');
   switch (channel.kind) {

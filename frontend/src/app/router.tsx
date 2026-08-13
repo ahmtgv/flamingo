@@ -17,7 +17,7 @@ import {
   LessonHomeworkScreen,
   StudentHomeworkScreen,
 } from '@/features/homework';
-import { LiveRoomScreen } from '@/features/lesson';
+import { LiveRoomScreen, ProjectorScreen, RoomWindowScreen } from '@/features/lesson';
 import { ScheduleScreen } from '@/features/schedule';
 import { StartScreen } from '@/features/start';
 import { SubjectScreen } from '@/features/subject';
@@ -175,6 +175,17 @@ export function AppRouter() {
           element={
             <ProtectedRoute>
               <LessonHomeworkScreen />
+            </ProtectedRoute>
+          }
+        />
+        {/* The second screen is a screen, not an account: it joins with a cast code, so it
+            deliberately sits OUTSIDE ProtectedRoute. */}
+        <Route path="/projector" element={<ProjectorScreen />} />
+        <Route
+          path="/sessions/:sessionId/window/:scene"
+          element={
+            <ProtectedRoute>
+              <RoomWindowScreen />
             </ProtectedRoute>
           }
         />

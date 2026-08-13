@@ -278,7 +278,7 @@ describe('resolveDemoOperation — subject cabinet (R1.1)', () => {
     sources: { inLesson: boolean; savedId: string | null; url: string | null }[];
     nextLesson: { id: string } | null;
   };
-  const cabinet = (courseId = IDS.course.algebra) =>
+  const cabinet = (courseId: string = IDS.course.algebra) =>
     (resolveDemoOperation('SubjectCabinet', { courseId }) as { subjectCabinet: Cabinet })
       .subjectCabinet;
 
@@ -398,9 +398,9 @@ describe('resolveDemoOperation — tasks, progress and the edit mode (R1.2)', ()
     previousPct: number | null;
     weakCount: number | null;
   };
-  const tasks = (courseId = IDS.course.algebra) =>
+  const tasks = (courseId: string = IDS.course.algebra) =>
     (resolveDemoOperation('SubjectTasks', { courseId }) as { subjectTasks: Task[] }).subjectTasks;
-  const progress = (courseId = IDS.course.algebra) =>
+  const progress = (courseId: string = IDS.course.algebra) =>
     (
       resolveDemoOperation('SubjectProgress', { courseId }) as {
         subjectProgress: {

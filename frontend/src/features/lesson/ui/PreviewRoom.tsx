@@ -8,48 +8,119 @@
  * indicator stays in place. Remove with the demo layer before real launch.
  */
 import { ICON_SM } from '@/shared/ui/iconSizes';
-import { ArrowLeft, BarChart3, Radio, ShieldCheck } from 'lucide-react';
+import { BarChart3, Radio, ShieldCheck } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
 
 import { AttentionChart, PrivacyIndicator } from '@/seedum';
 import { CMF } from '@/seedum/cmf/cmfConfig';
 import { attentionPoints } from '@/shared/demo/resolveDemoOperation';
 import { cohort, users } from '@/shared/demo/demoData';
 import { demoRole } from '@/shared/demo/demoRole';
-import { Avatar, Button, Logo } from '@/shared/ui';
+import { Avatar, Button } from '@/shared/ui';
 
 import { initialsOf } from '../../cabinet/ui/initials';
+import frame from './roomframe.module.css';
 import styles from './liveroom.module.css';
+import { ProjectorCast } from './ProjectorCast';
+import { type Pane, RoomFrame, type Scene } from './RoomFrame';
 import vr from './videoroom.module.css';
 
+/** The preview wears the SAME sheet-02 frame as the real room — otherwise the showcase
+ *  would keep showing a composition the product no longer has. */
 function Shell({ subtitle, children }: { subtitle: string; children: React.ReactNode }) {
-  const { t } = useTranslation('seedum');
-  const navigate = useNavigate();
+  const { t } = useTranslation(['room', 'seedum']);
+  const [scene, setScene] = useState<Scene>('board');
+  const [pane, setPane] = useState<Pane>('people');
+  const isTeacher = demoRole() === 'teacher';
+
   return (
-    <div className={styles.shell}>
-      <header className={styles.topbar}>
-        <button type="button" className={styles.logoBtn} onClick={() => navigate('/schedule')} aria-label="Flamingo">
-          <Logo />
-        </button>
-        <span className={styles.privacyTop}>
+    <RoomFrame
+      title="English A2 · Unit 4 — Travel"
+      meta={subtitle}
+      isLive
+      scene={scene}
+      onScene={setScene}
+      pane={pane}
+      onPane={setPane}
+      sessionId="ses-algebra-live"
+      actions={
+        <>
+          {isTeacher && <SourceSwitcher />}
+          {isTeacher && <ProjectorCast sessionId="ses-algebra-live" />}
           <PrivacyIndicator />
-        </span>
-      </header>
-      <div className={styles.content}>
-        <button type="button" className={styles.back} onClick={() => navigate('/schedule')}>
-          <ArrowLeft size={ICON_SM} /> {t('room.back')}
-        </button>
-        <h1 className={styles.pageTitle}>{t('room.title')}</h1>
-        <p className={styles.pageSub}>{subtitle}</p>
-        {children}
-      </div>
-    </div>
+        </>
+      }
+      strip={children}
+      panel={<PreviewPane pane={pane} />}
+    >
+      <p className={frame.sceneSoon}>{t(`room:scene.${scene}Soon`)}</p>
+    </RoomFrame>
   );
 }
 
-function Tile({ initials, name, attention, alert }: { initials: string; name: string; attention?: number; alert?: boolean }) {
+/** Sheet 02 puts all three sources in the teacher's header. In the preview they only show
+ *  the control — the preview has no camera and never touches getUserMedia. */
+function SourceSwitcher() {
+  const { t } = useTranslation('room');
+  const [source, setSource] = useState<'camera' | 'screen' | 'roomCamera'>('camera');
+  return (
+    <span className={frame.sources} role="group" aria-label={t('source.label')}>
+      {(['camera', 'screen', 'roomCamera'] as const).map((id) => (
+        <button
+          key={id}
+          type="button"
+          className={frame.sourceBtn}
+          aria-pressed={source === id}
+          onClick={() => setSource(id)}
+        >
+          {t(`source.${id}`)}
+        </button>
+      ))}
+    </span>
+  );
+}
+
+function PreviewPane({ pane }: { pane: Pane }) {
+  const { t } = useTranslation('room');
+  if (pane === 'dict') return <p className={frame.paneEmpty}>{t('dictSoon')}</p>;
+  if (pane === 'chat') return <p className={frame.paneEmpty}>{t('chatSoon')}</p>;
+  if (pane === 'mats') {
+    return (
+      <>
+        <p className={frame.paneTitle}>{t('mats.title')}</p>
+        <p className={frame.paneEmpty}>{t('mats.empty')}</p>
+      </>
+    );
+  }
+  return (
+    <>
+      <p className={frame.paneTitle}>{t('people.title')}</p>
+      {cohort.slice(0, 6).map(({ user }) => (
+        <div className={frame.paneRow} key={user.id}>
+          <span className={frame.paneName}>
+            {user.firstName} {user.lastName}
+          </span>
+          <span className={frame.paneMeta}>
+            {user.id === users.maria.id ? t('people.teacher') : ''}
+          </span>
+        </div>
+      ))}
+    </>
+  );
+}
+
+function Tile({
+  initials,
+  name,
+  attention,
+  alert,
+}: {
+  initials: string;
+  name: string;
+  attention?: number;
+  alert?: boolean;
+}) {
   const { t } = useTranslation('lesson');
   return (
     <div className={vr.tile} data-alert={!!alert} role="img" aria-label={name}>
@@ -83,7 +154,12 @@ function TeacherPreview() {
   const students = cohort.map((c, i) => {
     const drift = ((tick + i) % 5) - 2; // -2..+2, deterministic
     const value = Math.max(0, Math.min(100, c.attention + drift));
-    return { id: c.user.id, initials: initialsOf(c.user.firstName, c.user.lastName), name: c.user.firstName, value };
+    return {
+      id: c.user.id,
+      initials: initialsOf(c.user.firstName, c.user.lastName),
+      name: c.user.firstName,
+      value,
+    };
   });
   const classAvg = Math.round(students.reduce((a, s) => a + s.value, 0) / students.length);
   const points = useMemo(() => attentionPoints().map((p) => p.value), []);
@@ -91,13 +167,19 @@ function TeacherPreview() {
 
   return (
     <Shell subtitle={t('room.teacherSub')}>
-      <div className={styles.card} style={{ position: 'relative' }}>
+      <div className={`${styles.card} ${frame.stripGrow}`} style={{ position: 'relative' }}>
         <p className={styles.liveBadge} role="status">
           <Radio size={13} aria-hidden="true" /> {t('lesson:liveBadgeTeacher')}
         </p>
         <div className={vr.tiles} data-count={students.length}>
           {students.map((s) => (
-            <Tile key={s.id} initials={s.initials} name={s.name} attention={s.value} alert={s.value < CMF.liveAttentionAlertBelow} />
+            <Tile
+              key={s.id}
+              initials={s.initials}
+              name={s.name}
+              attention={s.value}
+              alert={s.value < CMF.liveAttentionAlertBelow}
+            />
           ))}
         </div>
       </div>
@@ -107,7 +189,12 @@ function TeacherPreview() {
           <span className={styles.classAvgLabel}>{t('room.classAvg', { n: classAvg })}</span>
         </div>
         <div className={styles.actions}>
-          <Button variant="secondary" size="sm" icon={<BarChart3 size={ICON_SM} />} onClick={() => setShowReport(true)}>
+          <Button
+            variant="secondary"
+            size="sm"
+            icon={<BarChart3 size={ICON_SM} />}
+            onClick={() => setShowReport(true)}
+          >
             {t('room.report')}
           </Button>
         </div>
@@ -140,7 +227,11 @@ function StudentPreview() {
         <div className={vr.tiles} data-count={classmates.length + 1}>
           <Tile initials={initialsOf('Мария', 'Петровна')} name="Мария Петровна" />
           {classmates.map((c) => (
-            <Tile key={c.user.id} initials={initialsOf(c.user.firstName, c.user.lastName)} name={c.user.firstName} />
+            <Tile
+              key={c.user.id}
+              initials={initialsOf(c.user.firstName, c.user.lastName)}
+              name={c.user.firstName}
+            />
           ))}
         </div>
         <p className={styles.privacyFootnote}>

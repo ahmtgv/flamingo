@@ -80,7 +80,10 @@ function LearnerRow({
     if (task.submittedAt) {
       const parts = whenParts(task.submittedAt, now);
       return t('tasks.submittedAt', {
-        when: parts.bucket === 'date' ? parts.date : t(`when.${parts.bucket}`, parts),
+        when:
+          parts.bucket === 'date'
+            ? parts.date
+            : t(`when.${parts.bucket}`, { time: parts.time, date: parts.date }),
       });
     }
     if (task.state === 'OVERDUE') return t('tasks.overdue');
@@ -150,8 +153,9 @@ function TeacherRow({ task, onOpen }: { task: Task; onOpen: () => void }) {
             waiting > 0
               ? t('tasks.teacher.handedIn', { done: task.submittedBy ?? 0, total })
               : t('tasks.teacher.checked', { done: task.gradedCount ?? 0, total }),
-            (task.staleCount ?? 0) > 0 && t('tasks.teacher.stale', { count: task.staleCount }),
-            (task.retakeCount ?? 0) > 0 && t('tasks.teacher.retakes', { count: task.retakeCount }),
+            (task.staleCount ?? 0) > 0 && t('tasks.teacher.stale', { count: task.staleCount ?? 0 }),
+            (task.retakeCount ?? 0) > 0 &&
+              t('tasks.teacher.retakes', { count: task.retakeCount ?? 0 }),
           ]
             .filter(Boolean)
             .join(' · ')}

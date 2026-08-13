@@ -1,0 +1,31 @@
+# Second screen (R3.1 / masterplan F3). Cast, not a second login.
+
+mutation CreateProjectorCode($sessionId: ID!) {
+  createProjectorCode(sessionId: $sessionId) {
+    code
+    expiresAt
+    sessionId
+  }
+}
+
+mutation RedeemProjectorCode($code: String!) {
+  redeemProjectorCode(code: $code) {
+    sessionId
+    lessonTitle
+    roomToken
+  }
+}
+
+mutation SetProjectorFocus($sessionId: ID!, $studentId: ID) {
+  setProjectorFocus(sessionId: $sessionId, studentId: $studentId) {
+    sessionId
+    studentId
+  }
+}
+
+subscription ProjectorFocusChanged($sessionId: ID!) {
+  projectorFocusChanged(sessionId: $sessionId) {
+    sessionId
+    studentId
+  }
+}
