@@ -1,0 +1,534 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>АТЛАС D3 — Приглашение и вход ученика</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f1f1ef;--surface:#fff;--subtle:#e9e9e6;--border:#d9d9d6;--border-s:#c4c4c1;
+  --ink:#1d1d1f;--sec:#6e6e73;--ter:#98989e;
+  --coral:#e14e1f;--coral-t:#c23f14;--coral-soft:#fdeee7;
+  --good:#3fa46a;--good-soft:#e9f5ee;--warn:#c9a227;--warn-soft:#fdf6da;--warn-ink:#8a7413;
+  --ui:-apple-system,'SF Pro Display',Inter,system-ui,sans-serif;
+  --mono:'JetBrains Mono','SF Mono',ui-monospace,monospace;
+  --ease:cubic-bezier(.2,0,0,1);
+  --fs-body:1.0625rem;--fs-small:.875rem;--fs-cap:.8125rem;--fs-micro:.75rem;
+}
+[data-theme="dark"]{
+  --bg:#101012;--surface:#1a1a1c;--subtle:#242426;--border:#2e2e31;--border-s:#3f3f43;
+  --ink:#f2f2f0;--sec:#98989e;--ter:#6e6e73;--coral:#ff7040;--coral-t:#ff8a5f;--coral-soft:#33201a;
+  --good:#4cb87c;--good-soft:#16281e;--warn:#d9b53c;--warn-soft:#332b12;--warn-ink:#e2c74a;
+}
+*{box-sizing:border-box;margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--ui);font-size:var(--fs-body);
+  line-height:1.6;padding:18px 18px 90px;transition:background .32s var(--ease),color .32s var(--ease)}
+h1{font-size:1.25rem;font-weight:600;letter-spacing:-.015em}
+.sub{color:var(--sec);font-size:var(--fs-small);margin:4px 0 14px;max-width:110ch}
+.bar{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:14px;position:sticky;top:6px;z-index:20;
+  background:var(--bg);padding:8px 0}
+.bar .grp{font:500 10px var(--mono);color:var(--ter);letter-spacing:.1em;text-transform:uppercase;margin:0 2px 0 10px}
+.bar .grp:first-child{margin-left:0}
+.bar button{font:500 12px var(--mono);color:var(--sec);background:var(--bg);border:1px solid var(--border);
+  border-radius:999px;padding:7px 13px;cursor:pointer;transition:all .18s var(--ease)}
+.bar button[aria-pressed="true"]{color:var(--ink);border-color:var(--border-s);background:var(--surface)}
+.bar button:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(225,78,31,.4)}
+.bar button[disabled]{opacity:.35;cursor:not-allowed}
+
+/* ═══ ОБЩИЕ ОКНА ═══ */
+.frame{background:var(--surface);border:1px solid var(--border-s);border-radius:12px;overflow:hidden;
+  box-shadow:0 18px 50px rgba(0,0,0,.13);display:none;grid-template-rows:44px 1fr;min-height:640px}
+[data-theme="dark"] .frame{box-shadow:0 18px 50px rgba(0,0,0,.55)}
+body[data-role="teacher"] .fTeacher,body[data-role="pupil"] .fPupil{display:grid}
+.traffic{display:flex;gap:8px;flex:none}
+.traffic i{width:12px;height:12px;border-radius:50%;display:block}
+.traffic i:nth-child(1){background:#ff5f57}
+.traffic i:nth-child(2){background:#febc2e}
+.traffic i:nth-child(3){background:#28c840}
+
+/* заголовок приложения преподавателя */
+.titlebar{display:flex;align-items:center;gap:12px;padding:0 14px;background:var(--subtle);
+  border-bottom:1px solid var(--border);user-select:none}
+.appName{display:flex;align-items:center;gap:7px;font:500 var(--fs-cap) var(--ui);flex:none}
+.appName .dot{width:7px;height:7px;border-radius:50%;background:var(--coral)}
+.appName .ver{font:400 9px var(--mono);color:var(--ter)}
+.hostState{margin:0 auto;display:flex;align-items:center;gap:9px;font:500 10px var(--mono);
+  border:1px solid var(--border);border-radius:999px;padding:4px 13px;background:var(--surface);white-space:nowrap}
+.hostState .lamp{width:6px;height:6px;border-radius:50%;background:var(--ter);flex:none}
+.hostState[data-on]{color:var(--coral-t);border-color:var(--coral);background:var(--coral-soft)}
+.hostState[data-on] .lamp{background:var(--coral)}
+@media (prefers-reduced-motion:no-preference){.hostState[data-on] .lamp{animation:pulse 2.4s ease-in-out infinite}}
+@keyframes pulse{50%{opacity:.25}}
+.titleRight{flex:none;display:flex;gap:6px}
+.iconBtn{width:28px;height:28px;border-radius:7px;border:1px solid transparent;background:none;cursor:pointer;
+  color:var(--sec);display:grid;place-content:center;font:500 11px var(--mono)}
+.iconBtn:hover{background:var(--surface);color:var(--ink);border-color:var(--border)}
+
+/* окно браузера ученика */
+.chrome{display:grid;grid-template-rows:auto auto;background:var(--subtle);border-bottom:1px solid var(--border)}
+.tabs{display:flex;align-items:center;gap:8px;padding:7px 14px 0}
+.tab{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--border);
+  border-bottom:none;border-radius:8px 8px 0 0;padding:7px 14px;font:400 var(--fs-micro) var(--ui);max-width:280px}
+.tab .fav{width:7px;height:7px;border-radius:50%;background:var(--coral);flex:none}
+.tab span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.addr{display:flex;align-items:center;gap:10px;padding:8px 14px}
+.url{flex:1;display:flex;align-items:center;gap:9px;background:var(--surface);border:1px solid var(--border);
+  border-radius:999px;padding:7px 15px;font:400 var(--fs-micro) var(--mono);color:var(--sec);min-width:0}
+.url b{color:var(--ink);font-weight:500}
+.url .lock{color:var(--good);font-size:10px}
+.navBtn{width:26px;height:26px;border-radius:7px;border:none;background:none;color:var(--ter);cursor:pointer;
+  font:500 12px var(--mono)}
+
+/* ═══ СЦЕНЫ ═══ */
+.pane{padding:30px 36px 34px;overflow:auto;display:none;background:var(--bg)}
+body[data-role="teacher"] .fTeacher .pane{display:block}
+.st{display:none}
+body[data-state="before"] .st-before,body[data-state="live"] .st-live,
+body[data-state="offline"] .st-offline,body[data-state="ended"] .st-ended,
+body[data-state="badlink"] .st-badlink{display:block}
+
+.pTop{max-width:80ch;margin-bottom:20px}
+.pKick{font:500 var(--fs-micro) var(--mono);color:var(--coral-t);letter-spacing:.1em;text-transform:uppercase}
+.pH{font-size:1.5rem;font-weight:600;letter-spacing:-.02em;margin:6px 0 8px}
+.pS{color:var(--sec);font-size:var(--fs-small)}
+
+.card{background:var(--surface);border:1px solid var(--border);border-radius:13px;padding:18px 20px}
+.card + .card{margin-top:12px}
+.cardT{font:500 var(--fs-micro) var(--mono);color:var(--ter);letter-spacing:.09em;text-transform:uppercase;
+  margin-bottom:12px;display:flex;align-items:center;gap:10px}
+.cardT .tag{margin-inline-start:auto;font:500 9px var(--mono);border-radius:5px;padding:2px 8px;letter-spacing:.06em}
+.tag.ok{color:var(--good);background:var(--good-soft)}
+.tag.warn{color:var(--warn-ink);background:var(--warn-soft)}
+.tag.acc{color:var(--coral-t);background:var(--coral-soft)}
+.cols{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:12px;align-items:start}
+@media (max-width:980px){.cols{grid-template-columns:minmax(0,1fr)}}
+
+.linkBox{display:flex;align-items:center;gap:10px;border:1px solid var(--border-s);border-radius:10px;
+  padding:11px 14px;background:var(--subtle);font:500 var(--fs-cap) var(--mono);overflow:hidden}
+.linkBox span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.code{display:flex;align-items:center;gap:11px;justify-content:center;font:500 1.65rem var(--mono);
+  letter-spacing:.2em;background:var(--subtle);border:1px solid var(--border-s);border-radius:11px;padding:14px 18px;
+  margin-top:10px;font-variant-numeric:tabular-nums}
+.code i{color:var(--ter);font-style:normal;letter-spacing:0}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.mini{font:500 10px var(--mono);color:var(--sec);background:none;border:1px solid var(--border);border-radius:8px;
+  padding:7px 12px;cursor:pointer;white-space:nowrap}
+.mini:hover{border-color:var(--border-s);color:var(--ink)}
+.mini.primary{background:var(--coral);border-color:var(--coral);color:#fff}
+.mini.primary:hover{background:var(--coral-t)}
+.mini:focus-visible,.btn:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(225,78,31,.4)}
+.hint{font:400 10px var(--mono);color:var(--ter);line-height:1.65}
+
+.who{display:grid;grid-template-columns:28px 1fr auto;gap:11px;align-items:center;padding:9px 0;
+  border-bottom:1px solid var(--border)}
+.who:last-child{border-bottom:none}
+.av{width:28px;height:28px;border-radius:50%;background:var(--subtle);display:grid;place-content:center;
+  font:500 9px var(--mono);color:var(--sec)}
+.wN{font-size:var(--fs-cap);font-weight:500}
+.wS{font:400 9px var(--mono);color:var(--ter)}
+.wSt{font:500 9px var(--mono);color:var(--ter);white-space:nowrap}
+.wSt[data-in]{color:var(--good)}
+.wSt[data-wait]{color:var(--warn-ink)}
+.wSt[data-no]{color:var(--coral-t)}
+
+.opt{display:grid;grid-template-columns:20px 1fr;gap:12px;align-items:start;padding:11px 0;
+  border-bottom:1px solid var(--border)}
+.opt:last-child{border-bottom:none}
+.rad{width:18px;height:18px;border-radius:50%;border:1px solid var(--border-s);background:var(--surface);
+  cursor:pointer;margin-top:3px;display:grid;place-content:center}
+.rad[data-on]{border-color:var(--coral);border-width:5px}
+.optT{font-size:var(--fs-cap);font-weight:500}
+.optS{font-size:var(--fs-cap);color:var(--sec);margin-top:2px}
+
+/* экран ученика */
+.pupilPane{padding:0;background:var(--bg);display:grid;align-content:start}
+.pupilTop{display:flex;align-items:center;gap:12px;padding:12px 22px;background:var(--surface);
+  border-bottom:1px solid var(--border);flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:8px;font:500 var(--fs-cap) var(--ui)}
+.brand .dot{width:7px;height:7px;border-radius:50%;background:var(--coral)}
+.pupilTop .meta{font:400 10px var(--mono);color:var(--ter)}
+.pupilTop .me{margin-inline-start:auto;display:flex;align-items:center;gap:9px;font:400 10px var(--mono);color:var(--sec)}
+.stage{display:grid;place-items:center;padding:56px 24px 64px;min-height:520px}
+.hero{max-width:640px;width:100%;display:grid;gap:14px;text-align:center;justify-items:center}
+.heroLamp{width:52px;height:52px;border-radius:50%;display:grid;place-content:center;font:500 18px var(--mono)}
+.heroLamp[data-k="wait"]{background:var(--warn-soft);color:var(--warn-ink)}
+.heroLamp[data-k="live"]{background:var(--coral-soft);color:var(--coral-t)}
+.heroLamp[data-k="off"]{background:var(--subtle);color:var(--sec)}
+.heroLamp[data-k="end"]{background:var(--good-soft);color:var(--good)}
+.heroT{font-size:1.6rem;font-weight:600;letter-spacing:-.02em}
+.heroS{color:var(--sec);font-size:var(--fs-small);max-width:56ch}
+.btn{font:500 var(--fs-cap) var(--ui);border-radius:10px;padding:12px 22px;cursor:pointer;
+  border:1px solid var(--border-s);background:var(--surface);color:var(--ink)}
+.btn.primary{background:var(--coral);border-color:var(--coral);color:#fff}
+.btn.primary:hover{background:var(--coral-t)}
+.btn.big{font-size:var(--fs-body);padding:14px 30px}
+.heroRow{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:4px}
+.heroCard{background:var(--surface);border:1px solid var(--border);border-radius:13px;padding:16px 20px;
+  width:100%;text-align:start;display:grid;gap:10px;margin-top:10px}
+.hcT{font:500 var(--fs-micro) var(--mono);color:var(--ter);letter-spacing:.09em;text-transform:uppercase}
+.hcRow{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center;font-size:var(--fs-cap)}
+.hcRow + .hcRow{padding-top:9px;border-top:1px solid var(--border)}
+.hcS{font:400 10px var(--mono);color:var(--ter);margin-top:2px}
+.selfCheck{display:flex;gap:10px;align-items:center;justify-content:center;margin-top:6px;flex-wrap:wrap}
+.chip{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--border);border-radius:999px;
+  padding:6px 13px;font:500 10px var(--mono);color:var(--sec);background:var(--surface)}
+.chip i{width:6px;height:6px;border-radius:50%;background:var(--good);display:block}
+.chip[data-off] i{background:var(--warn)}
+.mini.link{border-style:dashed}
+
+/* заметки */
+.notes{margin-top:24px;padding-top:20px;border-top:1px solid var(--border);max-width:104ch}
+.notes h2{font-size:1.0625rem;font-weight:600;margin-bottom:8px}
+.notes h3{font-size:var(--fs-small);font-weight:600;margin:16px 0 5px}
+.notes p,.notes li{font-size:var(--fs-small);color:var(--sec);line-height:1.75}
+.notes b{color:var(--ink);font-weight:500}
+.notes ul{padding-inline-start:19px;display:grid;gap:4px}
+.q{border-inline-start:2px solid var(--coral);padding:2px 0 2px 13px;margin:9px 0}
+.q p{color:var(--ink)}
+</style>
+</head>
+<body data-role="teacher" data-state="before">
+
+  <h1>АТЛАС D3 — Приглашение и вход ученика</h1>
+  <p class="sub">Две стороны одного действия: преподаватель зовёт, ученик приходит. И главный экран этой пары —
+  тот, где преподавателя ещё нет. В десктопном режиме урок раздаётся с его машины, значит «не в сети» —
+  штатное состояние, а не поломка, и выглядеть оно должно как расписание, а не как ошибка.</p>
+
+  <div class="bar">
+    <span class="grp">Кто смотрит</span>
+    <button data-role="teacher" aria-pressed="true">преподаватель · приложение</button>
+    <button data-role="pupil">ученик · браузер</button>
+    <span class="grp">Состояние</span>
+    <button data-state="before" aria-pressed="true">до начала</button>
+    <button data-state="live">урок идёт</button>
+    <button data-state="offline">преподавателя нет в сети</button>
+    <button data-state="ended">занятие закончилось</button>
+    <button data-state="badlink">ссылка не годится</button>
+    <span class="grp">Тема</span>
+    <button id="thm">тёмная</button>
+  </div>
+
+  <!-- ═══════════ ПРЕПОДАВАТЕЛЬ ═══════════ -->
+  <div class="frame fTeacher">
+    <div class="titlebar">
+      <span class="traffic"><i></i><i></i><i></i></span>
+      <span class="appName"><span class="dot"></span>Flamingo<span class="ver">1.0.0</span></span>
+      <span class="hostState" id="tState"><span class="lamp"></span><span id="tStateT">урок не идёт</span></span>
+      <span class="titleRight">
+        <button class="iconBtn" aria-label="Свернуть">▾</button>
+        <button class="iconBtn" aria-label="Настройки">⚙</button>
+      </span>
+    </div>
+
+    <div class="pane">
+      <div class="pTop">
+        <div class="pKick">English A2 · группа «Четверг 18:00»</div>
+        <div class="pH">Пригласить учеников</div>
+        <div class="pS">Ссылка у группы одна и постоянная — её не нужно рассылать перед каждым занятием.
+          Код рядом для тех, кому проще продиктовать голосом, чем переслать ссылку.</div>
+      </div>
+
+      <div class="cols">
+        <div>
+          <div class="card">
+            <div class="cardT">Ссылка группы<span class="tag ok">действует</span></div>
+            <div class="linkBox"><span>flamingo.plus/к/english-a2-чт18</span>
+              <button class="mini" style="margin-inline-start:auto">Скопировать</button></div>
+            <div class="code">K7M<i>·</i>4Q2</div>
+            <p class="hint" style="margin-top:9px">Код тот же, что в ссылке: ученик вводит его
+              на flamingo.plus, если ссылку не сохранил.</p>
+            <div class="row">
+              <button class="mini primary">Отправить в чат класса</button>
+              <button class="mini">Письмом родителям</button>
+              <button class="mini">Показать QR</button>
+              <button class="mini link">Заменить ссылку</button>
+            </div>
+            <p class="hint" style="margin-top:10px">«Заменить» отзывает старую: пригодится, если ссылка ушла не туда.
+              Ученики группы после замены входят как обычно — им ссылка не нужна, они видят занятие в расписании.</p>
+          </div>
+
+          <div class="card">
+            <div class="cardT">Кто может войти</div>
+            <div class="opt">
+              <button class="rad" data-on aria-label="Только ученики группы"></button>
+              <span><span class="optT">Только ученики этой группы</span>
+                <span class="optS">Посторонний со ссылкой увидит «вы не в этой группе» и кнопку «попросить доступ».
+                  Обычный режим для школьной группы.</span></span>
+            </div>
+            <div class="opt">
+              <button class="rad" aria-label="Любой с учёткой"></button>
+              <span><span class="optT">Любой, кто вошёл в Flamingo</span>
+                <span class="optS">Для открытого занятия или пробного урока. Вы видите каждого входящего
+                  и можете не пустить.</span></span>
+            </div>
+            <div class="opt">
+              <button class="rad" aria-label="С подтверждением"></button>
+              <span><span class="optT">С вашим подтверждением на входе</span>
+                <span class="optS">Каждый стучится, вы впускаете. Медленнее, зато никто не появится посреди урока.</span></span>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div class="card">
+            <div class="cardT">Участники · 8<span class="tag acc" id="joinTag">до начала 12 минут</span></div>
+            <div class="who"><span class="av">АК</span>
+              <span><span class="wN">Аня Коваль</span><span class="wS">вошла в 17:52</span></span>
+              <span class="wSt" data-in>в комнате</span></div>
+            <div class="who"><span class="av">ПК</span>
+              <span><span class="wN">Петя Ковалёв</span><span class="wS">вошёл в 17:55</span></span>
+              <span class="wSt" data-in>в комнате</span></div>
+            <div class="who"><span class="av">ЛМ</span>
+              <span><span class="wN">Лена Морозова</span><span class="wS">открыла ссылку, ждёт</span></span>
+              <span class="wSt" data-wait>у двери</span></div>
+            <div class="who"><span class="av">ДС</span>
+              <span><span class="wN">Дима Соколов</span><span class="wS">приглашение открыто вчера</span></span>
+              <span class="wSt">приглашён</span></div>
+            <div class="who"><span class="av">ИВ</span>
+              <span><span class="wN">Ира Волкова</span><span class="wS">ссылка не открывалась ни разу</span></span>
+              <span class="wSt" data-no>не заходила</span></div>
+            <div class="who"><span class="av">СТ</span>
+              <span><span class="wN">Саша Титов</span><span class="wS">вход с телефона · камеры нет</span></span>
+              <span class="wSt" data-wait>только звук</span></div>
+            <div class="row">
+              <button class="mini">Напомнить тем, кто не заходил</button>
+              <button class="mini">Добавить ученика</button>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="cardT">Что видят ученики прямо сейчас</div>
+            <p class="hint">Пока вы не нажали «Начать урок», у них экран ожидания с вашим расписанием
+              и проверкой камеры и микрофона. Никто не сидит перед пустой страницей и не пишет вам
+              «а мы что, не туда зашли?».</p>
+            <div class="row"><button class="mini primary">Начать урок</button>
+              <button class="mini">Посмотреть глазами ученика</button></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════ УЧЕНИК ═══════════ -->
+  <div class="frame fPupil">
+    <div class="chrome">
+      <div class="tabs">
+        <span class="tab"><span class="fav"></span><span>English A2 · занятие — Flamingo</span></span>
+      </div>
+      <div class="addr">
+        <button class="navBtn" aria-label="Назад">←</button>
+        <button class="navBtn" aria-label="Вперёд">→</button>
+        <button class="navBtn" aria-label="Обновить">↻</button>
+        <span class="url"><span class="lock">🔒</span><b>flamingo.plus</b>/к/english-a2-чт18</span>
+      </div>
+    </div>
+
+    <div class="pupilPane">
+      <div class="pupilTop">
+        <span class="brand"><span class="dot"></span>Flamingo</span>
+        <span class="meta">English A2 · Unit 4 — Travel · четверг, 18:00</span>
+        <span class="me">Аня Коваль · ученик</span>
+      </div>
+
+      <div class="stage">
+
+        <!-- до начала -->
+        <div class="st st-before">
+          <div class="hero">
+            <span class="heroLamp" data-k="wait">18:00</span>
+            <span class="heroT">Занятие начнётся через 12 минут</span>
+            <span class="heroS">Люция Валерьевна ещё не открыла комнату. Можно ничего не нажимать —
+              как только занятие начнётся, эта страница откроет его сама.</span>
+            <div class="selfCheck">
+              <span class="chip"><i></i>камера работает</span>
+              <span class="chip"><i></i>микрофон слышно</span>
+              <span class="chip" data-off><i></i>наушники не подключены</span>
+            </div>
+            <div class="heroRow"><button class="btn">Проверить камеру и звук</button>
+              <button class="btn">Открыть материалы урока</button></div>
+            <div class="heroCard">
+              <span class="hcT">Пока ждёте</span>
+              <div class="hcRow"><span>Домашняя работа к этому уроку
+                <span class="hcS">сдана вчера в 21:14 · проверена, 5</span></span>
+                <button class="mini">Посмотреть</button></div>
+              <div class="hcRow"><span>Саммари прошлого занятия
+                <span class="hcS">Unit 3 — Food · чат занятия внутри</span></span>
+                <button class="mini">Открыть</button></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- идёт -->
+        <div class="st st-live">
+          <div class="hero">
+            <span class="heroLamp" data-k="live">●</span>
+            <span class="heroT">Занятие идёт — заходите</span>
+            <span class="heroS">Люция Валерьевна и трое одноклассников уже в комнате.
+              Микрофон включится выключённым: включите его сами, когда захотите говорить.</span>
+            <div class="selfCheck">
+              <span class="chip"><i></i>камера работает</span>
+              <span class="chip"><i></i>микрофон слышно</span>
+            </div>
+            <div class="heroRow"><button class="btn primary big">Войти в занятие</button>
+              <button class="btn">Войти только со звуком</button></div>
+            <p class="hint">Опоздали — ничего страшного: доска и методичка откроются в том виде,
+              до которого класс дошёл.</p>
+          </div>
+        </div>
+
+        <!-- преподавателя нет в сети -->
+        <div class="st st-offline">
+          <div class="hero">
+            <span class="heroLamp" data-k="off">—</span>
+            <span class="heroT">Преподаватель сейчас не в сети</span>
+            <span class="heroS">Занятие ведётся с компьютера Люции Валерьевны, и пока он выключен,
+              комнату открыть нельзя. Это не сбой у вас и не ошибка ссылки — вы пришли правильно.</span>
+            <div class="heroCard">
+              <span class="hcT">Что известно</span>
+              <div class="hcRow"><span>Ближайшее занятие
+                <span class="hcS">четверг, 18:00 · English A2 · Unit 4 — Travel</span></span>
+                <span class="wSt">через 2 дня</span></div>
+              <div class="hcRow"><span>Домашняя работа
+                <span class="hcS">можно писать сейчас — ответ уйдёт сам, когда преподаватель появится в сети</span></span>
+                <button class="mini primary">Открыть задание</button></div>
+              <div class="hcRow"><span>Материалы и саммари прошлых занятий
+                <span class="hcS">откроются, когда преподаватель будет в сети</span></span>
+                <span class="wSt" data-wait>недоступны</span></div>
+            </div>
+            <div class="heroRow"><button class="btn">Сообщить мне, когда откроется</button>
+              <button class="btn">Написать преподавателю</button></div>
+            <p class="hint">Сообщение дойдёт в любом случае — чат живёт не на его компьютере.</p>
+          </div>
+        </div>
+
+        <!-- закончилось -->
+        <div class="st st-ended">
+          <div class="hero">
+            <span class="heroLamp" data-k="end">✓</span>
+            <span class="heroT">Занятие закончилось</span>
+            <span class="heroS">Саммари собирается — обычно это пара минут. Придёт сюда и в ваши материалы,
+              вместе с чатом занятия и тем, что осталось на доске.</span>
+            <div class="heroCard">
+              <span class="hcT">После занятия</span>
+              <div class="hcRow"><span>Саммари занятия
+                <span class="hcS">Unit 4 — Travel · собирается</span></span>
+                <span class="wSt" data-wait>2 минуты</span></div>
+              <div class="hcRow"><span>Домашняя работа к следующему уроку
+                <span class="hcS">сдать до среды, 20:00</span></span>
+                <button class="mini primary">Открыть</button></div>
+              <div class="hcRow"><span>Доска занятия
+                <span class="hcS">майндмап Asking for directions</span></span>
+                <button class="mini">Посмотреть</button></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ссылка не годится -->
+        <div class="st st-badlink">
+          <div class="hero">
+            <span class="heroLamp" data-k="off">?</span>
+            <span class="heroT">Эта ссылка больше не работает</span>
+            <span class="heroS">Преподаватель заменил ссылку группы — так делают, если она случайно
+              ушла постороннему. Ваше место в группе при этом никуда не делось.</span>
+            <div class="heroRow"><button class="btn primary">Открыть моё расписание</button>
+              <button class="btn">Попросить новую ссылку</button></div>
+            <p class="hint">Если вы ученик этой группы, ссылка вам вообще не нужна:
+              занятие само появится в расписании за пятнадцать минут до начала.</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <div class="notes">
+    <h2>Что здесь решено и что решаешь ты</h2>
+
+    <h3>Ссылка одна и постоянная — у группы, а не у занятия</h3>
+    <p>Разовая ссылка на каждое занятие звучит безопаснее, но на практике это еженедельная рассылка,
+    которую половина учеников потеряет. Поэтому ссылка <b>принадлежит группе</b> и живёт, пока преподаватель
+    её не заменит. Замена — одна кнопка, старая перестаёт работать сразу.</p>
+    <p>Рядом <b>код из шести знаков</b> — тот же, что в ссылке. Он для голоса: продиктовать по телефону,
+    написать на доске в классе, сказать родителю. Это тот же приём, что при связывании машины в D2 —
+    один механизм, который человек уже видел.</p>
+    <p><b>Ученику группы ссылка не нужна вовсе.</b> Занятие появляется у него в расписании само.
+    Ссылка — для новичка, для пробного урока и для того, кто «всё потерял».</p>
+
+    <h3>Экран «преподавателя нет в сети» — главный экран этого листа</h3>
+    <p>В десктопной архитектуре это <b>штатное состояние</b>, а не поломка: комната живёт на машине
+    преподавателя. Значит экран не имеет права выглядеть ошибкой. Три вещи он обязан сказать:</p>
+    <ul>
+      <li><b>«Вы пришли правильно»</b> — снять с ученика подозрение, что он сломал или перепутал.</li>
+      <li><b>Когда будет занятие</b> — расписание знает точка встречи, а не компьютер преподавателя,
+      поэтому дата доступна всегда.</li>
+      <li><b>Что можно делать прямо сейчас.</b> Домашнюю работу — можно: ответ сохраняется у ученика
+      и уходит сам, когда преподаватель появится. Чат — можно: он живёт не на его машине.
+      А вот материалы и саммари прошлых занятий <b>честно помечены недоступными</b>. Это настоящая цена
+      выбранной архитектуры, и врать про неё нельзя.</li>
+    </ul>
+
+    <h3>Ожидание — не пустая страница</h3>
+    <p>За двенадцать минут до урока ученик уже на странице. Это лучшее время, чтобы <b>проверить камеру
+    и звук</b> — не в первую минуту занятия, когда все ждут. Поэтому проверка стоит прямо здесь, тремя чипами,
+    и «наушников нет» подсвечено заранее: эхо от восьми динамиков рушит урок надёжнее слабого канала.</p>
+    <p>Когда преподаватель начинает занятие, страница <b>открывает комнату сама</b>. Ученику не нужно
+    обновлять и гадать.</p>
+
+    <h3>Вход только со звуком — равноправный вариант</h3>
+    <p>Кнопка стоит рядом с главной, не в углу. Ребёнок может быть не готов показывать комнату,
+    сидеть в дороге или иметь камеру, которой нет. Урок английского от этого не рушится,
+    а вот принуждение к камере рушит отношение.</p>
+
+    <h3>Открытые вопросы владельцу</h3>
+    <div class="q"><p><b>1. Кто может войти по ссылке — какой режим ставим по умолчанию?</b>
+    Я поставил «только ученики этой группы»: посторонний со ссылкой не войдёт, а свои заходят без стука.
+    Второй вариант — «с подтверждением на входе»: надёжнее, но преподаватель на первых минутах занят
+    впусканием, а не уроком. Оставляем первый?</p></div>
+    <div class="q"><p><b>2. Материалы при офлайне преподавателя.</b> Сейчас они честно недоступны —
+    так устроено хранение. Можно смягчить: <b>отдавать ученику копию его собственных материалов</b>
+    (его работы, его саммари) через точку встречи, чтобы к экзамену он не зависел от того, включён ли
+    ноутбук преподавателя. Это небольшая, но настоящая работа и шаг в сторону будущей синхронизации.
+    Делаем сейчас или оставляем на потом?</p></div>
+    <div class="q"><p><b>3. Что происходит, если преподаватель ушёл с платформы.</b> Ученик остаётся
+    без своих работ и саммари навсегда. Для пилота это терпимо, дальше — нет. Предлагаю зафиксировать
+    как обязательство перед выходом за пределы двух преподавателей, а не решать сейчас. Согласен?</p></div>
+  </div>
+
+<script>
+const b=document.body;
+const T={
+  before:{t:'урок не идёт · до начала 12 минут',on:0,tag:'до начала 12 минут'},
+  live:{t:'урок идёт с этой машины',on:1,tag:'в комнате 4 из 8'},
+  offline:{t:'нет соединения',on:0,tag:'ученики ждут'},
+  ended:{t:'занятие завершено · собираем саммари',on:0,tag:'занятие закончилось'},
+  badlink:{t:'урок не идёт',on:0,tag:'ссылка заменена'},
+};
+function setState(k){
+  b.dataset.state=k;
+  const s=T[k], st=document.getElementById('tState');
+  document.getElementById('tStateT').textContent=s.t;
+  st.toggleAttribute('data-on',!!s.on);
+  document.getElementById('joinTag').textContent=s.tag;
+  document.querySelectorAll('.bar button[data-state]').forEach(x=>
+    x.setAttribute('aria-pressed', x.dataset.state===k?'true':'false'));
+}
+document.querySelectorAll('.bar button[data-state]').forEach(x=>
+  x.addEventListener('click',()=>setState(x.dataset.state)));
+document.querySelectorAll('.bar button[data-role]').forEach(x=>x.addEventListener('click',()=>{
+  document.querySelectorAll('.bar button[data-role]').forEach(y=>y.setAttribute('aria-pressed','false'));
+  x.setAttribute('aria-pressed','true'); b.dataset.role=x.dataset.role;
+}));
+document.querySelectorAll('.rad').forEach(r=>r.addEventListener('click',()=>{
+  r.closest('.card').querySelectorAll('.rad').forEach(x=>x.removeAttribute('data-on'));
+  r.setAttribute('data-on','');
+}));
+document.getElementById('thm').addEventListener('click',e=>{
+  const d=document.documentElement.dataset.theme==='dark';
+  document.documentElement.dataset.theme=d?'':'dark';
+  e.target.textContent=d?'тёмная':'светлая';
+});
+setState('before');
+</script>
+</body>
+</html>
