@@ -113,6 +113,10 @@ def check(kind: ExerciseKind, answer_key: dict, response: dict) -> bool | None:
     if kind in (ExerciseKind.CHOICE, ExerciseKind.LISTENING):
         expected = answer_key.get("correct")
         picked = response.get("choice")
+        if expected is None:
+            # An exercise with no key is not a wrong answer — it is an unfinished exercise,
+            # and it must not blow up in the face of the person answering it.
+            return None
         if isinstance(expected, list):
             return sorted(map(int, response.get("choices", []))) == sorted(map(int, expected))
         return picked is not None and int(picked) == int(expected)

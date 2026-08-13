@@ -37,6 +37,12 @@ class User(JurisdictionMixin, AbstractBaseUser, PermissionsMixin):
     # is only a pointer, so the choice follows the person between devices. Empty = "not
     # chosen yet", which resolves to the first available profile.
     active_learning_profile = models.CharField(max_length=64, blank=True, default="")
+    # PROMPT_13 §5: the explicit consent point — «речь занятий обрабатывается для саммари;
+    # видео и аудио не записываются». Withheld by default, because a default-on consent is
+    # not a consent. A minor additionally needs their guardian's 152-FZ consent; both checks
+    # live in apps/summaries/consent.py, which is the only place that reads these fields.
+    consent_speech = models.BooleanField(default=False)
+    consent_speech_at = models.DateTimeField(null=True, blank=True)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
     is_email_verified = models.BooleanField(default=False)

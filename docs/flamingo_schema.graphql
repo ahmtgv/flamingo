@@ -447,8 +447,11 @@ type NotificationPreference {
   child: User                  # for parents: per-child override
 }
 
-# The LESSON chat (R4) — it lives inside the lesson summary. Not to be confused with
-# ChannelMessage below, which is the standing chat between people (R2).
+# The LESSON chat (R4.2) — it lives inside the lesson summary, as its CHAT section. Not to be
+# confused with ChannelMessage below, which is the standing chat between people (R2).
+# There is no separate lesson feed: sending a message here WRITES a SummaryItem, so
+# «переписка едет вместе с итогом» is true of the schema and not only of the screen.
+# DRIFT: live resolves senderId + senderName (flat), this contract still says sender: User!.
 type ChatMessage {
   id: ID!
   sessionId: ID!
@@ -625,6 +628,52 @@ input BoardElementInput {
   height: Float = 0
   data: JSON
   id: ID                         # present when updating, absent when putting a new one down
+}
+
+# ----------------------------------------------------------------------------- Summary (R4.2)
+# The summary is what a lesson leaves behind now that no recording exists — first on the
+# storage whitelist (§4.2 п.1), and that entry carries the clause that shapes this whole
+# block: «чат занятия — отдельный раздел внутри саммари».
+#
+# Two things this contract deliberately does NOT contain, and the storage gate greps for both:
+# no field holds recognised speech, and no field holds a server-composed caption. An item
+# ships `source` + `sourceMeta`; the client turns that into «с доски · 4 узла, добавил Петя».
+# Speech itself never reaches a field at all — points come from an in-memory buffer that is
+# dropped in the same call that reads it (apps/summaries/speech_stream.py).
+enum SummaryStatus { DRAFT SENT }
+
+# The five blocks of atlas sheet 02.
+enum SummarySection { TOPIC WORDS WATCH CHAT HOMEWORK }
+
+# Where a line came from — shown under every single item on the sheet.
+# SPEECH is the one gated source: `lesson_transcription` in the jurisdiction matrix AND the
+# speaker's own consent (a minor's via their guardian's 152-FZ one).
+enum SummarySource { PLAN BOARD SPEECH MATERIAL TEST CHAT TEACHER }
+
+type SummaryItem {
+  id: ID!
+  section: SummarySection!
+  source: SummarySource!
+  sourceMeta: JSON!              # counts, names, ids — the client composes the caption
+  atOffsetSec: Int               # the «06:20» column; null on items that are not a moment
+  text: String!
+  authorId: ID
+  authorName: String!
+  dueAt: DateTime
+  homeworkId: ID                 # set once the item became a real row in «Задания»
+  edited: Boolean!               # a person wrote/rewrote it — assembly leaves it alone
+}
+
+type LessonSummary {
+  id: ID!
+  sessionId: ID!
+  status: SummaryStatus!
+  intro: String!
+  assembledAt: DateTime
+  sentAt: DateTime
+  speechOmitted: Boolean!        # points were dropped: jurisdiction or a missing consent
+  canEdit: Boolean!
+  items: [SummaryItem!]!
 }
 
 # ----------------------------------------------------------------------------- Second screen (R3.1)
@@ -1006,6 +1055,12 @@ type Query {
   exerciseLivePicture(setId: ID!): [ExerciseLiveRow!]!    # teacher only, aggregate only
   mySkillMastery(masteredOnly: Boolean = false): [SkillMastery!]!
 
+  # summary (R4.2) — the teacher gets the draft; everyone else gets it only once it is sent,
+  # and gets NULL rather than a refusal until then (whether it is being written is not their
+  # business either). lessonChat is the exception: participants read the CHAT section live.
+  lessonSummary(sessionId: ID!): LessonSummary
+  lessonChat(sessionId: ID!): [ChatMessage!]!
+
   # catalog & content
   catalog(filter: CourseFilter, first: Int = 20, after: String): CourseConnection!
   course(id: ID!): Course
@@ -1134,6 +1189,19 @@ type Mutation {
   ): Attempt!
   handInExerciseSet(setId: ID!): HomeworkHandIn!
   countLiveAsClasswork(setId: ID!, studentId: ID!): ID!   # a live lesson grades only on purpose
+
+  # summary (R4.2) — teacher-only, all of them; sendChatMessage above is everyone's
+  assembleLessonSummary(sessionId: ID!): LessonSummary!   # «собрать саммари сейчас»
+  addSummaryItem(
+    sessionId: ID!, section: SummarySection!, text: String!, dueAt: DateTime
+  ): SummaryItem!
+  updateSummaryItem(itemId: ID!, text: String!): SummaryItem!
+  removeSummaryItem(itemId: ID!): Boolean!
+  setSummaryIntro(sessionId: ID!, text: String!): LessonSummary!
+  sendLessonSummary(sessionId: ID!): LessonSummary!       # -> materials + «Задания»
+  # PROMPT_13 §5: «речь занятий обрабатывается для саммари; видео и аудио не записываются».
+  # Withheld by default — a default-on consent is not a consent.
+  setSpeechConsent(granted: Boolean!): Boolean!
   reportAttention(input: AttentionInput!): Boolean!         # client pushes aggregate only
 
   # --- enrollment & progress

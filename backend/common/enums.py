@@ -339,6 +339,47 @@ class BoardElementKind(Enum):
     IMAGE = "image"  # pasted from the clipboard
 
 
+# --- Lesson summary (R4.2, atlas sheet 02) ------------------------------------
+@strawberry.enum
+class SummaryStatus(Enum):
+    """A summary is a teacher's draft until they send it. Learners only ever see SENT."""
+
+    DRAFT = "draft"
+    SENT = "sent"
+
+
+@strawberry.enum
+class SummarySection(Enum):
+    """The five blocks of sheet 02. CHAT is one of them by owner decision: the lesson chat
+    lives INSIDE the summary and has no eternal feed of its own (§4.2 п.1)."""
+
+    TOPIC = "topic"  # «О чём был урок»
+    WORDS = "words"  # «Новые слова» — these feed the repetition queue (R4.4)
+    WATCH = "watch"  # «На что обратить внимание»
+    CHAT = "chat"  # «Чат занятия»
+    HOMEWORK = "homework"  # «Задано» — becomes a real HOMEWORK row on send
+
+
+@strawberry.enum
+class SummarySource(Enum):
+    """Where a line came from. Sheet 02 requires this to be visible on every item, so it is
+    stored as DATA — the client composes «с доски · 4 узла, добавил Петя» from the source and
+    its meta, the server never ships display text.
+
+    SPEECH is the one source that is gated: it appears only where `lesson_transcription` is
+    allowed AND the speaker consented, and the speech itself is never stored (§4.1) — the
+    point is assembled from an in-memory stream that is dropped immediately after.
+    """
+
+    PLAN = "plan"  # из плана занятия
+    BOARD = "board"  # с доски
+    SPEECH = "speech"  # из речи занятия — разобрано на лету, запись не велась
+    MATERIAL = "material"  # из материалов урока
+    TEST = "test"  # из результатов теста
+    CHAT = "chat"  # переписка занятия
+    TEACHER = "teacher"  # написал преподаватель
+
+
 # --- Jurisdiction gate (docs/rnd/RND_01_JURISDICTION.md) ---------------------
 # Deliberately NOT @strawberry.enum: the compliance layer is server-side only. A client
 # must never be able to read (let alone influence) the jurisdiction decision, and keeping

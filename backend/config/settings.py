@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     "apps.chat",
     "apps.board",
     "apps.exercises",
+    "apps.summaries",
 ]
 
 # --- Jurisdiction gate (docs/rnd/RND_01_JURISDICTION.md §6.1-6.2) ------------------------

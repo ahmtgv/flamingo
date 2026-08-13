@@ -29,6 +29,9 @@ from apps.scheduling.graphql.subscriptions import SchedulingSubscription
 from apps.seedum.graphql.mutations import SeedumMutation
 from apps.seedum.graphql.queries import SeedumQuery
 from apps.seedum.graphql.subscriptions import SeedumSubscription
+from apps.summaries.graphql.mutations import SummariesMutation
+from apps.summaries.graphql.queries import SummariesQuery
+from apps.summaries.graphql.subscriptions import SummariesSubscription
 
 
 @strawberry.type
@@ -42,6 +45,7 @@ class Query(
     ChatQuery,
     BoardQuery,
     ExercisesQuery,
+    SummariesQuery,
 ):
     pass
 
@@ -58,12 +62,19 @@ class Mutation(
     ChatMutation,
     BoardMutation,
     ExercisesMutation,
+    SummariesMutation,
 ):
     pass
 
 
 @strawberry.type
-class Subscription(SeedumSubscription, ChatSubscription, SchedulingSubscription, BoardSubscription):
+class Subscription(
+    SeedumSubscription,
+    ChatSubscription,
+    SchedulingSubscription,
+    BoardSubscription,
+    SummariesSubscription,
+):
     pass
 
 

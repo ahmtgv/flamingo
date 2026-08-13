@@ -139,6 +139,16 @@ class Material(BaseModel):
         blank=True,
         on_delete=models.SET_NULL,
     )
+    # A sent summary is a material of the lesson too (§4.2 п.1) — «саммари останется в
+    # материалах урока и у вас, и у учеников». A pointer, never a copy: the summary keeps
+    # being the one authoritative text.
+    summary = models.ForeignKey(
+        "summaries.LessonSummary",
+        related_name="materials",
+        null=True,
+        blank=True,
+        on_delete=models.CASCADE,
+    )
 
     class Meta:
         ordering = ["order"]
