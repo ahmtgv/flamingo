@@ -1,5 +1,5 @@
 {
-  "policy_version": "2026-08-07.1",
+  "policy_version": "2026-08-13.1",
   "_doc": [
     "Feature x jurisdiction matrix — policy-as-code (docs/rnd/RND_01_JURISDICTION.md §6.3-6.4).",
     "This file IS the policy: no jurisdictional 'if' may exist anywhere else in the codebase.",
@@ -13,7 +13,11 @@
     "verified_sources: only these may LOWER strictness (§6.2). A self-declared or inferred",
     "jurisdiction can make the profile stricter, never looser."
   ],
-  "verified_sources": ["contract", "kyc_verified", "deployment"],
+  "verified_sources": [
+    "contract",
+    "kyc_verified",
+    "deployment"
+  ],
   "features": {
     "cmf_attention": {
       "default_state": "disabled",
@@ -64,6 +68,16 @@
       },
       "legal_basis_ref": "RND_01_JURISDICTION.md — matrix row (c) and red line 2; EU: prohibited unconditionally, consent cannot cure it (up to EUR 35M / 7%). RU: legally arguable but a reputational red line the product does not cross.",
       "note": "Registered precisely because it is never to be built: the matrix is the machine-checkable form of that red line, so any future call site fails closed instead of quietly working."
+    },
+    "peer_chat": {
+      "default_state": "disabled",
+      "requires_verified_jurisdiction": false,
+      "jurisdiction_policy": {
+        "ru": "enabled",
+        "eu": "disabled"
+      },
+      "legal_basis_ref": "PROMPT_13 §6.3 (owner decision 2026-08-12); RU: pupil-to-pupil messaging inside one's own groups is ordinary communication under 152-FZ with parental consent already captured at registration; EU: DSA art. 28 minor-protection duties plus GDPR art. 8 make an unmoderated minor-to-minor channel a commitment we have not costed, so the feature is switched off geographically rather than half-built",
+      "note": "Switching a country on is an edit to THIS file, never to the chat module. Stricter regimes (permanent teacher visibility, pre-moderation, stop-words, no direct messages) are institution-level options in InstitutionChatSettings — they are configuration, not constants. Turning this off leaves subject rooms and pupil-teacher conversations working: only pupil-to-pupil is gated."
     }
   }
 }

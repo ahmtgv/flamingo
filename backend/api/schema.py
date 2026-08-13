@@ -8,6 +8,9 @@ import strawberry
 
 from apps.accounts.graphql.mutations import AccountsMutation
 from apps.accounts.graphql.queries import AccountsQuery
+from apps.chat.graphql.mutations import ChatMutation
+from apps.chat.graphql.queries import ChatQuery
+from apps.chat.graphql.subscriptions import ChatSubscription
 from apps.courses.graphql.mutations import CoursesMutation
 from apps.courses.graphql.queries import CoursesQuery
 from apps.files.graphql.mutations import FilesMutation
@@ -24,7 +27,13 @@ from apps.seedum.graphql.subscriptions import SeedumSubscription
 
 @strawberry.type
 class Query(
-    AccountsQuery, CoursesQuery, SchedulingQuery, HomeworkQuery, InstitutionsQuery, SeedumQuery
+    AccountsQuery,
+    CoursesQuery,
+    SchedulingQuery,
+    HomeworkQuery,
+    InstitutionsQuery,
+    SeedumQuery,
+    ChatQuery,
 ):
     pass
 
@@ -38,12 +47,13 @@ class Mutation(
     InstitutionsMutation,
     SeedumMutation,
     FilesMutation,
+    ChatMutation,
 ):
     pass
 
 
 @strawberry.type
-class Subscription(SeedumSubscription):
+class Subscription(SeedumSubscription, ChatSubscription):
     pass
 
 

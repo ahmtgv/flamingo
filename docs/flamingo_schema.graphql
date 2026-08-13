@@ -30,6 +30,9 @@ enum LessonKind { STANDARD EXTERNAL_DEVICE }
 enum SavedItemKind { SAVED WATCH_LATER }
 # Where a piece of work stands for a learner (atlas 01, «Задания»).
 enum TaskState { TODO SUBMITTED GRADED OVERDUE }
+# Chat (R2). The kind decides who may be a member; it is never a display label.
+enum ChannelKind { SUBJECT_GROUP PUPIL_TEACHER PEER STAFF_ROOM }
+enum ReportStatus { OPEN REVIEWED DISMISSED }
 enum VerificationStatus { PENDING APPROVED REJECTED }
 enum InstitutionStatus { PENDING ACTIVE INACTIVE }
 enum MembershipRole { TEACHER STUDENT ADMIN }
@@ -428,12 +431,69 @@ type NotificationPreference {
   child: User                  # for parents: per-child override
 }
 
+# The LESSON chat (R4) — it lives inside the lesson summary. Not to be confused with
+# ChannelMessage below, which is the standing chat between people (R2).
 type ChatMessage {
   id: ID!
   sessionId: ID!
   sender: User!
   text: String!
   sentAt: DateTime!
+}
+
+# ----------------------------------------------------------------------------- Chat (R2)
+# Channels: предмет × группа · ученик ↔ учитель · ученик ↔ ученик · учительская.
+# Membership IS the authorisation: a channel the caller is not in comes back as NotFound,
+# never as a refusal that confirms it exists.
+type ChatParticipant {
+  id: ID!
+  firstName: String!
+  lastName: String!
+  role: String!
+}
+
+type ChannelMessage {
+  id: ID!
+  channelId: ID!
+  senderId: ID!
+  senderName: String!
+  text: String!
+  sentAt: DateTime!
+  mine: Boolean!
+}
+
+# No `title`: the server sends the data a title is built from and the client words it.
+type ChatChannel {
+  id: ID!
+  kind: ChannelKind!
+  courseId: ID
+  courseTitle: String
+  groupName: String
+  institutionName: String
+  participants: [ChatParticipant!]!
+  unread: Int!
+  lastMessageAt: DateTime
+  lastMessageText: String
+  readOnly: Boolean!          # reading a REPORTED conversation one is not part of
+  openReports: Int!
+}
+
+# Advisory only — every one of these is enforced server-side. peerChat comes from the
+# jurisdiction matrix (feature `peer_chat`); the rest are institution-level options.
+type ChatPolicyView {
+  peerChat: Boolean!
+  directMessages: Boolean!
+  teacherVisibleAlways: Boolean!
+  premoderation: Boolean!
+}
+
+type ChatReport {
+  id: ID!
+  channelId: ID!
+  reporterName: String!
+  reason: String
+  status: ReportStatus!
+  createdAt: DateTime!
 }
 
 # ----------------------------------------------------------------------------- Auth / utility payloads
@@ -777,6 +837,13 @@ type Query {
   subjectTasks(courseId: ID!): [SubjectTask!]!            # atlas 01 «Задания»
   subjectProgress(courseId: ID!): SubjectProgress!        # atlas 01 «Прогресс»
 
+  # chat (R2) — all scoped to the caller's own membership; none takes a user id
+  myChannels: [ChatChannel!]!
+  chatUnread: Int!                                        # the badge in the header
+  channelMessages(channelId: ID!, limit: Int = 100): [ChannelMessage!]!
+  chatPolicy: ChatPolicyView!
+  chatReports: [ChatReport!]!                             # complaints this teacher may act on
+
   # catalog & content
   catalog(filter: CourseFilter, first: Int = 20, after: String): CourseConnection!
   course(id: ID!): Course
@@ -877,6 +944,15 @@ type Mutation {
   joinSession(sessionId: ID!): SessionJoin!                 # student -> roomToken + ATTENDANCE
   setAttendance(sessionId: ID!, studentId: ID!, status: AttendanceStatus!): Attendance!
   sendChatMessage(sessionId: ID!, text: String!): ChatMessage!
+
+  # chat (R2)
+  openSubjectChannel(courseId: ID!): ChatChannel!
+  openDirectChannel(userId: ID!): ChatChannel!            # only people from your own groups
+  openStaffChannel(institutionId: ID!): ChatChannel!
+  sendChannelMessage(channelId: ID!, text: String!): ChannelMessage!
+  markChannelRead(channelId: ID!): Boolean!
+  reportChannel(channelId: ID!, reason: String, messageId: ID): ChatReport!
+  resolveChatReport(reportId: ID!, dismiss: Boolean = false): ChatReport!
   reportAttention(input: AttentionInput!): Boolean!         # client pushes aggregate only
 
   # --- enrollment & progress
@@ -933,6 +1009,8 @@ type Subscription {
   sessionStatusChanged(sessionId: ID!): LessonSession!
   # live lesson chat
   chatMessageReceived(sessionId: ID!): ChatMessage!
+  # standing chat (R2) — the socket re-checks membership before streaming anything
+  channelMessageReceived(channelId: ID!): ChannelMessage!
   # current user's notifications (new grade, absence, CMF insight, ...)
   notificationReceived: Notification!
 }

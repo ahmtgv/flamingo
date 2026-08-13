@@ -243,6 +243,27 @@ class NotificationChannel(Enum):
     IN_APP = "in_app"
 
 
+# --- Chat (R2) ---------------------------------------------------------------
+@strawberry.enum
+class ChannelKind(Enum):
+    """Who a conversation is between. The kind decides who may be a member and which
+    safety options apply — it is never a display label."""
+
+    SUBJECT_GROUP = "subject_group"  # предмет × группа
+    PUPIL_TEACHER = "pupil_teacher"  # ученик ↔ учитель
+    PEER = "peer"  # ученик ↔ ученик
+    STAFF_ROOM = "staff_room"  # учительская
+
+
+@strawberry.enum
+class ReportStatus(Enum):
+    """A complaint about a conversation. OPEN is what lets a group teacher open it."""
+
+    OPEN = "open"
+    REVIEWED = "reviewed"
+    DISMISSED = "dismissed"
+
+
 # --- Jurisdiction gate (docs/rnd/RND_01_JURISDICTION.md) ---------------------
 # Deliberately NOT @strawberry.enum: the compliance layer is server-side only. A client
 # must never be able to read (let alone influence) the jurisdiction decision, and keeping
