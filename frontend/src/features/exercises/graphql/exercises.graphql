@@ -1,0 +1,72 @@
+# Exercises (R4.1). The learner answers; the teacher watches an aggregate.
+# `answerKey` is deliberately not in the schema — a key on the wire answers the test.
+
+query LessonExerciseSets($lessonId: ID!) {
+  lessonExerciseSets(lessonId: $lessonId) {
+    id
+    lessonId
+    title
+    mode
+    homeworkId
+    exercises {
+      id
+      kind
+      skill
+      cefrLevel
+      skillTags
+      prompt
+      payload
+      points
+      order
+      assetId
+    }
+  }
+}
+
+query MyExerciseAttempts($setId: ID!) {
+  myAttempts(setId: $setId) {
+    id
+    exerciseId
+    context
+    isCorrect
+    score
+    createdAt
+  }
+}
+
+query SetProgress($setId: ID!) {
+  setProgress(setId: $setId) {
+    total
+    answered
+    correct
+  }
+}
+
+query ExerciseLivePicture($setId: ID!) {
+  exerciseLivePicture(setId: $setId) {
+    exerciseId
+    answered
+    groupSize
+    correct
+    spread
+  }
+}
+
+mutation AnswerExercise($exerciseId: ID!, $response: JSON!, $context: AttemptContext) {
+  answerExercise(exerciseId: $exerciseId, response: $response, context: $context) {
+    id
+    exerciseId
+    isCorrect
+    score
+    createdAt
+  }
+}
+
+mutation HandInExerciseSet($setId: ID!) {
+  handInExerciseSet(setId: $setId) {
+    submissionId
+    score
+    autoChecked
+    awaitingTeacher
+  }
+}

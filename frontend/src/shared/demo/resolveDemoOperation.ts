@@ -63,6 +63,12 @@ import type {
   ChatPolicyQuery,
   ChatReportsQuery,
   ChatUnreadQuery,
+  AnswerExerciseMutation,
+  ExerciseLivePictureQuery,
+  HandInExerciseSetMutation,
+  LessonExerciseSetsQuery,
+  MyExerciseAttemptsQuery,
+  SetProgressQuery,
   BoardQuery,
   CourseBoardsQuery,
   PutBoardElementMutation,
@@ -1299,6 +1305,112 @@ function boardElements(): BoardQuery['board']['elements'] {
   return [...live, ...store.board.added];
 }
 
+// --- Exercises (R4.1) --------------------------------------------------------------------------
+/** The sheet's own quick test: «Быстрый тест · directions», six questions, the first of them
+ *  the multiple choice the class picture is built on. Answers stick for the session so the
+ *  preview behaves like the real run, including the teacher's histogram. */
+const DEMO_EXERCISES = [
+  {
+    id: 'ex-1',
+    kind: 'CHOICE' as const,
+    prompt: { text: 'Choose the natural phrase: “Excuse me, how do I ___ to the station?”' },
+    payload: { options: ['come', 'get', 'arrive', 'reach out'] },
+    correct: 1,
+  },
+  {
+    id: 'ex-2',
+    kind: 'LISTENING' as const,
+    prompt: { text: 'Послушай и выбери маршрут, который описал говорящий.' },
+    payload: {
+      options: [
+        'налево, потом прямо два квартала',
+        'прямо, потом второй поворот направо',
+        'направо, потом мимо парка',
+      ],
+    },
+    correct: 1,
+  },
+  {
+    id: 'ex-3',
+    kind: 'CLOZE' as const,
+    prompt: { text: 'Is it ___ from here? (далеко)' },
+    payload: {},
+    correct: null,
+  },
+  {
+    id: 'ex-4',
+    kind: 'WRITING' as const,
+    prompt: { text: 'Опиши дорогу от дома до школы, 5–7 предложений.' },
+    payload: {},
+    correct: null,
+  },
+];
+
+function exerciseSets(): LessonExerciseSetsQuery {
+  type Set = LessonExerciseSetsQuery['lessonExerciseSets'][number];
+  const exercises: Set['exercises'] = DEMO_EXERCISES.map((e, i) => ({
+    __typename: 'Exercise',
+    id: e.id,
+    kind: e.kind,
+    skill: e.kind === 'LISTENING' ? 'LISTENING' : 'GRAMMAR',
+    cefrLevel: 'A2',
+    skillTags: ['grammar.questions.word_order'],
+    prompt: e.prompt,
+    payload: e.payload,
+    points: 1,
+    order: i,
+    assetId: null,
+  }));
+  return {
+    __typename: 'Query',
+    lessonExerciseSets: [
+      {
+        __typename: 'ExerciseSet',
+        id: 'set-directions',
+        lessonId: 'les-1-12',
+        title: 'Быстрый тест · directions',
+        mode: 'LIVE',
+        // Deliberately absent: the preview shows the teacher WHY «зачесть как работу» is
+        // unavailable until a homework is attached.
+        homeworkId: null,
+        exercises,
+      },
+    ],
+  };
+}
+
+function exerciseLivePicture(): ExerciseLivePictureQuery {
+  // The sheet's numbers: «ответили 5 из 6 · верно 4 · один выбрал come».
+  const seeded: Record<
+    string,
+    { answered: number; correct: number; spread: Record<string, number> }
+  > = {
+    'ex-1': { answered: 5, correct: 4, spread: { '0': 1, '1': 4 } },
+    'ex-2': { answered: 4, correct: 3, spread: { '1': 3, '2': 1 } },
+    'ex-3': { answered: 2, correct: 2, spread: {} },
+    'ex-4': { answered: 1, correct: 0, spread: {} },
+  };
+  return {
+    __typename: 'Query',
+    exerciseLivePicture: DEMO_EXERCISES.map((e) => {
+      const own = store.exercises.answers.get(e.id);
+      const base = seeded[e.id];
+      const spread = { ...base.spread };
+      if (own?.choice !== undefined) {
+        spread[String(own.choice)] = (spread[String(own.choice)] ?? 0) + 1;
+      }
+      return {
+        __typename: 'ExerciseLiveRow' as const,
+        exerciseId: e.id,
+        answered: base.answered + (own ? 1 : 0),
+        groupSize: 6,
+        correct: base.correct + (own?.correct ? 1 : 0),
+        spread,
+      };
+    }),
+  };
+}
+
 // --- Courses -----------------------------------------------------------------------------
 /** Preview-only platform-zero toggle for the catalog (?catalog=zero) — mirrors demoRole's
  *  ?role= convention so the "Каталог наполняется" state is reachable in the preview. */
@@ -2127,6 +2239,33 @@ export function resolveDemoOperation(
       return subjectTasks(variables);
     case 'SubjectProgress':
       return subjectProgress(variables);
+    case 'LessonExerciseSets':
+      return exerciseSets();
+    case 'ExerciseLivePicture':
+      return exerciseLivePicture();
+    case 'MyExerciseAttempts':
+      return {
+        myAttempts: [...store.exercises.answers.entries()].map(([exerciseId, a]) => ({
+          __typename: 'Attempt' as const,
+          id: `att-${exerciseId}`,
+          exerciseId,
+          context: 'LIVE' as const,
+          isCorrect: a.correct,
+          score: a.correct ? 1 : 0,
+          createdAt: a.at,
+        })),
+      } satisfies MyExerciseAttemptsQuery;
+    case 'SetProgress': {
+      const answered = store.exercises.answers.size;
+      return {
+        setProgress: {
+          __typename: 'SetProgress',
+          total: DEMO_EXERCISES.length,
+          answered,
+          correct: [...store.exercises.answers.values()].filter((a) => a.correct).length,
+        },
+      } satisfies SetProgressQuery;
+    }
     case 'Board':
       return {
         board: {
@@ -2364,6 +2503,47 @@ export function resolveDemoOperation(
         saveBoard: { __typename: 'BoardSnapshot', ...snapshot },
       } satisfies SaveBoardMutation;
     }
+
+    // exercises (R4.1) — an answer sticks, so the preview run behaves like the real one
+    case 'AnswerExercise': {
+      const exerciseId = String(variables.exerciseId ?? '');
+      const response = (variables.response ?? {}) as { choice?: number; text?: string };
+      const seeded = DEMO_EXERCISES.find((e) => e.id === exerciseId);
+      // An open kind has no machine verdict — null, exactly as the server answers.
+      const correct =
+        seeded?.correct == null
+          ? seeded?.kind === 'CLOZE'
+            ? String(response.text ?? '')
+                .trim()
+                .toLowerCase() === 'far'
+            : null
+          : response.choice === seeded.correct;
+      store.exercises.answers.set(exerciseId, {
+        choice: response.choice,
+        correct,
+        at: iso(),
+      });
+      return {
+        answerExercise: {
+          __typename: 'Attempt',
+          id: nextId('att'),
+          exerciseId,
+          isCorrect: correct,
+          score: correct ? 1 : 0,
+          createdAt: iso(),
+        },
+      } satisfies AnswerExerciseMutation;
+    }
+    case 'HandInExerciseSet':
+      return {
+        handInExerciseSet: {
+          __typename: 'HomeworkHandIn',
+          submissionId: nextId('sub'),
+          score: 75,
+          autoChecked: 3,
+          awaitingTeacher: 1,
+        },
+      } satisfies HandInExerciseSetMutation;
 
     // profile / parent
     case 'AddChild': {

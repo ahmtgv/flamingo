@@ -273,6 +273,11 @@ export const store = {
     removed: new Set<string>(),
     saved: [] as { id: string; title: string; savedAt: string }[],
   },
+  /** Exercises (R4.1): an answer given in the preview stays answered, and shows up in the
+   *  teacher's histogram — otherwise the showcase would not show the feature working. */
+  exercises: {
+    answers: new Map<string, { choice?: number; correct: boolean | null; at: string }>(),
+  },
   /** Monotonic counter for synthetic ids minted by create-mutations. */
   seq: 1000,
 };
@@ -285,6 +290,7 @@ export function resetDemoStore(): void {
   store.programme = { edits: new Map(), order: new Map(), removed: new Set(), added: new Map() };
   store.chat = { sent: new Map(), read: new Set(), reported: new Set() };
   store.board = { open: false, edits: new Map(), added: [], removed: new Set(), saved: [] };
+  store.exercises = { answers: new Map() };
   store.seq = 1000;
 }
 

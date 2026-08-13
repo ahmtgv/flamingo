@@ -734,3 +734,55 @@ describe('resolveDemoOperation — board (R3.2)', () => {
     expect(saved.map((b) => b.title)).toEqual(['Доска · маршруты']);
   });
 });
+
+describe('resolveDemoOperation — exercises (R4.1)', () => {
+  type Row = { exerciseId: string; answered: number; correct: number; spread: Record<string, number> };
+  const picture = () =>
+    (resolveDemoOperation('ExerciseLivePicture', {}) as { exerciseLivePicture: Row[] })
+      .exerciseLivePicture;
+
+  it('the lesson has the sheet’s own quick test, with an open kind among the closed ones', () => {
+    setRole('student');
+    const sets = (
+      resolveDemoOperation('LessonExerciseSets', { lessonId: 'les-1-12' }) as {
+        lessonExerciseSets: { mode: string; homeworkId: string | null; exercises: { kind: string }[] }[];
+      }
+    ).lessonExerciseSets;
+    expect(sets).toHaveLength(1);
+    expect(sets[0].mode).toBe('LIVE');
+    // Deliberately unattached: the teacher must be told WHY classwork cannot be counted.
+    expect(sets[0].homeworkId).toBeNull();
+    const kinds = sets[0].exercises.map((e) => e.kind);
+    expect(kinds).toContain('CHOICE');
+    expect(kinds).toContain('WRITING');
+  });
+
+  it('an answer sticks and shows up in the teacher’s histogram', () => {
+    setRole('student');
+    const before = picture().find((r) => r.exerciseId === 'ex-1')!;
+    resolveDemoOperation('AnswerExercise', { exerciseId: 'ex-1', response: { choice: 1 } });
+
+    const after = picture().find((r) => r.exerciseId === 'ex-1')!;
+    expect(after.answered).toBe(before.answered + 1);
+    expect(after.correct).toBe(before.correct + 1);
+    expect(after.spread['1']).toBe((before.spread['1'] ?? 0) + 1);
+  });
+
+  it('an open kind gets no machine verdict, exactly as the server answers', () => {
+    setRole('student');
+    const attempt = resolveDemoOperation('AnswerExercise', {
+      exerciseId: 'ex-4',
+      response: { text: 'моё сочинение' },
+    }) as { answerExercise: { isCorrect: boolean | null } };
+    expect(attempt.answerExercise.isCorrect).toBeNull();
+  });
+
+  it('the picture is counts and a spread — no child is named in it', () => {
+    setRole('teacher');
+    for (const row of picture() as unknown as Record<string, unknown>[]) {
+      expect(Object.keys(row).sort()).toEqual(
+        ['__typename', 'answered', 'correct', 'exerciseId', 'groupSize', 'spread'].sort(),
+      );
+    }
+  });
+});

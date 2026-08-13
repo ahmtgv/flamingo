@@ -59,6 +59,21 @@ export type AgeBand =
   | 'JUNIOR'
   | 'TEEN';
 
+export type Attempt = {
+  __typename?: 'Attempt';
+  context: AttemptContext;
+  createdAt: Scalars['DateTime']['output'];
+  exerciseId: Scalars['ID']['output'];
+  id: Scalars['ID']['output'];
+  isCorrect?: Maybe<Scalars['Boolean']['output']>;
+  score: Scalars['Int']['output'];
+};
+
+export type AttemptContext =
+  | 'HOMEWORK'
+  | 'LIVE'
+  | 'PRACTICE';
+
 export type Attendance = {
   __typename?: 'Attendance';
   id: Scalars['ID']['output'];
@@ -363,6 +378,58 @@ export type EnrollmentStatus =
   | 'COMPLETED'
   | 'PENDING';
 
+export type Exercise = {
+  __typename?: 'Exercise';
+  assetId?: Maybe<Scalars['ID']['output']>;
+  cefrLevel?: Maybe<Scalars['String']['output']>;
+  id: Scalars['ID']['output'];
+  kind: ExerciseKind;
+  order: Scalars['Int']['output'];
+  payload: Scalars['JSON']['output'];
+  points: Scalars['Int']['output'];
+  prompt: Scalars['JSON']['output'];
+  skill: SkillArea;
+  skillTags: Array<Scalars['String']['output']>;
+};
+
+export type ExerciseKind =
+  | 'CHOICE'
+  | 'CLOZE'
+  | 'DICTATION'
+  | 'LISTENING'
+  | 'MATCH'
+  | 'PRONUNCIATION'
+  | 'ROLEPLAY'
+  | 'SPEAKING'
+  | 'TRANSFORM'
+  | 'VOCAB_CARD'
+  | 'WORD_ORDER'
+  | 'WRITING';
+
+export type ExerciseLiveRow = {
+  __typename?: 'ExerciseLiveRow';
+  answered: Scalars['Int']['output'];
+  correct: Scalars['Int']['output'];
+  exerciseId: Scalars['ID']['output'];
+  groupSize: Scalars['Int']['output'];
+  spread: Scalars['JSON']['output'];
+};
+
+export type ExerciseMode =
+  | 'HOMEWORK'
+  | 'LIVE'
+  | 'PRACTICE';
+
+export type ExerciseSet = {
+  __typename?: 'ExerciseSet';
+  exercises: Array<Exercise>;
+  homeworkId?: Maybe<Scalars['ID']['output']>;
+  id: Scalars['ID']['output'];
+  lessonId: Scalars['ID']['output'];
+  mode: ExerciseMode;
+  title: Scalars['String']['output'];
+};
+
 export type GradeInput = {
   allowRedo?: InputMaybe<Scalars['Boolean']['input']>;
   comment?: InputMaybe<Scalars['String']['input']>;
@@ -446,6 +513,14 @@ export type Homework = {
   title: Scalars['String']['output'];
   type: HomeworkType;
   viewerSubmission?: Maybe<Submission>;
+};
+
+export type HomeworkHandIn = {
+  __typename?: 'HomeworkHandIn';
+  autoChecked: Scalars['Int']['output'];
+  awaitingTeacher: Scalars['Int']['output'];
+  score?: Maybe<Scalars['Int']['output']>;
+  submissionId: Scalars['ID']['output'];
 };
 
 export type HomeworkInput = {
@@ -658,9 +733,11 @@ export type Mutation = {
   addChild: Guardianship;
   addMaterial: Material;
   addStudentsToGroup: Group;
+  answerExercise: Attempt;
   archiveCourse: Course;
   assignTeacher: GroupTeacher;
   backupUbp: UbpBackup;
+  countLiveAsClasswork: Scalars['ID']['output'];
   createCourse: Course;
   createGroup: Group;
   createHomework: Homework;
@@ -679,6 +756,7 @@ export type Mutation = {
   endSession: LessonSession;
   enroll: Enrollment;
   gradeSubmission: Submission;
+  handInExerciseSet: HomeworkHandIn;
   inviteMember: InstitutionMembership;
   issueCertificate: Certificate;
   joinSession: SessionJoin;
@@ -756,6 +834,16 @@ export type MutationAddStudentsToGroupArgs = {
 };
 
 
+export type MutationAnswerExerciseArgs = {
+  context?: InputMaybe<AttemptContext>;
+  exerciseId: Scalars['ID']['input'];
+  hintsUsed?: InputMaybe<Scalars['Int']['input']>;
+  latencyMs?: InputMaybe<Scalars['Int']['input']>;
+  response: Scalars['JSON']['input'];
+  sessionId?: InputMaybe<Scalars['ID']['input']>;
+};
+
+
 export type MutationArchiveCourseArgs = {
   id: Scalars['ID']['input'];
 };
@@ -770,6 +858,12 @@ export type MutationAssignTeacherArgs = {
 
 export type MutationBackupUbpArgs = {
   input: UbpBackupInput;
+};
+
+
+export type MutationCountLiveAsClassworkArgs = {
+  setId: Scalars['ID']['input'];
+  studentId: Scalars['ID']['input'];
 };
 
 
@@ -859,6 +953,11 @@ export type MutationEnrollArgs = {
 
 export type MutationGradeSubmissionArgs = {
   input: GradeInput;
+};
+
+
+export type MutationHandInExerciseSetArgs = {
+  setId: Scalars['ID']['input'];
 };
 
 
@@ -1286,6 +1385,7 @@ export type Query = {
   chatUnread: Scalars['Int']['output'];
   course?: Maybe<Course>;
   courseBoards: Array<BoardSnapshot>;
+  exerciseLivePicture: Array<ExerciseLiveRow>;
   group?: Maybe<Group>;
   groupAnalytics: GroupAnalytics;
   groups: Array<Group>;
@@ -1296,13 +1396,16 @@ export type Query = {
   leaderboard: Array<LeaderboardEntry>;
   learningProfiles: Array<LearningProfile>;
   lesson?: Maybe<Lesson>;
+  lessonExerciseSets: Array<ExerciseSet>;
   lessonHomework: Array<Homework>;
   me?: Maybe<User>;
   myAchievements: Array<UserAchievement>;
+  myAttempts: Array<Attempt>;
   myChannels: Array<ChatChannel>;
   myCourses: Array<Course>;
   mySavedItems: Array<SubjectMaterial>;
   mySchedule: Array<LessonSession>;
+  mySkillMastery: Array<SkillMastery>;
   mySubmissions: Array<Submission>;
   notificationPreferences: Array<NotificationPreference>;
   notifications: NotificationConnection;
@@ -1311,6 +1414,7 @@ export type Query = {
   recommendations: Array<Recommendation>;
   session?: Maybe<LessonSession>;
   sessionAttention: AttentionSummary;
+  setProgress: SetProgress;
   startPage: StartPage;
   studentDashboard: StudentDashboard;
   subjectCabinet: SubjectCabinet;
@@ -1370,6 +1474,11 @@ export type QueryCourseBoardsArgs = {
 };
 
 
+export type QueryExerciseLivePictureArgs = {
+  setId: Scalars['ID']['input'];
+};
+
+
 export type QueryGroupArgs = {
   id: Scalars['ID']['input'];
 };
@@ -1416,8 +1525,18 @@ export type QueryLessonArgs = {
 };
 
 
+export type QueryLessonExerciseSetsArgs = {
+  lessonId: Scalars['ID']['input'];
+};
+
+
 export type QueryLessonHomeworkArgs = {
   lessonId: Scalars['ID']['input'];
+};
+
+
+export type QueryMyAttemptsArgs = {
+  setId: Scalars['ID']['input'];
 };
 
 
@@ -1429,6 +1548,11 @@ export type QueryMySavedItemsArgs = {
 export type QueryMyScheduleArgs = {
   from: Scalars['DateTime']['input'];
   to: Scalars['DateTime']['input'];
+};
+
+
+export type QueryMySkillMasteryArgs = {
+  masteredOnly?: InputMaybe<Scalars['Boolean']['input']>;
 };
 
 
@@ -1456,6 +1580,11 @@ export type QuerySessionArgs = {
 
 export type QuerySessionAttentionArgs = {
   sessionId: Scalars['ID']['input'];
+};
+
+
+export type QuerySetProgressArgs = {
+  setId: Scalars['ID']['input'];
 };
 
 
@@ -1591,6 +1720,29 @@ export type SessionStatus =
   | 'ENDED'
   | 'LIVE'
   | 'SCHEDULED';
+
+export type SetProgress = {
+  __typename?: 'SetProgress';
+  answered: Scalars['Int']['output'];
+  correct: Scalars['Int']['output'];
+  total: Scalars['Int']['output'];
+};
+
+export type SkillArea =
+  | 'GRAMMAR'
+  | 'LISTENING'
+  | 'PRONUNCIATION'
+  | 'READING'
+  | 'SPEAKING'
+  | 'VOCAB'
+  | 'WRITING';
+
+export type SkillMastery = {
+  __typename?: 'SkillMastery';
+  opportunities: Scalars['Int']['output'];
+  pKnown: Scalars['Float']['output'];
+  skillTag: Scalars['String']['output'];
+};
 
 export type StartDay = {
   __typename?: 'StartDay';
@@ -2434,6 +2586,50 @@ export type DeleteMaterialMutationVariables = Exact<{
 
 
 export type DeleteMaterialMutation = { __typename?: 'Mutation', deleteMaterial: boolean };
+
+export type LessonExerciseSetsQueryVariables = Exact<{
+  lessonId: Scalars['ID']['input'];
+}>;
+
+
+export type LessonExerciseSetsQuery = { __typename?: 'Query', lessonExerciseSets: Array<{ __typename?: 'ExerciseSet', id: string, lessonId: string, title: string, mode: ExerciseMode, homeworkId?: string | null, exercises: Array<{ __typename?: 'Exercise', id: string, kind: ExerciseKind, skill: SkillArea, cefrLevel?: string | null, skillTags: Array<string>, prompt: Record<string, unknown>, payload: Record<string, unknown>, points: number, order: number, assetId?: string | null }> }> };
+
+export type MyExerciseAttemptsQueryVariables = Exact<{
+  setId: Scalars['ID']['input'];
+}>;
+
+
+export type MyExerciseAttemptsQuery = { __typename?: 'Query', myAttempts: Array<{ __typename?: 'Attempt', id: string, exerciseId: string, context: AttemptContext, isCorrect?: boolean | null, score: number, createdAt: string }> };
+
+export type SetProgressQueryVariables = Exact<{
+  setId: Scalars['ID']['input'];
+}>;
+
+
+export type SetProgressQuery = { __typename?: 'Query', setProgress: { __typename?: 'SetProgress', total: number, answered: number, correct: number } };
+
+export type ExerciseLivePictureQueryVariables = Exact<{
+  setId: Scalars['ID']['input'];
+}>;
+
+
+export type ExerciseLivePictureQuery = { __typename?: 'Query', exerciseLivePicture: Array<{ __typename?: 'ExerciseLiveRow', exerciseId: string, answered: number, groupSize: number, correct: number, spread: Record<string, unknown> }> };
+
+export type AnswerExerciseMutationVariables = Exact<{
+  exerciseId: Scalars['ID']['input'];
+  response: Scalars['JSON']['input'];
+  context?: InputMaybe<AttemptContext>;
+}>;
+
+
+export type AnswerExerciseMutation = { __typename?: 'Mutation', answerExercise: { __typename?: 'Attempt', id: string, exerciseId: string, isCorrect?: boolean | null, score: number, createdAt: string } };
+
+export type HandInExerciseSetMutationVariables = Exact<{
+  setId: Scalars['ID']['input'];
+}>;
+
+
+export type HandInExerciseSetMutation = { __typename?: 'Mutation', handInExerciseSet: { __typename?: 'HomeworkHandIn', submissionId: string, score?: number | null, autoChecked: number, awaitingTeacher: number } };
 
 export type LessonHomeworkQueryVariables = Exact<{
   lessonId: Scalars['ID']['input'];
@@ -5280,6 +5476,280 @@ export function useDeleteMaterialMutation(baseOptions?: Apollo.MutationHookOptio
 export type DeleteMaterialMutationHookResult = ReturnType<typeof useDeleteMaterialMutation>;
 export type DeleteMaterialMutationResult = Apollo.MutationResult<DeleteMaterialMutation>;
 export type DeleteMaterialMutationOptions = Apollo.BaseMutationOptions<DeleteMaterialMutation, DeleteMaterialMutationVariables>;
+export const LessonExerciseSetsDocument = gql`
+    query LessonExerciseSets($lessonId: ID!) {
+  lessonExerciseSets(lessonId: $lessonId) {
+    id
+    lessonId
+    title
+    mode
+    homeworkId
+    exercises {
+      id
+      kind
+      skill
+      cefrLevel
+      skillTags
+      prompt
+      payload
+      points
+      order
+      assetId
+    }
+  }
+}
+    `;
+
+/**
+ * __useLessonExerciseSetsQuery__
+ *
+ * To run a query within a React component, call `useLessonExerciseSetsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useLessonExerciseSetsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useLessonExerciseSetsQuery({
+ *   variables: {
+ *      lessonId: // value for 'lessonId'
+ *   },
+ * });
+ */
+export function useLessonExerciseSetsQuery(baseOptions: Apollo.QueryHookOptions<LessonExerciseSetsQuery, LessonExerciseSetsQueryVariables> & ({ variables: LessonExerciseSetsQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<LessonExerciseSetsQuery, LessonExerciseSetsQueryVariables>(LessonExerciseSetsDocument, options);
+      }
+export function useLessonExerciseSetsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<LessonExerciseSetsQuery, LessonExerciseSetsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<LessonExerciseSetsQuery, LessonExerciseSetsQueryVariables>(LessonExerciseSetsDocument, options);
+        }
+// @ts-ignore
+export function useLessonExerciseSetsSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<LessonExerciseSetsQuery, LessonExerciseSetsQueryVariables>): Apollo.UseSuspenseQueryResult<LessonExerciseSetsQuery, LessonExerciseSetsQueryVariables>;
+export function useLessonExerciseSetsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<LessonExerciseSetsQuery, LessonExerciseSetsQueryVariables>): Apollo.UseSuspenseQueryResult<LessonExerciseSetsQuery | undefined, LessonExerciseSetsQueryVariables>;
+export function useLessonExerciseSetsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<LessonExerciseSetsQuery, LessonExerciseSetsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<LessonExerciseSetsQuery, LessonExerciseSetsQueryVariables>(LessonExerciseSetsDocument, options);
+        }
+export type LessonExerciseSetsQueryHookResult = ReturnType<typeof useLessonExerciseSetsQuery>;
+export type LessonExerciseSetsLazyQueryHookResult = ReturnType<typeof useLessonExerciseSetsLazyQuery>;
+export type LessonExerciseSetsSuspenseQueryHookResult = ReturnType<typeof useLessonExerciseSetsSuspenseQuery>;
+export type LessonExerciseSetsQueryResult = Apollo.QueryResult<LessonExerciseSetsQuery, LessonExerciseSetsQueryVariables>;
+export const MyExerciseAttemptsDocument = gql`
+    query MyExerciseAttempts($setId: ID!) {
+  myAttempts(setId: $setId) {
+    id
+    exerciseId
+    context
+    isCorrect
+    score
+    createdAt
+  }
+}
+    `;
+
+/**
+ * __useMyExerciseAttemptsQuery__
+ *
+ * To run a query within a React component, call `useMyExerciseAttemptsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useMyExerciseAttemptsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useMyExerciseAttemptsQuery({
+ *   variables: {
+ *      setId: // value for 'setId'
+ *   },
+ * });
+ */
+export function useMyExerciseAttemptsQuery(baseOptions: Apollo.QueryHookOptions<MyExerciseAttemptsQuery, MyExerciseAttemptsQueryVariables> & ({ variables: MyExerciseAttemptsQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<MyExerciseAttemptsQuery, MyExerciseAttemptsQueryVariables>(MyExerciseAttemptsDocument, options);
+      }
+export function useMyExerciseAttemptsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<MyExerciseAttemptsQuery, MyExerciseAttemptsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<MyExerciseAttemptsQuery, MyExerciseAttemptsQueryVariables>(MyExerciseAttemptsDocument, options);
+        }
+// @ts-ignore
+export function useMyExerciseAttemptsSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<MyExerciseAttemptsQuery, MyExerciseAttemptsQueryVariables>): Apollo.UseSuspenseQueryResult<MyExerciseAttemptsQuery, MyExerciseAttemptsQueryVariables>;
+export function useMyExerciseAttemptsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<MyExerciseAttemptsQuery, MyExerciseAttemptsQueryVariables>): Apollo.UseSuspenseQueryResult<MyExerciseAttemptsQuery | undefined, MyExerciseAttemptsQueryVariables>;
+export function useMyExerciseAttemptsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<MyExerciseAttemptsQuery, MyExerciseAttemptsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<MyExerciseAttemptsQuery, MyExerciseAttemptsQueryVariables>(MyExerciseAttemptsDocument, options);
+        }
+export type MyExerciseAttemptsQueryHookResult = ReturnType<typeof useMyExerciseAttemptsQuery>;
+export type MyExerciseAttemptsLazyQueryHookResult = ReturnType<typeof useMyExerciseAttemptsLazyQuery>;
+export type MyExerciseAttemptsSuspenseQueryHookResult = ReturnType<typeof useMyExerciseAttemptsSuspenseQuery>;
+export type MyExerciseAttemptsQueryResult = Apollo.QueryResult<MyExerciseAttemptsQuery, MyExerciseAttemptsQueryVariables>;
+export const SetProgressDocument = gql`
+    query SetProgress($setId: ID!) {
+  setProgress(setId: $setId) {
+    total
+    answered
+    correct
+  }
+}
+    `;
+
+/**
+ * __useSetProgressQuery__
+ *
+ * To run a query within a React component, call `useSetProgressQuery` and pass it any options that fit your needs.
+ * When your component renders, `useSetProgressQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useSetProgressQuery({
+ *   variables: {
+ *      setId: // value for 'setId'
+ *   },
+ * });
+ */
+export function useSetProgressQuery(baseOptions: Apollo.QueryHookOptions<SetProgressQuery, SetProgressQueryVariables> & ({ variables: SetProgressQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<SetProgressQuery, SetProgressQueryVariables>(SetProgressDocument, options);
+      }
+export function useSetProgressLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<SetProgressQuery, SetProgressQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<SetProgressQuery, SetProgressQueryVariables>(SetProgressDocument, options);
+        }
+// @ts-ignore
+export function useSetProgressSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<SetProgressQuery, SetProgressQueryVariables>): Apollo.UseSuspenseQueryResult<SetProgressQuery, SetProgressQueryVariables>;
+export function useSetProgressSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<SetProgressQuery, SetProgressQueryVariables>): Apollo.UseSuspenseQueryResult<SetProgressQuery | undefined, SetProgressQueryVariables>;
+export function useSetProgressSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<SetProgressQuery, SetProgressQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<SetProgressQuery, SetProgressQueryVariables>(SetProgressDocument, options);
+        }
+export type SetProgressQueryHookResult = ReturnType<typeof useSetProgressQuery>;
+export type SetProgressLazyQueryHookResult = ReturnType<typeof useSetProgressLazyQuery>;
+export type SetProgressSuspenseQueryHookResult = ReturnType<typeof useSetProgressSuspenseQuery>;
+export type SetProgressQueryResult = Apollo.QueryResult<SetProgressQuery, SetProgressQueryVariables>;
+export const ExerciseLivePictureDocument = gql`
+    query ExerciseLivePicture($setId: ID!) {
+  exerciseLivePicture(setId: $setId) {
+    exerciseId
+    answered
+    groupSize
+    correct
+    spread
+  }
+}
+    `;
+
+/**
+ * __useExerciseLivePictureQuery__
+ *
+ * To run a query within a React component, call `useExerciseLivePictureQuery` and pass it any options that fit your needs.
+ * When your component renders, `useExerciseLivePictureQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useExerciseLivePictureQuery({
+ *   variables: {
+ *      setId: // value for 'setId'
+ *   },
+ * });
+ */
+export function useExerciseLivePictureQuery(baseOptions: Apollo.QueryHookOptions<ExerciseLivePictureQuery, ExerciseLivePictureQueryVariables> & ({ variables: ExerciseLivePictureQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<ExerciseLivePictureQuery, ExerciseLivePictureQueryVariables>(ExerciseLivePictureDocument, options);
+      }
+export function useExerciseLivePictureLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<ExerciseLivePictureQuery, ExerciseLivePictureQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<ExerciseLivePictureQuery, ExerciseLivePictureQueryVariables>(ExerciseLivePictureDocument, options);
+        }
+// @ts-ignore
+export function useExerciseLivePictureSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<ExerciseLivePictureQuery, ExerciseLivePictureQueryVariables>): Apollo.UseSuspenseQueryResult<ExerciseLivePictureQuery, ExerciseLivePictureQueryVariables>;
+export function useExerciseLivePictureSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ExerciseLivePictureQuery, ExerciseLivePictureQueryVariables>): Apollo.UseSuspenseQueryResult<ExerciseLivePictureQuery | undefined, ExerciseLivePictureQueryVariables>;
+export function useExerciseLivePictureSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ExerciseLivePictureQuery, ExerciseLivePictureQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<ExerciseLivePictureQuery, ExerciseLivePictureQueryVariables>(ExerciseLivePictureDocument, options);
+        }
+export type ExerciseLivePictureQueryHookResult = ReturnType<typeof useExerciseLivePictureQuery>;
+export type ExerciseLivePictureLazyQueryHookResult = ReturnType<typeof useExerciseLivePictureLazyQuery>;
+export type ExerciseLivePictureSuspenseQueryHookResult = ReturnType<typeof useExerciseLivePictureSuspenseQuery>;
+export type ExerciseLivePictureQueryResult = Apollo.QueryResult<ExerciseLivePictureQuery, ExerciseLivePictureQueryVariables>;
+export const AnswerExerciseDocument = gql`
+    mutation AnswerExercise($exerciseId: ID!, $response: JSON!, $context: AttemptContext) {
+  answerExercise(exerciseId: $exerciseId, response: $response, context: $context) {
+    id
+    exerciseId
+    isCorrect
+    score
+    createdAt
+  }
+}
+    `;
+export type AnswerExerciseMutationFn = Apollo.MutationFunction<AnswerExerciseMutation, AnswerExerciseMutationVariables>;
+
+/**
+ * __useAnswerExerciseMutation__
+ *
+ * To run a mutation, you first call `useAnswerExerciseMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useAnswerExerciseMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [answerExerciseMutation, { data, loading, error }] = useAnswerExerciseMutation({
+ *   variables: {
+ *      exerciseId: // value for 'exerciseId'
+ *      response: // value for 'response'
+ *      context: // value for 'context'
+ *   },
+ * });
+ */
+export function useAnswerExerciseMutation(baseOptions?: Apollo.MutationHookOptions<AnswerExerciseMutation, AnswerExerciseMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<AnswerExerciseMutation, AnswerExerciseMutationVariables>(AnswerExerciseDocument, options);
+      }
+export type AnswerExerciseMutationHookResult = ReturnType<typeof useAnswerExerciseMutation>;
+export type AnswerExerciseMutationResult = Apollo.MutationResult<AnswerExerciseMutation>;
+export type AnswerExerciseMutationOptions = Apollo.BaseMutationOptions<AnswerExerciseMutation, AnswerExerciseMutationVariables>;
+export const HandInExerciseSetDocument = gql`
+    mutation HandInExerciseSet($setId: ID!) {
+  handInExerciseSet(setId: $setId) {
+    submissionId
+    score
+    autoChecked
+    awaitingTeacher
+  }
+}
+    `;
+export type HandInExerciseSetMutationFn = Apollo.MutationFunction<HandInExerciseSetMutation, HandInExerciseSetMutationVariables>;
+
+/**
+ * __useHandInExerciseSetMutation__
+ *
+ * To run a mutation, you first call `useHandInExerciseSetMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useHandInExerciseSetMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [handInExerciseSetMutation, { data, loading, error }] = useHandInExerciseSetMutation({
+ *   variables: {
+ *      setId: // value for 'setId'
+ *   },
+ * });
+ */
+export function useHandInExerciseSetMutation(baseOptions?: Apollo.MutationHookOptions<HandInExerciseSetMutation, HandInExerciseSetMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<HandInExerciseSetMutation, HandInExerciseSetMutationVariables>(HandInExerciseSetDocument, options);
+      }
+export type HandInExerciseSetMutationHookResult = ReturnType<typeof useHandInExerciseSetMutation>;
+export type HandInExerciseSetMutationResult = Apollo.MutationResult<HandInExerciseSetMutation>;
+export type HandInExerciseSetMutationOptions = Apollo.BaseMutationOptions<HandInExerciseSetMutation, HandInExerciseSetMutationVariables>;
 export const LessonHomeworkDocument = gql`
     query LessonHomework($lessonId: ID!) {
   lessonHomework(lessonId: $lessonId) {

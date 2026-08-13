@@ -1,0 +1,197 @@
+/* The «тест» scene of atlas sheet 02. A learner answers; a teacher watches an aggregate. */
+
+.wrap {
+  display: grid;
+  gap: var(--space-4);
+  align-content: start;
+}
+.head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+.title {
+  font-size: 0.9375rem;
+  font-weight: var(--weight-medium);
+}
+.sub,
+.hint,
+.progress {
+  font-family: var(--font-mono);
+  font-size: var(--text-overline);
+  color: var(--color-text-tertiary);
+  line-height: var(--leading-snug);
+}
+.setTabs {
+  display: flex;
+  gap: 2px;
+}
+.setTab {
+  min-height: var(--tap-min);
+  padding: 0 var(--space-3);
+  border: 0;
+  border-radius: var(--radius-control);
+  background: none;
+  color: var(--color-text-secondary);
+  font-family: var(--font-mono);
+  font-size: var(--text-overline);
+  cursor: pointer;
+}
+.setTab[aria-selected='true'] {
+  background: var(--color-surface-subtle);
+  color: var(--color-text);
+}
+.setTab:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.card {
+  position: relative;
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+}
+.qHead {
+  font-family: var(--font-mono);
+  font-size: var(--text-overline);
+  color: var(--color-text-tertiary);
+  letter-spacing: var(--tracking-wide);
+}
+.qText {
+  font-size: var(--text-small);
+  line-height: var(--leading-body);
+}
+.qFoot {
+  font-family: var(--font-mono);
+  font-size: var(--text-overline);
+  color: var(--color-text-tertiary);
+  line-height: var(--leading-snug);
+}
+
+.options {
+  display: grid;
+  gap: var(--space-2);
+}
+.option {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: var(--tap-min);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  font-size: var(--text-small);
+  text-align: left;
+  cursor: pointer;
+}
+.option:hover:not(:disabled) {
+  border-color: var(--color-border-strong);
+}
+.option:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+.optionKey {
+  font-family: var(--font-mono);
+  font-size: var(--text-overline);
+  color: var(--color-text-tertiary);
+  min-width: 14px;
+}
+
+.answerRow {
+  display: flex;
+  gap: var(--space-2);
+}
+.input {
+  box-sizing: border-box;
+  flex: 1;
+  min-width: 0;
+  min-height: var(--tap-min);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  font-size: var(--text-small);
+}
+.input:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+/* Quiet by design: a wrong answer in practice is information, not a scolding. */
+.verdict {
+  position: absolute;
+  top: var(--space-3);
+  right: var(--space-4);
+  font-family: var(--font-mono);
+  font-size: var(--text-small);
+  color: var(--color-text-tertiary);
+}
+.verdict[data-correct] {
+  color: var(--color-success-text);
+}
+
+/* --- teacher histogram ------------------------------------------------------------------- */
+.hist {
+  display: grid;
+  gap: var(--space-2);
+}
+.histRow {
+  display: grid;
+  grid-template-columns: 14px 1fr 120px 28px;
+  align-items: center;
+  gap: var(--space-3);
+}
+.histLabel {
+  font-size: var(--text-caption);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.histBar {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--color-surface-subtle);
+  overflow: hidden;
+}
+.histBar i {
+  display: block;
+  height: 100%;
+  background: var(--color-accent);
+  border-radius: 3px;
+}
+.histCount {
+  font-family: var(--font-mono);
+  font-size: var(--text-overline);
+  color: var(--color-text-tertiary);
+  text-align: end;
+  font-variant-numeric: tabular-nums;
+}
+
+.note {
+  font-size: var(--text-caption);
+  color: var(--color-warning-text);
+  background: var(--color-warning-bg);
+  border-radius: var(--radius-sm);
+  padding: var(--space-3);
+  line-height: var(--leading-snug);
+}
+.failed {
+  font-size: var(--text-caption);
+  color: var(--color-error-text);
+}
+.done {
+  font-size: var(--text-caption);
+  color: var(--color-success-text);
+}

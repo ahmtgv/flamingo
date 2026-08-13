@@ -27,6 +27,7 @@ import { useLiveKitRoom } from '../livekit/useLiveKitRoom';
 import frame from './roomframe.module.css';
 import styles from './liveroom.module.css';
 import { BoardCanvas } from '@/features/board';
+import { TestScene } from '@/features/exercises';
 
 import { ProjectorCast } from './ProjectorCast';
 import { type Pane, RoomFrame, type Scene } from './RoomFrame';
@@ -85,16 +86,27 @@ function RoomShell({
       strip={children}
       panel={panel ?? <RoomPane pane={pane} />}
     >
-      <SceneBody scene={scene} lessonId={lessonId} />
+      <SceneBody scene={scene} lessonId={lessonId} isTeacher={isTeacher} />
     </RoomFrame>
   );
 }
 
 /** The scene the whole room is looking at. The board is real (R3.2); the other windows land
  *  with the phase that owns them. */
-function SceneBody({ scene, lessonId }: { scene: Scene; lessonId?: string | null }) {
+function SceneBody({
+  scene,
+  lessonId,
+  isTeacher,
+}: {
+  scene: Scene;
+  lessonId?: string | null;
+  isTeacher?: boolean;
+}) {
   const { t } = useTranslation('room');
   if (scene === 'board' && lessonId) return <BoardCanvas lessonId={lessonId} />;
+  if (scene === 'test' && lessonId) {
+    return <TestScene lessonId={lessonId} isTeacher={Boolean(isTeacher)} />;
+  }
   return <p className={frame.sceneSoon}>{t(`scene.${scene}Soon`)}</p>;
 }
 

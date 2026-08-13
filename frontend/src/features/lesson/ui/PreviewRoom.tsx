@@ -21,6 +21,7 @@ import { Avatar, Button } from '@/shared/ui';
 
 import { initialsOf } from '../../cabinet/ui/initials';
 import { BoardCanvas } from '@/features/board';
+import { TestScene } from '@/features/exercises';
 
 import frame from './roomframe.module.css';
 import styles from './liveroom.module.css';
@@ -58,6 +59,8 @@ function Shell({ subtitle, children }: { subtitle: string; children: React.React
     >
       {scene === 'board' ? (
         <BoardCanvas lessonId="les-1-12" />
+      ) : scene === 'test' ? (
+        <TestScene lessonId="les-1-12" isTeacher={isTeacher} />
       ) : (
         <p className={frame.sceneSoon}>{t(`room:scene.${scene}Soon`)}</p>
       )}
