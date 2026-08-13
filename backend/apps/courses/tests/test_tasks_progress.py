@@ -368,3 +368,62 @@ def test_an_institutional_course_keeps_its_group_scope_in_both_tabs():
         tasks_progress.subject_tasks(outsider, course.id)
     assert tasks_progress.subject_progress(teacher, course.id).topics[0].pct is None
     assert lessons  # the programme exists; there is simply nothing graded yet
+
+
+# --- grading scale (owner decision 2026-08-13) ------------------------------------------------
+def test_a_school_course_shows_five_point_and_a_standalone_one_percent():
+    """The scale is a property of the COURSE, decided by what kind of course it is."""
+    from common.enums import GradingScale
+
+    institution = Institution.objects.create(name="Гимназия №1")
+    teacher = make_teacher()
+    school_course, _, _ = build_course(teacher, institution=institution)
+    solo_course, _, _ = build_course(make_teacher("solo@example.com"))
+
+    assert school_course.scale is GradingScale.FIVE_POINT
+    assert solo_course.scale is GradingScale.PERCENT
+
+
+def test_a_course_may_declare_its_scale_explicitly():
+    from common.enums import GradingScale
+
+    teacher = make_teacher()
+    course, _, _ = build_course(teacher)
+    course.grading_scale = GradingScale.FIVE_POINT.value
+    course.save(update_fields=["grading_scale"])
+    course.refresh_from_db()
+
+    assert course.scale is GradingScale.FIVE_POINT
+
+
+def test_mastery_is_computed_in_internal_fractions_not_in_the_shown_scale():
+    """The owner's requirement: a five-point scale must not coarsen the analytics.
+
+    Storage is one number either way — what changes is how it is read. A «4 out of 5» is
+    80 % of mastery, and the topic bar must say 80, not 4.
+    """
+    from common.enums import GradingScale
+
+    institution = Institution.objects.create(name="Гимназия №1")
+    teacher = make_teacher()
+    course, _, lessons = build_course(teacher, institution=institution)
+    assert course.scale is GradingScale.FIVE_POINT
+    hw = publish_homework(teacher, lessons[0])
+    pupil = make_pupil()
+    courses.enroll(pupil, course.id)
+    submit_and_grade(teacher, pupil, hw, 4)  # «четвёрка»
+
+    progress = tasks_progress.subject_progress(pupil, course.id)
+    assert progress.overall_pct == 80, "4/5 is 80 % of mastery, not 4 %"
+
+
+def test_the_same_stored_number_reads_differently_on_the_two_scales():
+    """One storage, two readings — that is the whole of the decision."""
+    from apps.courses.tasks_progress import score_fraction
+    from common.enums import GradingScale
+
+    assert score_fraction(4, GradingScale.FIVE_POINT) == 0.8
+    assert score_fraction(4, GradingScale.PERCENT) == 0.04
+    # And neither can leave the 0..1 band, whatever lands in the column.
+    assert score_fraction(9, GradingScale.FIVE_POINT) == 1.0
+    assert score_fraction(-3, GradingScale.PERCENT) == 0.0

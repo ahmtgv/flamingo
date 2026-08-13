@@ -48,6 +48,10 @@ enum CourseStatus { DRAFT PUBLISHED ARCHIVED }
 enum LessonStatus { DRAFT PUBLISHED }
 enum SessionStatus { SCHEDULED LIVE ENDED CANCELED }
 enum MaterialType { FILE LINK TEXT }
+# How a course's marks are entered and shown (owner decision 2026-08-13). Display only:
+# Submission.score stays one number and topic mastery is computed in internal fractions, so a
+# five-point course is not analysed more coarsely than a percent one.
+enum GradingScale { FIVE_POINT PERCENT }
 enum EnrollmentStatus { ACTIVE COMPLETED PENDING }
 enum HomeworkType { FILE TEXT QUIZ }
 enum SubmissionStatus { SUBMITTED LATE GRADED }
@@ -835,6 +839,7 @@ type SubjectCabinet {
   lessonCount: Int!
   studentCount: Int
   progressPct: Int!
+  gradingScale: GradingScale!
   sections: [SubjectSection!]!
   materials: [SubjectMaterial!]!
   savedMaterials: [SubjectMaterial!]!

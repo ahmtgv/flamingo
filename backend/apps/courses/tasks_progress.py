@@ -26,14 +26,17 @@ import strawberry
 from django.db.models import Q
 from django.utils import timezone
 
-from common.enums import LearningProfileKind, SessionStatus, SubmissionStatus
+from common.enums import GradingScale, LearningProfileKind, SessionStatus, SubmissionStatus
 
 from .models import Course, Enrollment
 from .subject import LessonProgress, _course_or_deny, _sessions_by_lesson, _viewer_kind
 
-# Scores are stored as a 0–100 mark (`Submission.score`), which is what the grading screen
-# writes today. Mastery is the mean of those marks, so both live on the same scale.
+# `Submission.score` is one number whatever the course SHOWS (owner decision 2026-08-13):
+# a five-point course stores 1–5, a percent course stores 0–100. Analytics must not care, so
+# every score is normalised to an internal fraction 0..1 before anything is averaged — a
+# five-point scale would otherwise quantise mastery into 20-point steps.
 SCORE_MAX = 100
+FIVE_POINT_MAX = 5
 # Below this a topic counts as "не даётся" for the teacher's count. One named constant, not a
 # threshold scattered through the code — and it is a COUNT of pupils, never a list of them.
 WEAK_BELOW_PCT = 60
@@ -174,11 +177,18 @@ def _latest_by_homework(submissions) -> dict[str, object]:
     return {homework_id: s for (_student, homework_id), s in _latest_attempts(submissions).items()}
 
 
-def _mean_pct(scores: list[int]) -> int | None:
+def score_fraction(score: int, scale: GradingScale) -> float:
+    """One mark → an internal fraction 0..1, whatever scale the course is shown in."""
+    top = FIVE_POINT_MAX if scale is GradingScale.FIVE_POINT else SCORE_MAX
+    return max(0.0, min(1.0, score / top))
+
+
+def _mean_pct(scores: list[int], scale: GradingScale = GradingScale.PERCENT) -> int | None:
+    """Mastery as a percentage, averaged over FRACTIONS rather than raw marks."""
     if not scores:
         return None
-    clamped = [max(0, min(SCORE_MAX, s)) for s in scores]
-    return round(100 * sum(clamped) / (SCORE_MAX * len(clamped)))
+    fractions = [score_fraction(s, scale) for s in scores]
+    return round(100 * sum(fractions) / len(fractions))
 
 
 def _graded_scores_by_lesson(submissions) -> dict[str, list[int]]:
@@ -314,6 +324,8 @@ def subject_progress(user, course_id) -> SubjectProgress:
 
     course = _course_or_deny(user, course_id)
     is_teacher = _viewer_kind(user, course) is LearningProfileKind.TEACHER
+    # Marks are normalised through the COURSE's scale, not the viewer's preference.
+    scale = course.scale
     ordinals = _lesson_ordinals(course)
     sessions = _sessions_by_lesson(course)
     live_lessons = {
@@ -345,7 +357,7 @@ def subject_progress(user, course_id) -> SubjectProgress:
         for student_id, items in per_student.items():
             for lesson_id, scores in _graded_scores_by_lesson(items).items():
                 learners_by_lesson.setdefault(lesson_id, set()).add(student_id)
-                pct = _mean_pct(scores)
+                pct = _mean_pct(scores, scale)
                 if pct is not None and pct < WEAK_BELOW_PCT:
                     weak_by_lesson.setdefault(lesson_id, set()).add(student_id)
     else:
@@ -381,7 +393,7 @@ def subject_progress(user, course_id) -> SubjectProgress:
         else:
             previous = [s for lid in lesson_ids for s in previous_by_lesson.get(lid, [])]
             all_previous.extend(previous)
-            previous_pct = _mean_pct(previous)
+            previous_pct = _mean_pct(previous, scale)
             weak = learners = set()
 
         topics.append(
@@ -391,7 +403,7 @@ def subject_progress(user, course_id) -> SubjectProgress:
                 lesson_from=str(ordinals[lesson_ids[0]]) if lesson_ids[0] in ordinals else None,
                 lesson_to=str(ordinals[lesson_ids[-1]]) if lesson_ids[-1] in ordinals else None,
                 is_current=is_current,
-                pct=_mean_pct(scores),
+                pct=_mean_pct(scores, scale),
                 previous_pct=previous_pct,
                 weak_count=len(weak) if is_teacher else None,
                 learner_count=len(learners) if is_teacher else None,
@@ -401,8 +413,8 @@ def subject_progress(user, course_id) -> SubjectProgress:
     return SubjectProgress(
         profile_kind=_viewer_kind(user, course),
         topics=topics,
-        overall_pct=_mean_pct(all_scores),
-        previous_overall_pct=None if is_teacher else _mean_pct(all_previous),
+        overall_pct=_mean_pct(all_scores, scale),
+        previous_overall_pct=None if is_teacher else _mean_pct(all_previous, scale),
     )
 
 

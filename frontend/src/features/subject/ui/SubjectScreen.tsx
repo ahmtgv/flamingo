@@ -261,6 +261,7 @@ export function SubjectScreen() {
                     courseId={courseId}
                     isTeacher={isTeacher}
                     teacherName={cab.teacherName ?? null}
+                    scale={cab.gradingScale}
                   />
                 ) : (
                   <ProgressPanel courseId={courseId} isTeacher={isTeacher} />
@@ -334,6 +335,9 @@ function Lessons({
   onOpen: (lesson: Lesson) => void;
 }) {
   const { t } = useTranslation('subject');
+  // A mark reads in the course's own scale (owner decision 2026-08-13); the number stored
+  // is the same either way.
+  const scale = cab.gradingScale;
   if (cab.sections.length === 0) return <p className={styles.empty}>{t('lessons.empty')}</p>;
 
   return (
@@ -421,7 +425,13 @@ function Lessons({
                       })}
                     </span>
                   ) : (
-                    lesson.grade != null && <span className={styles.lesGrade}>{lesson.grade}</span>
+                    lesson.grade != null && (
+                      <span className={styles.lesGrade}>
+                        {t(scale === 'PERCENT' ? 'lessons.gradePercent' : 'lessons.gradeFive', {
+                          value: lesson.grade,
+                        })}
+                      </span>
+                    )
                   )}
                   {isCadet && lesson.progress === 'CURRENT' && (
                     <span className={styles.lesWhen}>{t('lessons.resume')}</span>

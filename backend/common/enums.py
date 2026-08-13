@@ -264,6 +264,21 @@ class ReportStatus(Enum):
     DISMISSED = "dismissed"
 
 
+# --- Grading (R4.1, owner decision 2026-08-13) --------------------------------
+@strawberry.enum
+class GradingScale(Enum):
+    """How a course's marks are ENTERED and SHOWN. Storage is one number either way.
+
+    A school subject keeps the five-point mark a parent recognises; a self-paced course reads
+    in percent, which is honest about what «92%» on a test actually means. The scale never
+    touches analytics — topic mastery is computed in internal fractions so a coarse scale
+    cannot blur the picture.
+    """
+
+    FIVE_POINT = "five_point"
+    PERCENT = "percent"
+
+
 # --- Board (R3.2) -------------------------------------------------------------
 @strawberry.enum
 class BoardElementKind(Enum):

@@ -370,6 +370,10 @@ export type GradeInput = {
   submissionId: Scalars['ID']['input'];
 };
 
+export type GradingScale =
+  | 'FIVE_POINT'
+  | 'PERCENT';
+
 export type Group = {
   __typename?: 'Group';
   id: Scalars['ID']['output'];
@@ -1680,6 +1684,7 @@ export type SubjectAttention = {
 export type SubjectCabinet = {
   __typename?: 'SubjectCabinet';
   courseId: Scalars['ID']['output'];
+  gradingScale: GradingScale;
   groupName?: Maybe<Scalars['String']['output']>;
   institutionName?: Maybe<Scalars['String']['output']>;
   lessonCount: Scalars['Int']['output'];
@@ -2596,7 +2601,7 @@ export type SubjectCabinetQueryVariables = Exact<{
 }>;
 
 
-export type SubjectCabinetQuery = { __typename?: 'Query', subjectCabinet: { __typename?: 'SubjectCabinet', courseId: string, title: string, profileKind: LearningProfileKind, institutionName?: string | null, groupName?: string | null, teacherName?: string | null, teacherId?: string | null, lessonCount: number, studentCount?: number | null, progressPct: number, sections: Array<{ __typename?: 'SubjectSection', id: string, title: string, doneLessons: number, totalLessons: number, lessons: Array<{ __typename?: 'SubjectLesson', id: string, title: string, subtitle?: string | null, progress: LessonProgress, kind: LessonKind, deviceKey?: string | null, orderLabel: string, materialCount: number, hasHomework: boolean, sessionId?: string | null, sessionAt?: string | null, isLive: boolean, grade?: number | null, completedBy?: number | null, groupSize?: number | null }> }>, materials: Array<{ __typename?: 'SubjectMaterial', id: string, title: string, subtitle?: string | null, type?: MaterialType | null, url?: string | null, fromLabel?: string | null, lessonId?: string | null, savedId?: string | null, note?: string | null, savedKind?: SavedItemKind | null }>, savedMaterials: Array<{ __typename?: 'SubjectMaterial', id: string, title: string, subtitle?: string | null, type?: MaterialType | null, url?: string | null, fromLabel?: string | null, lessonId?: string | null, savedId?: string | null, note?: string | null, savedKind?: SavedItemKind | null }>, sources: Array<{ __typename?: 'SubjectSource', id: string, name: string, sourceName?: string | null, url?: string | null, note?: string | null, inLesson: boolean, savedId?: string | null }>, nextLesson?: { __typename?: 'SubjectLesson', id: string, title: string, subtitle?: string | null, progress: LessonProgress, kind: LessonKind, deviceKey?: string | null, orderLabel: string, materialCount: number, hasHomework: boolean, sessionId?: string | null, sessionAt?: string | null, isLive: boolean, grade?: number | null, completedBy?: number | null, groupSize?: number | null } | null } };
+export type SubjectCabinetQuery = { __typename?: 'Query', subjectCabinet: { __typename?: 'SubjectCabinet', courseId: string, title: string, profileKind: LearningProfileKind, institutionName?: string | null, groupName?: string | null, teacherName?: string | null, teacherId?: string | null, lessonCount: number, studentCount?: number | null, progressPct: number, gradingScale: GradingScale, sections: Array<{ __typename?: 'SubjectSection', id: string, title: string, doneLessons: number, totalLessons: number, lessons: Array<{ __typename?: 'SubjectLesson', id: string, title: string, subtitle?: string | null, progress: LessonProgress, kind: LessonKind, deviceKey?: string | null, orderLabel: string, materialCount: number, hasHomework: boolean, sessionId?: string | null, sessionAt?: string | null, isLive: boolean, grade?: number | null, completedBy?: number | null, groupSize?: number | null }> }>, materials: Array<{ __typename?: 'SubjectMaterial', id: string, title: string, subtitle?: string | null, type?: MaterialType | null, url?: string | null, fromLabel?: string | null, lessonId?: string | null, savedId?: string | null, note?: string | null, savedKind?: SavedItemKind | null }>, savedMaterials: Array<{ __typename?: 'SubjectMaterial', id: string, title: string, subtitle?: string | null, type?: MaterialType | null, url?: string | null, fromLabel?: string | null, lessonId?: string | null, savedId?: string | null, note?: string | null, savedKind?: SavedItemKind | null }>, sources: Array<{ __typename?: 'SubjectSource', id: string, name: string, sourceName?: string | null, url?: string | null, note?: string | null, inLesson: boolean, savedId?: string | null }>, nextLesson?: { __typename?: 'SubjectLesson', id: string, title: string, subtitle?: string | null, progress: LessonProgress, kind: LessonKind, deviceKey?: string | null, orderLabel: string, materialCount: number, hasHomework: boolean, sessionId?: string | null, sessionAt?: string | null, isLive: boolean, grade?: number | null, completedBy?: number | null, groupSize?: number | null } | null } };
 
 export type SaveItemMutationVariables = Exact<{
   input: SaveItemInput;
@@ -6287,6 +6292,7 @@ export const SubjectCabinetDocument = gql`
     lessonCount
     studentCount
     progressPct
+    gradingScale
     sections {
       id
       title

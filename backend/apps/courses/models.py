@@ -7,6 +7,7 @@ from common.enums import (
     CourseLevel,
     CourseStatus,
     EnrollmentStatus,
+    GradingScale,
     LessonKind,
     LessonStatus,
     MaterialType,
@@ -55,6 +56,21 @@ class Course(SoftDeleteModel):
         blank=True,
         on_delete=models.SET_NULL,
     )
+    # Owner decision 2026-08-13: both scales ship. A school subject shows the five-point mark
+    # a parent recognises; a standalone course shows percent. This is a DISPLAY property —
+    # `Submission.score` stays one number, and topic mastery is computed in internal
+    # fractions so the coarser scale cannot blur the analytics.
+    grading_scale = models.CharField(
+        max_length=12, choices=choices(GradingScale), blank=True, default=""
+    )
+
+    @property
+    def scale(self) -> GradingScale:
+        """The scale to enter and show marks in. Declared wins; otherwise the course's own
+        nature decides — a course with an institution behind it is a school subject."""
+        if self.grading_scale:
+            return GradingScale(self.grading_scale)
+        return GradingScale.FIVE_POINT if self.institution_id else GradingScale.PERCENT
 
     class Meta:
         # A-H2: catalog + course query filter by status (hot); owner/group are FKs (auto-indexed).

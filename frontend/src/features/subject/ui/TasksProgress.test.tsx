@@ -94,7 +94,8 @@ describe('TasksPanel — atlas sheet 01, «Задания»', () => {
     );
 
     expect(await screen.findByText('Кривая блеска · разбор')).toBeInTheDocument();
-    expect(screen.getByText('64')).toBeInTheDocument();
+    // Default scale is percent; the five-point reading has its own test below.
+    expect(screen.getByText('64%')).toBeInTheDocument();
     expect(screen.getByText(/Период — по двум минимумам/)).toBeInTheDocument();
   });
 
@@ -117,7 +118,7 @@ describe('TasksPanel — atlas sheet 01, «Задания»', () => {
       },
     );
 
-    expect(await screen.findByText('95')).toBeInTheDocument();
+    expect(await screen.findByText('95%')).toBeInTheDocument();
     // The earlier mark is not shown, but the row does not pretend there was only one go.
     expect(screen.getByText('2 попытки')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Пересдать' })).toBeInTheDocument();
@@ -168,6 +169,18 @@ describe('TasksPanel — atlas sheet 01, «Задания»', () => {
     // Every attempt is kept; the journal is where the history is raised.
     expect(screen.getByText('история попыток в журнале')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Проверять' })).toBeInTheDocument();
+  });
+
+  it('a mark reads in the course’s own scale — one stored number, two readings', async () => {
+    // Owner decision 2026-08-13: a school subject shows «4», a standalone course «80%».
+    // The stored value never changes; only the reading does.
+    const graded = task({ id: 't1', title: 'Кривая блеска', state: 'GRADED', score: 4 });
+    renderWithProviders(
+      <TasksPanel courseId={COURSE} isTeacher={false} teacherName={null} scale="FIVE_POINT" />,
+      { mocks: [tasksMock([graded])] },
+    );
+    expect(await screen.findByText('4')).toBeInTheDocument();
+    expect(screen.queryByText('4%')).not.toBeInTheDocument();
   });
 
   it('says so plainly when there is no work yet', async () => {

@@ -25,6 +25,7 @@ import strawberry
 from django.utils import timezone
 
 from common.enums import (
+    GradingScale,
     LearningProfileKind,
     LessonKind,
     LessonStatus,
@@ -120,6 +121,9 @@ class SubjectCabinet:
     lesson_count: int
     student_count: int | None
     progress_pct: int
+    #: How marks are entered and shown here (owner decision 2026-08-13). Display only —
+    #: storage is one number and analytics run on fractions.
+    grading_scale: GradingScale
     sections: list[SubjectSection]
     materials: list[SubjectMaterial]
     saved_materials: list[SubjectMaterial]
@@ -332,6 +336,7 @@ def subject_cabinet(user, course_id) -> SubjectCabinet:
         lesson_count=total,
         student_count=group_size if is_teacher else None,
         progress_pct=progress_pct,
+        grading_scale=course.scale,
         sections=sections,
         materials=materials,
         saved_materials=saved,

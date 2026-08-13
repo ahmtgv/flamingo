@@ -24,6 +24,7 @@ from common.enums import (
     CourseLevel,
     CourseStatus,
     EnrollmentStatus,
+    GradingScale,
     LearningProfileKind,
     LessonKind,
     LessonStatus,
@@ -331,6 +332,7 @@ class SubjectCabinet:
     lesson_count: int
     student_count: int | None
     progress_pct: int
+    grading_scale: GradingScale
     sections: list[SubjectSection]
     materials: list[SubjectMaterial]
     saved_materials: list[SubjectMaterial]
@@ -350,6 +352,7 @@ class SubjectCabinet:
             lesson_count=page.lesson_count,
             student_count=page.student_count,
             progress_pct=page.progress_pct,
+            grading_scale=page.grading_scale,
             sections=[
                 SubjectSection(
                     id=strawberry.ID(s.id),

@@ -613,6 +613,8 @@ function subjectCabinet(vars: Vars): SubjectCabinetQuery {
         __typename: 'SubjectCabinet',
         courseId: IDS.course.english,
         title: 'English · A2',
+        // A standalone course reads in percent (owner decision 2026-08-13).
+        gradingScale: 'PERCENT',
         profileKind: kind,
         institutionName: null,
         groupName: null,
@@ -739,6 +741,8 @@ function subjectCabinet(vars: Vars): SubjectCabinetQuery {
       __typename: 'SubjectCabinet',
       courseId: IDS.course.algebra,
       title: 'Астрономия',
+      // A school subject keeps the five-point mark a parent recognises.
+      gradingScale: 'FIVE_POINT',
       profileKind: isTeacher ? 'TEACHER' : 'PUPIL',
       institutionName: 'Гимназия №1',
       groupName: '9А',

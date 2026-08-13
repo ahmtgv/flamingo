@@ -126,6 +126,7 @@ function cabinet(over: Partial<Cabinet> = {}): SubjectCabinetQuery {
       lessonCount: 34,
       studentCount: null,
       progressPct: 62,
+      gradingScale: 'FIVE_POINT',
       sections: [
         {
           __typename: 'SubjectSection',

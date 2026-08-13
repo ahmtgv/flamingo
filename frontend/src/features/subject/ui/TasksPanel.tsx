@@ -23,10 +23,13 @@ export function TasksPanel({
   courseId,
   isTeacher,
   teacherName,
+  scale = 'PERCENT',
 }: {
   courseId: string;
   isTeacher: boolean;
   teacherName: string | null;
+  /** The course's own scale — display only (owner decision 2026-08-13). */
+  scale?: 'FIVE_POINT' | 'PERCENT';
 }) {
   const { t } = useTranslation('subject');
   const navigate = useNavigate();
@@ -51,6 +54,7 @@ export function TasksPanel({
             task={task}
             now={now}
             teacherName={teacherName}
+            scale={scale}
             onOpen={() =>
               navigate(task.lessonId ? `/lessons/${task.lessonId}/homework` : '/homework')
             }
@@ -65,11 +69,13 @@ function LearnerRow({
   task,
   now,
   teacherName,
+  scale,
   onOpen,
 }: {
   task: Task;
   now: Date;
   teacherName: string | null;
+  scale: 'FIVE_POINT' | 'PERCENT';
   onOpen: () => void;
 }) {
   const { t } = useTranslation('subject');
@@ -112,7 +118,13 @@ function LearnerRow({
         )}
       </div>
       <div className={styles.taskRight}>
-        {graded && task.score != null && <span className={styles.taskScore}>{task.score}</span>}
+        {graded && task.score != null && (
+          <span className={styles.taskScore}>
+            {t(scale === 'PERCENT' ? 'tasks.scorePercent' : 'tasks.scoreFive', {
+              value: task.score,
+            })}
+          </span>
+        )}
         {task.attempts > 1 && (
           <span className={styles.taskMeta}>{t('tasks.attempts', { count: task.attempts })}</span>
         )}

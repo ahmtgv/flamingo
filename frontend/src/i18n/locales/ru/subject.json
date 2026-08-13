@@ -47,7 +47,9 @@
       "at": "{{time}}"
     },
     "groupDone": "{{done}} из {{total}}",
-    "grade": "оценка {{value}}"
+    "grade": "оценка {{value}}",
+    "gradeFive": "{{value}}",
+    "gradePercent": "{{value}}%"
   },
   "materials": {
     "fromTeacher": "От учителя и по программе",
@@ -151,7 +153,9 @@
       "closed": "закрыто",
       "check": "Проверять",
       "history": "история попыток в журнале"
-    }
+    },
+    "scoreFive": "{{value}}",
+    "scorePercent": "{{value}}%"
   },
   "progress": {
     "empty": "Пока нечего показать — усвоение появится с первыми оценками",

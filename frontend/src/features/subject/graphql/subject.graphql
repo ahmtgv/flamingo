@@ -13,6 +13,7 @@ query SubjectCabinet($courseId: ID!) {
     lessonCount
     studentCount
     progressPct
+    gradingScale
     sections {
       id
       title
