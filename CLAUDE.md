@@ -125,6 +125,7 @@ A module is done when: models + migrations, services, GraphQL types/queries/muta
 - Store lesson video, lesson audio, or a verbatim speech transcript — see §2.2. Speech is stream-processed for the summary only.
 - Add any persisted entity outside the §2.2 storage whitelist without an explicit owner decision.
 - Redesign approved screens: atlas sheets **00** (start page), **01** (subject cabinet), **02** (english live room), **12** (sources) are the **design contract** — implement them, do not reinvent them.
+- Treat anything under `docs/design-previews/_archive/` as a design contract. It is the **previous interface**, archived by owner decision 2026-08-12 when the UI/UX rebuild started. Reference material only; the four sheets above are the contract. Legacy screens (`/app`, the old cabinets) keep working until new screens cover their scenarios — do not delete them, do not extend them either.
 - Add any server path that receives raw video/audio/biometric frames.
 - Store PII outside the RF region, or add non-approved data stores for PII.
 - Hardcode UI strings (use i18n) or colors/sizes (use tokens).
