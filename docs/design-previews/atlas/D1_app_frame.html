@@ -172,7 +172,7 @@ h1{font-size:1.25rem;font-weight:600;letter-spacing:-.015em}
 
 /* ——— КОМНАТА УРОКА (лист 02, встроен как есть) ——— */
 .room{display:grid;grid-template-columns:minmax(0,1fr) 292px;height:100%;min-height:640px;background:var(--surface)}
-.stage{border-inline-end:1px solid var(--border);display:grid;grid-template-rows:auto auto 1fr;min-width:0}
+.stage{border-inline-end:1px solid var(--border);display:grid;grid-template-rows:auto auto minmax(0,1fr);min-width:0}
 .roomTop{display:flex;align-items:center;gap:12px;padding:10px 16px;border-bottom:1px solid var(--border);flex-wrap:wrap}
 .roomName{font-size:14px;font-weight:500}
 .roomMeta{font:400 10px var(--mono);color:var(--ter)}
@@ -199,6 +199,31 @@ h1{font-size:1.25rem;font-weight:600;letter-spacing:-.015em}
 .nd[data-note]{background:#fdf6da;border-color:#e8dca6;color:#4a4326;transform:rotate(-1.2deg);border-radius:4px}
 [data-theme="dark"] .nd[data-note]{background:#3a3520;border-color:#5a5230;color:#e8dfc0}
 .link{fill:none;stroke:var(--border-s);stroke-width:1.6}
+
+/* ——— РЕЖИМ «ЛЮДИ»: никакого материала, экран отдан говорящим ——— */
+.faces{display:none;background:#141416;position:relative;min-height:0}
+[data-theme="dark"] .faces{background:#0b0b0d}
+.app[data-scene="faces"] .canvasWrap{display:none}
+.app[data-scene="faces"] .faces{display:grid}
+.app[data-scene="faces"] .vidStrip{display:none}          /* полоса не дублирует лица */
+.facesMain{position:relative;display:grid;place-items:center;overflow:hidden}
+.facesMain .ini{font:500 64px var(--mono);color:rgba(255,255,255,.35)}
+.facesMain .who{position:absolute;left:16px;bottom:14px;display:flex;align-items:center;gap:8px;
+  font:500 var(--fs-cap) var(--ui);color:#fff;background:rgba(0,0,0,.5);border-radius:999px;padding:6px 14px}
+.facesMain .who i{width:6px;height:6px;border-radius:50%;background:var(--coral);display:block}
+.facesRow{display:flex;gap:10px;padding:12px 16px;overflow-x:auto;align-items:center;
+  border-top:1px solid rgba(255,255,255,.09)}
+.faceTile{position:relative;border-radius:10px;background:#1d1d20;flex:none;width:150px;aspect-ratio:16/10;
+  display:grid;place-content:center;border:1px solid rgba(255,255,255,.08);overflow:hidden}
+.faceTile .ini{font:500 15px var(--mono);color:rgba(255,255,255,.5)}
+.faceTile .who{position:absolute;left:7px;bottom:6px;font:500 9px var(--mono);color:#fff;
+  background:rgba(0,0,0,.55);border-radius:4px;padding:2px 7px}
+.faceTile[data-speaking]{border-color:var(--coral)}
+.faceTile[data-up]::after{content:'рука ↑';position:absolute;right:7px;top:6px;font:500 8px var(--mono);
+  color:#fff;background:var(--coral);border-radius:4px;padding:2px 6px}
+.faceTile[data-self]{border-style:dashed}
+.facesHint{margin-inline-start:auto;font:400 9px var(--mono);color:rgba(255,255,255,.45);
+  max-width:26ch;line-height:1.5;padding-inline-end:4px}
 .side{display:grid;grid-template-rows:auto 1fr;min-width:0}
 .sideTabs{display:flex;gap:1px;border-bottom:1px solid var(--border);padding:6px 8px 0}
 .sTab{font:500 9px var(--mono);color:var(--sec);background:none;border:none;border-bottom:2px solid transparent;
@@ -267,7 +292,7 @@ h1{font-size:1.25rem;font-weight:600;letter-spacing:-.015em}
     <button id="thm">тёмная</button>
   </div>
 
-  <div class="app" id="app" data-state="idle">
+  <div class="app" id="app" data-state="idle" data-scene="board">
 
     <!-- ═══ строка заголовка ═══ -->
     <div class="titlebar">
@@ -395,10 +420,11 @@ h1{font-size:1.25rem;font-weight:600;letter-spacing:-.015em}
               <span><span class="roomName">English A2 · Unit 4 — Travel</span>
                 <span class="roomMeta"> · урок 4 · 8 участников</span></span>
               <span class="winSwitch">
-                <button class="win" aria-selected="true">Доска</button>
-                <button class="win">Методичка</button>
-                <button class="win">Тест</button>
-                <button class="win">Саммари</button>
+                <button class="win" data-scene="faces">Люди</button>
+                <button class="win" data-scene="board" aria-selected="true">Доска</button>
+                <button class="win" data-scene="material">Методичка</button>
+                <button class="win" data-scene="test">Тест</button>
+                <button class="win" data-scene="summary">Саммари</button>
               </span>
             </div>
 
@@ -409,6 +435,23 @@ h1{font-size:1.25rem;font-weight:600;letter-spacing:-.015em}
               <div class="vid"><span class="ini">ЛМ</span><span class="who">Лена</span></div>
               <div class="vid"><span class="ini">ДС</span><span class="who">Дима</span></div>
               <div class="vid"><span class="ini">ИВ</span><span class="who">Ира</span></div>
+            </div>
+
+            <!-- ——— сцена «Люди»: материала нет, экран отдан участникам ——— -->
+            <div class="faces" style="grid-template-rows:1fr auto">
+              <div class="facesMain">
+                <span class="ini">МП</span>
+                <span class="who"><i></i>Мария Петровна · говорит</span>
+              </div>
+              <div class="facesRow">
+                <div class="faceTile" data-self><span class="ini">МП</span><span class="who">вы</span></div>
+                <div class="faceTile" data-up><span class="ini">АК</span><span class="who">Аня</span></div>
+                <div class="faceTile"><span class="ini">ПК</span><span class="who">Петя</span></div>
+                <div class="faceTile"><span class="ini">ЛМ</span><span class="who">Лена</span></div>
+                <div class="faceTile"><span class="ini">ДС</span><span class="who">Дима</span></div>
+                <div class="faceTile"><span class="ini">ИВ</span><span class="who">Ира</span></div>
+                <span class="facesHint">крупно — кто говорит; ученик видит преподавателя во весь экран и себя в ленте</span>
+              </div>
             </div>
 
             <div class="canvasWrap">
@@ -512,6 +555,16 @@ h1{font-size:1.25rem;font-weight:600;letter-spacing:-.015em}
       <li><b>Скопировать ссылку</b> лежит здесь же — самое частое действие первых минут.</li>
     </ul>
 
+    <h3>Режим «Люди» — когда материала нет</h3>
+    <p>Первое окно в переключателе. Доска, методичка и тест — материал; но половина занятия по языку это просто
+    разговор, и тогда экран должен быть отдан <b>людям, а не пустой доске</b>.</p>
+    <ul>
+      <li><b>Крупно — говорящий</b>, по умолчанию преподаватель. Ученик видит его во весь экран, себя — в ленте внизу.</li>
+      <li>Верхняя полоса участников <b>скрывается</b>: она бы дублировала ленту и отъедала высоту у главного кадра.</li>
+      <li>Поднятая рука видна прямо на плитке — преподаватель не должен для этого открывать панель.</li>
+      <li>Переключение обратно на доску не рвёт соединение: меняется только раскладка окна.</li>
+    </ul>
+
     <h3>Канал просел</h3>
     <p>Мы не пишем «плохое соединение» — это не помогает. Мы говорим, <b>что уже сделали</b>: снизили качество видео,
     чтобы занятие продолжалось. На плитках видно, где качество снижено. Решение принимает приложение,
@@ -527,10 +580,12 @@ h1{font-size:1.25rem;font-weight:600;letter-spacing:-.015em}
     сколько человек.</p>
 
     <h3>Вопросы к тебе</h3>
-    <div class="q"><p>1. Скорость канала числом — или заменить на «связь хорошая / слабая», а число оставить в настройках?
+    <div class="q"><p>1. В режиме «Люди» крупно показывать <b>говорящего</b> (переключается сам) или всегда преподавателя?
+    Я сделал говорящего: на разговорном занятии это живее, но кадр иногда будет прыгать.</p></div>
+    <div class="q"><p>2. Скорость канала числом — или заменить на «связь хорошая / слабая», а число оставить в настройках?
     Для преподавателя мегабиты могут быть лишней технической деталью.</p></div>
-    <div class="q"><p>2. Версия в заголовке — оставляем на виду или прячем в настройки?</p></div>
-    <div class="q"><p>3. Кнопка «Завершить» в раме — нужна, если такая же есть внутри урока? Я оставил:
+    <div class="q"><p>3. Версия в заголовке — оставляем на виду или прячем в настройки?</p></div>
+    <div class="q"><p>4. Кнопка «Завершить» в раме — нужна, если такая же есть внутри урока? Я оставил:
     преподаватель часто сворачивает окно и забывает, что комната открыта.</p></div>
   </div>
 </div>
@@ -574,6 +629,7 @@ document.querySelectorAll('.bar button[data-state]').forEach(b=>b.addEventListen
 document.querySelectorAll('.winSwitch .win, .sideTabs .sTab').forEach(t=>t.addEventListener('click',()=>{
   t.parentElement.querySelectorAll('button').forEach(x=>x.setAttribute('aria-selected','false'));
   t.setAttribute('aria-selected','true');
+  if(t.dataset.scene) app.dataset.scene=t.dataset.scene;
 }));
 document.getElementById('thm').addEventListener('click',e=>{
   const d=document.documentElement.dataset.theme==='dark';
