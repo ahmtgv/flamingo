@@ -106,7 +106,7 @@ def test_an_example_carries_its_own_credit_because_it_has_its_own_rights_holder(
         translation_ru="Поверни направо на перекрёстке и иди прямо.",
         source=LexicalSource.TATOEBA.value,
         license="CC BY 2.0 FR",
-        attribution="Tatoeba · автор предложения CK",
+        attribution="автор предложения CK",
         source_url="https://tatoeba.org/en/sentences/show/1",
     )
 

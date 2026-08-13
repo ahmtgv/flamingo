@@ -28,6 +28,7 @@ import frame from './roomframe.module.css';
 import styles from './liveroom.module.css';
 import { BoardCanvas } from '@/features/board';
 import { TestScene } from '@/features/exercises';
+import { DictionaryPane } from '@/features/dictionary';
 import { LessonChatPane, SummaryScene } from '@/features/summary';
 
 import { ProjectorCast } from './ProjectorCast';
@@ -85,7 +86,11 @@ function RoomShell({
         </>
       }
       strip={children}
-      panel={panel ?? <RoomPane pane={pane} sessionId={sessionId} />}
+      panel={
+        panel ?? (
+          <RoomPane pane={pane} sessionId={sessionId} lessonId={lessonId} isTeacher={isTeacher} />
+        )
+      }
     >
       <SceneBody scene={scene} lessonId={lessonId} sessionId={sessionId} isTeacher={isTeacher} />
     </RoomFrame>
@@ -117,10 +122,22 @@ function SceneBody({
 }
 
 /** The personal panel. The lesson chat is real (R4.2) — and it writes into the summary, not
- *  into a feed of its own. The dictionary belongs to R4.3 and says so. */
-function RoomPane({ pane, sessionId }: { pane: Pane; sessionId: string }) {
+ *  into a feed of its own; the dictionary is real (R4.3) and carries its licences. */
+function RoomPane({
+  pane,
+  sessionId,
+  lessonId,
+  isTeacher,
+}: {
+  pane: Pane;
+  sessionId: string;
+  lessonId?: string | null;
+  isTeacher?: boolean;
+}) {
   const { t } = useTranslation('room');
-  if (pane === 'dict') return <p className={frame.paneEmpty}>{t('dictSoon')}</p>;
+  if (pane === 'dict') {
+    return <DictionaryPane lessonId={lessonId} sessionId={sessionId} isTeacher={isTeacher} />;
+  }
   if (pane === 'chat') return <LessonChatPane sessionId={sessionId} />;
   if (pane === 'mats') {
     return (

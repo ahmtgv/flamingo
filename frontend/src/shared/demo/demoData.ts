@@ -278,6 +278,13 @@ export const store = {
   exercises: {
     answers: new Map<string, { choice?: number; correct: boolean | null; at: string }>(),
   },
+  /** Dictionary (R4.3): «в мои слова» sticks, and «показать всем» is remembered so the
+   *  preview shows the gesture landing. Neither is content — the words themselves are
+   *  seeded, licences and all. */
+  dictionary: {
+    mine: new Set<string>(),
+    shown: null as string | null,
+  },
   /** Summary (R4.2): a message sent in the preview lands in the summary's CHAT section —
    *  there is no second list for it here either, because there is none in the database. */
   summary: {
@@ -305,6 +312,7 @@ export function resetDemoStore(): void {
   store.chat = { sent: new Map(), read: new Set(), reported: new Set() };
   store.board = { open: false, edits: new Map(), added: [], removed: new Set(), saved: [] };
   store.exercises = { answers: new Map() };
+  store.dictionary = { mine: new Set(), shown: null };
   store.summary = { sent: false, edits: new Map(), removed: new Set(), chat: [] };
   store.seq = 1000;
 }

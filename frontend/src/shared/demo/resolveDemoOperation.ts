@@ -69,6 +69,13 @@ import type {
   LessonExerciseSetsQuery,
   MyExerciseAttemptsQuery,
   SetProgressQuery,
+  AddWordToMyListMutation,
+  ExternalDictionariesQuery,
+  LessonWordsQuery,
+  LookupWordQuery,
+  MyWordsQuery,
+  PutWordOnBoardMutation,
+  ShowWordToClassMutation,
   AssembleLessonSummaryMutation,
   LessonChatQuery,
   LessonSummaryQuery,
@@ -1633,6 +1640,103 @@ function lessonChat(): LessonChatQuery {
   };
 }
 
+// --- Dictionary (R4.3) -------------------------------------------------------------------
+/** The sheet's own card: `crossroads`, both senses, with the real attributions.
+ *
+ * The licences here are the actual ones — Open English WordNet is CC BY 4.0 and wants both
+ * Princeton and the OEWN team named; a Tatoeba sentence is CC BY 2.0 FR and wants its author.
+ * A demo that showed plausible-looking placeholders would be teaching the wrong thing about
+ * the one part of this feature that is a legal obligation. */
+type DemoWord = LessonWordsQuery['lessonWords'][number];
+
+const WORDNET = {
+  __typename: 'Attribution' as const,
+  source: 'WORDNET' as const,
+  license: 'CC BY 4.0',
+  attribution: 'Princeton WordNet · Open English WordNet team',
+  sourceUrl: 'https://en-word.net/',
+};
+
+const TATOEBA = {
+  __typename: 'Attribution' as const,
+  source: 'TATOEBA' as const,
+  license: 'CC BY 2.0 FR',
+  attribution: 'автор предложения CK',
+  sourceUrl: 'https://tatoeba.org/en/sentences/show/1',
+};
+
+const DEMO_WORDS: DemoWord[] = [
+  {
+    __typename: 'LexicalItem',
+    id: 'lx-1',
+    lemma: 'crossroads',
+    pos: 'NOUN',
+    senseId: 'oewn-03088580-n',
+    cefrLevel: 'A2',
+    ipa: '/ˈkrɒs.rəʊdz/',
+    definitionRu: 'место, где пересекаются две дороги; перекрёсток',
+    translationRu: 'перекрёсток',
+    pronunciationId: 'mat-cv-1',
+    credit: WORDNET,
+    examples: [
+      {
+        __typename: 'LexicalExample',
+        id: 'lxe-1',
+        text: 'Turn right at the crossroads and go straight ahead.',
+        translationRu: 'Поверни направо на перекрёстке и иди прямо.',
+        credit: TATOEBA,
+      },
+    ],
+  },
+  {
+    __typename: 'LexicalItem',
+    id: 'lx-2',
+    lemma: 'crossroads',
+    pos: 'NOUN',
+    senseId: 'oewn-15266164-n',
+    cefrLevel: 'B1',
+    ipa: '/ˈkrɒs.rəʊdz/',
+    definitionRu: 'момент, когда нужно принять важное решение',
+    translationRu: 'переломный момент',
+    pronunciationId: null,
+    credit: WORDNET,
+    examples: [
+      {
+        __typename: 'LexicalExample',
+        id: 'lxe-2',
+        text: 'She was at a crossroads in her career.',
+        translationRu: 'Она была на распутье в своей карьере.',
+        credit: TATOEBA,
+      },
+    ],
+  },
+  {
+    __typename: 'LexicalItem',
+    id: 'lx-3',
+    lemma: 'go straight ahead',
+    pos: 'PHRASE',
+    senseId: '',
+    cefrLevel: 'A2',
+    ipa: null,
+    definitionRu: 'идти прямо, не сворачивая',
+    translationRu: 'идти прямо',
+    pronunciationId: null,
+    credit: {
+      __typename: 'Attribution' as const,
+      source: 'OWN' as const,
+      license: 'CC BY 4.0',
+      attribution: 'Flamingo · методист курса',
+      sourceUrl: null,
+    },
+    examples: [],
+  },
+];
+
+function dictionaryCard(lemma: string): DemoWord[] {
+  const needle = lemma.trim().toLowerCase();
+  return DEMO_WORDS.filter((w) => w.lemma.toLowerCase() === needle);
+}
+
 // --- Courses -----------------------------------------------------------------------------
 /** Preview-only platform-zero toggle for the catalog (?catalog=zero) — mirrors demoRole's
  *  ?role= convention so the "Каталог наполняется" state is reachable in the preview. */
@@ -2487,6 +2591,93 @@ export function resolveDemoOperation(
           correct: [...store.exercises.answers.values()].filter((a) => a.correct).length,
         },
       } satisfies SetProgressQuery;
+    }
+    case 'LookupWord':
+      return {
+        __typename: 'Query',
+        lookupWord: dictionaryCard(String(variables.lemma ?? '')),
+      } satisfies LookupWordQuery;
+    case 'LessonWords':
+      return { __typename: 'Query', lessonWords: DEMO_WORDS } satisfies LessonWordsQuery;
+    case 'MyWords':
+      return {
+        __typename: 'Query',
+        myWords: [...store.dictionary.mine].map((itemId) => {
+          const item = DEMO_WORDS.find((w) => w.id === itemId) ?? DEMO_WORDS[0];
+          return {
+            __typename: 'SrsCard' as const,
+            id: `srs-${itemId}`,
+            direction: 'RECOGNITION' as const,
+            state: 'NEW' as const,
+            dueAt: new Date().toISOString(),
+            reps: 0,
+            lapses: 0,
+            item: {
+              __typename: 'LexicalItem' as const,
+              id: item.id,
+              lemma: item.lemma,
+              pos: item.pos,
+              ipa: item.ipa,
+              translationRu: item.translationRu,
+              credit: item.credit,
+            },
+          };
+        }),
+      } satisfies MyWordsQuery;
+    case 'ExternalDictionaries':
+      // A LINK, and only a link. The preview must never look like it embeds Cambridge.
+      return {
+        __typename: 'Query',
+        externalDictionaries: [
+          {
+            __typename: 'ExternalDictionary',
+            key: 'cambridge',
+            name: 'Cambridge Dictionary',
+            url: 'https://dictionary.cambridge.org/dictionary/english/',
+          },
+        ],
+      } satisfies ExternalDictionariesQuery;
+    case 'AddWordToMyList': {
+      const itemId = String(variables.itemId ?? '');
+      store.dictionary.mine.add(itemId);
+      return {
+        addWordToMyList: {
+          __typename: 'SrsCard',
+          id: `srs-${itemId}`,
+          state: 'NEW',
+          dueAt: new Date().toISOString(),
+        },
+      } satisfies AddWordToMyListMutation;
+    }
+    case 'PutWordOnBoard': {
+      // Goes on the real preview canvas — the same store the board reads.
+      const item = DEMO_WORDS.find((w) => w.id === String(variables.itemId ?? ''));
+      const id = nextId('be');
+      store.board.added.push({
+        id,
+        kind: 'STICKER',
+        authorId: demoGraphQLRole() === 'TEACHER' ? users.maria.id : users.sasha.id,
+        authorName: demoGraphQLRole() === 'TEACHER' ? 'Мария Петровна' : 'Саша Иванов',
+        x: 40,
+        y: 40,
+        width: 220,
+        height: 110,
+        data: { text: item ? `${item.lemma} — ${item.translationRu}` : '' },
+        revision: 1,
+      });
+      return { putWordOnBoard: id } satisfies PutWordOnBoardMutation;
+    }
+    case 'ShowWordToClass': {
+      const item = DEMO_WORDS.find((w) => w.id === String(variables.itemId ?? ''));
+      store.dictionary.shown = item?.lemma ?? null;
+      return {
+        showWordToClass: {
+          __typename: 'WordShown',
+          sessionId: String(variables.sessionId ?? 'ses-algebra-live'),
+          itemId: String(variables.itemId ?? ''),
+          lemma: item?.lemma ?? '',
+        },
+      } satisfies ShowWordToClassMutation;
     }
     case 'LessonSummary':
       return lessonSummary();

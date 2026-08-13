@@ -1,0 +1,125 @@
+# The word card (R4.3). Every part of it asks for its `credit` — the licence is rendered in
+# the card, not kept in a comment. Closed dictionaries arrive as LINKS via externalDictionaries
+# and are never fetched by anything here.
+
+query LookupWord($lemma: String!) {
+  lookupWord(lemma: $lemma) {
+    id
+    lemma
+    pos
+    senseId
+    cefrLevel
+    ipa
+    definitionRu
+    translationRu
+    pronunciationId
+    credit {
+      source
+      license
+      attribution
+      sourceUrl
+    }
+    examples {
+      id
+      text
+      translationRu
+      credit {
+        source
+        license
+        attribution
+        sourceUrl
+      }
+    }
+  }
+}
+
+query LessonWords($lessonId: ID!) {
+  lessonWords(lessonId: $lessonId) {
+    id
+    lemma
+    pos
+    senseId
+    cefrLevel
+    ipa
+    definitionRu
+    translationRu
+    pronunciationId
+    credit {
+      source
+      license
+      attribution
+      sourceUrl
+    }
+    examples {
+      id
+      text
+      translationRu
+      credit {
+        source
+        license
+        attribution
+        sourceUrl
+      }
+    }
+  }
+}
+
+query MyWords {
+  myWords {
+    id
+    direction
+    state
+    dueAt
+    reps
+    lapses
+    item {
+      id
+      lemma
+      pos
+      ipa
+      translationRu
+      credit {
+        source
+        license
+        attribution
+        sourceUrl
+      }
+    }
+  }
+}
+
+query ExternalDictionaries {
+  externalDictionaries {
+    key
+    name
+    url
+  }
+}
+
+mutation AddWordToMyList($itemId: ID!) {
+  addWordToMyList(itemId: $itemId) {
+    id
+    state
+    dueAt
+  }
+}
+
+mutation PutWordOnBoard($lessonId: ID!, $itemId: ID!) {
+  putWordOnBoard(lessonId: $lessonId, itemId: $itemId)
+}
+
+mutation ShowWordToClass($sessionId: ID!, $itemId: ID!) {
+  showWordToClass(sessionId: $sessionId, itemId: $itemId) {
+    sessionId
+    itemId
+    lemma
+  }
+}
+
+subscription WordShown($sessionId: ID!) {
+  wordShown(sessionId: $sessionId) {
+    sessionId
+    itemId
+    lemma
+  }
+}

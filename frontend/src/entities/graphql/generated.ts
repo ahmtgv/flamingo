@@ -135,6 +135,14 @@ export type AttentionSummary = {
   points: Array<AttentionPoint>;
 };
 
+export type Attribution = {
+  __typename?: 'Attribution';
+  attribution: Scalars['String']['output'];
+  license: Scalars['String']['output'];
+  source: LexicalSource;
+  sourceUrl?: Maybe<Scalars['String']['output']>;
+};
+
 export type AuthPayload = {
   __typename?: 'AuthPayload';
   refreshToken: Scalars['String']['output'];
@@ -202,6 +210,16 @@ export type BoardSnapshot = {
   savedByName: Scalars['String']['output'];
   title: Scalars['String']['output'];
 };
+
+export type CardDirection =
+  | 'RECALL'
+  | 'RECOGNITION';
+
+export type CardState =
+  | 'LEARNING'
+  | 'NEW'
+  | 'RELEARNING'
+  | 'REVIEW';
 
 export type Certificate = {
   __typename?: 'Certificate';
@@ -429,6 +447,13 @@ export type ExerciseSet = {
   lessonId: Scalars['ID']['output'];
   mode: ExerciseMode;
   title: Scalars['String']['output'];
+};
+
+export type ExternalDictionary = {
+  __typename?: 'ExternalDictionary';
+  key: Scalars['String']['output'];
+  name: Scalars['String']['output'];
+  url: Scalars['String']['output'];
 };
 
 export type GradeInput = {
@@ -706,6 +731,35 @@ export type LessonSummary = {
   status: SummaryStatus;
 };
 
+export type LexicalExample = {
+  __typename?: 'LexicalExample';
+  credit: Attribution;
+  id: Scalars['ID']['output'];
+  text: Scalars['String']['output'];
+  translationRu?: Maybe<Scalars['String']['output']>;
+};
+
+export type LexicalItem = {
+  __typename?: 'LexicalItem';
+  cefrLevel?: Maybe<Scalars['String']['output']>;
+  credit: Attribution;
+  definitionRu?: Maybe<Scalars['String']['output']>;
+  examples: Array<LexicalExample>;
+  id: Scalars['ID']['output'];
+  ipa?: Maybe<Scalars['String']['output']>;
+  lemma: Scalars['String']['output'];
+  pos: PartOfSpeech;
+  pronunciationId?: Maybe<Scalars['ID']['output']>;
+  senseId?: Maybe<Scalars['String']['output']>;
+  translationRu?: Maybe<Scalars['String']['output']>;
+};
+
+export type LexicalSource =
+  | 'COMMON_VOICE'
+  | 'OWN'
+  | 'TATOEBA'
+  | 'WORDNET';
+
 export type Material = {
   __typename?: 'Material';
   body?: Maybe<Scalars['String']['output']>;
@@ -748,6 +802,7 @@ export type Mutation = {
   addMaterial: Material;
   addStudentsToGroup: Group;
   addSummaryItem: SummaryItem;
+  addWordToMyList: SrsCard;
   answerExercise: Attempt;
   archiveCourse: Course;
   assembleLessonSummary: LessonSummary;
@@ -790,6 +845,7 @@ export type Mutation = {
   publishHomework: Homework;
   publishLesson: Lesson;
   putBoardElement: BoardElement;
+  putWordOnBoard: Scalars['ID']['output'];
   redeemProjectorCode: ProjectorJoin;
   refreshToken: AuthPayload;
   registerUser: AuthPayload;
@@ -820,6 +876,7 @@ export type Mutation = {
   setProjectorFocus: ProjectorFocus;
   setSpeechConsent: Scalars['Boolean']['output'];
   setSummaryIntro: LessonSummary;
+  showWordToClass: WordShown;
   startSession: LessonSession;
   submitHomework: Submission;
   submitVerificationDocument: VerificationDocument;
@@ -860,6 +917,12 @@ export type MutationAddSummaryItemArgs = {
   section: SummarySection;
   sessionId: Scalars['ID']['input'];
   text: Scalars['String']['input'];
+};
+
+
+export type MutationAddWordToMyListArgs = {
+  direction?: InputMaybe<CardDirection>;
+  itemId: Scalars['ID']['input'];
 };
 
 
@@ -1073,6 +1136,12 @@ export type MutationPutBoardElementArgs = {
 };
 
 
+export type MutationPutWordOnBoardArgs = {
+  itemId: Scalars['ID']['input'];
+  lessonId: Scalars['ID']['input'];
+};
+
+
 export type MutationRedeemProjectorCodeArgs = {
   code: Scalars['String']['input'];
 };
@@ -1240,6 +1309,12 @@ export type MutationSetSummaryIntroArgs = {
 };
 
 
+export type MutationShowWordToClassArgs = {
+  itemId: Scalars['ID']['input'];
+  sessionId: Scalars['ID']['input'];
+};
+
+
 export type MutationStartSessionArgs = {
   sessionId: Scalars['ID']['input'];
 };
@@ -1398,6 +1473,14 @@ export type ParentProfile = {
   user: User;
 };
 
+export type PartOfSpeech =
+  | 'ADJECTIVE'
+  | 'ADVERB'
+  | 'NOUN'
+  | 'OTHER'
+  | 'PHRASE'
+  | 'VERB';
+
 export type PointEvent = {
   __typename?: 'PointEvent';
   amount: Scalars['Int']['output'];
@@ -1447,6 +1530,7 @@ export type Query = {
   course?: Maybe<Course>;
   courseBoards: Array<BoardSnapshot>;
   exerciseLivePicture: Array<ExerciseLiveRow>;
+  externalDictionaries: Array<ExternalDictionary>;
   group?: Maybe<Group>;
   groupAnalytics: GroupAnalytics;
   groups: Array<Group>;
@@ -1461,6 +1545,8 @@ export type Query = {
   lessonExerciseSets: Array<ExerciseSet>;
   lessonHomework: Array<Homework>;
   lessonSummary?: Maybe<LessonSummary>;
+  lessonWords: Array<LexicalItem>;
+  lookupWord: Array<LexicalItem>;
   me?: Maybe<User>;
   myAchievements: Array<UserAchievement>;
   myAttempts: Array<Attempt>;
@@ -1470,6 +1556,7 @@ export type Query = {
   mySchedule: Array<LessonSession>;
   mySkillMastery: Array<SkillMastery>;
   mySubmissions: Array<Submission>;
+  myWords: Array<SrsCard>;
   notificationPreferences: Array<NotificationPreference>;
   notifications: NotificationConnection;
   parentChildOverview: ParentChildOverview;
@@ -1605,6 +1692,16 @@ export type QueryLessonHomeworkArgs = {
 
 export type QueryLessonSummaryArgs = {
   sessionId: Scalars['ID']['input'];
+};
+
+
+export type QueryLessonWordsArgs = {
+  lessonId: Scalars['ID']['input'];
+};
+
+
+export type QueryLookupWordArgs = {
+  lemma: Scalars['String']['input'];
 };
 
 
@@ -1815,6 +1912,17 @@ export type SkillMastery = {
   opportunities: Scalars['Int']['output'];
   pKnown: Scalars['Float']['output'];
   skillTag: Scalars['String']['output'];
+};
+
+export type SrsCard = {
+  __typename?: 'SrsCard';
+  direction: CardDirection;
+  dueAt: Scalars['DateTime']['output'];
+  id: Scalars['ID']['output'];
+  item: LexicalItem;
+  lapses: Scalars['Int']['output'];
+  reps: Scalars['Int']['output'];
+  state: CardState;
 };
 
 export type StartDay = {
@@ -2073,6 +2181,7 @@ export type Subscription = {
   notificationReceived: Notification;
   projectorFocusChanged: ProjectorFocus;
   sessionStatusChanged: LessonSession;
+  wordShown: WordShown;
 };
 
 
@@ -2102,6 +2211,11 @@ export type SubscriptionProjectorFocusChangedArgs = {
 
 
 export type SubscriptionSessionStatusChangedArgs = {
+  sessionId: Scalars['ID']['input'];
+};
+
+
+export type SubscriptionWordShownArgs = {
   sessionId: Scalars['ID']['input'];
 };
 
@@ -2243,6 +2357,13 @@ export type VerificationStatus =
   | 'APPROVED'
   | 'PENDING'
   | 'REJECTED';
+
+export type WordShown = {
+  __typename?: 'WordShown';
+  itemId: Scalars['ID']['output'];
+  lemma: Scalars['String']['output'];
+  sessionId: Scalars['ID']['output'];
+};
 
 export type AdminInstitutionQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -2694,6 +2815,60 @@ export type DeleteMaterialMutationVariables = Exact<{
 
 
 export type DeleteMaterialMutation = { __typename?: 'Mutation', deleteMaterial: boolean };
+
+export type LookupWordQueryVariables = Exact<{
+  lemma: Scalars['String']['input'];
+}>;
+
+
+export type LookupWordQuery = { __typename?: 'Query', lookupWord: Array<{ __typename?: 'LexicalItem', id: string, lemma: string, pos: PartOfSpeech, senseId?: string | null, cefrLevel?: string | null, ipa?: string | null, definitionRu?: string | null, translationRu?: string | null, pronunciationId?: string | null, credit: { __typename?: 'Attribution', source: LexicalSource, license: string, attribution: string, sourceUrl?: string | null }, examples: Array<{ __typename?: 'LexicalExample', id: string, text: string, translationRu?: string | null, credit: { __typename?: 'Attribution', source: LexicalSource, license: string, attribution: string, sourceUrl?: string | null } }> }> };
+
+export type LessonWordsQueryVariables = Exact<{
+  lessonId: Scalars['ID']['input'];
+}>;
+
+
+export type LessonWordsQuery = { __typename?: 'Query', lessonWords: Array<{ __typename?: 'LexicalItem', id: string, lemma: string, pos: PartOfSpeech, senseId?: string | null, cefrLevel?: string | null, ipa?: string | null, definitionRu?: string | null, translationRu?: string | null, pronunciationId?: string | null, credit: { __typename?: 'Attribution', source: LexicalSource, license: string, attribution: string, sourceUrl?: string | null }, examples: Array<{ __typename?: 'LexicalExample', id: string, text: string, translationRu?: string | null, credit: { __typename?: 'Attribution', source: LexicalSource, license: string, attribution: string, sourceUrl?: string | null } }> }> };
+
+export type MyWordsQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type MyWordsQuery = { __typename?: 'Query', myWords: Array<{ __typename?: 'SrsCard', id: string, direction: CardDirection, state: CardState, dueAt: string, reps: number, lapses: number, item: { __typename?: 'LexicalItem', id: string, lemma: string, pos: PartOfSpeech, ipa?: string | null, translationRu?: string | null, credit: { __typename?: 'Attribution', source: LexicalSource, license: string, attribution: string, sourceUrl?: string | null } } }> };
+
+export type ExternalDictionariesQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type ExternalDictionariesQuery = { __typename?: 'Query', externalDictionaries: Array<{ __typename?: 'ExternalDictionary', key: string, name: string, url: string }> };
+
+export type AddWordToMyListMutationVariables = Exact<{
+  itemId: Scalars['ID']['input'];
+}>;
+
+
+export type AddWordToMyListMutation = { __typename?: 'Mutation', addWordToMyList: { __typename?: 'SrsCard', id: string, state: CardState, dueAt: string } };
+
+export type PutWordOnBoardMutationVariables = Exact<{
+  lessonId: Scalars['ID']['input'];
+  itemId: Scalars['ID']['input'];
+}>;
+
+
+export type PutWordOnBoardMutation = { __typename?: 'Mutation', putWordOnBoard: string };
+
+export type ShowWordToClassMutationVariables = Exact<{
+  sessionId: Scalars['ID']['input'];
+  itemId: Scalars['ID']['input'];
+}>;
+
+
+export type ShowWordToClassMutation = { __typename?: 'Mutation', showWordToClass: { __typename?: 'WordShown', sessionId: string, itemId: string, lemma: string } };
+
+export type WordShownSubscriptionVariables = Exact<{
+  sessionId: Scalars['ID']['input'];
+}>;
+
+
+export type WordShownSubscription = { __typename?: 'Subscription', wordShown: { __typename?: 'WordShown', sessionId: string, itemId: string, lemma: string } };
 
 export type LessonExerciseSetsQueryVariables = Exact<{
   lessonId: Scalars['ID']['input'];
@@ -5644,6 +5819,381 @@ export function useDeleteMaterialMutation(baseOptions?: Apollo.MutationHookOptio
 export type DeleteMaterialMutationHookResult = ReturnType<typeof useDeleteMaterialMutation>;
 export type DeleteMaterialMutationResult = Apollo.MutationResult<DeleteMaterialMutation>;
 export type DeleteMaterialMutationOptions = Apollo.BaseMutationOptions<DeleteMaterialMutation, DeleteMaterialMutationVariables>;
+export const LookupWordDocument = gql`
+    query LookupWord($lemma: String!) {
+  lookupWord(lemma: $lemma) {
+    id
+    lemma
+    pos
+    senseId
+    cefrLevel
+    ipa
+    definitionRu
+    translationRu
+    pronunciationId
+    credit {
+      source
+      license
+      attribution
+      sourceUrl
+    }
+    examples {
+      id
+      text
+      translationRu
+      credit {
+        source
+        license
+        attribution
+        sourceUrl
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useLookupWordQuery__
+ *
+ * To run a query within a React component, call `useLookupWordQuery` and pass it any options that fit your needs.
+ * When your component renders, `useLookupWordQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useLookupWordQuery({
+ *   variables: {
+ *      lemma: // value for 'lemma'
+ *   },
+ * });
+ */
+export function useLookupWordQuery(baseOptions: Apollo.QueryHookOptions<LookupWordQuery, LookupWordQueryVariables> & ({ variables: LookupWordQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<LookupWordQuery, LookupWordQueryVariables>(LookupWordDocument, options);
+      }
+export function useLookupWordLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<LookupWordQuery, LookupWordQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<LookupWordQuery, LookupWordQueryVariables>(LookupWordDocument, options);
+        }
+// @ts-ignore
+export function useLookupWordSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<LookupWordQuery, LookupWordQueryVariables>): Apollo.UseSuspenseQueryResult<LookupWordQuery, LookupWordQueryVariables>;
+export function useLookupWordSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<LookupWordQuery, LookupWordQueryVariables>): Apollo.UseSuspenseQueryResult<LookupWordQuery | undefined, LookupWordQueryVariables>;
+export function useLookupWordSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<LookupWordQuery, LookupWordQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<LookupWordQuery, LookupWordQueryVariables>(LookupWordDocument, options);
+        }
+export type LookupWordQueryHookResult = ReturnType<typeof useLookupWordQuery>;
+export type LookupWordLazyQueryHookResult = ReturnType<typeof useLookupWordLazyQuery>;
+export type LookupWordSuspenseQueryHookResult = ReturnType<typeof useLookupWordSuspenseQuery>;
+export type LookupWordQueryResult = Apollo.QueryResult<LookupWordQuery, LookupWordQueryVariables>;
+export const LessonWordsDocument = gql`
+    query LessonWords($lessonId: ID!) {
+  lessonWords(lessonId: $lessonId) {
+    id
+    lemma
+    pos
+    senseId
+    cefrLevel
+    ipa
+    definitionRu
+    translationRu
+    pronunciationId
+    credit {
+      source
+      license
+      attribution
+      sourceUrl
+    }
+    examples {
+      id
+      text
+      translationRu
+      credit {
+        source
+        license
+        attribution
+        sourceUrl
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useLessonWordsQuery__
+ *
+ * To run a query within a React component, call `useLessonWordsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useLessonWordsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useLessonWordsQuery({
+ *   variables: {
+ *      lessonId: // value for 'lessonId'
+ *   },
+ * });
+ */
+export function useLessonWordsQuery(baseOptions: Apollo.QueryHookOptions<LessonWordsQuery, LessonWordsQueryVariables> & ({ variables: LessonWordsQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<LessonWordsQuery, LessonWordsQueryVariables>(LessonWordsDocument, options);
+      }
+export function useLessonWordsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<LessonWordsQuery, LessonWordsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<LessonWordsQuery, LessonWordsQueryVariables>(LessonWordsDocument, options);
+        }
+// @ts-ignore
+export function useLessonWordsSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<LessonWordsQuery, LessonWordsQueryVariables>): Apollo.UseSuspenseQueryResult<LessonWordsQuery, LessonWordsQueryVariables>;
+export function useLessonWordsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<LessonWordsQuery, LessonWordsQueryVariables>): Apollo.UseSuspenseQueryResult<LessonWordsQuery | undefined, LessonWordsQueryVariables>;
+export function useLessonWordsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<LessonWordsQuery, LessonWordsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<LessonWordsQuery, LessonWordsQueryVariables>(LessonWordsDocument, options);
+        }
+export type LessonWordsQueryHookResult = ReturnType<typeof useLessonWordsQuery>;
+export type LessonWordsLazyQueryHookResult = ReturnType<typeof useLessonWordsLazyQuery>;
+export type LessonWordsSuspenseQueryHookResult = ReturnType<typeof useLessonWordsSuspenseQuery>;
+export type LessonWordsQueryResult = Apollo.QueryResult<LessonWordsQuery, LessonWordsQueryVariables>;
+export const MyWordsDocument = gql`
+    query MyWords {
+  myWords {
+    id
+    direction
+    state
+    dueAt
+    reps
+    lapses
+    item {
+      id
+      lemma
+      pos
+      ipa
+      translationRu
+      credit {
+        source
+        license
+        attribution
+        sourceUrl
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useMyWordsQuery__
+ *
+ * To run a query within a React component, call `useMyWordsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useMyWordsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useMyWordsQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useMyWordsQuery(baseOptions?: Apollo.QueryHookOptions<MyWordsQuery, MyWordsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<MyWordsQuery, MyWordsQueryVariables>(MyWordsDocument, options);
+      }
+export function useMyWordsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<MyWordsQuery, MyWordsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<MyWordsQuery, MyWordsQueryVariables>(MyWordsDocument, options);
+        }
+// @ts-ignore
+export function useMyWordsSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<MyWordsQuery, MyWordsQueryVariables>): Apollo.UseSuspenseQueryResult<MyWordsQuery, MyWordsQueryVariables>;
+export function useMyWordsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<MyWordsQuery, MyWordsQueryVariables>): Apollo.UseSuspenseQueryResult<MyWordsQuery | undefined, MyWordsQueryVariables>;
+export function useMyWordsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<MyWordsQuery, MyWordsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<MyWordsQuery, MyWordsQueryVariables>(MyWordsDocument, options);
+        }
+export type MyWordsQueryHookResult = ReturnType<typeof useMyWordsQuery>;
+export type MyWordsLazyQueryHookResult = ReturnType<typeof useMyWordsLazyQuery>;
+export type MyWordsSuspenseQueryHookResult = ReturnType<typeof useMyWordsSuspenseQuery>;
+export type MyWordsQueryResult = Apollo.QueryResult<MyWordsQuery, MyWordsQueryVariables>;
+export const ExternalDictionariesDocument = gql`
+    query ExternalDictionaries {
+  externalDictionaries {
+    key
+    name
+    url
+  }
+}
+    `;
+
+/**
+ * __useExternalDictionariesQuery__
+ *
+ * To run a query within a React component, call `useExternalDictionariesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useExternalDictionariesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useExternalDictionariesQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useExternalDictionariesQuery(baseOptions?: Apollo.QueryHookOptions<ExternalDictionariesQuery, ExternalDictionariesQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<ExternalDictionariesQuery, ExternalDictionariesQueryVariables>(ExternalDictionariesDocument, options);
+      }
+export function useExternalDictionariesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<ExternalDictionariesQuery, ExternalDictionariesQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<ExternalDictionariesQuery, ExternalDictionariesQueryVariables>(ExternalDictionariesDocument, options);
+        }
+// @ts-ignore
+export function useExternalDictionariesSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<ExternalDictionariesQuery, ExternalDictionariesQueryVariables>): Apollo.UseSuspenseQueryResult<ExternalDictionariesQuery, ExternalDictionariesQueryVariables>;
+export function useExternalDictionariesSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ExternalDictionariesQuery, ExternalDictionariesQueryVariables>): Apollo.UseSuspenseQueryResult<ExternalDictionariesQuery | undefined, ExternalDictionariesQueryVariables>;
+export function useExternalDictionariesSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ExternalDictionariesQuery, ExternalDictionariesQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<ExternalDictionariesQuery, ExternalDictionariesQueryVariables>(ExternalDictionariesDocument, options);
+        }
+export type ExternalDictionariesQueryHookResult = ReturnType<typeof useExternalDictionariesQuery>;
+export type ExternalDictionariesLazyQueryHookResult = ReturnType<typeof useExternalDictionariesLazyQuery>;
+export type ExternalDictionariesSuspenseQueryHookResult = ReturnType<typeof useExternalDictionariesSuspenseQuery>;
+export type ExternalDictionariesQueryResult = Apollo.QueryResult<ExternalDictionariesQuery, ExternalDictionariesQueryVariables>;
+export const AddWordToMyListDocument = gql`
+    mutation AddWordToMyList($itemId: ID!) {
+  addWordToMyList(itemId: $itemId) {
+    id
+    state
+    dueAt
+  }
+}
+    `;
+export type AddWordToMyListMutationFn = Apollo.MutationFunction<AddWordToMyListMutation, AddWordToMyListMutationVariables>;
+
+/**
+ * __useAddWordToMyListMutation__
+ *
+ * To run a mutation, you first call `useAddWordToMyListMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useAddWordToMyListMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [addWordToMyListMutation, { data, loading, error }] = useAddWordToMyListMutation({
+ *   variables: {
+ *      itemId: // value for 'itemId'
+ *   },
+ * });
+ */
+export function useAddWordToMyListMutation(baseOptions?: Apollo.MutationHookOptions<AddWordToMyListMutation, AddWordToMyListMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<AddWordToMyListMutation, AddWordToMyListMutationVariables>(AddWordToMyListDocument, options);
+      }
+export type AddWordToMyListMutationHookResult = ReturnType<typeof useAddWordToMyListMutation>;
+export type AddWordToMyListMutationResult = Apollo.MutationResult<AddWordToMyListMutation>;
+export type AddWordToMyListMutationOptions = Apollo.BaseMutationOptions<AddWordToMyListMutation, AddWordToMyListMutationVariables>;
+export const PutWordOnBoardDocument = gql`
+    mutation PutWordOnBoard($lessonId: ID!, $itemId: ID!) {
+  putWordOnBoard(lessonId: $lessonId, itemId: $itemId)
+}
+    `;
+export type PutWordOnBoardMutationFn = Apollo.MutationFunction<PutWordOnBoardMutation, PutWordOnBoardMutationVariables>;
+
+/**
+ * __usePutWordOnBoardMutation__
+ *
+ * To run a mutation, you first call `usePutWordOnBoardMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `usePutWordOnBoardMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [putWordOnBoardMutation, { data, loading, error }] = usePutWordOnBoardMutation({
+ *   variables: {
+ *      lessonId: // value for 'lessonId'
+ *      itemId: // value for 'itemId'
+ *   },
+ * });
+ */
+export function usePutWordOnBoardMutation(baseOptions?: Apollo.MutationHookOptions<PutWordOnBoardMutation, PutWordOnBoardMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<PutWordOnBoardMutation, PutWordOnBoardMutationVariables>(PutWordOnBoardDocument, options);
+      }
+export type PutWordOnBoardMutationHookResult = ReturnType<typeof usePutWordOnBoardMutation>;
+export type PutWordOnBoardMutationResult = Apollo.MutationResult<PutWordOnBoardMutation>;
+export type PutWordOnBoardMutationOptions = Apollo.BaseMutationOptions<PutWordOnBoardMutation, PutWordOnBoardMutationVariables>;
+export const ShowWordToClassDocument = gql`
+    mutation ShowWordToClass($sessionId: ID!, $itemId: ID!) {
+  showWordToClass(sessionId: $sessionId, itemId: $itemId) {
+    sessionId
+    itemId
+    lemma
+  }
+}
+    `;
+export type ShowWordToClassMutationFn = Apollo.MutationFunction<ShowWordToClassMutation, ShowWordToClassMutationVariables>;
+
+/**
+ * __useShowWordToClassMutation__
+ *
+ * To run a mutation, you first call `useShowWordToClassMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useShowWordToClassMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [showWordToClassMutation, { data, loading, error }] = useShowWordToClassMutation({
+ *   variables: {
+ *      sessionId: // value for 'sessionId'
+ *      itemId: // value for 'itemId'
+ *   },
+ * });
+ */
+export function useShowWordToClassMutation(baseOptions?: Apollo.MutationHookOptions<ShowWordToClassMutation, ShowWordToClassMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<ShowWordToClassMutation, ShowWordToClassMutationVariables>(ShowWordToClassDocument, options);
+      }
+export type ShowWordToClassMutationHookResult = ReturnType<typeof useShowWordToClassMutation>;
+export type ShowWordToClassMutationResult = Apollo.MutationResult<ShowWordToClassMutation>;
+export type ShowWordToClassMutationOptions = Apollo.BaseMutationOptions<ShowWordToClassMutation, ShowWordToClassMutationVariables>;
+export const WordShownDocument = gql`
+    subscription WordShown($sessionId: ID!) {
+  wordShown(sessionId: $sessionId) {
+    sessionId
+    itemId
+    lemma
+  }
+}
+    `;
+
+/**
+ * __useWordShownSubscription__
+ *
+ * To run a query within a React component, call `useWordShownSubscription` and pass it any options that fit your needs.
+ * When your component renders, `useWordShownSubscription` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the subscription, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useWordShownSubscription({
+ *   variables: {
+ *      sessionId: // value for 'sessionId'
+ *   },
+ * });
+ */
+export function useWordShownSubscription(baseOptions: Apollo.SubscriptionHookOptions<WordShownSubscription, WordShownSubscriptionVariables> & ({ variables: WordShownSubscriptionVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useSubscription<WordShownSubscription, WordShownSubscriptionVariables>(WordShownDocument, options);
+      }
+export type WordShownSubscriptionHookResult = ReturnType<typeof useWordShownSubscription>;
+export type WordShownSubscriptionResult = Apollo.SubscriptionResult<WordShownSubscription>;
 export const LessonExerciseSetsDocument = gql`
     query LessonExerciseSets($lessonId: ID!) {
   lessonExerciseSets(lessonId: $lessonId) {

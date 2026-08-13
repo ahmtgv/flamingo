@@ -861,3 +861,93 @@ describe('resolveDemoOperation — summary (R4.2)', () => {
     expect(summary()!.canEdit).toBe(false);
   });
 });
+
+describe('resolveDemoOperation — dictionary (R4.3)', () => {
+  type Word = {
+    id: string;
+    lemma: string;
+    credit: { source: string; license: string; attribution: string };
+    examples: { credit: { source: string; license: string; attribution: string } }[];
+  };
+  const card = (lemma: string) =>
+    (resolveDemoOperation('LookupWord', { lemma }) as { lookupWord: Word[] }).lookupWord;
+
+  it('every part of every word carries a real licence and a real credit', () => {
+    // A demo that showed plausible-looking placeholders would teach the wrong thing about the
+    // one part of this feature that is a legal obligation.
+    const words = (
+      resolveDemoOperation('LessonWords', { lessonId: 'les-1-12' }) as {
+        lessonWords: Word[];
+      }
+    ).lessonWords;
+    expect(words.length).toBeGreaterThan(0);
+    for (const w of words) {
+      expect(w.credit.license).not.toBe('');
+      expect(w.credit.attribution).not.toBe('');
+      for (const e of w.examples) {
+        expect(e.credit.license).not.toBe('');
+        expect(e.credit.attribution).not.toBe('');
+      }
+    }
+  });
+
+  it('only the three open bases appear as sources — a closed one has nowhere to sit', () => {
+    const words = (
+      resolveDemoOperation('LessonWords', { lessonId: 'les-1-12' }) as {
+        lessonWords: Word[];
+      }
+    ).lessonWords;
+    const sources = new Set(
+      words.flatMap((w) => [w.credit.source, ...w.examples.map((e) => e.credit.source)]),
+    );
+    for (const s of sources) {
+      expect(['WORDNET', 'TATOEBA', 'COMMON_VOICE', 'OWN']).toContain(s);
+    }
+  });
+
+  it('a lemma comes back with all of its senses', () => {
+    expect(card('crossroads')).toHaveLength(2);
+    expect(card('Crossroads')).toHaveLength(2);
+    expect(card('zzz')).toHaveLength(0);
+  });
+
+  it('Cambridge is offered as a URL and nothing else', () => {
+    const external = (
+      resolveDemoOperation('ExternalDictionaries', {}) as {
+        externalDictionaries: { key: string; url: string }[];
+      }
+    ).externalDictionaries;
+    expect(external.map((e) => e.key)).toEqual(['cambridge']);
+    expect(external[0].url).toMatch(/^https:\/\/dictionary\.cambridge\.org\//);
+  });
+
+  it('«в мои слова» puts the word in the queue and keeps it there', () => {
+    setRole('student');
+    resolveDemoOperation('AddWordToMyList', { itemId: 'lx-1' });
+    const mine = (
+      resolveDemoOperation('MyWords', {}) as {
+        myWords: { item: { id: string } }[];
+      }
+    ).myWords;
+    expect(mine.map((c) => c.item.id)).toEqual(['lx-1']);
+  });
+
+  it('«на доску» lands on the same canvas the board reads', () => {
+    setRole('teacher');
+    const before = (
+      resolveDemoOperation('Board', { lessonId: 'les-1-12' }) as {
+        board: { elements: { data: Record<string, unknown> }[] };
+      }
+    ).board.elements.length;
+
+    resolveDemoOperation('PutWordOnBoard', { lessonId: 'les-1-12', itemId: 'lx-1' });
+
+    const after = (
+      resolveDemoOperation('Board', { lessonId: 'les-1-12' }) as {
+        board: { elements: { data: Record<string, unknown> }[] };
+      }
+    ).board.elements;
+    expect(after).toHaveLength(before + 1);
+    expect(String(after[after.length - 1].data.text)).toContain('crossroads');
+  });
+});

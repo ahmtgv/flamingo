@@ -22,6 +22,7 @@ import { Avatar, Button } from '@/shared/ui';
 import { initialsOf } from '../../cabinet/ui/initials';
 import { BoardCanvas } from '@/features/board';
 import { TestScene } from '@/features/exercises';
+import { DictionaryPane } from '@/features/dictionary';
 import { LessonChatPane, SummaryScene } from '@/features/summary';
 
 import frame from './roomframe.module.css';
@@ -95,7 +96,15 @@ function SourceSwitcher() {
 
 function PreviewPane({ pane }: { pane: Pane }) {
   const { t } = useTranslation('room');
-  if (pane === 'dict') return <p className={frame.paneEmpty}>{t('dictSoon')}</p>;
+  if (pane === 'dict') {
+    return (
+      <DictionaryPane
+        lessonId="les-1-12"
+        sessionId="ses-algebra-live"
+        isTeacher={demoRole() === 'teacher'}
+      />
+    );
+  }
   if (pane === 'chat') return <LessonChatPane sessionId="ses-algebra-live" />;
   if (pane === 'mats') {
     return (
