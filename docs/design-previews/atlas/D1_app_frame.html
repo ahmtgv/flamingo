@@ -179,6 +179,8 @@ h1{font-size:1.25rem;font-weight:600;letter-spacing:-.015em}
 .winSwitch{display:flex;gap:2px;background:var(--subtle);border-radius:9px;padding:3px;margin-left:auto}
 .win{font:500 10px var(--mono);color:var(--sec);background:none;border:none;border-radius:7px;padding:6px 11px;cursor:pointer}
 .win[aria-selected="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.05)}
+.mode{font:500 10px var(--mono);color:var(--sec);background:none;border:none;border-radius:7px;padding:6px 11px;cursor:pointer}
+.mode[aria-selected="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.05)}
 .vidStrip{display:flex;gap:8px;padding:10px 16px;border-bottom:1px solid var(--border);overflow-x:auto;align-items:center}
 .vid{position:relative;border-radius:9px;background:#17171a;overflow:hidden;flex:none;width:132px;aspect-ratio:16/10;
   border:1px solid rgba(255,255,255,.08);display:grid;place-content:center}
@@ -206,7 +208,24 @@ h1{font-size:1.25rem;font-weight:600;letter-spacing:-.015em}
 .app[data-scene="faces"] .canvasWrap{display:none}
 .app[data-scene="faces"] .faces{display:grid}
 .app[data-scene="faces"] .vidStrip{display:none}          /* полоса не дублирует лица */
-.facesMain{position:relative;display:grid;place-items:center;overflow:hidden}
+/* раскладка класса: преподаватель виден ВСЕГДА, остальное подстраивается */
+.facesStage{display:grid;gap:10px;padding:12px 16px 0;min-height:0}
+.faces[data-mode="pair"] .facesStage{grid-template-columns:1fr 1fr}
+.faces[data-mode="group"] .facesStage{grid-template-columns:1.35fr .65fr}
+.faces[data-mode="pinned"] .facesStage{grid-template-columns:1fr 1fr}
+.facesMain{position:relative;display:grid;place-items:center;overflow:hidden;border-radius:12px;background:#1d1d20;
+  min-height:260px}
+.facesMain[data-teacher]{outline:2px solid var(--coral);outline-offset:-2px}
+.facesSide{display:grid;gap:10px;min-height:0}
+.faces[data-mode="group"] .facesSide{grid-template-columns:1fr 1fr;grid-auto-rows:minmax(0,1fr)}
+.faces[data-mode="pair"] .facesSide,.faces[data-mode="pinned"] .facesSide{grid-template-columns:1fr}
+.faces[data-mode="pair"] .facesRow,.faces[data-mode="pinned"] .facesRow{display:none}
+.facesSide .faceTile{width:auto;aspect-ratio:16/10;min-height:0}
+.pinBtn{position:absolute;right:8px;top:8px;font:500 9px var(--mono);color:#fff;background:rgba(0,0,0,.5);
+  border:1px solid rgba(255,255,255,.25);border-radius:7px;padding:4px 9px;cursor:pointer;opacity:0}
+.faceTile:hover .pinBtn,.pinBtn:focus-visible{opacity:1}
+.roleTag{position:absolute;left:8px;top:8px;font:500 8px var(--mono);color:#fff;background:var(--coral);
+  border-radius:4px;padding:2px 7px;letter-spacing:.08em;text-transform:uppercase}
 .facesMain .ini{font:500 64px var(--mono);color:rgba(255,255,255,.35)}
 .facesMain .who{position:absolute;left:16px;bottom:14px;display:flex;align-items:center;gap:8px;
   font:500 var(--fs-cap) var(--ui);color:#fff;background:rgba(0,0,0,.5);border-radius:999px;padding:6px 14px}
@@ -309,7 +328,7 @@ h1{font-size:1.25rem;font-weight:600;letter-spacing:-.015em}
 
     <!-- ═══ полоса состояния хоста ═══ -->
     <div class="hostBar" id="hostBar">
-      <span class="fact"><span class="factK">Канал вверх</span><span class="factV" id="upV" data-good>12,4 Мбит/с</span></span>
+      <span class="fact"><span class="factK">Связь</span><span class="factV" id="upV" data-good>хорошая</span></span>
       <span class="meter" data-level="4" id="meter" aria-label="уровень канала"><i></i><i></i><i></i><i></i></span>
       <span class="fact"><span class="factK">Подключено</span><span class="factV" id="peers">6 из 8</span></span>
       <span class="fact"><span class="factK">Идёт</span><span class="factV" id="elapsed">24:16</span></span>
@@ -419,8 +438,13 @@ h1{font-size:1.25rem;font-weight:600;letter-spacing:-.015em}
               <span class="dot" style="width:7px;height:7px;border-radius:50%;background:var(--coral)"></span>
               <span><span class="roomName">English A2 · Unit 4 — Travel</span>
                 <span class="roomMeta"> · урок 4 · 8 участников</span></span>
+              <span class="winSwitch" id="modeSwitch" hidden style="margin-left:0">
+                <button class="mode" data-mode="pair" aria-selected="false">вдвоём</button>
+                <button class="mode" data-mode="group" aria-selected="true">группа</button>
+                <button class="mode" data-mode="pinned" aria-selected="false">ученик рядом</button>
+              </span>
               <span class="winSwitch">
-                <button class="win" data-scene="faces">Люди</button>
+                <button class="win" data-scene="faces">Класс</button>
                 <button class="win" data-scene="board" aria-selected="true">Доска</button>
                 <button class="win" data-scene="material">Методичка</button>
                 <button class="win" data-scene="test">Тест</button>
@@ -438,19 +462,31 @@ h1{font-size:1.25rem;font-weight:600;letter-spacing:-.015em}
             </div>
 
             <!-- ——— сцена «Люди»: материала нет, экран отдан участникам ——— -->
-            <div class="faces" style="grid-template-rows:1fr auto">
-              <div class="facesMain">
-                <span class="ini">МП</span>
-                <span class="who"><i></i>Мария Петровна · говорит</span>
+            <div class="faces" id="faces" data-mode="group" style="grid-template-rows:minmax(0,1fr) auto">
+              <div class="facesStage">
+                <div class="facesMain" data-teacher>
+                  <span class="roleTag">преподаватель</span>
+                  <span class="ini">МП</span>
+                  <span class="who"><i></i>Мария Петровна</span>
+                </div>
+                <div class="facesSide" id="facesSide">
+                  <div class="faceTile" data-up><span class="ini">АК</span><span class="who">Аня</span>
+                    <button class="pinBtn">На большой экран</button></div>
+                  <div class="faceTile"><span class="ini">ПК</span><span class="who">Петя</span>
+                    <button class="pinBtn">На большой экран</button></div>
+                  <div class="faceTile"><span class="ini">ЛМ</span><span class="who">Лена</span>
+                    <button class="pinBtn">На большой экран</button></div>
+                  <div class="faceTile"><span class="ini">ДС</span><span class="who">Дима</span>
+                    <button class="pinBtn">На большой экран</button></div>
+                </div>
               </div>
               <div class="facesRow">
                 <div class="faceTile" data-self><span class="ini">МП</span><span class="who">вы</span></div>
-                <div class="faceTile" data-up><span class="ini">АК</span><span class="who">Аня</span></div>
-                <div class="faceTile"><span class="ini">ПК</span><span class="who">Петя</span></div>
-                <div class="faceTile"><span class="ini">ЛМ</span><span class="who">Лена</span></div>
-                <div class="faceTile"><span class="ini">ДС</span><span class="who">Дима</span></div>
-                <div class="faceTile"><span class="ini">ИВ</span><span class="who">Ира</span></div>
-                <span class="facesHint">крупно — кто говорит; ученик видит преподавателя во весь экран и себя в ленте</span>
+                <div class="faceTile"><span class="ini">ИВ</span><span class="who">Ира</span>
+                  <button class="pinBtn">На большой экран</button></div>
+                <div class="faceTile"><span class="ini">СТ</span><span class="who">Саша</span>
+                  <button class="pinBtn">На большой экран</button></div>
+                <span class="facesHint" id="facesHint">преподаватель виден всегда · остальные делят вторую половину</span>
               </div>
             </div>
 
@@ -555,14 +591,17 @@ h1{font-size:1.25rem;font-weight:600;letter-spacing:-.015em}
       <li><b>Скопировать ссылку</b> лежит здесь же — самое частое действие первых минут.</li>
     </ul>
 
-    <h3>Режим «Люди» — когда материала нет</h3>
-    <p>Первое окно в переключателе. Доска, методичка и тест — материал; но половина занятия по языку это просто
-    разговор, и тогда экран должен быть отдан <b>людям, а не пустой доске</b>.</p>
+    <h3>Окно «Класс» — когда материала нет (решения владельца 14.08)</h3>
+    <p>Первое окно в переключателе. Доска, методичка и тест — это материал; но половина языкового занятия —
+    просто разговор, и тогда экран нужно отдать <b>людям, а не пустой доске</b>.</p>
     <ul>
-      <li><b>Крупно — говорящий</b>, по умолчанию преподаватель. Ученик видит его во весь экран, себя — в ленте внизу.</li>
-      <li>Верхняя полоса участников <b>скрывается</b>: она бы дублировала ленту и отъедала высоту у главного кадра.</li>
-      <li>Поднятая рука видна прямо на плитке — преподаватель не должен для этого открывать панель.</li>
-      <li>Переключение обратно на доску не рвёт соединение: меняется только раскладка окна.</li>
+      <li><b>Преподаватель виден всегда.</b> Это не «активный говорящий», который прыгает по кадру, а постоянная опора урока.</li>
+      <li><b>Вдвоём</b> — преподаватель и ученик делят экран поровну.</li>
+      <li><b>Группа</b> (трое и больше) — преподаватель занимает бо́льшую половину, остальные распределяются по второй.</li>
+      <li><b>Ученик рядом</b> — преподаватель может вывести любого на большой экран рядом с собой: отвечает у доски,
+      читает вслух, показывает работу. Кнопка появляется на плитке при наведении, остальные уходят в ленту внизу.</li>
+      <li>Верхняя полоса участников в этом окне <b>скрыта</b> — она дублировала бы кадры и отъедала высоту у главного.</li>
+      <li>Переключение между «Классом» и доской <b>не рвёт соединение</b>: меняется только раскладка окна.</li>
     </ul>
 
     <h3>Канал просел</h3>
@@ -579,64 +618,19 @@ h1{font-size:1.25rem;font-weight:600;letter-spacing:-.015em}
     <p>Свёрнутое окно <b>не заканчивает урок</b>: в трее то же, что в заголовке — идёт занятие, сколько времени,
     сколько человек.</p>
 
-    <h3>Вопросы к тебе</h3>
-    <div class="q"><p>1. В режиме «Люди» крупно показывать <b>говорящего</b> (переключается сам) или всегда преподавателя?
-    Я сделал говорящего: на разговорном занятии это живее, но кадр иногда будет прыгать.</p></div>
-    <div class="q"><p>2. Скорость канала числом — или заменить на «связь хорошая / слабая», а число оставить в настройках?
-    Для преподавателя мегабиты могут быть лишней технической деталью.</p></div>
-    <div class="q"><p>3. Версия в заголовке — оставляем на виду или прячем в настройки?</p></div>
-    <div class="q"><p>4. Кнопка «Завершить» в раме — нужна, если такая же есть внутри урока? Я оставил:
-    преподаватель часто сворачивает окно и забывает, что комната открыта.</p></div>
+    <h3>Решения владельца 14.08 — закреплены</h3>
+    <ul>
+      <li><b>Окно называется «Класс»</b>, не «Люди».</li>
+      <li><b>Преподаватель на экране всегда</b>; вдвоём — поровну, втроём и больше — остальные делят вторую половину;
+      любого ученика можно вывести рядом с собой.</li>
+      <li><b>Связь показываем словами</b> — «хорошая / слабая / нет». Мегабиты, потери и прочие числа уходят в настройки:
+      преподавателю нужно решение, а не телеметрия.</li>
+      <li><b>Версия остаётся в заголовке</b> — экономит полразговора при поддержке.</li>
+      <li><b>«Завершить» остаётся в раме</b>: преподаватель часто сворачивает окно и забывает, что комната открыта.</li>
+    </ul>
+
+    <h3>Что осталось на потом</h3>
+    <p>Числа канала (скорость, потери, битрейт) живут в настройках приложения — это отдельный экран,
+    он появится в листе <b>D2</b> вместе с проверкой связи при первом запуске.</p>
   </div>
 </div>
-
-<script>
-const app=document.getElementById('app');
-const st=document.getElementById('hostState'), txt=document.getElementById('hostText');
-const upV=document.getElementById('upV'), meter=document.getElementById('meter');
-const peers=document.getElementById('peers'), elapsed=document.getElementById('elapsed');
-const acts=document.getElementById('hostActs'), why=document.getElementById('hostWhy');
-const strip=document.getElementById('strip'), lost=document.getElementById('lostRow');
-
-const S={
-  idle:{t:'урок не идёт',up:'12,4 Мбит/с',lvl:'4',good:1,p:'—',e:'—',why:'',
-    acts:'<button class="mini">Скопировать ссылку</button><button class="mini primary">Начать урок</button>'},
-  live:{t:'урок идёт с этой машины',up:'12,4 Мбит/с',lvl:'4',good:1,p:'6 из 8',e:'24:16',why:'',
-    acts:'<button class="mini">Скопировать ссылку</button><button class="mini primary">Завершить</button>'},
-  weak:{t:'канал просел',up:'3,1 Мбит/с',lvl:'2',good:0,p:'6 из 8',e:'31:04',
-    why:'Снизили качество видео, чтобы урок не прерывался. Звук и доска не пострадали.',
-    acts:'<button class="mini">Что это значит</button><button class="mini primary">Завершить</button>'},
-  offline:{t:'нет соединения',up:'—',lvl:'0',good:0,p:'0 из 8',e:'—',
-    why:'Ученики не могут подключиться. Данные на этом компьютере в целости.',
-    acts:'<button class="mini primary">Проверить снова</button>'},
-};
-
-function apply(k){
-  const s=S[k];
-  app.dataset.state=k; st.dataset.state=k; txt.textContent=s.t;
-  upV.textContent=s.up; meter.dataset.level=s.lvl;
-  upV.toggleAttribute('data-good',!!s.good); upV.toggleAttribute('data-warn',!s.good);
-  peers.textContent=s.p; elapsed.textContent=s.e; acts.innerHTML=s.acts;
-  why.hidden=!s.why; why.textContent=s.why;
-  // плитки: при просевшем канале часть переходит в сниженное качество
-  strip.querySelectorAll('.vid').forEach((v,i)=>v.toggleAttribute('data-degraded', k==='weak' && i>2));
-  lost.hidden = !(k==='live'||k==='weak');
-}
-document.querySelectorAll('.bar button[data-state]').forEach(b=>b.addEventListener('click',()=>{
-  document.querySelectorAll('.bar button[data-state]').forEach(x=>x.setAttribute('aria-pressed','false'));
-  b.setAttribute('aria-pressed','true'); apply(b.dataset.state);
-}));
-document.querySelectorAll('.winSwitch .win, .sideTabs .sTab').forEach(t=>t.addEventListener('click',()=>{
-  t.parentElement.querySelectorAll('button').forEach(x=>x.setAttribute('aria-selected','false'));
-  t.setAttribute('aria-selected','true');
-  if(t.dataset.scene) app.dataset.scene=t.dataset.scene;
-}));
-document.getElementById('thm').addEventListener('click',e=>{
-  const d=document.documentElement.dataset.theme==='dark';
-  document.documentElement.dataset.theme=d?'':'dark';
-  e.target.textContent=d?'тёмная':'светлая';
-});
-apply('idle');
-</script>
-</body>
-</html>
