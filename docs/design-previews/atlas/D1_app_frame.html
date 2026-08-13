@@ -49,9 +49,16 @@ h1{font-size:1.25rem;font-weight:600;letter-spacing:-.015em}
 .traffic i:nth-child(1){background:#ff5f57}
 .traffic i:nth-child(2){background:#febc2e}
 .traffic i:nth-child(3){background:#28c840}
-.appName{display:flex;align-items:center;gap:7px;font:500 var(--fs-cap) var(--ui)}
+.appName{display:flex;align-items:center;gap:7px;font:500 var(--fs-cap) var(--ui);flex:none}
 .appName .dot{width:7px;height:7px;border-radius:50%;background:var(--coral)}
 .appName .ver{font:400 9px var(--mono);color:var(--ter)}
+/* опознание урока живёт в заголовке окна — рабочая площадь важнее */
+.lessonTag{display:none;align-items:baseline;gap:8px;min-width:0}
+.app[data-state="live"] .lessonTag,.app[data-state="weak"] .lessonTag{display:flex}
+.sepv{width:1px;height:13px;background:var(--border-s);flex:none;align-self:center}
+.lessonName{font:500 var(--fs-cap) var(--ui);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.lessonMeta{font:400 9px var(--mono);color:var(--ter);white-space:nowrap;flex:none}
+@media (max-width:1100px){.lessonMeta{display:none}}
 .hostState{margin:0 auto;display:flex;align-items:center;gap:9px;font:500 10px var(--mono);
   border:1px solid var(--border);border-radius:999px;padding:4px 13px;background:var(--surface);white-space:nowrap}
 .hostState .lamp{width:6px;height:6px;border-radius:50%;background:var(--ter);flex:none}
@@ -104,7 +111,7 @@ h1{font-size:1.25rem;font-weight:600;letter-spacing:-.015em}
 /* ——— СТАРТОВАЯ (лист 00, встроен как есть) ——— */
 .page{padding:26px 30px 34px}
 .hi{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:18px}
-.hiName{font-size:1.75rem;font-weight:600;letter-spacing:-.02em}
+.hiName{font-size:1.375rem;font-weight:600;letter-spacing:-.02em}
 .hiDate{font:500 var(--fs-cap) var(--mono);color:var(--ter);font-variant-numeric:tabular-nums}
 .grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) 268px;gap:14px;align-items:start}
 .slot{background:var(--surface);border:1px solid var(--border);border-radius:13px;padding:16px 18px}
@@ -173,9 +180,8 @@ h1{font-size:1.25rem;font-weight:600;letter-spacing:-.015em}
 /* ——— КОМНАТА УРОКА (лист 02, встроен как есть) ——— */
 .room{display:grid;grid-template-columns:minmax(0,1fr) 292px;height:100%;min-height:640px;background:var(--surface)}
 .stage{border-inline-end:1px solid var(--border);display:grid;grid-template-rows:auto auto minmax(0,1fr);min-width:0}
-.roomTop{display:flex;align-items:center;gap:12px;padding:10px 16px;border-bottom:1px solid var(--border);flex-wrap:wrap}
-.roomName{font-size:14px;font-weight:500}
-.roomMeta{font:400 10px var(--mono);color:var(--ter)}
+/* строка окон урока: только переключатели — название урока уехало в заголовок окна */
+.roomTop{display:flex;align-items:center;gap:8px;padding:6px 16px;border-bottom:1px solid var(--border);flex-wrap:wrap}
 .winSwitch{display:flex;gap:2px;background:var(--subtle);border-radius:9px;padding:3px;margin-left:auto}
 .win{font:500 10px var(--mono);color:var(--sec);background:none;border:none;border-radius:7px;padding:6px 11px;cursor:pointer}
 .win[aria-selected="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.05)}
@@ -317,6 +323,9 @@ h1{font-size:1.25rem;font-weight:600;letter-spacing:-.015em}
     <div class="titlebar">
       <span class="traffic"><i></i><i></i><i></i></span>
       <span class="appName"><span class="dot"></span>Flamingo<span class="ver">1.0.0</span></span>
+      <span class="lessonTag"><span class="sepv"></span>
+        <span class="lessonName">English A2 · Unit 4 — Travel</span>
+        <span class="lessonMeta">урок 4 · 8 участников</span></span>
       <span class="hostState" data-state="idle" id="hostState">
         <span class="lamp"></span><span id="hostText">урок не идёт</span>
       </span>
@@ -342,7 +351,7 @@ h1{font-size:1.25rem;font-weight:600;letter-spacing:-.015em}
       <!-- ——— стартовая страница, лист 00 ——— -->
       <div class="scene s-start">
         <div class="page">
-          <div class="hi"><span class="hiName">Здравствуйте, Мария Петровна</span>
+          <div class="hi"><span class="hiName">Люция Валерьевна</span>
             <span class="hiDate">четверг, 14 августа · 09:41</span></div>
 
           <div class="grid">
@@ -435,9 +444,6 @@ h1{font-size:1.25rem;font-weight:600;letter-spacing:-.015em}
         <div class="room">
           <div class="stage">
             <div class="roomTop">
-              <span class="dot" style="width:7px;height:7px;border-radius:50%;background:var(--coral)"></span>
-              <span><span class="roomName">English A2 · Unit 4 — Travel</span>
-                <span class="roomMeta"> · урок 4 · 8 участников</span></span>
               <span class="winSwitch" id="modeSwitch" hidden style="margin-left:0">
                 <button class="mode" data-mode="pair" aria-selected="false">вдвоём</button>
                 <button class="mode" data-mode="group" aria-selected="true">группа</button>
@@ -453,7 +459,7 @@ h1{font-size:1.25rem;font-weight:600;letter-spacing:-.015em}
             </div>
 
             <div class="vidStrip" id="strip">
-              <div class="vid main" data-speaking><span class="ini">МП</span><span class="who">вы · ведёте</span></div>
+              <div class="vid main" data-speaking><span class="ini">ЛВ</span><span class="who">вы · ведёте</span></div>
               <div class="vid"><span class="ini">АК</span><span class="who">Аня</span></div>
               <div class="vid"><span class="ini">ПК</span><span class="who">Петя</span></div>
               <div class="vid"><span class="ini">ЛМ</span><span class="who">Лена</span></div>
@@ -466,8 +472,8 @@ h1{font-size:1.25rem;font-weight:600;letter-spacing:-.015em}
               <div class="facesStage">
                 <div class="facesMain" data-teacher>
                   <span class="roleTag">преподаватель</span>
-                  <span class="ini">МП</span>
-                  <span class="who"><i></i>Мария Петровна</span>
+                  <span class="ini">ЛВ</span>
+                  <span class="who"><i></i>Люция Валерьевна</span>
                 </div>
                 <div class="facesSide" id="facesSide">
                   <div class="faceTile" data-up><span class="ini">АК</span><span class="who">Аня</span>
@@ -481,7 +487,7 @@ h1{font-size:1.25rem;font-weight:600;letter-spacing:-.015em}
                 </div>
               </div>
               <div class="facesRow">
-                <div class="faceTile" data-self><span class="ini">МП</span><span class="who">вы</span></div>
+                <div class="faceTile" data-self><span class="ini">ЛВ</span><span class="who">вы</span></div>
                 <div class="faceTile"><span class="ini">ИВ</span><span class="who">Ира</span>
                   <button class="pinBtn">На большой экран</button></div>
                 <div class="faceTile"><span class="ini">СТ</span><span class="who">Саша</span>
@@ -513,7 +519,7 @@ h1{font-size:1.25rem;font-weight:600;letter-spacing:-.015em}
               <button class="sTab">чат</button>
             </div>
             <div class="sideBody" id="sideBody">
-              <div class="per"><span class="pAv">МП</span>
+              <div class="per"><span class="pAv">ЛВ</span>
                 <span><span class="pName">Вы</span><span class="pRole">ведёте занятие</span></span>
                 <span class="pSt">говорит</span></div>
               <div class="per"><span class="pAv">АК</span>
@@ -573,12 +579,19 @@ h1{font-size:1.25rem;font-weight:600;letter-spacing:-.015em}
     Содержимое внутри — уже утверждённые листы 00 и 02, они показаны настоящими, чтобы было видно,
     как рама с ними уживается: полоса состояния не должна съедать воздух у экрана, и не съедает.</p>
 
-    <h3>Строка заголовка</h3>
+    <h3>Строка заголовка — она же строка урока (правка владельца 14.08)</h3>
+    <p>Опознание урока переехало наверх: <b>«English A2 · Unit 4 — Travel · урок 4 · 8 участников» живёт
+    в заголовке окна</b>, а не отдельной строкой над сценой. Освободившаяся строка была чистой потерей высоты:
+    она повторяла то, что человек и так знает, и отнимала пиксели у доски. Теперь под заголовком остаются
+    только переключатели окон.</p>
     <ul>
       <li>Слева имя и версия. Версия на виду: первый вопрос при поддержке — всегда «какая у вас версия».</li>
+      <li>Рядом, через разделитель, — <b>какой это урок</b>. Появляется только когда занятие идёт; вне урока
+      строка не носит пустое название.</li>
       <li>По центру — <b>одно состояние машины</b>. От него зависит, можно ли закрывать крышку, и человек должен
       понимать это, просто взглянув на окно.</li>
       <li>Справа только «свернуть» и «настройки». Строка заголовка — не место для функций.</li>
+      <li>На узком окне число участников уходит первым: название урока важнее счётчика.</li>
     </ul>
 
     <h3>Полоса состояния появляется, только когда есть что сказать</h3>
@@ -626,6 +639,10 @@ h1{font-size:1.25rem;font-weight:600;letter-spacing:-.015em}
       <li><b>Связь показываем словами</b> — «хорошая / слабая / нет». Мегабиты, потери и прочие числа уходят в настройки:
       преподавателю нужно решение, а не телеметрия.</li>
       <li><b>Версия остаётся в заголовке</b> — экономит полразговора при поддержке.</li>
+      <li><b>Заголовок ужат, опознание урока перенесено в него.</b> Рабочая площадь важнее подписей:
+      строка над сценой убрана целиком, приветствие на стартовой уменьшено и оставлено именем без «Здравствуйте».</li>
+      <li><b>Преподаватель английского — Люция Валерьевна.</b> Листы 00 · 01 (астрономия) пока держат
+      прежнее имя, лист 02 — «Ирина Соколова»: если персона одна, имена нужно свести — жду решения.</li>
       <li><b>«Завершить» остаётся в раме</b>: преподаватель часто сворачивает окно и забывает, что комната открыта.</li>
     </ul>
 
