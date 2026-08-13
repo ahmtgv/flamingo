@@ -220,6 +220,11 @@ type LessonSession {
   status: SessionStatus!
   roomToken: String            # null unless viewer is a participant of a live session
   teacherName: String          # course owner's display name; any session participant (NOT the roster)
+  # Р5.1 (owner, 2026-08-13): a student's video strip shows the teacher and their own preview
+  # and nothing else, so the client must be able to tell WHICH remote is the teacher. This is
+  # the one id here — the roster stays teacher-only. Without it the client had to guess «the
+  # teacher is the only remote», which stops being true the moment a second person joins.
+  teacherId: ID
   attendance: [Attendance!]!
   attentionSummary: AttentionSummary   # teacher: class summary after the session
 }

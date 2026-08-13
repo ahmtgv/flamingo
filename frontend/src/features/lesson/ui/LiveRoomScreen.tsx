@@ -236,6 +236,8 @@ type RoomProps = {
   roomToken: string | null;
   isLive: boolean;
   teacherName: string | null;
+  /** Which participant IS the teacher — Р5.1 needs to tell one remote from another. */
+  teacherId: string | null;
 };
 
 /**
@@ -243,7 +245,14 @@ type RoomProps = {
  * (the call — the teacher sees it) AND analysed on-device by the CMF pipeline, which
  * emits ONLY ~10s aggregates (reportAttention). CMF frames never leave the device.
  */
-function StudentRoom({ sessionId, lessonId, roomToken, isLive, teacherName }: RoomProps) {
+function StudentRoom({
+  sessionId,
+  lessonId,
+  roomToken,
+  isLive,
+  teacherName,
+  teacherId,
+}: RoomProps) {
   const { t } = useTranslation(['seedum', 'lesson']);
   const [reportAttention] = useReportAttentionMutation();
   // Keep the latest mutate fn in a ref so it is NOT a dependency of the pipeline
@@ -263,16 +272,31 @@ function StudentRoom({ sessionId, lessonId, roomToken, isLive, teacherName }: Ro
 
   const lk = useLiveKitRoom({ url: LIVEKIT_URL, token: roomToken, stream, active: joined });
 
-  // Label the teacher's tile with the real name (server-provided course-owner name, not a
-  // roster). The student has no per-participant roster, and teacherName targets exactly ONE
-  // person, so we only apply it when there is a single remote (the teacher — the demo / 1:1 /
-  // lesson-start case). With classmates present (post-S1 layout) a flat name can't be matched
-  // to the teacher's participant id → those tiles keep the id-slice until S1 wires per-student
-  // naming (the SDL exposes only teacherName, by design — no owner id).
+  /**
+   * Р5.1 (owner decision 2026-08-13): **a student sees the teacher and their own preview.**
+   *
+   * The reason is not taste, it is the teacher's uplink. The lesson is hosted from the
+   * teacher's machine, and «everyone sees everyone» costs them 30 Mbit/s outbound at eight
+   * pupils — a home connection lies down and the lesson starts breaking up. One teacher
+   * stream plus each pupil's own preview costs 4.3 (`R5_DESKTOP_HOST_BUDGET.md` §3).
+   *
+   * Filtering here is display-only; the real saving arrives with the desktop host, which
+   * decides what to forward at all. But the screen must already tell the truth about what a
+   * lesson looks like — and the pupil is told WHY, rather than left wondering where the class
+   * went.
+   */
+  const teacherOnly = useMemo(
+    () => (teacherId ? lk.participants.filter((p) => p.identity === teacherId) : lk.participants),
+    [lk.participants, teacherId],
+  );
+  const classmatesHidden = lk.participants.length - teacherOnly.length;
+
+  // With the strip filtered to one person, the teacher's tile can finally be named for
+  // certain — the old «only when there is exactly one remote» guess is retired.
   const studentNameFor = useCallback(
     (identity: string) =>
-      teacherName && lk.participants.length === 1 ? teacherName : identity.slice(0, 8),
-    [teacherName, lk.participants.length],
+      teacherName && identity === teacherId ? teacherName : identity.slice(0, 8),
+    [teacherName, teacherId],
   );
 
   // CMF runs locally off the SAME stream (a dedicated, hidden <video> source).
@@ -373,7 +397,7 @@ function StudentRoom({ sessionId, lessonId, roomToken, isLive, teacherName }: Ro
               micEnabled={lk.micEnabled}
               cameraEnabled={lk.cameraEnabled}
               screenSharing={lk.screenSharing}
-              participants={lk.participants}
+              participants={teacherOnly}
               version={lk.version}
               activeSpeakers={lk.activeSpeakers}
               screenShare={lk.screenShare}
@@ -384,6 +408,9 @@ function StudentRoom({ sessionId, lessonId, roomToken, isLive, teacherName }: Ro
               onLeave={leave}
               nameFor={studentNameFor}
             />
+            {classmatesHidden > 0 && (
+              <p className={styles.privacyFootnote}>{t('lesson:strip.classmatesHidden')}</p>
+            )}
             {/* Hidden CMF source — same stream, analysed on-device, frames discarded. */}
             <video
               ref={cmfVideoRef}
@@ -632,6 +659,7 @@ function LiveRoomRealScreen() {
     roomToken: session?.roomToken ?? null,
     isLive: session?.status === 'LIVE',
     teacherName: session?.teacherName ?? null,
+    teacherId: session?.teacherId ?? null,
   };
   return meData?.me?.role === 'TEACHER' ? <TeacherRoom {...props} /> : <StudentRoom {...props} />;
 }

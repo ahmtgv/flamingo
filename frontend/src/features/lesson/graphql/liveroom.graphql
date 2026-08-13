@@ -43,6 +43,9 @@ query SessionRoom($id: ID!) {
     status
     roomToken
     teacherName
+    # Р5.1: the student's strip shows the teacher and their own preview — the client needs to
+    # know WHICH remote that is. One id; the roster stays teacher-only.
+    teacherId
     lesson {
       id
       title

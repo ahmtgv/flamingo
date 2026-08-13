@@ -234,27 +234,32 @@ function TeacherPreview() {
   );
 }
 
-/** Student: sees the teacher + classmates as tiles, and — by design (v3) — NOT their own metrics. */
+/**
+ * Student — Р5.1 (owner decision 2026-08-13): **the teacher and their own preview, and that
+ * is all.** No classmates, and the reason is said out loud rather than left as a mystery.
+ *
+ * The lesson is hosted from the teacher's machine, and «everyone sees everyone» costs them
+ * 30 Mbit/s outbound at eight pupils — a home connection lies down. This costs 4.3
+ * (`R5_DESKTOP_HOST_BUDGET.md` §3). Also, by design since v3: a pupil does not see their own
+ * attention numbers.
+ */
 function StudentPreview() {
   const { t } = useTranslation(['seedum', 'lesson']);
-  // Teacher tile + classmates (everyone in the cohort except Саша, the student persona).
-  const classmates = cohort.filter((c) => c.user.id !== users.sasha.id);
+  const me = cohort.find((c) => c.user.id === users.sasha.id);
   return (
     <Shell subtitle={t('room.studentSub')}>
       <div className={styles.card} style={{ position: 'relative' }}>
         <p className={styles.liveBadge} role="status">
           <Radio size={13} aria-hidden="true" /> {t('lesson:liveBadge')}
         </p>
-        <div className={vr.tiles} data-count={classmates.length + 1}>
+        <div className={vr.tiles} data-count={2}>
           <Tile initials={initialsOf('Мария', 'Петровна')} name="Мария Петровна" />
-          {classmates.map((c) => (
-            <Tile
-              key={c.user.id}
-              initials={initialsOf(c.user.firstName, c.user.lastName)}
-              name={c.user.firstName}
-            />
-          ))}
+          <Tile
+            initials={initialsOf(me?.user.firstName ?? 'Саша', me?.user.lastName ?? 'Иванов')}
+            name={t('lesson:you')}
+          />
         </div>
+        <p className={styles.privacyFootnote}>{t('lesson:strip.classmatesHidden')}</p>
         <p className={styles.privacyFootnote}>
           <ShieldCheck size={13} /> {t('room.studentSub')}
         </p>

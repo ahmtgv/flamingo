@@ -67,6 +67,20 @@ class LessonSession:
         # Reachable only via an access-gated session (get_session), so no per-field check needed.
         return services.teacher_name_for(self)
 
+    @strawberry_django.field
+    def teacher_id(self) -> strawberry.ID | None:
+        """Which participant in the room IS the teacher (owner decision Р5.1, 2026-08-13).
+
+        A student's strip shows the teacher and their own preview and nothing else, so the
+        client has to be able to tell one remote from another. The teacher's own id is the
+        only thing that makes that possible — and it is the ONE id here: the roster stays
+        teacher-only, exactly as before. A public name without an id was already forcing the
+        client to guess «the teacher is the only remote», which stops being true the moment a
+        second person joins.
+        """
+        owner_id = self.lesson.section.course.owner.user_id
+        return strawberry.ID(str(owner_id)) if owner_id else None
+
 
 @strawberry.type
 class ProjectorCast:
