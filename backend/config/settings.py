@@ -67,6 +67,16 @@ INSTALLED_APPS = [
 # so a misconfigured deployment fails closed rather than open.
 DEPLOYMENT_JURISDICTION = os.environ.get("FLAMINGO_JURISDICTION", "ru")
 
+# --- Cabinet portability (owner decisions Р5.2 / OWNER_SCOPE §18, 2026-08-13) --------------
+# Where an encrypted copy of a personal cabinet may be synced to. Empty = sync is off, which
+# is the pilot's state: the desktop app holds the data and the server only signals.
+#
+# It is a SETTING and not a constant on purpose — the owner asked for no «данные только
+# локально» hardcodes, so turning synchronisation on later is a deployment change and not a
+# rewrite. Whatever this points at receives an opaque client-encrypted blob (common/
+# portability.py), the same contract UbpBackup already honours.
+CABINET_SYNC_TARGET = os.environ.get("FLAMINGO_CABINET_SYNC_TARGET", "")
+
 # How long an identical refusal is suppressed before it is written to PolicyDecisionLog
 # again (per process). Refusals are evidence of unavailability; the four-hundredth identical
 # one within the hour adds no evidence and is a write-amplification vector.
