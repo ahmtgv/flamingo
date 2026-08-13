@@ -20,6 +20,7 @@ from apps.institutions.graphql.mutations import InstitutionsMutation
 from apps.institutions.graphql.queries import InstitutionsQuery
 from apps.scheduling.graphql.mutations import SchedulingMutation
 from apps.scheduling.graphql.queries import SchedulingQuery
+from apps.scheduling.graphql.subscriptions import SchedulingSubscription
 from apps.seedum.graphql.mutations import SeedumMutation
 from apps.seedum.graphql.queries import SeedumQuery
 from apps.seedum.graphql.subscriptions import SeedumSubscription
@@ -53,7 +54,7 @@ class Mutation(
 
 
 @strawberry.type
-class Subscription(SeedumSubscription, ChatSubscription):
+class Subscription(SeedumSubscription, ChatSubscription, SchedulingSubscription):
     pass
 
 

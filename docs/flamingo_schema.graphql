@@ -501,6 +501,29 @@ type AuthPayload { token: String! refreshToken: String! user: User! }
 type UploadTicket { uploadUrl: String! fileKey: String! expiresAt: DateTime! }
 type SessionJoin { session: LessonSession! roomToken: String! }
 
+# ----------------------------------------------------------------------------- Second screen (R3.1)
+# The cast model: the teacher reads a short code off their screen and types it on a tablet —
+# no second login. What the code buys is the narrowest thing that works: a subscriber-only,
+# HIDDEN LiveKit token for this session, briefly, revoked when the lesson ends. Hidden is what
+# keeps a second screen a SCREEN and not another participant in the room.
+type ProjectorCast {
+  code: String!
+  expiresAt: DateTime!
+  sessionId: ID!
+}
+
+type ProjectorJoin {
+  sessionId: ID!
+  lessonTitle: String!          # enough to caption the screen; nothing about the people
+  roomToken: String!            # canPublish=false, hidden=true
+}
+
+# F3.1: which participant the second screen enlarges. An id and the session — no metric.
+type ProjectorFocus {
+  sessionId: ID!
+  studentId: ID
+}
+
 # ----------------------------------------------------------------------------- Composite read models (power the prototyped screens)
 type StudentDashboard {
   today: [LessonSession!]!
@@ -942,6 +965,11 @@ type Mutation {
   startSession(sessionId: ID!): LessonSession!              # teacher -> LIVE (+roomToken)
   endSession(sessionId: ID!): LessonSession!                # -> ENDED (no recording: §2.2)
   joinSession(sessionId: ID!): SessionJoin!                 # student -> roomToken + ATTENDANCE
+
+  # second screen (R3.1) — cast, not a second login
+  createProjectorCode(sessionId: ID!): ProjectorCast!       # teacher of the session only
+  redeemProjectorCode(code: String!): ProjectorJoin!        # UNAUTHENTICATED by design
+  setProjectorFocus(sessionId: ID!, studentId: ID): ProjectorFocus!
   setAttendance(sessionId: ID!, studentId: ID!, status: AttendanceStatus!): Attendance!
   sendChatMessage(sessionId: ID!, text: String!): ChatMessage!
 
@@ -1005,6 +1033,8 @@ type Mutation {
 type Subscription {
   # teacher watches the class attention live; payload is an aggregate, never video
   attentionUpdates(sessionId: ID!): AttentionMetric!
+  # second screen follows the teacher's focus (F3.1) — payload is one participant id
+  projectorFocusChanged(sessionId: ID!): ProjectorFocus!
   # session lifecycle (scheduled -> live -> ended)
   sessionStatusChanged(sessionId: ID!): LessonSession!
   # live lesson chat

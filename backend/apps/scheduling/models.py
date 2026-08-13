@@ -36,6 +36,36 @@ class LessonSession(BaseModel):
         ]
 
 
+class ProjectorCode(BaseModel):
+    """A short code that puts the lesson on a second screen.
+
+    The cast model (masterplan §6.4): the teacher presses «вывести на второй экран», reads a
+    short code off their screen and types it on the tablet — no second login, the way a
+    Chromecast works. What the code buys is deliberately tiny: a subscriber-only, HIDDEN
+    LiveKit token for this session, valid briefly, revoked when the lesson ends.
+
+    It is a credential with a TTL, not lesson content — the same category as REVOKED_TOKEN,
+    not something the storage whitelist governs. Nothing about the lesson is kept here.
+    """
+
+    session = models.ForeignKey(
+        LessonSession, related_name="projector_codes", on_delete=models.CASCADE
+    )
+    code = models.CharField(max_length=12, unique=True, db_index=True)
+    created_by = models.ForeignKey(
+        "accounts.User", related_name="projector_codes", on_delete=models.CASCADE
+    )
+    expires_at = models.DateTimeField()
+    revoked_at = models.DateTimeField(null=True, blank=True)
+    last_used_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        indexes = [models.Index(fields=["session", "revoked_at"])]
+
+    def __str__(self) -> str:
+        return f"projector {self.code}"
+
+
 class Attendance(BaseModel):
     session = models.ForeignKey(LessonSession, related_name="attendances", on_delete=models.CASCADE)
     student = models.ForeignKey(

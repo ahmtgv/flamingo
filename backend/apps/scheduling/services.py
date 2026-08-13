@@ -3,7 +3,10 @@
 from __future__ import annotations
 
 import datetime as dt
+import secrets
 
+from asgiref.sync import async_to_sync
+from channels.layers import get_channel_layer
 from django.db import transaction
 from django.utils import timezone
 
@@ -14,7 +17,7 @@ from common.enums import AttendanceStatus, Role, SessionStatus
 from common.exceptions import NotFound, PermissionDenied, ValidationError
 from common.livekit import room_token
 
-from .models import Attendance, LessonSession
+from .models import Attendance, LessonSession, ProjectorCode
 
 
 def _val(x):
@@ -79,7 +82,99 @@ def end_session(user, session_id) -> LessonSession:
     session.status = SessionStatus.ENDED.value
     session.end_at = timezone.now()
     session.save(update_fields=["status", "end_at", "updated_at"])
+    # A second screen must not outlive the lesson it was showing.
+    revoke_projector_codes(session)
     return session
+
+
+# --- second screen (masterplan F3: cast, not a second login) --------------------------------
+#: Long enough to walk to the tablet and type it, short enough that a photographed screen is
+#: not a lasting key.
+PROJECTOR_CODE_TTL = dt.timedelta(minutes=15)
+#: How long the tablet may keep watching once connected — capped by the lesson anyway.
+PROJECTOR_TOKEN_TTL_HOURS = 4
+#: No 0/O/1/I: this is read off a screen and typed by hand, in a hurry, from across a room.
+_CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
+
+
+def _new_code() -> str:
+    return "".join(secrets.choice(_CODE_ALPHABET) for _ in range(6))
+
+
+def revoke_projector_codes(session: LessonSession) -> int:
+    return ProjectorCode.objects.filter(session=session, revoked_at__isnull=True).update(
+        revoked_at=timezone.now()
+    )
+
+
+@transaction.atomic
+def create_projector_code(user, session_id) -> ProjectorCode:
+    """The teacher casts the lesson to a second screen.
+
+    Only the session's own teacher may do this, and only one code is live at a time: issuing
+    a new one revokes the previous, so a code read aloud last week cannot come back.
+    """
+    session = _owned_session(user, session_id)
+    revoke_projector_codes(session)
+    for _ in range(10):  # collision retry; the alphabet makes this practically never happen
+        code = _new_code()
+        if not ProjectorCode.objects.filter(code=code).exists():
+            return ProjectorCode.objects.create(
+                session=session,
+                code=code,
+                created_by=user,
+                expires_at=timezone.now() + PROJECTOR_CODE_TTL,
+            )
+    raise ValidationError("Could not allocate a projector code")
+
+
+def redeem_projector_code(code: str) -> tuple[LessonSession, str]:
+    """Exchange a code for a watch-only token. Deliberately unauthenticated — that is the
+    whole point of casting — so what it grants is the narrowest thing that works:
+
+    * subscriber-only and HIDDEN, so the screen can never publish and never appears in the
+      room as a participant (it is also therefore not a person in the ≤N cap);
+    * bound to this one session, and dead the moment the lesson ends or the code expires;
+    * it carries no identity, so it can read nothing else in the product.
+    """
+    row = (
+        ProjectorCode.objects.filter(code=(code or "").strip().upper(), revoked_at__isnull=True)
+        .select_related("session__lesson__section__course")
+        .first()
+    )
+    if row is None or row.expires_at < timezone.now():
+        raise NotFound("Projector code not found")
+    session = row.session
+    if session.status != SessionStatus.LIVE.value:
+        raise ValidationError("Session is not live")
+
+    row.last_used_at = timezone.now()
+    row.save(update_fields=["last_used_at", "updated_at"])
+    token = room_token(
+        identity=f"projector-{row.id}",
+        room=str(session.id),
+        can_publish=False,
+        hidden=True,
+        ttl_hours=PROJECTOR_TOKEN_TTL_HOURS,
+    )
+    return session, token
+
+
+def set_projector_focus(user, session_id, student_id) -> str | None:
+    """F3.1: the teacher points the second screen at one pupil.
+
+    The payload is a participant id and nothing else — no metric rides along. Teacher-only,
+    because the second screen shows the room to a whole class.
+    """
+    session = _owned_session(user, session_id)
+    focus = str(student_id) if student_id else None
+    layer = get_channel_layer()
+    if layer is not None:
+        async_to_sync(layer.group_send)(
+            f"projector_{session.id}",
+            {"type": "projector.focus", "session_id": str(session.id), "student_id": focus},
+        )
+    return focus
 
 
 @transaction.atomic
