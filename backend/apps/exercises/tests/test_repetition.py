@@ -171,7 +171,9 @@ def test_an_absurd_schedule_is_clamped_rather_than_believed():
     )
 
     assert updated.stability == repetition.MAX_STABILITY_DAYS
-    assert updated.difficulty == 0.0
+    # Not 0: a card WITH stability must have a difficulty, or the scheduler cannot read it
+    # back — see test_clamping_cannot_mint_a_memory_state_the_scheduler_cannot_read.
+    assert updated.difficulty == repetition.MIN_DIFFICULTY
     assert updated.due_at <= timezone.now() + repetition.MAX_INTERVAL
 
 
@@ -344,3 +346,26 @@ def test_the_hand_written_contract_has_no_leaderboard_type_either():
     assert "LeaderboardEntry" not in code
     assert "leaderboard(" not in code
     assert "UserAchievement" not in code
+
+
+def test_clamping_cannot_mint_a_memory_state_the_scheduler_cannot_read():
+    """Found by the frontend: FSRS state is a PAIR, and `(stability > 0, difficulty == 0)`
+    throws when the client reads the card back — taking the review screen down with it.
+
+    Clamping the two independently is how a fence ends up building the thing it was meant to
+    keep out, so the pair is repaired rather than each value on its own.
+    """
+    anya = make_pupil()
+    card = a_card(anya)
+
+    updated = a_review(anya, card, stability=8.0, difficulty=-3, state="review")
+
+    assert updated.stability > 0
+    assert updated.difficulty >= repetition.MIN_DIFFICULTY
+
+
+def test_an_untouched_card_may_still_be_all_zeros():
+    """The one legal way to have no difficulty: nobody has answered the word yet."""
+    anya = make_pupil()
+    card = a_card(anya)
+    assert (card.stability, card.difficulty) == (0.0, 0.0)

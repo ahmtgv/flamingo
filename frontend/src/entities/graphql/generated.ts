@@ -22,13 +22,20 @@ export type Scalars = {
 
 export type Achievement = {
   __typename?: 'Achievement';
-  code: Scalars['String']['output'];
-  criteria?: Maybe<Scalars['JSON']['output']>;
-  description?: Maybe<Scalars['String']['output']>;
-  icon?: Maybe<Scalars['String']['output']>;
-  id: Scalars['ID']['output'];
-  title: Scalars['String']['output'];
+  earnedAt: Scalars['DateTime']['output'];
+  key: AchievementKey;
 };
+
+export type AchievementKey =
+  | 'FIFTY_WORDS'
+  | 'FIRST_MASTERED'
+  | 'FIRST_WORD'
+  | 'HUNDRED_REVIEWS'
+  | 'STREAK_3'
+  | 'STREAK_7'
+  | 'STREAK_30'
+  | 'TEN_MASTERED'
+  | 'TEN_WORDS';
 
 export type AddChildInput = {
   birthDate?: InputMaybe<Scalars['DateTime']['input']>;
@@ -381,6 +388,21 @@ export type DailyAttention = {
   weekday: Scalars['Int']['output'];
 };
 
+export type DueCard = {
+  __typename?: 'DueCard';
+  difficulty: Scalars['Float']['output'];
+  direction: CardDirection;
+  dueAt: Scalars['DateTime']['output'];
+  id: Scalars['ID']['output'];
+  item: LexicalItem;
+  lapses: Scalars['Int']['output'];
+  lastReviewAt?: Maybe<Scalars['DateTime']['output']>;
+  learningSteps: Scalars['Int']['output'];
+  reps: Scalars['Int']['output'];
+  stability: Scalars['Float']['output'];
+  state: CardState;
+};
+
 export type Enrollment = {
   __typename?: 'Enrollment';
   course: Course;
@@ -617,13 +639,6 @@ export type InviteInput = {
   groupId?: InputMaybe<Scalars['ID']['input']>;
   institutionId: Scalars['ID']['input'];
   role: MembershipRole;
-};
-
-export type LeaderboardEntry = {
-  __typename?: 'LeaderboardEntry';
-  points: Scalars['Int']['output'];
-  rank: Scalars['Int']['output'];
-  student: StudentProfile;
 };
 
 export type LearningProfile = {
@@ -863,6 +878,7 @@ export type Mutation = {
   resetPassword: Scalars['Boolean']['output'];
   resolveChatReport: ChatReport;
   respondGuardianship: Guardianship;
+  reviewWord: DueCard;
   saveBoard: BoardSnapshot;
   saveItem: SubjectMaterial;
   scheduleSession: LessonSession;
@@ -1236,6 +1252,17 @@ export type MutationRespondGuardianshipArgs = {
 };
 
 
+export type MutationReviewWordArgs = {
+  cardId: Scalars['ID']['input'];
+  difficulty: Scalars['Float']['input'];
+  dueAt: Scalars['DateTime']['input'];
+  learningSteps?: InputMaybe<Scalars['Int']['input']>;
+  rating: ReviewRating;
+  stability: Scalars['Float']['input'];
+  state: CardState;
+};
+
+
 export type MutationSaveBoardArgs = {
   lessonId: Scalars['ID']['input'];
   title?: InputMaybe<Scalars['String']['input']>;
@@ -1538,7 +1565,6 @@ export type Query = {
   homeworkSubmissions: Array<Submission>;
   institution?: Maybe<Institution>;
   institutionMembers: Array<InstitutionMembership>;
-  leaderboard: Array<LeaderboardEntry>;
   learningProfiles: Array<LearningProfile>;
   lesson?: Maybe<Lesson>;
   lessonChat: Array<ChatMessage>;
@@ -1548,10 +1574,12 @@ export type Query = {
   lessonWords: Array<LexicalItem>;
   lookupWord: Array<LexicalItem>;
   me?: Maybe<User>;
-  myAchievements: Array<UserAchievement>;
+  myAchievements: Array<Achievement>;
   myAttempts: Array<Attempt>;
   myChannels: Array<ChatChannel>;
   myCourses: Array<Course>;
+  myRepetitionProgress: RepetitionProgress;
+  myRepetitionQueue: Array<DueCard>;
   mySavedItems: Array<SubjectMaterial>;
   mySchedule: Array<LessonSession>;
   mySkillMastery: Array<SkillMastery>;
@@ -1665,11 +1693,6 @@ export type QueryInstitutionMembersArgs = {
 };
 
 
-export type QueryLeaderboardArgs = {
-  groupId: Scalars['ID']['input'];
-};
-
-
 export type QueryLessonArgs = {
   id: Scalars['ID']['input'];
 };
@@ -1707,6 +1730,11 @@ export type QueryLookupWordArgs = {
 
 export type QueryMyAttemptsArgs = {
   setId: Scalars['ID']['input'];
+};
+
+
+export type QueryMyRepetitionQueueArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
 };
 
 
@@ -1815,6 +1843,17 @@ export type RegisterUserInput = {
   teacher?: InputMaybe<TeacherInfoInput>;
 };
 
+export type RepetitionProgress = {
+  __typename?: 'RepetitionProgress';
+  currentStreak: Scalars['Int']['output'];
+  due: Scalars['Int']['output'];
+  learning: Scalars['Int']['output'];
+  longestStreak: Scalars['Int']['output'];
+  mastered: Scalars['Int']['output'];
+  reviews: Scalars['Int']['output'];
+  total: Scalars['Int']['output'];
+};
+
 export type ReportStatus =
   | 'DISMISSED'
   | 'OPEN'
@@ -1830,6 +1869,12 @@ export type Review = {
   teacher: TeacherProfile;
   text?: Maybe<Scalars['String']['output']>;
 };
+
+export type ReviewRating =
+  | 'AGAIN'
+  | 'EASY'
+  | 'GOOD'
+  | 'HARD';
 
 export type ReviewStatus =
   | 'HIDDEN'
@@ -2337,12 +2382,6 @@ export type User = {
   role: Role;
   studentProfile?: Maybe<StudentProfile>;
   teacherProfile?: Maybe<TeacherProfile>;
-};
-
-export type UserAchievement = {
-  __typename?: 'UserAchievement';
-  achievement: Achievement;
-  earnedAt: Scalars['DateTime']['output'];
 };
 
 export type VerificationDocument = {
@@ -3033,6 +3072,36 @@ export type ProjectorFocusChangedSubscriptionVariables = Exact<{
 
 
 export type ProjectorFocusChangedSubscription = { __typename?: 'Subscription', projectorFocusChanged: { __typename?: 'ProjectorFocus', sessionId: string, studentId?: string | null } };
+
+export type MyRepetitionQueueQueryVariables = Exact<{
+  limit?: InputMaybe<Scalars['Int']['input']>;
+}>;
+
+
+export type MyRepetitionQueueQuery = { __typename?: 'Query', myRepetitionQueue: Array<{ __typename?: 'DueCard', id: string, direction: CardDirection, state: CardState, stability: number, difficulty: number, dueAt: string, lastReviewAt?: string | null, reps: number, lapses: number, learningSteps: number, item: { __typename?: 'LexicalItem', id: string, lemma: string, pos: PartOfSpeech, ipa?: string | null, definitionRu?: string | null, translationRu?: string | null, credit: { __typename?: 'Attribution', source: LexicalSource, license: string, attribution: string, sourceUrl?: string | null }, examples: Array<{ __typename?: 'LexicalExample', id: string, text: string, translationRu?: string | null, credit: { __typename?: 'Attribution', source: LexicalSource, license: string, attribution: string, sourceUrl?: string | null } }> } }> };
+
+export type MyRepetitionProgressQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type MyRepetitionProgressQuery = { __typename?: 'Query', myRepetitionProgress: { __typename?: 'RepetitionProgress', total: number, due: number, learning: number, mastered: number, reviews: number, currentStreak: number, longestStreak: number } };
+
+export type MyAchievementsQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type MyAchievementsQuery = { __typename?: 'Query', myAchievements: Array<{ __typename?: 'Achievement', key: AchievementKey, earnedAt: string }> };
+
+export type ReviewWordMutationVariables = Exact<{
+  cardId: Scalars['ID']['input'];
+  rating: ReviewRating;
+  stability: Scalars['Float']['input'];
+  difficulty: Scalars['Float']['input'];
+  dueAt: Scalars['DateTime']['input'];
+  state: CardState;
+  learningSteps?: InputMaybe<Scalars['Int']['input']>;
+}>;
+
+
+export type ReviewWordMutation = { __typename?: 'Mutation', reviewWord: { __typename?: 'DueCard', id: string, direction: CardDirection, state: CardState, stability: number, difficulty: number, dueAt: string, lastReviewAt?: string | null, reps: number, lapses: number, learningSteps: number } };
 
 export type MyScheduleQueryVariables = Exact<{
   from: Scalars['DateTime']['input'];
@@ -7166,6 +7235,230 @@ export function useProjectorFocusChangedSubscription(baseOptions: Apollo.Subscri
       }
 export type ProjectorFocusChangedSubscriptionHookResult = ReturnType<typeof useProjectorFocusChangedSubscription>;
 export type ProjectorFocusChangedSubscriptionResult = Apollo.SubscriptionResult<ProjectorFocusChangedSubscription>;
+export const MyRepetitionQueueDocument = gql`
+    query MyRepetitionQueue($limit: Int) {
+  myRepetitionQueue(limit: $limit) {
+    id
+    direction
+    state
+    stability
+    difficulty
+    dueAt
+    lastReviewAt
+    reps
+    lapses
+    learningSteps
+    item {
+      id
+      lemma
+      pos
+      ipa
+      definitionRu
+      translationRu
+      credit {
+        source
+        license
+        attribution
+        sourceUrl
+      }
+      examples {
+        id
+        text
+        translationRu
+        credit {
+          source
+          license
+          attribution
+          sourceUrl
+        }
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useMyRepetitionQueueQuery__
+ *
+ * To run a query within a React component, call `useMyRepetitionQueueQuery` and pass it any options that fit your needs.
+ * When your component renders, `useMyRepetitionQueueQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useMyRepetitionQueueQuery({
+ *   variables: {
+ *      limit: // value for 'limit'
+ *   },
+ * });
+ */
+export function useMyRepetitionQueueQuery(baseOptions?: Apollo.QueryHookOptions<MyRepetitionQueueQuery, MyRepetitionQueueQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<MyRepetitionQueueQuery, MyRepetitionQueueQueryVariables>(MyRepetitionQueueDocument, options);
+      }
+export function useMyRepetitionQueueLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<MyRepetitionQueueQuery, MyRepetitionQueueQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<MyRepetitionQueueQuery, MyRepetitionQueueQueryVariables>(MyRepetitionQueueDocument, options);
+        }
+// @ts-ignore
+export function useMyRepetitionQueueSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<MyRepetitionQueueQuery, MyRepetitionQueueQueryVariables>): Apollo.UseSuspenseQueryResult<MyRepetitionQueueQuery, MyRepetitionQueueQueryVariables>;
+export function useMyRepetitionQueueSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<MyRepetitionQueueQuery, MyRepetitionQueueQueryVariables>): Apollo.UseSuspenseQueryResult<MyRepetitionQueueQuery | undefined, MyRepetitionQueueQueryVariables>;
+export function useMyRepetitionQueueSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<MyRepetitionQueueQuery, MyRepetitionQueueQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<MyRepetitionQueueQuery, MyRepetitionQueueQueryVariables>(MyRepetitionQueueDocument, options);
+        }
+export type MyRepetitionQueueQueryHookResult = ReturnType<typeof useMyRepetitionQueueQuery>;
+export type MyRepetitionQueueLazyQueryHookResult = ReturnType<typeof useMyRepetitionQueueLazyQuery>;
+export type MyRepetitionQueueSuspenseQueryHookResult = ReturnType<typeof useMyRepetitionQueueSuspenseQuery>;
+export type MyRepetitionQueueQueryResult = Apollo.QueryResult<MyRepetitionQueueQuery, MyRepetitionQueueQueryVariables>;
+export const MyRepetitionProgressDocument = gql`
+    query MyRepetitionProgress {
+  myRepetitionProgress {
+    total
+    due
+    learning
+    mastered
+    reviews
+    currentStreak
+    longestStreak
+  }
+}
+    `;
+
+/**
+ * __useMyRepetitionProgressQuery__
+ *
+ * To run a query within a React component, call `useMyRepetitionProgressQuery` and pass it any options that fit your needs.
+ * When your component renders, `useMyRepetitionProgressQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useMyRepetitionProgressQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useMyRepetitionProgressQuery(baseOptions?: Apollo.QueryHookOptions<MyRepetitionProgressQuery, MyRepetitionProgressQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<MyRepetitionProgressQuery, MyRepetitionProgressQueryVariables>(MyRepetitionProgressDocument, options);
+      }
+export function useMyRepetitionProgressLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<MyRepetitionProgressQuery, MyRepetitionProgressQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<MyRepetitionProgressQuery, MyRepetitionProgressQueryVariables>(MyRepetitionProgressDocument, options);
+        }
+// @ts-ignore
+export function useMyRepetitionProgressSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<MyRepetitionProgressQuery, MyRepetitionProgressQueryVariables>): Apollo.UseSuspenseQueryResult<MyRepetitionProgressQuery, MyRepetitionProgressQueryVariables>;
+export function useMyRepetitionProgressSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<MyRepetitionProgressQuery, MyRepetitionProgressQueryVariables>): Apollo.UseSuspenseQueryResult<MyRepetitionProgressQuery | undefined, MyRepetitionProgressQueryVariables>;
+export function useMyRepetitionProgressSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<MyRepetitionProgressQuery, MyRepetitionProgressQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<MyRepetitionProgressQuery, MyRepetitionProgressQueryVariables>(MyRepetitionProgressDocument, options);
+        }
+export type MyRepetitionProgressQueryHookResult = ReturnType<typeof useMyRepetitionProgressQuery>;
+export type MyRepetitionProgressLazyQueryHookResult = ReturnType<typeof useMyRepetitionProgressLazyQuery>;
+export type MyRepetitionProgressSuspenseQueryHookResult = ReturnType<typeof useMyRepetitionProgressSuspenseQuery>;
+export type MyRepetitionProgressQueryResult = Apollo.QueryResult<MyRepetitionProgressQuery, MyRepetitionProgressQueryVariables>;
+export const MyAchievementsDocument = gql`
+    query MyAchievements {
+  myAchievements {
+    key
+    earnedAt
+  }
+}
+    `;
+
+/**
+ * __useMyAchievementsQuery__
+ *
+ * To run a query within a React component, call `useMyAchievementsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useMyAchievementsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useMyAchievementsQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useMyAchievementsQuery(baseOptions?: Apollo.QueryHookOptions<MyAchievementsQuery, MyAchievementsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<MyAchievementsQuery, MyAchievementsQueryVariables>(MyAchievementsDocument, options);
+      }
+export function useMyAchievementsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<MyAchievementsQuery, MyAchievementsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<MyAchievementsQuery, MyAchievementsQueryVariables>(MyAchievementsDocument, options);
+        }
+// @ts-ignore
+export function useMyAchievementsSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<MyAchievementsQuery, MyAchievementsQueryVariables>): Apollo.UseSuspenseQueryResult<MyAchievementsQuery, MyAchievementsQueryVariables>;
+export function useMyAchievementsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<MyAchievementsQuery, MyAchievementsQueryVariables>): Apollo.UseSuspenseQueryResult<MyAchievementsQuery | undefined, MyAchievementsQueryVariables>;
+export function useMyAchievementsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<MyAchievementsQuery, MyAchievementsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<MyAchievementsQuery, MyAchievementsQueryVariables>(MyAchievementsDocument, options);
+        }
+export type MyAchievementsQueryHookResult = ReturnType<typeof useMyAchievementsQuery>;
+export type MyAchievementsLazyQueryHookResult = ReturnType<typeof useMyAchievementsLazyQuery>;
+export type MyAchievementsSuspenseQueryHookResult = ReturnType<typeof useMyAchievementsSuspenseQuery>;
+export type MyAchievementsQueryResult = Apollo.QueryResult<MyAchievementsQuery, MyAchievementsQueryVariables>;
+export const ReviewWordDocument = gql`
+    mutation ReviewWord($cardId: ID!, $rating: ReviewRating!, $stability: Float!, $difficulty: Float!, $dueAt: DateTime!, $state: CardState!, $learningSteps: Int) {
+  reviewWord(
+    cardId: $cardId
+    rating: $rating
+    stability: $stability
+    difficulty: $difficulty
+    dueAt: $dueAt
+    state: $state
+    learningSteps: $learningSteps
+  ) {
+    id
+    direction
+    state
+    stability
+    difficulty
+    dueAt
+    lastReviewAt
+    reps
+    lapses
+    learningSteps
+  }
+}
+    `;
+export type ReviewWordMutationFn = Apollo.MutationFunction<ReviewWordMutation, ReviewWordMutationVariables>;
+
+/**
+ * __useReviewWordMutation__
+ *
+ * To run a mutation, you first call `useReviewWordMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useReviewWordMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [reviewWordMutation, { data, loading, error }] = useReviewWordMutation({
+ *   variables: {
+ *      cardId: // value for 'cardId'
+ *      rating: // value for 'rating'
+ *      stability: // value for 'stability'
+ *      difficulty: // value for 'difficulty'
+ *      dueAt: // value for 'dueAt'
+ *      state: // value for 'state'
+ *      learningSteps: // value for 'learningSteps'
+ *   },
+ * });
+ */
+export function useReviewWordMutation(baseOptions?: Apollo.MutationHookOptions<ReviewWordMutation, ReviewWordMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<ReviewWordMutation, ReviewWordMutationVariables>(ReviewWordDocument, options);
+      }
+export type ReviewWordMutationHookResult = ReturnType<typeof useReviewWordMutation>;
+export type ReviewWordMutationResult = Apollo.MutationResult<ReviewWordMutation>;
+export type ReviewWordMutationOptions = Apollo.BaseMutationOptions<ReviewWordMutation, ReviewWordMutationVariables>;
 export const MyScheduleDocument = gql`
     query MySchedule($from: DateTime!, $to: DateTime!) {
   mySchedule(from: $from, to: $to) {

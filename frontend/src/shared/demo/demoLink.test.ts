@@ -951,3 +951,85 @@ describe('resolveDemoOperation — dictionary (R4.3)', () => {
     expect(String(after[after.length - 1].data.text)).toContain('crossroads');
   });
 });
+
+describe('resolveDemoOperation — repetition (R4.4)', () => {
+  it('the queue is the lesson’s words, due now', () => {
+    setRole('student');
+    const queue = (
+      resolveDemoOperation('MyRepetitionQueue', { limit: 20 }) as {
+        myRepetitionQueue: { id: string; item: { lemma: string } }[];
+      }
+    ).myRepetitionQueue;
+    expect(queue.length).toBeGreaterThan(0);
+    expect(queue.map((c) => c.item.lemma)).toContain('crossroads');
+  });
+
+  it('a reviewed card leaves the queue and the milestone sticks', () => {
+    setRole('student');
+    const first = (
+      resolveDemoOperation('MyRepetitionQueue', {}) as { myRepetitionQueue: { id: string }[] }
+    ).myRepetitionQueue[0];
+
+    resolveDemoOperation('ReviewWord', {
+      cardId: first.id,
+      rating: 'GOOD',
+      stability: 2.3,
+      difficulty: 5,
+      dueAt: new Date().toISOString(),
+      state: 'LEARNING',
+    });
+
+    const after = (
+      resolveDemoOperation('MyRepetitionQueue', {}) as { myRepetitionQueue: { id: string }[] }
+    ).myRepetitionQueue;
+    expect(after.map((c) => c.id)).not.toContain(first.id);
+
+    const badges = (
+      resolveDemoOperation('MyAchievements', {}) as { myAchievements: { key: string }[] }
+    ).myAchievements;
+    expect(badges.map((b) => b.key)).toContain('FIRST_WORD');
+  });
+
+  it('the review answers with a WHOLE card, so the cache cannot go incoherent', () => {
+    // A partial DueCard merges stability from the mutation next to difficulty from before
+    // it — and that pair is not a memory state FSRS can read back.
+    setRole('student');
+    const result = resolveDemoOperation('ReviewWord', {
+      cardId: 'card-lx-2',
+      rating: 'GOOD',
+      stability: 2.3,
+      difficulty: 5,
+      dueAt: new Date().toISOString(),
+      state: 'LEARNING',
+      learningSteps: 1,
+    }) as { reviewWord: Record<string, unknown> };
+
+    for (const field of ['direction', 'state', 'stability', 'difficulty', 'learningSteps']) {
+      expect(result.reviewWord).toHaveProperty(field);
+    }
+  });
+
+  it('🔴 progress is one learner’s own, and the only benchmark is their own record', () => {
+    setRole('student');
+    const p = (
+      resolveDemoOperation('MyRepetitionProgress', {}) as {
+        myRepetitionProgress: Record<string, unknown>;
+      }
+    ).myRepetitionProgress;
+
+    expect(Object.keys(p).sort()).toEqual(
+      [
+        '__typename',
+        'total',
+        'due',
+        'learning',
+        'mastered',
+        'reviews',
+        'currentStreak',
+        'longestStreak',
+      ].sort(),
+    );
+    // Nothing here names or counts another child.
+    expect(JSON.stringify(p).toLowerCase()).not.toMatch(/rank|place|class|peer/);
+  });
+});

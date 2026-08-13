@@ -1,0 +1,99 @@
+# Spaced repetition (R4.4).
+#
+# 🔴 Every read here is the CALLER's own and takes no student id. There is no query in this
+# file that could show one child how they compare with another, and adding one would mean
+# adding a field to the contract — which is exactly the point.
+
+query MyRepetitionQueue($limit: Int) {
+  myRepetitionQueue(limit: $limit) {
+    id
+    direction
+    state
+    stability
+    difficulty
+    dueAt
+    lastReviewAt
+    reps
+    lapses
+    learningSteps
+    item {
+      id
+      lemma
+      pos
+      ipa
+      definitionRu
+      translationRu
+      credit {
+        source
+        license
+        attribution
+        sourceUrl
+      }
+      examples {
+        id
+        text
+        translationRu
+        credit {
+          source
+          license
+          attribution
+          sourceUrl
+        }
+      }
+    }
+  }
+}
+
+query MyRepetitionProgress {
+  myRepetitionProgress {
+    total
+    due
+    learning
+    mastered
+    reviews
+    currentStreak
+    longestStreak
+  }
+}
+
+query MyAchievements {
+  myAchievements {
+    key
+    earnedAt
+  }
+}
+
+mutation ReviewWord(
+  $cardId: ID!
+  $rating: ReviewRating!
+  $stability: Float!
+  $difficulty: Float!
+  $dueAt: DateTime!
+  $state: CardState!
+  $learningSteps: Int
+) {
+  reviewWord(
+    cardId: $cardId
+    rating: $rating
+    stability: $stability
+    difficulty: $difficulty
+    dueAt: $dueAt
+    state: $state
+    learningSteps: $learningSteps
+  ) {
+    # The WHOLE card, deliberately: Apollo normalises DueCard by id, so a partial result
+    # would merge a half-updated entity into the cache — stability from the mutation next to
+    # difficulty from before it. That pair is not a valid FSRS memory state, and the next
+    # render would throw on it. A mutation that returns part of an entity is a cache bug.
+    id
+    direction
+    state
+    stability
+    difficulty
+    dueAt
+    lastReviewAt
+    reps
+    lapses
+    learningSteps
+  }
+}

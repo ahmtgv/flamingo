@@ -285,6 +285,12 @@ export const store = {
     mine: new Set<string>(),
     shown: null as string | null,
   },
+  /** Repetition (R4.4): a reviewed card leaves the queue and the milestone sticks, so the
+   *  preview shows the loop closing. 🔴 Nothing here is comparable with another learner. */
+  repetition: {
+    reviewed: new Set<string>(),
+    achievements: new Set<string>(),
+  },
   /** Summary (R4.2): a message sent in the preview lands in the summary's CHAT section —
    *  there is no second list for it here either, because there is none in the database. */
   summary: {
@@ -313,6 +319,7 @@ export function resetDemoStore(): void {
   store.board = { open: false, edits: new Map(), added: [], removed: new Set(), saved: [] };
   store.exercises = { answers: new Map() };
   store.dictionary = { mine: new Set(), shown: null };
+  store.repetition = { reviewed: new Set(), achievements: new Set() };
   store.summary = { sent: false, edits: new Map(), removed: new Set(), chat: [] };
   store.seq = 1000;
 }

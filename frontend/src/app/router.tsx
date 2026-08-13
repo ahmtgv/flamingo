@@ -19,6 +19,7 @@ import {
 } from '@/features/homework';
 import { LiveRoomScreen, ProjectorScreen, RoomWindowScreen } from '@/features/lesson';
 import { ScheduleScreen } from '@/features/schedule';
+import { RepetitionScreen } from '@/features/repetition';
 import { StartScreen } from '@/features/start';
 import { SubjectScreen } from '@/features/subject';
 import { useSession } from '@/shared/hooks/useSession';
@@ -103,6 +104,14 @@ export function AppRouter() {
           element={
             <ProtectedRoute>
               <StartScreen />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/repetition"
+          element={
+            <ProtectedRoute>
+              <RepetitionScreen />
             </ProtectedRoute>
           }
         />

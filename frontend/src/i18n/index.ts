@@ -15,6 +15,7 @@ import chatRu from './locales/ru/chat.json';
 import exercisesRu from './locales/ru/exercises.json';
 import summaryRu from './locales/ru/summary.json';
 import dictionaryRu from './locales/ru/dictionary.json';
+import repetitionRu from './locales/ru/repetition.json';
 import roomRu from './locales/ru/room.json';
 import startRu from './locales/ru/start.json';
 import subjectRu from './locales/ru/subject.json';
@@ -39,6 +40,7 @@ export const resources = {
     exercises: exercisesRu,
     summary: summaryRu,
     dictionary: dictionaryRu,
+    repetition: repetitionRu,
     room: roomRu,
     start: startRu,
     subject: subjectRu,
@@ -66,6 +68,7 @@ void i18n.use(initReactI18next).init({
     'exercises',
     'summary',
     'dictionary',
+    'repetition',
     'room',
     'start',
     'subject',

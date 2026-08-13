@@ -73,8 +73,12 @@ import type {
   ExternalDictionariesQuery,
   LessonWordsQuery,
   LookupWordQuery,
+  MyAchievementsQuery,
+  MyRepetitionProgressQuery,
+  MyRepetitionQueueQuery,
   MyWordsQuery,
   PutWordOnBoardMutation,
+  ReviewWordMutation,
   ShowWordToClassMutation,
   AssembleLessonSummaryMutation,
   LessonChatQuery,
@@ -1737,6 +1741,49 @@ function dictionaryCard(lemma: string): DemoWord[] {
   return DEMO_WORDS.filter((w) => w.lemma.toLowerCase() === needle);
 }
 
+// --- Repetition (R4.4) -------------------------------------------------------------------
+/** The preview queue: the lesson's own words, due now.
+ *
+ * 🔴 There is nothing here about any other learner, and no operation that could return one.
+ * The showcase shows a child their own progress, because that is all the product has. */
+function repetitionQueue(): MyRepetitionQueueQuery {
+  const done = store.repetition.reviewed;
+  return {
+    __typename: 'Query',
+    myRepetitionQueue: DEMO_WORDS.filter((w) => !done.has(w.id)).map((w) => ({
+      __typename: 'DueCard' as const,
+      id: `card-${w.id}`,
+      direction: 'RECOGNITION' as const,
+      state: 'NEW' as const,
+      stability: 0,
+      difficulty: 0,
+      dueAt: new Date().toISOString(),
+      lastReviewAt: null,
+      reps: 0,
+      lapses: 0,
+      learningSteps: 0,
+      item: w,
+    })),
+  };
+}
+
+function repetitionProgress(): MyRepetitionProgressQuery {
+  const reviewed = store.repetition.reviewed.size;
+  return {
+    __typename: 'Query',
+    myRepetitionProgress: {
+      __typename: 'RepetitionProgress',
+      total: DEMO_WORDS.length,
+      due: DEMO_WORDS.length - reviewed,
+      learning: reviewed,
+      mastered: 0,
+      reviews: reviewed,
+      currentStreak: reviewed > 0 ? 1 : 0,
+      longestStreak: Math.max(4, reviewed > 0 ? 1 : 0),
+    },
+  };
+}
+
 // --- Courses -----------------------------------------------------------------------------
 /** Preview-only platform-zero toggle for the catalog (?catalog=zero) — mirrors demoRole's
  *  ?role= convention so the "Каталог наполняется" state is reachable in the preview. */
@@ -2678,6 +2725,42 @@ export function resolveDemoOperation(
           lemma: item?.lemma ?? '',
         },
       } satisfies ShowWordToClassMutation;
+    }
+    case 'MyRepetitionQueue':
+      return repetitionQueue();
+    case 'MyRepetitionProgress':
+      return repetitionProgress();
+    case 'MyAchievements':
+      return {
+        __typename: 'Query',
+        myAchievements: [...store.repetition.achievements].map((key) => ({
+          __typename: 'Achievement' as const,
+          key: key as MyAchievementsQuery['myAchievements'][number]['key'],
+          earnedAt: new Date().toISOString(),
+        })),
+      } satisfies MyAchievementsQuery;
+    case 'ReviewWord': {
+      const cardId = String(variables.cardId ?? '');
+      store.repetition.reviewed.add(cardId.replace(/^card-/, ''));
+      if (store.repetition.reviewed.size >= 1) store.repetition.achievements.add('FIRST_WORD');
+      // The WHOLE card back, like the server — a partial DueCard merges a half-updated
+      // entity into the Apollo cache, and stability-without-difficulty is not a memory state
+      // the scheduler can read.
+      return {
+        reviewWord: {
+          __typename: 'DueCard',
+          id: cardId,
+          direction: 'RECOGNITION',
+          state: String(variables.state ?? 'LEARNING') as 'LEARNING',
+          stability: Number(variables.stability ?? 0),
+          difficulty: Number(variables.difficulty ?? 0),
+          dueAt: String(variables.dueAt ?? new Date().toISOString()),
+          lastReviewAt: new Date().toISOString(),
+          reps: 1,
+          lapses: variables.rating === 'AGAIN' ? 1 : 0,
+          learningSteps: Number(variables.learningSteps ?? 0),
+        },
+      } satisfies ReviewWordMutation;
     }
     case 'LessonSummary':
       return lessonSummary();

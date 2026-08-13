@@ -35,6 +35,10 @@ MASTERED_STABILITY_DAYS = 60.0
 #: Sanity bounds on a client-computed schedule. Not the algorithm — a fence around it.
 MAX_STABILITY_DAYS = 365.0 * 10
 MAX_DIFFICULTY = 10.0
+#: FSRS difficulty lives in [1, 10]. Zero is only legal on a card nobody has answered yet —
+#: `(stability > 0, difficulty == 0)` is not a memory state the scheduler can read back, and
+#: handing it one throws on the learner's screen. The clamp must not be able to mint that pair.
+MIN_DIFFICULTY = 1.0
 MAX_INTERVAL = dt.timedelta(days=365 * 10)
 
 #: How many cards a session offers at once. A queue of four hundred is a queue nobody starts.
@@ -117,6 +121,10 @@ def review(
 
     card.stability = _clamp(stability, 0.0, MAX_STABILITY_DAYS)
     card.difficulty = _clamp(difficulty, 0.0, MAX_DIFFICULTY)
+    if card.stability > 0:
+        # Keep the pair coherent — see MIN_DIFFICULTY. Clamping the two independently is how
+        # a fence ends up building the thing it was meant to keep out.
+        card.difficulty = max(MIN_DIFFICULTY, card.difficulty)
     card.due_at = _sane_due(due_at, now)
     card.state = _state(state)
     card.learning_steps = max(0, min(int(learning_steps or 0), 100))
