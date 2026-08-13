@@ -22,6 +22,7 @@ import { Avatar, Button } from '@/shared/ui';
 import { initialsOf } from '../../cabinet/ui/initials';
 import { BoardCanvas } from '@/features/board';
 import { TestScene } from '@/features/exercises';
+import { LessonChatPane, SummaryScene } from '@/features/summary';
 
 import frame from './roomframe.module.css';
 import styles from './liveroom.module.css';
@@ -61,6 +62,8 @@ function Shell({ subtitle, children }: { subtitle: string; children: React.React
         <BoardCanvas lessonId="les-1-12" />
       ) : scene === 'test' ? (
         <TestScene lessonId="les-1-12" isTeacher={isTeacher} />
+      ) : scene === 'summary' ? (
+        <SummaryScene sessionId="ses-algebra-live" isTeacher={isTeacher} />
       ) : (
         <p className={frame.sceneSoon}>{t(`room:scene.${scene}Soon`)}</p>
       )}
@@ -93,7 +96,7 @@ function SourceSwitcher() {
 function PreviewPane({ pane }: { pane: Pane }) {
   const { t } = useTranslation('room');
   if (pane === 'dict') return <p className={frame.paneEmpty}>{t('dictSoon')}</p>;
-  if (pane === 'chat') return <p className={frame.paneEmpty}>{t('chatSoon')}</p>;
+  if (pane === 'chat') return <LessonChatPane sessionId="ses-algebra-live" />;
   if (pane === 'mats') {
     return (
       <>

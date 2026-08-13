@@ -28,6 +28,7 @@ import frame from './roomframe.module.css';
 import styles from './liveroom.module.css';
 import { BoardCanvas } from '@/features/board';
 import { TestScene } from '@/features/exercises';
+import { LessonChatPane, SummaryScene } from '@/features/summary';
 
 import { ProjectorCast } from './ProjectorCast';
 import { type Pane, RoomFrame, type Scene } from './RoomFrame';
@@ -84,22 +85,24 @@ function RoomShell({
         </>
       }
       strip={children}
-      panel={panel ?? <RoomPane pane={pane} />}
+      panel={panel ?? <RoomPane pane={pane} sessionId={sessionId} />}
     >
-      <SceneBody scene={scene} lessonId={lessonId} isTeacher={isTeacher} />
+      <SceneBody scene={scene} lessonId={lessonId} sessionId={sessionId} isTeacher={isTeacher} />
     </RoomFrame>
   );
 }
 
-/** The scene the whole room is looking at. The board is real (R3.2); the other windows land
- *  with the phase that owns them. */
+/** The scene the whole room is looking at. The board (R3.2), the test and the summary (R4)
+ *  are real; the guide lands with the phase that owns it. */
 function SceneBody({
   scene,
   lessonId,
+  sessionId,
   isTeacher,
 }: {
   scene: Scene;
   lessonId?: string | null;
+  sessionId: string;
   isTeacher?: boolean;
 }) {
   const { t } = useTranslation('room');
@@ -107,15 +110,18 @@ function SceneBody({
   if (scene === 'test' && lessonId) {
     return <TestScene lessonId={lessonId} isTeacher={Boolean(isTeacher)} />;
   }
+  if (scene === 'summary') {
+    return <SummaryScene sessionId={sessionId} isTeacher={Boolean(isTeacher)} />;
+  }
   return <p className={frame.sceneSoon}>{t(`scene.${scene}Soon`)}</p>;
 }
 
-/** The personal panel. Participants and materials are real; the dictionary and the lesson
- *  chat belong to later phases and say so rather than showing an empty box. */
-function RoomPane({ pane }: { pane: Pane }) {
+/** The personal panel. The lesson chat is real (R4.2) — and it writes into the summary, not
+ *  into a feed of its own. The dictionary belongs to R4.3 and says so. */
+function RoomPane({ pane, sessionId }: { pane: Pane; sessionId: string }) {
   const { t } = useTranslation('room');
   if (pane === 'dict') return <p className={frame.paneEmpty}>{t('dictSoon')}</p>;
-  if (pane === 'chat') return <p className={frame.paneEmpty}>{t('chatSoon')}</p>;
+  if (pane === 'chat') return <LessonChatPane sessionId={sessionId} />;
   if (pane === 'mats') {
     return (
       <>

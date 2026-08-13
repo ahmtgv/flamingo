@@ -69,6 +69,12 @@ import type {
   LessonExerciseSetsQuery,
   MyExerciseAttemptsQuery,
   SetProgressQuery,
+  AssembleLessonSummaryMutation,
+  LessonChatQuery,
+  LessonSummaryQuery,
+  SendChatMessageMutation,
+  SendLessonSummaryMutation,
+  UpdateSummaryItemMutation,
   BoardQuery,
   CourseBoardsQuery,
   PutBoardElementMutation,
@@ -1411,6 +1417,222 @@ function exerciseLivePicture(): ExerciseLivePictureQuery {
   };
 }
 
+// --- Summary (R4.2) ----------------------------------------------------------------------
+/** The sheet's own summary, item for item, with the provenance under each line.
+ *
+ * The chat items are part of it — they are not a separate list here either, because they are
+ * not a separate list in the database. Sending a message in the preview appends a CHAT item,
+ * and it shows up in both the chat pane and the «Чат занятия» section of the summary, which
+ * is exactly the behaviour the owner decision buys. */
+type DemoItem = LessonSummaryQuery['lessonSummary'] extends infer S
+  ? S extends { items: (infer I)[] }
+    ? I
+    : never
+  : never;
+
+const SEEDED_ITEMS: Omit<DemoItem, '__typename'>[] = [
+  {
+    id: 'si-1',
+    section: 'TOPIC',
+    source: 'PLAN',
+    sourceMeta: { lessonId: 'les-1-12' },
+    atOffsetSec: 0,
+    text: 'Разогрев: «когда ты последний раз терялся»',
+    authorId: null,
+    authorName: '',
+    dueAt: null,
+    homeworkId: null,
+    edited: false,
+  },
+  {
+    id: 'si-2',
+    section: 'TOPIC',
+    source: 'BOARD',
+    sourceMeta: { elements: 4, authorName: 'Петя' },
+    atOffsetSec: 380,
+    text: 'Три конструкции вопроса о дороге, разобраны на доске',
+    authorId: null,
+    authorName: '',
+    dueAt: null,
+    homeworkId: null,
+    edited: false,
+  },
+  {
+    id: 'si-3',
+    section: 'TOPIC',
+    source: 'SPEECH',
+    sourceMeta: { speakerName: 'Ирина' },
+    atOffsetSec: 665,
+    text: 'Ирина: «на экзамене пишите ahead, on — разговорный вариант»',
+    authorId: null,
+    authorName: 'Ирина Соколова',
+    dueAt: null,
+    homeworkId: null,
+    edited: false,
+  },
+  {
+    id: 'si-4',
+    section: 'TOPIC',
+    source: 'MATERIAL',
+    sourceMeta: {},
+    atOffsetSec: 1120,
+    text: 'Аудирование «at the station», два прослушивания',
+    authorId: null,
+    authorName: '',
+    dueAt: null,
+    homeworkId: null,
+    edited: false,
+  },
+  {
+    id: 'si-5',
+    section: 'TOPIC',
+    source: 'TEST',
+    sourceMeta: { answered: 5, correct: 4, groupSize: 6, setTitle: 'Быстрый тест · directions' },
+    atOffsetSec: 1450,
+    text: 'Быстрый тест · directions',
+    authorId: null,
+    authorName: '',
+    dueAt: null,
+    homeworkId: null,
+    edited: false,
+  },
+  {
+    id: 'si-6',
+    section: 'WORDS',
+    source: 'BOARD',
+    sourceMeta: { count: 6, elements: 6, authorName: 'Ирина' },
+    atOffsetSec: null,
+    text: 'get to · turn left / right · go straight ahead · next to · far from · crossroads',
+    authorId: null,
+    authorName: '',
+    dueAt: null,
+    homeworkId: null,
+    edited: false,
+  },
+  {
+    id: 'si-7',
+    section: 'WATCH',
+    source: 'TEACHER',
+    sourceMeta: {},
+    atOffsetSec: null,
+    text: 'go straight on → go straight ahead',
+    authorId: null,
+    authorName: '',
+    dueAt: null,
+    homeworkId: null,
+    edited: true,
+  },
+  {
+    id: 'si-8',
+    section: 'HOMEWORK',
+    source: 'TEACHER',
+    sourceMeta: {},
+    atOffsetSec: null,
+    text: 'Описать дорогу от дома до школы, 5–7 предложений',
+    authorId: null,
+    authorName: '',
+    dueAt: inDays(3),
+    homeworkId: null,
+    edited: true,
+  },
+];
+
+const SEEDED_CHAT = [
+  { id: 'sc-1', name: 'Петя Ковалёв', text: 'а go straight on тоже правильно?', minutes: 12 },
+  {
+    id: 'sc-2',
+    name: 'Ирина Соколова',
+    text: 'В британском встречается, на экзамене — ahead',
+    minutes: 13,
+  },
+  { id: 'sc-3', name: 'Аня Коваль', text: 'можно ссылку на аудио ещё раз?', minutes: 16 },
+];
+
+function inDays(days: number): string {
+  return new Date(Date.now() + days * 86_400_000).toISOString();
+}
+
+function chatItems(): DemoItem[] {
+  const seeded = SEEDED_CHAT.map((m, i) => ({
+    __typename: 'SummaryItem' as const,
+    id: m.id,
+    section: 'CHAT' as const,
+    source: 'CHAT' as const,
+    sourceMeta: {},
+    atOffsetSec: m.minutes * 60,
+    text: m.text,
+    authorId: `u-${i}`,
+    authorName: m.name,
+    dueAt: null,
+    homeworkId: null,
+    edited: false,
+  }));
+  const own = store.summary.chat.map((m) => ({
+    __typename: 'SummaryItem' as const,
+    id: m.id,
+    section: 'CHAT' as const,
+    source: 'CHAT' as const,
+    sourceMeta: {},
+    atOffsetSec: m.atOffsetSec,
+    text: m.text,
+    authorId: m.senderId,
+    authorName: m.senderName,
+    dueAt: null,
+    homeworkId: null,
+    edited: false,
+  }));
+  return [...seeded, ...own];
+}
+
+function summaryItems(): DemoItem[] {
+  const kept = SEEDED_ITEMS.filter((i) => !store.summary.removed.has(i.id)).map((i) => ({
+    __typename: 'SummaryItem' as const,
+    ...i,
+    ...(store.summary.edits.has(i.id)
+      ? { text: store.summary.edits.get(i.id)!, edited: true }
+      : {}),
+  }));
+  return [...kept, ...chatItems()];
+}
+
+function lessonSummary(): LessonSummaryQuery {
+  // A learner sees nothing until it is sent — the same rule the server applies, and the
+  // preview must show it rather than a friendlier fiction.
+  if (demoGraphQLRole() !== 'TEACHER' && !store.summary.sent) {
+    return { __typename: 'Query', lessonSummary: null };
+  }
+  return {
+    __typename: 'Query',
+    lessonSummary: {
+      __typename: 'LessonSummary',
+      id: 'sum-1',
+      sessionId: 'ses-algebra-live',
+      status: store.summary.sent ? 'SENT' : 'DRAFT',
+      intro: '',
+      assembledAt: new Date().toISOString(),
+      sentAt: store.summary.sent ? new Date().toISOString() : null,
+      speechOmitted: false,
+      canEdit: demoGraphQLRole() === 'TEACHER' && !store.summary.sent,
+      items: summaryItems(),
+    },
+  };
+}
+
+function lessonChat(): LessonChatQuery {
+  return {
+    __typename: 'Query',
+    lessonChat: chatItems().map((i) => ({
+      __typename: 'ChatMessage' as const,
+      id: i.id,
+      sessionId: 'ses-algebra-live',
+      senderId: i.authorId ?? '',
+      senderName: i.authorName,
+      text: i.text,
+      sentAt: new Date(Date.now() - (2400 - (i.atOffsetSec ?? 0)) * 1000).toISOString(),
+    })),
+  };
+}
+
 // --- Courses -----------------------------------------------------------------------------
 /** Preview-only platform-zero toggle for the catalog (?catalog=zero) — mirrors demoRole's
  *  ?role= convention so the "Каталог наполняется" state is reachable in the preview. */
@@ -2265,6 +2487,69 @@ export function resolveDemoOperation(
           correct: [...store.exercises.answers.values()].filter((a) => a.correct).length,
         },
       } satisfies SetProgressQuery;
+    }
+    case 'LessonSummary':
+      return lessonSummary();
+    case 'LessonChat':
+      return lessonChat();
+    case 'AssembleLessonSummary': {
+      const summary = lessonSummary().lessonSummary!;
+      return {
+        assembleLessonSummary: {
+          __typename: 'LessonSummary',
+          id: summary.id,
+          status: summary.status,
+          speechOmitted: summary.speechOmitted,
+          assembledAt: summary.assembledAt,
+          canEdit: summary.canEdit,
+          items: summary.items,
+        },
+      } satisfies AssembleLessonSummaryMutation;
+    }
+    case 'UpdateSummaryItem': {
+      const itemId = String(variables.itemId ?? '');
+      const text = String(variables.text ?? '');
+      store.summary.edits.set(itemId, text);
+      return {
+        updateSummaryItem: { __typename: 'SummaryItem', id: itemId, text, edited: true },
+      } satisfies UpdateSummaryItemMutation;
+    }
+    case 'RemoveSummaryItem':
+      store.summary.removed.add(String(variables.itemId ?? ''));
+      return { removeSummaryItem: true };
+    case 'SendLessonSummary':
+      store.summary.sent = true;
+      return {
+        sendLessonSummary: {
+          __typename: 'LessonSummary',
+          id: 'sum-1',
+          status: 'SENT',
+          sentAt: new Date().toISOString(),
+        },
+      } satisfies SendLessonSummaryMutation;
+    case 'SendChatMessage': {
+      // The whole point of R4.2, in three lines: a message is appended to the SUMMARY, so it
+      // shows up in the chat pane and in «Чат занятия» at once. No second list exists.
+      const me = demoGraphQLRole() === 'TEACHER' ? users.maria : users.sasha;
+      const message = {
+        id: nextId('sc'),
+        text: String(variables.text ?? ''),
+        senderId: me.id,
+        senderName: `${me.firstName} ${me.lastName}`,
+        atOffsetSec: 2400,
+      };
+      store.summary.chat.push(message);
+      return {
+        sendChatMessage: {
+          __typename: 'ChatMessage',
+          id: message.id,
+          sessionId: String(variables.sessionId ?? 'ses-algebra-live'),
+          senderId: message.senderId,
+          senderName: message.senderName,
+          text: message.text,
+          sentAt: new Date().toISOString(),
+        },
+      } satisfies SendChatMessageMutation;
     }
     case 'Board':
       return {

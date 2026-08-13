@@ -278,6 +278,20 @@ export const store = {
   exercises: {
     answers: new Map<string, { choice?: number; correct: boolean | null; at: string }>(),
   },
+  /** Summary (R4.2): a message sent in the preview lands in the summary's CHAT section —
+   *  there is no second list for it here either, because there is none in the database. */
+  summary: {
+    sent: false,
+    edits: new Map<string, string>(),
+    removed: new Set<string>(),
+    chat: [] as {
+      id: string;
+      text: string;
+      senderId: string;
+      senderName: string;
+      atOffsetSec: number;
+    }[],
+  },
   /** Monotonic counter for synthetic ids minted by create-mutations. */
   seq: 1000,
 };
@@ -291,6 +305,7 @@ export function resetDemoStore(): void {
   store.chat = { sent: new Map(), read: new Set(), reported: new Set() };
   store.board = { open: false, edits: new Map(), added: [], removed: new Set(), saved: [] };
   store.exercises = { answers: new Map() };
+  store.summary = { sent: false, edits: new Map(), removed: new Set(), chat: [] };
   store.seq = 1000;
 }
 

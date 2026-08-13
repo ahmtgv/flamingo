@@ -1,0 +1,105 @@
+# The lesson summary (R4.2) and the lesson chat, which is a section inside it.
+#
+# Note what is not asked for anywhere here: recognised speech. `source` + `sourceMeta` are all
+# the provenance the screen needs, and the caption under each line is composed on the client.
+
+query LessonSummary($sessionId: ID!) {
+  lessonSummary(sessionId: $sessionId) {
+    id
+    sessionId
+    status
+    intro
+    assembledAt
+    sentAt
+    speechOmitted
+    canEdit
+    items {
+      id
+      section
+      source
+      sourceMeta
+      atOffsetSec
+      text
+      authorId
+      authorName
+      dueAt
+      homeworkId
+      edited
+    }
+  }
+}
+
+query LessonChat($sessionId: ID!) {
+  lessonChat(sessionId: $sessionId) {
+    id
+    sessionId
+    senderId
+    senderName
+    text
+    sentAt
+  }
+}
+
+mutation AssembleLessonSummary($sessionId: ID!) {
+  assembleLessonSummary(sessionId: $sessionId) {
+    id
+    status
+    speechOmitted
+    assembledAt
+    canEdit
+    items {
+      id
+      section
+      source
+      sourceMeta
+      atOffsetSec
+      text
+      authorId
+      authorName
+      dueAt
+      homeworkId
+      edited
+    }
+  }
+}
+
+mutation UpdateSummaryItem($itemId: ID!, $text: String!) {
+  updateSummaryItem(itemId: $itemId, text: $text) {
+    id
+    text
+    edited
+  }
+}
+
+mutation RemoveSummaryItem($itemId: ID!) {
+  removeSummaryItem(itemId: $itemId)
+}
+
+mutation AddSummaryItem($sessionId: ID!, $section: SummarySection!, $text: String!) {
+  addSummaryItem(sessionId: $sessionId, section: $section, text: $text) {
+    id
+    section
+    source
+    text
+    edited
+  }
+}
+
+mutation SendLessonSummary($sessionId: ID!) {
+  sendLessonSummary(sessionId: $sessionId) {
+    id
+    status
+    sentAt
+  }
+}
+
+mutation SendChatMessage($sessionId: ID!, $text: String!) {
+  sendChatMessage(sessionId: $sessionId, text: $text) {
+    id
+    sessionId
+    senderId
+    senderName
+    text
+    sentAt
+  }
+}

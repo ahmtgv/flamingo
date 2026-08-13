@@ -1,0 +1,208 @@
+/* The «саммари» scene of atlas sheet 02 — the sheet calls it `paper`, and it reads like one. */
+
+.paper {
+  display: grid;
+  gap: var(--space-2);
+  align-content: start;
+  max-width: 74ch;
+}
+
+.head {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  margin-bottom: var(--space-2);
+}
+.title {
+  font-size: 1.15rem;
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--tracking-tight);
+}
+.draft {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-family: var(--font-mono);
+  font-size: var(--text-overline);
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: var(--color-accent-text);
+  background: var(--color-accent-subtle);
+  border-radius: var(--radius-xs);
+  padding: var(--space-1) var(--space-2);
+}
+.sent {
+  composes: draft;
+  color: var(--color-success-text);
+  background: var(--color-success-bg);
+}
+.acts {
+  margin-left: auto;
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.meta,
+.lead,
+.hint {
+  font-family: var(--font-mono);
+  font-size: var(--text-overline);
+  color: var(--color-text-tertiary);
+  line-height: var(--leading-snug);
+}
+.lead {
+  font-family: var(--font-body);
+  font-size: var(--text-caption);
+  color: var(--color-text-secondary);
+  line-height: var(--leading-body);
+}
+
+.section {
+  font-family: var(--font-mono);
+  font-size: var(--text-overline);
+  font-weight: var(--weight-medium);
+  color: var(--color-text-tertiary);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  margin-top: var(--space-5);
+}
+
+.item {
+  display: grid;
+  grid-template-columns: 70px 1fr;
+  gap: var(--space-3);
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--color-border);
+}
+.item:last-child {
+  border-bottom: none;
+}
+.stamp {
+  font-family: var(--font-mono);
+  font-size: var(--text-overline);
+  font-weight: var(--weight-medium);
+  color: var(--color-text-tertiary);
+  font-variant-numeric: tabular-nums;
+}
+.text {
+  font-size: var(--text-caption);
+  color: var(--color-text);
+  line-height: var(--leading-body);
+}
+.sub {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: var(--text-overline);
+  color: var(--color-text-tertiary);
+  margin-top: var(--space-1);
+  line-height: var(--leading-snug);
+}
+.itemActs {
+  display: flex;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+.linkBtn {
+  border: 0;
+  background: none;
+  padding: 0;
+  color: var(--color-text-tertiary);
+  font-family: var(--font-mono);
+  font-size: var(--text-overline);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.linkBtn:hover {
+  color: var(--color-text);
+}
+.linkBtn:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+  border-radius: var(--radius-xs);
+}
+
+.editRow {
+  display: grid;
+  gap: var(--space-2);
+}
+.input {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: var(--tap-min);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  font-size: var(--text-caption);
+  resize: vertical;
+}
+.input:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+/* Speech left out: said plainly, because a summary that is quietly thinner is worse. */
+.omitted {
+  font-size: var(--text-caption);
+  color: var(--color-warning-text);
+  background: var(--color-warning-bg);
+  border-radius: var(--radius-sm);
+  padding: var(--space-3);
+  line-height: var(--leading-snug);
+}
+.failed {
+  font-size: var(--text-caption);
+  color: var(--color-error-text);
+}
+
+/* --- the lesson chat, in the room's right panel ------------------------------------------ */
+.chat {
+  display: grid;
+  grid-template-rows: 1fr auto;
+  gap: var(--space-3);
+  min-height: 0;
+  height: 100%;
+}
+.msgs {
+  display: grid;
+  gap: var(--space-3);
+  align-content: start;
+  overflow-y: auto;
+  min-height: 0;
+}
+.msg {
+  display: grid;
+  gap: var(--space-1);
+}
+.who {
+  font-family: var(--font-mono);
+  font-size: var(--text-overline);
+  color: var(--color-text-tertiary);
+}
+.body {
+  font-size: var(--text-caption);
+  line-height: var(--leading-body);
+}
+.compose {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+}
+.composeInput {
+  composes: input;
+  min-height: var(--tap-min);
+  resize: none;
+}
+.chatNote {
+  font-family: var(--font-mono);
+  font-size: var(--text-overline);
+  color: var(--color-text-tertiary);
+  line-height: var(--leading-snug);
+}

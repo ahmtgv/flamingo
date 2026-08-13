@@ -736,7 +736,12 @@ describe('resolveDemoOperation — board (R3.2)', () => {
 });
 
 describe('resolveDemoOperation — exercises (R4.1)', () => {
-  type Row = { exerciseId: string; answered: number; correct: number; spread: Record<string, number> };
+  type Row = {
+    exerciseId: string;
+    answered: number;
+    correct: number;
+    spread: Record<string, number>;
+  };
   const picture = () =>
     (resolveDemoOperation('ExerciseLivePicture', {}) as { exerciseLivePicture: Row[] })
       .exerciseLivePicture;
@@ -745,7 +750,11 @@ describe('resolveDemoOperation — exercises (R4.1)', () => {
     setRole('student');
     const sets = (
       resolveDemoOperation('LessonExerciseSets', { lessonId: 'les-1-12' }) as {
-        lessonExerciseSets: { mode: string; homeworkId: string | null; exercises: { kind: string }[] }[];
+        lessonExerciseSets: {
+          mode: string;
+          homeworkId: string | null;
+          exercises: { kind: string }[];
+        }[];
       }
     ).lessonExerciseSets;
     expect(sets).toHaveLength(1);
@@ -784,5 +793,71 @@ describe('resolveDemoOperation — exercises (R4.1)', () => {
         ['__typename', 'answered', 'correct', 'exerciseId', 'groupSize', 'spread'].sort(),
       );
     }
+  });
+});
+
+describe('resolveDemoOperation — summary (R4.2)', () => {
+  type Item = { id: string; section: string; source: string; text: string };
+  const summary = () =>
+    (
+      resolveDemoOperation('LessonSummary', { sessionId: 'ses-algebra-live' }) as {
+        lessonSummary: { status: string; canEdit: boolean; items: Item[] } | null;
+      }
+    ).lessonSummary;
+
+  it('a learner sees nothing until the teacher sends it — the server’s rule, not a friendlier one', () => {
+    setRole('student');
+    expect(summary()).toBeNull();
+
+    setRole('teacher');
+    resolveDemoOperation('SendLessonSummary', { sessionId: 'ses-algebra-live' });
+    setRole('student');
+    expect(summary()?.status).toBe('SENT');
+  });
+
+  it('the teacher’s draft carries every section of the sheet, each line with its source', () => {
+    setRole('teacher');
+    const items = summary()!.items;
+    expect(new Set(items.map((i) => i.section))).toEqual(
+      new Set(['TOPIC', 'WORDS', 'WATCH', 'CHAT', 'HOMEWORK']),
+    );
+    expect(new Set(items.map((i) => i.source))).toContain('BOARD');
+    expect(items.every((i) => i.source)).toBe(true);
+  });
+
+  it('a message goes into the SUMMARY — the chat pane and «Чат занятия» read one list', () => {
+    setRole('student');
+    resolveDemoOperation('SendChatMessage', {
+      sessionId: 'ses-algebra-live',
+      text: 'а если пешком?',
+    });
+
+    const chat = (
+      resolveDemoOperation('LessonChat', { sessionId: 'ses-algebra-live' }) as {
+        lessonChat: { text: string }[];
+      }
+    ).lessonChat;
+    expect(chat.map((m) => m.text)).toContain('а если пешком?');
+
+    setRole('teacher');
+    const inSummary = summary()!.items.filter((i) => i.section === 'CHAT');
+    expect(inSummary.map((i) => i.text)).toContain('а если пешком?');
+  });
+
+  it('a rewritten line stays rewritten, and a removed one stays gone', () => {
+    setRole('teacher');
+    const first = summary()!.items[0];
+    resolveDemoOperation('UpdateSummaryItem', { itemId: first.id, text: 'своими словами' });
+    expect(summary()!.items.find((i) => i.id === first.id)?.text).toBe('своими словами');
+
+    resolveDemoOperation('RemoveSummaryItem', { itemId: first.id });
+    expect(summary()!.items.find((i) => i.id === first.id)).toBeUndefined();
+  });
+
+  it('a sent summary is no longer editable', () => {
+    setRole('teacher');
+    expect(summary()!.canEdit).toBe(true);
+    resolveDemoOperation('SendLessonSummary', { sessionId: 'ses-algebra-live' });
+    expect(summary()!.canEdit).toBe(false);
   });
 });

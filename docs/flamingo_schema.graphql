@@ -451,11 +451,14 @@ type NotificationPreference {
 # confused with ChannelMessage below, which is the standing chat between people (R2).
 # There is no separate lesson feed: sending a message here WRITES a SummaryItem, so
 # «переписка едет вместе с итогом» is true of the schema and not only of the screen.
-# DRIFT: live resolves senderId + senderName (flat), this contract still says sender: User!.
+# CHANGED in R4.2: sender: User! -> flat senderId + senderName, matching BoardElement. A
+# summary line needs a name, not a user object, and a nested User would drag a whole profile
+# into every chat message.
 type ChatMessage {
   id: ID!
   sessionId: ID!
-  sender: User!
+  senderId: ID!
+  senderName: String!
   text: String!
   sentAt: DateTime!
 }

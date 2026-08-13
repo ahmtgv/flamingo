@@ -13,6 +13,7 @@ import seedumRu from './locales/ru/seedum.json';
 import boardRu from './locales/ru/board.json';
 import chatRu from './locales/ru/chat.json';
 import exercisesRu from './locales/ru/exercises.json';
+import summaryRu from './locales/ru/summary.json';
 import roomRu from './locales/ru/room.json';
 import startRu from './locales/ru/start.json';
 import subjectRu from './locales/ru/subject.json';
@@ -35,6 +36,7 @@ export const resources = {
     board: boardRu,
     chat: chatRu,
     exercises: exercisesRu,
+    summary: summaryRu,
     room: roomRu,
     start: startRu,
     subject: subjectRu,
@@ -60,6 +62,7 @@ void i18n.use(initReactI18next).init({
     'board',
     'chat',
     'exercises',
+    'summary',
     'room',
     'start',
     'subject',

@@ -258,7 +258,8 @@ export type ChatChannel = {
 export type ChatMessage = {
   __typename?: 'ChatMessage';
   id: Scalars['ID']['output'];
-  sender: User;
+  senderId: Scalars['ID']['output'];
+  senderName: Scalars['String']['output'];
   sentAt: Scalars['DateTime']['output'];
   sessionId: Scalars['ID']['output'];
   text: Scalars['String']['output'];
@@ -692,6 +693,19 @@ export type LessonStatus =
   | 'DRAFT'
   | 'PUBLISHED';
 
+export type LessonSummary = {
+  __typename?: 'LessonSummary';
+  assembledAt?: Maybe<Scalars['DateTime']['output']>;
+  canEdit: Scalars['Boolean']['output'];
+  id: Scalars['ID']['output'];
+  intro: Scalars['String']['output'];
+  items: Array<SummaryItem>;
+  sentAt?: Maybe<Scalars['DateTime']['output']>;
+  sessionId: Scalars['ID']['output'];
+  speechOmitted: Scalars['Boolean']['output'];
+  status: SummaryStatus;
+};
+
 export type Material = {
   __typename?: 'Material';
   body?: Maybe<Scalars['String']['output']>;
@@ -733,8 +747,10 @@ export type Mutation = {
   addChild: Guardianship;
   addMaterial: Material;
   addStudentsToGroup: Group;
+  addSummaryItem: SummaryItem;
   answerExercise: Attempt;
   archiveCourse: Course;
+  assembleLessonSummary: LessonSummary;
   assignTeacher: GroupTeacher;
   backupUbp: UbpBackup;
   countLiveAsClasswork: Scalars['ID']['output'];
@@ -781,6 +797,7 @@ export type Mutation = {
   removeMember: Scalars['Boolean']['output'];
   removeSavedItem: Scalars['Boolean']['output'];
   removeStudentFromGroup: Group;
+  removeSummaryItem: Scalars['Boolean']['output'];
   reorderLessons: Array<Lesson>;
   reorderSections: Array<Section>;
   reportAttention: Scalars['Boolean']['output'];
@@ -795,11 +812,14 @@ export type Mutation = {
   scheduleSession: LessonSession;
   sendChannelMessage: ChannelMessage;
   sendChatMessage: ChatMessage;
+  sendLessonSummary: LessonSummary;
   setActiveLearningProfile: LearningProfile;
   setAttendance: Attendance;
   setAvatar: User;
   setBoardOpen: Scalars['Boolean']['output'];
   setProjectorFocus: ProjectorFocus;
+  setSpeechConsent: Scalars['Boolean']['output'];
+  setSummaryIntro: LessonSummary;
   startSession: LessonSession;
   submitHomework: Submission;
   submitVerificationDocument: VerificationDocument;
@@ -814,6 +834,7 @@ export type Mutation = {
   updateMembership: InstitutionMembership;
   updateNotificationPreference: NotificationPreference;
   updateSection: Section;
+  updateSummaryItem: SummaryItem;
   verifyEmail: Scalars['Boolean']['output'];
 };
 
@@ -834,6 +855,14 @@ export type MutationAddStudentsToGroupArgs = {
 };
 
 
+export type MutationAddSummaryItemArgs = {
+  dueAt?: InputMaybe<Scalars['DateTime']['input']>;
+  section: SummarySection;
+  sessionId: Scalars['ID']['input'];
+  text: Scalars['String']['input'];
+};
+
+
 export type MutationAnswerExerciseArgs = {
   context?: InputMaybe<AttemptContext>;
   exerciseId: Scalars['ID']['input'];
@@ -846,6 +875,11 @@ export type MutationAnswerExerciseArgs = {
 
 export type MutationArchiveCourseArgs = {
   id: Scalars['ID']['input'];
+};
+
+
+export type MutationAssembleLessonSummaryArgs = {
+  sessionId: Scalars['ID']['input'];
 };
 
 
@@ -1076,6 +1110,11 @@ export type MutationRemoveStudentFromGroupArgs = {
 };
 
 
+export type MutationRemoveSummaryItemArgs = {
+  itemId: Scalars['ID']['input'];
+};
+
+
 export type MutationReorderLessonsArgs = {
   orderedIds: Array<Scalars['ID']['input']>;
   sectionId: Scalars['ID']['input'];
@@ -1156,6 +1195,11 @@ export type MutationSendChatMessageArgs = {
 };
 
 
+export type MutationSendLessonSummaryArgs = {
+  sessionId: Scalars['ID']['input'];
+};
+
+
 export type MutationSetActiveLearningProfileArgs = {
   id: Scalars['ID']['input'];
 };
@@ -1182,6 +1226,17 @@ export type MutationSetBoardOpenArgs = {
 export type MutationSetProjectorFocusArgs = {
   sessionId: Scalars['ID']['input'];
   studentId?: InputMaybe<Scalars['ID']['input']>;
+};
+
+
+export type MutationSetSpeechConsentArgs = {
+  granted: Scalars['Boolean']['input'];
+};
+
+
+export type MutationSetSummaryIntroArgs = {
+  sessionId: Scalars['ID']['input'];
+  text: Scalars['String']['input'];
 };
 
 
@@ -1261,6 +1316,12 @@ export type MutationUpdateNotificationPreferenceArgs = {
 export type MutationUpdateSectionArgs = {
   id: Scalars['ID']['input'];
   input: SectionInput;
+};
+
+
+export type MutationUpdateSummaryItemArgs = {
+  itemId: Scalars['ID']['input'];
+  text: Scalars['String']['input'];
 };
 
 
@@ -1396,8 +1457,10 @@ export type Query = {
   leaderboard: Array<LeaderboardEntry>;
   learningProfiles: Array<LearningProfile>;
   lesson?: Maybe<Lesson>;
+  lessonChat: Array<ChatMessage>;
   lessonExerciseSets: Array<ExerciseSet>;
   lessonHomework: Array<Homework>;
+  lessonSummary?: Maybe<LessonSummary>;
   me?: Maybe<User>;
   myAchievements: Array<UserAchievement>;
   myAttempts: Array<Attempt>;
@@ -1525,6 +1588,11 @@ export type QueryLessonArgs = {
 };
 
 
+export type QueryLessonChatArgs = {
+  sessionId: Scalars['ID']['input'];
+};
+
+
 export type QueryLessonExerciseSetsArgs = {
   lessonId: Scalars['ID']['input'];
 };
@@ -1532,6 +1600,11 @@ export type QueryLessonExerciseSetsArgs = {
 
 export type QueryLessonHomeworkArgs = {
   lessonId: Scalars['ID']['input'];
+};
+
+
+export type QueryLessonSummaryArgs = {
+  sessionId: Scalars['ID']['input'];
 };
 
 
@@ -2031,6 +2104,41 @@ export type SubscriptionProjectorFocusChangedArgs = {
 export type SubscriptionSessionStatusChangedArgs = {
   sessionId: Scalars['ID']['input'];
 };
+
+export type SummaryItem = {
+  __typename?: 'SummaryItem';
+  atOffsetSec?: Maybe<Scalars['Int']['output']>;
+  authorId?: Maybe<Scalars['ID']['output']>;
+  authorName: Scalars['String']['output'];
+  dueAt?: Maybe<Scalars['DateTime']['output']>;
+  edited: Scalars['Boolean']['output'];
+  homeworkId?: Maybe<Scalars['ID']['output']>;
+  id: Scalars['ID']['output'];
+  section: SummarySection;
+  source: SummarySource;
+  sourceMeta: Scalars['JSON']['output'];
+  text: Scalars['String']['output'];
+};
+
+export type SummarySection =
+  | 'CHAT'
+  | 'HOMEWORK'
+  | 'TOPIC'
+  | 'WATCH'
+  | 'WORDS';
+
+export type SummarySource =
+  | 'BOARD'
+  | 'CHAT'
+  | 'MATERIAL'
+  | 'PLAN'
+  | 'SPEECH'
+  | 'TEACHER'
+  | 'TEST';
+
+export type SummaryStatus =
+  | 'DRAFT'
+  | 'SENT';
 
 export type TaskState =
   | 'GRADED'
@@ -2826,6 +2934,66 @@ export type SubjectProgressQueryVariables = Exact<{
 
 
 export type SubjectProgressQuery = { __typename?: 'Query', subjectProgress: { __typename?: 'SubjectProgress', profileKind: LearningProfileKind, overallPct?: number | null, previousOverallPct?: number | null, weakBelowPct: number, topics: Array<{ __typename?: 'SubjectTopic', id: string, title: string, lessonFrom?: string | null, lessonTo?: string | null, isCurrent: boolean, pct?: number | null, previousPct?: number | null, weakCount?: number | null, learnerCount?: number | null }> } };
+
+export type LessonSummaryQueryVariables = Exact<{
+  sessionId: Scalars['ID']['input'];
+}>;
+
+
+export type LessonSummaryQuery = { __typename?: 'Query', lessonSummary?: { __typename?: 'LessonSummary', id: string, sessionId: string, status: SummaryStatus, intro: string, assembledAt?: string | null, sentAt?: string | null, speechOmitted: boolean, canEdit: boolean, items: Array<{ __typename?: 'SummaryItem', id: string, section: SummarySection, source: SummarySource, sourceMeta: Record<string, unknown>, atOffsetSec?: number | null, text: string, authorId?: string | null, authorName: string, dueAt?: string | null, homeworkId?: string | null, edited: boolean }> } | null };
+
+export type LessonChatQueryVariables = Exact<{
+  sessionId: Scalars['ID']['input'];
+}>;
+
+
+export type LessonChatQuery = { __typename?: 'Query', lessonChat: Array<{ __typename?: 'ChatMessage', id: string, sessionId: string, senderId: string, senderName: string, text: string, sentAt: string }> };
+
+export type AssembleLessonSummaryMutationVariables = Exact<{
+  sessionId: Scalars['ID']['input'];
+}>;
+
+
+export type AssembleLessonSummaryMutation = { __typename?: 'Mutation', assembleLessonSummary: { __typename?: 'LessonSummary', id: string, status: SummaryStatus, speechOmitted: boolean, assembledAt?: string | null, canEdit: boolean, items: Array<{ __typename?: 'SummaryItem', id: string, section: SummarySection, source: SummarySource, sourceMeta: Record<string, unknown>, atOffsetSec?: number | null, text: string, authorId?: string | null, authorName: string, dueAt?: string | null, homeworkId?: string | null, edited: boolean }> } };
+
+export type UpdateSummaryItemMutationVariables = Exact<{
+  itemId: Scalars['ID']['input'];
+  text: Scalars['String']['input'];
+}>;
+
+
+export type UpdateSummaryItemMutation = { __typename?: 'Mutation', updateSummaryItem: { __typename?: 'SummaryItem', id: string, text: string, edited: boolean } };
+
+export type RemoveSummaryItemMutationVariables = Exact<{
+  itemId: Scalars['ID']['input'];
+}>;
+
+
+export type RemoveSummaryItemMutation = { __typename?: 'Mutation', removeSummaryItem: boolean };
+
+export type AddSummaryItemMutationVariables = Exact<{
+  sessionId: Scalars['ID']['input'];
+  section: SummarySection;
+  text: Scalars['String']['input'];
+}>;
+
+
+export type AddSummaryItemMutation = { __typename?: 'Mutation', addSummaryItem: { __typename?: 'SummaryItem', id: string, section: SummarySection, source: SummarySource, text: string, edited: boolean } };
+
+export type SendLessonSummaryMutationVariables = Exact<{
+  sessionId: Scalars['ID']['input'];
+}>;
+
+
+export type SendLessonSummaryMutation = { __typename?: 'Mutation', sendLessonSummary: { __typename?: 'LessonSummary', id: string, status: SummaryStatus, sentAt?: string | null } };
+
+export type SendChatMessageMutationVariables = Exact<{
+  sessionId: Scalars['ID']['input'];
+  text: Scalars['String']['input'];
+}>;
+
+
+export type SendChatMessageMutation = { __typename?: 'Mutation', sendChatMessage: { __typename?: 'ChatMessage', id: string, sessionId: string, senderId: string, senderName: string, text: string, sentAt: string } };
 
 export type RequestUploadMutationVariables = Exact<{
   input: UploadRequestInput;
@@ -7059,6 +7227,347 @@ export type SubjectProgressQueryHookResult = ReturnType<typeof useSubjectProgres
 export type SubjectProgressLazyQueryHookResult = ReturnType<typeof useSubjectProgressLazyQuery>;
 export type SubjectProgressSuspenseQueryHookResult = ReturnType<typeof useSubjectProgressSuspenseQuery>;
 export type SubjectProgressQueryResult = Apollo.QueryResult<SubjectProgressQuery, SubjectProgressQueryVariables>;
+export const LessonSummaryDocument = gql`
+    query LessonSummary($sessionId: ID!) {
+  lessonSummary(sessionId: $sessionId) {
+    id
+    sessionId
+    status
+    intro
+    assembledAt
+    sentAt
+    speechOmitted
+    canEdit
+    items {
+      id
+      section
+      source
+      sourceMeta
+      atOffsetSec
+      text
+      authorId
+      authorName
+      dueAt
+      homeworkId
+      edited
+    }
+  }
+}
+    `;
+
+/**
+ * __useLessonSummaryQuery__
+ *
+ * To run a query within a React component, call `useLessonSummaryQuery` and pass it any options that fit your needs.
+ * When your component renders, `useLessonSummaryQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useLessonSummaryQuery({
+ *   variables: {
+ *      sessionId: // value for 'sessionId'
+ *   },
+ * });
+ */
+export function useLessonSummaryQuery(baseOptions: Apollo.QueryHookOptions<LessonSummaryQuery, LessonSummaryQueryVariables> & ({ variables: LessonSummaryQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<LessonSummaryQuery, LessonSummaryQueryVariables>(LessonSummaryDocument, options);
+      }
+export function useLessonSummaryLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<LessonSummaryQuery, LessonSummaryQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<LessonSummaryQuery, LessonSummaryQueryVariables>(LessonSummaryDocument, options);
+        }
+// @ts-ignore
+export function useLessonSummarySuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<LessonSummaryQuery, LessonSummaryQueryVariables>): Apollo.UseSuspenseQueryResult<LessonSummaryQuery, LessonSummaryQueryVariables>;
+export function useLessonSummarySuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<LessonSummaryQuery, LessonSummaryQueryVariables>): Apollo.UseSuspenseQueryResult<LessonSummaryQuery | undefined, LessonSummaryQueryVariables>;
+export function useLessonSummarySuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<LessonSummaryQuery, LessonSummaryQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<LessonSummaryQuery, LessonSummaryQueryVariables>(LessonSummaryDocument, options);
+        }
+export type LessonSummaryQueryHookResult = ReturnType<typeof useLessonSummaryQuery>;
+export type LessonSummaryLazyQueryHookResult = ReturnType<typeof useLessonSummaryLazyQuery>;
+export type LessonSummarySuspenseQueryHookResult = ReturnType<typeof useLessonSummarySuspenseQuery>;
+export type LessonSummaryQueryResult = Apollo.QueryResult<LessonSummaryQuery, LessonSummaryQueryVariables>;
+export const LessonChatDocument = gql`
+    query LessonChat($sessionId: ID!) {
+  lessonChat(sessionId: $sessionId) {
+    id
+    sessionId
+    senderId
+    senderName
+    text
+    sentAt
+  }
+}
+    `;
+
+/**
+ * __useLessonChatQuery__
+ *
+ * To run a query within a React component, call `useLessonChatQuery` and pass it any options that fit your needs.
+ * When your component renders, `useLessonChatQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useLessonChatQuery({
+ *   variables: {
+ *      sessionId: // value for 'sessionId'
+ *   },
+ * });
+ */
+export function useLessonChatQuery(baseOptions: Apollo.QueryHookOptions<LessonChatQuery, LessonChatQueryVariables> & ({ variables: LessonChatQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<LessonChatQuery, LessonChatQueryVariables>(LessonChatDocument, options);
+      }
+export function useLessonChatLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<LessonChatQuery, LessonChatQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<LessonChatQuery, LessonChatQueryVariables>(LessonChatDocument, options);
+        }
+// @ts-ignore
+export function useLessonChatSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<LessonChatQuery, LessonChatQueryVariables>): Apollo.UseSuspenseQueryResult<LessonChatQuery, LessonChatQueryVariables>;
+export function useLessonChatSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<LessonChatQuery, LessonChatQueryVariables>): Apollo.UseSuspenseQueryResult<LessonChatQuery | undefined, LessonChatQueryVariables>;
+export function useLessonChatSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<LessonChatQuery, LessonChatQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<LessonChatQuery, LessonChatQueryVariables>(LessonChatDocument, options);
+        }
+export type LessonChatQueryHookResult = ReturnType<typeof useLessonChatQuery>;
+export type LessonChatLazyQueryHookResult = ReturnType<typeof useLessonChatLazyQuery>;
+export type LessonChatSuspenseQueryHookResult = ReturnType<typeof useLessonChatSuspenseQuery>;
+export type LessonChatQueryResult = Apollo.QueryResult<LessonChatQuery, LessonChatQueryVariables>;
+export const AssembleLessonSummaryDocument = gql`
+    mutation AssembleLessonSummary($sessionId: ID!) {
+  assembleLessonSummary(sessionId: $sessionId) {
+    id
+    status
+    speechOmitted
+    assembledAt
+    canEdit
+    items {
+      id
+      section
+      source
+      sourceMeta
+      atOffsetSec
+      text
+      authorId
+      authorName
+      dueAt
+      homeworkId
+      edited
+    }
+  }
+}
+    `;
+export type AssembleLessonSummaryMutationFn = Apollo.MutationFunction<AssembleLessonSummaryMutation, AssembleLessonSummaryMutationVariables>;
+
+/**
+ * __useAssembleLessonSummaryMutation__
+ *
+ * To run a mutation, you first call `useAssembleLessonSummaryMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useAssembleLessonSummaryMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [assembleLessonSummaryMutation, { data, loading, error }] = useAssembleLessonSummaryMutation({
+ *   variables: {
+ *      sessionId: // value for 'sessionId'
+ *   },
+ * });
+ */
+export function useAssembleLessonSummaryMutation(baseOptions?: Apollo.MutationHookOptions<AssembleLessonSummaryMutation, AssembleLessonSummaryMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<AssembleLessonSummaryMutation, AssembleLessonSummaryMutationVariables>(AssembleLessonSummaryDocument, options);
+      }
+export type AssembleLessonSummaryMutationHookResult = ReturnType<typeof useAssembleLessonSummaryMutation>;
+export type AssembleLessonSummaryMutationResult = Apollo.MutationResult<AssembleLessonSummaryMutation>;
+export type AssembleLessonSummaryMutationOptions = Apollo.BaseMutationOptions<AssembleLessonSummaryMutation, AssembleLessonSummaryMutationVariables>;
+export const UpdateSummaryItemDocument = gql`
+    mutation UpdateSummaryItem($itemId: ID!, $text: String!) {
+  updateSummaryItem(itemId: $itemId, text: $text) {
+    id
+    text
+    edited
+  }
+}
+    `;
+export type UpdateSummaryItemMutationFn = Apollo.MutationFunction<UpdateSummaryItemMutation, UpdateSummaryItemMutationVariables>;
+
+/**
+ * __useUpdateSummaryItemMutation__
+ *
+ * To run a mutation, you first call `useUpdateSummaryItemMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateSummaryItemMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateSummaryItemMutation, { data, loading, error }] = useUpdateSummaryItemMutation({
+ *   variables: {
+ *      itemId: // value for 'itemId'
+ *      text: // value for 'text'
+ *   },
+ * });
+ */
+export function useUpdateSummaryItemMutation(baseOptions?: Apollo.MutationHookOptions<UpdateSummaryItemMutation, UpdateSummaryItemMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UpdateSummaryItemMutation, UpdateSummaryItemMutationVariables>(UpdateSummaryItemDocument, options);
+      }
+export type UpdateSummaryItemMutationHookResult = ReturnType<typeof useUpdateSummaryItemMutation>;
+export type UpdateSummaryItemMutationResult = Apollo.MutationResult<UpdateSummaryItemMutation>;
+export type UpdateSummaryItemMutationOptions = Apollo.BaseMutationOptions<UpdateSummaryItemMutation, UpdateSummaryItemMutationVariables>;
+export const RemoveSummaryItemDocument = gql`
+    mutation RemoveSummaryItem($itemId: ID!) {
+  removeSummaryItem(itemId: $itemId)
+}
+    `;
+export type RemoveSummaryItemMutationFn = Apollo.MutationFunction<RemoveSummaryItemMutation, RemoveSummaryItemMutationVariables>;
+
+/**
+ * __useRemoveSummaryItemMutation__
+ *
+ * To run a mutation, you first call `useRemoveSummaryItemMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useRemoveSummaryItemMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [removeSummaryItemMutation, { data, loading, error }] = useRemoveSummaryItemMutation({
+ *   variables: {
+ *      itemId: // value for 'itemId'
+ *   },
+ * });
+ */
+export function useRemoveSummaryItemMutation(baseOptions?: Apollo.MutationHookOptions<RemoveSummaryItemMutation, RemoveSummaryItemMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<RemoveSummaryItemMutation, RemoveSummaryItemMutationVariables>(RemoveSummaryItemDocument, options);
+      }
+export type RemoveSummaryItemMutationHookResult = ReturnType<typeof useRemoveSummaryItemMutation>;
+export type RemoveSummaryItemMutationResult = Apollo.MutationResult<RemoveSummaryItemMutation>;
+export type RemoveSummaryItemMutationOptions = Apollo.BaseMutationOptions<RemoveSummaryItemMutation, RemoveSummaryItemMutationVariables>;
+export const AddSummaryItemDocument = gql`
+    mutation AddSummaryItem($sessionId: ID!, $section: SummarySection!, $text: String!) {
+  addSummaryItem(sessionId: $sessionId, section: $section, text: $text) {
+    id
+    section
+    source
+    text
+    edited
+  }
+}
+    `;
+export type AddSummaryItemMutationFn = Apollo.MutationFunction<AddSummaryItemMutation, AddSummaryItemMutationVariables>;
+
+/**
+ * __useAddSummaryItemMutation__
+ *
+ * To run a mutation, you first call `useAddSummaryItemMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useAddSummaryItemMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [addSummaryItemMutation, { data, loading, error }] = useAddSummaryItemMutation({
+ *   variables: {
+ *      sessionId: // value for 'sessionId'
+ *      section: // value for 'section'
+ *      text: // value for 'text'
+ *   },
+ * });
+ */
+export function useAddSummaryItemMutation(baseOptions?: Apollo.MutationHookOptions<AddSummaryItemMutation, AddSummaryItemMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<AddSummaryItemMutation, AddSummaryItemMutationVariables>(AddSummaryItemDocument, options);
+      }
+export type AddSummaryItemMutationHookResult = ReturnType<typeof useAddSummaryItemMutation>;
+export type AddSummaryItemMutationResult = Apollo.MutationResult<AddSummaryItemMutation>;
+export type AddSummaryItemMutationOptions = Apollo.BaseMutationOptions<AddSummaryItemMutation, AddSummaryItemMutationVariables>;
+export const SendLessonSummaryDocument = gql`
+    mutation SendLessonSummary($sessionId: ID!) {
+  sendLessonSummary(sessionId: $sessionId) {
+    id
+    status
+    sentAt
+  }
+}
+    `;
+export type SendLessonSummaryMutationFn = Apollo.MutationFunction<SendLessonSummaryMutation, SendLessonSummaryMutationVariables>;
+
+/**
+ * __useSendLessonSummaryMutation__
+ *
+ * To run a mutation, you first call `useSendLessonSummaryMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useSendLessonSummaryMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [sendLessonSummaryMutation, { data, loading, error }] = useSendLessonSummaryMutation({
+ *   variables: {
+ *      sessionId: // value for 'sessionId'
+ *   },
+ * });
+ */
+export function useSendLessonSummaryMutation(baseOptions?: Apollo.MutationHookOptions<SendLessonSummaryMutation, SendLessonSummaryMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<SendLessonSummaryMutation, SendLessonSummaryMutationVariables>(SendLessonSummaryDocument, options);
+      }
+export type SendLessonSummaryMutationHookResult = ReturnType<typeof useSendLessonSummaryMutation>;
+export type SendLessonSummaryMutationResult = Apollo.MutationResult<SendLessonSummaryMutation>;
+export type SendLessonSummaryMutationOptions = Apollo.BaseMutationOptions<SendLessonSummaryMutation, SendLessonSummaryMutationVariables>;
+export const SendChatMessageDocument = gql`
+    mutation SendChatMessage($sessionId: ID!, $text: String!) {
+  sendChatMessage(sessionId: $sessionId, text: $text) {
+    id
+    sessionId
+    senderId
+    senderName
+    text
+    sentAt
+  }
+}
+    `;
+export type SendChatMessageMutationFn = Apollo.MutationFunction<SendChatMessageMutation, SendChatMessageMutationVariables>;
+
+/**
+ * __useSendChatMessageMutation__
+ *
+ * To run a mutation, you first call `useSendChatMessageMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useSendChatMessageMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [sendChatMessageMutation, { data, loading, error }] = useSendChatMessageMutation({
+ *   variables: {
+ *      sessionId: // value for 'sessionId'
+ *      text: // value for 'text'
+ *   },
+ * });
+ */
+export function useSendChatMessageMutation(baseOptions?: Apollo.MutationHookOptions<SendChatMessageMutation, SendChatMessageMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<SendChatMessageMutation, SendChatMessageMutationVariables>(SendChatMessageDocument, options);
+      }
+export type SendChatMessageMutationHookResult = ReturnType<typeof useSendChatMessageMutation>;
+export type SendChatMessageMutationResult = Apollo.MutationResult<SendChatMessageMutation>;
+export type SendChatMessageMutationOptions = Apollo.BaseMutationOptions<SendChatMessageMutation, SendChatMessageMutationVariables>;
 export const RequestUploadDocument = gql`
     mutation RequestUpload($input: UploadRequestInput!) {
   requestUpload(input: $input) {
