@@ -634,3 +634,75 @@ h1{font-size:1.25rem;font-weight:600;letter-spacing:-.015em}
     он появится в листе <b>D2</b> вместе с проверкой связи при первом запуске.</p>
   </div>
 </div>
+
+<script>
+const app=document.getElementById('app');
+const st=document.getElementById('hostState'), txt=document.getElementById('hostText');
+const upV=document.getElementById('upV'), meter=document.getElementById('meter');
+const peers=document.getElementById('peers'), elapsed=document.getElementById('elapsed');
+const acts=document.getElementById('hostActs'), why=document.getElementById('hostWhy');
+const strip=document.getElementById('strip'), lost=document.getElementById('lostRow');
+
+const S={
+  idle:{t:'урок не идёт',up:'хорошая',lvl:'4',good:1,p:'—',e:'—',why:'',
+    acts:'<button class="mini">Скопировать ссылку</button><button class="mini primary">Начать урок</button>'},
+  live:{t:'урок идёт с этой машины',up:'хорошая',lvl:'4',good:1,p:'6 из 8',e:'24:16',why:'',
+    acts:'<button class="mini">Скопировать ссылку</button><button class="mini primary">Завершить</button>'},
+  weak:{t:'связь слабая',up:'слабая',lvl:'2',good:0,p:'6 из 8',e:'31:04',
+    why:'Снизили качество видео, чтобы урок не прерывался. Звук и доска не пострадали. Подробности — в настройках.',
+    acts:'<button class="mini">Что это значит</button><button class="mini primary">Завершить</button>'},
+  offline:{t:'нет соединения',up:'нет',lvl:'0',good:0,p:'0 из 8',e:'—',
+    why:'Ученики не могут подключиться. Данные на этом компьютере в целости.',
+    acts:'<button class="mini primary">Проверить снова</button>'},
+};
+
+function apply(k){
+  const s=S[k];
+  app.dataset.state=k; st.dataset.state=k; txt.textContent=s.t;
+  upV.textContent=s.up; meter.dataset.level=s.lvl;
+  upV.toggleAttribute('data-good',!!s.good); upV.toggleAttribute('data-warn',!s.good);
+  peers.textContent=s.p; elapsed.textContent=s.e; acts.innerHTML=s.acts;
+  why.hidden=!s.why; why.textContent=s.why;
+  strip.querySelectorAll('.vid').forEach((v,i)=>v.toggleAttribute('data-degraded', k==='weak' && i>2));
+  lost.hidden = !(k==='live'||k==='weak');
+}
+document.querySelectorAll('.bar button[data-state]').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('.bar button[data-state]').forEach(x=>x.setAttribute('aria-pressed','false'));
+  b.setAttribute('aria-pressed','true'); apply(b.dataset.state);
+}));
+document.querySelectorAll('.winSwitch .win, .sideTabs .sTab').forEach(t=>t.addEventListener('click',()=>{
+  t.parentElement.querySelectorAll('button').forEach(x=>x.setAttribute('aria-selected','false'));
+  t.setAttribute('aria-selected','true');
+  if(t.dataset.scene){app.dataset.scene=t.dataset.scene; syncMode();}
+}));
+
+/* раскладка окна «Класс»: преподаватель виден всегда */
+const faces=document.getElementById('faces'), modeSwitch=document.getElementById('modeSwitch');
+const hint=document.getElementById('facesHint'), side=document.getElementById('facesSide');
+const HINT={
+  pair:'вдвоём: преподаватель и ученик поровну',
+  group:'преподаватель виден всегда · остальные делят вторую половину',
+  pinned:'ученик выведен рядом с преподавателем · остальные ждут в ленте',
+};
+function syncMode(){ modeSwitch.hidden = app.dataset.scene!=='faces'; }
+document.querySelectorAll('.mode').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('.mode').forEach(x=>x.setAttribute('aria-selected','false'));
+  b.setAttribute('aria-selected','true');
+  const m=b.dataset.mode; faces.dataset.mode=m; hint.textContent=HINT[m];
+  const tiles=[...side.querySelectorAll('.faceTile')];
+  tiles.forEach((t,i)=>t.hidden = (m!=='group' && i>0));
+  tiles[0].querySelector('.who').textContent = m==='pinned' ? 'Аня · на большом экране' : 'Аня';
+}));
+document.querySelectorAll('.pinBtn').forEach(b=>b.addEventListener('click',e=>{
+  e.stopPropagation();
+  document.querySelector('.mode[data-mode="pinned"]').click();
+}));
+document.getElementById('thm').addEventListener('click',e=>{
+  const d=document.documentElement.dataset.theme==='dark';
+  document.documentElement.dataset.theme=d?'':'dark';
+  e.target.textContent=d?'тёмная':'светлая';
+});
+apply('idle'); syncMode();
+</script>
+</body>
+</html>
