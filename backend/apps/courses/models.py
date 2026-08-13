@@ -114,6 +114,15 @@ class Material(BaseModel):
     url = models.URLField(blank=True, default="")
     body = models.TextField(blank=True, default="")
     order = models.PositiveIntegerField(default=0)
+    # A saved board is a material of the lesson (§4.2 п.2) — this is the join that puts
+    # «доска прошлого урока» where a learner already looks for the lesson's things.
+    board_snapshot = models.ForeignKey(
+        "board.BoardSnapshot",
+        related_name="materials",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+    )
 
     class Meta:
         ordering = ["order"]

@@ -264,6 +264,19 @@ class ReportStatus(Enum):
     DISMISSED = "dismissed"
 
 
+# --- Board (R3.2) -------------------------------------------------------------
+@strawberry.enum
+class BoardElementKind(Enum):
+    """What can live on the canvas. A mind-map is these plus LINK, not a separate mode."""
+
+    PEN = "pen"
+    TEXT = "text"
+    STICKER = "sticker"
+    SHAPE = "shape"
+    LINK = "link"  # a connector between two elements — this is what makes it a mind-map
+    IMAGE = "image"  # pasted from the clipboard
+
+
 # --- Jurisdiction gate (docs/rnd/RND_01_JURISDICTION.md) ---------------------
 # Deliberately NOT @strawberry.enum: the compliance layer is server-side only. A client
 # must never be able to read (let alone influence) the jurisdiction decision, and keeping

@@ -33,6 +33,8 @@ enum TaskState { TODO SUBMITTED GRADED OVERDUE }
 # Chat (R2). The kind decides who may be a member; it is never a display label.
 enum ChannelKind { SUBJECT_GROUP PUPIL_TEACHER PEER STAFF_ROOM }
 enum ReportStatus { OPEN REVIEWED DISMISSED }
+# Board (R3.2). A mind-map is these plus LINK, not a separate mode.
+enum BoardElementKind { PEN TEXT STICKER SHAPE LINK IMAGE }
 enum VerificationStatus { PENDING APPROVED REJECTED }
 enum InstitutionStatus { PENDING ACTIVE INACTIVE }
 enum MembershipRole { TEACHER STUDENT ADMIN }
@@ -501,6 +503,59 @@ type AuthPayload { token: String! refreshToken: String! user: User! }
 type UploadTicket { uploadUrl: String! fileKey: String! expiresAt: DateTime! }
 type SessionJoin { session: LessonSession! roomToken: String! }
 
+# ----------------------------------------------------------------------------- Board (R3.2)
+# Boards and mind-maps are on the storage whitelist (§4.2 п.2) — they are what a lesson leaves
+# behind now that no recording exists. Named BoardSnapshot deliberately (§2.8): the
+# storage-policy gate greps this file for media words, and a board is not one.
+type BoardElement {
+  id: ID!
+  kind: BoardElementKind!
+  authorId: ID!
+  authorName: String!            # sheet 02: you can always see who put a thing on the board
+  x: Float!
+  y: Float!
+  width: Float!
+  height: Float!
+  data: JSON!                    # kind-specific; an IMAGE carries a stored object key
+  revision: Int!                 # counts writes — last write wins, nothing is locked
+}
+
+type Board {
+  lessonId: ID!
+  openForStudents: Boolean!      # the teacher's switch; a learner is TOLD the state
+  canWrite: Boolean!
+  isTeacher: Boolean!
+  elements: [BoardElement!]!
+}
+
+type BoardSnapshot {
+  id: ID!
+  title: String!
+  savedAt: DateTime!
+  savedByName: String!
+  lessonId: ID!
+  lessonTitle: String!
+  elements: JSON!                # frozen, so a saved board keeps showing what it showed
+}
+
+type BoardChange {
+  lessonId: ID!
+  kind: String!                  # element | removed | access
+  element: BoardElement
+  elementId: ID
+  openForStudents: Boolean
+}
+
+input BoardElementInput {
+  kind: BoardElementKind!
+  x: Float = 0
+  y: Float = 0
+  width: Float = 0
+  height: Float = 0
+  data: JSON
+  id: ID                         # present when updating, absent when putting a new one down
+}
+
 # ----------------------------------------------------------------------------- Second screen (R3.1)
 # The cast model: the teacher reads a short code off their screen and types it on a tablet —
 # no second login. What the code buys is the narrowest thing that works: a subscriber-only,
@@ -865,7 +920,12 @@ type Query {
   chatUnread: Int!                                        # the badge in the header
   channelMessages(channelId: ID!, limit: Int = 100): [ChannelMessage!]!
   chatPolicy: ChatPolicyView!
-  chatReports: [ChatReport!]!                             # complaints this teacher may act on
+  chatReports: [ChatReport!]!                             # complaints the caller may act on
+
+  # board (R3.2) — behind the lesson's own access rule
+  board(lessonId: ID!): Board!
+  boardSnapshots(lessonId: ID!): [BoardSnapshot!]!
+  courseBoards(courseId: ID!): [BoardSnapshot!]!          # «доска прошлого урока»
 
   # catalog & content
   catalog(filter: CourseFilter, first: Int = 20, after: String): CourseConnection!
@@ -981,6 +1041,12 @@ type Mutation {
   markChannelRead(channelId: ID!): Boolean!
   reportChannel(channelId: ID!, reason: String, messageId: ID): ChatReport!
   resolveChatReport(reportId: ID!, dismiss: Boolean = false): ChatReport!
+
+  # board (R3.2)
+  putBoardElement(lessonId: ID!, input: BoardElementInput!): BoardElement!
+  removeBoardElement(lessonId: ID!, elementId: ID!): Boolean!
+  setBoardOpen(lessonId: ID!, isOpen: Boolean!): Boolean!  # teacher only
+  saveBoard(lessonId: ID!, title: String): BoardSnapshot!  # -> lesson materials
   reportAttention(input: AttentionInput!): Boolean!         # client pushes aggregate only
 
   # --- enrollment & progress
@@ -1035,6 +1101,8 @@ type Subscription {
   attentionUpdates(sessionId: ID!): AttentionMetric!
   # second screen follows the teacher's focus (F3.1) — payload is one participant id
   projectorFocusChanged(sessionId: ID!): ProjectorFocus!
+  # the live canvas — optimistic, no locks
+  boardChanged(lessonId: ID!): BoardChange!
   # session lifecycle (scheduled -> live -> ended)
   sessionStatusChanged(sessionId: ID!): LessonSession!
   # live lesson chat
