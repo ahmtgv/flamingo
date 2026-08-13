@@ -13,6 +13,7 @@ import strawberry
 from strawberry.scalars import JSON
 
 from common.enums import (
+    AchievementKey,
     AttemptContext,
     CardDirection,
     CardState,
@@ -263,3 +264,65 @@ class WordShown:
     session_id: strawberry.ID
     item_id: strawberry.ID
     lemma: str
+
+
+# --- Repetition progress (R4.4) ------------------------------------------------------------
+@strawberry.type
+class RepetitionProgress:
+    """One learner's own numbers.
+
+    🔴 There is no field here that could be compared with another child, and no query that
+    returns more than one learner's progress. `longestStreak` is the only benchmark, and it
+    is the same person's own best — «только с собой-прошлым», as data rather than as tact.
+    """
+
+    total: int
+    due: int
+    learning: int
+    mastered: int
+    reviews: int
+    current_streak: int
+    longest_streak: int
+
+
+@strawberry.type
+class Achievement:
+    key: AchievementKey
+    earned_at: dt.datetime
+
+    @classmethod
+    def of(cls, row) -> Achievement:
+        return cls(key=AchievementKey(row.key), earned_at=row.earned_at)
+
+
+@strawberry.type
+class DueCard:
+    """A card as the review screen needs it: the word, and the FSRS state to schedule from."""
+
+    id: strawberry.ID
+    item: LexicalItem
+    direction: CardDirection
+    state: CardState
+    stability: float
+    difficulty: float
+    due_at: dt.datetime
+    last_review_at: dt.datetime | None
+    reps: int
+    lapses: int
+    learning_steps: int
+
+    @classmethod
+    def of(cls, row) -> DueCard:
+        return cls(
+            id=strawberry.ID(str(row.id)),
+            item=LexicalItem.of(row.item),
+            direction=CardDirection(row.direction),
+            state=CardState(row.state),
+            stability=row.stability,
+            difficulty=row.difficulty,
+            due_at=row.due_at,
+            last_review_at=row.last_review_at,
+            reps=row.reps,
+            lapses=row.lapses,
+            learning_steps=row.learning_steps,
+        )

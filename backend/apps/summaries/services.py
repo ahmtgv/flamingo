@@ -197,6 +197,7 @@ def assemble(user, session_id) -> LessonSummary:
         drafted += speech_items
         drafted += _from_materials(summary, session)
         drafted += _from_test(summary, session)
+        drafted += _from_words(summary, session)
 
         for position, item in enumerate(drafted, start=1):
             item.order = position
@@ -206,6 +207,27 @@ def assemble(user, session_id) -> LessonSummary:
         summary.speech_omitted = omitted
         summary.save(update_fields=["assembled_at", "speech_omitted", "updated_at"])
         return summary
+
+
+def _from_words(summary: LessonSummary, session: LessonSession) -> list[SummaryItem]:
+    """«Новые слова» — the lesson's own dictionary entries, by id.
+
+    Not free text: the ids are what turns this section into a repetition queue when the
+    summary is sent (R4.4). One path, not two — the words in the summary and the words in the
+    queue are the same rows, so they cannot drift apart.
+    """
+    words = list(session.lesson.words.all())
+    if not words:
+        return []
+    return [
+        SummaryItem(
+            summary=summary,
+            section=SummarySection.WORDS.value,
+            source=SummarySource.MATERIAL.value,
+            source_meta={"count": len(words), "itemIds": [str(w.id) for w in words]},
+            text=" · ".join(w.lemma for w in words),
+        )
+    ]
 
 
 def _from_plan(summary: LessonSummary, session: LessonSession) -> list[SummaryItem]:
@@ -484,10 +506,36 @@ def send(user, session_id) -> LessonSummary:
 
         _publish_homework(user, summary, session)
         _put_in_materials(summary, session)
+        _enqueue_new_words(summary, session)
 
     # Nothing of the lesson's speech may outlive the lesson, sent or not.
     speech_stream.clear(session.id)
     return summary
+
+
+def _enqueue_new_words(summary: LessonSummary, session: LessonSession) -> None:
+    """The «Новые слова» section becomes everyone's repetition queue (R4.2 → R4.4).
+
+    The same rows, not a copy: the section carries the `LexicalItem` ids, and the queue is
+    built from those ids. «Уйдут в повторение» is what the summary already promises on the
+    sheet — this is that promise, executed at the moment the teacher sends it.
+    """
+    from apps.exercises.models import LexicalItem
+    from apps.exercises.repetition import enqueue_words
+
+    item_ids: list[str] = []
+    for item in SummaryItem.objects.filter(summary=summary, section=SummarySection.WORDS.value):
+        item_ids += [str(x) for x in (item.source_meta or {}).get("itemIds", [])]
+    if not item_ids:
+        return
+
+    words = list(LexicalItem.objects.filter(id__in=item_ids))
+    if not words:
+        return
+    for enrollment in Enrollment.objects.filter(
+        course=session.lesson.section.course
+    ).select_related("student"):
+        enqueue_words(enrollment.student, words)
 
 
 def _publish_homework(user, summary: LessonSummary, session: LessonSession) -> None:

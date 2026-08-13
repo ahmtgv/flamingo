@@ -484,3 +484,89 @@ def test_sending_drops_the_speech_buffer_even_if_nothing_was_assembled_from_it()
 
     summaries.send(teacher, session.id)
     assert speech_stream.pending(session.id) == 0
+
+
+# --- the door to spaced repetition (R4.2 -> R4.4) -------------------------------------------
+def test_the_new_words_section_is_the_lessons_own_dictionary_entries():
+    """Not free text: the section carries the LexicalItem ids, and that is what makes
+    «уйдут в повторение» a path rather than a promise."""
+    from apps.exercises.models import LexicalItem
+    from common.enums import LexicalSource, PartOfSpeech
+
+    teacher = make_teacher()
+    _, lesson = a_lesson(teacher)
+    session = a_session(lesson)
+    word = LexicalItem.objects.create(
+        lemma="crossroads",
+        pos=PartOfSpeech.NOUN.value,
+        sense_id="oewn-1",
+        source=LexicalSource.WORDNET.value,
+        license="CC BY 4.0",
+        attribution="Princeton WordNet · Open English WordNet team",
+    )
+    word.lessons.add(lesson)
+
+    summaries.assemble(teacher, session.id)
+    line = next(
+        i for i in summaries.items(teacher, session.id) if i.section == SummarySection.WORDS.value
+    )
+    assert line.source_meta["count"] == 1
+    assert line.source_meta["itemIds"] == [str(word.id)]
+
+
+def test_sending_the_summary_puts_its_new_words_in_every_participants_queue():
+    from apps.exercises.models import LexicalItem, SrsCard
+    from common.enums import LexicalSource, PartOfSpeech
+
+    teacher = make_teacher()
+    course, lesson = a_lesson(teacher)
+    session = a_session(lesson)
+    pupil = enrolled_pupil(course)
+    word = LexicalItem.objects.create(
+        lemma="crossroads",
+        pos=PartOfSpeech.NOUN.value,
+        sense_id="oewn-1",
+        source=LexicalSource.WORDNET.value,
+        license="CC BY 4.0",
+        attribution="Princeton WordNet · Open English WordNet team",
+    )
+    word.lessons.add(lesson)
+    summaries.assemble(teacher, session.id)
+
+    summaries.send(teacher, session.id)
+
+    cards = SrsCard.objects.filter(student=pupil.student_profile)
+    assert [c.item_id for c in cards] == [word.id]
+    assert cards[0].due_at is not None
+
+
+def test_a_re_sent_summary_does_not_reset_a_card_already_being_worked_on():
+    """The same failure «в мои слова» avoids, for the same reason: losing weeks of schedule
+    to somebody pressing a button twice is a real loss."""
+    from apps.exercises.models import LexicalItem, SrsCard
+    from common.enums import CardState, LexicalSource, PartOfSpeech
+
+    teacher = make_teacher()
+    course, lesson = a_lesson(teacher)
+    session = a_session(lesson)
+    pupil = enrolled_pupil(course)
+    word = LexicalItem.objects.create(
+        lemma="crossroads",
+        pos=PartOfSpeech.NOUN.value,
+        sense_id="oewn-1",
+        source=LexicalSource.WORDNET.value,
+        license="CC BY 4.0",
+        attribution="Princeton WordNet · Open English WordNet team",
+    )
+    word.lessons.add(lesson)
+    summaries.assemble(teacher, session.id)
+    summaries.send(teacher, session.id)
+
+    SrsCard.objects.filter(student=pupil.student_profile).update(
+        state=CardState.REVIEW.value, reps=11, stability=40.0
+    )
+    summaries.send(teacher, session.id)
+
+    card = SrsCard.objects.get(student=pupil.student_profile)
+    assert card.reps == 11
+    assert card.state == CardState.REVIEW.value

@@ -22,6 +22,7 @@ like stored lesson media (§2.2 / test_storage_policy). R4.3 put the licence fie
 from django.db import models
 
 from common.enums import (
+    AchievementKey,
     AttemptContext,
     CardDirection,
     CardState,
@@ -263,6 +264,10 @@ class SrsCard(BaseModel):
     last_review_at = models.DateTimeField(null=True, blank=True)
     reps = models.PositiveIntegerField(default=0)
     lapses = models.PositiveIntegerField(default=0)
+    #: FSRS short-term scheduler state. Not in the spec's field list — the spec predates the
+    #: choice of library — but without it a card cannot be round-tripped through `ts-fsrs`
+    #: and the learning steps silently restart on every review.
+    learning_steps = models.PositiveIntegerField(default=0)
     #: Which FSRS parameter set produced the current schedule — so a future re-fit is a
     #: version bump rather than a silent change of meaning under existing cards.
     params_version = models.CharField(max_length=16, default="fsrs-v1")
@@ -276,3 +281,50 @@ class SrsCard(BaseModel):
 
     def __str__(self) -> str:
         return f"{self.item_id}:{self.direction}"
+
+
+class StudyStreak(BaseModel):
+    """Days in a row with at least one review — compared against ONE person's own past.
+
+    🔴 Owner rule: no leaderboards, no comparing children with each other. `longest_days` is
+    the only benchmark this model knows, and it is the same child's own best. There is
+    deliberately no query here that returns more than one student's streak, and no ordering
+    by it: a «top streaks» screen would need a new model, not a new resolver.
+    """
+
+    student = models.OneToOneField(
+        "accounts.StudentProfile", related_name="streak", on_delete=models.CASCADE
+    )
+    current_days = models.PositiveIntegerField(default=0)
+    longest_days = models.PositiveIntegerField(default=0)
+    #: The last day (learner-local date) with a review. Null before the first one.
+    last_day = models.DateField(null=True, blank=True)
+    total_reviews = models.PositiveIntegerField(default=0)
+
+    def __str__(self) -> str:
+        return f"streak {self.current_days}/{self.longest_days}"
+
+
+class EarnedAchievement(BaseModel):
+    """A milestone this learner passed. Earned once, kept (§4.2 п.5).
+
+    Every key in `AchievementKey` is a fact about one person's own history — first word,
+    tenth mastered, a week in a row. None can be earned by being ahead of anyone, which is
+    the owner's rule expressed as data rather than as restraint at the UI layer.
+    """
+
+    student = models.ForeignKey(
+        "accounts.StudentProfile", related_name="achievements", on_delete=models.CASCADE
+    )
+    key = models.CharField(max_length=24, choices=choices(AchievementKey))
+    earned_at = models.DateTimeField()
+
+    class Meta:
+        ordering = ["earned_at"]
+        constraints = [
+            models.UniqueConstraint(fields=["student", "key"], name="uniq_earned_achievement")
+        ]
+        indexes = [models.Index(fields=["student", "earned_at"])]
+
+    def __str__(self) -> str:
+        return self.key

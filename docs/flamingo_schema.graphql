@@ -403,19 +403,15 @@ type UbpBackup {
 }
 
 # ----------------------------------------------------------------------------- Engagement
-type Achievement {
-  id: ID!
-  code: String!
-  title: String!
-  description: String
-  icon: String
-  criteria: JSON
-}
-
-type UserAchievement { achievement: Achievement! earnedAt: DateTime! }
-
-type LeaderboardEntry { rank: Int! student: StudentProfile! points: Int! }
-
+# 🔴 REMOVED 2026-08-13 by owner decision: `LeaderboardEntry` and the `leaderboard` query.
+# No leaderboards, and no comparing children with each other — only with who they were. The
+# type is deleted rather than left unimplemented: a shape in the contract is an invitation,
+# and the next person to read this file should not find one.
+#
+# `Achievement` now means what R4.4 built (apps/exercises): a milestone one learner passed,
+# keyed by an enum in which every member is a fact about that person's own history. The old
+# catalogue shape (code/title/icon/criteria) and `UserAchievement` are gone with it — a
+# server-authored title would also have broken the i18n rule.
 type PointEvent { id: ID! reason: PointReason! amount: Int! createdAt: DateTime! }
 
 type Review {
@@ -643,6 +639,50 @@ type SrsCard {
   reps: Int!
   lapses: Int!
 }
+
+# The four FSRS grades, named rather than numbered so the contract does not depend on the
+# library's integer ordering staying put.
+enum ReviewRating { AGAIN HARD GOOD EASY }
+
+# A card as the review screen needs it: the word, plus the state to schedule the next one
+# from. FSRS itself runs on the CLIENT (ts-fsrs, MIT) — the server keeps the record, decides
+# whose card it is, and clamps a schedule that could not have come from a scheduler.
+type DueCard {
+  id: ID!
+  item: LexicalItem!
+  direction: CardDirection!
+  state: CardState!
+  stability: Float!
+  difficulty: Float!
+  dueAt: DateTime!
+  lastReviewAt: DateTime
+  reps: Int!
+  lapses: Int!
+  learningSteps: Int!            # FSRS short-term state; without it the steps restart
+}
+
+# 🔴 One learner's own numbers. There is no field here that could be compared with another
+# child and no query that returns anybody else's — `longestStreak` is the same person's best.
+type RepetitionProgress {
+  total: Int!
+  due: Int!
+  learning: Int!
+  mastered: Int!
+  reviews: Int!
+  currentStreak: Int!
+  longestStreak: Int!
+}
+
+# Every member is a fact about one person's own history. None can be earned by being ahead of
+# somebody else — that is the owner's rule expressed as an enum, not as restraint in the UI.
+enum AchievementKey {
+  FIRST_WORD TEN_WORDS FIFTY_WORDS
+  FIRST_MASTERED TEN_MASTERED
+  STREAK_3 STREAK_7 STREAK_30
+  HUNDRED_REVIEWS
+}
+
+type Achievement { key: AchievementKey! earnedAt: DateTime! }
 
 # ----------------------------------------------------------------------------- Board (R3.2)
 # Boards and mind-maps are on the storage whitelist (§4.2 п.2) — they are what a lesson leaves
@@ -1129,6 +1169,12 @@ type Query {
   myWords: [SrsCard!]!                                   # the caller's own; takes no user id
   externalDictionaries: [ExternalDictionary!]!           # closed bases, as outbound LINKS
 
+  # repetition (R4.4) — 🔴 every one of these is the CALLER's own and takes no student id.
+  # A «top learners» screen would need new fields here, which is exactly the point.
+  myRepetitionQueue(limit: Int = 20): [DueCard!]!
+  myRepetitionProgress: RepetitionProgress!
+  myAchievements: [Achievement!]!
+
   # summary (R4.2) — the teacher gets the draft; everyone else gets it only once it is sent,
   # and gets NULL rather than a refusal until then (whether it is being written is not their
   # business either). lessonChat is the exception: participants read the CHAT section live.
@@ -1167,9 +1213,8 @@ type Query {
   recommendations: [Recommendation!]!
   ubpBackup: UbpBackup                                     # for device restore
 
-  # engagement
-  leaderboard(groupId: ID!): [LeaderboardEntry!]!
-  myAchievements: [UserAchievement!]!
+  # engagement — see the Engagement block: no leaderboard, by owner decision 2026-08-13.
+  # myAchievements lives with the repetition reads above; it is the same list.
 
   # institution / admin
   institution(id: ID!): Institution
@@ -1268,6 +1313,14 @@ type Mutation {
   addWordToMyList(itemId: ID!, direction: CardDirection = RECOGNITION): SrsCard!  # idempotent
   putWordOnBoard(lessonId: ID!, itemId: ID!): ID!         # through the board's own write rule
   showWordToClass(sessionId: ID!, itemId: ID!): WordShown! # teacher only; stores nothing
+
+  # repetition (R4.4) — the client scheduled it with ts-fsrs; this records it. reps/lapses
+  # are counted server-side: a history a client can rewrite is not a history.
+  reviewWord(
+    cardId: ID!, rating: ReviewRating!,
+    stability: Float!, difficulty: Float!, dueAt: DateTime!, state: CardState!,
+    learningSteps: Int = 0
+  ): DueCard!
 
   # summary (R4.2) — teacher-only, all of them; sendChatMessage above is everyone's
   assembleLessonSummary(sessionId: ID!): LessonSummary!   # «собрать саммари сейчас»

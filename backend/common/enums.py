@@ -385,6 +385,38 @@ class CardState(Enum):
     RELEARNING = "relearning"
 
 
+@strawberry.enum
+class ReviewRating(Enum):
+    """The four FSRS grades. Named, not numbered, so the contract does not depend on the
+    library's integer ordering staying put."""
+
+    AGAIN = "again"
+    HARD = "hard"
+    GOOD = "good"
+    EASY = "easy"
+
+
+@strawberry.enum
+class AchievementKey(Enum):
+    """Milestones a learner passes ON THEIR OWN (owner decision: no leaderboards, no
+    comparing children with each other — only with who they were).
+
+    Every key is a fact about one person's own history, and none of them can be earned by
+    being ahead of somebody else. That is not a UI choice that could be revisited later: it
+    is the shape of this enum.
+    """
+
+    FIRST_WORD = "first_word"
+    TEN_WORDS = "ten_words"
+    FIFTY_WORDS = "fifty_words"
+    FIRST_MASTERED = "first_mastered"
+    TEN_MASTERED = "ten_mastered"
+    STREAK_3 = "streak_3"
+    STREAK_7 = "streak_7"
+    STREAK_30 = "streak_30"
+    HUNDRED_REVIEWS = "hundred_reviews"
+
+
 # --- Lesson summary (R4.2, atlas sheet 02) ------------------------------------
 @strawberry.enum
 class SummaryStatus(Enum):

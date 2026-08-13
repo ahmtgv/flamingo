@@ -2,14 +2,16 @@
 
 from __future__ import annotations
 
+import datetime as dt
+
 import strawberry
 from strawberry.scalars import JSON
 
-from apps.exercises import dictionary, services
+from apps.exercises import dictionary, repetition, services
 from common.auth import require_user
-from common.enums import AttemptContext, CardDirection
+from common.enums import AttemptContext, CardDirection, CardState, ReviewRating
 
-from .types import Attempt, HomeworkHandIn, SrsCard, WordShown
+from .types import Attempt, DueCard, HomeworkHandIn, SrsCard, WordShown
 
 
 @strawberry.type
@@ -89,4 +91,37 @@ class ExercisesMutation:
             session_id=strawberry.ID(str(session_id)),
             item_id=strawberry.ID(str(item.id)),
             lemma=item.lemma,
+        )
+
+    # --- repetition (R4.4) ---------------------------------------------------------------
+    @strawberry.mutation
+    def review_word(
+        self,
+        info: strawberry.Info,
+        card_id: strawberry.ID,
+        rating: ReviewRating,
+        stability: float,
+        difficulty: float,
+        due_at: dt.datetime,
+        state: CardState,
+        learning_steps: int = 0,
+    ) -> DueCard:
+        """Record one review.
+
+        FSRS ran on the client (`ts-fsrs`, MIT — spec §7.3 names it, and it is JavaScript);
+        this call is the record of it. The server does not trust WHOSE card it is or whether
+        the numbers are sane, and it counts `reps`/`lapses` itself — a history a client can
+        rewrite is not a history.
+        """
+        return DueCard.of(
+            repetition.review(
+                require_user(info),
+                card_id,
+                rating=rating.value,
+                stability=stability,
+                difficulty=difficulty,
+                due_at=due_at,
+                state=state.value,
+                learning_steps=learning_steps,
+            )
         )

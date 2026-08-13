@@ -4,15 +4,18 @@ from __future__ import annotations
 
 import strawberry
 
-from apps.exercises import dictionary, services
+from apps.exercises import dictionary, repetition, services
 from common.auth import require_user
 
 from .types import (
+    Achievement,
     Attempt,
+    DueCard,
     ExerciseLiveRow,
     ExerciseSet,
     ExternalDictionary,
     LexicalItem,
+    RepetitionProgress,
     SetProgress,
     SkillMastery,
     SrsCard,
@@ -90,3 +93,28 @@ class ExercisesQuery:
         opens them in a new tab (owner decision 2026-08-12)."""
         require_user(info)
         return [ExternalDictionary(**row) for row in dictionary.EXTERNAL_DICTIONARIES]
+
+    # --- repetition (R4.4) ---------------------------------------------------------------
+    @strawberry.field
+    def my_repetition_queue(self, info: strawberry.Info, limit: int = 20) -> list[DueCard]:
+        """What is due for the CALLER. Takes no student id — a learner's queue is theirs."""
+        return [DueCard.of(card) for card in repetition.due_cards(require_user(info), limit=limit)]
+
+    @strawberry.field
+    def my_repetition_progress(self, info: strawberry.Info) -> RepetitionProgress:
+        """🔴 One person's own numbers. There is no query that returns anybody else's, and
+        no ordering that would make a table of children."""
+        row = repetition.progress(require_user(info))
+        return RepetitionProgress(
+            total=row["total"],
+            due=row["due"],
+            learning=row["learning"],
+            mastered=row["mastered"],
+            reviews=row["reviews"],
+            current_streak=row["current_streak"],
+            longest_streak=row["longest_streak"],
+        )
+
+    @strawberry.field
+    def my_achievements(self, info: strawberry.Info) -> list[Achievement]:
+        return [Achievement.of(row) for row in repetition.achievements(require_user(info))]
