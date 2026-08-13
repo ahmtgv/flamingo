@@ -264,6 +264,53 @@ class ReportStatus(Enum):
     DISMISSED = "dismissed"
 
 
+# --- Exercises (R4.1, RND_01_SPEC_ENGLISH §3/§7.2) -----------------------------
+@strawberry.enum
+class ExerciseKind(Enum):
+    """The typology from the English spec §3. Subject-neutral on purpose — the same kinds
+    serve Russian and astronomy, which is why the app is `exercises`, not `english`."""
+
+    VOCAB_CARD = "vocab_card"
+    CLOZE = "cloze"
+    CHOICE = "choice"
+    WORD_ORDER = "word_order"
+    MATCH = "match"
+    LISTENING = "listening"
+    DICTATION = "dictation"
+    PRONUNCIATION = "pronunciation"
+    SPEAKING = "speaking"
+    WRITING = "writing"
+    TRANSFORM = "transform"
+    ROLEPLAY = "roleplay"
+
+
+@strawberry.enum
+class SkillArea(Enum):
+    VOCAB = "vocab"
+    GRAMMAR = "grammar"
+    LISTENING = "listening"
+    READING = "reading"
+    WRITING = "writing"
+    SPEAKING = "speaking"
+    PRONUNCIATION = "pronunciation"
+
+
+@strawberry.enum
+class ExerciseMode(Enum):
+    """Where a set is used — and, with it, whether the journal ever hears about it (§7.4)."""
+
+    LIVE = "live"
+    HOMEWORK = "homework"
+    PRACTICE = "practice"
+
+
+@strawberry.enum
+class AttemptContext(Enum):
+    LIVE = "live"
+    HOMEWORK = "homework"
+    PRACTICE = "practice"
+
+
 # --- Grading (R4.1, owner decision 2026-08-13) --------------------------------
 @strawberry.enum
 class GradingScale(Enum):

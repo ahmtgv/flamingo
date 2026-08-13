@@ -52,6 +52,16 @@ enum MaterialType { FILE LINK TEXT }
 # Submission.score stays one number and topic mastery is computed in internal fractions, so a
 # five-point course is not analysed more coarsely than a percent one.
 enum GradingScale { FIVE_POINT PERCENT }
+# Exercises (R4.1 — RND_01_SPEC_ENGLISH §3/§7.2). Subject-neutral: the same kinds serve
+# Russian and astronomy, which is why the app is `exercises`, not `english`.
+enum ExerciseKind {
+  VOCAB_CARD CLOZE CHOICE WORD_ORDER MATCH LISTENING
+  DICTATION PRONUNCIATION SPEAKING WRITING TRANSFORM ROLEPLAY
+}
+enum SkillArea { VOCAB GRAMMAR LISTENING READING WRITING SPEAKING PRONUNCIATION }
+# Where a set is used — and with it whether the journal ever hears about it (§7.4).
+enum ExerciseMode { LIVE HOMEWORK PRACTICE }
+enum AttemptContext { LIVE HOMEWORK PRACTICE }
 enum EnrollmentStatus { ACTIVE COMPLETED PENDING }
 enum HomeworkType { FILE TEXT QUIZ }
 enum SubmissionStatus { SUBMITTED LATE GRADED }
@@ -507,6 +517,63 @@ type AuthPayload { token: String! refreshToken: String! user: User! }
 type UploadTicket { uploadUrl: String! fileKey: String! expiresAt: DateTime! }
 type SessionJoin { session: LessonSession! roomToken: String! }
 
+# ----------------------------------------------------------------------------- Exercises (R4.1)
+# `answerKey` is deliberately ABSENT from this type and always will be: a key on the wire is
+# a test that answers itself. It lives on the model; the resolver does not expose it.
+type Exercise {
+  id: ID!
+  kind: ExerciseKind!
+  skill: SkillArea!
+  cefrLevel: String
+  skillTags: [String!]!
+  prompt: JSON!
+  payload: JSON!
+  points: Int!
+  order: Int!
+  assetId: ID                    # a listening clip / picture is a lesson Material
+}
+
+type ExerciseSet {
+  id: ID!
+  lessonId: ID!
+  title: String!
+  mode: ExerciseMode!
+  homeworkId: ID                 # set for HOMEWORK — the join to the existing journal
+  exercises: [Exercise!]!
+}
+
+# Append-only: a retake is a new row, never an edit (§4.2 п.4).
+type Attempt {
+  id: ID!
+  exerciseId: ID!
+  context: AttemptContext!
+  isCorrect: Boolean             # null while an open kind waits for a person
+  score: Int!
+  createdAt: DateTime!
+}
+
+# The teacher's live view of one question: counts and a spread, never who answered what.
+type ExerciseLiveRow {
+  exerciseId: ID!
+  answered: Int!
+  groupSize: Int!
+  correct: Int!
+  spread: JSON!                  # option index -> how many picked it
+}
+
+type SetProgress { total: Int! answered: Int! correct: Int! }
+
+# BKT over a skill tag (§7.3) — «has this learner got the rule yet?». Not spaced repetition:
+# that is about items and lives elsewhere.
+type SkillMastery { skillTag: String! pKnown: Float! opportunities: Int! }
+
+type HomeworkHandIn {
+  submissionId: ID!
+  score: Int
+  autoChecked: Int!
+  awaitingTeacher: Int!          # what still needs a person to read it
+}
+
 # ----------------------------------------------------------------------------- Board (R3.2)
 # Boards and mind-maps are on the storage whitelist (§4.2 п.2) — they are what a lesson leaves
 # behind now that no recording exists. Named BoardSnapshot deliberately (§2.8): the
@@ -932,6 +999,13 @@ type Query {
   boardSnapshots(lessonId: ID!): [BoardSnapshot!]!
   courseBoards(courseId: ID!): [BoardSnapshot!]!          # «доска прошлого урока»
 
+  # exercises (R4.1)
+  lessonExerciseSets(lessonId: ID!): [ExerciseSet!]!
+  myAttempts(setId: ID!): [Attempt!]!                     # the caller's own; takes no user id
+  setProgress(setId: ID!): SetProgress!
+  exerciseLivePicture(setId: ID!): [ExerciseLiveRow!]!    # teacher only, aggregate only
+  mySkillMastery(masteredOnly: Boolean = false): [SkillMastery!]!
+
   # catalog & content
   catalog(filter: CourseFilter, first: Int = 20, after: String): CourseConnection!
   course(id: ID!): Course
@@ -1052,6 +1126,14 @@ type Mutation {
   removeBoardElement(lessonId: ID!, elementId: ID!): Boolean!
   setBoardOpen(lessonId: ID!, isOpen: Boolean!): Boolean!  # teacher only
   saveBoard(lessonId: ID!, title: String): BoardSnapshot!  # -> lesson materials
+
+  # exercises (R4.1)
+  answerExercise(
+    exerciseId: ID!, response: JSON!, context: AttemptContext = PRACTICE,
+    sessionId: ID, latencyMs: Int = 0, hintsUsed: Int = 0
+  ): Attempt!
+  handInExerciseSet(setId: ID!): HomeworkHandIn!
+  countLiveAsClasswork(setId: ID!, studentId: ID!): ID!   # a live lesson grades only on purpose
   reportAttention(input: AttentionInput!): Boolean!         # client pushes aggregate only
 
   # --- enrollment & progress

@@ -16,6 +16,8 @@ from apps.chat.graphql.queries import ChatQuery
 from apps.chat.graphql.subscriptions import ChatSubscription
 from apps.courses.graphql.mutations import CoursesMutation
 from apps.courses.graphql.queries import CoursesQuery
+from apps.exercises.graphql.mutations import ExercisesMutation
+from apps.exercises.graphql.queries import ExercisesQuery
 from apps.files.graphql.mutations import FilesMutation
 from apps.homework.graphql.mutations import HomeworkMutation
 from apps.homework.graphql.queries import HomeworkQuery
@@ -39,6 +41,7 @@ class Query(
     SeedumQuery,
     ChatQuery,
     BoardQuery,
+    ExercisesQuery,
 ):
     pass
 
@@ -54,6 +57,7 @@ class Mutation(
     FilesMutation,
     ChatMutation,
     BoardMutation,
+    ExercisesMutation,
 ):
     pass
 

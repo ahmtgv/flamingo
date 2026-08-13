@@ -173,6 +173,35 @@ def submit_homework(user, *, homework_id, content_text: str = "", file_keys=None
     return submission
 
 
+@transaction.atomic
+def record_classwork(user, *, homework_id, student, score: int, comment: str = "") -> Submission:
+    """The teacher counts work done in class (RND_01_SPEC_ENGLISH §7.4).
+
+    A live lesson does not reach the journal by itself — being wrong in class is part of
+    learning, not a verdict. This is the deliberate act that turns it into a graded row, and
+    it is a normal Submission so the journal needs no second concept of a mark.
+    """
+    homework = _get_homework(homework_id)
+    _teacher_profile(user)
+    _ensure_owner(user, _homework_course(homework))
+
+    now = timezone.now()
+    last = Submission.objects.filter(homework=homework, student=student).aggregate(
+        m=Max("attempt")
+    )["m"]
+    return Submission.objects.create(
+        homework=homework,
+        student=student,
+        attempt=(last or 0) + 1,
+        status=SubmissionStatus.GRADED.value,
+        submitted_at=now,
+        score=score,
+        comment=comment or "",
+        graded_by=user,
+        graded_at=now,
+    )
+
+
 def submission_file_url(user, submission_file: SubmissionFile) -> str:
     """Presigned GET for a submission file — authorized to the submitting student (own) OR the
     teacher who owns the homework's course. NEVER a classmate (defense-in-depth on the download
