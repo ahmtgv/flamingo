@@ -149,6 +149,12 @@ class Material(BaseModel):
         blank=True,
         on_delete=models.CASCADE,
     )
+    # Licence travels with the asset (R4.3). Open bases are the only ones we pull inside the
+    # product, and an open licence is still a licence: CC BY wants a name, Tatoeba audio is
+    # per-line, Common Voice is CC0. Empty means "ours" — a teacher's own upload.
+    license = models.CharField(max_length=64, blank=True, default="")
+    attribution = models.CharField(max_length=300, blank=True, default="")
+    source_url = models.URLField(max_length=1000, blank=True, default="")
 
     class Meta:
         ordering = ["order"]

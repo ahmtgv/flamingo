@@ -339,6 +339,52 @@ class BoardElementKind(Enum):
     IMAGE = "image"  # pasted from the clipboard
 
 
+# --- Dictionary (R4.3, RND_01_SPEC_ENGLISH §5.1/§7.2) -------------------------
+@strawberry.enum
+class LexicalSource(Enum):
+    """Where a piece of the word card came from — and, with it, which licence applies.
+
+    The list is closed on purpose (owner decision 2026-08-12, sheet 02): only open bases are
+    pulled INSIDE the product. A closed dictionary is a link that opens in a new tab, never a
+    row in this table. Adding a member here is a licensing decision, not a code change.
+    """
+
+    WORDNET = "wordnet"  # Open English WordNet — CC BY 4.0 + Princeton WordNet License
+    TATOEBA = "tatoeba"  # example sentences — CC BY 2.0 FR, credit the sentence author
+    COMMON_VOICE = "common_voice"  # Mozilla Common Voice — CC0
+    OWN = "own"  # written by our own methodologist
+
+
+@strawberry.enum
+class PartOfSpeech(Enum):
+    NOUN = "noun"
+    VERB = "verb"
+    ADJECTIVE = "adjective"
+    ADVERB = "adverb"
+    PHRASE = "phrase"
+    OTHER = "other"
+
+
+# --- Spaced repetition (R4.3/R4.4, RND_01_SPEC_ENGLISH §7.2/§7.3) --------------
+@strawberry.enum
+class CardDirection(Enum):
+    """Recognition (en→ru) is easier than recall (ru→en); the spec keeps them apart because
+    knowing a word one way is genuinely not knowing it the other."""
+
+    RECOGNITION = "recognition"
+    RECALL = "recall"
+
+
+@strawberry.enum
+class CardState(Enum):
+    """FSRS states. Not SM-2 — see §7.3."""
+
+    NEW = "new"
+    LEARNING = "learning"
+    REVIEW = "review"
+    RELEARNING = "relearning"
+
+
 # --- Lesson summary (R4.2, atlas sheet 02) ------------------------------------
 @strawberry.enum
 class SummaryStatus(Enum):

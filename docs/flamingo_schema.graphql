@@ -580,6 +580,70 @@ type HomeworkHandIn {
   awaitingTeacher: Int!          # what still needs a person to read it
 }
 
+# ----------------------------------------------------------------------------- Dictionary (R4.3)
+# Owner decision 2026-08-12 (sheet 02): only OPEN bases go inside the product — Open English
+# WordNet (CC BY 4.0), Tatoeba (CC BY 2.0 FR), Mozilla Common Voice (CC0). A closed dictionary
+# is a LINK that opens in a new tab: never a row in a table, never a request from our server.
+# The enum below IS that decision — a closed base has no member to be added under.
+enum LexicalSource { WORDNET TATOEBA COMMON_VOICE OWN }
+enum PartOfSpeech { NOUN VERB ADJECTIVE ADVERB PHRASE OTHER }
+
+# Who to credit and under what. On the wire because the CARD shows it: an open licence is
+# still a licence, and these three strings are why we may show the content at all.
+type Attribution {
+  source: LexicalSource!
+  license: String!
+  attribution: String!
+  sourceUrl: String
+}
+
+type LexicalExample {
+  id: ID!
+  text: String!
+  translationRu: String
+  credit: Attribution!           # its own — a Tatoeba sentence is not a WordNet gloss
+}
+
+# One SENSE. The card on the sheet is every sense of a lemma, stacked.
+type LexicalItem {
+  id: ID!
+  lemma: String!
+  pos: PartOfSpeech!
+  senseId: String
+  cefrLevel: String
+  ipa: String
+  definitionRu: String
+  translationRu: String
+  pronunciationId: ID            # a Material id — never a media blob on this type
+  credit: Attribution!
+  examples: [LexicalExample!]!
+}
+
+# A closed dictionary, as data, so the client renders exactly the tested list — and so that
+# adding one is visibly a LINK and not a new source of content.
+type ExternalDictionary { key: String! name: String! url: String! }
+
+# «Показать всем»: an id and the lemma. Stored nowhere — a gesture, like the projector focus.
+type WordShown { sessionId: ID! itemId: ID! lemma: String! }
+
+# ----------------------------------------------------------------------------- Repetition (R4.3/R4.4)
+# FSRS over ITEMS, never SM-2, and never the same thing as SkillMastery (BKT over RULES) —
+# spec §7.3 devotes a table to keeping the two apart.
+enum CardDirection { RECOGNITION RECALL }
+enum CardState { NEW LEARNING REVIEW RELEARNING }
+
+# «В мои слова» creates one of these, due now. The word list IS the queue: there is no second
+# list to keep in sync with it.
+type SrsCard {
+  id: ID!
+  item: LexicalItem!
+  direction: CardDirection!
+  state: CardState!
+  dueAt: DateTime!
+  reps: Int!
+  lapses: Int!
+}
+
 # ----------------------------------------------------------------------------- Board (R3.2)
 # Boards and mind-maps are on the storage whitelist (§4.2 п.2) — they are what a lesson leaves
 # behind now that no recording exists. Named BoardSnapshot deliberately (§2.8): the
@@ -1058,6 +1122,13 @@ type Query {
   exerciseLivePicture(setId: ID!): [ExerciseLiveRow!]!    # teacher only, aggregate only
   mySkillMastery(masteredOnly: Boolean = false): [SkillMastery!]!
 
+  # dictionary (R4.3) — the language, not course content: a definition behind an enrolment
+  # would be theatre, since the same word is a click away on any open dictionary in the world.
+  lookupWord(lemma: String!): [LexicalItem!]!            # every sense — the card stacks them
+  lessonWords(lessonId: ID!): [LexicalItem!]!            # «слова этого урока», lesson-gated
+  myWords: [SrsCard!]!                                   # the caller's own; takes no user id
+  externalDictionaries: [ExternalDictionary!]!           # closed bases, as outbound LINKS
+
   # summary (R4.2) — the teacher gets the draft; everyone else gets it only once it is sent,
   # and gets NULL rather than a refusal until then (whether it is being written is not their
   # business either). lessonChat is the exception: participants read the CHAT section live.
@@ -1193,6 +1264,11 @@ type Mutation {
   handInExerciseSet(setId: ID!): HomeworkHandIn!
   countLiveAsClasswork(setId: ID!, studentId: ID!): ID!   # a live lesson grades only on purpose
 
+  # dictionary (R4.3) — the three actions on the card, each reusing a rule we already have
+  addWordToMyList(itemId: ID!, direction: CardDirection = RECOGNITION): SrsCard!  # idempotent
+  putWordOnBoard(lessonId: ID!, itemId: ID!): ID!         # through the board's own write rule
+  showWordToClass(sessionId: ID!, itemId: ID!): WordShown! # teacher only; stores nothing
+
   # summary (R4.2) — teacher-only, all of them; sendChatMessage above is everyone's
   assembleLessonSummary(sessionId: ID!): LessonSummary!   # «собрать саммари сейчас»
   addSummaryItem(
@@ -1265,6 +1341,9 @@ type Subscription {
   sessionStatusChanged(sessionId: ID!): LessonSession!
   # live lesson chat
   chatMessageReceived(sessionId: ID!): ChatMessage!
+  # «показать всем» (R4.3) — the teacher points at a word; each client turns to the card it
+  # can already read for itself. An id travels, nothing is stored.
+  wordShown(sessionId: ID!): WordShown!
   # standing chat (R2) — the socket re-checks membership before streaming anything
   channelMessageReceived(channelId: ID!): ChannelMessage!
   # current user's notifications (new grade, absence, CMF insight, ...)

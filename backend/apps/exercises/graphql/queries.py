@@ -4,10 +4,19 @@ from __future__ import annotations
 
 import strawberry
 
-from apps.exercises import services
+from apps.exercises import dictionary, services
 from common.auth import require_user
 
-from .types import Attempt, ExerciseLiveRow, ExerciseSet, SetProgress, SkillMastery
+from .types import (
+    Attempt,
+    ExerciseLiveRow,
+    ExerciseSet,
+    ExternalDictionary,
+    LexicalItem,
+    SetProgress,
+    SkillMastery,
+    SrsCard,
+)
 
 
 @strawberry.type
@@ -56,3 +65,28 @@ class ExercisesQuery:
             SkillMastery.of(row)
             for row in services.mastery_of(require_user(info), mastered_only=mastered_only)
         ]
+
+    # --- dictionary (R4.3) ---------------------------------------------------------------
+    @strawberry.field
+    def lookup_word(self, info: strawberry.Info, lemma: str) -> list[LexicalItem]:
+        """Every sense of a lemma — the card on sheet 02 is the senses, stacked."""
+        return [LexicalItem.of(row) for row in dictionary.lookup(require_user(info), lemma)]
+
+    @strawberry.field
+    def lesson_words(self, info: strawberry.Info, lesson_id: strawberry.ID) -> list[LexicalItem]:
+        """«Слова этого урока» — behind the lesson's own access rule."""
+        return [
+            LexicalItem.of(row) for row in dictionary.lesson_words(require_user(info), lesson_id)
+        ]
+
+    @strawberry.field
+    def my_words(self, info: strawberry.Info) -> list[SrsCard]:
+        """The caller's own list. Takes no student id, deliberately."""
+        return [SrsCard.of(row) for row in dictionary.my_words(require_user(info))]
+
+    @strawberry.field
+    def external_dictionaries(self, info: strawberry.Info) -> list[ExternalDictionary]:
+        """Closed dictionaries, as LINKS. Nothing here is fetched by our server — the client
+        opens them in a new tab (owner decision 2026-08-12)."""
+        require_user(info)
+        return [ExternalDictionary(**row) for row in dictionary.EXTERNAL_DICTIONARIES]

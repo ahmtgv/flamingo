@@ -12,7 +12,16 @@ import datetime as dt
 import strawberry
 from strawberry.scalars import JSON
 
-from common.enums import AttemptContext, ExerciseKind, ExerciseMode, SkillArea
+from common.enums import (
+    AttemptContext,
+    CardDirection,
+    CardState,
+    ExerciseKind,
+    ExerciseMode,
+    LexicalSource,
+    PartOfSpeech,
+    SkillArea,
+)
 
 
 @strawberry.type
@@ -126,3 +135,131 @@ class HomeworkHandIn:
     score: int | None
     auto_checked: int
     awaiting_teacher: int
+
+
+# --- Dictionary (R4.3, atlas sheet 02) ---------------------------------------------------
+@strawberry.type
+class Attribution:
+    """Who to credit and under what — carried on the wire so the CARD shows it.
+
+    The owner's rule is that only open bases go inside the product, and the reviewer's is
+    that the licence is visible in the card rather than buried in the code. Both are the same
+    requirement seen from two sides: these three strings are the reason we are allowed to
+    show the content at all, so they travel with it.
+    """
+
+    source: LexicalSource
+    license: str
+    attribution: str
+    source_url: str | None
+
+
+@strawberry.type
+class LexicalExample:
+    id: strawberry.ID
+    text: str
+    translation_ru: str | None
+    #: Its own, because a Tatoeba sentence and a WordNet gloss are different rights holders.
+    credit: Attribution
+
+    @classmethod
+    def of(cls, row) -> LexicalExample:
+        return cls(
+            id=strawberry.ID(str(row.id)),
+            text=row.text,
+            translation_ru=row.translation_ru or None,
+            credit=Attribution(
+                source=LexicalSource(row.source),
+                license=row.license,
+                attribution=row.attribution,
+                source_url=row.source_url or None,
+            ),
+        )
+
+
+@strawberry.type
+class LexicalItem:
+    """One SENSE. The card on the sheet is every sense of a lemma, stacked."""
+
+    id: strawberry.ID
+    lemma: str
+    pos: PartOfSpeech
+    sense_id: str | None
+    cefr_level: str | None
+    ipa: str | None
+    definition_ru: str | None
+    translation_ru: str | None
+    #: A Material id — the clip itself is fetched the way every other file is.
+    pronunciation_id: strawberry.ID | None
+    credit: Attribution
+    examples: list[LexicalExample]
+
+    @classmethod
+    def of(cls, row) -> LexicalItem:
+        return cls(
+            id=strawberry.ID(str(row.id)),
+            lemma=row.lemma,
+            pos=PartOfSpeech(row.pos),
+            sense_id=row.sense_id or None,
+            cefr_level=row.cefr_level or None,
+            ipa=row.ipa or None,
+            definition_ru=row.definition_ru or None,
+            translation_ru=row.translation_ru or None,
+            pronunciation_id=(
+                strawberry.ID(str(row.pronunciation_id)) if row.pronunciation_id else None
+            ),
+            credit=Attribution(
+                source=LexicalSource(row.source),
+                license=row.license,
+                attribution=row.attribution,
+                source_url=row.source_url or None,
+            ),
+            examples=[LexicalExample.of(e) for e in row.examples.all()],
+        )
+
+
+@strawberry.type
+class ExternalDictionary:
+    """A closed dictionary: a LINK, never an import (owner decision 2026-08-12).
+
+    It is served as data so the client renders exactly the list this contract is tested
+    against — and so that adding one is visibly a link and not a new source of content.
+    """
+
+    key: str
+    name: str
+    url: str
+
+
+@strawberry.type
+class SrsCard:
+    """A word in the caller's own list — which is the repetition queue, not a copy of it."""
+
+    id: strawberry.ID
+    item: LexicalItem
+    direction: CardDirection
+    state: CardState
+    due_at: dt.datetime
+    reps: int
+    lapses: int
+
+    @classmethod
+    def of(cls, row) -> SrsCard:
+        return cls(
+            id=strawberry.ID(str(row.id)),
+            item=LexicalItem.of(row.item),
+            direction=CardDirection(row.direction),
+            state=CardState(row.state),
+            due_at=row.due_at,
+            reps=row.reps,
+            lapses=row.lapses,
+        )
+
+
+@strawberry.type
+class WordShown:
+    """«Показать всем»: an id and the lemma, nothing else. Stored nowhere."""
+
+    session_id: strawberry.ID
+    item_id: strawberry.ID
+    lemma: str
