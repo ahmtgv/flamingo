@@ -83,6 +83,7 @@ h1{font-size:1.4rem;font-weight:600;letter-spacing:-.015em}
 .vid .ini{font:500 15px var(--mono);color:rgba(255,255,255,.55)}
 .vid.share{background:var(--subtle);border:1px dashed var(--border-s);display:grid;place-content:center}
 .vid.share .ini{color:var(--ter);font-size:10px;text-align:center;padding:0 10px}
+.vid[data-r],.stripNote[data-r]{--d:grid}
 .stripNote{font:400 9px var(--mono);color:var(--ter);align-self:center;margin-inline-start:4px;max-width:15ch;line-height:1.5}
 
 /* сцена */
@@ -289,14 +290,22 @@ h1{font-size:1.4rem;font-weight:600;letter-spacing:-.015em}
       <!-- ————— СЦЕНА ————— -->
       <div class="stage">
 
-        <!-- видео-полоса -->
+        <!-- видео-полоса · режим Р5.1: учитель видит группу, ученик — учителя и себя -->
         <div class="vidStrip">
           <div class="vid main" data-speaking><span class="ini">ИС</span><span class="who">Ирина · ведёт</span><span class="mic">🎙</span></div>
-          <div class="vid"><span class="ini">АК</span><span class="who">Аня</span></div>
-          <div class="vid"><span class="ini">ПК</span><span class="who">Петя</span><span class="mic">без звука</span></div>
-          <div class="vid"><span class="ini">ЛМ</span><span class="who">Лена</span></div>
-          <div class="vid share"><span class="ini">камера кабинета<br>не подключена</span></div>
-          <span class="stripNote">видео можно вынести во вторую вкладку или на второй экран</span>
+
+          <!-- у преподавателя: вся группа -->
+          <div class="vid" data-r="teacher"><span class="ini">АК</span><span class="who">Аня</span></div>
+          <div class="vid" data-r="teacher"><span class="ini">ПК</span><span class="who">Петя</span><span class="mic">без звука</span></div>
+          <div class="vid" data-r="teacher"><span class="ini">ЛМ</span><span class="who">Лена</span></div>
+          <div class="vid share" data-r="teacher"><span class="ini">камера кабинета<br>не подключена</span></div>
+
+          <!-- у ученика: только он сам -->
+          <div class="vid" data-r="pupil"><span class="ini">АК</span><span class="who">вы</span></div>
+          <div class="vid" data-r="pupil" style="--d:grid;opacity:.5"><span class="ini" style="font-size:10px;text-align:center;padding:0 8px">Петя<br>поднял руку</span></div>
+
+          <span class="stripNote" data-r="teacher">видео можно вынести во вторую вкладку или на второй экран</span>
+          <span class="stripNote" data-r="pupil">одноклассников не видно — так урок не рвётся на слабом канале</span>
         </div>
 
         <div class="sceneWrap">
@@ -628,6 +637,16 @@ h1{font-size:1.4rem;font-weight:600;letter-spacing:-.015em}
       <li>Собирается <b>из доски, теста, чата и материалов</b> — у каждого пункта видно, откуда он взят.</li>
       <li>Всегда сначала <b>черновик преподавателя</b>: он правит и отправляет. Ученики видят только отправленное.</li>
       <li>Домашнее задание из саммари автоматически попадает в «Задания» предмета.</li>
+    </ul>
+
+    <h3>Решение владельца 13.08 — режим видео (Р5.1)</h3>
+    <p><b>Ученик видит преподавателя и своё превью. Преподаватель видит всю группу.</b>
+    Причина инженерная, не вкусовая: урок раздаётся с машины преподавателя, и «все видят всех» требует от него
+    30 Мбит/с исходящего канала — домашний интернет ляжет и связь будет рваться. При текущем режиме нужно 4,3 Мбит/с.</p>
+    <ul>
+      <li>Поднявший руку может временно показаться всем — это <b>одна</b> дополнительная дорожка, а не восемь.</li>
+      <li>Ученику честно сказано, почему он не видит класс: «так урок не рвётся на слабом канале».</li>
+      <li>Панель «Участники» остаётся у всех — знать, кто в комнате, важнее, чем видеть восемь лиц.</li>
     </ul>
 
     <h3>Решения владельца 12.08 — закреплены</h3>
