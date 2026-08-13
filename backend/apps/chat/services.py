@@ -1,14 +1,18 @@
 """Chat services: who may talk to whom, and what happens when they do.
 
-The rule that shapes this whole module is the base safety mode (§6.3): **you may write to
-people you actually share something with.** That is not only anti-bullying — it is the
-cheapest anti-spam rule there is, and it means no resolver ever has to ask "is this person
-allowed to message a stranger", because a channel with a stranger cannot be created.
+**Owner decision 2026-08-13 (§6.3): the platform is open by default.** Writing to another
+person needs nothing but their id — no shared group, no allow-list — and NOBODY gets to read
+a conversation they are not in. Not a teacher, not an administrator. Restrictions exist only
+as switched-off mechanisms (the jurisdiction matrix, `InstitutionChatSettings`) to be turned
+on region by region when we actually know a region's law. Guessing at somebody else's law in
+advance is what this decision rejects.
 
-Access is membership. `_channel_or_deny` is the single chokepoint; a channel the caller is
-not in comes back as NotFound rather than PermissionDenied, so a probe cannot enumerate other
-people's conversations. The one exception is a group teacher opening a REPORTED conversation
-— that path is explicit, narrow, and logged by the report itself.
+Access is membership, and that is now the whole of it. `_channel_or_deny` is the single
+chokepoint; a channel the caller is not in comes back as NotFound rather than
+PermissionDenied, so a probe cannot enumerate other people's conversations.
+
+«Пожаловаться» stays, and it is the opposite of a restriction: it records a signal for US.
+It grants no third party access to anything.
 """
 
 from __future__ import annotations
@@ -67,7 +71,12 @@ def institution_ids_of(user) -> set:
 
 
 def shares_a_group(user, other) -> bool:
-    """The base-mode test: these two are in the same room in real life."""
+    """Whether two people share a group.
+
+    No longer a gate on writing (owner decision 2026-08-13) — kept because the channel LIST
+    and future region-specific switches may still want to know, and deleting a true,
+    used-elsewhere predicate to express a policy change would be the wrong tool.
+    """
     mine = group_ids_of(user)
     return bool(mine and mine & group_ids_of(other))
 
@@ -88,17 +97,24 @@ def is_member(user, channel: ChatChannel) -> bool:
     return ChannelMembership.objects.filter(channel=channel, user=user).exists()
 
 
-def can_open_on_report(user, channel: ChatChannel) -> bool:
-    """A group teacher may open a REPORTED conversation (§6.3), and only then.
+def can_read_without_membership(user, channel: ChatChannel) -> bool:
+    """Whether somebody outside a conversation may read it. Today: only if a region has
+    explicitly switched permanent visibility on, which no region has.
 
-    Permanent visibility is a separate, opt-in institution setting — if it is off, an
-    unreported conversation between two pupils stays between them.
+    **A complaint no longer opens anything** (owner decision 2026-08-13). Filing one records a
+    signal for us; it does not hand a third party someone else's conversation. Supervision is
+    not the default — it is a mechanism waiting for a jurisdiction that actually requires it.
     """
     teacher = _teacher_profile(user)
     if teacher is None:
         return False
-    from apps.institutions.models import GroupTeacher
+    from apps.institutions.models import GroupMembership, GroupTeacher
 
+    institution = channel.institution or _primary_institution(user)
+    if not policy_for(user, institution).teacher_visible_always:
+        return False
+
+    # Even with the switch on, a teacher only ever sees their OWN group's conversations.
     participants = ChannelMembership.objects.filter(channel=channel).values_list(
         "user_id", flat=True
     )
@@ -107,21 +123,9 @@ def can_open_on_report(user, channel: ChatChannel) -> bool:
     )
     if not taught_groups:
         return False
-
-    from apps.institutions.models import GroupMembership
-
-    theirs = set(
-        GroupMembership.objects.filter(
-            student__user_id__in=list(participants), group_id__in=taught_groups
-        ).values_list("group_id", flat=True)
-    )
-    if not theirs:
-        return False
-
-    institution = channel.institution or _primary_institution(user)
-    if policy_for(user, institution).teacher_visible_always:
-        return True
-    return ChatReport.objects.filter(channel=channel, status=ReportStatus.OPEN.value).exists()
+    return GroupMembership.objects.filter(
+        student__user_id__in=list(participants), group_id__in=taught_groups
+    ).exists()
 
 
 def _channel_or_deny(user, channel_id) -> ChatChannel:
@@ -133,13 +137,13 @@ def _channel_or_deny(user, channel_id) -> ChatChannel:
     channel = ChatChannel.objects.filter(id=channel_id).first()
     if channel is None:
         raise NotFound("Channel not found")
-    if is_member(user, channel) or can_open_on_report(user, channel):
+    if is_member(user, channel) or can_read_without_membership(user, channel):
         return channel
     raise NotFound("Channel not found")
 
 
 def _require_writer(user, channel: ChatChannel) -> None:
-    """Reading a reported conversation is not permission to join it."""
+    """Being able to read a conversation is never permission to join it."""
     if not is_member(user, channel):
         raise PermissionDenied("Not a member of this channel")
 
@@ -195,19 +199,18 @@ def subject_channel(user, course_id) -> ChatChannel:
 
 @transaction.atomic
 def direct_channel(user, other_user_id) -> ChatChannel:
-    """Open (or reopen) a one-to-one conversation.
+    """Open (or reopen) a one-to-one conversation with anybody on the platform.
 
-    The base mode in one place: you may write to somebody you share a group with. Between two
-    pupils that also needs the jurisdiction gate to allow peer chat at all, and the
-    institution not to have switched direct messages off.
+    Open by default (owner decision 2026-08-13): no shared group is required. The only things
+    that can stand in the way are the switched-off mechanisms — the jurisdiction matrix for
+    pupil↔pupil, and an institution that has explicitly turned direct messages off. Neither
+    is on anywhere today.
     """
     from apps.accounts.models import User
 
     other = User.objects.filter(id=other_user_id, is_active=True).first()
     if other is None or other.id == user.id:
         raise NotFound("User not found")
-    if not shares_a_group(user, other):
-        raise PermissionDenied("You can only write to people from your own groups")
 
     both_learners = user.role == Role.STUDENT.value and other.role == Role.STUDENT.value
     institution = _primary_institution(user)
@@ -365,9 +368,10 @@ def mark_read(user, channel_id) -> ChatChannel:
 def report_channel(user, channel_id, *, message_id=None, reason: str = "") -> ChatReport:
     """«Пожаловаться» — available on every conversation, to every participant.
 
-    Filing one is what lets the group's teacher open the conversation. That is the whole
-    escalation path in the base mode: no permanent observation, but a way out that a child
-    can actually reach.
+    This is feedback to US, not a key. Filing a complaint records the signal and grants
+    nobody — teacher, administrator or anyone else — access to the conversation (owner
+    decision 2026-08-13). Handling complaints is an operational process, not an automatic
+    unlocking of someone's private messages.
     """
     channel = _channel_or_deny(user, channel_id)
     _require_writer(user, channel)
@@ -382,11 +386,12 @@ def report_channel(user, channel_id, *, message_id=None, reason: str = "") -> Ch
 
 
 def resolve_report(user, report_id, *, dismiss: bool = False) -> ChatReport:
-    """A group teacher closes a complaint once they have looked at it."""
+    """Close a complaint. Only somebody who can already read the conversation can — which,
+    with supervision off everywhere, means a participant of it."""
     report = ChatReport.objects.filter(id=report_id).select_related("channel").first()
     if report is None:
         raise NotFound("Report not found")
-    if not can_open_on_report(user, report.channel):
+    if not (is_member(user, report.channel) or can_read_without_membership(user, report.channel)):
         raise NotFound("Report not found")
     report.status = ReportStatus.DISMISSED.value if dismiss else ReportStatus.REVIEWED.value
     report.reviewed_by = user
@@ -396,15 +401,18 @@ def resolve_report(user, report_id, *, dismiss: bool = False) -> ChatReport:
 
 
 def open_reports(user) -> list[ChatReport]:
-    """Complaints this teacher may act on."""
-    if _teacher_profile(user) is None:
-        return []
+    """Complaints the caller can actually act on — i.e. on conversations they may already
+    read. With supervision off everywhere, a complaint reaches us, not a teacher's queue."""
     rows = (
         ChatReport.objects.filter(status=ReportStatus.OPEN.value)
         .select_related("channel", "reporter")
         .order_by("-created_at")
     )
-    return [r for r in rows if can_open_on_report(user, r.channel)]
+    return [
+        r
+        for r in rows
+        if is_member(user, r.channel) or can_read_without_membership(user, r.channel)
+    ]
 
 
 # --- realtime ----------------------------------------------------------------------------

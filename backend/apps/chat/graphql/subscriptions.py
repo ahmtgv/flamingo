@@ -38,7 +38,9 @@ def _authorize_member(token: str, channel_id) -> str | None:
     channel = ChatChannel.objects.filter(id=channel_id).first()
     if channel is None:
         return None
-    if not (services.is_member(user, channel) or services.can_open_on_report(user, channel)):
+    if not (
+        services.is_member(user, channel) or services.can_read_without_membership(user, channel)
+    ):
         return None
     return str(user.id)
 

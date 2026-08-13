@@ -99,16 +99,19 @@ def test_two_classmates_can_open_a_conversation():
     assert chat.is_member(boris, channel)
 
 
-def test_a_stranger_cannot_be_written_to_at_all():
-    """The base mode (§6.3): not only anti-bullying — it is the cheapest anti-spam rule."""
+def test_anyone_on_the_platform_can_be_written_to():
+    """POLICY CHANGE (owner, 2026-08-13). R2 required a shared group and refused a stranger;
+    §6.3 removed that. This test is the old restriction inverted, on purpose — the platform
+    ships open, and a region's rule is added later as a switch, not assumed now.
+    """
     school = make_school()
     anya = make_pupil("a@example.com")
     classroom(school, pupils=[anya])
     outsider = make_pupil("far@example.com", "Чужой")
     classroom(make_school("Другая школа"), name="7Б", pupils=[outsider])
 
-    with pytest.raises(PermissionDenied):
-        chat.direct_channel(anya, outsider.id)
+    channel = chat.direct_channel(anya, outsider.id)
+    assert chat.is_member(outsider, channel)
 
 
 def test_opening_the_same_conversation_twice_returns_the_same_one():
@@ -182,8 +185,8 @@ def test_someone_elses_conversation_is_not_readable_and_not_confirmed_to_exist()
         chat.send_message(vera, channel.id, "подслушиваю")
 
 
-def test_a_teacher_cannot_read_an_unreported_pupil_conversation():
-    """The base mode does NOT put every child under permanent observation."""
+def test_a_teacher_cannot_read_a_pupil_conversation():
+    """No supervision by default — and after 2026-08-13 no supervision by complaint either."""
     school = make_school()
     anya, boris = make_pupil("a@example.com"), make_pupil("b@example.com", "Борис")
     maria = make_teacher("t@example.com")
@@ -191,12 +194,16 @@ def test_a_teacher_cannot_read_an_unreported_pupil_conversation():
     channel = chat.direct_channel(anya, boris.id)
     chat.send_message(anya, channel.id, "привет")
 
-    assert chat.can_open_on_report(maria, channel) is False
+    assert chat.can_read_without_membership(maria, channel) is False
     with pytest.raises(NotFound):
         chat.messages(maria, channel.id)
 
 
-def test_a_complaint_is_what_opens_the_conversation_to_the_group_teacher():
+def test_a_complaint_opens_the_conversation_to_nobody():
+    """POLICY CHANGE (owner, 2026-08-13). In R2 a complaint was the key that let the group's
+    teacher read the conversation. That supervision is gone: «пожаловаться» stays as feedback
+    to US and grants no third party access to anyone's messages.
+    """
     school = make_school()
     anya, boris = make_pupil("a@example.com"), make_pupil("b@example.com", "Борис")
     maria = make_teacher("t@example.com")
@@ -204,16 +211,17 @@ def test_a_complaint_is_what_opens_the_conversation_to_the_group_teacher():
     channel = chat.direct_channel(anya, boris.id)
     chat.send_message(boris, channel.id, "обидное сообщение")
 
-    chat.report_channel(anya, channel.id, reason="грубит")
+    report = chat.report_channel(anya, channel.id, reason="грубит")
 
-    assert chat.can_open_on_report(maria, channel) is True
-    assert [m.text for m in chat.messages(maria, channel.id)] == ["обидное сообщение"]
-    # Reading a reported conversation is not joining it.
-    with pytest.raises(PermissionDenied):
-        chat.send_message(maria, channel.id, "я всё вижу")
+    # The signal is recorded...
+    assert report.status == ReportStatus.OPEN.value
+    # ...and it unlocks nothing.
+    assert chat.can_read_without_membership(maria, channel) is False
+    with pytest.raises(NotFound):
+        chat.messages(maria, channel.id)
 
 
-def test_a_teacher_of_another_group_gets_nothing_even_with_an_open_complaint():
+def test_a_teacher_of_another_group_gets_nothing_either():
     school = make_school()
     anya, boris = make_pupil("a@example.com"), make_pupil("b@example.com", "Борис")
     mine = make_teacher("t@example.com")
@@ -223,12 +231,15 @@ def test_a_teacher_of_another_group_gets_nothing_even_with_an_open_complaint():
     channel = chat.direct_channel(anya, boris.id)
     chat.report_channel(anya, channel.id, reason="грубит")
 
-    assert chat.can_open_on_report(other, channel) is False
+    assert chat.can_read_without_membership(other, channel) is False
     with pytest.raises(NotFound):
         chat.messages(other, channel.id)
 
 
-def test_closing_a_complaint_closes_the_teachers_window_again():
+def test_a_participant_can_close_their_own_complaint():
+    """POLICY CHANGE (owner, 2026-08-13): closing a complaint was a teacher's act because a
+    complaint used to grant them access. With no such access, the people in the conversation
+    are the ones who can resolve it; everything else is our operational process."""
     school = make_school()
     anya, boris = make_pupil("a@example.com"), make_pupil("b@example.com", "Борис")
     maria = make_teacher("t@example.com")
@@ -236,10 +247,11 @@ def test_closing_a_complaint_closes_the_teachers_window_again():
     channel = chat.direct_channel(anya, boris.id)
     report = chat.report_channel(anya, channel.id, reason="грубит")
 
-    assert chat.can_open_on_report(maria, channel) is True
-    chat.resolve_report(maria, report.id)
+    with pytest.raises(NotFound):
+        chat.resolve_report(maria, report.id)  # not in the conversation → not their business
+
+    chat.resolve_report(anya, report.id)
     assert ChatReport.objects.get(id=report.id).status == ReportStatus.REVIEWED.value
-    assert chat.can_open_on_report(maria, channel) is False
 
 
 def test_every_participant_can_complain_including_about_one_message():
@@ -284,20 +296,20 @@ def test_an_empty_or_oversized_message_is_refused():
 
 
 # --- safety strictness is configuration, never a constant ---------------------------------
-def test_peer_chat_is_switched_off_by_the_jurisdiction_not_by_the_chat_module():
-    """Same code, different matrix row: an EU school gets no pupil↔pupil channel, while its
-    subject room and pupil↔teacher conversations keep working."""
+def test_peer_chat_is_on_in_every_modelled_jurisdiction():
+    """POLICY CHANGE (owner, 2026-08-13). R2 switched pupil↔pupil OFF for the EU as a
+    precaution. §6.3 rejects guessing at a region's law in advance: the platform ships open
+    everywhere it is modelled, and a restriction arrives only with a named region and norm.
+
+    The MECHANISM is untouched — this is a matrix row, and the module still contains no
+    country logic (see test_the_chat_module_contains_no_jurisdiction_branches).
+    """
     school = make_school("Europaschule", jurisdiction=Jurisdiction.EU)
     anya, boris = make_pupil("a@example.com"), make_pupil("b@example.com", "Борис")
-    maria = make_teacher("t@example.com")
-    classroom(school, pupils=[anya, boris], teachers=[maria])
+    classroom(school, pupils=[anya, boris])
 
-    assert chat.policy_for(anya).peer_chat is False
-    with pytest.raises(PermissionDenied):
-        chat.direct_channel(anya, boris.id)
-
-    # Not a blanket switch-off: the teacher conversation is unaffected.
-    assert chat.direct_channel(anya, maria.id).kind == ChannelKind.PUPIL_TEACHER.value
+    assert chat.policy_for(anya, school).peer_chat is True
+    assert chat.direct_channel(anya, boris.id).kind == ChannelKind.PEER.value
 
 
 def test_an_institution_can_switch_direct_messages_off_without_touching_the_matrix():
@@ -311,7 +323,12 @@ def test_an_institution_can_switch_direct_messages_off_without_touching_the_matr
         chat.direct_channel(anya, boris.id)
 
 
-def test_permanent_teacher_visibility_is_an_option_and_is_off_by_default():
+def test_permanent_visibility_stays_a_switched_off_mechanism():
+    """The one remaining way a third party could read a conversation, and it is OFF.
+
+    §6.3 keeps it in the codebase deliberately: this is where a region's rule will land if a
+    region ever requires supervision. It must never be switched on «by analogy».
+    """
     school = make_school()
     anya, boris = make_pupil("a@example.com"), make_pupil("b@example.com", "Борис")
     maria = make_teacher("t@example.com")
@@ -319,10 +336,11 @@ def test_permanent_teacher_visibility_is_an_option_and_is_off_by_default():
     channel = chat.direct_channel(anya, boris.id)
 
     assert chat.policy_for(maria, school).teacher_visible_always is False
-    assert chat.can_open_on_report(maria, channel) is False
+    assert chat.can_read_without_membership(maria, channel) is False
 
+    # Only an explicit institution setting turns it on — nothing else does.
     InstitutionChatSettings.objects.create(institution=school, teacher_visible_always=True)
-    assert chat.can_open_on_report(maria, channel) is True
+    assert chat.can_read_without_membership(maria, channel) is True
 
 
 def test_stopwords_come_from_the_institution_and_default_to_none():
@@ -405,8 +423,11 @@ def test_peer_chat_is_registered_in_the_matrix_with_a_legal_basis():
 
     spec = feature_spec(chat_policy.PEER_CHAT_FEATURE)
     assert spec is not None, "an unregistered feature would fail closed everywhere"
+    # Open in every modelled regime (owner decision 2026-08-13)…
     assert spec["jurisdiction_policy"]["ru"] == "enabled"
-    assert spec["jurisdiction_policy"]["eu"] == "disabled"
+    assert spec["jurisdiction_policy"]["eu"] == "enabled"
+    # …while an UNMODELLED regime still fails closed. That property is the point of the
+    # matrix and survives the policy change untouched.
     assert spec["default_state"] == "disabled"
     assert spec["legal_basis_ref"]
 

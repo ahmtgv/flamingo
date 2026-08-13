@@ -1,5 +1,5 @@
 {
-  "policy_version": "2026-08-13.1",
+  "policy_version": "2026-08-13.2",
   "_doc": [
     "Feature x jurisdiction matrix — policy-as-code (docs/rnd/RND_01_JURISDICTION.md §6.3-6.4).",
     "This file IS the policy: no jurisdictional 'if' may exist anywhere else in the codebase.",
@@ -74,10 +74,10 @@
       "requires_verified_jurisdiction": false,
       "jurisdiction_policy": {
         "ru": "enabled",
-        "eu": "disabled"
+        "eu": "enabled"
       },
-      "legal_basis_ref": "PROMPT_13 §6.3 (owner decision 2026-08-12); RU: pupil-to-pupil messaging inside one's own groups is ordinary communication under 152-FZ with parental consent already captured at registration; EU: DSA art. 28 minor-protection duties plus GDPR art. 8 make an unmoderated minor-to-minor channel a commitment we have not costed, so the feature is switched off geographically rather than half-built",
-      "note": "Switching a country on is an edit to THIS file, never to the chat module. Stricter regimes (permanent teacher visibility, pre-moderation, stop-words, no direct messages) are institution-level options in InstitutionChatSettings — they are configuration, not constants. Turning this off leaves subject rooms and pupil-teacher conversations working: only pupil-to-pupil is gated."
+      "legal_basis_ref": "Owner decision 2026-08-13 (PROMPT_13 §6.3): the platform ships OPEN. Laws move in both directions, so we do not guess at a region's rule in advance and we do not pre-emptively restrict — a restriction is introduced only when we actually enter a region and know the norm it requires. Enabled in every modelled jurisdiction; an UNMODELLED one still fails closed by construction, which is the property this matrix exists to guarantee.",
+      "note": "Enabling a region is an edit to THIS file; so is restricting one, and that needs an owner decision naming the region and the norm. The stricter mechanisms (permanent visibility, pre-moderation, stop-words, no direct messages) remain in InstitutionChatSettings, all OFF — they are where a region's rule will land, not something to switch on by analogy."
     }
   }
 }

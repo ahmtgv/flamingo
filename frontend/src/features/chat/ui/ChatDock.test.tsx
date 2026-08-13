@@ -223,7 +223,10 @@ describe('ChatDock — atlas sheet 00, the chat is a window', () => {
 });
 
 describe('ChatDock — the base safety mode is visible, not hidden', () => {
-  it('every conversation carries «пожаловаться», and says what it does', async () => {
+  it('«пожаловаться» is feedback to us, and the copy no longer promises supervision', async () => {
+    // POLICY CHANGE (owner, 2026-08-13): in R2 this panel told the child a teacher would be
+    // able to open the conversation. That access is gone, so the wording had to go with it —
+    // a promise the product no longer keeps is worse than no promise.
     render([
       channelsMock([PEER]),
       policyMock(),
@@ -234,11 +237,9 @@ describe('ChatDock — the base safety mode is visible, not hidden', () => {
     await userEvent.click(screen.getByRole('button', { name: /Вера Смирнова/ }));
 
     await userEvent.click(await screen.findByRole('button', { name: 'Пожаловаться' }));
-    // The child is told exactly what happens next — that is the whole escalation path.
-    expect(
-      screen.getByText(/Преподаватель вашей группы сможет открыть переписку/),
-    ).toBeInTheDocument();
-    expect(screen.getByText(/До жалобы её никто не читает/)).toBeInTheDocument();
+    expect(screen.getByText(/Жалоба придёт нам, команде Flamingo/)).toBeInTheDocument();
+    expect(screen.getByText(/Переписку она никому не открывает/)).toBeInTheDocument();
+    expect(screen.queryByText(/сможет открыть переписку/)).not.toBeInTheDocument();
   });
 
   it('filing a complaint reports the channel and confirms it', async () => {
@@ -276,13 +277,13 @@ describe('ChatDock — the base safety mode is visible, not hidden', () => {
     await userEvent.type(screen.getByLabelText('Что не так (необязательно)'), 'грубит');
     await userEvent.click(screen.getByRole('button', { name: 'Отправить жалобу' }));
 
-    expect(
-      await screen.findByText('Жалоба отправлена — преподаватель посмотрит'),
-    ).toBeInTheDocument();
+    expect(await screen.findByText('Жалоба отправлена — мы посмотрим')).toBeInTheDocument();
     expect(reported).toBe(true);
   });
 
-  it('a conversation opened on a complaint is read-only, and says so', async () => {
+  it('a conversation a school lets a teacher read is read-only, and says so', async () => {
+    // The only remaining path to somebody else's conversation, and it takes an explicit
+    // institution setting — no complaint opens anything any more.
     const reported = { ...PEER, readOnly: true, openReports: 1 };
     render([
       channelsMock([reported]),
@@ -293,7 +294,7 @@ describe('ChatDock — the base safety mode is visible, not hidden', () => {
     await userEvent.click(await screen.findByRole('button', { name: /Чат/ }));
     await userEvent.click(screen.getByRole('button', { name: /Вера Смирнова/ }));
 
-    expect(await screen.findByText(/читать можно, писать нельзя/)).toBeInTheDocument();
+    expect(await screen.findByText(/писать в него нельзя/)).toBeInTheDocument();
     expect(screen.queryByLabelText('Написать сообщение')).not.toBeInTheDocument();
   });
 
@@ -301,9 +302,7 @@ describe('ChatDock — the base safety mode is visible, not hidden', () => {
     render([channelsMock([SUBJECT]), policyMock({ peerChat: false })]);
     await userEvent.click(await screen.findByRole('button', { name: /Чат/ }));
 
-    expect(
-      await screen.findByText('Личные диалоги между учениками здесь недоступны'),
-    ).toBeInTheDocument();
+    expect(await screen.findByText('Личные диалоги в этом регионе недоступны')).toBeInTheDocument();
   });
 
   it('names the stricter modes when an institution has switched them on', async () => {
@@ -314,15 +313,19 @@ describe('ChatDock — the base safety mode is visible, not hidden', () => {
     await userEvent.click(await screen.findByRole('button', { name: /Чат/ }));
 
     expect(await screen.findByText('Сообщения в этой школе проходят проверку')).toBeInTheDocument();
-    expect(screen.getByText('Переписку в этой школе видит преподаватель')).toBeInTheDocument();
+    expect(
+      screen.getByText('В этой школе включена видимость переписки преподавателю'),
+    ).toBeInTheDocument();
   });
 
-  it('an empty chat explains who you may write to', async () => {
+  it('an empty chat says you may write to anyone (open platform, 2026-08-13)', async () => {
     render([channelsMock([]), policyMock()]);
     await userEvent.click(await screen.findByRole('button', { name: /Чат/ }));
 
     expect(await screen.findByText('Пока ни одного диалога')).toBeInTheDocument();
-    expect(screen.getByText('Написать можно тем, с кем вы в одной группе')).toBeInTheDocument();
+    expect(
+      screen.getByText('Написать можно любому — найдите человека и начните диалог'),
+    ).toBeInTheDocument();
   });
 });
 
