@@ -78,7 +78,7 @@ h1{font-size:1.25rem;font-weight:600;letter-spacing:-.015em}
 .iconBtn:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(225,78,31,.4)}
 
 /* ——— полоса состояния хоста ——— */
-.hostBar{display:none;align-items:center;gap:18px;padding:9px 16px;border-bottom:1px solid var(--border);flex-wrap:wrap}
+.hostBar{display:none;align-items:center;gap:16px;padding:7px 14px;border-bottom:1px solid var(--border);flex-wrap:wrap}
 .app[data-state="live"] .hostBar,.app[data-state="weak"] .hostBar,.app[data-state="offline"] .hostBar{display:flex}
 .app[data-state="weak"] .hostBar{background:var(--warn-soft)}
 .fact{display:grid;gap:1px}
@@ -179,10 +179,13 @@ h1{font-size:1.25rem;font-weight:600;letter-spacing:-.015em}
 
 /* ——— КОМНАТА УРОКА (лист 02, встроен как есть) ——— */
 .room{display:grid;grid-template-columns:minmax(0,1fr) 292px;height:100%;min-height:640px;background:var(--surface)}
-.stage{border-inline-end:1px solid var(--border);display:grid;grid-template-rows:auto auto minmax(0,1fr);min-width:0}
-/* строка окон урока: только переключатели — название урока уехало в заголовок окна */
-.roomTop{display:flex;align-items:center;gap:8px;padding:6px 16px;border-bottom:1px solid var(--border);flex-wrap:wrap}
-.winSwitch{display:flex;gap:2px;background:var(--subtle);border-radius:9px;padding:3px;margin-left:auto}
+.stage{border-inline-end:1px solid var(--border);display:grid;grid-template-rows:auto minmax(0,1fr);min-width:0}
+/* отдельной строки окон урока больше нет: переключатели переехали в полосу состояния */
+.winSwitch{display:flex;gap:2px;background:var(--subtle);border-radius:9px;padding:3px}
+#modeSwitch{margin-inline-start:-4px}
+#winSwitch{margin-inline-start:auto}
+.app[data-state="offline"] #winSwitch,.app[data-state="offline"] #modeSwitch{display:none}
+[data-theme="dark"] .winSwitch{background:#232326}
 .win{font:500 10px var(--mono);color:var(--sec);background:none;border:none;border-radius:7px;padding:6px 11px;cursor:pointer}
 .win[aria-selected="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.05)}
 .mode{font:500 10px var(--mono);color:var(--sec);background:none;border:none;border-radius:7px;padding:6px 11px;cursor:pointer}
@@ -342,6 +345,19 @@ h1{font-size:1.25rem;font-weight:600;letter-spacing:-.015em}
       <span class="fact"><span class="factK">Подключено</span><span class="factV" id="peers">6 из 8</span></span>
       <span class="fact"><span class="factK">Идёт</span><span class="factV" id="elapsed">24:16</span></span>
       <span class="hostWhy" id="hostWhy" hidden></span>
+      <!-- переключатели урока живут здесь же: отдельной строки над сценой больше нет -->
+      <span class="winSwitch" id="modeSwitch" hidden>
+        <button class="mode" data-mode="pair" aria-selected="false">вдвоём</button>
+        <button class="mode" data-mode="group" aria-selected="true">группа</button>
+        <button class="mode" data-mode="pinned" aria-selected="false">ученик рядом</button>
+      </span>
+      <span class="winSwitch" id="winSwitch">
+        <button class="win" data-scene="faces">Класс</button>
+        <button class="win" data-scene="board" aria-selected="true">Доска</button>
+        <button class="win" data-scene="material">Методичка</button>
+        <button class="win" data-scene="test">Тест</button>
+        <button class="win" data-scene="summary">Саммари</button>
+      </span>
       <span class="hostActs" id="hostActs"></span>
     </div>
 
@@ -443,21 +459,6 @@ h1{font-size:1.25rem;font-weight:600;letter-spacing:-.015em}
       <div class="scene s-room">
         <div class="room">
           <div class="stage">
-            <div class="roomTop">
-              <span class="winSwitch" id="modeSwitch" hidden style="margin-left:0">
-                <button class="mode" data-mode="pair" aria-selected="false">вдвоём</button>
-                <button class="mode" data-mode="group" aria-selected="true">группа</button>
-                <button class="mode" data-mode="pinned" aria-selected="false">ученик рядом</button>
-              </span>
-              <span class="winSwitch">
-                <button class="win" data-scene="faces">Класс</button>
-                <button class="win" data-scene="board" aria-selected="true">Доска</button>
-                <button class="win" data-scene="material">Методичка</button>
-                <button class="win" data-scene="test">Тест</button>
-                <button class="win" data-scene="summary">Саммари</button>
-              </span>
-            </div>
-
             <div class="vidStrip" id="strip">
               <div class="vid main" data-speaking><span class="ini">ЛВ</span><span class="who">вы · ведёте</span></div>
               <div class="vid"><span class="ini">АК</span><span class="who">Аня</span></div>
@@ -594,10 +595,17 @@ h1{font-size:1.25rem;font-weight:600;letter-spacing:-.015em}
       <li>На узком окне число участников уходит первым: название урока важнее счётчика.</li>
     </ul>
 
-    <h3>Полоса состояния появляется, только когда есть что сказать</h3>
+    <h3>Полоса состояния — она же строка управления уроком (правка владельца 14.08)</h3>
     <p>Когда урока нет — её нет вовсе: пустая строка с прочерками это шум. Она возникает на время занятия,
-    при просевшем канале и при потере сети.</p>
+    при просевшем канале и при потере сети. <b>Переключатели окон и раскладки класса подняты в неё</b> —
+    отдельной строки над сценой больше не существует. Вместе с перенесённым в заголовок названием урока
+    это вернуло сцене около семидесяти пикселей высоты: на доске это целый ряд карточек.</p>
     <ul>
+      <li>Слева — состояние машины, справа — <b>чем занят экран</b>. Одна строка отвечает на оба вопроса,
+      и глаз не бегает между тремя полосами.</li>
+      <li>Раскладка класса («вдвоём · группа · ученик рядом») появляется рядом только в окне «Класс» —
+      в остальных окнах ей нечего переключать.</li>
+      <li>При потере сети переключатели скрываются: переключать нечего, урока нет.</li>
       <li><b>Канал вверх</b> — единственное число, которое определяет, будет ли рваться урок; рядом шкала, чтобы не читать цифру.</li>
       <li><b>Подключено 6 из 8</b> — двое не дошли, и это видно раньше, чем они напишут в чат. В панели участников
       такой ученик помечен «не дошёл», а не пропадает молча.</li>
