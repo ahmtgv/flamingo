@@ -63,6 +63,12 @@ import type {
   ChatPolicyQuery,
   ChatReportsQuery,
   ChatUnreadQuery,
+  BoardQuery,
+  CourseBoardsQuery,
+  PutBoardElementMutation,
+  RemoveBoardElementMutation,
+  SaveBoardMutation,
+  SetBoardOpenMutation,
   CreateProjectorCodeMutation,
   RedeemProjectorCodeMutation,
   SetProjectorFocusMutation,
@@ -1214,6 +1220,81 @@ function chatMessages(vars: Vars): ChannelMessagesQuery {
   return { __typename: 'Query', channelMessages: [...base, ...mine] };
 }
 
+// --- Board (R3.2) ----------------------------------------------------------------------------
+/** A board with something already on it, so the showcase shows a lesson that happened rather
+ *  than an empty rectangle. Edits stick for the session — the preview behaves like the real
+ *  canvas, including the teacher's switch. */
+function boardElements(): BoardQuery['board']['elements'] {
+  type El = BoardQuery['board']['elements'][number];
+  const el = (over: Partial<El> & { id: string; kind: El['kind'] }): El => ({
+    __typename: 'BoardElement',
+    authorId: users.maria.id,
+    authorName: 'Ирина Соколова',
+    x: 0,
+    y: 0,
+    width: 0,
+    height: 0,
+    data: {},
+    revision: 1,
+    ...over,
+  });
+  const seeded: El[] = [
+    el({
+      id: 'b-1',
+      kind: 'TEXT',
+      x: 60,
+      y: 40,
+      width: 260,
+      height: 40,
+      data: { text: 'Asking for directions' },
+    }),
+    el({
+      id: 'b-2',
+      kind: 'STICKER',
+      x: 60,
+      y: 110,
+      width: 200,
+      height: 110,
+      data: { text: 'Excuse me, how do I get to…?' },
+    }),
+    el({
+      id: 'b-3',
+      kind: 'STICKER',
+      x: 320,
+      y: 110,
+      width: 200,
+      height: 110,
+      data: { text: 'Is it far from here?' },
+    }),
+    el({
+      id: 'b-4',
+      kind: 'STICKER',
+      x: 190,
+      y: 260,
+      width: 220,
+      height: 110,
+      authorId: users.sasha.id,
+      authorName: 'Саша Иванов',
+      data: { text: 'turn left / right' },
+    }),
+    el({ id: 'b-5', kind: 'LINK', data: { from: 'b-2', to: 'b-4' } }),
+    el({ id: 'b-6', kind: 'LINK', data: { from: 'b-3', to: 'b-4' } }),
+    el({
+      id: 'b-7',
+      kind: 'PEN',
+      x: 560,
+      y: 90,
+      width: 120,
+      height: 80,
+      data: { points: [560, 150, 600, 90, 640, 160, 680, 100] },
+    }),
+  ];
+  const live = seeded
+    .filter((e) => !store.board.removed.has(e.id))
+    .map((e) => ({ ...e, ...(store.board.edits.get(e.id) ?? {}) }));
+  return [...live, ...store.board.added];
+}
+
 // --- Courses -----------------------------------------------------------------------------
 /** Preview-only platform-zero toggle for the catalog (?catalog=zero) — mirrors demoRole's
  *  ?role= convention so the "Каталог наполняется" state is reachable in the preview. */
@@ -2042,6 +2123,31 @@ export function resolveDemoOperation(
       return subjectTasks(variables);
     case 'SubjectProgress':
       return subjectProgress(variables);
+    case 'Board':
+      return {
+        board: {
+          __typename: 'Board',
+          lessonId: String(variables.lessonId ?? 'les-1-12'),
+          openForStudents: store.board.open,
+          // The preview's teacher may draw; a pupil may only when the board is open —
+          // exactly the rule the server enforces.
+          canWrite: demoGraphQLRole() === 'TEACHER' || store.board.open,
+          isTeacher: demoGraphQLRole() === 'TEACHER',
+          elements: boardElements(),
+        },
+      } satisfies BoardQuery;
+    case 'CourseBoards':
+      return {
+        courseBoards: store.board.saved.map((b) => ({
+          __typename: 'BoardSnapshot' as const,
+          id: b.id,
+          title: b.title,
+          savedAt: b.savedAt,
+          savedByName: 'Ирина Соколова',
+          lessonId: 'les-1-11',
+          lessonTitle: 'Транзитный метод',
+        })),
+      } satisfies CourseBoardsQuery;
     case 'MyChannels':
       return { myChannels: chatChannels() } satisfies MyChannelsQuery;
     case 'ChatUnread':
@@ -2212,6 +2318,48 @@ export function resolveDemoOperation(
           studentId: (variables.studentId as string | null) ?? null,
         },
       } satisfies SetProjectorFocusMutation;
+
+    // board (R3.2) — the preview canvas behaves like the real one
+    case 'PutBoardElement': {
+      const inp = input(variables);
+      const id = String(inp.id ?? nextId('b'));
+      const element = {
+        __typename: 'BoardElement' as const,
+        id,
+        kind: inp.kind as BoardQuery['board']['elements'][number]['kind'],
+        authorId: users.sasha.id,
+        authorName: 'Саша Иванов',
+        x: Number(inp.x ?? 0),
+        y: Number(inp.y ?? 0),
+        width: Number(inp.width ?? 0),
+        height: Number(inp.height ?? 0),
+        data: (inp.data as Record<string, unknown>) ?? {},
+        revision: 1,
+      };
+      if (inp.id) store.board.edits.set(id, element);
+      else store.board.added.push(element);
+      return { putBoardElement: element } satisfies PutBoardElementMutation;
+    }
+    case 'RemoveBoardElement': {
+      const id = String(variables.elementId ?? '');
+      store.board.removed.add(id);
+      store.board.added = store.board.added.filter((e) => e.id !== id);
+      return { removeBoardElement: true } satisfies RemoveBoardElementMutation;
+    }
+    case 'SetBoardOpen':
+      store.board.open = Boolean(variables.isOpen);
+      return { setBoardOpen: store.board.open } satisfies SetBoardOpenMutation;
+    case 'SaveBoard': {
+      const snapshot = {
+        id: nextId('snap'),
+        title: String(variables.title ?? 'Доска · сегодня'),
+        savedAt: iso(),
+      };
+      store.board.saved = [snapshot, ...store.board.saved];
+      return {
+        saveBoard: { __typename: 'BoardSnapshot', ...snapshot },
+      } satisfies SaveBoardMutation;
+    }
 
     // profile / parent
     case 'AddChild': {

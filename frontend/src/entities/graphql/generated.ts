@@ -127,6 +127,67 @@ export type AuthPayload = {
   user: User;
 };
 
+export type Board = {
+  __typename?: 'Board';
+  canWrite: Scalars['Boolean']['output'];
+  elements: Array<BoardElement>;
+  isTeacher: Scalars['Boolean']['output'];
+  lessonId: Scalars['ID']['output'];
+  openForStudents: Scalars['Boolean']['output'];
+};
+
+export type BoardChange = {
+  __typename?: 'BoardChange';
+  element?: Maybe<BoardElement>;
+  elementId?: Maybe<Scalars['ID']['output']>;
+  kind: Scalars['String']['output'];
+  lessonId: Scalars['ID']['output'];
+  openForStudents?: Maybe<Scalars['Boolean']['output']>;
+};
+
+export type BoardElement = {
+  __typename?: 'BoardElement';
+  authorId: Scalars['ID']['output'];
+  authorName: Scalars['String']['output'];
+  data: Scalars['JSON']['output'];
+  height: Scalars['Float']['output'];
+  id: Scalars['ID']['output'];
+  kind: BoardElementKind;
+  revision: Scalars['Int']['output'];
+  width: Scalars['Float']['output'];
+  x: Scalars['Float']['output'];
+  y: Scalars['Float']['output'];
+};
+
+export type BoardElementInput = {
+  data?: InputMaybe<Scalars['JSON']['input']>;
+  height?: InputMaybe<Scalars['Float']['input']>;
+  id?: InputMaybe<Scalars['ID']['input']>;
+  kind: BoardElementKind;
+  width?: InputMaybe<Scalars['Float']['input']>;
+  x?: InputMaybe<Scalars['Float']['input']>;
+  y?: InputMaybe<Scalars['Float']['input']>;
+};
+
+export type BoardElementKind =
+  | 'IMAGE'
+  | 'LINK'
+  | 'PEN'
+  | 'SHAPE'
+  | 'STICKER'
+  | 'TEXT';
+
+export type BoardSnapshot = {
+  __typename?: 'BoardSnapshot';
+  elements: Scalars['JSON']['output'];
+  id: Scalars['ID']['output'];
+  lessonId: Scalars['ID']['output'];
+  lessonTitle: Scalars['String']['output'];
+  savedAt: Scalars['DateTime']['output'];
+  savedByName: Scalars['String']['output'];
+  title: Scalars['String']['output'];
+};
+
 export type Certificate = {
   __typename?: 'Certificate';
   course: Course;
@@ -630,9 +691,11 @@ export type Mutation = {
   publishCourse: Course;
   publishHomework: Homework;
   publishLesson: Lesson;
+  putBoardElement: BoardElement;
   redeemProjectorCode: ProjectorJoin;
   refreshToken: AuthPayload;
   registerUser: AuthPayload;
+  removeBoardElement: Scalars['Boolean']['output'];
   removeMember: Scalars['Boolean']['output'];
   removeSavedItem: Scalars['Boolean']['output'];
   removeStudentFromGroup: Group;
@@ -645,6 +708,7 @@ export type Mutation = {
   resetPassword: Scalars['Boolean']['output'];
   resolveChatReport: ChatReport;
   respondGuardianship: Guardianship;
+  saveBoard: BoardSnapshot;
   saveItem: SubjectMaterial;
   scheduleSession: LessonSession;
   sendChannelMessage: ChannelMessage;
@@ -652,6 +716,7 @@ export type Mutation = {
   setActiveLearningProfile: LearningProfile;
   setAttendance: Attendance;
   setAvatar: User;
+  setBoardOpen: Scalars['Boolean']['output'];
   setProjectorFocus: ProjectorFocus;
   startSession: LessonSession;
   submitHomework: Submission;
@@ -865,6 +930,12 @@ export type MutationPublishLessonArgs = {
 };
 
 
+export type MutationPutBoardElementArgs = {
+  input: BoardElementInput;
+  lessonId: Scalars['ID']['input'];
+};
+
+
 export type MutationRedeemProjectorCodeArgs = {
   code: Scalars['String']['input'];
 };
@@ -877,6 +948,12 @@ export type MutationRefreshTokenArgs = {
 
 export type MutationRegisterUserArgs = {
   input: RegisterUserInput;
+};
+
+
+export type MutationRemoveBoardElementArgs = {
+  elementId: Scalars['ID']['input'];
+  lessonId: Scalars['ID']['input'];
 };
 
 
@@ -948,6 +1025,12 @@ export type MutationRespondGuardianshipArgs = {
 };
 
 
+export type MutationSaveBoardArgs = {
+  lessonId: Scalars['ID']['input'];
+  title?: InputMaybe<Scalars['String']['input']>;
+};
+
+
 export type MutationSaveItemArgs = {
   input: SaveItemInput;
 };
@@ -984,6 +1067,12 @@ export type MutationSetAttendanceArgs = {
 
 export type MutationSetAvatarArgs = {
   fileKey: Scalars['String']['input'];
+};
+
+
+export type MutationSetBoardOpenArgs = {
+  isOpen: Scalars['Boolean']['input'];
+  lessonId: Scalars['ID']['input'];
 };
 
 
@@ -1183,6 +1272,8 @@ export type Query = {
   __typename?: 'Query';
   adminDashboard: AdminDashboard;
   attentionAnalytics: AttentionAnalytics;
+  board: Board;
+  boardSnapshots: Array<BoardSnapshot>;
   catalog: CourseConnection;
   certificate?: Maybe<Certificate>;
   channelMessages: Array<ChannelMessage>;
@@ -1190,6 +1281,7 @@ export type Query = {
   chatReports: Array<ChatReport>;
   chatUnread: Scalars['Int']['output'];
   course?: Maybe<Course>;
+  courseBoards: Array<BoardSnapshot>;
   group?: Maybe<Group>;
   groupAnalytics: GroupAnalytics;
   groups: Array<Group>;
@@ -1236,6 +1328,16 @@ export type QueryAttentionAnalyticsArgs = {
 };
 
 
+export type QueryBoardArgs = {
+  lessonId: Scalars['ID']['input'];
+};
+
+
+export type QueryBoardSnapshotsArgs = {
+  lessonId: Scalars['ID']['input'];
+};
+
+
 export type QueryCatalogArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
   filter?: InputMaybe<CourseFilter>;
@@ -1256,6 +1358,11 @@ export type QueryChannelMessagesArgs = {
 
 export type QueryCourseArgs = {
   id: Scalars['ID']['input'];
+};
+
+
+export type QueryCourseBoardsArgs = {
+  courseId: Scalars['ID']['input'];
 };
 
 
@@ -1730,6 +1837,7 @@ export type SubmitHomeworkInput = {
 export type Subscription = {
   __typename?: 'Subscription';
   attentionUpdates: AttentionMetric;
+  boardChanged: BoardChange;
   channelMessageReceived: ChannelMessage;
   chatMessageReceived: ChatMessage;
   notificationReceived: Notification;
@@ -1740,6 +1848,11 @@ export type Subscription = {
 
 export type SubscriptionAttentionUpdatesArgs = {
   sessionId: Scalars['ID']['input'];
+};
+
+
+export type SubscriptionBoardChangedArgs = {
+  lessonId: Scalars['ID']['input'];
 };
 
 
@@ -2031,6 +2144,59 @@ export type SetActiveLearningProfileMutationVariables = Exact<{
 
 
 export type SetActiveLearningProfileMutation = { __typename?: 'Mutation', setActiveLearningProfile: { __typename?: 'LearningProfile', id: string, kind: LearningProfileKind, isActive: boolean } };
+
+export type BoardQueryVariables = Exact<{
+  lessonId: Scalars['ID']['input'];
+}>;
+
+
+export type BoardQuery = { __typename?: 'Query', board: { __typename?: 'Board', lessonId: string, openForStudents: boolean, canWrite: boolean, isTeacher: boolean, elements: Array<{ __typename?: 'BoardElement', id: string, kind: BoardElementKind, authorId: string, authorName: string, x: number, y: number, width: number, height: number, data: Record<string, unknown>, revision: number }> } };
+
+export type CourseBoardsQueryVariables = Exact<{
+  courseId: Scalars['ID']['input'];
+}>;
+
+
+export type CourseBoardsQuery = { __typename?: 'Query', courseBoards: Array<{ __typename?: 'BoardSnapshot', id: string, title: string, savedAt: string, savedByName: string, lessonId: string, lessonTitle: string }> };
+
+export type PutBoardElementMutationVariables = Exact<{
+  lessonId: Scalars['ID']['input'];
+  input: BoardElementInput;
+}>;
+
+
+export type PutBoardElementMutation = { __typename?: 'Mutation', putBoardElement: { __typename?: 'BoardElement', id: string, kind: BoardElementKind, authorId: string, authorName: string, x: number, y: number, width: number, height: number, data: Record<string, unknown>, revision: number } };
+
+export type RemoveBoardElementMutationVariables = Exact<{
+  lessonId: Scalars['ID']['input'];
+  elementId: Scalars['ID']['input'];
+}>;
+
+
+export type RemoveBoardElementMutation = { __typename?: 'Mutation', removeBoardElement: boolean };
+
+export type SetBoardOpenMutationVariables = Exact<{
+  lessonId: Scalars['ID']['input'];
+  isOpen: Scalars['Boolean']['input'];
+}>;
+
+
+export type SetBoardOpenMutation = { __typename?: 'Mutation', setBoardOpen: boolean };
+
+export type SaveBoardMutationVariables = Exact<{
+  lessonId: Scalars['ID']['input'];
+  title?: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type SaveBoardMutation = { __typename?: 'Mutation', saveBoard: { __typename?: 'BoardSnapshot', id: string, title: string, savedAt: string } };
+
+export type BoardChangedSubscriptionVariables = Exact<{
+  lessonId: Scalars['ID']['input'];
+}>;
+
+
+export type BoardChangedSubscription = { __typename?: 'Subscription', boardChanged: { __typename?: 'BoardChange', lessonId: string, kind: string, elementId?: string | null, openForStudents?: boolean | null, element?: { __typename?: 'BoardElement', id: string, kind: BoardElementKind, authorId: string, authorName: string, x: number, y: number, width: number, height: number, data: Record<string, unknown>, revision: number } | null } };
 
 export type TeacherDashboardQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -3458,6 +3624,300 @@ export function useSetActiveLearningProfileMutation(baseOptions?: Apollo.Mutatio
 export type SetActiveLearningProfileMutationHookResult = ReturnType<typeof useSetActiveLearningProfileMutation>;
 export type SetActiveLearningProfileMutationResult = Apollo.MutationResult<SetActiveLearningProfileMutation>;
 export type SetActiveLearningProfileMutationOptions = Apollo.BaseMutationOptions<SetActiveLearningProfileMutation, SetActiveLearningProfileMutationVariables>;
+export const BoardDocument = gql`
+    query Board($lessonId: ID!) {
+  board(lessonId: $lessonId) {
+    lessonId
+    openForStudents
+    canWrite
+    isTeacher
+    elements {
+      id
+      kind
+      authorId
+      authorName
+      x
+      y
+      width
+      height
+      data
+      revision
+    }
+  }
+}
+    `;
+
+/**
+ * __useBoardQuery__
+ *
+ * To run a query within a React component, call `useBoardQuery` and pass it any options that fit your needs.
+ * When your component renders, `useBoardQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useBoardQuery({
+ *   variables: {
+ *      lessonId: // value for 'lessonId'
+ *   },
+ * });
+ */
+export function useBoardQuery(baseOptions: Apollo.QueryHookOptions<BoardQuery, BoardQueryVariables> & ({ variables: BoardQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<BoardQuery, BoardQueryVariables>(BoardDocument, options);
+      }
+export function useBoardLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<BoardQuery, BoardQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<BoardQuery, BoardQueryVariables>(BoardDocument, options);
+        }
+// @ts-ignore
+export function useBoardSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<BoardQuery, BoardQueryVariables>): Apollo.UseSuspenseQueryResult<BoardQuery, BoardQueryVariables>;
+export function useBoardSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<BoardQuery, BoardQueryVariables>): Apollo.UseSuspenseQueryResult<BoardQuery | undefined, BoardQueryVariables>;
+export function useBoardSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<BoardQuery, BoardQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<BoardQuery, BoardQueryVariables>(BoardDocument, options);
+        }
+export type BoardQueryHookResult = ReturnType<typeof useBoardQuery>;
+export type BoardLazyQueryHookResult = ReturnType<typeof useBoardLazyQuery>;
+export type BoardSuspenseQueryHookResult = ReturnType<typeof useBoardSuspenseQuery>;
+export type BoardQueryResult = Apollo.QueryResult<BoardQuery, BoardQueryVariables>;
+export const CourseBoardsDocument = gql`
+    query CourseBoards($courseId: ID!) {
+  courseBoards(courseId: $courseId) {
+    id
+    title
+    savedAt
+    savedByName
+    lessonId
+    lessonTitle
+  }
+}
+    `;
+
+/**
+ * __useCourseBoardsQuery__
+ *
+ * To run a query within a React component, call `useCourseBoardsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useCourseBoardsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useCourseBoardsQuery({
+ *   variables: {
+ *      courseId: // value for 'courseId'
+ *   },
+ * });
+ */
+export function useCourseBoardsQuery(baseOptions: Apollo.QueryHookOptions<CourseBoardsQuery, CourseBoardsQueryVariables> & ({ variables: CourseBoardsQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<CourseBoardsQuery, CourseBoardsQueryVariables>(CourseBoardsDocument, options);
+      }
+export function useCourseBoardsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<CourseBoardsQuery, CourseBoardsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<CourseBoardsQuery, CourseBoardsQueryVariables>(CourseBoardsDocument, options);
+        }
+// @ts-ignore
+export function useCourseBoardsSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<CourseBoardsQuery, CourseBoardsQueryVariables>): Apollo.UseSuspenseQueryResult<CourseBoardsQuery, CourseBoardsQueryVariables>;
+export function useCourseBoardsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<CourseBoardsQuery, CourseBoardsQueryVariables>): Apollo.UseSuspenseQueryResult<CourseBoardsQuery | undefined, CourseBoardsQueryVariables>;
+export function useCourseBoardsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<CourseBoardsQuery, CourseBoardsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<CourseBoardsQuery, CourseBoardsQueryVariables>(CourseBoardsDocument, options);
+        }
+export type CourseBoardsQueryHookResult = ReturnType<typeof useCourseBoardsQuery>;
+export type CourseBoardsLazyQueryHookResult = ReturnType<typeof useCourseBoardsLazyQuery>;
+export type CourseBoardsSuspenseQueryHookResult = ReturnType<typeof useCourseBoardsSuspenseQuery>;
+export type CourseBoardsQueryResult = Apollo.QueryResult<CourseBoardsQuery, CourseBoardsQueryVariables>;
+export const PutBoardElementDocument = gql`
+    mutation PutBoardElement($lessonId: ID!, $input: BoardElementInput!) {
+  putBoardElement(lessonId: $lessonId, input: $input) {
+    id
+    kind
+    authorId
+    authorName
+    x
+    y
+    width
+    height
+    data
+    revision
+  }
+}
+    `;
+export type PutBoardElementMutationFn = Apollo.MutationFunction<PutBoardElementMutation, PutBoardElementMutationVariables>;
+
+/**
+ * __usePutBoardElementMutation__
+ *
+ * To run a mutation, you first call `usePutBoardElementMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `usePutBoardElementMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [putBoardElementMutation, { data, loading, error }] = usePutBoardElementMutation({
+ *   variables: {
+ *      lessonId: // value for 'lessonId'
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function usePutBoardElementMutation(baseOptions?: Apollo.MutationHookOptions<PutBoardElementMutation, PutBoardElementMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<PutBoardElementMutation, PutBoardElementMutationVariables>(PutBoardElementDocument, options);
+      }
+export type PutBoardElementMutationHookResult = ReturnType<typeof usePutBoardElementMutation>;
+export type PutBoardElementMutationResult = Apollo.MutationResult<PutBoardElementMutation>;
+export type PutBoardElementMutationOptions = Apollo.BaseMutationOptions<PutBoardElementMutation, PutBoardElementMutationVariables>;
+export const RemoveBoardElementDocument = gql`
+    mutation RemoveBoardElement($lessonId: ID!, $elementId: ID!) {
+  removeBoardElement(lessonId: $lessonId, elementId: $elementId)
+}
+    `;
+export type RemoveBoardElementMutationFn = Apollo.MutationFunction<RemoveBoardElementMutation, RemoveBoardElementMutationVariables>;
+
+/**
+ * __useRemoveBoardElementMutation__
+ *
+ * To run a mutation, you first call `useRemoveBoardElementMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useRemoveBoardElementMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [removeBoardElementMutation, { data, loading, error }] = useRemoveBoardElementMutation({
+ *   variables: {
+ *      lessonId: // value for 'lessonId'
+ *      elementId: // value for 'elementId'
+ *   },
+ * });
+ */
+export function useRemoveBoardElementMutation(baseOptions?: Apollo.MutationHookOptions<RemoveBoardElementMutation, RemoveBoardElementMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<RemoveBoardElementMutation, RemoveBoardElementMutationVariables>(RemoveBoardElementDocument, options);
+      }
+export type RemoveBoardElementMutationHookResult = ReturnType<typeof useRemoveBoardElementMutation>;
+export type RemoveBoardElementMutationResult = Apollo.MutationResult<RemoveBoardElementMutation>;
+export type RemoveBoardElementMutationOptions = Apollo.BaseMutationOptions<RemoveBoardElementMutation, RemoveBoardElementMutationVariables>;
+export const SetBoardOpenDocument = gql`
+    mutation SetBoardOpen($lessonId: ID!, $isOpen: Boolean!) {
+  setBoardOpen(lessonId: $lessonId, isOpen: $isOpen)
+}
+    `;
+export type SetBoardOpenMutationFn = Apollo.MutationFunction<SetBoardOpenMutation, SetBoardOpenMutationVariables>;
+
+/**
+ * __useSetBoardOpenMutation__
+ *
+ * To run a mutation, you first call `useSetBoardOpenMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useSetBoardOpenMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [setBoardOpenMutation, { data, loading, error }] = useSetBoardOpenMutation({
+ *   variables: {
+ *      lessonId: // value for 'lessonId'
+ *      isOpen: // value for 'isOpen'
+ *   },
+ * });
+ */
+export function useSetBoardOpenMutation(baseOptions?: Apollo.MutationHookOptions<SetBoardOpenMutation, SetBoardOpenMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<SetBoardOpenMutation, SetBoardOpenMutationVariables>(SetBoardOpenDocument, options);
+      }
+export type SetBoardOpenMutationHookResult = ReturnType<typeof useSetBoardOpenMutation>;
+export type SetBoardOpenMutationResult = Apollo.MutationResult<SetBoardOpenMutation>;
+export type SetBoardOpenMutationOptions = Apollo.BaseMutationOptions<SetBoardOpenMutation, SetBoardOpenMutationVariables>;
+export const SaveBoardDocument = gql`
+    mutation SaveBoard($lessonId: ID!, $title: String) {
+  saveBoard(lessonId: $lessonId, title: $title) {
+    id
+    title
+    savedAt
+  }
+}
+    `;
+export type SaveBoardMutationFn = Apollo.MutationFunction<SaveBoardMutation, SaveBoardMutationVariables>;
+
+/**
+ * __useSaveBoardMutation__
+ *
+ * To run a mutation, you first call `useSaveBoardMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useSaveBoardMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [saveBoardMutation, { data, loading, error }] = useSaveBoardMutation({
+ *   variables: {
+ *      lessonId: // value for 'lessonId'
+ *      title: // value for 'title'
+ *   },
+ * });
+ */
+export function useSaveBoardMutation(baseOptions?: Apollo.MutationHookOptions<SaveBoardMutation, SaveBoardMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<SaveBoardMutation, SaveBoardMutationVariables>(SaveBoardDocument, options);
+      }
+export type SaveBoardMutationHookResult = ReturnType<typeof useSaveBoardMutation>;
+export type SaveBoardMutationResult = Apollo.MutationResult<SaveBoardMutation>;
+export type SaveBoardMutationOptions = Apollo.BaseMutationOptions<SaveBoardMutation, SaveBoardMutationVariables>;
+export const BoardChangedDocument = gql`
+    subscription BoardChanged($lessonId: ID!) {
+  boardChanged(lessonId: $lessonId) {
+    lessonId
+    kind
+    elementId
+    openForStudents
+    element {
+      id
+      kind
+      authorId
+      authorName
+      x
+      y
+      width
+      height
+      data
+      revision
+    }
+  }
+}
+    `;
+
+/**
+ * __useBoardChangedSubscription__
+ *
+ * To run a query within a React component, call `useBoardChangedSubscription` and pass it any options that fit your needs.
+ * When your component renders, `useBoardChangedSubscription` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the subscription, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useBoardChangedSubscription({
+ *   variables: {
+ *      lessonId: // value for 'lessonId'
+ *   },
+ * });
+ */
+export function useBoardChangedSubscription(baseOptions: Apollo.SubscriptionHookOptions<BoardChangedSubscription, BoardChangedSubscriptionVariables> & ({ variables: BoardChangedSubscriptionVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useSubscription<BoardChangedSubscription, BoardChangedSubscriptionVariables>(BoardChangedDocument, options);
+      }
+export type BoardChangedSubscriptionHookResult = ReturnType<typeof useBoardChangedSubscription>;
+export type BoardChangedSubscriptionResult = Apollo.SubscriptionResult<BoardChangedSubscription>;
 export const TeacherDashboardDocument = gql`
     query TeacherDashboard {
   teacherDashboard {

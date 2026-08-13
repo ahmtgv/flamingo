@@ -1,0 +1,86 @@
+# The lesson board (R3.2). Optimistic: the client applies its own change immediately and
+# reconciles with whatever the subscription sends back.
+
+query Board($lessonId: ID!) {
+  board(lessonId: $lessonId) {
+    lessonId
+    openForStudents
+    canWrite
+    isTeacher
+    elements {
+      id
+      kind
+      authorId
+      authorName
+      x
+      y
+      width
+      height
+      data
+      revision
+    }
+  }
+}
+
+query CourseBoards($courseId: ID!) {
+  courseBoards(courseId: $courseId) {
+    id
+    title
+    savedAt
+    savedByName
+    lessonId
+    lessonTitle
+  }
+}
+
+mutation PutBoardElement($lessonId: ID!, $input: BoardElementInput!) {
+  putBoardElement(lessonId: $lessonId, input: $input) {
+    id
+    kind
+    authorId
+    authorName
+    x
+    y
+    width
+    height
+    data
+    revision
+  }
+}
+
+mutation RemoveBoardElement($lessonId: ID!, $elementId: ID!) {
+  removeBoardElement(lessonId: $lessonId, elementId: $elementId)
+}
+
+mutation SetBoardOpen($lessonId: ID!, $isOpen: Boolean!) {
+  setBoardOpen(lessonId: $lessonId, isOpen: $isOpen)
+}
+
+mutation SaveBoard($lessonId: ID!, $title: String) {
+  saveBoard(lessonId: $lessonId, title: $title) {
+    id
+    title
+    savedAt
+  }
+}
+
+subscription BoardChanged($lessonId: ID!) {
+  boardChanged(lessonId: $lessonId) {
+    lessonId
+    kind
+    elementId
+    openForStudents
+    element {
+      id
+      kind
+      authorId
+      authorName
+      x
+      y
+      width
+      height
+      data
+      revision
+    }
+  }
+}

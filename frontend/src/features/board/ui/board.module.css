@@ -1,0 +1,165 @@
+/* The lesson board — atlas sheet 02. An infinite canvas: no page, only a viewport. */
+
+.wrap {
+  display: grid;
+  grid-template-rows: auto 1fr auto auto;
+  gap: var(--space-2);
+  min-height: 420px;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: var(--space-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  background: var(--color-surface);
+}
+.tool {
+  width: var(--tap-min);
+  height: var(--tap-min);
+  display: grid;
+  place-content: center;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--color-text-secondary);
+  font-family: var(--font-mono);
+  font-size: var(--text-small);
+  cursor: pointer;
+}
+.tool:hover:not(:disabled) {
+  background: var(--color-surface-hover);
+  color: var(--color-text);
+}
+.tool[aria-pressed='true'] {
+  background: var(--color-accent-subtle);
+  color: var(--color-accent-text);
+}
+.tool:disabled {
+  color: var(--color-text-disabled);
+  cursor: default;
+}
+.tool:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+.spacer {
+  margin-left: auto;
+}
+.zoom {
+  font-family: var(--font-mono);
+  font-size: var(--text-overline);
+  color: var(--color-text-tertiary);
+  min-width: 40px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.surface {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-bg);
+  /* The grid is what makes an infinite canvas readable as one. */
+  background-image: radial-gradient(var(--color-border) 1px, transparent 1px);
+  background-size: 24px 24px;
+  min-height: 360px;
+  touch-action: none;
+}
+.surface[data-tool='hand'] {
+  cursor: grab;
+}
+.surface[data-tool='pen'] {
+  cursor: crosshair;
+}
+.svg {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  inset: 0;
+}
+
+.sticker {
+  fill: var(--color-accent-subtle);
+  stroke: var(--color-accent-subtle-border);
+}
+.shape {
+  fill: var(--color-surface);
+  stroke: var(--color-border-strong);
+}
+.pen,
+.penLive {
+  stroke: var(--color-text);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.penLive {
+  stroke: var(--color-accent);
+}
+.link {
+  stroke: var(--color-text-tertiary);
+  stroke-width: 1.5;
+  stroke-dasharray: 4 3;
+}
+.text {
+  fill: var(--color-text);
+  font-family: var(--font-body);
+  font-size: 14px;
+}
+.author {
+  fill: var(--color-text-tertiary);
+  font-family: var(--font-mono);
+  font-size: 9px;
+}
+g[data-selected] rect,
+path[data-selected] {
+  stroke: var(--color-accent);
+  stroke-width: 2;
+}
+g[data-linking] rect {
+  stroke: var(--color-accent);
+  stroke-dasharray: 4 3;
+}
+
+/* Handles sit outside the SVG so they keep one size at any zoom. */
+.handle {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  margin: -6px 0 0 -6px;
+  border: 1px solid var(--color-accent);
+  border-radius: 3px;
+  background: var(--color-surface);
+  cursor: nwse-resize;
+  padding: 0;
+}
+.handle:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+.state,
+.hint {
+  font-family: var(--font-mono);
+  font-size: var(--text-overline);
+  color: var(--color-text-tertiary);
+  line-height: var(--leading-snug);
+}
+.saved {
+  font-size: var(--text-caption);
+  color: var(--color-success-text);
+}
+.failed {
+  font-size: var(--text-caption);
+  color: var(--color-error-text);
+}

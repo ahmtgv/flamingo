@@ -20,6 +20,8 @@ import { demoRole } from '@/shared/demo/demoRole';
 import { Avatar, Button } from '@/shared/ui';
 
 import { initialsOf } from '../../cabinet/ui/initials';
+import { BoardCanvas } from '@/features/board';
+
 import frame from './roomframe.module.css';
 import styles from './liveroom.module.css';
 import { ProjectorCast } from './ProjectorCast';
@@ -54,7 +56,11 @@ function Shell({ subtitle, children }: { subtitle: string; children: React.React
       strip={children}
       panel={<PreviewPane pane={pane} />}
     >
-      <p className={frame.sceneSoon}>{t(`room:scene.${scene}Soon`)}</p>
+      {scene === 'board' ? (
+        <BoardCanvas lessonId="les-1-12" />
+      ) : (
+        <p className={frame.sceneSoon}>{t(`room:scene.${scene}Soon`)}</p>
+      )}
     </RoomFrame>
   );
 }

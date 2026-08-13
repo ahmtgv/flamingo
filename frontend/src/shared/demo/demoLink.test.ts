@@ -668,3 +668,69 @@ describe('resolveDemoOperation — chat (R2)', () => {
     expect(policy.premoderation).toBe(false);
   });
 });
+
+describe('resolveDemoOperation — board (R3.2)', () => {
+  type El = { id: string; kind: string; authorName: string; data: Record<string, unknown> };
+  const board = () =>
+    (
+      resolveDemoOperation('Board', { lessonId: 'les-1-12' }) as {
+        board: { openForStudents: boolean; canWrite: boolean; isTeacher: boolean; elements: El[] };
+      }
+    ).board;
+
+  it('the preview canvas has a lesson on it, with links and visible authorship', () => {
+    setRole('teacher');
+    const b = board();
+    expect(b.elements.length).toBeGreaterThan(4);
+    expect(b.elements.some((e) => e.kind === 'LINK')).toBe(true);
+    expect(b.elements.every((e) => e.authorName)).toBe(true);
+  });
+
+  it('the teacher may draw; a pupil may not until the board is opened', () => {
+    setRole('student');
+    expect(board().canWrite).toBe(false);
+    setRole('teacher');
+    expect(board().canWrite).toBe(true);
+
+    resolveDemoOperation('SetBoardOpen', { lessonId: 'les-1-12', isOpen: true });
+    setRole('student');
+    expect(board().openForStudents).toBe(true);
+    expect(board().canWrite).toBe(true);
+  });
+
+  it('an element put down stays, and one taken away goes', () => {
+    setRole('teacher');
+    const before = board().elements.length;
+    const put = resolveDemoOperation('PutBoardElement', {
+      lessonId: 'les-1-12',
+      input: { kind: 'STICKER', x: 10, y: 10, width: 100, height: 100, data: { text: 'новое' } },
+    }) as { putBoardElement: { id: string } };
+
+    expect(board().elements).toHaveLength(before + 1);
+    resolveDemoOperation('RemoveBoardElement', {
+      lessonId: 'les-1-12',
+      elementId: put.putBoardElement.id,
+    });
+    expect(board().elements).toHaveLength(before);
+  });
+
+  it('saving puts the board where past boards are listed', () => {
+    setRole('teacher');
+    expect(
+      (
+        resolveDemoOperation('CourseBoards', { courseId: IDS.course.algebra }) as {
+          courseBoards: unknown[];
+        }
+      ).courseBoards,
+    ).toHaveLength(0);
+
+    resolveDemoOperation('SaveBoard', { lessonId: 'les-1-12', title: 'Доска · маршруты' });
+
+    const saved = (
+      resolveDemoOperation('CourseBoards', { courseId: IDS.course.algebra }) as {
+        courseBoards: { title: string }[];
+      }
+    ).courseBoards;
+    expect(saved.map((b) => b.title)).toEqual(['Доска · маршруты']);
+  });
+});

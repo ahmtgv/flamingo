@@ -9,7 +9,10 @@
  * (see demoLink.ts / resolveDemoOperation.ts). Remove this module with the VITE_PREVIEW
  * short-circuit before real launch.
  */
-import type { AgeBand, MeQuery } from '@/entities/graphql/generated';
+import type { AgeBand, BoardQuery, MeQuery } from '@/entities/graphql/generated';
+
+/** One element of the preview board — the same shape the Board query returns. */
+type DemoBoardElement = BoardQuery['board']['elements'][number];
 
 // --- shared user leaf refs (id + name [+ email]) -----------------------------------------
 type UserRef = {
@@ -261,6 +264,15 @@ export const store = {
     read: new Set<string>(),
     reported: new Set<string>(),
   },
+  /** Board (R3.2): edits stick for the session so the preview canvas behaves like the real
+   *  one, including the teacher's open/closed switch. */
+  board: {
+    open: false,
+    edits: new Map<string, DemoBoardElement>(),
+    added: [] as DemoBoardElement[],
+    removed: new Set<string>(),
+    saved: [] as { id: string; title: string; savedAt: string }[],
+  },
   /** Monotonic counter for synthetic ids minted by create-mutations. */
   seq: 1000,
 };
@@ -272,6 +284,7 @@ export function resetDemoStore(): void {
   store.saved = new Map();
   store.programme = { edits: new Map(), order: new Map(), removed: new Set(), added: new Map() };
   store.chat = { sent: new Map(), read: new Set(), reported: new Set() };
+  store.board = { open: false, edits: new Map(), added: [], removed: new Set(), saved: [] };
   store.seq = 1000;
 }
 

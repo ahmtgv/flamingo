@@ -26,6 +26,8 @@ import { type FieldStudent } from '../types';
 import { useLiveKitRoom } from '../livekit/useLiveKitRoom';
 import frame from './roomframe.module.css';
 import styles from './liveroom.module.css';
+import { BoardCanvas } from '@/features/board';
+
 import { ProjectorCast } from './ProjectorCast';
 import { type Pane, RoomFrame, type Scene } from './RoomFrame';
 import { PreviewRoom } from './PreviewRoom';
@@ -41,6 +43,7 @@ import { VideoRoom } from './VideoRoom';
 function RoomShell({
   subtitle,
   sessionId,
+  lessonId,
   title,
   isLive,
   isTeacher,
@@ -50,6 +53,7 @@ function RoomShell({
 }: {
   subtitle: string;
   sessionId: string;
+  lessonId?: string | null;
   title?: string | null;
   isLive: boolean;
   isTeacher?: boolean;
@@ -81,15 +85,16 @@ function RoomShell({
       strip={children}
       panel={panel ?? <RoomPane pane={pane} />}
     >
-      <SceneBody scene={scene} />
+      <SceneBody scene={scene} lessonId={lessonId} />
     </RoomFrame>
   );
 }
 
-/** The scene the whole room is looking at. R3.1 delivered the frame and the switching; each
- *  window's content lands in the phase that owns it (the board next, the rest with R4). */
-function SceneBody({ scene }: { scene: Scene }) {
+/** The scene the whole room is looking at. The board is real (R3.2); the other windows land
+ *  with the phase that owns them. */
+function SceneBody({ scene, lessonId }: { scene: Scene; lessonId?: string | null }) {
   const { t } = useTranslation('room');
+  if (scene === 'board' && lessonId) return <BoardCanvas lessonId={lessonId} />;
   return <p className={frame.sceneSoon}>{t(`scene.${scene}Soon`)}</p>;
 }
 
@@ -190,6 +195,9 @@ function CameraErrorNote({
 
 type RoomProps = {
   sessionId: string;
+  /** The board belongs to the LESSON, not the session — a lesson's board outlives its
+   *  occurrences, which is what «доска прошлого урока» is made of. */
+  lessonId: string | null;
   roomToken: string | null;
   isLive: boolean;
   teacherName: string | null;
@@ -200,7 +208,7 @@ type RoomProps = {
  * (the call — the teacher sees it) AND analysed on-device by the CMF pipeline, which
  * emits ONLY ~10s aggregates (reportAttention). CMF frames never leave the device.
  */
-function StudentRoom({ sessionId, roomToken, isLive, teacherName }: RoomProps) {
+function StudentRoom({ sessionId, lessonId, roomToken, isLive, teacherName }: RoomProps) {
   const { t } = useTranslation(['seedum', 'lesson']);
   const [reportAttention] = useReportAttentionMutation();
   // Keep the latest mutate fn in a ref so it is NOT a dependency of the pipeline
@@ -295,6 +303,7 @@ function StudentRoom({ sessionId, roomToken, isLive, teacherName }: RoomProps) {
     <RoomShell
       subtitle={t('room.studentSub')}
       sessionId={sessionId}
+      lessonId={lessonId}
       title={teacherName ? `${t('room.title')} · ${teacherName}` : null}
       isLive={isLive}
     >
@@ -363,7 +372,7 @@ function StudentRoom({ sessionId, roomToken, isLive, teacherName }: RoomProps) {
  * Teacher: publishes own camera to the call AND watches the class attention live
  * (attentionUpdates — aggregates only, never video) + the post-session report.
  */
-function TeacherRoom({ sessionId, roomToken, isLive }: RoomProps) {
+function TeacherRoom({ sessionId, lessonId, roomToken, isLive }: RoomProps) {
   const { t } = useTranslation(['seedum', 'lesson']);
   const { stream, cameraError, acquire, release } = useSharedCamera();
   const [joined, setJoined] = useState(false);
@@ -472,7 +481,13 @@ function TeacherRoom({ sessionId, roomToken, isLive }: RoomProps) {
   }, [lk, release]);
 
   return (
-    <RoomShell subtitle={t('room.teacherSub')} sessionId={sessionId} isLive={isLive} isTeacher>
+    <RoomShell
+      subtitle={t('room.teacherSub')}
+      sessionId={sessionId}
+      lessonId={lessonId}
+      isLive={isLive}
+      isTeacher
+    >
       <div className={styles.card}>
         {!joined ? (
           <>
@@ -578,6 +593,7 @@ function LiveRoomRealScreen() {
   }
   const props: RoomProps = {
     sessionId,
+    lessonId: session?.lesson?.id ?? null,
     roomToken: session?.roomToken ?? null,
     isLive: session?.status === 'LIVE',
     teacherName: session?.teacherName ?? null,
