@@ -869,8 +869,15 @@ type MirroredRecord {
                                  # away with the teacher's course, on exactly the day this matters
   occurredAt: DateTime!          # when it happened, not when it synced
   updatedAt: DateTime!
-  payload: JSON!                 # TEXT. No file key, no blob, no bytes: CLAUDE.md §2.2 governs
-                                 # both storage points, and the mirror is not a media store
+  # Two rules, not one (owner correction 14.08, OWNER_SCOPE §20.4.1):
+  #   * the LESSON's video, audio and verbatim transcript are forbidden here as everywhere —
+  #     CLAUDE.md §2.2 governs both storage points;
+  #   * a child's work belongs to the child WHOLE. Files they attached — an essay, a photo of
+  #     a solution, a recording of themselves reading aloud — ride in `attachments` as
+  #     {name, objectKey, sizeBytes} and open through `mirroredFileUrl`, always.
+  # A WORK record is also one ATTEMPT with every answer inside it (§20.4.2): «ученик получает
+  # документ, а не журнал событий».
+  payload: JSON!
 }
 
 type UpcomingLesson { sessionId: ID! title: String! startAt: DateTime! isLive: Boolean! }
@@ -1361,6 +1368,10 @@ type Query {
   # the pupil's mirror (Р5.0-Б) — 🔒 the caller's OWN, always. Takes no student id, and
   # somebody else's mirror is not reachable by asking nicely.
   myMirror(kind: MirrorKind, limit: Int = 100): [MirroredRecord!]!
+  # Opens a file the pupil attached to their OWN work. Authorised against the mirror and not
+  # the submission — the submission may be gone with the teacher's account, and that is
+  # exactly when this has to work. The key must be one the record actually carries.
+  mirroredFileUrl(recordId: ID!, objectKey: String!): String!
 
   # signalling and the channel measurement (Р5.1)
   turnCredentials: TurnCredentials!                      # expires within the hour, per person

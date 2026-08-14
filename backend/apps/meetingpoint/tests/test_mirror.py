@@ -26,7 +26,7 @@ from apps.meetingpoint.models import MirroredRecord
 from apps.scheduling.models import LessonSession
 from apps.summaries import services as summaries
 from common.enums import HomeworkType, MirrorKind, Role
-from common.exceptions import PermissionDenied, ValidationError
+from common.exceptions import NotFound, PermissionDenied, ValidationError
 
 pytestmark = pytest.mark.django_db
 
@@ -161,19 +161,16 @@ def test_an_unshared_material_never_appears_in_a_mirror():
     assert mirror.my_mirror(pupil) == []
 
 
-# --- 🔒 text only, in BOTH places the data lives ---------------------------------------------------
-def test_a_mirrored_record_may_not_carry_anything_media_shaped():
-    """CLAUDE.md §2.2 governs both storage points. A mirror is not a reason to keep video,
-    audio or a transcript, and it is not a media store either."""
+# --- 🔒 no LESSON media — but the child's work is the child's, whole (§20.4.1) -------------------
+def test_the_lessons_own_media_still_has_no_way_in():
+    """CLAUDE.md §2.2 governs both storage points, and the mirror is not a loophole."""
     pupil = make_pupil()
     for bad in (
-        {"audio_key": "s3://x"},
-        {"videoUrl": "https://x"},
+        {"recording": "…"},
         {"transcript": "…"},
-        {"file_key": "sub/1"},
-        {"blob": "…"},
+        {"lesson_video": "s3://x"},
         {"nested": {"recording": "…"}},
-        {"items": [{"audio": "…"}]},
+        {"items": [{"lesson_audio": "…"}]},
     ):
         with pytest.raises(ValidationError):
             mirror.put(
@@ -186,6 +183,24 @@ def test_a_mirrored_record_may_not_carry_anything_media_shaped():
     assert MirroredRecord.objects.count() == 0
 
 
+def test_a_childs_own_recording_of_themselves_reading_aloud_is_not_lesson_media():
+    """The over-correction OWNER_SCOPE §20.4.1 names: the old rule banned the word «audio»
+    and with it a child's own reading. «Никакого медиа ЗАНЯТИЯ — но работа ребёнка
+    принадлежит ребёнку целиком.»"""
+    pupil = make_pupil()
+    row = mirror.put(
+        pupil.student_profile,
+        kind=MirrorKind.WORK,
+        source_id="00000000-0000-0000-0000-00000000000a",
+        occurred_at=timezone.now(),
+        payload={
+            "text": "читал вслух",
+            "attachments": [{"name": "чтение.m4a", "objectKey": "sub/1/audio", "sizeBytes": 900}],
+        },
+    )
+    assert row.payload["attachments"][0]["name"] == "чтение.m4a"
+
+
 def test_it_refuses_rather_than_quietly_dropping_the_offending_part():
     """A mirror that looks complete and is not is worse than one that failed loudly — the
     one day anybody reads it is the day the original is gone."""
@@ -196,7 +211,7 @@ def test_it_refuses_rather_than_quietly_dropping_the_offending_part():
             kind=MirrorKind.WORK,
             source_id="00000000-0000-0000-0000-000000000002",
             occurred_at=timezone.now(),
-            payload={"text": "моя работа", "audio_key": "s3://x"},
+            payload={"text": "моя работа", "transcript": "…"},
         )
     assert MirroredRecord.objects.count() == 0
 
@@ -213,18 +228,139 @@ def test_a_record_is_a_record_not_a_document_store():
         )
 
 
-def test_attachments_are_named_and_not_carried():
-    """The bytes stay where the file lives. ⚠️ Whether a pupil should ALSO keep the files
-    they submitted is a real question and is in the report, not answered here."""
+def test_a_pupil_opens_the_file_they_submitted_after_the_teacher_is_gone():
+    """§20.4.1, verbatim: «ну конечно ученик видит, это же логично».
+
+    Authorised against the MIRROR, not the submission — the submission has been cascaded away
+    with the teacher's account, which is exactly the moment this has to work.
+    """
+    from unittest.mock import patch
+
+    from apps.homework.models import SubmissionFile
+
+    teacher = make_teacher()
+    course, lesson = a_course(teacher)
+    pupil = enrolled(course)
+    row = a_homework(teacher, lesson)
+    submission = homework.submit_homework(pupil, homework_id=row.id, content_text="сочинение")
+    SubmissionFile.objects.create(
+        submission=submission, file_key="sub/anya/essay.pdf", name="essay.pdf"
+    )
+    with patch(
+        "common.storage.head", return_value={"size": 2048, "content_type": "application/pdf"}
+    ):
+        mirror.mirror_submission(submission)
+
+    teacher.delete()
+
+    kept = mirror.my_mirror(pupil, kind=MirrorKind.WORK)[0]
+    assert kept.payload["attachments"] == [
+        {"name": "essay.pdf", "objectKey": "sub/anya/essay.pdf", "sizeBytes": 2048}
+    ]
+    with patch("common.storage.presign_get", return_value="https://s3/signed") as presign:
+        url = mirror.mirrored_file_url(pupil, record_id=kept.id, object_key="sub/anya/essay.pdf")
+    assert url == "https://s3/signed"
+    presign.assert_called_once_with("sub/anya/essay.pdf")
+
+
+def test_a_valid_record_id_cannot_be_used_to_fish_for_other_objects():
+    """The key has to be one this record actually carries."""
     teacher = make_teacher()
     course, lesson = a_course(teacher)
     pupil = enrolled(course)
     row = a_homework(teacher, lesson)
     homework.submit_homework(pupil, homework_id=row.id, content_text="текст")
+    kept = mirror.my_mirror(pupil, kind=MirrorKind.WORK)[0]
+
+    with pytest.raises(NotFound):
+        mirror.mirrored_file_url(pupil, record_id=kept.id, object_key="sub/somebody-else/x.pdf")
+
+
+def test_somebody_elses_mirrored_file_is_not_found():
+    anya = make_pupil("a@example.com", "Аня")
+    boris = make_pupil("b@example.com", "Борис")
+    record = mirror.put(
+        anya.student_profile,
+        kind=MirrorKind.WORK,
+        source_id="00000000-0000-0000-0000-00000000000b",
+        occurred_at=timezone.now(),
+        payload={"attachments": [{"name": "x.pdf", "objectKey": "sub/anya/x.pdf"}]},
+    )
+    with pytest.raises(NotFound):
+        mirror.mirrored_file_url(boris, record_id=record.id, object_key="sub/anya/x.pdf")
+
+
+def test_an_oversized_attachment_is_left_out_and_the_work_still_mirrors():
+    """The fence is against lesson media, not economy (§20.4.1). A work whose essay is kept
+    and whose one impossible attachment is not is worth far more to a child than nothing."""
+    from unittest.mock import patch
+
+    from apps.homework.models import SubmissionFile
+
+    teacher = make_teacher()
+    course, lesson = a_course(teacher)
+    pupil = enrolled(course)
+    row = a_homework(teacher, lesson)
+    submission = homework.submit_homework(pupil, homework_id=row.id, content_text="сочинение")
+    SubmissionFile.objects.create(submission=submission, file_key="sub/anya/huge", name="huge.mov")
+
+    with patch(
+        "common.storage.head",
+        return_value={"size": mirror.MAX_ATTACHMENT_BYTES + 1, "content_type": "video/quicktime"},
+    ):
+        mirror.mirror_submission(submission)
 
     kept = mirror.my_mirror(pupil, kind=MirrorKind.WORK)[0]
-    assert kept.payload["attachmentNames"] == []
-    assert "file_key" not in str(kept.payload)
+    assert kept.payload["attachments"] == []
+    assert kept.payload["text"] == "сочинение"
+
+
+# --- 🔒 one attempt = one record (§20.4.2) ------------------------------------------------------
+def test_a_test_hand_in_is_one_document_with_every_answer_inside_it():
+    """«Ученик получает документ, а не журнал событий.» One go = one record; the answers ride
+    inside it rather than as a row per keystroke."""
+    from apps.exercises import services as exercises
+    from apps.exercises.models import Exercise, ExerciseSet
+    from common.enums import AttemptContext, ExerciseKind, ExerciseMode
+
+    teacher = make_teacher()
+    course, lesson = a_course(teacher)
+    pupil = enrolled(course)
+    row = a_homework(teacher, lesson)
+    exercise_set = ExerciseSet.objects.create(
+        lesson=lesson, title="Тест", mode=ExerciseMode.HOMEWORK.value, homework=row
+    )
+    first = Exercise.objects.create(
+        exercise_set=exercise_set,
+        kind=ExerciseKind.CHOICE.value,
+        prompt={"text": "how do I ___ to the station?"},
+        payload={"options": ["come", "get"]},
+        answer_key={"correct": 1},
+        order=0,
+    )
+    second = Exercise.objects.create(
+        exercise_set=exercise_set,
+        kind=ExerciseKind.CHOICE.value,
+        prompt={"text": "Is it ___ from here?"},
+        payload={"options": ["far", "near"]},
+        answer_key={"correct": 0},
+        order=1,
+    )
+    exercises.record_attempt(
+        pupil, first.id, response={"choice": 1}, context=AttemptContext.HOMEWORK
+    )
+    exercises.record_attempt(
+        pupil, second.id, response={"choice": 1}, context=AttemptContext.HOMEWORK
+    )
+
+    exercises.submit_homework_set(pupil, exercise_set.id)
+
+    kept = mirror.my_mirror(pupil, kind=MirrorKind.WORK)
+    assert len(kept) == 1, "one go at the work is one record, not one per answer"
+    answers = kept[0].payload["answers"]
+    assert len(answers) == 2
+    assert [a["isCorrect"] for a in answers] == [True, False]
+    assert answers[0]["question"].startswith("how do I")
 
 
 # --- 🔒 per-resolver access: the caller's own mirror, and only that ---------------------------------

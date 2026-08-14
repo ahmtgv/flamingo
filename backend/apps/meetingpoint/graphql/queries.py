@@ -44,3 +44,16 @@ class MeetingPointQuery:
             MirroredRecord.of(row)
             for row in mirror.my_mirror(require_user(info), kind=kind, limit=limit)
         ]
+
+    @strawberry.field
+    def mirrored_file_url(
+        self, info: strawberry.Info, record_id: strawberry.ID, object_key: str
+    ) -> str:
+        """Open a file this pupil attached to their own work — always (§20.4.1).
+
+        Authorised against the MIRROR, not the submission: the submission may be gone with the
+        teacher's account, and that is precisely when this has to work.
+        """
+        return mirror.mirrored_file_url(
+            require_user(info), record_id=record_id, object_key=object_key
+        )

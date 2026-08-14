@@ -140,35 +140,40 @@ def test_a_summary_model_may_not_hold_a_verbatim_transcript():
 
 
 # --- Р5.0-Б: the rule governs BOTH places the data lives -------------------------------------
-def test_the_pupils_mirror_is_held_to_the_same_storage_rule():
-    """Owner decision 14.08 (OWNER_SCOPE §20.3): «зеркало ученика — не оправдание хранить
-    видео, аудио или дословную расшифровку: запрет CLAUDE.md §2.2 действует на обе точки
-    хранения».
+def test_the_pupils_mirror_refuses_the_lessons_media_and_only_that():
+    """Owner decision 14.08 (OWNER_SCOPE §20.3 + §20.4.1). Two rules, not one:
 
-    The model-name and field greps above already cover `MirroredRecord`, but its payload is
-    JSON — a column no grep can see into. So the sanitiser is the gate, and this asserts the
-    sanitiser exists and bites.
+    * the LESSON's video, audio and verbatim transcript are forbidden in both storage points;
+    * a child's own work — including a recording of themselves reading aloud — belongs to the
+      child whole and is mirrored by content.
+
+    The first version of this test enforced «only text», which banned the second. The owner
+    named that as an over-correction, so the gate now checks the rule it was written for. The
+    payload is a JSON column no grep can see into, which is why the sanitiser is the gate.
     """
     from apps.meetingpoint import mirror
     from common.exceptions import ValidationError
 
-    for token in FORBIDDEN:
+    for token in ("recording", "transcript"):
         assert token in mirror.FORBIDDEN_KEYS, f"the mirror does not refuse {token!r}"
 
-    class _Student:  # no database needed: the refusal happens before any write
-        pk = None
-
-    for bad in ({"audio_key": "x"}, {"videoUrl": "x"}, {"transcript": "x"}, {"recording": "x"}):
+    for bad in ({"recording": "x"}, {"transcript": "x"}, {"lesson_video": "x"}):
         try:
-            mirror._text_only(bad)
+            mirror._no_lesson_media(bad)
         except ValidationError:
             continue
-        raise AssertionError(f"the mirror accepted {bad}")
+        raise AssertionError(f"the mirror accepted lesson media: {bad}")
+
+    # …and the child's own work goes through, which is the half that was broken.
+    mirror._no_lesson_media(
+        {"attachments": [{"name": "чтение.m4a", "objectKey": "sub/1/a", "sizeBytes": 900}]}
+    )
 
 
-def test_the_mirror_model_carries_no_media_column():
-    """Belt and braces beside the JSON check: the row itself has nowhere to put a file."""
+def test_the_mirror_row_itself_holds_no_bytes():
+    """A pupil's file rides as an object key beside the record, never inline: a JSON column
+    holding a photo of a solution is something nothing can stream."""
     from apps.meetingpoint.models import MirroredRecord
 
     names = {f.name for f in MirroredRecord._meta.get_fields()}
-    assert not {"file_key", "blob", "attachment", "url"} & names
+    assert not {"blob", "bytes", "content"} & names
