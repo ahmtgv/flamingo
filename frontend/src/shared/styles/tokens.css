@@ -45,6 +45,14 @@
   --fl-warning-500: #b57f16;  --fl-warning-700: #7d570c;  --fl-warning-50: #f6eed9;
   --fl-error-500:   #d33a2c;  --fl-error-700:   #a82a1f;  --fl-error-50:   #fae5e2;
   --fl-info-500:    #2f6fa8;  --fl-info-700:    #1f5480;  --fl-info-50:    #e3edf5;
+  /* 🔴 V-07 (волна 2 аудита, найдено axe). Тёмная тема переопределяла у статусов только ФОН
+     и никогда — текст: `--color-*-text` оставался «700», то есть ТЁМНЫМ, и ложился на тёмную
+     подложку. Замер axe: 1,83 при пороге 4,5. Хардкода цвета в теме действительно нет — но
+     пара была собрана неверно, и это не видно грепом. Ступени 300 существуют для этого. */
+  --fl-success-300: #7fd3a3;
+  --fl-warning-300: #e3c463;
+  --fl-error-300:   #ff9c8f;
+  --fl-info-300:    #8fc2eb;
 
   /* Dark surfaces (near-black, cool) */
   --fl-dark-bg:        #101012;
@@ -212,7 +220,11 @@
 
   --color-text:           var(--fl-dark-text);
   --color-text-secondary: var(--fl-dark-text-2);
-  --color-text-tertiary:  #6e6e73;
+  /* 🔴 V-08 (волна 2, axe). Было #6e6e73 — 3,43 на #1a1a1c при пороге AA 4,5. Этим цветом
+     набраны подсказки и пояснения по всему продукту, то есть ровно те строки, которые человек
+     читает, когда уже не понял с первого раза. #8a8a90 даёт 5,06 и остаётся третичным:
+     роль та же, читаемость появилась. */
+  --color-text-tertiary:  #8a8a90;
   --color-text-disabled:  #4a4a4e;
   --color-text-inverse:   var(--fl-warm-900);
 
@@ -226,6 +238,12 @@
   --color-link:           var(--fl-coral-300);
 
   --color-success-bg: #1c2f24; --color-warning-bg: #2e2712; --color-error-bg: #351d19; --color-info-bg: #1a2a3a;
+  /* V-07: текст статусов в тёмной теме — светлые ступени. Без этой строки каждое сообщение
+     об успехе, предупреждении, ошибке и подсказке было тёмным на тёмном. */
+  --color-success-text: var(--fl-success-300);
+  --color-warning-text: var(--fl-warning-300);
+  --color-error-text:   var(--fl-error-300);
+  --color-info-text:    var(--fl-info-300);
 
   --color-overlay: rgba(0, 0, 0, 0.6);
   --nav-material: rgba(16, 16, 18, 0.72);

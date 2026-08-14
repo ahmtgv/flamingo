@@ -301,3 +301,14 @@
   box-shadow: var(--focus-ring);
   border-radius: var(--radius-xs);
 }
+
+/* R-17: витрина честно говорит, что запись закрыта. Спокойно — это не ошибка человека. */
+.showcaseNotice {
+  font-size: var(--text-caption);
+  color: var(--color-info-text);
+  background: var(--color-info-bg);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+  margin-bottom: var(--space-4);
+  line-height: var(--leading-snug);
+}

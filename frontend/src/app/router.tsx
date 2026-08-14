@@ -28,6 +28,8 @@ import { useSession } from '@/shared/hooks/useSession';
 
 import styles from './app.module.css';
 
+const IS_PREVIEW = import.meta.env.VITE_PREVIEW === '1';
+
 function FullScreenLoader() {
   const { t } = useTranslation('common');
   return <div className={styles.loader}>{t('actions.loading')}</div>;
@@ -44,7 +46,11 @@ function ProtectedRoute({ children }: { children: ReactNode }) {
 /** Keep authenticated users out of the auth screens. */
 function PublicOnlyRoute({ children }: { children: ReactNode }) {
   const { status } = useSession();
-  if (status === 'authenticated') return <Navigate to="/start" replace />;
+  // 🔴 R-17 (волна 2). Витрина собирается с VITE_PREVIEW=1 и потому «всегда вошедшая» — а
+  // значит вход и регистрация недостижимы: посетителя уносит на /start. Аудит требует, чтобы
+  // регистрация ЧЕСТНО говорила, что запись закрыта (§0.1), а сказать это может только экран,
+  // до которого можно дойти. На витрине пускаем; в бою правило прежнее.
+  if (status === 'authenticated' && !IS_PREVIEW) return <Navigate to="/start" replace />;
   return <>{children}</>;
 }
 

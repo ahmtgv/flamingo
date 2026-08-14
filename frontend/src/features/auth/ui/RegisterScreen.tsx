@@ -22,6 +22,8 @@ import {
 import { AuthLayout } from './AuthLayout';
 import styles from './auth.module.css';
 
+const IS_PREVIEW = import.meta.env.VITE_PREVIEW === '1';
+
 const AGE_OPTIONS: AgeBandUi[] = ['junior', 'teen', 'adult'];
 
 export function RegisterScreen() {
@@ -124,6 +126,14 @@ function RegisterForm({ role }: { role: UiRole }) {
 
   return (
     <AuthLayout>
+      {IS_PREVIEW && (
+        /* 🔴 R-17: витрина обязана сказать, что запись закрыта, а не делать вид, что форма
+           заведёт учётную запись. Аудит §0.1: дефект был не в том, что регистрация не
+           работает, а в том, что она врала «Что-то пошло не так». */
+        <p className={styles.showcaseNotice} role="status">
+          {t('showcase.notice')}
+        </p>
+      )}
       <button type="button" className={styles.back} onClick={() => navigate('/register')}>
         <ArrowLeft size={ICON_SM} /> {t('register.backToRoles')}
       </button>

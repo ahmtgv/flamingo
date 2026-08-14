@@ -14,6 +14,8 @@ import { type Errors, validateLogin } from '../model/validation';
 import { AuthLayout } from './AuthLayout';
 import styles from './auth.module.css';
 
+const IS_PREVIEW = import.meta.env.VITE_PREVIEW === '1';
+
 export function LoginScreen() {
   const { t } = useTranslation(['auth', 'common']);
   const navigate = useNavigate();
@@ -54,6 +56,14 @@ export function LoginScreen() {
 
   return (
     <AuthLayout>
+      {IS_PREVIEW && (
+        /* 🔴 R-17: витрина обязана сказать, что запись закрыта, а не делать вид, что форма
+           заведёт учётную запись. Аудит §0.1: дефект был не в том, что регистрация не
+           работает, а в том, что она врала «Что-то пошло не так». */
+        <p className={styles.showcaseNotice} role="status">
+          {t('showcase.loginNotice')}
+        </p>
+      )}
       <div className={styles.head}>
         <span className={styles.eyebrow}>{t('login.eyebrow')}</span>
         <h1 className={styles.title}>{t('login.title')}</h1>

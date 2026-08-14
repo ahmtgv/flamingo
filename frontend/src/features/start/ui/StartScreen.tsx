@@ -128,7 +128,10 @@ export function StartScreen() {
         </div>
       </header>
 
-      <div className={styles.page}>
+      {/* 🔴 V-09 (волна 2, axe): <main> — точка, в которую скринридер прыгает, минуя шапку.
+          Без неё человек каждый раз слушает навигацию заново, а всё содержимое страницы
+          axe считает «вне ориентиров». */}
+      <main className={styles.page}>
         <div className={styles.hi}>
           <h1 className={styles.hiName}>
             {t(isTeacher ? 'greetingTeacher' : 'greeting', { name: me?.firstName ?? '' })}
@@ -296,7 +299,7 @@ export function StartScreen() {
             </section>
           </div>
         )}
-      </div>
+      </main>
 
       {/* The chat is a window over the page, never a screen (sheet 00). The header button
           and the bubble open the same one. */}
