@@ -101,6 +101,20 @@ mutation ConfigureCabinetBackup($kind: BackupKind!, $cloudCopy: Boolean) {
   }
 }
 
+# 🔴 Р5.5 — писатель копии, которой §19.1 заставляет обзавестись. Один файл: строки кабинета
+# плюс байты работ, на которые они ссылаются.
+#
+# 🔒 Адреса тут нет: файл ложится в саму папку кабинета, а переносит его наружу оболочка.
+mutation ExportCabinet($passphrase: String) {
+  exportCabinet(passphrase: $passphrase) {
+    createdAt
+    sealed
+    rows
+    files
+    tables
+  }
+}
+
 mutation RecordCabinetBackup {
   recordCabinetBackup {
     id

@@ -223,6 +223,15 @@ export type BoardSnapshot = {
   title: Scalars['String']['output'];
 };
 
+export type CabinetBackup = {
+  __typename?: 'CabinetBackup';
+  createdAt: Scalars['DateTime']['output'];
+  files: Scalars['Int']['output'];
+  rows: Scalars['Int']['output'];
+  sealed: Scalars['Boolean']['output'];
+  tables: Scalars['Int']['output'];
+};
+
 export type CardDirection =
   | 'RECALL'
   | 'RECOGNITION';
@@ -945,6 +954,7 @@ export type Mutation = {
   dismissRecommendation: Recommendation;
   endSession: LessonSession;
   enroll: Enrollment;
+  exportCabinet: CabinetBackup;
   gradeSubmission: Submission;
   handInExerciseSet: HomeworkHandIn;
   hostHeartbeat: HostPresence;
@@ -1196,6 +1206,11 @@ export type MutationEndSessionArgs = {
 
 export type MutationEnrollArgs = {
   courseId: Scalars['ID']['input'];
+};
+
+
+export type MutationExportCabinetArgs = {
+  passphrase?: InputMaybe<Scalars['String']['input']>;
 };
 
 
@@ -3201,6 +3216,13 @@ export type ConfigureCabinetBackupMutationVariables = Exact<{
 
 
 export type ConfigureCabinetBackupMutation = { __typename?: 'Mutation', configureCabinetBackup: { __typename?: 'Device', id: string, setup: { __typename?: 'DeviceSetup', step: number, completed: boolean, backupKind: BackupKind, backupConfiguredAt?: string | null, cloudCopyEnabled: boolean, lastBackupAt?: string | null } } };
+
+export type ExportCabinetMutationVariables = Exact<{
+  passphrase?: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type ExportCabinetMutation = { __typename?: 'Mutation', exportCabinet: { __typename?: 'CabinetBackup', createdAt: string, sealed: boolean, rows: number, files: number, tables: number } };
 
 export type RecordCabinetBackupMutationVariables = Exact<{ [key: string]: never; }>;
 
@@ -6541,6 +6563,43 @@ export function useConfigureCabinetBackupMutation(baseOptions?: Apollo.MutationH
 export type ConfigureCabinetBackupMutationHookResult = ReturnType<typeof useConfigureCabinetBackupMutation>;
 export type ConfigureCabinetBackupMutationResult = Apollo.MutationResult<ConfigureCabinetBackupMutation>;
 export type ConfigureCabinetBackupMutationOptions = Apollo.BaseMutationOptions<ConfigureCabinetBackupMutation, ConfigureCabinetBackupMutationVariables>;
+export const ExportCabinetDocument = gql`
+    mutation ExportCabinet($passphrase: String) {
+  exportCabinet(passphrase: $passphrase) {
+    createdAt
+    sealed
+    rows
+    files
+    tables
+  }
+}
+    `;
+export type ExportCabinetMutationFn = Apollo.MutationFunction<ExportCabinetMutation, ExportCabinetMutationVariables>;
+
+/**
+ * __useExportCabinetMutation__
+ *
+ * To run a mutation, you first call `useExportCabinetMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useExportCabinetMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [exportCabinetMutation, { data, loading, error }] = useExportCabinetMutation({
+ *   variables: {
+ *      passphrase: // value for 'passphrase'
+ *   },
+ * });
+ */
+export function useExportCabinetMutation(baseOptions?: Apollo.MutationHookOptions<ExportCabinetMutation, ExportCabinetMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<ExportCabinetMutation, ExportCabinetMutationVariables>(ExportCabinetDocument, options);
+      }
+export type ExportCabinetMutationHookResult = ReturnType<typeof useExportCabinetMutation>;
+export type ExportCabinetMutationResult = Apollo.MutationResult<ExportCabinetMutation>;
+export type ExportCabinetMutationOptions = Apollo.BaseMutationOptions<ExportCabinetMutation, ExportCabinetMutationVariables>;
 export const RecordCabinetBackupDocument = gql`
     mutation RecordCabinetBackup {
   recordCabinetBackup {

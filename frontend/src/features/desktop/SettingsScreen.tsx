@@ -2,8 +2,8 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import {
+  useExportCabinetMutation,
   useMyDevicesQuery,
-  useRecordCabinetBackupMutation,
   useRevokeDeviceMutation,
 } from '@/entities/graphql/generated';
 
@@ -30,7 +30,8 @@ export function SettingsScreen() {
   const { t } = useTranslation('desktop');
   const [tab, setTab] = useState<Tab>('link');
   const { data, refetch } = useMyDevicesQuery();
-  const [recordBackup, { loading: backingUp }] = useRecordCabinetBackupMutation();
+  // Р5.5: кнопка снимает НАСТОЯЩУЮ копию — до этой фазы она лишь отмечала время.
+  const [exportCabinet, { data: made, loading: backingUp }] = useExportCabinetMutation();
   const [revoke] = useRevokeDeviceMutation();
 
   const devices = data?.myDevices ?? [];
@@ -125,7 +126,14 @@ export function SettingsScreen() {
           />
           <Row
             label={t('settings.data.lastBackup')}
-            hint={t('settings.data.exportHint')}
+            hint={
+              made?.exportCabinet
+                ? t('settings.data.made', {
+                    rows: made.exportCabinet.rows,
+                    files: made.exportCabinet.files,
+                  })
+                : t('settings.data.exportHint')
+            }
             value={
               setup?.lastBackupAt
                 ? new Date(setup.lastBackupAt).toLocaleString('ru')
@@ -136,7 +144,7 @@ export function SettingsScreen() {
                 type="button"
                 className={styles.mini}
                 disabled={backingUp}
-                onClick={() => void recordBackup().then(() => refetch())}
+                onClick={() => void exportCabinet().then(() => refetch())}
               >
                 {t('settings.data.backupNow')}
               </button>

@@ -52,6 +52,10 @@ DATABASES = {
 CHANNEL_LAYERS = {"default": {"BACKEND": "channels.layers.InMemoryChannelLayer"}}
 
 # No object store on a laptop. Files sit beside the database, in the folder the teacher chose.
+# Р5.5: только на кабинете разрешена выгрузка одним файлом. На сервере эти же таблицы
+# держат всех преподавателей и всех учеников, и экспорт там был бы полным дампом базы —
+# поэтому право объявляется развёртыванием (§18-г), а не выводится из движка базы.
+CABINET_IS_LOCAL = True
 STORAGE_BACKEND = "local"
 LOCAL_STORAGE_ROOT = str(DATA_DIR / "files")
 

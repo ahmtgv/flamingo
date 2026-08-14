@@ -150,3 +150,45 @@ def copy(src_key: str, dst_key: str) -> bool:
     except ClientError:
         return False
     return True
+
+
+def read_bytes(key: str) -> bytes | None:
+    """The object itself, for putting inside a cabinet file (Р5.5).
+
+    A backup that carries rows but not bytes restores a submission whose attachment does not
+    open — the same silent failure the mirror's red debt was about, one layer up. So the
+    export reads the bytes and the archive carries them.
+    """
+    if backend() == "local":
+        try:
+            path = _local_path(key)
+        except ValueError:
+            return None
+        return path.read_bytes() if path.is_file() else None
+
+    from botocore.exceptions import ClientError
+
+    try:
+        return _client().get_object(Bucket=settings.S3["bucket"], Key=key)["Body"].read()
+    except ClientError:
+        return None
+
+
+def write_bytes(key: str, data: bytes) -> bool:
+    """Put an object back where its row expects to find it (Р5.5 restore)."""
+    if backend() == "local":
+        try:
+            path = _local_path(key)
+        except ValueError:
+            return False
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(data)
+        return True
+
+    from botocore.exceptions import ClientError
+
+    try:
+        _client().put_object(Bucket=settings.S3["bucket"], Key=key, Body=data)
+        return True
+    except ClientError:
+        return False

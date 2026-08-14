@@ -7,6 +7,8 @@ analysis starts off.
 
 from __future__ import annotations
 
+import datetime as dt
+
 import pytest
 from django.utils import timezone
 
@@ -114,3 +116,43 @@ def test_making_a_copy_is_remembered_for_the_settings_screen():
     before = timezone.now()
     device = services.record_backup(device)
     assert device.last_backup_at is not None and device.last_backup_at >= before
+
+
+# --- расписание копий (Р5.5) -------------------------------------------------
+def test_a_machine_with_no_copy_configured_is_not_nagged():
+    """Настройка не дошла до шага 2 — это чинит мастер, а не расписание."""
+    device = paired_machine(make_teacher())
+    assert services.backup_is_due(device) is False
+
+
+def test_the_first_copy_is_due_immediately():
+    device = paired_machine(make_teacher())
+    services.configure_backup(device, kind=BackupKind.EXTERNAL_DISK.value)
+    assert services.backup_is_due(device) is True
+
+
+def test_a_copy_a_day_and_not_more_often():
+    device = paired_machine(make_teacher())
+    services.configure_backup(device, kind=BackupKind.EXTERNAL_DISK.value)
+    device = services.record_backup(device)
+
+    assert (
+        services.backup_is_due(device, now=device.last_backup_at + dt.timedelta(hours=3)) is False
+    )
+    assert (
+        services.backup_is_due(device, now=device.last_backup_at + dt.timedelta(hours=25)) is True
+    )
+
+
+def test_after_a_lesson_always_even_if_one_was_made_an_hour_ago():
+    """🔴 Работа, которая только что пришла, — ровно то, чего ещё нигде нет.
+
+    Ежедневная копия, пропускающая вечернюю домашку, — это ежедневная копия вчерашнего дня.
+    """
+    device = paired_machine(make_teacher())
+    services.configure_backup(device, kind=BackupKind.EXTERNAL_DISK.value)
+    device = services.record_backup(device)
+
+    just_now = device.last_backup_at + dt.timedelta(minutes=1)
+    assert services.backup_is_due(device, now=just_now) is False
+    assert services.backup_is_due(device, now=just_now, after_lesson=True) is True

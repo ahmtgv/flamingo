@@ -13,7 +13,7 @@ from apps.devices import services
 from common.auth import require_device, require_user
 from common.enums import BackupKind, ConnectionType, DevicePlatform
 
-from .types import Device, DeviceClaim, PairingRequest
+from .types import CabinetBackup, Device, DeviceClaim, PairingRequest
 
 
 @strawberry.type
@@ -112,3 +112,25 @@ class DevicesMutation:
     def complete_device_setup(self, info: strawberry.Info) -> Device:
         """«Готово». Откажет, если обязательная копия так и не настроена."""
         return Device.of(services.complete_setup(require_device(info)))
+
+    @strawberry.mutation
+    def export_cabinet(self, info: strawberry.Info, passphrase: str | None = None) -> CabinetBackup:
+        """Снять копию кабинета одним файлом (Р5.5, лист D2 «Выгрузить»).
+
+        🔴 Это то, чего не хватало первому запуску: §19.1 заставляет настроить копию, а писателя
+        копии не было. Здесь он.
+
+        `passphrase` не обязателен для копии на свой диск (§2.2-бис — не изобретать ограничений;
+        забытый пароль уничтожил бы ровно ту копию, ради которой всё это) и обязателен для той,
+        что уходит к нам: `cabinet_file.seal_required_for`.
+        """
+        from datetime import datetime
+
+        header = services.run_backup(require_device(info), passphrase=passphrase or None)
+        return CabinetBackup(
+            created_at=datetime.fromisoformat(header.created_at),
+            sealed=header.sealed,
+            rows=header.rows,
+            files=header.files,
+            tables=header.tables,
+        )

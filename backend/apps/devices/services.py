@@ -21,6 +21,7 @@ from __future__ import annotations
 import datetime as dt
 import hashlib
 import secrets
+from pathlib import Path
 
 from django.db import transaction
 from django.utils import timezone
@@ -334,3 +335,47 @@ def complete_setup(device: Device) -> Device:
     device.setup_step = SETUP_STEPS
     device.setup_completed_at = now
     return device
+
+
+# --- расписание копий (Р5.5) -------------------------------------------------
+#: «Раз в день» из листа D2. Не настраивается: копия — обязательство, а не предпочтение.
+BACKUP_INTERVAL = dt.timedelta(days=1)
+
+#: Куда sidecar кладёт файл. Наружу — на внешний диск или в папку облака — его переносит
+#: оболочка: путь, который выбрал преподаватель, живёт на машине и в операции не попадает.
+BACKUP_DIRNAME = "backups"
+
+
+def backup_is_due(device: Device, *, now=None, after_lesson: bool = False) -> bool:
+    """Пора ли снимать копию — «раз в день и после каждого занятия» (лист D2).
+
+    After a lesson always, and not because a day has passed: the work that just came in is
+    precisely what is not anywhere else yet. A daily copy that misses the evening's homework
+    is a daily copy of yesterday.
+    """
+    if device.backup_kind == BackupKind.NONE.value:
+        # Настройка не дошла до шага 2. Требовать копию некуда — это состояние чинится
+        # мастером, а не расписанием.
+        return False
+    if after_lesson:
+        return True
+    if device.last_backup_at is None:
+        return True
+    return (now or timezone.now()) - device.last_backup_at >= BACKUP_INTERVAL
+
+
+def run_backup(device: Device, *, passphrase: str | None = None):
+    """Снять копию кабинета одним файлом и запомнить, что она снята.
+
+    Возвращает заголовок файла — числа, а не «успешно»: экран настроек показывает, сколько
+    строк и сколько файлов уехало, потому что «копия сделана» без чисел проверить нельзя.
+    """
+    from django.conf import settings
+
+    from common.cabinet_file import SUFFIX, export_cabinet
+
+    folder = Path(getattr(settings, "DATA_DIR", ".")) / BACKUP_DIRNAME
+    stamp = timezone.now().strftime("%Y-%m-%d-%H%M")
+    header = export_cabinet(folder / f"cabinet-{stamp}{SUFFIX}", passphrase=passphrase)
+    record_backup(device)
+    return header

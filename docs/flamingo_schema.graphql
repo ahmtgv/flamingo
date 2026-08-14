@@ -823,6 +823,19 @@ type Device {
 # to finish setup in it.
 enum BackupKind { NONE EXTERNAL_DISK CLOUD_FOLDER }
 
+# Что получилось из копии кабинета (Р5.5) — числа, а не «успешно».
+#
+# 🔒 Пути здесь нет и не будет. Файл кладётся в саму папку кабинета; наружу — на внешний диск
+# или в папку облака — его переносит оболочка. Адрес, который выбрал преподаватель, живёт на
+# машине и в операцию не попадает (test_first_run.py, noPassword.test.ts).
+type CabinetBackup {
+  createdAt: DateTime!
+  sealed: Boolean!               # для копии, уходящей к нам, — всегда true (§19.1)
+  rows: Int!
+  files: Int!                    # байты работ едут внутри файла, а не ссылками на них
+  tables: Int!
+}
+
 # How far this machine's first run got, so an interrupted setup resumes on the same step.
 #
 # 🔒 There is no field here for the cabinet FOLDER and there will not be one. §19.1 makes the
@@ -1581,6 +1594,10 @@ type Mutation {
   ): Device!
   recordCabinetBackup: Device!                            # «сделать сейчас» отработало
   completeDeviceSetup: Device!                            # «готово»; refuses without the copy
+  # Р5.5 — writer of the copy §19.1 makes mandatory. Один файл: строки CABINET_TABLES плюс
+  # байты, на которые они ссылаются. `passphrase` необязателен для копии на свой диск и
+  # обязателен для той, что уходит к нам.
+  exportCabinet(passphrase: String): CabinetBackup!
 
   # signalling (Р5.1) — routes one handshake message and writes nothing down
   sendSignal(sessionId: ID!, toPeer: ID!, kind: SignalKind!, payload: String!): Boolean!

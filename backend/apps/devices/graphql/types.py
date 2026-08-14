@@ -17,6 +17,23 @@ from common.enums import BackupKind, ConnectionType, DevicePlatform
 
 
 @strawberry.type
+class CabinetBackup:
+    """Что получилось из копии — числа, а не «успешно» (Р5.5).
+
+    🔒 Пути здесь нет и не будет. Файл кладётся в саму папку кабинета, а наружу — на внешний
+    диск или в папку облака — его переносит оболочка: адрес, который выбрал преподаватель,
+    живёт на машине и в операцию не попадает.
+    """
+
+    created_at: dt.datetime
+    #: Зашифрован ли файл. Для облачной копии это всегда True и не обсуждается (§19.1).
+    sealed: bool
+    rows: int
+    files: int
+    tables: int
+
+
+@strawberry.type
 class DeviceSetup:
     """Where the first run got to (D2, Р5.4).
 

@@ -18,6 +18,12 @@
 #
 # Kept in step with requirements.txt by hand, deliberately: a desktop bundle that silently
 # grows a dependency is a desktop bundle nobody notices growing.
+#
+# 📈 Р5.5 added ONE back, and this is the record of why: `cryptography` (~12 MB) seals the
+# cabinet file. §19.1 требует, чтобы копия шифровалась на машине преподавателя, а сервер
+# держал непрозрачный блок — это AES-GCM, и рукописной криптографии здесь не будет. Двенадцать
+# мегабайт за то, чтобы работы и оценки детей на потерянном внешнем диске не читались, —
+# сделка, которую стоит заключить.
 
 Django>=5.0,<5.2
 python-dotenv>=1.0
@@ -26,3 +32,4 @@ strawberry-graphql-django>=0.40
 PyJWT>=2.8
 channels>=4.1
 uvicorn[standard]>=0.30
+cryptography>=42

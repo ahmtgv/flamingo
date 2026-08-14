@@ -14,6 +14,7 @@ import type {
   CompleteDeviceSetupMutation,
   ConfigureCabinetBackupMutation,
   ConfirmPairingCodeMutation,
+  ExportCabinetMutation,
   MyDevicesQuery,
   RecordCabinetBackupMutation,
   ReportUplinkMutation,
@@ -3631,6 +3632,18 @@ export function resolveDemoOperation(
           }),
         },
       } satisfies ConfigureCabinetBackupMutation;
+    case 'ExportCabinet':
+      return {
+        exportCabinet: {
+          __typename: 'CabinetBackup',
+          createdAt: iso(),
+          // Витрина показывает копию зашифрованной: так она и уходит наружу (§19.1).
+          sealed: true,
+          rows: 1284,
+          files: 37,
+          tables: 34,
+        },
+      } satisfies ExportCabinetMutation;
     case 'RecordCabinetBackup':
       return {
         recordCabinetBackup: {
