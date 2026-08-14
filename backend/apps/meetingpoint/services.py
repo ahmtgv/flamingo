@@ -168,17 +168,20 @@ def host_online(group: Group, *, now: dt.datetime | None = None) -> bool:
 
 
 def heartbeat(raw_token: str) -> tuple[Device, list[Group]]:
-    """The app says it is alive. Returns the device and the groups whose watchers were told.
-
-    Takes the machine key explicitly rather than through the auth header: the general header
-    path belongs with the sidecar in Р5.2, when its shape is known, and inventing it now
-    would mean changing `common/auth.py` for a caller that does not exist yet.
-    """
+    """The app says it is alive, by key. Kept for callers that hold a raw key (tests, and the
+    first-run flow before a session exists)."""
     from apps.devices import services as devices
 
     device = devices.authenticate_device(raw_token)
     if device is None:
         raise NotFound("Device not found")
+    return heartbeat_for(device)
+
+
+def heartbeat_for(device: Device) -> tuple[Device, list[Group]]:
+    """The same, for a machine already resolved from `Authorization: Device <key>` (Р5.2)."""
+    from apps.devices import services as devices
+
     devices.touch(device)
 
     groups = list(

@@ -187,18 +187,20 @@ def touch(device: Device) -> Device:
 
 
 def report_uplink(raw_token: str, *, mbps: float, connection_type: str) -> Device:
-    """The machine reports what it measured (Р5.1).
+    """The machine reports what it measured, by key. Kept for callers holding a raw key."""
+    device = authenticate_device(raw_token)
+    if device is None:
+        raise NotFound("Device not found")
+    return record_uplink(device, mbps=mbps, connection_type=connection_type)
 
-    Takes the machine key explicitly, like the heartbeat and for the same reason: the general
-    header path belongs with the sidecar in Р5.2, when its shape is known.
+
+def record_uplink(device: Device, *, mbps: float, connection_type: str) -> Device:
+    """The same, for a machine already resolved from `Authorization: Device <key>` (Р5.2).
 
     🔴 Recording a measurement never refuses anything. Owner decision §19.3 is «предупреждаем,
     не запрещаем» — a weak channel produces a verdict in words and a smaller suggested group,
     and the teacher decides. There is deliberately no code path here that could block a lesson.
     """
-    device = authenticate_device(raw_token)
-    if device is None:
-        raise NotFound("Device not found")
     try:
         value = float(mbps)
     except (TypeError, ValueError) as exc:

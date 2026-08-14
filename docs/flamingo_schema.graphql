@@ -1539,10 +1539,13 @@ type Mutation {
   setMeetingAccess(groupId: ID!, mode: MeetingAccessMode!): MeetingPoint!
   replaceMeetingLink(groupId: ID!): MeetingPoint!         # the old slug is remembered, so it can
                                                           # say «заменена» instead of «не найдено»
-  hostHeartbeat(deviceToken: String!): HostPresence!      # the machine says it is alive
+  # Both of these are the MACHINE talking, authenticated by `Authorization: Device <key>`
+  # (Р5.2). They used to take the key as an argument — that put a live credential into every
+  # query log that records variables, and it is now one path for everything.
+  hostHeartbeat: HostPresence!                            # the machine says it is alive
   # 🔴 Recording a measurement refuses nothing (§19.3): the teacher is told what the channel
   # is good for and decides — they know what the lesson is and who the children are.
-  reportUplink(deviceToken: String!, mbps: Float!, connectionType: ConnectionType = UNKNOWN): Device!
+  reportUplink(mbps: Float!, connectionType: ConnectionType = UNKNOWN): Device!
 
   # signalling (Р5.1) — routes one handshake message and writes nothing down
   sendSignal(sessionId: ID!, toPeer: ID!, kind: SignalKind!, payload: String!): Boolean!

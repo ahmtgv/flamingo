@@ -281,3 +281,74 @@ def test_a_learner_may_pair_a_machine_too():
     device, raw = paired(pupil, "Домашний ПК")
     assert device.owner_id == pupil.id
     assert devices.authenticate_device(raw) is not None
+
+
+# --- Р5.2: one authentication path for a machine ---------------------------------------------
+def test_a_machine_authenticates_through_the_same_header_as_everyone_else():
+    """Р5.1 shipped the key as a mutation argument — accepted as temporary because the sidecar
+    did not exist yet. It does now, so there is one path (PROMPT_14 Р5.2 debt).
+
+    Keeping it as an argument put a live credential into every query log that records
+    variables, which is the quiet kind of leak nobody notices until an audit.
+    """
+    from common.auth import authenticate_device_request, require_device
+
+    teacher = make_teacher()
+    device, raw = paired(teacher)
+
+    class _Request:
+        META = {"HTTP_AUTHORIZATION": f"Device {raw}"}
+
+    assert authenticate_device_request(_Request()).id == device.id
+
+    class _Info:
+        class context:
+            request = _Request()
+
+    assert require_device(_Info()).id == device.id
+
+
+def test_a_persons_session_is_not_a_machine_key_and_the_reverse():
+    """`require_device` returns a Device, `require_user` a User — deliberately not
+    interchangeable. A machine may say it is alive and how fast its channel is; it must never
+    thereby be able to read a child's homework.
+    """
+    from common.auth import authenticate_device_request
+
+    teacher = make_teacher()
+    _device, raw = paired(teacher)
+
+    class _BearerRequest:
+        META = {"HTTP_AUTHORIZATION": f"Bearer {raw}"}
+
+    class _NoHeader:
+        META = {}
+
+    assert authenticate_device_request(_BearerRequest()) is None
+    assert authenticate_device_request(_NoHeader()) is None
+    assert authenticate_device_request(None) is None
+
+
+def test_a_revoked_machines_header_stops_working_immediately():
+    from common.auth import authenticate_device_request
+
+    teacher = make_teacher()
+    device, raw = paired(teacher)
+
+    class _Request:
+        META = {"HTTP_AUTHORIZATION": f"Device {raw}"}
+
+    assert authenticate_device_request(_Request()) is not None
+    devices.revoke_device(teacher, device.id)
+    assert authenticate_device_request(_Request()) is None
+
+
+def test_no_mutation_takes_a_machine_key_as_an_argument_any_more():
+    """The debt, as a schema assertion: a credential in a variable is a credential in a log."""
+    import re as _re
+
+    from api.schema import schema
+
+    block = _re.search(r"type Mutation \{(.*?)\n\}", schema.as_str(), _re.S).group(1)
+    for line in block.splitlines():
+        assert "deviceToken" not in line, line

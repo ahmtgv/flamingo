@@ -10,7 +10,7 @@ from __future__ import annotations
 import strawberry
 
 from apps.devices import services
-from common.auth import require_user
+from common.auth import require_device, require_user
 from common.enums import ConnectionType, DevicePlatform
 
 from .types import Device, DeviceClaim, PairingRequest
@@ -57,16 +57,21 @@ class DevicesMutation:
     def report_uplink(
         self,
         info: strawberry.Info,
-        device_token: str,
         mbps: float,
         connection_type: ConnectionType = ConnectionType.UNKNOWN,
     ) -> Device:
         """The machine reports its twelve-second measurement (Р5.1).
+
+        Authenticated by `Authorization: Device <key>` — one path, as of Р5.2. It used to take
+        the key as an argument, which put a live credential into every query log that records
+        variables.
 
         🔴 Recording it refuses nothing. §19.3: «предупреждаем, не запрещаем» — the teacher
         is told what the channel is good for and decides, because they know what the lesson
         is and who the children are.
         """
         return Device.of(
-            services.report_uplink(device_token, mbps=mbps, connection_type=connection_type.value)
+            services.record_uplink(
+                require_device(info), mbps=mbps, connection_type=connection_type.value
+            )
         )

@@ -78,6 +78,25 @@ def authenticate_request(request):
     return user
 
 
+def authenticate_device_request(request):
+    """The `Device` behind an `Authorization: Device <key>` header, else None (Р5.2).
+
+    Р5.1 shipped the machine key as a mutation argument, accepted at the time as temporary
+    because the sidecar did not exist and its shape was unknown. It does now, so there is one
+    path: the app sends its key in the same header everything else uses.
+
+    A machine key is not a session — it resolves to a `Device`, not to a `User`. Keeping the
+    two apart matters: a device may report that it is alive and how fast its channel is, and
+    it must never thereby be able to read a child's homework.
+    """
+    header = request.META.get("HTTP_AUTHORIZATION", "") if request is not None else ""
+    if not header.startswith("Device "):
+        return None
+    from apps.devices import services as devices
+
+    return devices.authenticate_device(header[7:].strip())
+
+
 # --- resolver helpers -------------------------------------------------------
 def get_current_user(info):
     """The authenticated user from GraphQL ``info``, or None."""
@@ -92,3 +111,22 @@ def require_user(info):
     if user is None:
         raise AuthError("Authentication required")
     return user
+
+
+def get_current_device(info):
+    """The paired machine behind this request, or None."""
+    request = getattr(info.context, "request", None)
+    return authenticate_device_request(request)
+
+
+def require_device(info):
+    """The paired machine, or a refusal.
+
+    Deliberately NOT interchangeable with `require_user`: this returns a `Device`, so a
+    resolver written for a machine cannot be handed a person's session by accident, and a
+    machine key opens nothing a person's session opens.
+    """
+    device = get_current_device(info)
+    if device is None:
+        raise AuthError("Device authentication required")
+    return device

@@ -5,7 +5,7 @@ from __future__ import annotations
 import strawberry
 
 from apps.meetingpoint import services
-from common.auth import require_user
+from common.auth import require_device, require_user
 from common.enums import MeetingAccessMode
 
 from .types import HostPresence, MeetingPoint
@@ -30,14 +30,14 @@ class MeetingPointMutation:
         return MeetingPoint.of(point, host_online=services.host_online(point.group))
 
     @strawberry.mutation
-    def host_heartbeat(self, info: strawberry.Info, device_token: str) -> HostPresence:
+    def host_heartbeat(self, info: strawberry.Info) -> HostPresence:
         """The teacher's machine says it is alive; everyone waiting at the link is told.
 
-        Takes the key as an argument rather than through the auth header: the header path
-        belongs with the sidecar (Р5.2), when its shape is known. The same choice
-        `redeemProjectorCode` already makes for the same reason.
+        Authenticated by `Authorization: Device <key>` — one path, as of Р5.2. It used to take
+        the key as an argument, which put a live credential into every query log that recorded
+        variables.
         """
-        device, groups = services.heartbeat(device_token)
+        device, groups = services.heartbeat_for(require_device(info))
         slug = ""
         for group in groups:
             point = services.ensure_meeting_point(group)
