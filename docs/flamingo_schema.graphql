@@ -788,6 +788,84 @@ type LessonSummary {
   items: [SummaryItem!]!
 }
 
+# ----------------------------------------------------------------------------- Devices (Р5.0)
+# The pilot hosts the lesson from the teacher's laptop, so the laptop needs a key. Owner
+# decision 14.08 (OWNER_SCOPE §19.4): **the app never asks for a password.** It shows a code,
+# the teacher signs in inside a real browser — address bar and padlock visible — and types it.
+#
+# Two things this block deliberately does not contain: any field carrying a password, and any
+# way to read a machine key back. The key is returned exactly once, in DeviceClaim, and after
+# that lives only in the machine's OS keychain. Both absences are asserted by test_devices.py.
+enum DevicePlatform { MACOS WINDOWS LINUX OTHER }
+
+type Device {
+  id: ID!
+  name: String!                  # «MacBook Ирины» — for telling two machines apart, nothing else
+  platform: DevicePlatform!
+  appVersion: String!
+  lastSeenAt: DateTime
+  online: Boolean!               # derived from the heartbeat, never a stored flag
+  pairedAt: DateTime!
+}
+
+# What the app gets when it asks. `secret` is its half of the credential, returned once and
+# stored as a hash: the code proves a human approved, the secret proves this is the machine
+# that asked. Holding one without the other gets you nothing.
+type PairingRequest { code: String! secret: String! expiresAt: DateTime! }
+
+# The machine key, handed over once and never queryable.
+type DeviceClaim { device: Device! token: String! }
+
+# ----------------------------------------------------------------------------- Meeting point (Р5.0)
+# Atlas D3. The link belongs to the GROUP, not to the lesson: a fresh link every week is a
+# mailout half the class loses. A six-character code sits beside it for the people who would
+# rather read it out than forward it.
+#
+# Everything here answers WITHOUT the teacher's machine — that is the whole point of the app.
+# A pupil arriving at 17:59 learns when the lesson is, whether the host is up, and what works
+# meanwhile, from the server, with the laptop asleep.
+enum MeetingAccessMode { GROUP_ONLY ANY_AUTHENTICATED KNOCK }
+
+# What the arrival is told. Never a bare «нет»: a stranger gets «вы не в этой группе» with a
+# way to ask, and an old link says it was REPLACED rather than that it never existed.
+enum JoinDecision { ALLOWED NOT_IN_GROUP KNOCK_REQUIRED LINK_REPLACED }
+
+# Reachable while the host is off — one source (apps/meetingpoint/capabilities.py) so the
+# offline screen and the future desktop refusals cannot disagree. Schedule, chat and writing
+# homework live on the server; materials, summaries and the room live on the teacher's machine.
+type OfflineCapabilities {
+  schedule: Boolean!
+  chat: Boolean!
+  homework: Boolean!
+  materials: Boolean!
+  summaries: Boolean!
+  room: Boolean!
+}
+
+type UpcomingLesson { sessionId: ID! title: String! startAt: DateTime! isLive: Boolean! }
+
+type MeetingPointView {
+  slug: String!
+  decision: JoinDecision!
+  groupName: String!             # empty on a replaced link — a dead link tells a stranger nothing
+  teacherName: String!
+  hostOnline: Boolean!
+  nextLesson: UpcomingLesson
+  capabilities: OfflineCapabilities!
+}
+
+# The teacher's own view of their group's front door.
+type MeetingPoint {
+  groupId: ID!
+  slug: String!
+  code: String!
+  accessMode: MeetingAccessMode!
+  hostOnline: Boolean!
+}
+
+# A slug and a boolean. Nothing about where the machine is or what it is doing.
+type HostPresence { slug: String! online: Boolean! }
+
 # ----------------------------------------------------------------------------- Second screen (R3.1)
 # The cast model: the teacher reads a short code off their screen and types it on a tablet —
 # no second login. What the code buys is the narrowest thing that works: a subscriber-only,
@@ -1180,6 +1258,14 @@ type Query {
   myRepetitionProgress: RepetitionProgress!
   myAchievements: [Achievement!]!
 
+  # devices (Р5.0) — the caller's own machines, with a revoke button next to each
+  myDevices: [Device!]!
+
+  # meeting point (Р5.0) — all three answer WITHOUT the teacher's machine being awake
+  meetingPoint(slug: String!): MeetingPointView!
+  meetingPointByCode(code: String!): MeetingPointView!
+  groupMeetingPoint(groupId: ID!): MeetingPoint!         # teacher of the group only
+
   # summary (R4.2) — the teacher gets the draft; everyone else gets it only once it is sent,
   # and gets NULL rather than a refusal until then (whether it is being written is not their
   # business either). lessonChat is the exception: participants read the CHAT section live.
@@ -1327,6 +1413,23 @@ type Mutation {
     learningSteps: Int = 0
   ): DueCard!
 
+  # pairing a machine (Р5.0) — 🔒 not one of these takes a password, and none ever will
+  # (PROMPT_14 §2.2.1). The fallback «войти по почте и паролю» is the ordinary web login.
+  requestPairingCode(                                     # UNAUTHENTICATED: the app has no
+    deviceName: String!, platform: DevicePlatform = OTHER, # identity yet, and giving it one
+    appVersion: String = ""                                # would have meant asking for a password
+  ): PairingRequest!
+  confirmPairingCode(code: String!): Device!              # in the BROWSER, signed in — the one
+                                                          # place identity enters the flow
+  claimDeviceToken(code: String!, secret: String!): DeviceClaim!  # once; secret proves the asker
+  revokeDevice(deviceId: ID!): Boolean!                   # the stolen-laptop button; kills its keys too
+
+  # meeting point (Р5.0)
+  setMeetingAccess(groupId: ID!, mode: MeetingAccessMode!): MeetingPoint!
+  replaceMeetingLink(groupId: ID!): MeetingPoint!         # the old slug is remembered, so it can
+                                                          # say «заменена» instead of «не найдено»
+  hostHeartbeat(deviceToken: String!): HostPresence!      # the machine says it is alive
+
   # summary (R4.2) — teacher-only, all of them; sendChatMessage above is everyone's
   assembleLessonSummary(sessionId: ID!): LessonSummary!   # «собрать саммари сейчас»
   addSummaryItem(
@@ -1402,6 +1505,9 @@ type Subscription {
   # «показать всем» (R4.3) — the teacher points at a word; each client turns to the card it
   # can already read for itself. An id travels, nothing is stored.
   wordShown(sessionId: ID!): WordShown!
+  # Р5.0 — the «преподаватель не в сети» screen, told the moment it stops being true. This is
+  # also what auto-opens the room: the pupil does not refresh, the page notices.
+  hostPresenceChanged(slug: String!): HostPresence!
   # standing chat (R2) — the socket re-checks membership before streaming anything
   channelMessageReceived(channelId: ID!): ChannelMessage!
   # current user's notifications (new grade, absence, CMF insight, ...)

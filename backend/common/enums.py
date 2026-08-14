@@ -458,6 +458,43 @@ class SummarySource(Enum):
     TEACHER = "teacher"  # написал преподаватель
 
 
+# --- Desktop host: devices and the meeting point (Р5.0, PROMPT_14) ------------
+@strawberry.enum
+class DevicePlatform(Enum):
+    """What kind of machine is hosting. Reported by the app, used for nothing but telling
+    two of a teacher's machines apart in the revoke list."""
+
+    MACOS = "macos"
+    WINDOWS = "windows"
+    LINUX = "linux"
+    OTHER = "other"
+
+
+@strawberry.enum
+class MeetingAccessMode(Enum):
+    """Who may come in by the group's link (atlas D3).
+
+    The default is the sheet's default and stays that way until the owner answers §5.1 of
+    PROMPT_14 — this enum exists so the answer is a one-line change, not a redesign.
+    """
+
+    GROUP_ONLY = "group_only"  # только ученики этой группы
+    ANY_AUTHENTICATED = "any_authenticated"  # любой, кто вошёл в Flamingo
+    KNOCK = "knock"  # с подтверждением преподавателя на входе
+
+
+@strawberry.enum
+class JoinDecision(Enum):
+    """What the person holding a link is told. Never a bare «нет» — D3 is explicit that a
+    stranger sees «вы не в этой группе» with a way forward, and an old link says it was
+    replaced rather than that it never existed."""
+
+    ALLOWED = "allowed"
+    NOT_IN_GROUP = "not_in_group"
+    KNOCK_REQUIRED = "knock_required"
+    LINK_REPLACED = "link_replaced"
+
+
 # --- Jurisdiction gate (docs/rnd/RND_01_JURISDICTION.md) ---------------------
 # Deliberately NOT @strawberry.enum: the compliance layer is server-side only. A client
 # must never be able to read (let alone influence) the jurisdiction decision, and keeping

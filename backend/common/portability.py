@@ -88,6 +88,16 @@ CABINET_TABLES: tuple[ExportedModel, ...] = (
     ExportedModel("seedum.AttentionMetric", "§4.2 п.6 — avg_attention buckets, nothing finer"),
     ExportedModel("seedum.Recommendation", "§4.2 п.5 — a personal indicator"),
     ExportedModel("seedum.UbpBackup", "already an opaque client-encrypted blob"),
+    # the way in (Р5.0) — the group's front door outlives the laptop behind it
+    ExportedModel(
+        "meetingpoint.MeetingPoint",
+        "the group's permanent link. A pupil saved it once; losing it to a laptop replacement"
+        " is precisely the disaster the mandatory backup exists to prevent",
+    ),
+    ExportedModel(
+        "meetingpoint.RetiredLink",
+        "so a replaced link still answers «заменена» after a restore, instead of «не найдено»",
+    ),
 )
 
 #: Deliberately NOT in a cabinet, each for a reason. Listed so the omission is a decision on
@@ -107,6 +117,13 @@ NOT_EXPORTED: dict[str, str] = {
         " with it — the licence travels with the source, not with a user's file"
     ),
     "exercises.LexicalExample": "same, and its Tatoeba credit belongs with the source",
+    "devices.Device": (
+        "a machine is paired, not restored. Carrying the list to a new laptop would resurrect"
+        " entries for machines that no longer exist — and the whole point of the revoke button"
+        " is that the list says what is true right now"
+    ),
+    "devices.DeviceToken": "a credential. It must not travel, and it could not: it is a hash",
+    "devices.PairingCode": "a ten-minute credential; dead long before any restore",
 }
 
 

@@ -1,0 +1,218 @@
+"""Pairing a machine: request → confirm in a browser → claim once (Р5.0).
+
+The whole flow, in three calls and one rule each:
+
+* ``request_pairing_code`` — **unauthenticated**, because the app has no identity yet. That
+  is the point of the design, not a gap in it: an app that could authenticate would have had
+  to ask for a password.
+* ``confirm_pairing_code`` — **authenticated**, in the browser, by the person who owns the
+  account. This is where identity enters, and it is the only place.
+* ``claim_device_token`` — unauthenticated, but needs the secret the asking app holds. Runs
+  exactly once and hands back the key in plaintext for the only time it will ever exist
+  outside a keychain.
+
+Jurisdiction: pairing is registered as `device_pairing` in ``matrix.json``. It is not
+ceremony — binding a machine is the act that moves children's data onto a private laptop, and
+the EU analysis for that (controller/processor, DPIA) has not been done (OWNER_SCOPE §18).
+"""
+
+from __future__ import annotations
+
+import datetime as dt
+import hashlib
+import secrets
+
+from django.db import transaction
+from django.utils import timezone
+
+from common.compliance.policy import require_feature
+from common.exceptions import NotFound, PermissionDenied, ValidationError
+
+from .models import Device, DeviceToken, PairingCode
+
+FEATURE_PAIRING = "device_pairing"
+
+#: PROMPT_14 §2.2.3. Ten minutes is long enough to walk to a browser and short enough that a
+#: code left on a screen is dead before the room empties.
+PAIRING_TTL = dt.timedelta(minutes=10)
+
+#: No 0/O/1/I — read off one screen and typed into another, in a hurry. Same alphabet the
+#: projector code uses, for the same reason.
+_CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
+
+MAX_DEVICE_NAME = 120
+
+
+def _new_code() -> str:
+    return "".join(secrets.choice(_CODE_ALPHABET) for _ in range(6))
+
+
+def hash_secret(raw: str) -> str:
+    """sha256, no salt — deliberately.
+
+    These are 256-bit random strings we generated ourselves, not passwords a person chose:
+    there is no dictionary to attack and no reuse across sites to protect. A slow KDF here
+    would buy nothing and would put a work factor on the heartbeat path.
+    """
+    return hashlib.sha256(raw.encode("utf-8")).hexdigest()
+
+
+def _new_secret() -> str:
+    return secrets.token_urlsafe(32)
+
+
+# --- 1. the app asks ---------------------------------------------------------------------
+
+
+@transaction.atomic
+def request_pairing_code(*, device_name: str, platform: str, app_version: str = "") -> tuple:
+    """The app shows a code. Returns ``(row, secret)`` — the secret is never stored raw.
+
+    Unauthenticated on purpose (§19.4). Nothing is created for an account here: until a
+    person confirms in a browser, this row is an offer, not a permission.
+    """
+    device_name = (device_name or "").strip()[:MAX_DEVICE_NAME]
+    if not device_name:
+        raise ValidationError("A device needs a name")
+
+    secret = _new_secret()
+    for _ in range(10):  # collision retry; the alphabet makes it practically never happen
+        code = _new_code()
+        if PairingCode.objects.filter(code=code).exists():
+            continue
+        row = PairingCode.objects.create(
+            code=code,
+            secret_hash=hash_secret(secret),
+            device_name=device_name,
+            platform=platform,
+            app_version=(app_version or "")[:32],
+            expires_at=timezone.now() + PAIRING_TTL,
+        )
+        return row, secret
+    raise ValidationError("Could not allocate a pairing code")
+
+
+# --- 2. the person confirms, in a browser ---------------------------------------------------
+
+
+def _live_code(code: str) -> PairingCode:
+    row = PairingCode.objects.filter(code=(code or "").strip().upper()).first()
+    # One error for «wrong», «expired» and «already used». Distinguishing them would turn the
+    # endpoint into an oracle for guessing codes, and none of the three is actionable
+    # differently by the person: they ask the app for a new code either way.
+    if row is None or row.consumed_at is not None or row.expires_at < timezone.now():
+        raise NotFound("Pairing code not found")
+    return row
+
+
+def confirm_pairing_code(user, code: str) -> Device:
+    """«Связать» in the browser. The one place identity enters the flow."""
+    # Before the transaction: a refusal writes evidence and then raises, and inside an atomic
+    # block that raise would roll the evidence back with it (common/compliance/policy.py).
+    require_feature(user, FEATURE_PAIRING)
+    return _confirm(user, code)
+
+
+@transaction.atomic
+def _confirm(user, code: str) -> Device:
+    row = _live_code(code)
+    if row.confirmed_at is not None:
+        raise ValidationError("This code has already been confirmed")
+
+    device = Device.objects.create(
+        owner=user,
+        name=row.device_name,
+        platform=row.platform,
+        app_version=row.app_version,
+    )
+    row.confirmed_at = timezone.now()
+    row.confirmed_by = user
+    row.device = device
+    row.save(update_fields=["confirmed_at", "confirmed_by", "device", "updated_at"])
+    return device
+
+
+# --- 3. the app collects the key, once ------------------------------------------------------
+
+
+@transaction.atomic
+def claim_device_token(*, code: str, secret: str) -> tuple[Device, str]:
+    """Exchange a confirmed code for the machine key. Returns ``(device, raw_token)``.
+
+    The secret is what makes this safe to leave unauthenticated: the code proves a human
+    approved, the secret proves this is the machine that asked. Holding only one of the two
+    gets you nothing.
+    """
+    row = _live_code(code)
+    if row.confirmed_at is None or row.device is None:
+        raise ValidationError("This code has not been confirmed yet")
+    if not secrets.compare_digest(row.secret_hash, hash_secret(secret or "")):
+        # Same message as an unknown code — a different one would say «the code is real,
+        # keep trying the secret».
+        raise NotFound("Pairing code not found")
+
+    raw = secrets.token_urlsafe(48)
+    DeviceToken.objects.create(device=row.device, token_hash=hash_secret(raw))
+    row.consumed_at = timezone.now()
+    row.save(update_fields=["consumed_at", "updated_at"])
+    return row.device, raw
+
+
+# --- living with a paired machine -------------------------------------------------------------
+
+
+def authenticate_device(raw_token: str) -> Device | None:
+    """Resolve a machine key to its device, or None. Never raises — a caller decides what an
+    unknown key means in its own context."""
+    if not raw_token:
+        return None
+    token = (
+        DeviceToken.objects.filter(token_hash=hash_secret(raw_token), revoked_at__isnull=True)
+        .select_related("device__owner")
+        .first()
+    )
+    if token is None or token.device.is_revoked:
+        return None
+    return token.device
+
+
+def touch(device: Device) -> Device:
+    """Record that the machine is alive. Presence is read from this."""
+    now = timezone.now()
+    Device.objects.filter(id=device.id).update(last_seen_at=now, updated_at=now)
+    DeviceToken.objects.filter(device=device, revoked_at__isnull=True).update(last_used_at=now)
+    device.last_seen_at = now
+    return device
+
+
+def my_devices(user) -> list[Device]:
+    """The caller's own machines. Takes no user id."""
+    return list(Device.objects.filter(owner=user, revoked_at__isnull=True))
+
+
+@transaction.atomic
+def revoke_device(user, device_id) -> bool:
+    """«Отозвать» — the stolen-laptop button (§19.4 п.3).
+
+    Revoking the device revokes its keys in the same breath. Leaving a live key attached to a
+    dead device is exactly the kind of half-revocation that reads as done and is not.
+    """
+    device = Device.objects.filter(id=device_id).first()
+    if device is None:
+        raise NotFound("Device not found")
+    if device.owner_id != getattr(user, "id", None):
+        # Not «нельзя» — «нет такой». Whose machines exist is not a stranger's business.
+        raise NotFound("Device not found")
+
+    now = timezone.now()
+    device.revoked_at = now
+    device.save(update_fields=["revoked_at", "updated_at"])
+    DeviceToken.objects.filter(device=device, revoked_at__isnull=True).update(
+        revoked_at=now, updated_at=now
+    )
+    return True
+
+
+def require_owner(user, device: Device) -> None:
+    if device.owner_id != getattr(user, "id", None):
+        raise PermissionDenied("Not your device")

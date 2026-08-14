@@ -16,6 +16,8 @@ from apps.chat.graphql.queries import ChatQuery
 from apps.chat.graphql.subscriptions import ChatSubscription
 from apps.courses.graphql.mutations import CoursesMutation
 from apps.courses.graphql.queries import CoursesQuery
+from apps.devices.graphql.mutations import DevicesMutation
+from apps.devices.graphql.queries import DevicesQuery
 from apps.exercises.graphql.mutations import ExercisesMutation
 from apps.exercises.graphql.queries import ExercisesQuery
 from apps.exercises.graphql.subscriptions import DictionarySubscription
@@ -24,6 +26,9 @@ from apps.homework.graphql.mutations import HomeworkMutation
 from apps.homework.graphql.queries import HomeworkQuery
 from apps.institutions.graphql.mutations import InstitutionsMutation
 from apps.institutions.graphql.queries import InstitutionsQuery
+from apps.meetingpoint.graphql.mutations import MeetingPointMutation
+from apps.meetingpoint.graphql.queries import MeetingPointQuery
+from apps.meetingpoint.graphql.subscriptions import MeetingPointSubscription
 from apps.scheduling.graphql.mutations import SchedulingMutation
 from apps.scheduling.graphql.queries import SchedulingQuery
 from apps.scheduling.graphql.subscriptions import SchedulingSubscription
@@ -47,6 +52,8 @@ class Query(
     BoardQuery,
     ExercisesQuery,
     SummariesQuery,
+    DevicesQuery,
+    MeetingPointQuery,
 ):
     pass
 
@@ -64,6 +71,8 @@ class Mutation(
     BoardMutation,
     ExercisesMutation,
     SummariesMutation,
+    DevicesMutation,
+    MeetingPointMutation,
 ):
     pass
 
@@ -76,6 +85,7 @@ class Subscription(
     BoardSubscription,
     SummariesSubscription,
     DictionarySubscription,
+    MeetingPointSubscription,
 ):
     pass
 
