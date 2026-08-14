@@ -1,4 +1,16 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="flamingo app icon">
+  <title>flamingo</title>
+  <desc>Иконка приложения: знак на песочном поле. Использован рисунок для мелких размеров — на иконке в доке тонкая шея основного знака пропадает.</desc>
   <rect width="128" height="128" rx="30" fill="#F4EFE6"/>
-  <circle cx="64" cy="64" r="30" fill="#D2562E"/>
+  <g transform="translate(14,12) scale(0.79)">
+    <g fill="none" stroke="#e14e1f" stroke-linecap="round">
+      <path d="M24 58 L4 55" stroke-width="9"/>
+      <path d="M46 82 L42 101" stroke-width="8"/>
+      <path d="M61 80 L64 100" stroke-width="8"/>
+    </g>
+    <path d="M62 46 C70 38 66 28 74 20" fill="none" stroke="#e14e1f" stroke-width="14" stroke-linecap="round"/>
+    <ellipse cx="50" cy="58" rx="30" ry="25" fill="#e14e1f" transform="rotate(-6 50 58)"/>
+    <circle cx="78" cy="17" r="11" fill="#e14e1f"/>
+    <path d="M86 10 L114 18 L87 25 Z" fill="#1d1d1f"/>
+  </g>
 </svg>
