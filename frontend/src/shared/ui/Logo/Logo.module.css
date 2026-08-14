@@ -1,12 +1,31 @@
+/* The lockup sits on one baseline: mark, then wordmark. The mark scales with the type
+   (em, not px), so a heading logo and a sidebar logo stay in the same proportion — the
+   brandbook's rule about the gap being half the mark height falls out of that automatically. */
 .logo {
   font-family: var(--font-heading);
   font-weight: var(--weight-semibold);
   font-size: var(--text-h3);
   letter-spacing: var(--tracking-snug);
   display: inline-flex;
-  align-items: flex-end;
+  align-items: center;
+  gap: 0.42em;
   color: var(--color-text);
   margin: 0;
+  line-height: 1;
+}
+
+/* 1.55em keeps the bird above ~28px at every place the logo is used. Below that its neck
+   disappears — that size has its own drawing (design-assets/flamingo-bird-small.svg). */
+.mark {
+  width: 1.7em;
+  height: 1.55em;
+  flex: none;
+  overflow: visible;
+}
+
+.word {
+  display: inline-flex;
+  align-items: flex-end;
 }
 
 .dot {
