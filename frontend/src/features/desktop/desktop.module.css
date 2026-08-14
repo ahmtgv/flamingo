@@ -26,7 +26,7 @@
   align-items: center;
   gap: var(--space-2);
   font-size: var(--text-caption);
-  font-weight: 500;
+  font-weight: var(--weight-medium);
   flex: none;
 }
 /* Знак бренда в строке заголовка. Высота в em — если кегль строки поменяется,
@@ -62,7 +62,7 @@
 }
 .lessonName {
   font-size: var(--text-caption);
-  font-weight: 500;
+  font-weight: var(--weight-medium);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -90,7 +90,7 @@
   gap: var(--space-2);
   font-family: var(--font-mono);
   font-size: var(--text-overline);
-  font-weight: 500;
+  font-weight: var(--weight-medium);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-pill);
   padding: var(--space-1) var(--space-3);
@@ -185,7 +185,7 @@
 .factK {
   font-family: var(--font-mono);
   font-size: var(--text-overline);
-  font-weight: 500;
+  font-weight: var(--weight-medium);
   color: var(--color-text-tertiary);
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -193,7 +193,7 @@
 .factV {
   font-family: var(--font-mono);
   font-size: var(--text-caption);
-  font-weight: 500;
+  font-weight: var(--weight-medium);
   color: var(--color-text);
   font-variant-numeric: tabular-nums;
 }
@@ -284,7 +284,7 @@
 }
 .offT {
   font-size: var(--text-h3);
-  font-weight: 600;
+  font-weight: var(--weight-semibold);
 }
 .offS {
   font-size: var(--text-small);
@@ -298,7 +298,7 @@
   justify-self: center;
   margin-top: var(--space-1);
   font-size: var(--text-caption);
-  font-weight: 500;
+  font-weight: var(--weight-medium);
   color: var(--color-success-text);
   background: var(--color-success-bg);
   border-radius: var(--radius-pill);
@@ -325,7 +325,7 @@
 .btn,
 .btnGhost {
   font-size: var(--text-small);
-  font-weight: 500;
+  font-weight: var(--weight-medium);
   border-radius: var(--radius-control);
   padding: var(--space-2) var(--space-5);
   cursor: pointer;

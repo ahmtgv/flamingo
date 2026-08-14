@@ -23,7 +23,10 @@
 }
 
 .sm {
+  /* V-06: маленькая кнопка остаётся маленькой на вид, но её область нажатия не меньше
+     `--tap-min`. Высота задаёт вид, min-height — попадание. */
   height: var(--control-height-sm);
+  min-height: var(--tap-min);
   padding: 0 var(--space-3);
   font-size: var(--text-small);
 }

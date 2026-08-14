@@ -277,11 +277,25 @@
    ------------------------------------------------------------ */
 
 /* ------------------------------------------------------------
-   7. Global voice (audit B-7). This is the ONLY global rule: without it, any element a
-   CSS module does not explicitly style inherits the BROWSER default (serif Times) — the
-   room subtitle / privacy indicator rendered serif on the 2026-07-06 screenshots. The
-   UI voice cascades from body; mono/heading voices stay opt-in per component.
+   7. Глобальные правила — ровно два, и оба про то, что иначе наследуется от браузера.
+
+   🔴 V-01 (аудит 14.08). `border-box` глобально. Без него контрол с `width:100%`, паддингом
+   и рамкой шире своего контейнера: колонка формы 460px → карточка с `--space-6` → внутри
+   410px → инпут 410+32+2 = 444px, то есть на 34px за правым краем. Это и есть «рамка
+   обрезает содержимое» на скриншоте владельца.
+
+   Команда лечила это девять раз локально (start · chat · subject×2 · test · dictionary ·
+   roomframe×2 · summary) — формы заплатку не получили и получить не должны были: правило
+   одно и оно здесь. Локальные `box-sizing` сняты вместе с этой правкой.
    ------------------------------------------------------------ */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* Голос интерфейса (аудит B-7): без него элемент, который CSS-модуль не стилизует явно,
+   наследует браузерный Times. Каскадирует от body; mono/heading остаются opt-in. */
 body {
   font-family: var(--font-body);
   color: var(--color-text);

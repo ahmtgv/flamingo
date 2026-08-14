@@ -38,7 +38,9 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(function T
         {...inputProps}
       />
       {error ? (
-        <p className={styles.error} id={`${id}-error`}>
+        /* 🔴 R-16 (аудит 14.08): без role="alert" ошибка поля не объявляется скринридеру —
+           человек нажал «Продолжить», ничего не услышал и не понял, что форма его не пустила. */
+        <p className={styles.error} id={`${id}-error`} role="alert">
           {error}
         </p>
       ) : hint ? (

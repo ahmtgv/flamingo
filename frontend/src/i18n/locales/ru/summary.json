@@ -31,7 +31,7 @@
     "words_few": "{{count}} слова",
     "words_many": "{{count}} слов",
     "wordsPlain": "слова",
-    "watch": "ошибка",
+    "watch": "обратите внимание",
     "due": "до {{date}}",
     "homework": "задано"
   },

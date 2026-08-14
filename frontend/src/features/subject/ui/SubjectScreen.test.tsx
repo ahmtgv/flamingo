@@ -205,12 +205,12 @@ describe('SubjectScreen — atlas sheet 01', () => {
     expect(within(dialog).getByText(/microobservatory/)).toBeInTheDocument();
   });
 
-  it('keeps «от учителя» and «мои сохранённые» in two blocks that never mix', async () => {
+  it('keeps «от преподавателя» and «мои сохранённые» in two blocks that never mix', async () => {
     render([cabinetMock(cabinet())]);
     await screen.findByRole('heading', { name: 'Астрономия' });
     await userEvent.click(screen.getByRole('tab', { name: /Материалы/ }));
 
-    const fromTeacher = screen.getByRole('region', { name: 'От учителя и по программе' });
+    const fromTeacher = screen.getByRole('region', { name: 'От преподавателя и по программе' });
     const mine = screen.getByRole('region', { name: 'Что я сохранил по этому предмету' });
 
     expect(within(fromTeacher).getByText('NASA Exoplanet Archive')).toBeInTheDocument();
@@ -226,7 +226,7 @@ describe('SubjectScreen — atlas sheet 01', () => {
     await screen.findByRole('heading', { name: 'Астрономия' });
     await userEvent.click(screen.getByRole('tab', { name: /Материалы/ }));
 
-    const fromTeacher = screen.getByRole('region', { name: 'От учителя и по программе' });
+    const fromTeacher = screen.getByRole('region', { name: 'От преподавателя и по программе' });
     const mine = screen.getByRole('region', { name: 'Что я сохранил по этому предмету' });
     expect(within(fromTeacher).queryByText('взять массу и период')).not.toBeInTheDocument();
     expect(within(mine).getByText('взять массу и период')).toBeInTheDocument();
@@ -263,7 +263,7 @@ describe('SubjectScreen — atlas sheet 01', () => {
     await screen.findByRole('heading', { name: 'Астрономия' });
     await userEvent.click(screen.getByRole('tab', { name: /Материалы/ }));
 
-    const fromTeacher = screen.getByRole('region', { name: 'От учителя и по программе' });
+    const fromTeacher = screen.getByRole('region', { name: 'От преподавателя и по программе' });
     await userEvent.click(within(fromTeacher).getByRole('button', { name: 'Действия' }));
     await userEvent.click(screen.getByRole('menuitem', { name: /В мои материалы/ }));
     await userEvent.type(screen.getByLabelText('Зачем сохраняю'), 'пригодится для лабораторной');
@@ -281,7 +281,7 @@ describe('SubjectScreen — atlas sheet 01', () => {
     await screen.findByRole('heading', { name: 'Астрономия' });
     await userEvent.click(screen.getByRole('tab', { name: /Материалы/ }));
 
-    const fromTeacher = screen.getByRole('region', { name: 'От учителя и по программе' });
+    const fromTeacher = screen.getByRole('region', { name: 'От преподавателя и по программе' });
     await userEvent.click(within(fromTeacher).getByRole('button', { name: 'Действия' }));
     await userEvent.click(screen.getByRole('menuitem', { name: /Поделиться/ }));
 
@@ -298,7 +298,7 @@ describe('SubjectScreen — atlas sheet 01', () => {
     expect(within(who).getByText('Мария Петровна')).toBeInTheDocument();
 
     const sources = screen.getByRole('region', { name: 'Источники' });
-    expect(within(sources).getByText('в уроке · программа и учитель')).toBeInTheDocument();
+    expect(within(sources).getByText('в уроке · программа и преподаватель')).toBeInTheDocument();
     expect(
       within(sources).getByText('рекомендации по теме · не входит в урок'),
     ).toBeInTheDocument();

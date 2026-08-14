@@ -409,9 +409,12 @@ function AttentionRow({
   }
 
   const due = entry.kind === 'HOMEWORK_DUE' && entry.at ? daysUntil(entry.at, now) : null;
+  // 🔴 T-06 (аудит 14.08): «проверено, есть комментарий» ставилось при ЛЮБОМ `due === null` —
+  // то есть и там, где работа не проверена, и там, где комментария нет. Штамп говорит теперь
+  // только то, что известно: срока у этой строки нет.
   const tag =
     due === null
-      ? t('entry.graded')
+      ? t('entry.noDeadline')
       : due === 0
         ? t('entry.dueToday')
         : due === 1

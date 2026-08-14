@@ -5,8 +5,8 @@
     "chat": "Чат",
     "sources": "Источники мира",
     "openChat": "Открыть чат",
-    "chatSoonTitle": "Чат скоро откроется",
-    "chatSoonBody": "Каналы предмета, переписка с преподавателем и одноклассниками появятся в ближайшем обновлении.",
+    "chatSoonTitle": "Чат предмета",
+    "chatSoonBody": "Каналы предмета, переписка с преподавателем и одноклассниками — на странице чата.",
     "close": "Закрыть"
   },
   "account": {
@@ -25,7 +25,7 @@
   "profile": {
     "pupil": "Ученик",
     "cadet": "Курсант",
-    "teacher": "Учитель",
+    "teacher": "Преподаватель",
     "pupilSub_one": "{{institution}} · {{count}} предмет",
     "pupilSub_few": "{{institution}} · {{count}} предмета",
     "pupilSub_many": "{{institution}} · {{count}} предметов",
@@ -76,7 +76,8 @@
     "queueAge_few": "старшей {{count}} дня",
     "queueAge_many": "старшей {{count}} дней",
     "openQueue": "Открыть проверку",
-    "live": "идёт"
+    "live": "идёт",
+    "noDeadline": "без срока"
   },
   "empty": {
     "today": "Сегодня занятий нет",

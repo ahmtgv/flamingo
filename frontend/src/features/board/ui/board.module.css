@@ -108,12 +108,15 @@
 .text {
   fill: var(--color-text);
   font-family: var(--font-body);
-  font-size: 14px;
+  font-size: var(--text-small);
 }
 .author {
   fill: var(--color-text-tertiary);
   font-family: var(--font-mono);
-  font-size: 9px;
+  /* Было 9px литералом: в детском режиме токены растут, а литерал — нет, и
+     семилетний читал подпись девятым кеглем. Ступени мельче overline в системе
+     нет намеренно. */
+  font-size: var(--text-overline);
 }
 g[data-selected] rect,
 path[data-selected] {

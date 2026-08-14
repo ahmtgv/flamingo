@@ -1,0 +1,33 @@
+/* Подтверждение машины — страница /связать (T-05). */
+.page {
+  display: grid;
+  place-items: center;
+  min-height: 100vh;
+  padding: var(--space-7);
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+.card {
+  display: grid;
+  gap: var(--space-4);
+  max-width: 460px;
+  width: 100%;
+}
+.h {
+  font-size: var(--text-h2);
+  font-weight: var(--weight-semibold);
+  letter-spacing: -0.02em;
+}
+.p {
+  font-size: var(--text-small);
+  color: var(--color-text-secondary);
+  line-height: var(--leading-body);
+}
+.note {
+  font-size: var(--text-caption);
+  color: var(--color-text-tertiary);
+  line-height: var(--leading-snug);
+}
+.submit {
+  margin-top: var(--space-4);
+}

@@ -6,6 +6,8 @@ import {
   useRequestPairingCodeMutation,
 } from '@/entities/graphql/generated';
 
+import { PUBLIC_ORIGIN } from '@/shared/lib/env';
+
 import { rememberMachineKey } from '../machineKey';
 
 import { countdown, formatPairingCode } from './firstRun';
@@ -14,7 +16,9 @@ import styles from './setup.module.css';
 /** Как часто спрашиваем, подтвердили ли код в браузере. */
 const POLL_MS = 2000;
 /** Адрес страницы подтверждения — тот же, что напечатан на экране. */
-const CONFIRM_URL = 'https://flamingo.plus/связать';
+// 🔴 T-05: адрес существует (маршрут /link и псевдоним /связать). Печатаем латинский —
+// его набирают руками с чужого экрана, и кириллица в адресной строке спотыкается о раскладку.
+const CONFIRM_URL = `${PUBLIC_ORIGIN || 'https://flamingo.plus'}/link`;
 
 /**
  * Шаг 1 — связывание машины кодом (atlas D2, OWNER_SCOPE §19.4).

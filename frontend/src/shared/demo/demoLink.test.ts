@@ -72,7 +72,7 @@ describe('resolveDemoOperation — screens render their populated (non-empty) st
     const d = resolveDemoOperation('AdminInstitution', {}) as {
       me?: { adminProfile?: { institution?: { name?: string } } };
     };
-    expect(d.me?.adminProfile?.institution?.name).toBe('Гимназия №1');
+    expect(d.me?.adminProfile?.institution?.name).toBe('Учебное заведение');
   });
 });
 
@@ -83,9 +83,9 @@ describe('resolveDemoOperation — mutations succeed and update the store optimi
       resolveDemoOperation('Me', {}) as { me: { parentProfile: { children: unknown[] } } }
     ).me.parentProfile.children.length;
     const res = resolveDemoOperation('AddChild', {
-      input: { firstName: 'Кира', lastName: 'Иванова', consent152fz: true, gradeLevel: '2 класс' },
+      input: { firstName: 'Ребёнок', lastName: '', consent152fz: true, gradeLevel: '2 класс' },
     }) as { addChild: { child: { firstName: string } } };
-    expect(res.addChild.child.firstName).toBe('Кира');
+    expect(res.addChild.child.firstName).toBe('Ребёнок');
     const after = (
       resolveDemoOperation('Me', {}) as { me: { parentProfile: { children: unknown[] } } }
     ).me.parentProfile.children.length;

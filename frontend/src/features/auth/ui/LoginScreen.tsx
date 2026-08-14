@@ -2,6 +2,8 @@ import { ICON_SM } from '@/shared/ui/iconSizes';
 import { AlertCircle } from 'lucide-react';
 import { type FormEvent, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+
+import { failureKind } from '@/shared/lib/requestFailure';
 import { useNavigate } from 'react-router-dom';
 
 import { useLoginMutation } from '@/entities/graphql/generated';
@@ -31,10 +33,22 @@ export function LoginScreen() {
       const { data } = await login({ variables: { email, password } });
       if (data?.login) {
         applyAuth(data.login);
-        navigate('/app', { replace: true });
+        // 🔴 R-09: /start — утверждённый лист 00. На /app вёл только этот путь, и человек
+        // после входа попадал в архивный кабинет, а после F5 — в новый.
+        navigate('/start', { replace: true });
       }
-    } catch {
-      setFormError(t('login.failed'));
+    } catch (error) {
+      // 🔴 R-02: «неверная почта или пароль» — только когда сервер ДЕЙСТВИТЕЛЬНО отказал.
+      // Раньше эту фразу получал и тот, у кого просто лежал сервер: человек с верным паролем
+      // шёл его менять и терял доступ по-настоящему.
+      const kind = failureKind(error);
+      setFormError(
+        kind === 'unreachable'
+          ? t('login.unreachable')
+          : kind === 'rejected'
+            ? t('login.failedCredentials')
+            : t('login.unknown'),
+      );
     }
   }
 

@@ -27,6 +27,7 @@ def _student(email="s@e.com"):
         last_name="Т",
         role=Role.STUDENT,
         birth_date=date(2008, 1, 1),
+        consent_152fz=True,
     )
 
 

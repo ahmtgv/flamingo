@@ -49,6 +49,7 @@ def _lesson_with_a_pupil():
         last_name="Коваль",
         role=Role.STUDENT,
         birth_date=date(2011, 5, 1),
+        consent_152fz=True,
     )
     course = courses.create_course(teacher, title="English A2", subject="Английский", level="a2")
     section = courses.create_section(teacher, course.id, title="Unit 4")
@@ -130,6 +131,7 @@ def test_the_consent_check_never_stands_in_for_a_permission_check(monkeypatch):
         last_name="Человек",
         role=Role.STUDENT,
         birth_date=date(2011, 5, 1),
+        consent_152fz=True,
     )
     assert stranger.consent_attention is False
     with pytest.raises(PermissionDenied):

@@ -64,6 +64,7 @@ def a_lesson_with_marked_work():
         last_name="Коваль",
         role=Role.STUDENT,
         birth_date=date(2011, 5, 1),
+        consent_152fz=True,
     )
     course = courses.create_course(teacher, title="English A2", subject="Английский", level="a2")
     section = courses.create_section(teacher, course.id, title="Unit 4")

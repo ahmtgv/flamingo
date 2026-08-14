@@ -41,6 +41,9 @@ class RegisterUserInput:
     last_name: str
     role: Role
     locale: str = "ru"
+    # 🔴 R-04: согласие 152-ФЗ доезжает до сервера. Для ученика младше 18 без него регистрация
+    # не проходит — отказ в `services.register_user`, а не на экране.
+    consent_152fz: bool = False
     student: StudentInfoInput | None = None
     teacher: TeacherInfoInput | None = None
 
@@ -73,6 +76,7 @@ class AccountsMutation:
             specialty=getattr(t, "specialty", None) if t else None,
             education=getattr(t, "education", None) if t else None,
             experience=getattr(t, "experience", None) if t else None,
+            consent_152fz=input.consent_152fz,
         )
         tokens = issue_tokens(user)
         # The caller is now authenticated as `user` for the rest of THIS request, so the

@@ -46,6 +46,7 @@ def test_course_flow_through_schema():
         last_name="С",
         role=Role.STUDENT,
         birth_date=date(2008, 1, 1),
+        consent_152fz=True,
     )
 
     res = schema.execute_sync(
@@ -105,6 +106,7 @@ def test_lesson_query_is_enrollment_gated():
         last_name="С",
         role=Role.STUDENT,
         birth_date=date(2008, 1, 1),
+        consent_152fz=True,
     )
     stranger = accounts.register_user(
         email="lg.stranger@example.com",
@@ -113,6 +115,7 @@ def test_lesson_query_is_enrollment_gated():
         last_name="У",
         role=Role.STUDENT,
         birth_date=date(2008, 1, 1),
+        consent_152fz=True,
     )
 
     course = courses.create_course(teacher, title="Алгебра", subject="Математика", level="grade_7")
@@ -163,6 +166,7 @@ def test_course_discovery_hides_gated_content_and_drafts():
         last_name="С",
         role=Role.STUDENT,
         birth_date=date(2008, 1, 1),
+        consent_152fz=True,
     )
     stranger = accounts.register_user(
         email="disc.stranger@example.com",
@@ -171,6 +175,7 @@ def test_course_discovery_hides_gated_content_and_drafts():
         last_name="У",
         role=Role.STUDENT,
         birth_date=date(2008, 1, 1),
+        consent_152fz=True,
     )
 
     course = courses.create_course(teacher, title="Алгебра", subject="Математика", level="grade_7")
@@ -245,6 +250,7 @@ def test_catalog_counts_are_accurate_not_multiplied():
             last_name="У",
             role=Role.STUDENT,
             birth_date=date(2008, 1, 1),
+            consent_152fz=True,
         )
         courses.enroll(student, course.id)
 
@@ -283,6 +289,7 @@ def test_enrolled_view_fields_and_unpublish_through_schema():
         last_name="С",
         role=Role.STUDENT,
         birth_date=date(2008, 1, 1),
+        consent_152fz=True,
     )
     course = courses.create_course(teacher, title="Алгебра", subject="Математика", level="grade_7")
     section = courses.create_section(teacher, course.id, title="Раздел 1")

@@ -247,7 +247,7 @@ function demoMeetingPoint(): MeetingPointQuery {
       slug: 'english-a2-чт18',
       decision: 'ALLOWED',
       groupName: 'English A2 · группа «Четверг 18:00»',
-      teacherName: 'Люция Валерьевна',
+      teacherName: 'Преподаватель',
       hostOnline: false,
       nextLesson: {
         __typename: 'UpcomingLesson',
@@ -340,8 +340,8 @@ function me(): MeQuery {
 }
 
 // --- Learning profiles (R0.2) --------------------------------------------------------------
-/** The educations inside the demo account, per atlas sheet 00: Аня is a pupil of 9А AND a
- *  cadet on English A2; Мария teaches at the same school. Shapes and the "<kind>:<uuid>" ids
+/** The educations inside the demo account, per atlas sheet 00: Ученик is a pupil of 9А AND a
+ *  cadet on English A2; Преподаватель teaches at the same school. Shapes and the "<kind>:<uuid>" ids
  *  mirror the server projection, so the preview exercises the real switch, not a mock of it. */
 function learningProfiles(): LearningProfilesQuery {
   const role = demoGraphQLRole();
@@ -368,7 +368,7 @@ function learningProfiles(): LearningProfilesQuery {
             id: PROFILE_IDS.teacher,
             kind: 'TEACHER',
             institutionId: IDS.institution,
-            institutionName: 'Гимназия №1',
+            institutionName: 'Учебное заведение',
           }),
         ]
       : role === 'STUDENT'
@@ -377,7 +377,7 @@ function learningProfiles(): LearningProfilesQuery {
               id: PROFILE_IDS.pupil,
               kind: 'PUPIL',
               institutionId: IDS.institution,
-              institutionName: 'Гимназия №1',
+              institutionName: 'Учебное заведение',
               groupName: '9А',
               courseCount: 3,
             }),
@@ -403,8 +403,8 @@ function learningProfiles(): LearningProfilesQuery {
 }
 
 // --- Start page (atlas sheet 00, R0.4) ------------------------------------------------------
-/** The sheet's own scenario: Аня has a lesson starting, homework due and returned feedback;
- *  as a cadet she has no timetable but something to carry on with; Мария teaches today and
+/** The sheet's own scenario: Ученик has a lesson starting, homework due and returned feedback;
+ *  as a cadet she has no timetable but something to carry on with; Преподаватель teaches today and
  *  has a queue waiting. Times are clock-relative so "сегодня" always reads as today. */
 function startPage(): StartPageQuery {
   const role = demoGraphQLRole();
@@ -481,7 +481,7 @@ function startPage(): StartPageQuery {
       kind: 'LESSON_SESSION',
       title: 'Экзопланеты',
       courseTitle: 'Астрономия · 9А',
-      teacherName: 'Мария Петровна',
+      teacherName: 'Преподаватель',
       at: inMin(17),
       sessionId: IDS.session.live,
       lessonId: 'les-1-1',
@@ -491,7 +491,7 @@ function startPage(): StartPageQuery {
       kind: 'LESSON_SESSION',
       title: 'Present Perfect',
       courseTitle: 'Английский · 7Б',
-      teacherName: 'Мария Петровна',
+      teacherName: 'Преподаватель',
       at: inMin(120),
       sessionId: IDS.session.english,
       lessonId: 'les-en-1',
@@ -518,7 +518,7 @@ function startPage(): StartPageQuery {
     kind: 'LESSON_SESSION',
     title: 'Экзопланеты',
     courseTitle: 'Астрономия',
-    teacherName: 'Мария Петровна',
+    teacherName: 'Преподаватель',
     at: inMin(17),
     sessionId: IDS.session.live,
     lessonId: 'les-1-1',
@@ -528,7 +528,7 @@ function startPage(): StartPageQuery {
     kind: 'LESSON_SESSION',
     title: 'Present Perfect',
     courseTitle: 'Английский',
-    teacherName: 'Илья Сергеевич',
+    teacherName: 'Преподаватель 2',
     at: inMin(120),
     sessionId: IDS.session.english,
     lessonId: 'les-en-1',
@@ -756,7 +756,7 @@ function subjectCabinet(vars: Vars): SubjectCabinetQuery {
         subtitle: 'Живые примеры употребления с переводом',
         type: 'LINK',
         url: 'https://tatoeba.org/',
-        fromLabel: 'преподаватель Ирина',
+        fromLabel: 'Преподаватель',
         lessonId: 'les-en-2',
       }),
     ];
@@ -771,7 +771,7 @@ function subjectCabinet(vars: Vars): SubjectCabinetQuery {
         profileKind: kind,
         institutionName: null,
         groupName: null,
-        teacherName: 'Ирина Соколова',
+        teacherName: 'Преподаватель',
         teacherId: users.ilya.id,
         lessonCount: 24,
         studentCount: null,
@@ -897,9 +897,9 @@ function subjectCabinet(vars: Vars): SubjectCabinetQuery {
       // A school subject keeps the five-point mark a parent recognises.
       gradingScale: 'FIVE_POINT',
       profileKind: isTeacher ? 'TEACHER' : 'PUPIL',
-      institutionName: 'Гимназия №1',
+      institutionName: 'Учебное заведение',
       groupName: '9А',
-      teacherName: 'Мария Петровна',
+      teacherName: 'Преподаватель',
       teacherId: users.maria.id,
       lessonCount: 34,
       studentCount: isTeacher ? 24 : null,
@@ -1295,7 +1295,7 @@ function chatChannels(): MyChannelsQuery['myChannels'] {
         courseId: IDS.course.algebra,
         courseTitle: 'Астрономия',
         groupName: '9А',
-        institutionName: 'Гимназия №1',
+        institutionName: 'Учебное заведение',
         unread: store.chat.read.has(CHANNEL_IDS.subject) ? 0 : 2,
         lastMessageText: 'А лабораторную сдавать до завтра?',
         participants: [person(users.sasha, 'STUDENT'), person(users.vera, 'STUDENT')],
@@ -1303,7 +1303,7 @@ function chatChannels(): MyChannelsQuery['myChannels'] {
       channel({
         id: CHANNEL_IDS.staff,
         kind: 'STAFF_ROOM',
-        institutionName: 'Гимназия №1',
+        institutionName: 'Учебное заведение',
         lastMessageText: 'Педсовет перенесли на четверг',
         participants: [person(users.ilya, 'TEACHER'), person(users.galina, 'ADMIN')],
       }),
@@ -1317,22 +1317,22 @@ function chatChannels(): MyChannelsQuery['myChannels'] {
       courseId: IDS.course.algebra,
       courseTitle: 'Астрономия',
       groupName: '9А',
-      institutionName: 'Гимназия №1',
+      institutionName: 'Учебное заведение',
       unread: store.chat.read.has(CHANNEL_IDS.subject) ? 0 : 2,
-      lastMessageText: 'Мария Петровна: материалы к уроку 12 добавила',
+      lastMessageText: 'Преподаватель: материалы к уроку 12 добавила',
       participants: [person(users.maria, 'TEACHER'), person(users.vera, 'STUDENT')],
     }),
     channel({
       id: CHANNEL_IDS.teacher,
       kind: 'PUPIL_TEACHER',
-      institutionName: 'Гимназия №1',
+      institutionName: 'Учебное заведение',
       lastMessageText: 'Пересчитай период и присылай',
       participants: [person(users.maria, 'TEACHER')],
     }),
     channel({
       id: CHANNEL_IDS.peer,
       kind: 'PEER',
-      institutionName: 'Гимназия №1',
+      institutionName: 'Учебное заведение',
       lastMessageText: 'скинешь конспект?',
       participants: [person(users.vera, 'STUDENT')],
     }),
@@ -1344,15 +1344,15 @@ function chatMessages(vars: Vars): ChannelMessagesQuery {
   type Message = ChannelMessagesQuery['channelMessages'][number];
   const seed: Record<string, [string, string, boolean][]> = {
     [CHANNEL_IDS.subject]: [
-      ['Мария Петровна', 'Материалы к уроку 12 добавила, посмотрите до занятия', false],
-      ['Вера Смирнова', 'А лабораторную сдавать до завтра?', false],
+      ['Преподаватель', 'Материалы к уроку 12 добавила, посмотрите до занятия', false],
+      ['Ученик 2', 'А лабораторную сдавать до завтра?', false],
     ],
     [CHANNEL_IDS.teacher]: [
-      ['Мария Петровна', 'Глубина посчитана верно, период — по двум минимумам', false],
-      ['Саша Иванов', 'Понял, пересчитаю', true],
+      ['Преподаватель', 'Глубина посчитана верно, период — по двум минимумам', false],
+      ['Ученик 1', 'Понял, пересчитаю', true],
     ],
-    [CHANNEL_IDS.peer]: [['Вера Смирнова', 'скинешь конспект?', false]],
-    [CHANNEL_IDS.staff]: [['Галина Андреева', 'Педсовет перенесли на четверг', false]],
+    [CHANNEL_IDS.peer]: [['Ученик 2', 'скинешь конспект?', false]],
+    [CHANNEL_IDS.staff]: [['Преподаватель 3', 'Педсовет перенесли на четверг', false]],
   };
   const base: Message[] = (seed[id] ?? []).map(([who, text, mine], i) => ({
     __typename: 'ChannelMessage',
@@ -1369,7 +1369,7 @@ function chatMessages(vars: Vars): ChannelMessagesQuery {
     id: m.id,
     channelId: id,
     senderId: users.sasha.id,
-    senderName: 'Саша Иванов',
+    senderName: 'Ученик 1',
     text: m.text,
     sentAt: m.sentAt,
     mine: true,
@@ -1386,7 +1386,7 @@ function boardElements(): BoardQuery['board']['elements'] {
   const el = (over: Partial<El> & { id: string; kind: El['kind'] }): El => ({
     __typename: 'BoardElement',
     authorId: users.maria.id,
-    authorName: 'Ирина Соколова',
+    authorName: 'Преподаватель',
     x: 0,
     y: 0,
     width: 0,
@@ -1431,7 +1431,7 @@ function boardElements(): BoardQuery['board']['elements'] {
       width: 220,
       height: 110,
       authorId: users.sasha.id,
-      authorName: 'Саша Иванов',
+      authorName: 'Ученик 1',
       data: { text: 'turn left / right' },
     }),
     el({ id: 'b-5', kind: 'LINK', data: { from: 'b-2', to: 'b-4' } }),
@@ -1602,11 +1602,11 @@ const SEEDED_ITEMS: Omit<DemoItem, '__typename'>[] = [
     id: 'si-3',
     section: 'TOPIC',
     source: 'SPEECH',
-    sourceMeta: { speakerName: 'Ирина' },
+    sourceMeta: { speakerName: 'Преподаватель' },
     atOffsetSec: 665,
-    text: 'Ирина: «на экзамене пишите ahead, on — разговорный вариант»',
+    text: 'Преподаватель: «на экзамене пишите ahead, on — разговорный вариант»',
     authorId: null,
-    authorName: 'Ирина Соколова',
+    authorName: 'Преподаватель',
     dueAt: null,
     homeworkId: null,
     edited: false,
@@ -1641,7 +1641,7 @@ const SEEDED_ITEMS: Omit<DemoItem, '__typename'>[] = [
     id: 'si-6',
     section: 'WORDS',
     source: 'BOARD',
-    sourceMeta: { count: 6, elements: 6, authorName: 'Ирина' },
+    sourceMeta: { count: 6, elements: 6, authorName: 'Преподаватель' },
     atOffsetSec: null,
     text: 'get to · turn left / right · go straight ahead · next to · far from · crossroads',
     authorId: null,
@@ -1679,14 +1679,14 @@ const SEEDED_ITEMS: Omit<DemoItem, '__typename'>[] = [
 ];
 
 const SEEDED_CHAT = [
-  { id: 'sc-1', name: 'Петя Ковалёв', text: 'а go straight on тоже правильно?', minutes: 12 },
+  { id: 'sc-1', name: 'Петя ', text: 'а go straight on тоже правильно?', minutes: 12 },
   {
     id: 'sc-2',
-    name: 'Ирина Соколова',
+    name: 'Преподаватель',
     text: 'В британском встречается, на экзамене — ahead',
     minutes: 13,
   },
-  { id: 'sc-3', name: 'Аня Коваль', text: 'можно ссылку на аудио ещё раз?', minutes: 16 },
+  { id: 'sc-3', name: 'Ученик ', text: 'можно ссылку на аудио ещё раз?', minutes: 16 },
 ];
 
 function inDays(days: number): string {
@@ -2516,7 +2516,7 @@ function adminInstitution(): AdminInstitutionQuery {
         institution: {
           __typename: 'Institution',
           id: IDS.institution,
-          name: 'Гимназия №1',
+          name: 'Учебное заведение',
           address: 'г. Москва, ул. Школьная, 1',
           website: 'https://gymnasium1.ru',
           subdomain: 'gymnasium1',
@@ -2583,7 +2583,7 @@ function institutionGroups(): InstitutionGroupsQuery {
       {
         __typename: 'Group',
         id: IDS.group.g7a,
-        name: '7А',
+        name: 'Группа А',
         level: '7 класс',
         students: [stud(users.sasha), stud(users.vera), stud(users.kostya)],
         teachers: [
@@ -2621,7 +2621,7 @@ function sessionRoom(vars: Vars): SessionRoomQuery {
       id,
       status: 'LIVE',
       roomToken: 'demo-room-token',
-      teacherName: 'Мария Петровна',
+      teacherName: 'Преподаватель',
       lesson: { __typename: 'Lesson', id: 'les-1-1', title: 'Алгебра — линейные уравнения' },
     },
   };
@@ -2834,7 +2834,7 @@ export function resolveDemoOperation(
         id,
         kind: 'STICKER',
         authorId: demoGraphQLRole() === 'TEACHER' ? users.maria.id : users.sasha.id,
-        authorName: demoGraphQLRole() === 'TEACHER' ? 'Мария Петровна' : 'Саша Иванов',
+        authorName: demoGraphQLRole() === 'TEACHER' ? 'Преподаватель' : 'Ученик 1',
         x: 40,
         y: 40,
         width: 220,
@@ -2975,7 +2975,7 @@ export function resolveDemoOperation(
           id: b.id,
           title: b.title,
           savedAt: b.savedAt,
-          savedByName: 'Ирина Соколова',
+          savedByName: 'Преподаватель',
           lessonId: 'les-1-11',
           lessonTitle: 'Транзитный метод',
         })),
@@ -3089,7 +3089,7 @@ export function resolveDemoOperation(
           id: message.id,
           channelId,
           senderId: users.sasha.id,
-          senderName: 'Саша Иванов',
+          senderName: 'Ученик 1',
           text: message.text,
           sentAt: message.sentAt,
           mine: true,
@@ -3160,7 +3160,7 @@ export function resolveDemoOperation(
         id,
         kind: inp.kind as BoardQuery['board']['elements'][number]['kind'],
         authorId: users.sasha.id,
-        authorName: 'Саша Иванов',
+        authorName: 'Ученик 1',
         x: Number(inp.x ?? 0),
         y: Number(inp.y ?? 0),
         width: Number(inp.width ?? 0),
@@ -3521,7 +3521,7 @@ export function resolveDemoOperation(
         updateInstitution: {
           __typename: 'Institution',
           id: IDS.institution,
-          name: String(input(variables).name ?? 'Гимназия №1'),
+          name: String(input(variables).name ?? 'Учебное заведение'),
           address: (input(variables).address as string | null) ?? null,
           website: (input(variables).website as string | null) ?? null,
         },
@@ -3654,11 +3654,11 @@ export function resolveDemoOperation(
       return {
         __typename: 'Query',
         meetingParticipants: [
-          { __typename: 'MeetingParticipant', studentId: 'p1', name: 'Аня Коваль', state: 'AT_THE_DOOR', since: iso(-4 * 60_000) },
-          { __typename: 'MeetingParticipant', studentId: 'p2', name: 'Петя Ковалёв', state: 'AT_THE_DOOR', since: iso(-9 * 60_000) },
-          { __typename: 'MeetingParticipant', studentId: 'p3', name: 'Лена Морозова', state: 'INVITED', since: iso(-26 * 3600 * 1000) },
-          { __typename: 'MeetingParticipant', studentId: 'p4', name: 'Дима Соколов', state: 'INVITED', since: iso(-3 * 24 * 3600 * 1000) },
-          { __typename: 'MeetingParticipant', studentId: 'p5', name: 'Ира Волкова', state: 'NEVER_OPENED', since: null },
+          { __typename: 'MeetingParticipant', studentId: 'p1', name: 'Ученик ', state: 'AT_THE_DOOR', since: iso(-4 * 60_000) },
+          { __typename: 'MeetingParticipant', studentId: 'p2', name: 'Петя ', state: 'AT_THE_DOOR', since: iso(-9 * 60_000) },
+          { __typename: 'MeetingParticipant', studentId: 'p3', name: 'Лена 7', state: 'INVITED', since: iso(-26 * 3600 * 1000) },
+          { __typename: 'MeetingParticipant', studentId: 'p4', name: 'Ученик 8', state: 'INVITED', since: iso(-3 * 24 * 3600 * 1000) },
+          { __typename: 'MeetingParticipant', studentId: 'p5', name: 'Ира 6а', state: 'NEVER_OPENED', since: null },
         ],
       } satisfies MeetingParticipantsQuery;
     case 'SetMeetingAccess':

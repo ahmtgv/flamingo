@@ -51,6 +51,7 @@ def test_homework_flow_through_schema():
         last_name="С",
         role=Role.STUDENT,
         birth_date=date(2008, 1, 1),
+        consent_152fz=True,
     )
     course = courses.create_course(teacher, title="Алгебра", subject="Математика", level="grade_7")
     section = courses.create_section(teacher, course.id, title="Раздел 1")

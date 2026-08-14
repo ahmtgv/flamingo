@@ -223,7 +223,6 @@
 .page {
   /* Without this the horizontal padding is added OUTSIDE the 100% width and the sheet
      scrolls sideways on a 375px screen. */
-  box-sizing: border-box;
   width: 100%;
   max-width: var(--content-max-wide);
   margin: 0 auto;

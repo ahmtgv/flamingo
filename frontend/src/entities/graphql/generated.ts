@@ -2108,6 +2108,7 @@ export type RecommendationKind =
   | 'WELLBEING';
 
 export type RegisterUserInput = {
+  consent152fz?: InputMaybe<Scalars['Boolean']['input']>;
   email: Scalars['String']['input'];
   firstName: Scalars['String']['input'];
   lastName: Scalars['String']['input'];

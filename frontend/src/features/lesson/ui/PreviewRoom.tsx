@@ -37,18 +37,18 @@ import vr from './videoroom.module.css';
 /** Демо-состав окна «Класс» — те же люди, что и в остальной демо-проекции комнаты. */
 const DEMO_TEACHER: Participant = {
   id: 'teacher',
-  name: 'Ирина Соколова',
+  name: 'Преподаватель',
   initials: 'ИС',
   speaking: true,
 };
-const DEMO_SELF: Participant = { id: 'self', name: 'Саша Иванов', initials: 'СИ', isSelf: true };
+const DEMO_SELF: Participant = { id: 'self', name: 'Ученик 1', initials: 'СИ', isSelf: true };
 const DEMO_PUPILS: Participant[] = [
-  { id: 'p1', name: 'Саша Иванов', initials: 'СИ', handRaised: true },
-  { id: 'p2', name: 'Вера Смирнова', initials: 'ВС' },
-  { id: 'p3', name: 'Тимур Ибрагимов', initials: 'ТИ', speaking: true },
-  { id: 'p4', name: 'Костя Орлов', initials: 'КО' },
-  { id: 'p5', name: 'Лиза Козлова', initials: 'ЛК' },
-  { id: 'p6', name: 'Марк Волков', initials: 'МВ' },
+  { id: 'p1', name: 'Ученик 1', initials: 'СИ', handRaised: true },
+  { id: 'p2', name: 'Ученик 2', initials: 'ВС' },
+  { id: 'p3', name: 'Ученик 3', initials: 'ТИ', speaking: true },
+  { id: 'p4', name: 'Ученик 4', initials: 'КО' },
+  { id: 'p5', name: 'Ученик 5', initials: 'ЛК' },
+  { id: 'p6', name: 'Ученик 6', initials: 'МВ' },
 ];
 
 /** The preview wears the SAME sheet-02 frame as the real room — otherwise the showcase
@@ -299,9 +299,9 @@ function StudentPreview() {
           <Radio size={13} aria-hidden="true" /> {t('lesson:liveBadge')}
         </p>
         <div className={vr.tiles} data-count={2}>
-          <Tile initials={initialsOf('Мария', 'Петровна')} name="Мария Петровна" />
+          <Tile initials={initialsOf('Преподаватель', 'Преподаватель')} name="Преподаватель" />
           <Tile
-            initials={initialsOf(me?.user.firstName ?? 'Саша', me?.user.lastName ?? 'Иванов')}
+            initials={initialsOf(me?.user.firstName ?? 'Ученик', me?.user.lastName ?? '1')}
             name={t('lesson:you')}
           />
         </div>

@@ -2,6 +2,7 @@ export { DesktopFrame } from './DesktopFrame';
 export { DesktopShell } from './DesktopShell';
 export { OfflineScreen } from './OfflineScreen';
 export { SettingsScreen } from './SettingsScreen';
+export { LinkMachineScreen } from './ui/LinkMachineScreen';
 export { useFrameControls } from './frameControls';
 export { isDesktop, minimiseToTray, setTrayLabel, setTrayMenu, APP_VERSION } from './bridge';
 export { forgetMachineKey, hasMachineKey, rememberMachineKey } from './machineKey';

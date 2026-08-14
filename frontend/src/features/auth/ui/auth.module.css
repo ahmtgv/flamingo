@@ -278,3 +278,26 @@
   margin: 0 auto var(--space-5);
   line-height: var(--leading-body);
 }
+
+/* R-05: подсказка о расхождении возрастной группы с датой рождения. Не ошибка — сообщение:
+   человек ещё ничего не сделал неправильно, ему просто показывают, что знает форма. */
+.hint {
+  font-size: var(--text-caption);
+  color: var(--color-text-secondary);
+  line-height: var(--leading-snug);
+  margin-top: var(--space-2);
+}
+.linkBtn {
+  font: inherit;
+  color: var(--color-link);
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  text-decoration: underline;
+}
+.linkBtn:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+  border-radius: var(--radius-xs);
+}

@@ -2,6 +2,8 @@ import { ICON_LG, ICON_SM } from '@/shared/ui/iconSizes';
 import { ArrowLeft, Check } from 'lucide-react';
 import { type FormEvent, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+
+import { failureKind } from '@/shared/lib/requestFailure';
 import { useNavigate } from 'react-router-dom';
 
 import { useRequestPasswordResetMutation } from '@/entities/graphql/generated';
@@ -17,19 +19,31 @@ export function ResetRequestScreen() {
   const [email, setEmail] = useState('');
   const [errors, setErrors] = useState<Errors>({});
   const [sent, setSent] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
   const [requestReset, { loading }] = useRequestPasswordResetMutation();
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
+    setFormError(null);
     const found = validateEmail(email);
     setErrors(found);
     if (Object.keys(found).length > 0) return;
     try {
       await requestReset({ variables: { email } });
-    } catch {
-      /* never reveal whether the address exists */
+      setSent(true);
+    } catch (error) {
+      // 🔴 R-03: «Проверьте почту» показывалось ВСЕГДА, даже когда запрос упал. Человек ждёт
+      // письма, которого никто не отправлял.
+      //
+      // ⚠️ Разницу между «адреса нет» и «пароль не тот» по-прежнему не показываем — по такому
+      // ответу список почт продукта собирается скриптом. Но «сервер не ответил» — не сведения
+      // об адресе, и молчать о нём не за чем.
+      if (failureKind(error) === 'unreachable') {
+        setFormError(t('reset.unreachable'));
+        return;
+      }
+      setSent(true);
     }
-    setSent(true);
   }
 
   if (sent) {
@@ -71,6 +85,11 @@ export function ResetRequestScreen() {
             placeholder={t('placeholders.email')}
             autoComplete="email"
           />
+          {formError && (
+            <p className={styles.formError} role="alert">
+              {formError}
+            </p>
+          )}
           <Button type="submit" variant="primary" block loading={loading} className={styles.submit}>
             {t('reset.submit')}
           </Button>

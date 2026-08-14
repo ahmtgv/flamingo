@@ -84,3 +84,27 @@ export function validateNewPassword(password: string): Errors {
   else if (password.length < 8) e.password = 'auth:validation.passwordShort';
   return e;
 }
+
+
+/**
+ * Возрастная группа по дате рождения — 🔴 R-05 (аудит 14.08).
+ *
+ * Группу выбирали руками и не сверяли с датой: форма говорила «взрослый», дата рождения —
+ * «двенадцать лет», и расходились база с юридическим фактом. Бэкенд всегда считал по дате
+ * (`accounts/services.compute_age_band`); эта функция — то же правило на экране, чтобы человек
+ * увидел расхождение до отправки, а не получил отказ после.
+ *
+ * Границы те же, что на сервере: до 10 — младший, до 18 — подросток, дальше взрослый.
+ */
+export function ageBandFromBirthDate(birthDate: string): AgeBandUi | null {
+  if (!birthDate) return null;
+  const born = new Date(birthDate);
+  if (Number.isNaN(born.getTime())) return null;
+  const now = new Date();
+  let years = now.getFullYear() - born.getFullYear();
+  const monthDay = now.getMonth() - born.getMonth() || now.getDate() - born.getDate();
+  if (monthDay < 0) years -= 1;
+  if (years < 10) return 'junior';
+  if (years < 18) return 'teen';
+  return 'adult';
+}

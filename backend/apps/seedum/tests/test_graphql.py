@@ -49,6 +49,7 @@ def test_report_and_session_attention_through_schema(monkeypatch):
         last_name="У",
         role=Role.STUDENT,
         birth_date=date(2009, 1, 1),
+        consent_152fz=True,
     )
     # D2 step 3: attention analysis is off by default and the server enforces it. This test is
     # about a pupil who turned it on — the jurisdiction gate is what it is measuring, not consent.
@@ -92,6 +93,7 @@ def test_ubp_backup_through_schema():
         last_name="Б",
         role=Role.STUDENT,
         birth_date=date(2009, 1, 1),
+        consent_152fz=True,
     )
     blob = base64.b64encode(b"opaque-encrypted").decode()
     res = schema.execute_sync(

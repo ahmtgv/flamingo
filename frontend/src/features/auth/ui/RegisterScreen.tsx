@@ -1,7 +1,9 @@
 import { ICON_SM } from '@/shared/ui/iconSizes';
 import { AlertCircle, ArrowLeft, Mail, ShieldCheck, Users } from 'lucide-react';
-import { type ChangeEvent, type FormEvent, useState } from 'react';
+import { type ChangeEvent, type FormEvent, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+
+import { failureKind, serverMessage } from '@/shared/lib/requestFailure';
 import { Navigate, useNavigate, useParams } from 'react-router-dom';
 
 import type { RegisterUserInput } from '@/entities/graphql/generated';
@@ -11,6 +13,7 @@ import { Button, Card, Checkbox, FieldRow, Segmented, TextField } from '@/shared
 import { applyAuth } from '../model/auth';
 import { isUiRole, toGqlRole, type UiRole } from '../model/roles';
 import {
+  ageBandFromBirthDate,
   type AgeBandUi,
   EMPTY_REGISTER,
   type Errors,
@@ -37,10 +40,21 @@ function RegisterForm({ role }: { role: UiRole }) {
   const [errors, setErrors] = useState<Errors>({});
   const [age, setAge] = useState<AgeBandUi>('teen');
   const [formError, setFormError] = useState<string | null>(null);
+  // R-08: плашку надо не только показать, но и подвести к ней человека.
+  const formErrorRef = useRef<HTMLParagraphElement>(null);
   const [registerUser, { loading }] = useRegisterUserMutation();
 
-  const set = (key: keyof typeof values) => (e: ChangeEvent<HTMLInputElement>) =>
+  const set = (key: keyof typeof values) => (e: ChangeEvent<HTMLInputElement>) => {
     setValues((v) => ({ ...v, [key]: e.target.value }));
+    // 🔴 R-07: человек исправил — красное гаснет. Раньше оно оставалось до следующей отправки,
+    // и экран продолжал ругаться на то, чего уже нет.
+    setErrors((prev) => {
+      if (!prev[key]) return prev;
+      const next = { ...prev };
+      delete next[key];
+      return next;
+    });
+  };
   const err = (key: string) => (errors[key] ? t(errors[key]) : undefined);
 
   async function handleSubmit(e: FormEvent) {
@@ -60,6 +74,11 @@ function RegisterForm({ role }: { role: UiRole }) {
       lastName: values.lastName,
       role: toGqlRole(role),
       locale: 'ru',
+      // 🔴 R-04 (аудит 14.08): согласие 152-ФЗ доезжает до сервера. Раньше `values.consent`
+      // спрашивали и выбрасывали: поля не было ни во входе мутации, ни в бэкенде, и
+      // юридически согласие не существовало нигде. Сервер к тому же теперь откажет без него
+      // (`accounts/services.register_user`) — по вычисленному возрасту, а не по форме.
+      consent152fz: values.consent,
     };
     if (role === 'student') {
       input.student = {
@@ -76,14 +95,30 @@ function RegisterForm({ role }: { role: UiRole }) {
       const { data } = await registerUser({ variables: { input } });
       if (data?.registerUser) {
         applyAuth(data.registerUser);
-        navigate('/app', { replace: true });
+        // 🔴 R-09: /start — утверждённый лист 00. Новый преподаватель попадал в архивный
+        // кабинет, а после F5 — в новый: ровно то ощущение «продукт собран из двух разных».
+        navigate('/start', { replace: true });
       }
-    } catch {
-      setFormError(t('common:errors.generic'));
+    } catch (error) {
+      // 🔴 R-06: «сервер не ответил» и «почта занята» — разные события, и текст у них разный.
+      const kind = failureKind(error);
+      setFormError(
+        kind === 'unreachable'
+          ? t('register.unreachable')
+          : (serverMessage(error) ?? t('common:errors.generic')),
+      );
+      // 🔴 R-08: плашка вверху длинной формы без фокуса выглядит как «ничего не произошло».
+      requestAnimationFrame(() => formErrorRef.current?.focus());
     }
   }
 
   const isStudent = role === 'student';
+  // 🔴 R-05: дата рождения — источник правды о возрасте, и она же у сервера. Если человек
+  // выбрал одну группу, а дата говорит другое, показываем это ДО отправки: иначе он получит
+  // отказ после, не поняв, за что.
+  const derivedAge = ageBandFromBirthDate(values.birthDate);
+  const ageMismatch = isStudent && derivedAge !== null && derivedAge !== age;
+
   const showOwnEmail = !(isStudent && age === 'junior');
   const showParentEmail = isStudent && (age === 'junior' || age === 'teen');
 
@@ -114,11 +149,25 @@ function RegisterForm({ role }: { role: UiRole }) {
                 }}
                 options={AGE_OPTIONS.map((value) => ({ value, label: t(`register.age.${value}`) }))}
               />
+              {ageMismatch && (
+                <p className={styles.hint} role="status">
+                  {t('register.ageMismatch', { band: t(`register.age.${derivedAge}`) })}{' '}
+                  <button
+                    type="button"
+                    className={styles.linkBtn}
+                    onClick={() => derivedAge && setAge(derivedAge)}
+                  >
+                    {t('register.ageMismatchFix')}
+                  </button>
+                </p>
+              )}
             </div>
           )}
 
           {formError && (
-            <p className={styles.formError} role="alert">
+            /* R-08: tabIndex={-1} — чтобы плашке можно было отдать фокус программно. Без
+               этого нажатие на длинной форме выглядит как «ничего не произошло». */
+            <p className={styles.formError} role="alert" tabIndex={-1} ref={formErrorRef}>
               <AlertCircle size={ICON_SM} aria-hidden="true" />
               {formError}
             </p>
@@ -217,7 +266,10 @@ function RegisterForm({ role }: { role: UiRole }) {
               onChange={set('parentEmail')}
               error={err('parentEmail')}
               placeholder={t('placeholders.parentEmail')}
-              hint={age === 'junior' ? t('hints.parentManaged') : undefined}
+              /* 🔴 R-10: у младшего логином становится ПОЧТА РОДИТЕЛЯ — и родитель потом не
+                 заведёт свою учётную запись на тот же адрес. Раньше об этом не говорили нигде;
+                 человек узнавал на второй регистрации, когда менять уже поздно. */
+              hint={age === 'junior' ? t('register.juniorSharesParentEmail') : undefined}
             />
           )}
 

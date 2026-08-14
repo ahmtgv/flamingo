@@ -322,7 +322,7 @@ describe('ChatDock — the base safety mode is visible, not hidden', () => {
     render([channelsMock([]), policyMock()]);
     await userEvent.click(await screen.findByRole('button', { name: /Чат/ }));
 
-    expect(await screen.findByText('Пока ни одного диалога')).toBeInTheDocument();
+    expect(await screen.findByText(/Пока ни одного диалога/)).toBeInTheDocument();
     expect(
       screen.getByText('Написать можно любому — найдите человека и начните диалог'),
     ).toBeInTheDocument();

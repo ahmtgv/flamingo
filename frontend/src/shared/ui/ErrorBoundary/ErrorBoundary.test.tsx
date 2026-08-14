@@ -31,7 +31,10 @@ describe('ErrorBoundary', () => {
     );
     const alert = screen.getByRole('alert');
     expect(alert).toHaveTextContent('Что-то сломалось у нас');
-    expect(alert).toHaveTextContent('Твои данные целы');
+    // 🔴 T-08: экран обещал «уже знаем и чиним», а ErrorBoundary только писал в консоль —
+    // никто не знал. Теперь он говорит правду и просит написать нам.
+    expect(alert).toHaveTextContent('данные при этом целы');
+    expect(alert).toHaveTextContent('сами мы об этой поломке не узнаем');
     expect(screen.getByRole('button', { name: 'Обновить' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'На главную' })).toBeInTheDocument();
   });

@@ -1124,6 +1124,11 @@ input RegisterUserInput {
   lastName: String!
   role: Role!
   locale: String = "ru"
+  # 🔴 R-04 (аудит 14.08). Согласие 152-ФЗ спрашивали на экране и выбрасывали: поля не было ни
+  # здесь, ни в бэкенде, и юридически согласия не существовало нигде. CLAUDE.md §2.3 требует
+  # его ПРИ РЕГИСТРАЦИИ. Для ученика младше 18 сервер без него откажет — по вычисленной из
+  # даты рождения группе, а не по тому, что выбрали в форме.
+  consent152fz: Boolean = false
   student: StudentInfoInput      # required when role = STUDENT (teen/adult self-signup)
   teacher: TeacherInfoInput      # required when role = TEACHER
 }

@@ -212,14 +212,14 @@ describe('TestScene — the teacher’s live picture', () => {
     // cruelty this note exists to prevent.
     asTeacher([setsMock({ mode: 'LIVE', homeworkId: null }), pictureMock([])]);
 
-    expect(await screen.findByText(/к набору нужна привязанная домашка/)).toBeInTheDocument();
+    expect(await screen.findByText(/к набору нужна привязанная домашняя работа/)).toBeInTheDocument();
   });
 
   it('offers to count classwork once the set has a homework behind it', async () => {
     asTeacher([setsMock({ mode: 'LIVE', homeworkId: 'hw-1' }), pictureMock([])]);
 
     expect(await screen.findByText('Зачесть как работу на уроке')).toBeInTheDocument();
-    expect(screen.queryByText(/нужна привязанная домашка/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/нужна привязанная домашняя работа/)).not.toBeInTheDocument();
   });
 });
 

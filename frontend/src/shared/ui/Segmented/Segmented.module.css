@@ -19,7 +19,10 @@
   border-radius: var(--radius-sm);
   padding: var(--space-2);
   cursor: pointer;
-  min-height: var(--control-height-sm);
+  /* 🔴 V-06: было `--control-height-sm` (34px) при токене `--tap-min: 44px`, и это основной
+     переключатель возраста на регистрации — то есть промахивается по нему именно тот, у кого
+     палец, а не мышь. Токен существовал и не применялся. */
+  min-height: var(--tap-min);
   transition:
     background var(--duration-fast) var(--ease-standard),
     color var(--duration-fast) var(--ease-standard);

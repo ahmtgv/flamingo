@@ -71,6 +71,7 @@ def make_pupil(email="p@example.com", first="Аня", birth=date(2010, 1, 1)):
         last_name="Коваль",
         role=Role.STUDENT,
         birth_date=birth,
+        consent_152fz=True,
     )
 
 

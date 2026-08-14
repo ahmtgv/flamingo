@@ -13,7 +13,7 @@
 }
 .h {
   font-size: var(--text-h2);
-  font-weight: 600;
+  font-weight: var(--weight-semibold);
   letter-spacing: -0.02em;
 }
 .p,
@@ -37,7 +37,7 @@
 }
 .label {
   font-size: var(--text-caption);
-  font-weight: 600;
+  font-weight: var(--weight-semibold);
 }
 .linkHead {
   display: flex;
@@ -73,7 +73,7 @@
 .code {
   font-family: var(--font-mono);
   font-size: var(--text-h2);
-  font-weight: 500;
+  font-weight: var(--weight-medium);
   letter-spacing: 0.08em;
   text-align: center;
   padding: var(--space-4);
@@ -88,7 +88,7 @@
 .mini,
 .btn {
   font-size: var(--text-caption);
-  font-weight: 500;
+  font-weight: var(--weight-medium);
   border-radius: var(--radius-control);
   padding: var(--space-2) var(--space-4);
   cursor: pointer;
@@ -146,7 +146,7 @@
   font-size: var(--text-caption);
 }
 .mode b {
-  font-weight: 500;
+  font-weight: var(--weight-medium);
 }
 .mode small {
   display: block;
@@ -184,7 +184,7 @@
 .who b {
   display: block;
   font-size: var(--text-caption);
-  font-weight: 500;
+  font-weight: var(--weight-medium);
 }
 .who small {
   display: block;

@@ -11,7 +11,7 @@
 }
 .h {
   font-size: var(--text-h2);
-  font-weight: 600;
+  font-weight: var(--weight-semibold);
   letter-spacing: -0.02em;
 }
 .intro {
@@ -31,7 +31,7 @@
 .tab {
   font-family: var(--font-mono);
   font-size: var(--text-overline);
-  font-weight: 500;
+  font-weight: var(--weight-medium);
   color: var(--color-text-secondary);
   background: none;
   border: 0;
@@ -57,7 +57,7 @@
 }
 .cardTitle {
   font-size: var(--text-body);
-  font-weight: 600;
+  font-weight: var(--weight-semibold);
   margin-bottom: var(--space-3);
 }
 .row {
@@ -71,7 +71,7 @@
 .rowLabel b {
   display: block;
   font-size: var(--text-caption);
-  font-weight: 500;
+  font-weight: var(--weight-medium);
 }
 .rowLabel small {
   display: block;

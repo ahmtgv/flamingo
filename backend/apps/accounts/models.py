@@ -50,6 +50,15 @@ class User(JurisdictionMixin, AbstractBaseUser, PermissionsMixin):
     # refuses the bucket without it — a default enforced only by a checkbox is not a default.
     consent_attention = models.BooleanField(default=False)
     consent_attention_at = models.DateTimeField(null=True, blank=True)
+    # 🔴 R-04 (аудит 14.08). CLAUDE.md §2.3: «Children < 18 require parental consent
+    # (consent152fz) captured at registration». Галочку спрашивали и выбрасывали — в мутацию
+    # она не доезжала, и юридически согласия не существовало нигде.
+    #
+    # Хранится на пользователе, а не на GUARDIANSHIP: на момент регистрации связи с родителем
+    # ещё нет, а согласие уже дано и уже обязано быть зафиксировано. Guardianship-согласие
+    # (§20.х, привязка родителя к ребёнку) — отдельный факт и остаётся на своём месте.
+    consent_152fz = models.BooleanField(default=False)
+    consent_152fz_at = models.DateTimeField(null=True, blank=True)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
     is_email_verified = models.BooleanField(default=False)

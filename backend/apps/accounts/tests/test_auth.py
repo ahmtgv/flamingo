@@ -29,6 +29,7 @@ def test_register_student_creates_profile_and_age_band():
         role=Role.STUDENT,
         birth_date=date(2013, 1, 1),  # ~13 y.o. -> teen
         grade_level="7",
+        consent_152fz=True,
     )
     assert user.email == "petya@example.com"  # normalised
     profile = StudentProfile.objects.get(user=user)
@@ -43,7 +44,8 @@ def test_register_junior_age_band():
         first_name="Соня",
         last_name="А",
         role=Role.STUDENT,
-        birth_date=date(2018, 6, 1),  # ~8 y.o. -> junior
+        birth_date=date(2018, 6, 1),  # ~8 y.o. -> junior,
+        consent_152fz=True,
     )
     assert StudentProfile.objects.get(user=user).age_band == AgeBand.JUNIOR.value
 
@@ -196,6 +198,7 @@ def _student(email="av@example.com"):
         last_name="B",
         role=Role.STUDENT,
         birth_date=date(2008, 1, 1),
+        consent_152fz=True,
     )
 
 
@@ -228,3 +231,66 @@ def test_set_avatar_unsupported_role(monkeypatch):
     # Parent/admin profiles have no avatar_key — graceful error, no model change.
     with pytest.raises(ValidationError):
         services.set_avatar(parent, f"avatar/{parent.id}/x/me.png")
+
+
+# --- 🔴 R-04 (аудит 14.08): согласие 152-ФЗ — факт, а не галочка на экране -----------------
+def test_a_minor_cannot_be_registered_without_the_152fz_consent():
+    """Галочку спрашивали и выбрасывали: в мутацию она не доезжала, и согласия не было нигде.
+
+    Отказ стоит в сервисе, а не на экране: экран — последовательность компонентов, и обойти
+    его можно адресом. CLAUDE.md §2.3 требует согласия ПРИ РЕГИСТРАЦИИ, а не намерения его
+    когда-нибудь спросить.
+    """
+    with pytest.raises(ValidationError):
+        services.register_user(
+            email="minor@example.com",
+            password="strongpass1!",
+            first_name="Ученик",
+            last_name="Первый",
+            role=Role.STUDENT,
+            birth_date=date(2013, 1, 1),
+        )
+    assert not User.objects.filter(email="minor@example.com").exists()
+
+
+def test_the_consent_is_recorded_with_the_moment_it_was_given():
+    user = services.register_user(
+        email="minor2@example.com",
+        password="strongpass1!",
+        first_name="Ученик",
+        last_name="Второй",
+        role=Role.STUDENT,
+        birth_date=date(2013, 1, 1),
+        consent_152fz=True,
+    )
+    assert user.consent_152fz is True
+    assert user.consent_152fz_at is not None
+
+
+def test_an_adult_needs_no_parental_consent():
+    """Требование — про несовершеннолетних. Взрослому его выставлять не за что."""
+    user = services.register_user(
+        email="adult@example.com",
+        password="strongpass1!",
+        first_name="Взрослый",
+        last_name="Человек",
+        role=Role.TEACHER,
+    )
+    assert user.consent_152fz is False
+
+
+def test_the_age_is_taken_from_the_birth_date_not_from_what_the_screen_said():
+    """🔴 R-05 со стороны базы: проверка идёт по ВЫЧИСЛЕННОЙ возрастной группе.
+
+    Иначе согласие спрашивали бы у одних, а требовали от других — форма говорит «взрослый»,
+    дата рождения говорит «двенадцать лет», и расходятся база и юридический факт.
+    """
+    with pytest.raises(ValidationError):
+        services.register_user(
+            email="mismatch@example.com",
+            password="strongpass1!",
+            first_name="Ученик",
+            last_name="Третий",
+            role=Role.STUDENT,
+            birth_date=date(2014, 6, 1),
+        )

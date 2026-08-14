@@ -40,6 +40,8 @@ def test_register_then_me_through_schema():
             "firstName": "Петя",
             "lastName": "Сидоров",
             "role": "STUDENT",
+            # 🔴 R-04: для ученика младше 18 согласие 152-ФЗ — условие регистрации.
+            "consent152fz": True,
             "student": {"birthDate": "2013-01-01", "gradeLevel": "7"},
         }
     }

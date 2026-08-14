@@ -49,6 +49,7 @@ def make_student(email="student@example.com"):
         last_name="Ученик",
         role=Role.STUDENT,
         birth_date=date(2009, 1, 1),
+        consent_152fz=True,
     )
 
 

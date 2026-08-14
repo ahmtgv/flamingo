@@ -39,6 +39,7 @@ def make_student(email="student@example.com", *, attention=True):
         last_name="Ученик",
         role=Role.STUDENT,
         birth_date=date(2009, 1, 1),
+        consent_152fz=True,
     )
     # D2 step 3: attention analysis is OFF until someone turns it on, and the server enforces
     # that (`services.record_attention`). A test that reports a bucket is a test about a pupil

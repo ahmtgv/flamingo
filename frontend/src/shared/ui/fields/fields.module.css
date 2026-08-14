@@ -32,16 +32,18 @@
   line-height: var(--leading-snug);
 }
 
+/* 🔴 V-02 + V-03 одной строкой.
+   V-02: `1fr` — это `minmax(auto, 1fr)`, у колонки есть пол по min-content, и при нехватке
+   места колонки садятся на РАЗНЫЕ ширины. Отсюда «Имя» и «Фамилия» разного размера.
+   V-03: брейкпойнт был 460px при колонке формы 460px — то есть не срабатывал НИ ПРИ КАКОЙ
+   ширине. Брейкпойнт вообще не нужен: `auto-fit` сам кладёт поля в одну колонку, как только
+   двум по 180px перестаёт хватать места, и делает это по ширине СТРОКИ, а не окна. */
 .row {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(auto-fit, minmax(min(180px, 100%), 1fr));
   gap: var(--space-3);
 }
-@media (max-width: 460px) {
-  .row {
-    grid-template-columns: 1fr;
-  }
-}
+
 
 /* Input / Select shared control surface */
 .input,

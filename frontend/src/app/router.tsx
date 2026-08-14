@@ -10,7 +10,7 @@ import {
   RoleSelectScreen,
 } from '@/features/auth';
 import { Cabinet } from '@/features/cabinet';
-import { SettingsScreen, SetupScreen } from '@/features/desktop';
+import { LinkMachineScreen, SettingsScreen, SetupScreen } from '@/features/desktop';
 import { ArrivalScreen, InvitePanel } from '@/features/meeting';
 import { AdminInstitutionScreen } from '@/features/admin';
 import { CatalogScreen, CourseDetailScreen, CreateCourseScreen } from '@/features/courses';
@@ -176,6 +176,11 @@ export function AppRouter() {
           }
         />
         <Route path="/j/:slug" element={<ArrivalScreen />} />
+        {/* 🔴 T-05: приложение печатало этот адрес, а маршрута не было — человек молча
+            оказывался на главной, и связывание не завершалось ничем. Латинский псевдоним
+            рядом: кириллицу в адресной строке набирают не все. */}
+        <Route path="/связать" element={<ProtectedRoute><LinkMachineScreen /></ProtectedRoute>} />
+        <Route path="/link" element={<ProtectedRoute><LinkMachineScreen /></ProtectedRoute>} />
         <Route path="/setup" element={<SetupScreenRoute />} />
         <Route
           path="/settings"

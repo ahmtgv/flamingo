@@ -53,6 +53,7 @@ def _classroom(jurisdiction: str | None):
         last_name="У",
         role=Role.STUDENT,
         birth_date=date(2010, 1, 1),
+        consent_152fz=True,
     )
     # D2 step 3: attention analysis is off by default and the server enforces it. This test is
     # about a pupil who turned it on — the jurisdiction gate is what it is measuring, not consent.

@@ -94,10 +94,26 @@ def register_user(
     specialty: str | None = None,
     education: str | None = None,
     experience: str | None = None,
+    consent_152fz: bool = False,
 ) -> User:
+    """Завести учётную запись.
+
+    🔴 R-04: для несовершеннолетнего согласие 152-ФЗ — условие регистрации, а не поле формы.
+    Отказ стоит здесь, а не на экране: экран это последовательность компонентов, и обойти его
+    можно адресом. Проверка идёт по ВЫЧИСЛЕННОЙ возрастной группе (по дате рождения), а не по
+    тому, что выбрали в интерфейсе — иначе согласие спрашивали бы у одних, а требовали от
+    других (это же чинит R-05 со стороны базы).
+    """
     role = _coerce_role(role)
     if User.objects.filter(email=email.lower()).exists():
-        raise ValidationError("This email is already registered")
+        raise ValidationError("Эта почта уже зарегистрирована")
+
+    if _coerce_role(role) is Role.STUDENT:
+        band = compute_age_band(birth_date)
+        if band in (AgeBand.JUNIOR, AgeBand.TEEN) and not consent_152fz:
+            raise ValidationError(
+                "Для ученика младше 18 лет нужно согласие родителя на обработку данных"
+            )
 
     user = User.objects.create_user(
         email=email,
@@ -107,6 +123,11 @@ def register_user(
         role=role.value,
         locale=locale,
     )
+
+    if consent_152fz:
+        user.consent_152fz = True
+        user.consent_152fz_at = timezone.now()
+        user.save(update_fields=["consent_152fz", "consent_152fz_at", "updated_at"])
 
     if role is Role.STUDENT:
         band = compute_age_band(birth_date)
