@@ -1,0 +1,91 @@
+# Flamingo — точка встречи. Продакшн, минимальный VPS в РФ.
+#
+# Что здесь крутится и почему именно это:
+#
+#   postgres  — расписание, учётки, зеркало ученика. Персональные данные детей,
+#               поэтому машина обязана стоять в РФ (152-ФЗ, CLAUDE.md §2.3).
+#   redis     — слой каналов для подписок (presence, сигналинг). Не Celery: async отложен.
+#   api       — Django/ASGI: GraphQL + WebSocket. Точка встречи и сигналинг.
+#   caddy     — TLS сам, без certbot и без ручного продления.
+#
+# Чего здесь НЕТ и не будет:
+#   coturn    — ретрансляцию отдали Cloudflare TURN: 1000 ГБ в месяц бесплатно, наш худший
+#               случай 148 ГБ. Свой coturn — это открытые UDP-порты, отдельный трафик и ещё
+#               одна вещь, которая ломается ночью. Оставлен запасным путём через TURN_URLS.
+#   minio     — файлы работ живут на машине преподавателя; серверу нужен только текст
+#               и файлы зеркала. Для пилота — том на диске.
+#   livekit   — медиа идёт с машины преподавателя, серверу здесь делать нечего.
+#
+# Запуск:  docker compose -f infra/prod/docker-compose.prod.yml --env-file .env.production up -d
+
+name: flamingo-prod
+
+services:
+  postgres:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      # Ежедневный дамп кладём сюда же; забирать наружу — задача владельца.
+      - ./backups:/backups
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    # Порт наружу не публикуем: база доступна только внутри сети compose.
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: redis-server --save "" --appendonly no   # только канальный слой, хранить нечего
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+
+  api:
+    build:
+      context: ../../backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    env_file: ../../.env.production
+    environment:
+      DJANGO_SETTINGS_MODULE: config.settings
+      DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      REDIS_URL: redis://redis:6379/0
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+    # Миграции при старте: пилот, отдельного шага выката пока не нужно.
+    command: >
+      sh -c "python manage.py migrate --noinput &&
+             uvicorn config.asgi:application --host 0.0.0.0 --port 8000 --proxy-headers"
+    volumes:
+      - media_data:/app/media
+    expose:
+      - "8000"
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - api
+
+volumes:
+  postgres_data:
+  media_data:
+  caddy_data:
+  caddy_config:

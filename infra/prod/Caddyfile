@@ -1,0 +1,32 @@
+# TLS выпускается и продлевается сам. Ничего вручную настраивать не нужно —
+# Caddy получает сертификат Let's Encrypt при первом запросе к домену.
+#
+# ВАЖНО: домен должен указывать на этот сервер А-записью, и в Cloudflare
+# запись должна быть СЕРОЙ (proxy выключен). Оранжевое облако проксирует трафик
+# через Cloudflare, и тогда сертификат Caddy выпустить не сможет, а WebSocket
+# для подписок пойдёт лишним кругом.
+
+{$API_DOMAIN} {
+	encode zstd gzip
+
+	# WebSocket для подписок (presence, сигналинг) и обычный GraphQL — один апстрим.
+	reverse_proxy api:8000 {
+		header_up X-Forwarded-Proto {scheme}
+		header_up X-Real-IP {remote_host}
+	}
+
+	# Заголовки, которые дёшевы и закрывают глупые дыры.
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		-Server
+	}
+
+	log {
+		output file /data/access.log {
+			roll_size 10mb
+			roll_keep 5
+		}
+	}
+}

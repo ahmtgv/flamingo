@@ -24,3 +24,7 @@ dist/
 .playwright-mcp/
 /audit-*.jpeg
 /audit-*.png
+
+# прод-секреты
+.env.production
+infra/prod/backups/
