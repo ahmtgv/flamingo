@@ -1,0 +1,123 @@
+# Установщики приложения преподавателя — macOS (Apple Silicon + Intel) и Windows x64.
+#
+# 🔴 Почему это CI, а не скрипт на чьём-то ноутбуке. В сборке две платформенно-зависимые
+# части, и ни одна не кросс-компилируется:
+#
+#   * **sidecar** — вывод PyInstaller, который упаковывает ТОТ интерпретатор, на котором
+#     запущен. Windows-сборка на macOS невозможна в принципе, а Intel-сборка требует
+#     x86_64-Python, которого на машине с Apple Silicon обычно нет;
+#   * **оболочка Tauri на Windows** — нужен MSVC и WebView2; из macOS их не достать.
+#
+# Поэтому каждая цель собирается на своей операционной системе. Один и тот же workflow даёт
+# три установщика из одного тега, и никто не собирает релиз руками «как в прошлый раз».
+#
+# ⚠️ Подписи нет — решение владельца 14.08 (OWNER_SCOPE §19.2). Следствие обязано быть
+# написано на странице загрузки: `docs/handoff/DOWNLOAD_PAGE_TEXT.md`.
+
+name: desktop-release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Версия сборки (например 0.1.0)
+        required: true
+  push:
+    tags: ['desktop-v*']
+
+jobs:
+  build:
+    strategy:
+      # fail-fast выключен намеренно: если Windows упала, две macOS-сборки всё равно нужны —
+      # живая проверка не должна ждать починки чужой платформы.
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-14 # Apple Silicon
+            target: aarch64-apple-darwin
+            label: macos-arm64
+          - os: macos-13 # Intel
+            target: x86_64-apple-darwin
+            label: macos-x64
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            label: windows-x64
+
+    runs-on: ${{ matrix.os }}
+    name: ${{ matrix.label }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          # Архитектура интерпретатора = архитектура установщика. PyInstaller упакует ровно
+          # то, на чём его запустили, и подменить это флагом нельзя.
+          architecture: ${{ matrix.label == 'macos-x64' && 'x64' || 'x64' }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      # --- фронтенд: канонический адрес зашивается в сборку -------------------------------
+      # Ссылка группы печатается только с него (решение владельца 14.08). Пустой — и
+      # преподаватель разошлёт классу адрес, которого у детей нет.
+      - name: frontend
+        working-directory: frontend
+        env:
+          VITE_PUBLIC_ORIGIN: ${{ vars.PUBLIC_ORIGIN || 'https://flamingo.plus' }}
+        run: |
+          npm ci
+          npm run build
+
+      # --- sidecar: свой на каждой платформе ----------------------------------------------
+      - name: sidecar deps
+        working-directory: backend
+        run: |
+          python -m pip install --upgrade pip
+          # psycopg ставится только ради хука PyInstaller для Django (он импортирует все
+          # бэкенды баз) и тут же исключается из бандла: в кабинете SQLite.
+          pip install -r requirements-desktop.txt pyinstaller psycopg
+
+      - name: sidecar build
+        working-directory: backend
+        shell: bash
+        run: |
+          pyinstaller --noconfirm --clean \
+            --distpath ../desktop/src-tauri/sidecar-build \
+            --name flamingo-sidecar \
+            --collect-submodules config --collect-submodules api \
+            --collect-submodules apps --collect-submodules common \
+            --collect-all strawberry --collect-all strawberry_django --collect-all channels \
+            --collect-submodules django --collect-data django \
+            --hidden-import config.settings --hidden-import config.settings_desktop \
+            --hidden-import config.asgi \
+            --exclude-module psycopg --exclude-module psycopg2 --exclude-module psycopg_binary \
+            --exclude-module boto3 --exclude-module botocore --exclude-module tkinter \
+            --hidden-import uvicorn.loops.auto --hidden-import uvicorn.protocols.http.auto \
+            --hidden-import uvicorn.protocols.websockets.auto --hidden-import uvicorn.lifespan.on \
+            sidecar_entry.py
+          mv ../desktop/src-tauri/sidecar-build/flamingo-sidecar ../desktop/src-tauri/sidecar
+
+      # --- оболочка -----------------------------------------------------------------------
+      - name: shell
+        working-directory: desktop/src-tauri
+        run: |
+          cargo install tauri-cli --version "^2" --locked
+          cargo tauri build --target ${{ matrix.target }}
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: flamingo-${{ matrix.label }}
+          if-no-files-found: error
+          path: |
+            desktop/src-tauri/target/${{ matrix.target }}/release/bundle/dmg/*.dmg
+            desktop/src-tauri/target/${{ matrix.target }}/release/bundle/nsis/*.exe
+            desktop/src-tauri/target/${{ matrix.target }}/release/bundle/msi/*.msi

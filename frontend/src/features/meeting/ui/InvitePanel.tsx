@@ -10,9 +10,8 @@ import {
 } from '@/entities/graphql/generated';
 import { ErrorState } from '@/shared/ui';
 
-import { joinUrl, MEETING_MODES, whenOpened } from '../invite';
+import { hasCanonicalOrigin, joinUrl, MEETING_MODES, whenOpened } from '../invite';
 
-import { QrPanel } from './QrPanel';
 import styles from './invite.module.css';
 
 /**
@@ -28,6 +27,10 @@ import styles from './invite.module.css';
  * * **Ученику группы ссылка не нужна вовсе** — занятие появляется у него в расписании само.
  *   Ссылка нужна новичку, пробному уроку и тому, кто всё потерял; про это сказано на экране,
  *   чтобы преподаватель не рассылал её каждый четверг «на всякий случай».
+ *
+ * Приглашение — **две дороги и только две**: ссылка и шестизначный код. QR убран решением
+ * владельца 14.08 и по хорошей причине: компьютер QR не читает, он его только показывает, а
+ * читать нужно устройством с камерой в руке. Обе оставшиеся дороги короче.
  */
 export function InvitePanel({ groupId, onStart }: { groupId: string; onStart?: () => void }) {
   const { t } = useTranslation('meeting');
@@ -40,7 +43,6 @@ export function InvitePanel({ groupId, onStart }: { groupId: string; onStart?: (
   const [replaceLink, { loading: replacing }] = useReplaceMeetingLinkMutation();
 
   const [copied, setCopied] = useState(false);
-  const [showQr, setShowQr] = useState(false);
 
   if (loading && !data) return <p className={styles.note}>…</p>;
   if (error || !data?.groupMeetingPoint) return <ErrorState onRetry={() => void refetch()} />;
@@ -82,6 +84,10 @@ export function InvitePanel({ groupId, onStart }: { groupId: string; onStart?: (
 
         {/* Код — для голоса: продиктовать по телефону, написать на доске, сказать родителю.
             Тот же приём, что при связывании машины в D2 — механизм, который человек уже видел. */}
+        {/* Ссылка собирается только с канонического адреса. Если его нет — говорим об этом
+            здесь, а не даём преподавателю разослать классу localhost. */}
+        {!hasCanonicalOrigin() && <p className={styles.warn}>{t('invite.originMissing')}</p>}
+
         <output className={styles.code}>{formatCode(point.code)}</output>
         <p className={styles.note}>{t('invite.codeHint')}</p>
 
@@ -92,9 +98,6 @@ export function InvitePanel({ groupId, onStart }: { groupId: string; onStart?: (
           <button type="button" className={styles.mini} disabled title={t('invite.soon')}>
             {t('invite.toParents')}
           </button>
-          <button type="button" className={styles.mini} onClick={() => setShowQr((v) => !v)}>
-            {t('invite.qr')}
-          </button>
           <button
             type="button"
             className={styles.mini}
@@ -104,7 +107,6 @@ export function InvitePanel({ groupId, onStart }: { groupId: string; onStart?: (
             {t('invite.replace')}
           </button>
         </div>
-        {showQr && <QrPanel url={url} />}
         <p className={styles.note}>{t('invite.replaceHint')}</p>
       </section>
 

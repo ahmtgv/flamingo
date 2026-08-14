@@ -22,3 +22,15 @@ export const GRAPHQL_WS_URL =
  * until set in frontend/.env (VITE_LIVEKIT_URL) — the room then degrades gracefully.
  */
 export const LIVEKIT_URL = import.meta.env.VITE_LIVEKIT_URL ?? '';
+
+/**
+ * Канонический адрес продукта — тот, что печатается людям (решение владельца 14.08).
+ *
+ * 🔴 Ссылка группы собирается **только отсюда**, никогда из `window.location.origin`. Иначе
+ * преподаватель, открывший панель на `localhost:5173` или на стенде, скопирует и разошлёт
+ * классу адрес, которого у детей нет. Один раз — и половина группы стучится не туда.
+ *
+ * Пусто в разработке — тогда `joinUrl` честно падает на текущий origin, и это видно на экране,
+ * а не выясняется у ученика.
+ */
+export const PUBLIC_ORIGIN: string = import.meta.env.VITE_PUBLIC_ORIGIN ?? '';

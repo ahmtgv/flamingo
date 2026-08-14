@@ -6,6 +6,8 @@
  * однажды разойтись, и разойдутся они на ученике, у которого ссылка не откроется.
  */
 
+import { PUBLIC_ORIGIN } from '@/shared/lib/env';
+
 /** Порядок как на листе: сначала обычный режим школьной группы, потом послабления. */
 export const MEETING_MODES = ['GROUP_ONLY', 'ANY_AUTHENTICATED', 'KNOCK'] as const;
 export type MeetingMode = (typeof MEETING_MODES)[number];
@@ -19,12 +21,38 @@ export type MeetingMode = (typeof MEETING_MODES)[number];
 export const DEFAULT_MEETING_MODE: MeetingMode = 'GROUP_ONLY';
 
 /**
- * Адрес двери. Кириллический путь `/к/` — тот, что напечатан на листе; latin `/j/` работает
- * тоже (оба маршрута заведены), но человеку показываем ровно то, что он потом прочитает вслух.
+ * Путь, который печатают людям — **латинский** (решение владельца 14.08).
+ *
+ * Кириллический `/к/` остаётся рабочим псевдонимом: ссылки, которые уже разошлись, не должны
+ * умереть. Но в percent-encoding он превращается в `/%D0%BA/`, а именно эту строку человек и
+ * увидит, если перешлёт её мессенджером или посмотрит в адресной строке. Нечитаемая ссылка
+ * выглядит подозрительно — а её отправляют родителям.
+ */
+export const JOIN_PATH = '/j';
+
+/** Псевдоним с листа. Работает, но людям не печатается. */
+export const JOIN_PATH_ALIAS = '/к';
+
+/**
+ * Адрес двери — **только с канонического origin** (решение владельца 14.08).
+ *
+ * 🔴 Не `window.location.origin`: панель могут открыть на стенде, на `localhost`, на превью с
+ * другим портом. Скопированная оттуда ссылка уйдёт классу — и не откроется ни у кого. Один
+ * источник адреса ровно потому, что ошибиться здесь можно только один раз и сразу у всех.
+ *
+ * Пока канонический адрес не задан (разработка), падаем на текущий origin: это видно на
+ * экране, тогда как молчаливая пустая ссылка выяснилась бы у ученика.
  */
 export function joinUrl(slug: string, origin?: string): string {
-  const base = origin ?? (typeof window === 'undefined' ? '' : window.location.origin);
-  return `${base}/к/${slug}`;
+  const base =
+    origin ?? PUBLIC_ORIGIN ?? '';
+  const fallback = typeof window === 'undefined' ? '' : window.location.origin;
+  return `${base || fallback}${JOIN_PATH}/${slug}`;
+}
+
+/** Задан ли канонический адрес. Панель говорит преподавателю, если нет. */
+export function hasCanonicalOrigin(): boolean {
+  return Boolean(PUBLIC_ORIGIN);
 }
 
 /**

@@ -1,6 +1,13 @@
 import { describe, expect, it } from 'vitest';
 
-import { DEFAULT_MEETING_MODE, joinUrl, MEETING_MODES, whenOpened } from './invite';
+import {
+  DEFAULT_MEETING_MODE,
+  JOIN_PATH,
+  JOIN_PATH_ALIAS,
+  joinUrl,
+  MEETING_MODES,
+  whenOpened,
+} from './invite';
 
 describe('дверь группы (лист D3)', () => {
   it('🔴 по умолчанию — только ученики этой группы', () => {
@@ -12,11 +19,35 @@ describe('дверь группы (лист D3)', () => {
     expect(MEETING_MODES).toEqual(['GROUP_ONLY', 'ANY_AUTHENTICATED', 'KNOCK']);
   });
 
-  it('адрес двери собирается в одном месте', () => {
-    // Три сборки одной строки — три способа разойтись, и разойдутся они на ученике.
-    expect(joinUrl('english-a2-чт18', 'https://flamingo.plus')).toBe(
-      'https://flamingo.plus/к/english-a2-чт18',
+  it('людям печатается латинский путь, кириллический остаётся псевдонимом', () => {
+    // В percent-encoding «/к/» превращается в «/%D0%BA/» — и именно это увидит родитель,
+    // которому переслали ссылку. Нечитаемая ссылка выглядит подозрительно.
+    expect(JOIN_PATH).toBe('/j');
+    expect(JOIN_PATH_ALIAS).toBe('/к');
+    expect(joinUrl('english-a2-cht18', 'https://flamingo.plus')).toBe(
+      'https://flamingo.plus/j/english-a2-cht18',
     );
+  });
+
+  it('🔴 ссылка печатается только с канонического адреса', () => {
+    // Панель могут открыть на стенде или на localhost. Скопированная оттуда ссылка уйдёт
+    // классу и не откроется ни у кого — ошибиться здесь можно один раз и сразу у всех.
+    expect(joinUrl('slug', 'https://flamingo.plus')).toMatch(/^https:\/\/flamingo\.plus\//);
+    expect(joinUrl('slug', 'https://flamingo.plus')).not.toContain('localhost');
+  });
+
+  it('оба маршрута заведены — уже разосланные ссылки не умирают', async () => {
+    // Кириллический путь снят с печати, но не с обслуживания: ссылки, которые уже у людей,
+    // обязаны открываться. Проверяем сам роутер, а не намерение.
+    const { readFileSync } = await import('node:fs');
+    const { dirname, resolve } = await import('node:path');
+    const { fileURLToPath } = await import('node:url');
+    const router = readFileSync(
+      resolve(dirname(fileURLToPath(import.meta.url)), '../../app/router.tsx'),
+      'utf8',
+    );
+    expect(router).toContain(`path="${JOIN_PATH}/:slug"`);
+    expect(router).toContain(`path="${JOIN_PATH_ALIAS}/:slug"`);
   });
 
   it('у каждого режима есть слова и пояснение', async () => {

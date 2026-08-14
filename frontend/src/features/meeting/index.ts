@@ -1,6 +1,5 @@
 export { ArrivalScreen } from './ui/ArrivalScreen';
 export { InvitePanel } from './ui/InvitePanel';
-export { QrPanel } from './ui/QrPanel';
 export {
   DEFAULT_MEETING_MODE,
   joinUrl,

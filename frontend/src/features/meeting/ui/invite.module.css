@@ -212,3 +212,11 @@
 .person[data-state='NEVER_OPENED'] .state {
   color: var(--color-text-tertiary);
 }
+
+.warn {
+  font-size: var(--text-caption);
+  color: var(--color-warning-text);
+  background: var(--color-warning-bg);
+  border-radius: var(--radius-sm);
+  padding: var(--space-3);
+}
