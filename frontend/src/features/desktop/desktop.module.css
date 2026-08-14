@@ -29,11 +29,14 @@
   font-weight: 500;
   flex: none;
 }
-.dot {
-  width: 7px;
-  height: 7px;
-  border-radius: var(--radius-pill);
-  background: var(--color-accent);
+/* Знак бренда в строке заголовка. Высота в em — если кегль строки поменяется,
+   знак поедет вместе с ней. Ниже 28px берётся отдельный мелкий рисунок,
+   см. docs/brand/flamingo-brandbook.html §2.3. */
+.mark {
+  width: 2.1em;
+  height: 1.9em;
+  flex: none;
+  overflow: visible;
   display: block;
 }
 /* Версия на виду: первый вопрос при поддержке — всегда «какая у вас версия». */

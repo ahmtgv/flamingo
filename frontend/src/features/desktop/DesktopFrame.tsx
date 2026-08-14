@@ -1,6 +1,8 @@
 import { type ReactNode, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { BrandMark } from '@/shared/ui';
+
 import { APP_VERSION, minimiseToTray, setTrayLabel } from './bridge';
 import { ControlsContext } from './frameControls';
 import {
@@ -92,7 +94,7 @@ export function DesktopFrame({
       <div className={styles.app} data-state={state}>
         <header className={styles.titlebar}>
           <span className={styles.appName}>
-            <i className={styles.dot} aria-hidden="true" />
+            <BrandMark className={styles.mark} />
             {t('app.name')}
             <span className={styles.ver} title={t('app.version', { version: APP_VERSION })}>
               {APP_VERSION}

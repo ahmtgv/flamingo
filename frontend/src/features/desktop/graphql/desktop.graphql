@@ -1,0 +1,182 @@
+# Первый запуск приложения преподавателя — лист D2 (Р5.4).
+#
+# Fragment-free and whole-object by hand: the committed SDL leads the live schema, and a
+# fragment would bind these operations to a shape one of the two does not have yet.
+#
+# 🔒 Note what is not here and never will be: an operation carrying a password. Pairing is
+# three steps — the app asks, a human confirms in a browser where the padlock is visible, the
+# app collects a key once (OWNER_SCOPE §19.4). The fallback «войти по почте и паролю» is the
+# ordinary web login and is not an app operation at all.
+
+# --- шаг 1: связывание машины кодом (Р5.0) -----------------------------------
+mutation RequestPairingCode($deviceName: String!, $platform: DevicePlatform, $appVersion: String) {
+  requestPairingCode(deviceName: $deviceName, platform: $platform, appVersion: $appVersion) {
+    code
+    secret
+    expiresAt
+  }
+}
+
+# The app polls this with the code + its own secret. Returns the key exactly once; after that
+# it lives only in the OS keychain (PROMPT_14 §2.2.2), never in a config file or localStorage.
+mutation ClaimDeviceToken($code: String!, $secret: String!) {
+  claimDeviceToken(code: $code, secret: $secret) {
+    token
+    device {
+      id
+      name
+      platform
+      appVersion
+      lastSeenAt
+      online
+      pairedAt
+      setup {
+        step
+        completed
+        backupKind
+        backupConfiguredAt
+        cloudCopyEnabled
+        lastBackupAt
+      }
+    }
+  }
+}
+
+# Подтверждение в браузере — вторая половина §19.4, выполняется на flamingo.plus/связать.
+mutation ConfirmPairingCode($code: String!) {
+  confirmPairingCode(code: $code) {
+    id
+    name
+    platform
+    pairedAt
+  }
+}
+
+# --- машины в кабинете (Р5.0) ------------------------------------------------
+# Кнопка отзыва рядом с каждой — «украденный ноутбук» (§19.4 п.3).
+query MyDevices {
+  myDevices {
+    id
+    name
+    platform
+    appVersion
+    lastSeenAt
+    online
+    pairedAt
+    uplink {
+      mbps
+      verdict
+      groupSize
+      requiredForEight
+      stale
+      connectionType
+    }
+    setup {
+      step
+      completed
+      backupKind
+      backupConfiguredAt
+      cloudCopyEnabled
+      lastBackupAt
+    }
+  }
+}
+
+mutation RevokeDevice($deviceId: ID!) {
+  revokeDevice(deviceId: $deviceId)
+}
+
+# --- шаг 2: папка кабинета и обязательная копия (§19.1) ----------------------
+mutation ConfigureCabinetBackup($kind: BackupKind!, $cloudCopy: Boolean) {
+  configureCabinetBackup(kind: $kind, cloudCopy: $cloudCopy) {
+    id
+    setup {
+      step
+      completed
+      backupKind
+      backupConfiguredAt
+      cloudCopyEnabled
+      lastBackupAt
+    }
+  }
+}
+
+mutation RecordCabinetBackup {
+  recordCabinetBackup {
+    id
+    setup {
+      step
+      completed
+      backupKind
+      backupConfiguredAt
+      cloudCopyEnabled
+      lastBackupAt
+    }
+  }
+}
+
+# --- шаг 3: согласия ---------------------------------------------------------
+# Речь обрабатывается на лету ради саммари; аудио и дословная расшифровка не хранятся нигде.
+mutation SetSpeechConsent($granted: Boolean!) {
+  setSpeechConsent(granted: $granted)
+}
+
+# 🔴 Анализ внимания — по умолчанию ВЫКЛЮЧЕН (OWNER_SCOPE §19). Сервер держит этот умолчание
+# сам: `recordAttention` роняет ведро без согласия, так что оно переживает перерисовку экрана.
+mutation SetAttentionConsent($granted: Boolean!) {
+  setAttentionConsent(granted: $granted)
+}
+
+# --- шаг 4: замер канала (Р5.1) ---------------------------------------------
+# Вердикт — размер группы, а не «интернет хороший»: расписание преподаватель менять умеет,
+# а битрейт нет (лист D2, шаг 4).
+mutation ReportUplink($mbps: Float!, $connectionType: ConnectionType) {
+  reportUplink(mbps: $mbps, connectionType: $connectionType) {
+    id
+    uplink {
+      mbps
+      verdict
+      groupSize
+      requiredForEight
+      stale
+      connectionType
+    }
+    setup {
+      step
+      completed
+      backupKind
+      backupConfiguredAt
+      cloudCopyEnabled
+      lastBackupAt
+    }
+  }
+}
+
+# --- шаги и «готово» ---------------------------------------------------------
+mutation AdvanceDeviceSetup($step: Int!) {
+  advanceDeviceSetup(step: $step) {
+    id
+    setup {
+      step
+      completed
+      backupKind
+      backupConfiguredAt
+      cloudCopyEnabled
+      lastBackupAt
+    }
+  }
+}
+
+mutation CompleteDeviceSetup {
+  completeDeviceSetup {
+    id
+    setup {
+      step
+      completed
+      backupKind
+      backupConfiguredAt
+      cloudCopyEnabled
+      lastBackupAt
+    }
+  }
+}

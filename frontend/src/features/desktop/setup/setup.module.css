@@ -1,0 +1,390 @@
+/* Первый запуск — atlas D2. Рельс из пяти шагов слева, один вопрос справа.
+   Это единственный экран, который преподаватель видит ДО того, как начал нам доверять. */
+
+.screen {
+  display: grid;
+  grid-template-columns: 280px minmax(0, 1fr);
+  gap: var(--space-7);
+  padding: var(--space-7);
+  min-height: 100%;
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+@media (max-width: 900px) {
+  .screen {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* ——— рельс шагов ——— */
+.rail {
+  display: grid;
+  gap: var(--space-4);
+  align-content: start;
+  position: sticky;
+  top: var(--space-5);
+}
+.railTitle {
+  font-family: var(--font-mono);
+  font-size: var(--text-overline);
+  color: var(--color-text-tertiary);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.steps {
+  display: grid;
+  gap: var(--space-2);
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.stepItem {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr);
+  gap: var(--space-3);
+  align-items: start;
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+}
+.stepItem b {
+  display: block;
+  font-size: var(--text-caption);
+  font-weight: 500;
+}
+.stepItem small {
+  display: block;
+  font-size: var(--text-overline);
+  color: var(--color-text-tertiary);
+}
+.stepItem[data-state='now'] {
+  background: var(--color-surface);
+  border-color: var(--color-border-strong);
+}
+.stepItem[data-state='todo'] {
+  opacity: 0.55;
+}
+.stepNo {
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-pill);
+  display: grid;
+  place-content: center;
+  font-family: var(--font-mono);
+  font-size: var(--text-overline);
+  background: var(--color-surface-subtle);
+  color: var(--color-text-secondary);
+}
+.stepItem[data-state='now'] .stepNo {
+  background: var(--color-accent);
+  color: var(--color-text-on-accent);
+}
+.stepItem[data-state='done'] .stepNo {
+  background: var(--color-success-bg);
+  color: var(--color-success-text);
+}
+.railNote {
+  font-size: var(--text-overline);
+  color: var(--color-text-tertiary);
+  line-height: var(--leading-snug);
+}
+
+/* ——— тело шага ——— */
+.body {
+  min-width: 0;
+  max-width: 760px;
+}
+.of {
+  font-family: var(--font-mono);
+  font-size: var(--text-overline);
+  color: var(--color-text-tertiary);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.step {
+  display: grid;
+  gap: var(--space-4);
+  margin-top: var(--space-3);
+}
+.h {
+  font-size: var(--text-h2);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+.p {
+  font-size: var(--text-small);
+  color: var(--color-text-secondary);
+  line-height: var(--leading-body);
+}
+.pStrong {
+  font-size: var(--text-small);
+  color: var(--color-text);
+  font-weight: 500;
+}
+.note {
+  font-size: var(--text-caption);
+  color: var(--color-text-tertiary);
+  line-height: var(--leading-snug);
+}
+.warn {
+  font-size: var(--text-caption);
+  color: var(--color-warning-text);
+  background: var(--color-warning-bg);
+  border-radius: var(--radius-sm);
+  padding: var(--space-3);
+}
+
+.card,
+.cardNever {
+  display: grid;
+  gap: var(--space-3);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  padding: var(--space-5);
+}
+/* Список «не уходит никогда» стоит выше согласий и выглядит как обещание, а не как сноска. */
+.cardNever {
+  background: var(--color-success-bg);
+  border-color: var(--color-success);
+}
+.cardHead {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+.cardTitle {
+  font-size: var(--text-body);
+  font-weight: 600;
+}
+.tag,
+.tagStrong,
+.tagGood {
+  font-family: var(--font-mono);
+  font-size: var(--text-overline);
+  border-radius: var(--radius-pill);
+  padding: 2px var(--space-3);
+  background: var(--color-surface-subtle);
+  color: var(--color-text-secondary);
+}
+.tagStrong {
+  background: var(--color-accent-subtle);
+  color: var(--color-accent-text);
+}
+.tagGood {
+  background: var(--color-surface);
+  color: var(--color-success-text);
+}
+
+/* ——— шаг 1 ——— */
+.code {
+  font-family: var(--font-mono);
+  font-size: var(--text-display);
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-align: center;
+  padding: var(--space-5);
+  background: var(--color-surface-subtle);
+  border-radius: var(--radius-md);
+}
+.waiting {
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  color: var(--color-text-secondary);
+  text-align: center;
+}
+.facts,
+.never {
+  display: grid;
+  gap: var(--space-3);
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  font-size: var(--text-caption);
+  color: var(--color-text-secondary);
+  line-height: var(--leading-snug);
+}
+.never li::before {
+  content: '✕ ';
+  color: var(--color-success-text);
+  font-weight: 600;
+}
+.facts li::before {
+  content: '✓ ';
+  color: var(--color-success-text);
+  font-weight: 600;
+}
+.facts .later::before {
+  content: 'i ';
+  color: var(--color-text-tertiary);
+}
+
+/* ——— шаг 2 ——— */
+.path {
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  background: var(--color-surface-subtle);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2) var(--space-3);
+  overflow-x: auto;
+  white-space: nowrap;
+}
+.choice {
+  display: grid;
+  gap: var(--space-3);
+  border: 0;
+  padding: 0;
+  margin: 0;
+}
+.radio,
+.check,
+.consent {
+  display: grid;
+  gap: var(--space-1);
+  font-size: var(--text-caption);
+  cursor: pointer;
+}
+.radio,
+.check {
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  gap: var(--space-3);
+}
+.radio b,
+.check b {
+  font-weight: 500;
+}
+.radio small,
+.check small,
+.consent small {
+  display: block;
+  color: var(--color-text-tertiary);
+  line-height: var(--leading-snug);
+}
+.consent {
+  padding: var(--space-3) 0;
+  border-top: 1px solid var(--color-border);
+}
+.consentHead {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+/* ——— шаг 4 ——— */
+.verdict {
+  font-size: var(--text-lead);
+  font-weight: 600;
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-subtle);
+  color: var(--color-text-secondary);
+}
+.verdict[data-tone='good'] {
+  background: var(--color-success-bg);
+  color: var(--color-success-text);
+}
+.verdict[data-tone='weak'] {
+  background: var(--color-warning-bg);
+  color: var(--color-warning-text);
+}
+.verdict[data-tone='unusable'] {
+  background: var(--color-error-bg);
+  color: var(--color-error-text);
+}
+.needs {
+  display: flex;
+  gap: var(--space-5);
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  flex-wrap: wrap;
+}
+.needs li {
+  display: grid;
+  gap: 1px;
+  font-size: var(--text-caption);
+}
+.needs small {
+  font-family: var(--font-mono);
+  font-size: var(--text-overline);
+  color: var(--color-text-tertiary);
+}
+.why summary {
+  font-size: var(--text-caption);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+}
+
+/* ——— общее ——— */
+.row {
+  display: flex;
+  gap: var(--space-3);
+  align-items: center;
+  flex-wrap: wrap;
+}
+.btn,
+.btnGhost {
+  display: inline-block;
+  font-size: var(--text-small);
+  font-weight: 500;
+  border-radius: var(--radius-control);
+  padding: var(--space-3) var(--space-6);
+  cursor: pointer;
+  border: 1px solid var(--color-accent);
+  background: var(--color-accent);
+  color: var(--color-text-on-accent);
+  text-decoration: none;
+  justify-self: start;
+}
+.btnGhost {
+  background: none;
+  border-color: var(--color-border-strong);
+  color: var(--color-text);
+}
+.btn:hover {
+  background: var(--color-accent-hover);
+}
+.btnGhost:hover {
+  background: var(--color-surface-hover);
+}
+.btn:disabled,
+.btnGhost:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.btn:focus-visible,
+.btnGhost:focus-visible,
+.link:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+.link {
+  color: var(--color-link);
+}
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* TEMPORARY: кликабельный рельс витрины — уходит вместе с демо-слоем. */
+.railJump {
+  background: none;
+  border: 0;
+  padding: 0;
+  text-align: start;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+}
+.railJump:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+  border-radius: var(--radius-xs);
+}
