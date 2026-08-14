@@ -484,6 +484,50 @@ class MeetingAccessMode(Enum):
 
 
 @strawberry.enum
+class SignalKind(Enum):
+    """One step of a WebRTC handshake (Р5.1).
+
+    These cross the server and are never written down: an SDP carries IP addresses and codec
+    detail, and a routing message that outlives the call it routed is a record nobody asked
+    for. `test_signalling.py` asserts there is no model for them.
+    """
+
+    OFFER = "offer"
+    ANSWER = "answer"
+    ICE = "ice"
+    BYE = "bye"
+
+
+@strawberry.enum
+class ConnectionType(Enum):
+    """How the media actually got there (Р5.1).
+
+    Shown to the teacher because it explains what they are feeling: RELAY means the network
+    would not allow a direct path and every packet is going through our server, which is
+    slower and is worth knowing before blaming the laptop.
+    """
+
+    DIRECT = "direct"
+    RELAY = "relay"
+    UNKNOWN = "unknown"
+
+
+@strawberry.enum
+class UplinkVerdict(Enum):
+    """What an uplink measurement means, in words (§19.3 — «предупреждаем, не запрещаем»).
+
+    The product never blocks a lesson on this. It says what the channel is good for and
+    leaves the choice with the teacher, who knows what the lesson is and who the children are.
+    """
+
+    COMFORTABLE = "comfortable"  # eight, with headroom
+    WORKABLE = "workable"  # the group it names, and no more
+    TIGHT = "tight"  # a pair; wired cable strongly advised
+    TOO_WEAK = "too_weak"  # even a pair will break up
+    UNKNOWN = "unknown"  # never measured
+
+
+@strawberry.enum
 class MirrorKind(Enum):
     """What a pupil keeps at the meeting point (Р5.0-Б, OWNER_SCOPE §20.3).
 

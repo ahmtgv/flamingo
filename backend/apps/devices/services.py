@@ -26,6 +26,7 @@ from django.db import transaction
 from django.utils import timezone
 
 from common.compliance.policy import require_feature
+from common.enums import ConnectionType
 from common.exceptions import NotFound, PermissionDenied, ValidationError
 
 from .models import Device, DeviceToken, PairingCode
@@ -182,6 +183,47 @@ def touch(device: Device) -> Device:
     Device.objects.filter(id=device.id).update(last_seen_at=now, updated_at=now)
     DeviceToken.objects.filter(device=device, revoked_at__isnull=True).update(last_used_at=now)
     device.last_seen_at = now
+    return device
+
+
+def report_uplink(raw_token: str, *, mbps: float, connection_type: str) -> Device:
+    """The machine reports what it measured (Р5.1).
+
+    Takes the machine key explicitly, like the heartbeat and for the same reason: the general
+    header path belongs with the sidecar in Р5.2, when its shape is known.
+
+    🔴 Recording a measurement never refuses anything. Owner decision §19.3 is «предупреждаем,
+    не запрещаем» — a weak channel produces a verdict in words and a smaller suggested group,
+    and the teacher decides. There is deliberately no code path here that could block a lesson.
+    """
+    device = authenticate_device(raw_token)
+    if device is None:
+        raise NotFound("Device not found")
+    try:
+        value = float(mbps)
+    except (TypeError, ValueError) as exc:
+        raise ValidationError("A measurement must be a number") from exc
+    if value != value or value < 0:  # NaN or negative
+        raise ValidationError("A measurement must be a number")
+    try:
+        ConnectionType(connection_type)
+    except ValueError as exc:
+        raise ValidationError("Unknown connection type") from exc
+
+    now = timezone.now()
+    device.uplink_mbps = value
+    device.uplink_measured_at = now
+    device.connection_type = connection_type
+    device.last_seen_at = now
+    device.save(
+        update_fields=[
+            "uplink_mbps",
+            "uplink_measured_at",
+            "connection_type",
+            "last_seen_at",
+            "updated_at",
+        ]
+    )
     return device
 
 

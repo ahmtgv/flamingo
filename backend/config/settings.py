@@ -55,6 +55,7 @@ INSTALLED_APPS = [
     "apps.summaries",
     "apps.devices",
     "apps.meetingpoint",
+    "apps.signalling",
 ]
 
 # --- Jurisdiction gate (docs/rnd/RND_01_JURISDICTION.md §6.1-6.2) ------------------------
@@ -158,6 +159,18 @@ S3 = {
     "secret_key": os.environ.get("S3_SECRET_KEY", "flamingo-secret"),
     # SigV4 region — MinIO accepts any; Yandex uses ru-central1 (set via env in prod).
     "region": os.environ.get("S3_REGION", "us-east-1"),
+}
+
+# TURN relay (Р5.1). The desktop host sends media peer-to-peer; TURN carries it only for the
+# 20-40% of real networks that refuse a direct path (R5_DESKTOP_HOST_BUDGET.md §1). The API
+# mints short-lived coturn REST credentials (common/turn.py) and never sees a packet.
+#
+# `secret` is the coturn `static-auth-secret`. Empty = no relay configured: the API then hands
+# out an unusable credential and says so, rather than one signed with a stand-in.
+TURN = {
+    "urls": os.environ.get("TURN_URLS", ""),  # comma-separated turn:/turns: URLs
+    "secret": os.environ.get("TURN_SECRET", ""),
+    "ttl_seconds": int(os.environ.get("TURN_TTL_SECONDS", "3600")),
 }
 
 # LiveKit (self-hosted video). The API only mints room tokens.

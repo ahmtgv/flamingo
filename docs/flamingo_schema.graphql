@@ -806,6 +806,8 @@ type Device {
   lastSeenAt: DateTime
   online: Boolean!               # derived from the heartbeat, never a stored flag
   pairedAt: DateTime!
+  uplink: UplinkAssessment       # Р5.1; null until this machine has measured once — an
+                                 # unmeasured channel and a dead one are different facts
 }
 
 # What the app gets when it asks. `secret` is its half of the credential, returned once and
@@ -894,6 +896,67 @@ type MeetingPoint {
 
 # A slug and a boolean. Nothing about where the machine is or what it is doing.
 type HostPresence { slug: String! online: Boolean! }
+
+# ----------------------------------------------------------------------------- Signalling (Р5.1)
+# The only thing the server does for a lesson's media. Two browsers behind two routers cannot
+# find each other; this passes them each other's offers and addresses, and then the packets go
+# peer to peer — or through TURN when a network refuses one (20-40% of real networks, per
+# R5_DESKTOP_HOST_BUDGET.md §1). **No media crosses the API.**
+#
+# `apps/signalling` has no model, deliberately: an SDP carries IP addresses and codec detail,
+# and a routing message that outlives the call it routed is a record of who was where, kept
+# for nobody. test_signalling.py asserts the absence rather than trusting it.
+enum SignalKind { OFFER ANSWER ICE BYE }
+
+type Signal {
+  sessionId: ID!
+  fromPeer: ID!
+  toPeer: ID!
+  kind: SignalKind!
+  payload: String!               # the SDP or ICE candidate, opaque to us: routed, not read
+}
+
+# A short-lived relay credential (coturn REST scheme). The username IS the expiry and the
+# password is its HMAC, so a credential read out of a browser's memory is dead within the
+# hour, no account exists on the relay, and the secret never leaves the server.
+# `configured` is false when no relay is set up — said out loud, because a lesson that
+# silently has no relay fails only for the pupils whose network needed one.
+type TurnCredentials {
+  urls: [String!]!
+  username: String!
+  credential: String!
+  ttlSeconds: Int!
+  configured: Boolean!
+}
+
+# ----------------------------------------------------------------------------- Uplink (Р5.1)
+# The teacher's outbound channel decides how big a group is possible: 1.1 / 2.4 / 4.3 Mbit/s
+# for 2 / 4 / 8 (budget §3, Р5.1 video mode). The measurement runs on the teacher's machine
+# over the same path the media will take; there is deliberately NO upload endpoint on the API.
+#
+# 🔴 The verdict never blocks a lesson (OWNER_SCOPE §19.3 — «предупреждаем, не запрещаем»).
+enum UplinkVerdict { COMFORTABLE WORKABLE TIGHT TOO_WEAK UNKNOWN }
+
+# How the media actually got there. RELAY means the network refused a direct path and every
+# packet is going through our server — worth knowing before blaming the laptop.
+enum ConnectionType { DIRECT RELAY UNKNOWN }
+
+type UplinkAssessment {
+  mbps: Float!
+  verdict: UplinkVerdict!
+  groupSize: Int!                # the largest group this channel carries; 0 when it carries none
+  requiredForEight: Float!
+  stale: Boolean!                # a measurement from this morning is about a different evening
+  connectionType: ConnectionType!
+}
+
+# The measurement's own parameters, served rather than hardcoded on both sides.
+type UplinkProbe {
+  seconds: Int!
+  requiredForTwo: Float!
+  requiredForFour: Float!
+  requiredForEight: Float!
+}
 
 # ----------------------------------------------------------------------------- Second screen (R3.1)
 # The cast model: the teacher reads a short code off their screen and types it on a tablet —
@@ -1299,6 +1362,10 @@ type Query {
   # somebody else's mirror is not reachable by asking nicely.
   myMirror(kind: MirrorKind, limit: Int = 100): [MirroredRecord!]!
 
+  # signalling and the channel measurement (Р5.1)
+  turnCredentials: TurnCredentials!                      # expires within the hour, per person
+  uplinkProbe: UplinkProbe!                              # 12 s, and the thresholds to judge by
+
   # summary (R4.2) — the teacher gets the draft; everyone else gets it only once it is sent,
   # and gets NULL rather than a refusal until then (whether it is being written is not their
   # business either). lessonChat is the exception: participants read the CHAT section live.
@@ -1462,6 +1529,12 @@ type Mutation {
   replaceMeetingLink(groupId: ID!): MeetingPoint!         # the old slug is remembered, so it can
                                                           # say «заменена» instead of «не найдено»
   hostHeartbeat(deviceToken: String!): HostPresence!      # the machine says it is alive
+  # 🔴 Recording a measurement refuses nothing (§19.3): the teacher is told what the channel
+  # is good for and decides — they know what the lesson is and who the children are.
+  reportUplink(deviceToken: String!, mbps: Float!, connectionType: ConnectionType = UNKNOWN): Device!
+
+  # signalling (Р5.1) — routes one handshake message and writes nothing down
+  sendSignal(sessionId: ID!, toPeer: ID!, kind: SignalKind!, payload: String!): Boolean!
 
   # summary (R4.2) — teacher-only, all of them; sendChatMessage above is everyone's
   assembleLessonSummary(sessionId: ID!): LessonSummary!   # «собрать саммари сейчас»
@@ -1541,6 +1614,10 @@ type Subscription {
   # Р5.0 — the «преподаватель не в сети» screen, told the moment it stops being true. This is
   # also what auto-opens the room: the pupil does not refresh, the page notices.
   hostPresenceChanged(slug: String!): HostPresence!
+  # Р5.1 — each participant listens on a channel of their own, so a handshake reaches the one
+  # person it is addressed to. Broadcasting to the room would hand every pupil's home IP
+  # address to every other pupil.
+  signals(sessionId: ID!): Signal!
   # standing chat (R2) — the socket re-checks membership before streaming anything
   channelMessageReceived(channelId: ID!): ChannelMessage!
   # current user's notifications (new grade, absence, CMF insight, ...)

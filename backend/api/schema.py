@@ -35,6 +35,9 @@ from apps.scheduling.graphql.subscriptions import SchedulingSubscription
 from apps.seedum.graphql.mutations import SeedumMutation
 from apps.seedum.graphql.queries import SeedumQuery
 from apps.seedum.graphql.subscriptions import SeedumSubscription
+from apps.signalling.graphql.mutations import SignallingMutation
+from apps.signalling.graphql.queries import SignallingQuery
+from apps.signalling.graphql.subscriptions import SignallingSubscription
 from apps.summaries.graphql.mutations import SummariesMutation
 from apps.summaries.graphql.queries import SummariesQuery
 from apps.summaries.graphql.subscriptions import SummariesSubscription
@@ -54,6 +57,7 @@ class Query(
     SummariesQuery,
     DevicesQuery,
     MeetingPointQuery,
+    SignallingQuery,
 ):
     pass
 
@@ -73,6 +77,7 @@ class Mutation(
     SummariesMutation,
     DevicesMutation,
     MeetingPointMutation,
+    SignallingMutation,
 ):
     pass
 
@@ -86,6 +91,7 @@ class Subscription(
     SummariesSubscription,
     DictionarySubscription,
     MeetingPointSubscription,
+    SignallingSubscription,
 ):
     pass
 

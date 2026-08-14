@@ -11,7 +11,9 @@ import datetime as dt
 
 import strawberry
 
-from common.enums import DevicePlatform
+from apps.devices import uplink as uplink_rules
+from apps.signalling.graphql.types import UplinkAssessment
+from common.enums import ConnectionType, DevicePlatform
 
 
 @strawberry.type
@@ -24,9 +26,19 @@ class Device:
     #: Derived from the heartbeat — see meetingpoint.services.HEARTBEAT_WINDOW.
     online: bool
     paired_at: dt.datetime
+    #: Р5.1 — the last channel measurement, already turned into a verdict and a group size.
+    #: Null until the machine has measured once.
+    uplink: UplinkAssessment | None
 
     @classmethod
     def of(cls, row, *, online: bool = False) -> Device:
+        assessment = None
+        if row.uplink_measured_at is not None:
+            assessment = UplinkAssessment.of(
+                uplink_rules.assess(row.uplink_mbps),
+                stale=uplink_rules.is_stale(row.uplink_measured_at),
+                connection_type=ConnectionType(row.connection_type),
+            )
         return cls(
             id=strawberry.ID(str(row.id)),
             name=row.name,
@@ -35,6 +47,7 @@ class Device:
             last_seen_at=row.last_seen_at,
             online=online,
             paired_at=row.created_at,
+            uplink=assessment,
         )
 
 

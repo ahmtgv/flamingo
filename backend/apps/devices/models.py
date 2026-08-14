@@ -21,7 +21,7 @@ Three things follow, and they are the shape of this module rather than notes abo
 
 from django.db import models
 
-from common.enums import DevicePlatform, choices
+from common.enums import ConnectionType, DevicePlatform, choices
 from common.models import BaseModel
 
 
@@ -44,6 +44,15 @@ class Device(BaseModel):
     #: The heartbeat. Presence at the meeting point is derived from this — see
     #: apps/meetingpoint/services.py, which owns the «is the host online» question.
     last_seen_at = models.DateTimeField(null=True, blank=True)
+    # Р5.1 — the last uplink measurement, which is state OF THIS MACHINE and belongs on its
+    # row. What the numbers mean is `apps/devices/uplink.py`; the row only remembers them.
+    uplink_mbps = models.FloatField(null=True, blank=True)
+    uplink_measured_at = models.DateTimeField(null=True, blank=True)
+    #: How the last lesson's media actually got there. Shown because it explains what the
+    #: teacher is feeling: RELAY means the network refused a direct path.
+    connection_type = models.CharField(
+        max_length=8, choices=choices(ConnectionType), default=ConnectionType.UNKNOWN.value
+    )
     revoked_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
