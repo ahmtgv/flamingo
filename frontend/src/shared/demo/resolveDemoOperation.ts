@@ -3637,6 +3637,7 @@ export function resolveDemoOperation(
         exportCabinet: {
           __typename: 'CabinetBackup',
           createdAt: iso(),
+          fileName: 'cabinet-2026-08-14-1932.flamingo',
           // Витрина показывает копию зашифрованной: так она и уходит наружу (§19.1).
           sealed: true,
           rows: 1284,

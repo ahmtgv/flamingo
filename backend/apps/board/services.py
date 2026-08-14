@@ -163,7 +163,32 @@ def save_snapshot(user, lesson_id, title: str = "") -> BoardSnapshot:
         body="",
         board_snapshot=snapshot,
     )
+    _mirror_to_the_class(snapshot, board.lesson)
     return snapshot
+
+
+def _mirror_to_the_class(snapshot, lesson) -> None:
+    """Сохранённая доска ложится ученикам занятия (Р5.4-Б, §20.5.1 п.4).
+
+    Сохранение — акт преподавателя, по смыслу тот же, что «отправить саммари»: он решает, что
+    это остаётся. Живой холст и черновик сюда не попадают, потому что событие только одно.
+
+    Лучшее усилие: не скопировалось — доска всё равно сохранена. Уронить сохранение из-за
+    копии значило бы отменить то, что преподаватель только что сделал.
+    """
+    from apps.courses.models import Enrollment
+    from apps.meetingpoint import mirror
+
+    students = [
+        e.student
+        for e in Enrollment.objects.filter(course=lesson.section.course).select_related("student")
+    ]
+    if not students:
+        return
+    try:
+        mirror.mirror_board(snapshot, students)
+    except Exception:  # noqa: BLE001
+        pass
 
 
 def snapshots(user, lesson_id) -> list[BoardSnapshot]:

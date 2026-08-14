@@ -830,6 +830,10 @@ enum BackupKind { NONE EXTERNAL_DISK CLOUD_FOLDER }
 # машине и в операцию не попадает (test_first_run.py, noPassword.test.ts).
 type CabinetBackup {
   createdAt: DateTime!
+  # Р5.5-Б — ИМЯ файла, не путь. Копию наружу переносит оболочка: она назначила папку кабинета
+  # при запуске sidecar и знает, откуда забирать. Адрес, выбранный преподавателем, живёт на
+  # машине и через GraphQL не ходит — то же правило, что и для папки кабинета.
+  fileName: String!
   sealed: Boolean!               # для копии, уходящей к нам, — всегда true (§19.1)
   rows: Int!
   files: Int!                    # байты работ едут внутри файла, а не ссылками на них

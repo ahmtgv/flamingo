@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from django.db import transaction
 from django.db.models import Count, Max, Q
+from django.utils import timezone
 
 from apps.accounts.models import StudentProfile, TeacherProfile
 from apps.files import services as files
@@ -541,3 +542,41 @@ def teacher_new_students_this_week(user, since) -> int:
         .distinct()
         .count()
     )
+
+
+def share_material(user, material_id) -> Material:
+    """Выдать материал классу — и тем самым положить его ученикам (Р5.4-Б, §20.5.1 п.5).
+
+    🔴 Это ТОТ САМЫЙ акт, о который опирается граница §20.5.2. Создание материала не выдаёт
+    его никому: преподаватель складывает у себя программы, черновики и заготовки, и они его.
+    Выдача — отдельное решение человека, и только она кладёт копию ученику.
+
+    Копия уходит **содержимым** (уточнение владельца 14.08, прежняя строка §20.4.1 про «имя и
+    ссылку» отменена): текст текстом, файл байтами в пространство самого ученика. Иначе
+    методичка, «сохранённая» ученику, перестала бы открываться в тот день, когда преподаватель
+    ушёл с платформы — то есть ровно тогда, когда она нужна.
+
+    Идемпотентно: повторная выдача обновляет копию, а не плодит вторую.
+    """
+    from apps.meetingpoint import mirror
+
+    material = Material.objects.filter(id=material_id).select_related("lesson", "course").first()
+    if material is None:
+        raise NotFound("Material not found")
+    course = material.course or (material.lesson.section.course if material.lesson_id else None)
+    if course is None or course.owner_id != getattr(user, "id", None):
+        raise PermissionDenied("Only the owning teacher shares a material")
+
+    if material.shared_at is None:
+        material.shared_at = timezone.now()
+        material.save(update_fields=["shared_at", "updated_at"])
+
+    students = [
+        e.student for e in Enrollment.objects.filter(course=course).select_related("student")
+    ]
+    if students:
+        try:
+            mirror.mirror_material(material, students)
+        except Exception:  # noqa: BLE001 — выдача состоялась; копия — лучшее усилие
+            pass
+    return material

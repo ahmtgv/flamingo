@@ -155,6 +155,10 @@ class Material(BaseModel):
     license = models.CharField(max_length=64, blank=True, default="")
     attribution = models.CharField(max_length=300, blank=True, default="")
     source_url = models.URLField(max_length=1000, blank=True, default="")
+    # 🔴 Граница §20.5.2 как колонка: «выдал → стало общим и лежит у ученика; не выдал → своё».
+    # Существование материала ничего не выдаёт — выдаёт АКТ, и вот его отметка. Пока она
+    # пуста, материал живёт только у преподавателя, и в зеркало ему попасть нечем.
+    shared_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         ordering = ["order"]

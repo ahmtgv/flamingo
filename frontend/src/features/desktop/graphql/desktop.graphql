@@ -108,6 +108,8 @@ mutation ConfigureCabinetBackup($kind: BackupKind!, $cloudCopy: Boolean) {
 mutation ExportCabinet($passphrase: String) {
   exportCabinet(passphrase: $passphrase) {
     createdAt
+    # Р5.5-Б: имя файла, не путь. Где лежит папка кабинета, знает оболочка — она её и назначила.
+    fileName
     sealed
     rows
     files

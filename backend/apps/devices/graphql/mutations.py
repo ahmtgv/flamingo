@@ -126,9 +126,10 @@ class DevicesMutation:
         """
         from datetime import datetime
 
-        header = services.run_backup(require_device(info), passphrase=passphrase or None)
+        header, file_name = services.run_backup(require_device(info), passphrase=passphrase or None)
         return CabinetBackup(
             created_at=datetime.fromisoformat(header.created_at),
+            file_name=file_name,
             sealed=header.sealed,
             rows=header.rows,
             files=header.files,

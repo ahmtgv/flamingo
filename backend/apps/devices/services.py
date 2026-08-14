@@ -376,6 +376,7 @@ def run_backup(device: Device, *, passphrase: str | None = None):
 
     folder = Path(getattr(settings, "DATA_DIR", ".")) / BACKUP_DIRNAME
     stamp = timezone.now().strftime("%Y-%m-%d-%H%M")
-    header = export_cabinet(folder / f"cabinet-{stamp}{SUFFIX}", passphrase=passphrase)
+    name = f"cabinet-{stamp}{SUFFIX}"
+    header = export_cabinet(folder / name, passphrase=passphrase)
     record_backup(device)
-    return header
+    return header, name

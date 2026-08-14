@@ -138,11 +138,25 @@ def test_a_draft_summary_is_the_teachers_and_reaches_nobody():
     assert mirror.my_mirror(pupil) == []
 
 
-def test_a_teachers_guide_has_no_kind_it_could_be_mirrored_under():
-    """The boundary as a type rather than as a promise: there is no `MirrorKind` for a
-    programme, a guide or an unshared board draft, so no future call site can copy one
-    without somebody first re-deciding who owns what."""
-    assert {k.value for k in MirrorKind} == {"work", "summary", "achievement", "chat"}
+def test_the_mirror_carries_exactly_the_owners_composition():
+    """Состав зеркала = §20.5.1, буква в букву.
+
+    ⚠️ Р5.4-Б расширил ЧТО хранится у ученика и не сдвинул границу. Раньше здесь стояло
+    «у методички нет вида, под которым её можно скопировать» — после уточнения владельца
+    (14.08) у неё вид есть, потому что **выданная** методичка ученику принадлежит. Граница
+    переехала с перечня видов на перечень СОБЫТИЙ: `MATERIAL` пишется только из
+    `share_material`, `BOARD` — только из сохранения доски, `SUMMARY` — только из отправки.
+    Что невыданное не проходит, проверяют три теста ниже, а не этот.
+    """
+    assert {k.value for k in MirrorKind} == {
+        "work",  # §20.5.1 п.2 — работы, все попытки, с файлами
+        "summary",  # п.3 — саммари занятий, с чатом занятия внутри
+        "achievement",  # п.1 — достижения
+        "chat",  # п.6 — его чаты
+        "diary",  # п.1 — занятия, посещаемость, прогресс
+        "board",  # п.4 — доски и майндмапы его занятий
+        "material",  # п.5 — выданные методички и материалы, содержимым
+    }
 
 
 def test_an_unshared_material_never_appears_in_a_mirror():
@@ -512,3 +526,152 @@ def test_an_object_key_cannot_climb_out_of_the_storage_root(settings, tmp_path):
 
     assert storage.head("../../etc/passwd") is None
     assert storage.copy("../../etc/passwd", "mirror/x/y/z") is False
+
+
+# --- Р5.4-Б: вся база знаний ученика (OWNER_SCOPE §20.5.1) -------------------------------------
+def a_shared_guide(teacher, lesson, *, title="Методичка Unit 4", body="Как спросить дорогу"):
+    from apps.courses.models import Material
+    from common.enums import MaterialType
+
+    material = Material.objects.create(
+        lesson=lesson, type=MaterialType.TEXT.value, title=title, body=body
+    )
+    courses.share_material(teacher, material.id)
+    return material
+
+
+def test_the_whole_of_a_pupils_schooling_survives_the_teacher(settings, tmp_path):
+    """🔴 Приёмка Р5.4-Б: учётку преподавателя удалили — ученик открывает ВСЁ своё.
+
+    Дневник · работы с файлами · саммари · доски своих занятий · выданные методички.
+    Невыданный черновик — не открывает. Это и есть §20.5.1 целиком, проверенное единственным
+    способом, который что-то значит.
+    """
+    from apps.board import services as board
+    from apps.scheduling import services as scheduling
+    from common import storage
+
+    settings.STORAGE_BACKEND = "local"
+    settings.LOCAL_STORAGE_ROOT = str(tmp_path / "files")
+
+    teacher = make_teacher()
+    course, lesson = a_course(teacher)
+    pupil = enrolled(course)
+
+    # 1. работа с файлом
+    task = a_homework(teacher, lesson)
+    key = f"submission/{pupil.id}/essay.txt"
+    storage.write_bytes(key, "Иду прямо, потом направо".encode())
+    submission = homework.submit_homework(
+        pupil, homework_id=task.id, content_text="Готово", file_keys=[key]
+    )
+    homework.grade_submission(teacher, submission_id=submission.id, score=5, comment="Молодец")
+
+    # 2. занятие: саммари и дневник
+    session = LessonSession.objects.create(
+        lesson=lesson, start_at=timezone.now() - dt.timedelta(minutes=40)
+    )
+    summaries.assemble(teacher, session.id)
+    summaries.send(teacher, session.id)
+    scheduling.end_session(teacher, session.id)
+
+    # 3. доска, которую класс видел
+    board.put_element(
+        teacher,
+        lesson.id,
+        kind="sticker",
+        x=0,
+        y=0,
+        width=100,
+        height=60,
+        data={"text": "turn left"},
+    )
+    board.save_snapshot(teacher, lesson.id, title="Доска 14 августа")
+
+    # 4. выданная методичка и НЕвыданный черновик
+    a_shared_guide(teacher, lesson)
+    from apps.courses.models import Material
+    from common.enums import MaterialType
+
+    Material.objects.create(
+        lesson=lesson,
+        type=MaterialType.TEXT.value,
+        title="Черновик, классу не показывали",
+        body="…",
+    )
+
+    teacher.delete()
+
+    def kept(kind):
+        return mirror.my_mirror(pupil, kind=kind)
+
+    # дневник
+    diary = kept(MirrorKind.DIARY)
+    assert len(diary) == 1, "дневник пуст"
+    assert diary[0].payload["lessonTitle"] == "Asking for directions"
+
+    # работа — вместе с файлом, и файл открывается
+    work = kept(MirrorKind.WORK)
+    assert len(work) == 1 and work[0].payload["score"] == 5
+    attachment = work[0].payload["attachments"][0]
+    assert storage.read_bytes(attachment["objectKey"]) == "Иду прямо, потом направо".encode()
+
+    # саммари
+    assert len(kept(MirrorKind.SUMMARY)) == 1
+
+    # доска — содержимым, а не ссылкой на чужую машину
+    boards = kept(MirrorKind.BOARD)
+    assert len(boards) == 1, "доски своих занятий не сохранились"
+    assert boards[0].payload["elements"], "доска приехала пустой"
+
+    # выданная методичка — содержимым; невыданный черновик — ничем
+    guides = kept(MirrorKind.MATERIAL)
+    assert len(guides) == 1, "выданная методичка не сохранилась"
+    assert guides[0].payload["body"] == "Как спросить дорогу"
+    assert all("Черновик" not in g.payload["title"] for g in guides)
+
+
+def test_an_unsaved_board_is_the_teachers_own(settings, tmp_path):
+    """«Не выдал — своё»: живой холст, который ещё не сохранили, ученику не принадлежит."""
+    from apps.board import services as board
+
+    teacher = make_teacher()
+    course, lesson = a_course(teacher)
+    pupil = enrolled(course)
+    board.put_element(
+        teacher, lesson.id, kind="sticker", x=0, y=0, width=10, height=10, data={"text": "черновик"}
+    )
+
+    assert mirror.my_mirror(pupil, kind=MirrorKind.BOARD) == []
+
+
+def test_a_shared_guide_carries_its_file_by_content(settings, tmp_path):
+    """§20.5.1 п.5 — содержимым, а не ссылкой. Прежняя строка про «имя и ссылку» отменена."""
+    from apps.courses.models import Material
+    from common import storage
+    from common.enums import MaterialType
+
+    settings.STORAGE_BACKEND = "local"
+    settings.LOCAL_STORAGE_ROOT = str(tmp_path / "files")
+
+    teacher = make_teacher()
+    course, lesson = a_course(teacher)
+    pupil = enrolled(course)
+
+    key = f"material/{teacher.id}/guide.pdf"
+    storage.write_bytes(key, b"%PDF-1.4 methodical")
+    material = Material.objects.create(
+        lesson=lesson, type=MaterialType.FILE.value, title="Методичка", file_key=key
+    )
+    courses.share_material(teacher, material.id)
+
+    teacher.delete()
+
+    guide = mirror.my_mirror(pupil, kind=MirrorKind.MATERIAL)[0]
+    # Ключ — в пространстве самого ученика, и байты на месте после ухода преподавателя.
+    assert guide.payload["objectKey"].startswith(f"mirror/{pupil.student_profile.pk}/")
+    assert storage.read_bytes(guide.payload["objectKey"]) == b"%PDF-1.4 methodical"
+    # И открывается тем же путём, что и своя работа.
+    assert mirror.mirrored_file_url(
+        pupil, record_id=guide.id, object_key=guide.payload["objectKey"]
+    )

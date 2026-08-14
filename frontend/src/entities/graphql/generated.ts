@@ -226,6 +226,7 @@ export type BoardSnapshot = {
 export type CabinetBackup = {
   __typename?: 'CabinetBackup';
   createdAt: Scalars['DateTime']['output'];
+  fileName: Scalars['String']['output'];
   files: Scalars['Int']['output'];
   rows: Scalars['Int']['output'];
   sealed: Scalars['Boolean']['output'];
@@ -3222,7 +3223,7 @@ export type ExportCabinetMutationVariables = Exact<{
 }>;
 
 
-export type ExportCabinetMutation = { __typename?: 'Mutation', exportCabinet: { __typename?: 'CabinetBackup', createdAt: string, sealed: boolean, rows: number, files: number, tables: number } };
+export type ExportCabinetMutation = { __typename?: 'Mutation', exportCabinet: { __typename?: 'CabinetBackup', createdAt: string, fileName: string, sealed: boolean, rows: number, files: number, tables: number } };
 
 export type RecordCabinetBackupMutationVariables = Exact<{ [key: string]: never; }>;
 
@@ -6567,6 +6568,7 @@ export const ExportCabinetDocument = gql`
     mutation ExportCabinet($passphrase: String) {
   exportCabinet(passphrase: $passphrase) {
     createdAt
+    fileName
     sealed
     rows
     files

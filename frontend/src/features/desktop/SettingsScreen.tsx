@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import {
@@ -7,7 +7,15 @@ import {
   useRevokeDeviceMutation,
 } from '@/entities/graphql/generated';
 
-import { cabinetFolder, revealCabinetFolder } from './cabinetFolder';
+import {
+  backupDestination,
+  chooseBackupDestination,
+  copyBackupOut,
+  type CopyOutFailure,
+  lastCopyOut,
+  rememberCopyOut,
+} from './backupCopy';
+import { cabinetFolder, chooseCabinetFolder, revealCabinetFolder } from './cabinetFolder';
 import styles from './settings.module.css';
 
 const TABS = ['link', 'data', 'devices'] as const;
@@ -33,6 +41,44 @@ export function SettingsScreen() {
   // Р5.5: кнопка снимает НАСТОЯЩУЮ копию — до этой фазы она лишь отмечала время.
   const [exportCabinet, { data: made, loading: backingUp }] = useExportCabinetMutation();
   const [revoke] = useRevokeDeviceMutation();
+
+  // Р5.5-Б: место, куда уезжает копия, и результат последнего переноса.
+  const [destination, setDestination] = useState('');
+  const [outAt, setOutAt] = useState(() => lastCopyOut());
+  const [failure, setFailure] = useState<CopyOutFailure | null>(null);
+  useEffect(() => {
+    void backupDestination().then(setDestination);
+  }, []);
+
+  /**
+   * 🔴 Снять копию и вывезти её с машины. Два шага, и второй обязателен: копия, оставшаяся в
+   * папке кабинета, не переживает того же случая, что и оригинал.
+   *
+   * Место исчезло — говорим словами и НЕ отмечаем перенос как удавшийся. Тихо записать в
+   * старую папку значило бы сделать вид, что копия есть, ровно тогда, когда её нет.
+   */
+  const backupNow = async () => {
+    setFailure(null);
+    const { data: made } = await exportCabinet();
+    const name = made?.exportCabinet?.fileName;
+    if (name) {
+      const moved = await copyBackupOut(name);
+      if (moved.ok) {
+        rememberCopyOut(moved.at);
+        setOutAt(lastCopyOut());
+      } else {
+        setFailure(moved.reason);
+      }
+    }
+    await refetch();
+  };
+
+  const pickDestination = async () => {
+    const folder = await chooseCabinetFolder();
+    if (!folder) return;
+    setDestination(await chooseBackupDestination(folder));
+    setFailure(null);
+  };
 
   const devices = data?.myDevices ?? [];
   const machine = devices[0];
@@ -144,12 +190,38 @@ export function SettingsScreen() {
                 type="button"
                 className={styles.mini}
                 disabled={backingUp}
-                onClick={() => void exportCabinet().then(() => refetch())}
+                onClick={() => void backupNow()}
               >
                 {t('settings.data.backupNow')}
               </button>
             }
           />
+
+          {/* 🔴 Р5.5-Б — копия обязана покинуть машину. */}
+          <Row
+            label={t('settings.data.destination')}
+            hint={t('settings.data.destinationHint')}
+            value={destination || t('settings.data.destinationNone')}
+            action={
+              <button type="button" className={styles.mini} onClick={() => void pickDestination()}>
+                {t('settings.data.choose')}
+              </button>
+            }
+          />
+          <Row
+            label={t('settings.data.lastOut')}
+            hint={t('settings.data.destinationHint')}
+            value={
+              outAt
+                ? t('settings.data.lastOutValue', {
+                    when: new Date(outAt.at).toLocaleString('ru'),
+                    where: outAt.where,
+                  })
+                : t('settings.data.lastOutNever')
+            }
+          />
+          {/* Диск отключён — сказать словами, а не молча писать в старую папку. */}
+          {failure && <p className={styles.warn}>{t(`settings.data.outFailed.${failure}`)}</p>}
         </section>
       )}
 

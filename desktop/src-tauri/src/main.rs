@@ -61,6 +61,165 @@ fn forget_machine_key() -> Result<(), String> {
     }
 }
 
+// --- Р5.5-Б: копия обязана покинуть машину -----------------------------------------------
+//
+// Копия на том же диске — не копия: тот же пролитый кофе уносит и оригинал, и её. Sidecar
+// кладёт файл в папку кабинета; отсюда он уезжает туда, куда преподаватель показал однажды.
+//
+// 🔒 Адрес выбирается ЗДЕСЬ и живёт здесь. Через GraphQL он не ходит — это то же правило, по
+// которому там нет пути к папке кабинета: имя учётной записи в системе нам знать незачем.
+const BACKUP_DEST_KEY: &str = "backup-destination";
+
+/// Папка кабинета — одна на оболочку и на sidecar.
+fn cabinet_dir(app: &tauri::AppHandle) -> std::path::PathBuf {
+    app.path()
+        .app_data_dir()
+        .unwrap_or_else(|_| std::path::PathBuf::from("."))
+        .join("cabinet")
+}
+
+fn dest_store(app: &tauri::AppHandle) -> std::path::PathBuf {
+    app.path()
+        .app_config_dir()
+        .unwrap_or_else(|_| std::path::PathBuf::from("."))
+        .join("backup-destination.txt")
+}
+
+/// Спросить место один раз. Дальше копии уезжают туда сами.
+#[tauri::command]
+fn choose_backup_destination(app: tauri::AppHandle, path: String) -> Result<String, String> {
+    let target = std::path::PathBuf::from(&path);
+    if !target.is_dir() {
+        return Err(format!("{BACKUP_DEST_KEY}: not a folder"));
+    }
+    let store = dest_store(&app);
+    if let Some(parent) = store.parent() {
+        std::fs::create_dir_all(parent).map_err(|e| e.to_string())?;
+    }
+    std::fs::write(&store, &path).map_err(|e| e.to_string())?;
+    Ok(path)
+}
+
+/// Куда договорились возить копии. Пусто — ещё не спрашивали.
+#[tauri::command]
+fn backup_destination(app: tauri::AppHandle) -> String {
+    std::fs::read_to_string(dest_store(&app)).unwrap_or_default()
+}
+
+/// Перенести только что снятую копию наружу.
+///
+/// 🔴 Возвращает ошибку СЛОВАМИ, когда места нет: внешний диск отключён, папка облака не
+/// смонтирована. Молча записать в старую папку — это сделать вид, что копия есть, ровно в тот
+/// момент, когда её нет; сообщение обязано быть, и оно на стороне React, где живёт i18n.
+#[tauri::command]
+fn move_backup_out(app: tauri::AppHandle, file_name: String) -> Result<String, String> {
+    copy_out(
+        &cabinet_dir(&app).join("backups"),
+        &backup_destination(app.clone()),
+        &file_name,
+    )
+}
+
+/// Сам перенос — без Tauri, чтобы его можно было проверить тестом, а не только руками.
+///
+/// Копируем, а не переносим: на внешнем диске копия появилась, и в кабинете она ещё есть. Если
+/// диск выдернут посреди записи, оригинал не потерян вместе с ней.
+fn copy_out(backups: &std::path::Path, destination: &str, file_name: &str) -> Result<String, String> {
+    if destination.is_empty() {
+        return Err("no-destination".into());
+    }
+    let target_dir = std::path::PathBuf::from(destination);
+    if !target_dir.is_dir() {
+        // Диск отключён или папку унесли. Это не «почти получилось».
+        return Err("destination-missing".into());
+    }
+    // Принимаем ИМЯ, а не путь: откуда забирать — знание оболочки, и обходной путь вида
+    // «../../» не превращается в чтение произвольного файла с машины.
+    if file_name.contains('/') || file_name.contains('\\') || file_name.contains("..") {
+        return Err("bad-source".into());
+    }
+    let source = backups.join(file_name);
+    if !source.is_file() {
+        return Err("bad-source".into());
+    }
+    let target = target_dir.join(file_name);
+    std::fs::copy(&source, &target).map_err(|e| e.to_string())?;
+    Ok(target.to_string_lossy().to_string())
+}
+
+#[cfg(test)]
+mod tests {
+    //! Приёмка Р5.5-Б: копия появилась ВНЕ папки кабинета; диск отключён — сказали об этом.
+    use super::copy_out;
+
+    fn scratch(name: &str) -> std::path::PathBuf {
+        let dir = std::env::temp_dir().join(format!("flamingo-r55b-{name}"));
+        let _ = std::fs::remove_dir_all(&dir);
+        std::fs::create_dir_all(&dir).unwrap();
+        dir
+    }
+
+    #[test]
+    fn the_copy_leaves_the_cabinet_folder() {
+        let root = scratch("ok");
+        let backups = root.join("cabinet/backups");
+        let disk = root.join("external-disk");
+        std::fs::create_dir_all(&backups).unwrap();
+        std::fs::create_dir_all(&disk).unwrap();
+        std::fs::write(backups.join("cabinet-1.flamingo"), b"sealed bytes").unwrap();
+
+        let at = copy_out(&backups, disk.to_str().unwrap(), "cabinet-1.flamingo").unwrap();
+
+        let landed = std::path::PathBuf::from(&at);
+        assert!(landed.is_file(), "копия не появилась на внешнем диске");
+        assert!(!landed.starts_with(&backups), "копия осталась в папке кабинета");
+        assert_eq!(std::fs::read(&landed).unwrap(), b"sealed bytes");
+        // Оригинал на месте: диск могли выдернуть посреди записи.
+        assert!(backups.join("cabinet-1.flamingo").is_file());
+    }
+
+    #[test]
+    fn an_unplugged_disk_is_said_out_loud_not_written_around() {
+        let root = scratch("gone");
+        let backups = root.join("cabinet/backups");
+        std::fs::create_dir_all(&backups).unwrap();
+        std::fs::write(backups.join("cabinet-1.flamingo"), b"x").unwrap();
+
+        let gone = root.join("external-disk-that-was-unplugged");
+        let err = copy_out(&backups, gone.to_str().unwrap(), "cabinet-1.flamingo").unwrap_err();
+        assert_eq!(err, "destination-missing");
+        // И ничего не появилось «где-то ещё»: молчаливая запись в старую папку — это вид,
+        // будто копия есть, ровно тогда, когда её нет.
+        assert!(!gone.exists());
+    }
+
+    #[test]
+    fn with_no_destination_chosen_it_says_so() {
+        let root = scratch("nodest");
+        let backups = root.join("cabinet/backups");
+        std::fs::create_dir_all(&backups).unwrap();
+        assert_eq!(copy_out(&backups, "", "a.flamingo").unwrap_err(), "no-destination");
+    }
+
+    #[test]
+    fn a_name_that_climbs_out_of_the_backups_folder_is_refused() {
+        let root = scratch("climb");
+        let backups = root.join("cabinet/backups");
+        let disk = root.join("disk");
+        std::fs::create_dir_all(&backups).unwrap();
+        std::fs::create_dir_all(&disk).unwrap();
+        std::fs::write(root.join("secret.txt"), b"not a backup").unwrap();
+
+        for name in ["../secret.txt", "../../etc/passwd", "sub/dir.flamingo"] {
+            assert_eq!(
+                copy_out(&backups, disk.to_str().unwrap(), name).unwrap_err(),
+                "bad-source",
+                "{name} проехал"
+            );
+        }
+    }
+}
+
 /// Свернуть в трей — **and leave the lesson running**.
 ///
 /// 🔴 Sheet D1: «Свёрнутое окно не заканчивает урок». This hides the window and touches nothing
@@ -108,7 +267,10 @@ fn main() {
             set_tray_menu,
             store_machine_key,
             has_machine_key,
-            forget_machine_key
+            forget_machine_key,
+            choose_backup_destination,
+            backup_destination,
+            move_backup_out
         ])
         .setup(|app| {
             let binary = app
@@ -120,7 +282,12 @@ fn main() {
                 .ok();
             if let Some(path) = binary {
                 if path.exists() {
-                    let child = Command::new(path).spawn().ok();
+                    // Папку кабинета назначает оболочка, а не умолчание внутри sidecar: иначе
+                    // она не знает, откуда забирать снятую копию (Р5.5-Б).
+                    let child = Command::new(path)
+                        .env("FLAMINGO_DATA_DIR", cabinet_dir(app.handle()))
+                        .spawn()
+                        .ok();
                     *app.state::<Sidecar>().0.lock().unwrap() = child;
                 }
             }

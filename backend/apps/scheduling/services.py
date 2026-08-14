@@ -84,7 +84,34 @@ def end_session(user, session_id) -> LessonSession:
     session.save(update_fields=["status", "end_at", "updated_at"])
     # A second screen must not outlive the lesson it was showing.
     revoke_projector_codes(session)
+    _mirror_the_diary(session)
     return session
+
+
+def _mirror_the_diary(session) -> None:
+    """Занятие закончилось — строка появилась в дневнике каждого (Р5.4-Б, §20.5.1 п.1).
+
+    Дневник сводит в один вид то, что уже лежало по разным таблицам: когда было занятие, был
+    ли на нём ученик, сколько курса пройдено. Пишется по событию, как и всё остальное в
+    зеркале, — «занятие закончилось» и есть событие.
+
+    Лучшее усилие: копия не должна уметь отменить окончание урока.
+    """
+    from apps.courses.models import Enrollment
+    from apps.meetingpoint import mirror
+
+    attended = {str(a.student_id): a.status for a in Attendance.objects.filter(session=session)}
+    rows = Enrollment.objects.filter(course=session.lesson.section.course).select_related("student")
+    for enrollment in rows:
+        try:
+            mirror.mirror_diary(
+                session,
+                enrollment.student,
+                attendance=attended.get(str(enrollment.student_id), AttendanceStatus.ABSENT.value),
+                progress_pct=getattr(enrollment, "progress_pct", None),
+            )
+        except Exception:  # noqa: BLE001
+            continue
 
 
 # --- second screen (masterplan F3: cast, not a second login) --------------------------------

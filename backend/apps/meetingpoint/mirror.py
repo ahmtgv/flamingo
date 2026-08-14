@@ -317,10 +317,21 @@ def mirrored_file_url(user, *, record_id, object_key: str) -> str:
     row = MirroredRecord.objects.filter(id=record_id, student=profile).first()
     if row is None:
         raise NotFound("Record not found")
-    keys = {a.get("objectKey") for a in (row.payload or {}).get("attachments", [])}
-    if object_key not in keys:
+    if object_key not in _object_keys(row.payload or {}):
         raise NotFound("Record not found")
     return storage.presign_get(object_key)
+
+
+def _object_keys(payload: dict) -> set[str]:
+    """Каждый объектный ключ, который несёт запись — своей работы или выданного материала.
+
+    Собирается из полезной нагрузки, а не из знания о виде записи: иначе новый вид зеркала
+    открывался бы через «файл не найден», и это выяснилось бы у ученика.
+    """
+    keys = {a.get("objectKey") for a in payload.get("attachments", []) if isinstance(a, dict)}
+    if payload.get("objectKey"):
+        keys.add(payload["objectKey"])
+    return {k for k in keys if k}
 
 
 def my_mirror(user, *, kind: MirrorKind | None = None, limit: int = 100) -> list[MirroredRecord]:
@@ -336,3 +347,124 @@ def my_mirror(user, *, kind: MirrorKind | None = None, limit: int = 100) -> list
     if kind is not None:
         rows = rows.filter(kind=kind.value)
     return list(rows[: max(1, min(int(limit or 100), 500))])
+
+
+# --- Р5.4-Б: вся база знаний ученика (OWNER_SCOPE §20.5.1) ----------------------------------
+#: Per handed-out material. Same fence as an attachment and for the same reason: it is against
+#: lesson media, not economy. A guide is a PDF; an hour of video is gigabytes.
+MAX_MATERIAL_BYTES = MAX_ATTACHMENT_BYTES
+
+
+#: Выданные материалы тоже ложатся под префикс самого ученика — иначе они уедут вместе с
+#: преподавателем ровно в тот день, когда должны были остаться.
+def material_key(student_id, material_id, name: str) -> str:
+    safe = get_valid_filename(name) or "file"
+    return f"{MIRROR_PREFIX}/{student_id}/materials/{material_id}/{safe}"
+
+
+def mirror_diary(session, student, *, attendance=None, progress_pct=None) -> MirroredRecord:
+    """Одно занятие в дневнике ученика (§20.5.1 п.1).
+
+    «Частично уже есть — свести в один вид»: посещаемость живёт в `Attendance`, оценки в
+    работах, прогресс в `Enrollment`. Дневник — это тот самый один вид: строка на занятие,
+    в которой видно, когда оно было, был ли ученик и что с ним стало.
+
+    Мирроринг по событию, как и всё остальное здесь: занятие закончилось — запись появилась.
+    """
+    lesson = session.lesson
+    return put(
+        student,
+        kind=MirrorKind.DIARY,
+        source_id=session.id,
+        occurred_at=session.end_at or session.start_at or timezone.now(),
+        payload={
+            "lessonTitle": lesson.title,
+            "lessonId": str(lesson.id),
+            "courseTitle": lesson.section.course.title,
+            "startAt": session.start_at.isoformat() if session.start_at else None,
+            "endAt": session.end_at.isoformat() if session.end_at else None,
+            "attendance": attendance or "",
+            "progressPct": progress_pct,
+        },
+    )
+
+
+def mirror_board(snapshot, students) -> int:
+    """Сохранённая доска — «то, что класс видел на экране» (§20.5.1 п.4).
+
+    🔴 Граница не сдвинулась. Зеркалится **сохранённая** доска: сохранение — это акт
+    преподавателя, тот же по смыслу, что «отправить саммари». Живой холст, на котором ещё
+    рисуют, и черновик, который классу не показывали, сюда не попадают — им просто нечем
+    сюда попасть, потому что событие одно и оно называется «сохранил».
+
+    Элементы едут содержимым: доска, восстановленная как список ссылок на чужую машину, —
+    это ровно тот отказ, который зеркало существует, чтобы предотвратить.
+    """
+    payload = {
+        "title": snapshot.title,
+        "lessonId": str(snapshot.board.lesson_id),
+        "savedAt": snapshot.created_at.isoformat(),
+        "elements": snapshot.elements,
+    }
+    for student in students:
+        put(
+            student,
+            kind=MirrorKind.BOARD,
+            source_id=snapshot.id,
+            occurred_at=snapshot.created_at,
+            payload=payload,
+        )
+    return len(students)
+
+
+def _material_body(material, student_id) -> dict:
+    """Материал — **содержимым** (§20.5.1 п.5; прежняя строка про «имя и ссылку» отменена).
+
+    Текст едет текстом, файл — байтами, скопированными в пространство самого ученика. Ссылка
+    на внешний источник остаётся ссылкой: она и была ссылкой, скачивать за преподавателя чужой
+    сайт мы не подряжались, а лицензия у открытых баз путешествует с источником.
+    """
+    from common import storage
+
+    carried: dict = {
+        "title": material.title,
+        "type": material.type,
+        "body": material.body or "",
+        "url": material.url or "",
+        "license": material.license or "",
+        "attribution": material.attribution or "",
+    }
+    if material.board_snapshot_id is not None:
+        # Сохранённая доска, приложенная материалом: её содержимое — элементы, а не файл.
+        carried["elements"] = material.board_snapshot.elements
+
+    if material.file_key:
+        meta = storage.head(material.file_key)
+        size = meta["size"] if meta else None
+        if size is not None and size > MAX_MATERIAL_BYTES:
+            return carried
+        destination = material_key(student_id, material.id, material.title)
+        if storage.copy(material.file_key, destination):
+            carried["objectKey"] = destination
+            carried["sizeBytes"] = size
+    return carried
+
+
+def mirror_material(material, students) -> int:
+    """Выданная методичка или материал (§20.5.1 п.5).
+
+    Вызывается из акта выдачи, а не из создания: `courses.services.share_material`. Пока
+    преподаватель не выдал — материала у ученика нет, и `test_an_unshared_material_never_...`
+    продолжает это проверять.
+    """
+    count = 0
+    for student in students:
+        put(
+            student,
+            kind=MirrorKind.MATERIAL,
+            source_id=material.id,
+            occurred_at=material.shared_at or timezone.now(),
+            payload=_material_body(material, student.pk),
+        )
+        count += 1
+    return count

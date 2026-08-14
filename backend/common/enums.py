@@ -547,14 +547,24 @@ class MirrorKind(Enum):
     """What a pupil keeps at the meeting point (Р5.0-Б, OWNER_SCOPE §20.3).
 
     The list is the owner's ownership boundary, in one enum: **выдал классу — стало общим и
-    появилось у ученика; не выдал — своё.** There is no member for a teacher's programme, a
-    guide or an unshared board draft, and adding one would be re-deciding who owns what.
+    появилось у ученика; не выдал — своё.**
+
+    ⚠️ Р5.4-Б widened WHAT a pupil keeps and did **not** move that boundary. `MATERIAL` and
+    `BOARD` are here because §20.5.1 says a pupil keeps the guides and the boards of their own
+    lessons — but only ones that were **handed out**: a material mirrors on `share_material`,
+    a board on the teacher saving it into the lesson's materials. There is still no member a
+    teacher's unshared programme or an unsaved draft could be written under, which is what
+    keeps `test_an_unshared_material_never_appears_in_a_mirror` biting.
     """
 
     WORK = "work"  # a submission — its text, its attempt number, its score and comment
     SUMMARY = "summary"  # a SENT lesson summary, chat section included
     ACHIEVEMENT = "achievement"  # progress that is the child's own history
     CHAT = "chat"  # a message from a conversation this pupil is in
+    # --- Р5.4-Б, OWNER_SCOPE §20.5.1: у ученика лежит вся его учёба, а не только написанное им
+    DIARY = "diary"  # одно занятие: когда, был ли, что получил
+    BOARD = "board"  # сохранённая доска или майндмап — то, что класс видел на экране
+    MATERIAL = "material"  # ВЫДАННАЯ методичка или материал — содержимым, не ссылкой
 
 
 @strawberry.enum
