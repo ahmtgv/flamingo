@@ -32,6 +32,9 @@ import { DictionaryPane } from '@/features/dictionary';
 import { LessonChatPane, SummaryScene } from '@/features/summary';
 
 import { ProjectorCast } from './ProjectorCast';
+import { type ClassLayout, type Participant, suggestedLayout } from '../classLayout';
+import { ClassLayoutSwitch } from './ClassLayoutSwitch';
+import { ClassWindow } from './ClassWindow';
 import { type Pane, RoomFrame, type Scene } from './RoomFrame';
 import { PreviewRoom } from './PreviewRoom';
 import { VideoRoom } from './VideoRoom';
@@ -52,6 +55,8 @@ function RoomShell({
   isTeacher,
   actions,
   panel,
+  classTeacher,
+  classPupils,
   children,
 }: {
   subtitle: string;
@@ -62,11 +67,19 @@ function RoomShell({
   isTeacher?: boolean;
   actions?: ReactNode;
   panel?: ReactNode;
+  /** Кто ведёт — плитка, которую окно «Класс» не умеет потерять. */
+  classTeacher?: Participant;
+  classPupils?: Participant[];
   children: ReactNode;
 }) {
   const { t } = useTranslation(['room', 'seedum']);
   const [scene, setScene] = useState<Scene>('board');
   const [pane, setPane] = useState<Pane>('people');
+  const pupils = classPupils ?? [];
+  // Раскладка — предложение по составу, и её можно сменить в любой момент (§2.2-бис).
+  const [layout, setLayout] = useState<ClassLayout | null>(null);
+  const [pinnedId, setPinnedId] = useState<string | undefined>();
+  const activeLayout = layout ?? suggestedLayout(pupils.length);
 
   return (
     <RoomFrame
@@ -86,15 +99,67 @@ function RoomShell({
         </>
       }
       strip={children}
+      layoutSwitch={
+        scene === 'class' ? (
+          <ClassLayoutSwitch layout={activeLayout} onLayout={setLayout} />
+        ) : undefined
+      }
       panel={
         panel ?? (
           <RoomPane pane={pane} sessionId={sessionId} lessonId={lessonId} isTeacher={isTeacher} />
         )
       }
     >
-      <SceneBody scene={scene} lessonId={lessonId} sessionId={sessionId} isTeacher={isTeacher} />
+      {scene === 'class' && classTeacher ? (
+        <ClassWindow
+          teacher={classTeacher}
+          pupils={pupils}
+          layout={activeLayout}
+          pinnedId={pinnedId}
+          onPin={(id) => {
+            setPinnedId(id);
+            setLayout('pinned');
+          }}
+        />
+      ) : (
+        <SceneBody scene={scene} lessonId={lessonId} sessionId={sessionId} isTeacher={isTeacher} />
+      )}
     </RoomFrame>
   );
+}
+
+
+/**
+ * LiveKit participants → the tiles the «Класс» window draws.
+ *
+ * Initials come from the display name and nothing else — no avatar fetch, no extra query. The
+ * sheet draws initials, and a tile that waits on a network round-trip to show who is speaking
+ * is a tile that is blank exactly when it matters.
+ */
+function toClassTiles(
+  identities: readonly { identity: string; isSpeaking?: boolean }[],
+  nameFor: (id: string) => string,
+  selfId?: string,
+): Participant[] {
+  return identities.map((p) => {
+    const name = nameFor(p.identity);
+    return {
+      id: p.identity,
+      name,
+      initials: initialsOf(name),
+      speaking: p.isSpeaking,
+      isSelf: p.identity === selfId,
+    };
+  });
+}
+
+function initialsOf(name: string): string {
+  return name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((w) => w[0]?.toUpperCase() ?? '')
+    .join('');
 }
 
 /** The scene the whole room is looking at. The board (R3.2), the test and the summary (R4)
@@ -238,6 +303,8 @@ type RoomProps = {
   teacherName: string | null;
   /** Which participant IS the teacher — Р5.1 needs to tell one remote from another. */
   teacherId: string | null;
+  /** Имя того, кто сидит за этим экраном — для его плитки в окне «Класс». */
+  selfName: string;
 };
 
 /**
@@ -252,6 +319,7 @@ function StudentRoom({
   isLive,
   teacherName,
   teacherId,
+  selfName,
 }: RoomProps) {
   const { t } = useTranslation(['seedum', 'lesson']);
   const [reportAttention] = useReportAttentionMutation();
@@ -365,6 +433,14 @@ function StudentRoom({
       lessonId={lessonId}
       title={teacherName ? `${t('room.title')} · ${teacherName}` : null}
       isLive={isLive}
+      classTeacher={
+        teacherName
+          ? { id: teacherId ?? 'teacher', name: teacherName, initials: initialsOf(teacherName) }
+          : undefined
+      }
+      /* Р5.1: ученику присылают преподавателя и его собственное превью — больше в комнате
+         никого нет, и окно «Класс» показывает ровно то, что есть на самом деле. */
+      classPupils={[{ id: 'self', name: selfName, initials: initialsOf(selfName), isSelf: true }]}
     >
       <div className={styles.card}>
         {!joined ? (
@@ -434,7 +510,7 @@ function StudentRoom({
  * Teacher: publishes own camera to the call AND watches the class attention live
  * (attentionUpdates — aggregates only, never video) + the post-session report.
  */
-function TeacherRoom({ sessionId, lessonId, roomToken, isLive }: RoomProps) {
+function TeacherRoom({ sessionId, lessonId, roomToken, isLive, selfName }: RoomProps) {
   const { t } = useTranslation(['seedum', 'lesson']);
   const { stream, cameraError, acquire, release } = useSharedCamera();
   const [joined, setJoined] = useState(false);
@@ -549,6 +625,8 @@ function TeacherRoom({ sessionId, lessonId, roomToken, isLive }: RoomProps) {
       lessonId={lessonId}
       isLive={isLive}
       isTeacher
+      classTeacher={{ id: 'self', name: selfName, initials: initialsOf(selfName) }}
+      classPupils={toClassTiles(lk.participants, nameFor)}
     >
       <div className={styles.card}>
         {!joined ? (
@@ -660,6 +738,7 @@ function LiveRoomRealScreen() {
     isLive: session?.status === 'LIVE',
     teacherName: session?.teacherName ?? null,
     teacherId: session?.teacherId ?? null,
+    selfName: `${meData?.me?.firstName ?? ''} ${meData?.me?.lastName ?? ''}`.trim(),
   };
   return meData?.me?.role === 'TEACHER' ? <TeacherRoom {...props} /> : <StudentRoom {...props} />;
 }

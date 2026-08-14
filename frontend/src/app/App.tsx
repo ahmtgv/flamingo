@@ -1,5 +1,6 @@
 import { type ReactNode, useEffect } from 'react';
 
+import { DesktopShell } from '@/features/desktop/DesktopShell';
 import { DemoRoleSwitcher } from '@/shared/demo/DemoRoleSwitcher';
 import { bootstrapSession } from '@/shared/lib/refresh';
 import { ErrorBoundary } from '@/shared/ui';
@@ -22,7 +23,10 @@ export function App() {
     <Providers>
       <ErrorBoundary>
         <Boot>
-          <AppRouter />
+          {/* Рама (лист D1) появляется только внутри приложения; в браузере это no-op. */}
+          <DesktopShell>
+            <AppRouter />
+          </DesktopShell>
           {/* TEMPORARY: preview-only role switcher (remove with the demo layer). */}
           {IS_PREVIEW && <DemoRoleSwitcher />}
         </Boot>

@@ -42,14 +42,16 @@ describe('RoomFrame — atlas sheet 02', () => {
     expect(screen.getByText('видео-полоса')).toBeInTheDocument();
   });
 
-  it('offers the four windows of the sheet and switches the scene', async () => {
+  it('offers the windows of the sheet and switches the scene', async () => {
     render();
     const bar = screen.getByRole('tablist', { name: 'Окна урока' });
+    // «Класс» is first as of sheet D1 (owner, 14.08): board, guide and test are all material,
+    // and half of a language lesson has none of it.
     expect(
       within(bar)
         .getAllByRole('tab')
         .map((b) => b.textContent),
-    ).toEqual(['Доска', 'Методичка', 'Тест', 'Саммари']);
+    ).toEqual(['Класс', 'Доска', 'Методичка', 'Тест', 'Саммари']);
 
     expect(screen.getByText('сцена: board')).toBeInTheDocument();
     await userEvent.click(within(bar).getByRole('tab', { name: 'Методичка' }));

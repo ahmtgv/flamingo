@@ -9,7 +9,8 @@ rust-version = "1.77"
 tauri-build = { version = "2", features = [] }
 
 [dependencies]
-tauri = { version = "2", features = [] }
+# `tray-icon`: свёрнутое окно не заканчивает урок — трей это то, во что оно сворачивается (D1).
+tauri = { version = "2", features = ["tray-icon"] }
 
 [profile.release]
 # The shell is a window and a process supervisor; nothing here is hot. Optimise for the

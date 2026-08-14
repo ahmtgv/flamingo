@@ -133,8 +133,7 @@ def test_the_sidecar_path_never_imports_boto3(tmp_path):
     import sys
     import textwrap
 
-    script = textwrap.dedent(
-        f"""
+    script = textwrap.dedent(f"""
         import os, sys
         os.environ["DJANGO_SETTINGS_MODULE"] = "config.settings_desktop"
         os.environ["FLAMINGO_DATA_DIR"] = {str(tmp_path)!r}
@@ -154,8 +153,7 @@ def test_the_sidecar_path_never_imports_boto3(tmp_path):
         assert storage.copy("a/x.txt", "mirror/s/1/x.txt") is True
 
         print("boto3" in sys.modules, "botocore" in sys.modules)
-        """
-    )
+        """)
     out = subprocess.run(
         [sys.executable, "-c", script],
         capture_output=True,

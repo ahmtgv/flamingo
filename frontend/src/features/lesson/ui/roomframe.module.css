@@ -196,8 +196,20 @@
 .pop:hover {
   color: var(--color-accent-text);
 }
+/* Раскладка класса живёт рядом с окнами и только в окне «Класс» (лист D1). Отдельный класс,
+   а не переиспользованный .wins: у того есть своя нижняя граница и отступы строки. */
+.layoutSwitch {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  flex: none;
+  margin-inline-start: var(--space-4);
+  padding-inline-start: var(--space-4);
+  border-inline-start: 1px solid var(--color-border);
+}
 .winsNote {
   margin-left: auto;
+  flex: none;
   font-family: var(--font-mono);
   font-size: var(--text-overline);
   color: var(--color-text-tertiary);

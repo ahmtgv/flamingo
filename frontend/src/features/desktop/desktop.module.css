@@ -1,0 +1,348 @@
+/* Рама приложения преподавателя — atlas sheet D1.
+   Two rows of chrome and everything else is the approved screens: 44px title bar, a status
+   strip that exists only while it has something to say, and the viewport. */
+
+.app {
+  display: grid;
+  grid-template-rows: auto auto 1fr;
+  min-height: 100vh;
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+/* ——— строка заголовка ——— */
+.titlebar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: 0 var(--space-4);
+  height: 44px;
+  background: var(--color-surface-subtle);
+  border-bottom: 1px solid var(--color-border);
+  user-select: none;
+}
+.appName {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-caption);
+  font-weight: 500;
+  flex: none;
+}
+.dot {
+  width: 7px;
+  height: 7px;
+  border-radius: var(--radius-pill);
+  background: var(--color-accent);
+  display: block;
+}
+/* Версия на виду: первый вопрос при поддержке — всегда «какая у вас версия». */
+.ver {
+  font-family: var(--font-mono);
+  font-size: var(--text-overline);
+  color: var(--color-text-tertiary);
+}
+
+.lessonTag {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  min-width: 0;
+}
+.sepv {
+  width: 1px;
+  height: 13px;
+  background: var(--color-border-strong);
+  flex: none;
+  align-self: center;
+  display: block;
+}
+.lessonName {
+  font-size: var(--text-caption);
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+/* На узком окне счётчик уходит первым: название урока важнее. */
+.lessonMeta {
+  font-family: var(--font-mono);
+  font-size: var(--text-overline);
+  color: var(--color-text-tertiary);
+  white-space: nowrap;
+  flex: none;
+}
+@media (max-width: 1100px) {
+  .lessonMeta {
+    display: none;
+  }
+}
+
+/* По центру — одно состояние машины. */
+.hostState {
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-family: var(--font-mono);
+  font-size: var(--text-overline);
+  font-weight: 500;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  padding: var(--space-1) var(--space-3);
+  background: var(--color-surface);
+  white-space: nowrap;
+  color: var(--color-text-secondary);
+}
+.lamp {
+  width: 6px;
+  height: 6px;
+  border-radius: var(--radius-pill);
+  background: var(--color-text-tertiary);
+  flex: none;
+  display: block;
+}
+.hostState[data-state='live'] {
+  color: var(--color-accent-text);
+  border-color: var(--color-accent);
+  background: var(--color-accent-subtle);
+}
+.hostState[data-state='live'] .lamp {
+  background: var(--color-accent);
+}
+.hostState[data-state='weak'] {
+  color: var(--color-warning-text);
+  border-color: var(--color-warning);
+  background: var(--color-warning-bg);
+}
+.hostState[data-state='weak'] .lamp {
+  background: var(--color-warning);
+}
+.hostState[data-state='offline'] {
+  color: var(--color-text-tertiary);
+  border-style: dashed;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .hostState[data-state='live'] .lamp {
+    animation: pulse 2.4s ease-in-out infinite;
+  }
+}
+@keyframes pulse {
+  50% {
+    opacity: 0.25;
+  }
+}
+
+.titleRight {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+/* Строка заголовка — не место для функций: только свернуть и настройки. */
+.iconBtn {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-xs);
+  border: 1px solid transparent;
+  background: none;
+  cursor: pointer;
+  color: var(--color-text-secondary);
+  display: grid;
+  place-content: center;
+  font-size: var(--text-caption);
+}
+.iconBtn:hover {
+  background: var(--color-surface);
+  color: var(--color-text);
+  border-color: var(--color-border);
+}
+.iconBtn:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+/* ——— полоса состояния: она же строка управления уроком ——— */
+.hostBar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-5);
+  padding: var(--space-2) var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+  flex-wrap: wrap;
+}
+.app[data-state='weak'] .hostBar {
+  background: var(--color-warning-bg);
+}
+.fact {
+  display: grid;
+  gap: 1px;
+}
+.factK {
+  font-family: var(--font-mono);
+  font-size: var(--text-overline);
+  font-weight: 500;
+  color: var(--color-text-tertiary);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.factV {
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  font-weight: 500;
+  color: var(--color-text);
+  font-variant-numeric: tabular-nums;
+}
+.factV[data-word='good'] {
+  color: var(--color-success-text);
+}
+.factV[data-word='weak'],
+.factV[data-word='unmeasured'] {
+  color: var(--color-warning-text);
+}
+.factV[data-word='none'] {
+  color: var(--color-text-tertiary);
+}
+
+/* Шкала — чтобы не читать цифру. */
+.meter {
+  display: flex;
+  gap: 2px;
+  align-items: flex-end;
+  height: 14px;
+}
+.meter i {
+  width: 4px;
+  border-radius: var(--radius-xs);
+  background: var(--color-border-strong);
+  display: block;
+}
+.meter i:nth-child(1) {
+  height: 5px;
+}
+.meter i:nth-child(2) {
+  height: 8px;
+}
+.meter i:nth-child(3) {
+  height: 11px;
+}
+.meter i:nth-child(4) {
+  height: 14px;
+}
+.meter[data-level='4'] i {
+  background: var(--color-success);
+}
+.meter[data-level='3'] i:nth-child(-n + 3) {
+  background: var(--color-success);
+}
+.meter[data-level='2'] i:nth-child(-n + 2) {
+  background: var(--color-warning);
+}
+.meter[data-level='1'] i:nth-child(1) {
+  background: var(--color-warning);
+}
+
+.hostWhy {
+  font-size: var(--text-caption);
+  color: var(--color-warning-text);
+  max-width: 52ch;
+}
+.hostActs {
+  margin-inline-start: auto;
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.viewport {
+  background: var(--color-bg);
+  min-height: 0;
+  position: relative;
+  overflow: auto;
+}
+
+/* ——— нет сети ——— */
+.offWrap {
+  display: grid;
+  place-items: center;
+  padding: var(--space-10) var(--space-5);
+  min-height: 60vh;
+}
+.offCard {
+  max-width: 560px;
+  text-align: center;
+  display: grid;
+  gap: var(--space-2);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-card);
+  padding: var(--space-7) var(--space-8);
+}
+.offT {
+  font-size: var(--text-h3);
+  font-weight: 600;
+}
+.offS {
+  font-size: var(--text-small);
+  color: var(--color-text-secondary);
+}
+/* «Данные в целости» — главная строка карточки, а не сноска. */
+.offSafe {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  justify-self: center;
+  margin-top: var(--space-1);
+  font-size: var(--text-caption);
+  font-weight: 500;
+  color: var(--color-success-text);
+  background: var(--color-success-bg);
+  border-radius: var(--radius-pill);
+  padding: var(--space-2) var(--space-4);
+}
+.offSafe i {
+  width: 7px;
+  height: 7px;
+  border-radius: var(--radius-pill);
+  background: var(--color-success);
+  display: block;
+}
+.offNote {
+  font-size: var(--text-caption);
+  color: var(--color-text-secondary);
+}
+.offRow {
+  display: flex;
+  gap: var(--space-2);
+  justify-content: center;
+  margin-top: var(--space-2);
+  flex-wrap: wrap;
+}
+.btn,
+.btnGhost {
+  font-size: var(--text-small);
+  font-weight: 500;
+  border-radius: var(--radius-control);
+  padding: var(--space-2) var(--space-5);
+  cursor: pointer;
+  border: 1px solid var(--color-accent);
+  background: var(--color-accent);
+  color: var(--color-text-on-accent);
+}
+.btnGhost {
+  background: none;
+  border-color: var(--color-border-strong);
+  color: var(--color-text);
+}
+.btn:hover {
+  background: var(--color-accent-hover);
+}
+.btnGhost:hover {
+  background: var(--color-surface-hover);
+}
+.btn:focus-visible,
+.btnGhost:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}

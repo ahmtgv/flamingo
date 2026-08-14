@@ -6,8 +6,14 @@ import { Logo } from '@/shared/ui';
 
 import styles from './roomframe.module.css';
 
-/** The four windows of sheet 02. The scene is shared — what the teacher shows, everyone sees. */
-export const SCENES = ['board', 'material', 'test', 'summary'] as const;
+/**
+ * The windows of sheet 02. The scene is shared — what the teacher shows, everyone sees.
+ *
+ * «Класс» is first, and it is first for a reason (sheet D1, owner 14.08): board, guide and test
+ * are all *material*, and half of a language lesson has none — it is just talking. When that is
+ * what is happening, the screen belongs to people rather than to an empty canvas.
+ */
+export const SCENES = ['class', 'board', 'material', 'test', 'summary'] as const;
 export type Scene = (typeof SCENES)[number];
 
 /** The four side panels. Unlike the scene, the panel is PERSONAL: you can keep the dictionary
@@ -37,6 +43,7 @@ export function RoomFrame({
   sessionId,
   actions,
   strip,
+  layoutSwitch,
   children,
   panel,
 }: {
@@ -51,6 +58,8 @@ export function RoomFrame({
   sessionId: string;
   actions?: ReactNode;
   strip?: ReactNode;
+  /** «вдвоём · группа · ученик рядом» — only the «Класс» window has anything to switch. */
+  layoutSwitch?: ReactNode;
   children: ReactNode;
   panel: ReactNode;
 }) {
@@ -87,7 +96,9 @@ export function RoomFrame({
 
         <div className={styles.room}>
           <div className={styles.stage}>
-            {strip && <div className={styles.strip}>{strip}</div>}
+            {/* В окне «Класс» верхняя полоса скрыта: она дублировала бы кадры и отъедала
+                высоту у главного (лист D1). */}
+            {strip && scene !== 'class' && <div className={styles.strip}>{strip}</div>}
 
             <div className={styles.wins} role="tablist" aria-label={t('windows.label')}>
               {SCENES.map((id) => (
@@ -117,7 +128,10 @@ export function RoomFrame({
                   </button>
                 </span>
               ))}
-              <span className={styles.winsNote}>{t('windows.note')}</span>
+              {layoutSwitch}
+              {/* Подсказка про отдельную вкладку уступает место переключателю раскладки: в
+                  одной строке они не помещаются, а управление важнее пояснения. */}
+              {!layoutSwitch && <span className={styles.winsNote}>{t('windows.note')}</span>}
             </div>
 
             <main

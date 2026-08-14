@@ -28,8 +28,28 @@ import { LessonChatPane, SummaryScene } from '@/features/summary';
 import frame from './roomframe.module.css';
 import styles from './liveroom.module.css';
 import { ProjectorCast } from './ProjectorCast';
+import { type ClassLayout, type Participant, suggestedLayout } from '../classLayout';
+import { ClassLayoutSwitch } from './ClassLayoutSwitch';
+import { ClassWindow } from './ClassWindow';
 import { type Pane, RoomFrame, type Scene } from './RoomFrame';
 import vr from './videoroom.module.css';
+
+/** Демо-состав окна «Класс» — те же люди, что и в остальной демо-проекции комнаты. */
+const DEMO_TEACHER: Participant = {
+  id: 'teacher',
+  name: 'Ирина Соколова',
+  initials: 'ИС',
+  speaking: true,
+};
+const DEMO_SELF: Participant = { id: 'self', name: 'Саша Иванов', initials: 'СИ', isSelf: true };
+const DEMO_PUPILS: Participant[] = [
+  { id: 'p1', name: 'Саша Иванов', initials: 'СИ', handRaised: true },
+  { id: 'p2', name: 'Вера Смирнова', initials: 'ВС' },
+  { id: 'p3', name: 'Тимур Ибрагимов', initials: 'ТИ', speaking: true },
+  { id: 'p4', name: 'Костя Орлов', initials: 'КО' },
+  { id: 'p5', name: 'Лиза Козлова', initials: 'ЛК' },
+  { id: 'p6', name: 'Марк Волков', initials: 'МВ' },
+];
 
 /** The preview wears the SAME sheet-02 frame as the real room — otherwise the showcase
  *  would keep showing a composition the product no longer has. */
@@ -37,7 +57,13 @@ function Shell({ subtitle, children }: { subtitle: string; children: React.React
   const { t } = useTranslation(['room', 'seedum']);
   const [scene, setScene] = useState<Scene>('board');
   const [pane, setPane] = useState<Pane>('people');
+  const [layout, setLayout] = useState<ClassLayout | null>(null);
+  const [pinnedId, setPinnedId] = useState<string | undefined>();
   const isTeacher = demoRole() === 'teacher';
+  // Демо-проекция окна «Класс» (лист D1): роль решает, кого показывают. Преподаватель видит
+  // группу; ученик по решению Р5.1 видит преподавателя и своё превью — и больше никого.
+  const pupils = isTeacher ? DEMO_PUPILS : [DEMO_SELF];
+  const activeLayout = layout ?? suggestedLayout(pupils.length);
 
   return (
     <RoomFrame
@@ -57,9 +83,29 @@ function Shell({ subtitle, children }: { subtitle: string; children: React.React
         </>
       }
       strip={children}
+      layoutSwitch={
+        scene === 'class' ? (
+          <ClassLayoutSwitch layout={activeLayout} onLayout={setLayout} />
+        ) : undefined
+      }
       panel={<PreviewPane pane={pane} />}
     >
-      {scene === 'board' ? (
+      {scene === 'class' ? (
+        <ClassWindow
+          teacher={DEMO_TEACHER}
+          pupils={pupils}
+          layout={activeLayout}
+          pinnedId={pinnedId}
+          onPin={
+            isTeacher
+              ? (id) => {
+                  setPinnedId(id);
+                  setLayout('pinned');
+                }
+              : undefined
+          }
+        />
+      ) : scene === 'board' ? (
         <BoardCanvas lessonId="les-1-12" />
       ) : scene === 'test' ? (
         <TestScene lessonId="les-1-12" isTeacher={isTeacher} />
