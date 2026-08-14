@@ -21,7 +21,7 @@ Three things follow, and they are the shape of this module rather than notes abo
 
 from django.db import models
 
-from common.enums import ConnectionType, DevicePlatform, choices
+from common.enums import BackupKind, ConnectionType, DevicePlatform, choices
 from common.models import BaseModel
 
 
@@ -54,6 +54,25 @@ class Device(BaseModel):
         max_length=8, choices=choices(ConnectionType), default=ConnectionType.UNKNOWN.value
     )
     revoked_at = models.DateTimeField(null=True, blank=True)
+    # --- first run (D2, Р5.4) ---------------------------------------------------------
+    #: Where the machine got to in the five steps, so an interrupted setup resumes on the
+    #: same one: «Настройку можно прервать: сделанное сохраняется».
+    setup_step = models.PositiveSmallIntegerField(default=1)
+    setup_completed_at = models.DateTimeField(null=True, blank=True)
+    #: WHAT kind of copy is configured — never WHERE.
+    #:
+    #: 🔒 The path is deliberately absent. §19.1 makes the copy mandatory, which makes «is one
+    #: configured» a fact the product is entitled to keep; «/Users/люция/…» is the teacher's
+    #: own machine and their OS account name, and knowing it buys us nothing. The folder lives
+    #: on the machine that owns it. `test_devices.py` asserts no path-shaped field appears here.
+    backup_kind = models.CharField(
+        max_length=16, choices=choices(BackupKind), default=BackupKind.NONE.value
+    )
+    backup_configured_at = models.DateTimeField(null=True, blank=True)
+    #: The optional second copy — «копия у нас, по желанию», client-encrypted (§19.1). A flag,
+    #: because the blob itself follows the UbpBackup pattern and is opaque to us either way.
+    cloud_copy_enabled = models.BooleanField(default=False)
+    last_backup_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         ordering = ["-last_seen_at", "-created_at"]

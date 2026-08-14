@@ -528,6 +528,21 @@ class UplinkVerdict(Enum):
 
 
 @strawberry.enum
+class BackupKind(Enum):
+    """Where the teacher's copy of the cabinet goes (D2 step 2, OWNER_SCOPE §19.1).
+
+    The copy is the one thing in this product that is **not optional**: the laptop holds the
+    work and the grades of living children, and there is no second place they exist. So NONE
+    is a state the setup will not let a machine finish in — it is here to describe a machine
+    that has not got there yet, not a choice offered on the screen.
+    """
+
+    NONE = "none"  # setup has not reached step 2
+    EXTERNAL_DISK = "external_disk"  # «на внешний диск»
+    CLOUD_FOLDER = "cloud_folder"  # «или в вашу папку облака» — theirs, not ours
+
+
+@strawberry.enum
 class MirrorKind(Enum):
     """What a pupil keeps at the meeting point (Р5.0-Б, OWNER_SCOPE §20.3).
 

@@ -11,6 +11,8 @@ tauri-build = { version = "2", features = [] }
 [dependencies]
 # `tray-icon`: свёрнутое окно не заканчивает урок — трей это то, во что оно сворачивается (D1).
 tauri = { version = "2", features = ["tray-icon"] }
+# 🔒 Ключ машины живёт только здесь: связка ключей ОС, не файл и не localStorage (§19.4).
+keyring = "3"
 
 [profile.release]
 # The shell is a window and a process supervisor; nothing here is hot. Optimise for the

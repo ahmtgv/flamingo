@@ -43,6 +43,13 @@ class User(JurisdictionMixin, AbstractBaseUser, PermissionsMixin):
     # live in apps/summaries/consent.py, which is the only place that reads these fields.
     consent_speech = models.BooleanField(default=False)
     consent_speech_at = models.DateTimeField(null=True, blank=True)
+    # D2 step 3 / OWNER_SCOPE §19: attention analysis is **off until someone turns it on**,
+    # and the sheet says why in a sentence worth keeping — «это не осторожность, а уважение:
+    # включать наблюдение за вниманием ребёнка должно быть осознанным действием, а не
+    # следствием того, что кто-то не снял галочку». Read by apps/seedum/services.py, which
+    # refuses the bucket without it — a default enforced only by a checkbox is not a default.
+    consent_attention = models.BooleanField(default=False)
+    consent_attention_at = models.DateTimeField(null=True, blank=True)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
     is_email_verified = models.BooleanField(default=False)

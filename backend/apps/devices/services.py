@@ -26,7 +26,7 @@ from django.db import transaction
 from django.utils import timezone
 
 from common.compliance.policy import require_feature
-from common.enums import ConnectionType
+from common.enums import BackupKind, ConnectionType
 from common.exceptions import NotFound, PermissionDenied, ValidationError
 
 from .models import Device, DeviceToken, PairingCode
@@ -42,6 +42,10 @@ PAIRING_TTL = dt.timedelta(minutes=10)
 _CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
 
 MAX_DEVICE_NAME = 120
+
+
+#: Пять шагов листа D2: вход · данные · согласия · проверка · готово.
+SETUP_STEPS = 5
 
 
 def _new_code() -> str:
@@ -260,3 +264,73 @@ def revoke_device(user, device_id) -> bool:
 def require_owner(user, device: Device) -> None:
     if device.owner_id != getattr(user, "id", None):
         raise PermissionDenied("Not your device")
+
+
+# --- first run (D2, Р5.4) ----------------------------------------------------
+def advance_setup(device: Device, *, step: int) -> Device:
+    """Remember which of the five steps this machine reached.
+
+    Monotonic on purpose: «сделанное сохраняется, приложение вернёт на тот же шаг». Going
+    back to re-read step 3 must not un-remember step 4, so the stored number only ever grows.
+    """
+    if step < 1 or step > SETUP_STEPS:
+        raise ValidationError("Unknown setup step")
+    if step > device.setup_step:
+        Device.objects.filter(id=device.id).update(setup_step=step, updated_at=timezone.now())
+        device.setup_step = step
+    return device
+
+
+def configure_backup(device: Device, *, kind: str, cloud_copy: bool = False) -> Device:
+    """Record that a copy is configured — and refuse the state where none is.
+
+    🔴 OWNER_SCOPE §19.1: the copy is mandatory and this step cannot be skipped. It is the one
+    place in the product that forces anything, and it earns it — the laptop is the only place
+    the work and grades of living children exist.
+
+    What is stored is the KIND, never the path (see `Device.backup_kind`).
+    """
+    try:
+        value = BackupKind(kind)
+    except ValueError as exc:
+        raise ValidationError("Unknown backup kind") from exc
+    if value is BackupKind.NONE:
+        raise ValidationError("A cabinet copy is mandatory")
+
+    now = timezone.now()
+    Device.objects.filter(id=device.id).update(
+        backup_kind=value.value,
+        backup_configured_at=now,
+        cloud_copy_enabled=bool(cloud_copy),
+        updated_at=now,
+    )
+    device.backup_kind = value.value
+    device.backup_configured_at = now
+    device.cloud_copy_enabled = bool(cloud_copy)
+    return advance_setup(device, step=3)
+
+
+def record_backup(device: Device) -> Device:
+    """A copy was just made. The settings screen shows this as «последняя копия»."""
+    now = timezone.now()
+    Device.objects.filter(id=device.id).update(last_backup_at=now, updated_at=now)
+    device.last_backup_at = now
+    return device
+
+
+def complete_setup(device: Device) -> Device:
+    """«Готово» — but only if the mandatory copy actually happened.
+
+    The check is here rather than on the screen because a wizard is a sequence of components
+    and a component can be skipped by a URL. §19.1 says the step cannot be skipped; this is
+    the sentence that makes that true.
+    """
+    if device.backup_kind == BackupKind.NONE.value:
+        raise ValidationError("A cabinet copy is mandatory")
+    now = timezone.now()
+    Device.objects.filter(id=device.id).update(
+        setup_step=SETUP_STEPS, setup_completed_at=now, updated_at=now
+    )
+    device.setup_step = SETUP_STEPS
+    device.setup_completed_at = now
+    return device

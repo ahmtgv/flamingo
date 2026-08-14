@@ -8,6 +8,19 @@
  * with the operations in `*.graphql`. Remove with the VITE_PREVIEW short-circuit before launch.
  */
 import type {
+  AdvanceDeviceSetupMutation,
+  BackupKind,
+  ClaimDeviceTokenMutation,
+  CompleteDeviceSetupMutation,
+  ConfigureCabinetBackupMutation,
+  ConfirmPairingCodeMutation,
+  MyDevicesQuery,
+  RecordCabinetBackupMutation,
+  ReportUplinkMutation,
+  RequestPairingCodeMutation,
+  RevokeDeviceMutation,
+  SetAttentionConsentMutation,
+  SetSpeechConsentMutation,
   AddChildMutation,
   AdminInstitutionQuery,
   AddMaterialMutation,
@@ -124,7 +137,9 @@ import { demoGraphQLRole } from './demoRole';
 type Vars = Record<string, unknown>;
 
 // --- small shared builders ---------------------------------------------------------------
-const iso = () => new Date().toISOString();
+/** `iso()` — сейчас; `iso(-3600_000)` — час назад. Смещение добавлено в Р5.4 для
+ *  «связана три недели назад» и «последняя копия два часа назад». */
+const iso = (offsetMs = 0) => new Date(Date.now() + offsetMs).toISOString();
 
 function owner(u: (typeof users)[keyof typeof users], specialty: string) {
   return {
@@ -135,12 +150,66 @@ function owner(u: (typeof users)[keyof typeof users], specialty: string) {
 }
 
 // --- Me (role-driven linchpin) -----------------------------------------------------------
+
+// --- машина преподавателя (Р5.0 · Р5.1 · Р5.4, лист D2) ----------------------
+/** Шесть знаков, которые преподаватель переносит в браузер. Стабильные — витрина, не игра. */
+const DEMO_PAIRING_CODE = 'K7M4Q2';
+
+type DemoSetup = MyDevicesQuery['myDevices'][number]['setup'];
+
+/** Настроенная машина: копия на внешнем диске, настройка пройдена (§19.1 — копия обязательна). */
+function demoSetup(over: Partial<Omit<DemoSetup, '__typename'>> = {}): DemoSetup {
+  return {
+    __typename: 'DeviceSetup',
+    step: 5,
+    completed: true,
+    backupKind: 'EXTERNAL_DISK',
+    backupConfiguredAt: iso(-3 * 24 * 3600 * 1000),
+    cloudCopyEnabled: false,
+    lastBackupAt: iso(-2 * 3600 * 1000),
+    ...over,
+  };
+}
+
+/**
+ * Ноутбук Люции Валерьевны — тот же, что ведёт занятие в демо-комнате.
+ *
+ * Канал намеренно «хороший на восемь»: витрина показывает продукт работающим, а слабый канал
+ * и его последствия живут на своих экранах, где им и место.
+ */
+function demoDevice(): MyDevicesQuery['myDevices'][number] {
+  return {
+    __typename: 'Device',
+    id: 'dev-lucia-macbook',
+    name: 'MacBook Люции',
+    platform: 'MACOS',
+    appVersion: '0.1.0',
+    lastSeenAt: iso(-4 * 60 * 1000),
+    online: true,
+    pairedAt: iso(-21 * 24 * 3600 * 1000),
+    uplink: {
+      __typename: 'UplinkAssessment',
+      mbps: 18.4,
+      verdict: 'COMFORTABLE',
+      groupSize: 8,
+      requiredForEight: 4.3,
+      stale: false,
+      connectionType: 'DIRECT',
+    },
+    setup: demoSetup(),
+  };
+}
+
 function me(): MeQuery {
   const role = demoGraphQLRole();
   const base = {
     __typename: 'User' as const,
     locale: 'ru',
     avatarUrl: null,
+    // D2 шаг 3: речь — согласована, анализ внимания ВЫКЛЮЧЕН. Витрина показывает продукт
+    // в состоянии по умолчанию, а не в удобном для скриншота (OWNER_SCOPE §19).
+    consentSpeech: true,
+    consentAttention: false,
     studentProfile: null,
     teacherProfile: null,
     parentProfile: null,
@@ -3496,6 +3565,92 @@ export function resolveDemoOperation(
       } satisfies RequestUploadMutation;
     case 'ReportAttention':
       return { reportAttention: true };
+
+    // --- машина преподавателя: связывание, канал, первый запуск (Р5.0 · Р5.0-Б · Р5.1 · Р5.4)
+    // Долг демо-проекций, наступивший в Р5.4 (PROMPT_14 §2.3): витрина обязана работать после
+    // каждой фазы. 🔒 Ни одна проекция здесь не содержит пароля — его нет и в самих операциях.
+    case 'RequestPairingCode':
+      return {
+        requestPairingCode: {
+          __typename: 'PairingRequest',
+          code: DEMO_PAIRING_CODE,
+          // Demo only, and it never authenticates anything: the demo link terminates every
+          // operation in the browser, so nothing is sent and nothing can be claimed with it.
+          secret: 'demo-secret',
+          expiresAt: iso(10 * 60 * 1000),
+        },
+      } satisfies RequestPairingCodeMutation;
+    case 'ClaimDeviceToken':
+      return {
+        claimDeviceToken: {
+          __typename: 'DeviceClaim',
+          token: 'demo-machine-key',
+          device: demoDevice(),
+        },
+      } satisfies ClaimDeviceTokenMutation;
+    case 'ConfirmPairingCode':
+      return {
+        confirmPairingCode: {
+          __typename: 'Device',
+          id: demoDevice().id,
+          name: demoDevice().name,
+          platform: demoDevice().platform,
+          pairedAt: demoDevice().pairedAt,
+        },
+      } satisfies ConfirmPairingCodeMutation;
+    case 'MyDevices':
+      return { __typename: 'Query', myDevices: [demoDevice()] } satisfies MyDevicesQuery;
+    case 'RevokeDevice':
+      return { revokeDevice: true } satisfies RevokeDeviceMutation;
+    case 'ReportUplink':
+      return {
+        reportUplink: {
+          __typename: 'Device',
+          id: demoDevice().id,
+          uplink: demoDevice().uplink,
+          setup: demoSetup({ step: 5 }),
+        },
+      } satisfies ReportUplinkMutation;
+    case 'AdvanceDeviceSetup':
+      return {
+        advanceDeviceSetup: {
+          __typename: 'Device',
+          id: demoDevice().id,
+          setup: demoSetup({ step: Number(variables?.step ?? 1) }),
+        },
+      } satisfies AdvanceDeviceSetupMutation;
+    case 'ConfigureCabinetBackup':
+      return {
+        configureCabinetBackup: {
+          __typename: 'Device',
+          id: demoDevice().id,
+          setup: demoSetup({
+            step: 3,
+            backupKind: (variables?.kind as BackupKind) ?? 'EXTERNAL_DISK',
+            cloudCopyEnabled: Boolean(variables?.cloudCopy),
+          }),
+        },
+      } satisfies ConfigureCabinetBackupMutation;
+    case 'RecordCabinetBackup':
+      return {
+        recordCabinetBackup: {
+          __typename: 'Device',
+          id: demoDevice().id,
+          setup: demoSetup({ lastBackupAt: iso() }),
+        },
+      } satisfies RecordCabinetBackupMutation;
+    case 'CompleteDeviceSetup':
+      return {
+        completeDeviceSetup: {
+          __typename: 'Device',
+          id: demoDevice().id,
+          setup: demoSetup({ step: 5, completed: true }),
+        },
+      } satisfies CompleteDeviceSetupMutation;
+    case 'SetSpeechConsent':
+      return { setSpeechConsent: Boolean(variables?.granted) } satisfies SetSpeechConsentMutation;
+    case 'SetAttentionConsent':
+      return { setAttentionConsent: Boolean(variables?.granted) } satisfies SetAttentionConsentMutation;
 
     default:
       if (import.meta.env.DEV)

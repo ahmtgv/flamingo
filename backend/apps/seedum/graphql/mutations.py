@@ -50,6 +50,23 @@ class SeedumMutation:
         )
 
     @strawberry.mutation
+    def set_attention_consent(self, info: strawberry.Info, granted: bool) -> bool:
+        """Turn attention analysis on, or off again (D2 step 3, OWNER_SCOPE §19).
+
+        Off is the state a fresh account is in, and it is the server that keeps it that way:
+        `services.record_attention` drops the bucket without this. Withdrawing takes effect on
+        the next bucket — and what was already stored is one averaged number per interval,
+        which is all that ever left the device.
+        """
+        from django.utils import timezone
+
+        user = require_user(info)
+        user.consent_attention = granted
+        user.consent_attention_at = timezone.now() if granted else None
+        user.save(update_fields=["consent_attention", "consent_attention_at", "updated_at"])
+        return user.consent_attention
+
+    @strawberry.mutation
     def backup_ubp(self, info: strawberry.Info, input: UbpBackupInput) -> UbpBackup:
         backup = services.backup_ubp(
             require_user(info), encrypted_blob=input.encrypted_blob, key_hint=input.key_hint or ""

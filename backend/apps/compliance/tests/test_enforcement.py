@@ -54,6 +54,10 @@ def _classroom(jurisdiction: str | None):
         role=Role.STUDENT,
         birth_date=date(2010, 1, 1),
     )
+    # D2 step 3: attention analysis is off by default and the server enforces it. This test is
+    # about a pupil who turned it on — the jurisdiction gate is what it is measuring, not consent.
+    student.consent_attention = True
+    student.save(update_fields=["consent_attention"])
     course = courses.create_course(teacher, title="Алгебра", subject="Математика", level="grade_7")
     section = courses.create_section(teacher, course.id, title="Раздел 1")
     lesson = courses.create_lesson(teacher, section.id, title="Урок 1", duration_min=40)

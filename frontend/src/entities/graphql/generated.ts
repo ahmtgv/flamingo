@@ -157,6 +157,11 @@ export type AuthPayload = {
   user: User;
 };
 
+export type BackupKind =
+  | 'CLOUD_FOLDER'
+  | 'EXTERNAL_DISK'
+  | 'NONE';
+
 export type Board = {
   __typename?: 'Board';
   canWrite: Scalars['Boolean']['output'];
@@ -316,6 +321,11 @@ export type ChatReport = {
   status: ReportStatus;
 };
 
+export type ConnectionType =
+  | 'DIRECT'
+  | 'RELAY'
+  | 'UNKNOWN';
+
 export type Course = {
   __typename?: 'Course';
   coverUrl?: Maybe<Scalars['String']['output']>;
@@ -386,6 +396,41 @@ export type DailyAttention = {
   __typename?: 'DailyAttention';
   averageAttention: Scalars['Int']['output'];
   weekday: Scalars['Int']['output'];
+};
+
+export type Device = {
+  __typename?: 'Device';
+  appVersion: Scalars['String']['output'];
+  id: Scalars['ID']['output'];
+  lastSeenAt?: Maybe<Scalars['DateTime']['output']>;
+  name: Scalars['String']['output'];
+  online: Scalars['Boolean']['output'];
+  pairedAt: Scalars['DateTime']['output'];
+  platform: DevicePlatform;
+  setup: DeviceSetup;
+  uplink?: Maybe<UplinkAssessment>;
+};
+
+export type DeviceClaim = {
+  __typename?: 'DeviceClaim';
+  device: Device;
+  token: Scalars['String']['output'];
+};
+
+export type DevicePlatform =
+  | 'LINUX'
+  | 'MACOS'
+  | 'OTHER'
+  | 'WINDOWS';
+
+export type DeviceSetup = {
+  __typename?: 'DeviceSetup';
+  backupConfiguredAt?: Maybe<Scalars['DateTime']['output']>;
+  backupKind: BackupKind;
+  cloudCopyEnabled: Scalars['Boolean']['output'];
+  completed: Scalars['Boolean']['output'];
+  lastBackupAt?: Maybe<Scalars['DateTime']['output']>;
+  step: Scalars['Int']['output'];
 };
 
 export type DueCard = {
@@ -587,6 +632,12 @@ export type HomeworkType =
   | 'QUIZ'
   | 'TEXT';
 
+export type HostPresence = {
+  __typename?: 'HostPresence';
+  online: Scalars['Boolean']['output'];
+  slug: Scalars['String']['output'];
+};
+
 export type Insight = {
   __typename?: 'Insight';
   kind: InsightKind;
@@ -640,6 +691,12 @@ export type InviteInput = {
   institutionId: Scalars['ID']['input'];
   role: MembershipRole;
 };
+
+export type JoinDecision =
+  | 'ALLOWED'
+  | 'KNOCK_REQUIRED'
+  | 'LINK_REPLACED'
+  | 'NOT_IN_GROUP';
 
 export type LearningProfile = {
   __typename?: 'LearningProfile';
@@ -802,6 +859,31 @@ export type MaterialType =
   | 'LINK'
   | 'TEXT';
 
+export type MeetingAccessMode =
+  | 'ANY_AUTHENTICATED'
+  | 'GROUP_ONLY'
+  | 'KNOCK';
+
+export type MeetingPoint = {
+  __typename?: 'MeetingPoint';
+  accessMode: MeetingAccessMode;
+  code: Scalars['String']['output'];
+  groupId: Scalars['ID']['output'];
+  hostOnline: Scalars['Boolean']['output'];
+  slug: Scalars['String']['output'];
+};
+
+export type MeetingPointView = {
+  __typename?: 'MeetingPointView';
+  capabilities: OfflineCapabilities;
+  decision: JoinDecision;
+  groupName: Scalars['String']['output'];
+  hostOnline: Scalars['Boolean']['output'];
+  nextLesson?: Maybe<UpcomingLesson>;
+  slug: Scalars['String']['output'];
+  teacherName: Scalars['String']['output'];
+};
+
 export type MembershipRole =
   | 'ADMIN'
   | 'STUDENT'
@@ -812,6 +894,22 @@ export type MembershipStatus =
   | 'INACTIVE'
   | 'PENDING';
 
+export type MirrorKind =
+  | 'ACHIEVEMENT'
+  | 'CHAT'
+  | 'SUMMARY'
+  | 'WORK';
+
+export type MirroredRecord = {
+  __typename?: 'MirroredRecord';
+  id: Scalars['ID']['output'];
+  kind: MirrorKind;
+  occurredAt: Scalars['DateTime']['output'];
+  payload: Scalars['JSON']['output'];
+  sourceId: Scalars['ID']['output'];
+  updatedAt: Scalars['DateTime']['output'];
+};
+
 export type Mutation = {
   __typename?: 'Mutation';
   addChild: Guardianship;
@@ -819,11 +917,16 @@ export type Mutation = {
   addStudentsToGroup: Group;
   addSummaryItem: SummaryItem;
   addWordToMyList: SrsCard;
+  advanceDeviceSetup: Device;
   answerExercise: Attempt;
   archiveCourse: Course;
   assembleLessonSummary: LessonSummary;
   assignTeacher: GroupTeacher;
   backupUbp: UbpBackup;
+  claimDeviceToken: DeviceClaim;
+  completeDeviceSetup: Device;
+  configureCabinetBackup: Device;
+  confirmPairingCode: Device;
   countLiveAsClasswork: Scalars['ID']['output'];
   createCourse: Course;
   createGroup: Group;
@@ -844,6 +947,7 @@ export type Mutation = {
   enroll: Enrollment;
   gradeSubmission: Submission;
   handInExerciseSet: HomeworkHandIn;
+  hostHeartbeat: HostPresence;
   inviteMember: InstitutionMembership;
   issueCertificate: Certificate;
   joinSession: SessionJoin;
@@ -862,6 +966,7 @@ export type Mutation = {
   publishLesson: Lesson;
   putBoardElement: BoardElement;
   putWordOnBoard: Scalars['ID']['output'];
+  recordCabinetBackup: Device;
   redeemProjectorCode: ProjectorJoin;
   refreshToken: AuthPayload;
   registerUser: AuthPayload;
@@ -872,24 +977,31 @@ export type Mutation = {
   removeSummaryItem: Scalars['Boolean']['output'];
   reorderLessons: Array<Lesson>;
   reorderSections: Array<Section>;
+  replaceMeetingLink: MeetingPoint;
   reportAttention: Scalars['Boolean']['output'];
   reportChannel: ChatReport;
+  reportUplink: Device;
+  requestPairingCode: PairingRequest;
   requestPasswordReset: Scalars['Boolean']['output'];
   requestUpload: UploadTicket;
   resetPassword: Scalars['Boolean']['output'];
   resolveChatReport: ChatReport;
   respondGuardianship: Guardianship;
   reviewWord: DueCard;
+  revokeDevice: Scalars['Boolean']['output'];
   saveBoard: BoardSnapshot;
   saveItem: SubjectMaterial;
   scheduleSession: LessonSession;
   sendChannelMessage: ChannelMessage;
   sendChatMessage: ChatMessage;
   sendLessonSummary: LessonSummary;
+  sendSignal: Scalars['Boolean']['output'];
   setActiveLearningProfile: LearningProfile;
   setAttendance: Attendance;
+  setAttentionConsent: Scalars['Boolean']['output'];
   setAvatar: User;
   setBoardOpen: Scalars['Boolean']['output'];
+  setMeetingAccess: MeetingPoint;
   setProjectorFocus: ProjectorFocus;
   setSpeechConsent: Scalars['Boolean']['output'];
   setSummaryIntro: LessonSummary;
@@ -943,6 +1055,11 @@ export type MutationAddWordToMyListArgs = {
 };
 
 
+export type MutationAdvanceDeviceSetupArgs = {
+  step: Scalars['Int']['input'];
+};
+
+
 export type MutationAnswerExerciseArgs = {
   context?: InputMaybe<AttemptContext>;
   exerciseId: Scalars['ID']['input'];
@@ -972,6 +1089,23 @@ export type MutationAssignTeacherArgs = {
 
 export type MutationBackupUbpArgs = {
   input: UbpBackupInput;
+};
+
+
+export type MutationClaimDeviceTokenArgs = {
+  code: Scalars['String']['input'];
+  secret: Scalars['String']['input'];
+};
+
+
+export type MutationConfigureCabinetBackupArgs = {
+  cloudCopy?: InputMaybe<Scalars['Boolean']['input']>;
+  kind: BackupKind;
+};
+
+
+export type MutationConfirmPairingCodeArgs = {
+  code: Scalars['String']['input'];
 };
 
 
@@ -1213,6 +1347,11 @@ export type MutationReorderSectionsArgs = {
 };
 
 
+export type MutationReplaceMeetingLinkArgs = {
+  groupId: Scalars['ID']['input'];
+};
+
+
 export type MutationReportAttentionArgs = {
   input: AttentionInput;
 };
@@ -1222,6 +1361,19 @@ export type MutationReportChannelArgs = {
   channelId: Scalars['ID']['input'];
   messageId?: InputMaybe<Scalars['ID']['input']>;
   reason?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+export type MutationReportUplinkArgs = {
+  connectionType?: InputMaybe<ConnectionType>;
+  mbps: Scalars['Float']['input'];
+};
+
+
+export type MutationRequestPairingCodeArgs = {
+  appVersion?: InputMaybe<Scalars['String']['input']>;
+  deviceName: Scalars['String']['input'];
+  platform?: InputMaybe<DevicePlatform>;
 };
 
 
@@ -1264,6 +1416,11 @@ export type MutationReviewWordArgs = {
 };
 
 
+export type MutationRevokeDeviceArgs = {
+  deviceId: Scalars['ID']['input'];
+};
+
+
 export type MutationSaveBoardArgs = {
   lessonId: Scalars['ID']['input'];
   title?: InputMaybe<Scalars['String']['input']>;
@@ -1297,6 +1454,14 @@ export type MutationSendLessonSummaryArgs = {
 };
 
 
+export type MutationSendSignalArgs = {
+  kind: SignalKind;
+  payload: Scalars['String']['input'];
+  sessionId: Scalars['ID']['input'];
+  toPeer: Scalars['ID']['input'];
+};
+
+
 export type MutationSetActiveLearningProfileArgs = {
   id: Scalars['ID']['input'];
 };
@@ -1309,6 +1474,11 @@ export type MutationSetAttendanceArgs = {
 };
 
 
+export type MutationSetAttentionConsentArgs = {
+  granted: Scalars['Boolean']['input'];
+};
+
+
 export type MutationSetAvatarArgs = {
   fileKey: Scalars['String']['input'];
 };
@@ -1317,6 +1487,12 @@ export type MutationSetAvatarArgs = {
 export type MutationSetBoardOpenArgs = {
   isOpen: Scalars['Boolean']['input'];
   lessonId: Scalars['ID']['input'];
+};
+
+
+export type MutationSetMeetingAccessArgs = {
+  groupId: Scalars['ID']['input'];
+  mode: MeetingAccessMode;
 };
 
 
@@ -1479,10 +1655,30 @@ export type NotificationType =
   | 'NEW_LESSON'
   | 'WEEKLY_DIGEST';
 
+export type OfflineCapabilities = {
+  __typename?: 'OfflineCapabilities';
+  chat: Scalars['Boolean']['output'];
+  homework: Scalars['Boolean']['output'];
+  lessonMaterials: Scalars['Boolean']['output'];
+  liveBoard: Scalars['Boolean']['output'];
+  myGrades: Scalars['Boolean']['output'];
+  mySummaries: Scalars['Boolean']['output'];
+  myWork: Scalars['Boolean']['output'];
+  room: Scalars['Boolean']['output'];
+  schedule: Scalars['Boolean']['output'];
+};
+
 export type PageInfo = {
   __typename?: 'PageInfo';
   endCursor?: Maybe<Scalars['String']['output']>;
   hasNextPage: Scalars['Boolean']['output'];
+};
+
+export type PairingRequest = {
+  __typename?: 'PairingRequest';
+  code: Scalars['String']['output'];
+  expiresAt: Scalars['DateTime']['output'];
+  secret: Scalars['String']['output'];
 };
 
 export type ParentChildOverview = {
@@ -1561,6 +1757,7 @@ export type Query = {
   externalDictionaries: Array<ExternalDictionary>;
   group?: Maybe<Group>;
   groupAnalytics: GroupAnalytics;
+  groupMeetingPoint: MeetingPoint;
   groups: Array<Group>;
   homework?: Maybe<Homework>;
   homeworkSubmissions: Array<Submission>;
@@ -1575,10 +1772,15 @@ export type Query = {
   lessonWords: Array<LexicalItem>;
   lookupWord: Array<LexicalItem>;
   me?: Maybe<User>;
+  meetingPoint: MeetingPointView;
+  meetingPointByCode: MeetingPointView;
+  mirroredFileUrl: Scalars['String']['output'];
   myAchievements: Array<Achievement>;
   myAttempts: Array<Attempt>;
   myChannels: Array<ChatChannel>;
   myCourses: Array<Course>;
+  myDevices: Array<Device>;
+  myMirror: Array<MirroredRecord>;
   myRepetitionProgress: RepetitionProgress;
   myRepetitionQueue: Array<DueCard>;
   mySavedItems: Array<SubjectMaterial>;
@@ -1602,7 +1804,9 @@ export type Query = {
   teacher?: Maybe<TeacherProfile>;
   teacherDashboard: TeacherDashboard;
   teacherReviews: Array<Review>;
+  turnCredentials: TurnCredentials;
   ubpBackup?: Maybe<UbpBackup>;
+  uplinkProbe: UplinkProbe;
   verifyCertificate: CertificateVerification;
 };
 
@@ -1668,6 +1872,11 @@ export type QueryGroupAnalyticsArgs = {
 };
 
 
+export type QueryGroupMeetingPointArgs = {
+  groupId: Scalars['ID']['input'];
+};
+
+
 export type QueryGroupsArgs = {
   institutionId: Scalars['ID']['input'];
 };
@@ -1729,8 +1938,30 @@ export type QueryLookupWordArgs = {
 };
 
 
+export type QueryMeetingPointArgs = {
+  slug: Scalars['String']['input'];
+};
+
+
+export type QueryMeetingPointByCodeArgs = {
+  code: Scalars['String']['input'];
+};
+
+
+export type QueryMirroredFileUrlArgs = {
+  objectKey: Scalars['String']['input'];
+  recordId: Scalars['ID']['input'];
+};
+
+
 export type QueryMyAttemptsArgs = {
   setId: Scalars['ID']['input'];
+};
+
+
+export type QueryMyMirrorArgs = {
+  kind?: InputMaybe<MirrorKind>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
 };
 
 
@@ -1943,6 +2174,21 @@ export type SetProgress = {
   correct: Scalars['Int']['output'];
   total: Scalars['Int']['output'];
 };
+
+export type Signal = {
+  __typename?: 'Signal';
+  fromPeer: Scalars['ID']['output'];
+  kind: SignalKind;
+  payload: Scalars['String']['output'];
+  sessionId: Scalars['ID']['output'];
+  toPeer: Scalars['ID']['output'];
+};
+
+export type SignalKind =
+  | 'ANSWER'
+  | 'BYE'
+  | 'ICE'
+  | 'OFFER';
 
 export type SkillArea =
   | 'GRAMMAR'
@@ -2224,9 +2470,11 @@ export type Subscription = {
   boardChanged: BoardChange;
   channelMessageReceived: ChannelMessage;
   chatMessageReceived: ChatMessage;
+  hostPresenceChanged: HostPresence;
   notificationReceived: Notification;
   projectorFocusChanged: ProjectorFocus;
   sessionStatusChanged: LessonSession;
+  signals: Signal;
   wordShown: WordShown;
 };
 
@@ -2251,12 +2499,22 @@ export type SubscriptionChatMessageReceivedArgs = {
 };
 
 
+export type SubscriptionHostPresenceChangedArgs = {
+  slug: Scalars['String']['input'];
+};
+
+
 export type SubscriptionProjectorFocusChangedArgs = {
   sessionId: Scalars['ID']['input'];
 };
 
 
 export type SubscriptionSessionStatusChangedArgs = {
+  sessionId: Scalars['ID']['input'];
+};
+
+
+export type SubscriptionSignalsArgs = {
   sessionId: Scalars['ID']['input'];
 };
 
@@ -2334,6 +2592,15 @@ export type TeacherProfile = {
   verificationStatus: VerificationStatus;
 };
 
+export type TurnCredentials = {
+  __typename?: 'TurnCredentials';
+  configured: Scalars['Boolean']['output'];
+  credential: Scalars['String']['output'];
+  ttlSeconds: Scalars['Int']['output'];
+  urls: Array<Scalars['String']['output']>;
+  username: Scalars['String']['output'];
+};
+
 export type UbpBackup = {
   __typename?: 'UbpBackup';
   encryptedBlob: Scalars['String']['output'];
@@ -2345,6 +2612,39 @@ export type UbpBackupInput = {
   encryptedBlob: Scalars['String']['input'];
   keyHint?: InputMaybe<Scalars['String']['input']>;
 };
+
+export type UpcomingLesson = {
+  __typename?: 'UpcomingLesson';
+  isLive: Scalars['Boolean']['output'];
+  sessionId: Scalars['ID']['output'];
+  startAt: Scalars['DateTime']['output'];
+  title: Scalars['String']['output'];
+};
+
+export type UplinkAssessment = {
+  __typename?: 'UplinkAssessment';
+  connectionType: ConnectionType;
+  groupSize: Scalars['Int']['output'];
+  mbps: Scalars['Float']['output'];
+  requiredForEight: Scalars['Float']['output'];
+  stale: Scalars['Boolean']['output'];
+  verdict: UplinkVerdict;
+};
+
+export type UplinkProbe = {
+  __typename?: 'UplinkProbe';
+  requiredForEight: Scalars['Float']['output'];
+  requiredForFour: Scalars['Float']['output'];
+  requiredForTwo: Scalars['Float']['output'];
+  seconds: Scalars['Int']['output'];
+};
+
+export type UplinkVerdict =
+  | 'COMFORTABLE'
+  | 'TIGHT'
+  | 'TOO_WEAK'
+  | 'UNKNOWN'
+  | 'WORKABLE';
 
 export type UploadPurpose =
   | 'AVATAR'
@@ -2371,6 +2671,8 @@ export type User = {
   __typename?: 'User';
   adminProfile?: Maybe<AdminProfile>;
   avatarUrl?: Maybe<Scalars['String']['output']>;
+  consentAttention: Scalars['Boolean']['output'];
+  consentSpeech: Scalars['Boolean']['output'];
   createdAt: Scalars['DateTime']['output'];
   email: Scalars['String']['output'];
   firstName: Scalars['String']['output'];
@@ -2550,7 +2852,7 @@ export type SubmitVerificationDocumentMutation = { __typename?: 'Mutation', subm
 export type MeQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type MeQuery = { __typename?: 'Query', me?: { __typename?: 'User', id: string, email: string, firstName: string, lastName: string, role: Role, locale: string, avatarUrl?: string | null, studentProfile?: { __typename?: 'StudentProfile', ageBand: AgeBand, gradeLevel?: string | null, points: number } | null, teacherProfile?: { __typename?: 'TeacherProfile', verificationStatus: VerificationStatus, specialty?: string | null } | null, parentProfile?: { __typename?: 'ParentProfile', children: Array<{ __typename?: 'StudentProfile', ageBand: AgeBand, gradeLevel?: string | null, user: { __typename?: 'User', id: string, firstName: string, lastName: string } }> } | null } | null };
+export type MeQuery = { __typename?: 'Query', me?: { __typename?: 'User', id: string, email: string, firstName: string, lastName: string, role: Role, locale: string, avatarUrl?: string | null, consentSpeech: boolean, consentAttention: boolean, studentProfile?: { __typename?: 'StudentProfile', ageBand: AgeBand, gradeLevel?: string | null, points: number } | null, teacherProfile?: { __typename?: 'TeacherProfile', verificationStatus: VerificationStatus, specialty?: string | null } | null, parentProfile?: { __typename?: 'ParentProfile', children: Array<{ __typename?: 'StudentProfile', ageBand: AgeBand, gradeLevel?: string | null, user: { __typename?: 'User', id: string, firstName: string, lastName: string } }> } | null } | null };
 
 export type SetAvatarMutationVariables = Exact<{
   fileKey: Scalars['String']['input'];
@@ -2855,6 +3157,89 @@ export type DeleteMaterialMutationVariables = Exact<{
 
 
 export type DeleteMaterialMutation = { __typename?: 'Mutation', deleteMaterial: boolean };
+
+export type RequestPairingCodeMutationVariables = Exact<{
+  deviceName: Scalars['String']['input'];
+  platform?: InputMaybe<DevicePlatform>;
+  appVersion?: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type RequestPairingCodeMutation = { __typename?: 'Mutation', requestPairingCode: { __typename?: 'PairingRequest', code: string, secret: string, expiresAt: string } };
+
+export type ClaimDeviceTokenMutationVariables = Exact<{
+  code: Scalars['String']['input'];
+  secret: Scalars['String']['input'];
+}>;
+
+
+export type ClaimDeviceTokenMutation = { __typename?: 'Mutation', claimDeviceToken: { __typename?: 'DeviceClaim', token: string, device: { __typename?: 'Device', id: string, name: string, platform: DevicePlatform, appVersion: string, lastSeenAt?: string | null, online: boolean, pairedAt: string, setup: { __typename?: 'DeviceSetup', step: number, completed: boolean, backupKind: BackupKind, backupConfiguredAt?: string | null, cloudCopyEnabled: boolean, lastBackupAt?: string | null } } } };
+
+export type ConfirmPairingCodeMutationVariables = Exact<{
+  code: Scalars['String']['input'];
+}>;
+
+
+export type ConfirmPairingCodeMutation = { __typename?: 'Mutation', confirmPairingCode: { __typename?: 'Device', id: string, name: string, platform: DevicePlatform, pairedAt: string } };
+
+export type MyDevicesQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type MyDevicesQuery = { __typename?: 'Query', myDevices: Array<{ __typename?: 'Device', id: string, name: string, platform: DevicePlatform, appVersion: string, lastSeenAt?: string | null, online: boolean, pairedAt: string, uplink?: { __typename?: 'UplinkAssessment', mbps: number, verdict: UplinkVerdict, groupSize: number, requiredForEight: number, stale: boolean, connectionType: ConnectionType } | null, setup: { __typename?: 'DeviceSetup', step: number, completed: boolean, backupKind: BackupKind, backupConfiguredAt?: string | null, cloudCopyEnabled: boolean, lastBackupAt?: string | null } }> };
+
+export type RevokeDeviceMutationVariables = Exact<{
+  deviceId: Scalars['ID']['input'];
+}>;
+
+
+export type RevokeDeviceMutation = { __typename?: 'Mutation', revokeDevice: boolean };
+
+export type ConfigureCabinetBackupMutationVariables = Exact<{
+  kind: BackupKind;
+  cloudCopy?: InputMaybe<Scalars['Boolean']['input']>;
+}>;
+
+
+export type ConfigureCabinetBackupMutation = { __typename?: 'Mutation', configureCabinetBackup: { __typename?: 'Device', id: string, setup: { __typename?: 'DeviceSetup', step: number, completed: boolean, backupKind: BackupKind, backupConfiguredAt?: string | null, cloudCopyEnabled: boolean, lastBackupAt?: string | null } } };
+
+export type RecordCabinetBackupMutationVariables = Exact<{ [key: string]: never; }>;
+
+
+export type RecordCabinetBackupMutation = { __typename?: 'Mutation', recordCabinetBackup: { __typename?: 'Device', id: string, setup: { __typename?: 'DeviceSetup', step: number, completed: boolean, backupKind: BackupKind, backupConfiguredAt?: string | null, cloudCopyEnabled: boolean, lastBackupAt?: string | null } } };
+
+export type SetSpeechConsentMutationVariables = Exact<{
+  granted: Scalars['Boolean']['input'];
+}>;
+
+
+export type SetSpeechConsentMutation = { __typename?: 'Mutation', setSpeechConsent: boolean };
+
+export type SetAttentionConsentMutationVariables = Exact<{
+  granted: Scalars['Boolean']['input'];
+}>;
+
+
+export type SetAttentionConsentMutation = { __typename?: 'Mutation', setAttentionConsent: boolean };
+
+export type ReportUplinkMutationVariables = Exact<{
+  mbps: Scalars['Float']['input'];
+  connectionType?: InputMaybe<ConnectionType>;
+}>;
+
+
+export type ReportUplinkMutation = { __typename?: 'Mutation', reportUplink: { __typename?: 'Device', id: string, uplink?: { __typename?: 'UplinkAssessment', mbps: number, verdict: UplinkVerdict, groupSize: number, requiredForEight: number, stale: boolean, connectionType: ConnectionType } | null, setup: { __typename?: 'DeviceSetup', step: number, completed: boolean, backupKind: BackupKind, backupConfiguredAt?: string | null, cloudCopyEnabled: boolean, lastBackupAt?: string | null } } };
+
+export type AdvanceDeviceSetupMutationVariables = Exact<{
+  step: Scalars['Int']['input'];
+}>;
+
+
+export type AdvanceDeviceSetupMutation = { __typename?: 'Mutation', advanceDeviceSetup: { __typename?: 'Device', id: string, setup: { __typename?: 'DeviceSetup', step: number, completed: boolean, backupKind: BackupKind, backupConfiguredAt?: string | null, cloudCopyEnabled: boolean, lastBackupAt?: string | null } } };
+
+export type CompleteDeviceSetupMutationVariables = Exact<{ [key: string]: never; }>;
+
+
+export type CompleteDeviceSetupMutation = { __typename?: 'Mutation', completeDeviceSetup: { __typename?: 'Device', id: string, setup: { __typename?: 'DeviceSetup', step: number, completed: boolean, backupKind: BackupKind, backupConfiguredAt?: string | null, cloudCopyEnabled: boolean, lastBackupAt?: string | null } } };
 
 export type LookupWordQueryVariables = Exact<{
   lemma: Scalars['String']['input'];
@@ -4061,6 +4446,8 @@ export const MeDocument = gql`
     role
     locale
     avatarUrl
+    consentSpeech
+    consentAttention
     studentProfile {
       ageBand
       gradeLevel
@@ -5889,6 +6276,504 @@ export function useDeleteMaterialMutation(baseOptions?: Apollo.MutationHookOptio
 export type DeleteMaterialMutationHookResult = ReturnType<typeof useDeleteMaterialMutation>;
 export type DeleteMaterialMutationResult = Apollo.MutationResult<DeleteMaterialMutation>;
 export type DeleteMaterialMutationOptions = Apollo.BaseMutationOptions<DeleteMaterialMutation, DeleteMaterialMutationVariables>;
+export const RequestPairingCodeDocument = gql`
+    mutation RequestPairingCode($deviceName: String!, $platform: DevicePlatform, $appVersion: String) {
+  requestPairingCode(
+    deviceName: $deviceName
+    platform: $platform
+    appVersion: $appVersion
+  ) {
+    code
+    secret
+    expiresAt
+  }
+}
+    `;
+export type RequestPairingCodeMutationFn = Apollo.MutationFunction<RequestPairingCodeMutation, RequestPairingCodeMutationVariables>;
+
+/**
+ * __useRequestPairingCodeMutation__
+ *
+ * To run a mutation, you first call `useRequestPairingCodeMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useRequestPairingCodeMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [requestPairingCodeMutation, { data, loading, error }] = useRequestPairingCodeMutation({
+ *   variables: {
+ *      deviceName: // value for 'deviceName'
+ *      platform: // value for 'platform'
+ *      appVersion: // value for 'appVersion'
+ *   },
+ * });
+ */
+export function useRequestPairingCodeMutation(baseOptions?: Apollo.MutationHookOptions<RequestPairingCodeMutation, RequestPairingCodeMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<RequestPairingCodeMutation, RequestPairingCodeMutationVariables>(RequestPairingCodeDocument, options);
+      }
+export type RequestPairingCodeMutationHookResult = ReturnType<typeof useRequestPairingCodeMutation>;
+export type RequestPairingCodeMutationResult = Apollo.MutationResult<RequestPairingCodeMutation>;
+export type RequestPairingCodeMutationOptions = Apollo.BaseMutationOptions<RequestPairingCodeMutation, RequestPairingCodeMutationVariables>;
+export const ClaimDeviceTokenDocument = gql`
+    mutation ClaimDeviceToken($code: String!, $secret: String!) {
+  claimDeviceToken(code: $code, secret: $secret) {
+    token
+    device {
+      id
+      name
+      platform
+      appVersion
+      lastSeenAt
+      online
+      pairedAt
+      setup {
+        step
+        completed
+        backupKind
+        backupConfiguredAt
+        cloudCopyEnabled
+        lastBackupAt
+      }
+    }
+  }
+}
+    `;
+export type ClaimDeviceTokenMutationFn = Apollo.MutationFunction<ClaimDeviceTokenMutation, ClaimDeviceTokenMutationVariables>;
+
+/**
+ * __useClaimDeviceTokenMutation__
+ *
+ * To run a mutation, you first call `useClaimDeviceTokenMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useClaimDeviceTokenMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [claimDeviceTokenMutation, { data, loading, error }] = useClaimDeviceTokenMutation({
+ *   variables: {
+ *      code: // value for 'code'
+ *      secret: // value for 'secret'
+ *   },
+ * });
+ */
+export function useClaimDeviceTokenMutation(baseOptions?: Apollo.MutationHookOptions<ClaimDeviceTokenMutation, ClaimDeviceTokenMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<ClaimDeviceTokenMutation, ClaimDeviceTokenMutationVariables>(ClaimDeviceTokenDocument, options);
+      }
+export type ClaimDeviceTokenMutationHookResult = ReturnType<typeof useClaimDeviceTokenMutation>;
+export type ClaimDeviceTokenMutationResult = Apollo.MutationResult<ClaimDeviceTokenMutation>;
+export type ClaimDeviceTokenMutationOptions = Apollo.BaseMutationOptions<ClaimDeviceTokenMutation, ClaimDeviceTokenMutationVariables>;
+export const ConfirmPairingCodeDocument = gql`
+    mutation ConfirmPairingCode($code: String!) {
+  confirmPairingCode(code: $code) {
+    id
+    name
+    platform
+    pairedAt
+  }
+}
+    `;
+export type ConfirmPairingCodeMutationFn = Apollo.MutationFunction<ConfirmPairingCodeMutation, ConfirmPairingCodeMutationVariables>;
+
+/**
+ * __useConfirmPairingCodeMutation__
+ *
+ * To run a mutation, you first call `useConfirmPairingCodeMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useConfirmPairingCodeMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [confirmPairingCodeMutation, { data, loading, error }] = useConfirmPairingCodeMutation({
+ *   variables: {
+ *      code: // value for 'code'
+ *   },
+ * });
+ */
+export function useConfirmPairingCodeMutation(baseOptions?: Apollo.MutationHookOptions<ConfirmPairingCodeMutation, ConfirmPairingCodeMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<ConfirmPairingCodeMutation, ConfirmPairingCodeMutationVariables>(ConfirmPairingCodeDocument, options);
+      }
+export type ConfirmPairingCodeMutationHookResult = ReturnType<typeof useConfirmPairingCodeMutation>;
+export type ConfirmPairingCodeMutationResult = Apollo.MutationResult<ConfirmPairingCodeMutation>;
+export type ConfirmPairingCodeMutationOptions = Apollo.BaseMutationOptions<ConfirmPairingCodeMutation, ConfirmPairingCodeMutationVariables>;
+export const MyDevicesDocument = gql`
+    query MyDevices {
+  myDevices {
+    id
+    name
+    platform
+    appVersion
+    lastSeenAt
+    online
+    pairedAt
+    uplink {
+      mbps
+      verdict
+      groupSize
+      requiredForEight
+      stale
+      connectionType
+    }
+    setup {
+      step
+      completed
+      backupKind
+      backupConfiguredAt
+      cloudCopyEnabled
+      lastBackupAt
+    }
+  }
+}
+    `;
+
+/**
+ * __useMyDevicesQuery__
+ *
+ * To run a query within a React component, call `useMyDevicesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useMyDevicesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useMyDevicesQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useMyDevicesQuery(baseOptions?: Apollo.QueryHookOptions<MyDevicesQuery, MyDevicesQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<MyDevicesQuery, MyDevicesQueryVariables>(MyDevicesDocument, options);
+      }
+export function useMyDevicesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<MyDevicesQuery, MyDevicesQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<MyDevicesQuery, MyDevicesQueryVariables>(MyDevicesDocument, options);
+        }
+// @ts-ignore
+export function useMyDevicesSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<MyDevicesQuery, MyDevicesQueryVariables>): Apollo.UseSuspenseQueryResult<MyDevicesQuery, MyDevicesQueryVariables>;
+export function useMyDevicesSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<MyDevicesQuery, MyDevicesQueryVariables>): Apollo.UseSuspenseQueryResult<MyDevicesQuery | undefined, MyDevicesQueryVariables>;
+export function useMyDevicesSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<MyDevicesQuery, MyDevicesQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<MyDevicesQuery, MyDevicesQueryVariables>(MyDevicesDocument, options);
+        }
+export type MyDevicesQueryHookResult = ReturnType<typeof useMyDevicesQuery>;
+export type MyDevicesLazyQueryHookResult = ReturnType<typeof useMyDevicesLazyQuery>;
+export type MyDevicesSuspenseQueryHookResult = ReturnType<typeof useMyDevicesSuspenseQuery>;
+export type MyDevicesQueryResult = Apollo.QueryResult<MyDevicesQuery, MyDevicesQueryVariables>;
+export const RevokeDeviceDocument = gql`
+    mutation RevokeDevice($deviceId: ID!) {
+  revokeDevice(deviceId: $deviceId)
+}
+    `;
+export type RevokeDeviceMutationFn = Apollo.MutationFunction<RevokeDeviceMutation, RevokeDeviceMutationVariables>;
+
+/**
+ * __useRevokeDeviceMutation__
+ *
+ * To run a mutation, you first call `useRevokeDeviceMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useRevokeDeviceMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [revokeDeviceMutation, { data, loading, error }] = useRevokeDeviceMutation({
+ *   variables: {
+ *      deviceId: // value for 'deviceId'
+ *   },
+ * });
+ */
+export function useRevokeDeviceMutation(baseOptions?: Apollo.MutationHookOptions<RevokeDeviceMutation, RevokeDeviceMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<RevokeDeviceMutation, RevokeDeviceMutationVariables>(RevokeDeviceDocument, options);
+      }
+export type RevokeDeviceMutationHookResult = ReturnType<typeof useRevokeDeviceMutation>;
+export type RevokeDeviceMutationResult = Apollo.MutationResult<RevokeDeviceMutation>;
+export type RevokeDeviceMutationOptions = Apollo.BaseMutationOptions<RevokeDeviceMutation, RevokeDeviceMutationVariables>;
+export const ConfigureCabinetBackupDocument = gql`
+    mutation ConfigureCabinetBackup($kind: BackupKind!, $cloudCopy: Boolean) {
+  configureCabinetBackup(kind: $kind, cloudCopy: $cloudCopy) {
+    id
+    setup {
+      step
+      completed
+      backupKind
+      backupConfiguredAt
+      cloudCopyEnabled
+      lastBackupAt
+    }
+  }
+}
+    `;
+export type ConfigureCabinetBackupMutationFn = Apollo.MutationFunction<ConfigureCabinetBackupMutation, ConfigureCabinetBackupMutationVariables>;
+
+/**
+ * __useConfigureCabinetBackupMutation__
+ *
+ * To run a mutation, you first call `useConfigureCabinetBackupMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useConfigureCabinetBackupMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [configureCabinetBackupMutation, { data, loading, error }] = useConfigureCabinetBackupMutation({
+ *   variables: {
+ *      kind: // value for 'kind'
+ *      cloudCopy: // value for 'cloudCopy'
+ *   },
+ * });
+ */
+export function useConfigureCabinetBackupMutation(baseOptions?: Apollo.MutationHookOptions<ConfigureCabinetBackupMutation, ConfigureCabinetBackupMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<ConfigureCabinetBackupMutation, ConfigureCabinetBackupMutationVariables>(ConfigureCabinetBackupDocument, options);
+      }
+export type ConfigureCabinetBackupMutationHookResult = ReturnType<typeof useConfigureCabinetBackupMutation>;
+export type ConfigureCabinetBackupMutationResult = Apollo.MutationResult<ConfigureCabinetBackupMutation>;
+export type ConfigureCabinetBackupMutationOptions = Apollo.BaseMutationOptions<ConfigureCabinetBackupMutation, ConfigureCabinetBackupMutationVariables>;
+export const RecordCabinetBackupDocument = gql`
+    mutation RecordCabinetBackup {
+  recordCabinetBackup {
+    id
+    setup {
+      step
+      completed
+      backupKind
+      backupConfiguredAt
+      cloudCopyEnabled
+      lastBackupAt
+    }
+  }
+}
+    `;
+export type RecordCabinetBackupMutationFn = Apollo.MutationFunction<RecordCabinetBackupMutation, RecordCabinetBackupMutationVariables>;
+
+/**
+ * __useRecordCabinetBackupMutation__
+ *
+ * To run a mutation, you first call `useRecordCabinetBackupMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useRecordCabinetBackupMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [recordCabinetBackupMutation, { data, loading, error }] = useRecordCabinetBackupMutation({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useRecordCabinetBackupMutation(baseOptions?: Apollo.MutationHookOptions<RecordCabinetBackupMutation, RecordCabinetBackupMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<RecordCabinetBackupMutation, RecordCabinetBackupMutationVariables>(RecordCabinetBackupDocument, options);
+      }
+export type RecordCabinetBackupMutationHookResult = ReturnType<typeof useRecordCabinetBackupMutation>;
+export type RecordCabinetBackupMutationResult = Apollo.MutationResult<RecordCabinetBackupMutation>;
+export type RecordCabinetBackupMutationOptions = Apollo.BaseMutationOptions<RecordCabinetBackupMutation, RecordCabinetBackupMutationVariables>;
+export const SetSpeechConsentDocument = gql`
+    mutation SetSpeechConsent($granted: Boolean!) {
+  setSpeechConsent(granted: $granted)
+}
+    `;
+export type SetSpeechConsentMutationFn = Apollo.MutationFunction<SetSpeechConsentMutation, SetSpeechConsentMutationVariables>;
+
+/**
+ * __useSetSpeechConsentMutation__
+ *
+ * To run a mutation, you first call `useSetSpeechConsentMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useSetSpeechConsentMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [setSpeechConsentMutation, { data, loading, error }] = useSetSpeechConsentMutation({
+ *   variables: {
+ *      granted: // value for 'granted'
+ *   },
+ * });
+ */
+export function useSetSpeechConsentMutation(baseOptions?: Apollo.MutationHookOptions<SetSpeechConsentMutation, SetSpeechConsentMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<SetSpeechConsentMutation, SetSpeechConsentMutationVariables>(SetSpeechConsentDocument, options);
+      }
+export type SetSpeechConsentMutationHookResult = ReturnType<typeof useSetSpeechConsentMutation>;
+export type SetSpeechConsentMutationResult = Apollo.MutationResult<SetSpeechConsentMutation>;
+export type SetSpeechConsentMutationOptions = Apollo.BaseMutationOptions<SetSpeechConsentMutation, SetSpeechConsentMutationVariables>;
+export const SetAttentionConsentDocument = gql`
+    mutation SetAttentionConsent($granted: Boolean!) {
+  setAttentionConsent(granted: $granted)
+}
+    `;
+export type SetAttentionConsentMutationFn = Apollo.MutationFunction<SetAttentionConsentMutation, SetAttentionConsentMutationVariables>;
+
+/**
+ * __useSetAttentionConsentMutation__
+ *
+ * To run a mutation, you first call `useSetAttentionConsentMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useSetAttentionConsentMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [setAttentionConsentMutation, { data, loading, error }] = useSetAttentionConsentMutation({
+ *   variables: {
+ *      granted: // value for 'granted'
+ *   },
+ * });
+ */
+export function useSetAttentionConsentMutation(baseOptions?: Apollo.MutationHookOptions<SetAttentionConsentMutation, SetAttentionConsentMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<SetAttentionConsentMutation, SetAttentionConsentMutationVariables>(SetAttentionConsentDocument, options);
+      }
+export type SetAttentionConsentMutationHookResult = ReturnType<typeof useSetAttentionConsentMutation>;
+export type SetAttentionConsentMutationResult = Apollo.MutationResult<SetAttentionConsentMutation>;
+export type SetAttentionConsentMutationOptions = Apollo.BaseMutationOptions<SetAttentionConsentMutation, SetAttentionConsentMutationVariables>;
+export const ReportUplinkDocument = gql`
+    mutation ReportUplink($mbps: Float!, $connectionType: ConnectionType) {
+  reportUplink(mbps: $mbps, connectionType: $connectionType) {
+    id
+    uplink {
+      mbps
+      verdict
+      groupSize
+      requiredForEight
+      stale
+      connectionType
+    }
+    setup {
+      step
+      completed
+      backupKind
+      backupConfiguredAt
+      cloudCopyEnabled
+      lastBackupAt
+    }
+  }
+}
+    `;
+export type ReportUplinkMutationFn = Apollo.MutationFunction<ReportUplinkMutation, ReportUplinkMutationVariables>;
+
+/**
+ * __useReportUplinkMutation__
+ *
+ * To run a mutation, you first call `useReportUplinkMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useReportUplinkMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [reportUplinkMutation, { data, loading, error }] = useReportUplinkMutation({
+ *   variables: {
+ *      mbps: // value for 'mbps'
+ *      connectionType: // value for 'connectionType'
+ *   },
+ * });
+ */
+export function useReportUplinkMutation(baseOptions?: Apollo.MutationHookOptions<ReportUplinkMutation, ReportUplinkMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<ReportUplinkMutation, ReportUplinkMutationVariables>(ReportUplinkDocument, options);
+      }
+export type ReportUplinkMutationHookResult = ReturnType<typeof useReportUplinkMutation>;
+export type ReportUplinkMutationResult = Apollo.MutationResult<ReportUplinkMutation>;
+export type ReportUplinkMutationOptions = Apollo.BaseMutationOptions<ReportUplinkMutation, ReportUplinkMutationVariables>;
+export const AdvanceDeviceSetupDocument = gql`
+    mutation AdvanceDeviceSetup($step: Int!) {
+  advanceDeviceSetup(step: $step) {
+    id
+    setup {
+      step
+      completed
+      backupKind
+      backupConfiguredAt
+      cloudCopyEnabled
+      lastBackupAt
+    }
+  }
+}
+    `;
+export type AdvanceDeviceSetupMutationFn = Apollo.MutationFunction<AdvanceDeviceSetupMutation, AdvanceDeviceSetupMutationVariables>;
+
+/**
+ * __useAdvanceDeviceSetupMutation__
+ *
+ * To run a mutation, you first call `useAdvanceDeviceSetupMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useAdvanceDeviceSetupMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [advanceDeviceSetupMutation, { data, loading, error }] = useAdvanceDeviceSetupMutation({
+ *   variables: {
+ *      step: // value for 'step'
+ *   },
+ * });
+ */
+export function useAdvanceDeviceSetupMutation(baseOptions?: Apollo.MutationHookOptions<AdvanceDeviceSetupMutation, AdvanceDeviceSetupMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<AdvanceDeviceSetupMutation, AdvanceDeviceSetupMutationVariables>(AdvanceDeviceSetupDocument, options);
+      }
+export type AdvanceDeviceSetupMutationHookResult = ReturnType<typeof useAdvanceDeviceSetupMutation>;
+export type AdvanceDeviceSetupMutationResult = Apollo.MutationResult<AdvanceDeviceSetupMutation>;
+export type AdvanceDeviceSetupMutationOptions = Apollo.BaseMutationOptions<AdvanceDeviceSetupMutation, AdvanceDeviceSetupMutationVariables>;
+export const CompleteDeviceSetupDocument = gql`
+    mutation CompleteDeviceSetup {
+  completeDeviceSetup {
+    id
+    setup {
+      step
+      completed
+      backupKind
+      backupConfiguredAt
+      cloudCopyEnabled
+      lastBackupAt
+    }
+  }
+}
+    `;
+export type CompleteDeviceSetupMutationFn = Apollo.MutationFunction<CompleteDeviceSetupMutation, CompleteDeviceSetupMutationVariables>;
+
+/**
+ * __useCompleteDeviceSetupMutation__
+ *
+ * To run a mutation, you first call `useCompleteDeviceSetupMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCompleteDeviceSetupMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [completeDeviceSetupMutation, { data, loading, error }] = useCompleteDeviceSetupMutation({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useCompleteDeviceSetupMutation(baseOptions?: Apollo.MutationHookOptions<CompleteDeviceSetupMutation, CompleteDeviceSetupMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<CompleteDeviceSetupMutation, CompleteDeviceSetupMutationVariables>(CompleteDeviceSetupDocument, options);
+      }
+export type CompleteDeviceSetupMutationHookResult = ReturnType<typeof useCompleteDeviceSetupMutation>;
+export type CompleteDeviceSetupMutationResult = Apollo.MutationResult<CompleteDeviceSetupMutation>;
+export type CompleteDeviceSetupMutationOptions = Apollo.BaseMutationOptions<CompleteDeviceSetupMutation, CompleteDeviceSetupMutationVariables>;
 export const LookupWordDocument = gql`
     query LookupWord($lemma: String!) {
   lookupWord(lemma: $lemma) {

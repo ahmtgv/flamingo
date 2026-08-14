@@ -24,6 +24,43 @@ struct TrayItems {
     quit: MenuItem<tauri::Wry>,
 }
 
+// 🔒 Where the machine key lives, and the only place it may (PROMPT_14 §2.2.2, §19.4).
+//
+// The OS keychain is encrypted at rest and scoped to the account. A config file ends up in a
+// support archive; localStorage is readable by any script on the page and survives in a
+// browser-profile backup. There is deliberately no command that returns the key to the
+// webview — nothing in React needs to see it, and a getter would exist only to be logged by
+// accident.
+const KEYCHAIN_SERVICE: &str = "plus.flamingo.desktop";
+const KEYCHAIN_ACCOUNT: &str = "machine-key";
+
+fn keyring() -> Result<keyring::Entry, String> {
+    keyring::Entry::new(KEYCHAIN_SERVICE, KEYCHAIN_ACCOUNT).map_err(|e| e.to_string())
+}
+
+/// Положить ключ машины в связку ключей. Вызывается ровно один раз — после связывания.
+#[tauri::command]
+fn store_machine_key(token: String) -> Result<(), String> {
+    keyring()?.set_password(&token).map_err(|e| e.to_string())
+}
+
+/// Есть ли ключ — без выдачи ключа.
+#[tauri::command]
+fn has_machine_key() -> bool {
+    keyring().and_then(|e| e.get_password().map_err(|x| x.to_string())).is_ok()
+}
+
+/// Забыть ключ на этой машине. Серверный отзыв — отдельная мутация в кабинете.
+#[tauri::command]
+fn forget_machine_key() -> Result<(), String> {
+    match keyring()?.delete_credential() {
+        Ok(()) => Ok(()),
+        // Already absent is the outcome the caller wanted.
+        Err(keyring::Error::NoEntry) => Ok(()),
+        Err(e) => Err(e.to_string()),
+    }
+}
+
 /// Свернуть в трей — **and leave the lesson running**.
 ///
 /// 🔴 Sheet D1: «Свёрнутое окно не заканчивает урок». This hides the window and touches nothing
@@ -68,7 +105,10 @@ fn main() {
         .invoke_handler(tauri::generate_handler![
             minimise_to_tray,
             set_tray_label,
-            set_tray_menu
+            set_tray_menu,
+            store_machine_key,
+            has_machine_key,
+            forget_machine_key
         ])
         .setup(|app| {
             let binary = app

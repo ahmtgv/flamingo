@@ -11,7 +11,7 @@ import strawberry
 
 from apps.devices import services
 from common.auth import require_device, require_user
-from common.enums import ConnectionType, DevicePlatform
+from common.enums import BackupKind, ConnectionType, DevicePlatform
 
 from .types import Device, DeviceClaim, PairingRequest
 
@@ -75,3 +75,40 @@ class DevicesMutation:
                 require_device(info), mbps=mbps, connection_type=connection_type.value
             )
         )
+
+    # --- first run (лист D2, Р5.4) ------------------------------------------------------
+    @strawberry.mutation
+    def advance_device_setup(self, info: strawberry.Info, step: int) -> Device:
+        """Запомнить пройденный шаг. Аутентификация — машиной, не пользователем.
+
+        The five steps are this machine's progress through its own first run, so the machine
+        is who says so. Monotonic: re-reading step 3 does not forget step 4.
+        """
+        return Device.of(services.advance_setup(require_device(info), step=step))
+
+    @strawberry.mutation
+    def configure_cabinet_backup(
+        self,
+        info: strawberry.Info,
+        kind: BackupKind,
+        cloud_copy: bool = False,
+    ) -> Device:
+        """Шаг 2 — копия кабинета. 🔴 Обязательна (§19.1), и отказ здесь настоящий.
+
+        Takes the KIND and never the path: «/Users/люция/…» is the teacher's own machine and
+        their OS account name. Knowing a copy exists is what §19.1 entitles us to; knowing
+        where it sits buys nothing and costs a name.
+        """
+        return Device.of(
+            services.configure_backup(require_device(info), kind=kind.value, cloud_copy=cloud_copy)
+        )
+
+    @strawberry.mutation
+    def record_cabinet_backup(self, info: strawberry.Info) -> Device:
+        """«Сделать сейчас» отработало — экран настроек показывает это как «последняя копия»."""
+        return Device.of(services.record_backup(require_device(info)))
+
+    @strawberry.mutation
+    def complete_device_setup(self, info: strawberry.Info) -> Device:
+        """«Готово». Откажет, если обязательная копия так и не настроена."""
+        return Device.of(services.complete_setup(require_device(info)))

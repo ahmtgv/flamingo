@@ -13,7 +13,25 @@ import strawberry
 
 from apps.devices import uplink as uplink_rules
 from apps.signalling.graphql.types import UplinkAssessment
-from common.enums import ConnectionType, DevicePlatform
+from common.enums import BackupKind, ConnectionType, DevicePlatform
+
+
+@strawberry.type
+class DeviceSetup:
+    """Where the first run got to (D2, Р5.4).
+
+    🔒 There is no field here for the cabinet folder, and there will not be one. §19.1 makes
+    the copy mandatory, so *whether* one is configured is ours to know; **where** it lives is
+    the teacher's own disk and their OS account name, and it stays on the machine.
+    """
+
+    #: 1…5 — вход · данные · согласия · проверка · готово.
+    step: int
+    completed: bool
+    backup_kind: BackupKind
+    backup_configured_at: dt.datetime | None
+    cloud_copy_enabled: bool
+    last_backup_at: dt.datetime | None
 
 
 @strawberry.type
@@ -29,6 +47,8 @@ class Device:
     #: Р5.1 — the last channel measurement, already turned into a verdict and a group size.
     #: Null until the machine has measured once.
     uplink: UplinkAssessment | None
+    #: D2 — how far the first run got, so an interrupted setup resumes on the same step.
+    setup: DeviceSetup
 
     @classmethod
     def of(cls, row, *, online: bool = False) -> Device:
@@ -48,6 +68,14 @@ class Device:
             online=online,
             paired_at=row.created_at,
             uplink=assessment,
+            setup=DeviceSetup(
+                step=row.setup_step,
+                completed=row.setup_completed_at is not None,
+                backup_kind=BackupKind(row.backup_kind),
+                backup_configured_at=row.backup_configured_at,
+                cloud_copy_enabled=row.cloud_copy_enabled,
+                last_backup_at=row.last_backup_at,
+            ),
         )
 
 

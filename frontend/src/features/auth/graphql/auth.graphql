@@ -119,6 +119,10 @@ query Me {
     role
     locale
     avatarUrl
+    # D2 шаг 3 (Р5.4): мастер первого запуска и экран настроек читают согласия отсюда —
+    # оба по умолчанию false, и анализ внимания остаётся выключенным, пока его не включат.
+    consentSpeech
+    consentAttention
     studentProfile {
       ageBand
       gradeLevel

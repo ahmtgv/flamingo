@@ -1,6 +1,6 @@
 import { type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
+import { BrowserRouter, Navigate, Route, Routes, useNavigate } from 'react-router-dom';
 
 import {
   LoginScreen,
@@ -10,6 +10,7 @@ import {
   RoleSelectScreen,
 } from '@/features/auth';
 import { Cabinet } from '@/features/cabinet';
+import { SettingsScreen, SetupScreen } from '@/features/desktop';
 import { AdminInstitutionScreen } from '@/features/admin';
 import { CatalogScreen, CourseDetailScreen, CreateCourseScreen } from '@/features/courses';
 import {
@@ -44,6 +45,12 @@ function PublicOnlyRoute({ children }: { children: ReactNode }) {
   const { status } = useSession();
   if (status === 'authenticated') return <Navigate to="/start" replace />;
   return <>{children}</>;
+}
+
+/** Мастер первого запуска. Не под ProtectedRoute: связывание — это и есть вход. */
+function SetupScreenRoute() {
+  const navigate = useNavigate();
+  return <SetupScreen onFinished={() => navigate('/start')} />;
 }
 
 function RootRedirect() {
@@ -144,6 +151,17 @@ export function AppRouter() {
           element={
             <ProtectedRoute>
               <SubjectScreen />
+            </ProtectedRoute>
+          }
+        />
+        {/* Первый запуск приложения преподавателя — лист D2 (Р5.4). Шаг 1 идёт ДО входа:
+            машина ещё не связана, и просить войти было бы просить пароль (§19.4). */}
+        <Route path="/setup" element={<SetupScreenRoute />} />
+        <Route
+          path="/settings"
+          element={
+            <ProtectedRoute>
+              <SettingsScreen />
             </ProtectedRoute>
           }
         />

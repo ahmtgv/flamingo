@@ -31,8 +31,8 @@ def make_teacher(email="teacher@example.com"):
     )
 
 
-def make_student(email="student@example.com"):
-    return accounts.register_user(
+def make_student(email="student@example.com", *, attention=True):
+    user = accounts.register_user(
         email=email,
         password="strongpass1!",
         first_name="Стёпа",
@@ -40,6 +40,13 @@ def make_student(email="student@example.com"):
         role=Role.STUDENT,
         birth_date=date(2009, 1, 1),
     )
+    # D2 step 3: attention analysis is OFF until someone turns it on, and the server enforces
+    # that (`services.record_attention`). A test that reports a bucket is a test about a pupil
+    # who switched it on — so it says so, rather than relying on a default that no longer holds.
+    if attention:
+        user.consent_attention = True
+        user.save(update_fields=["consent_attention"])
+    return user
 
 
 def setup_session(teacher, subject="Математика"):

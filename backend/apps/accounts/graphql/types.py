@@ -111,6 +111,11 @@ class UserType:
     locale: auto
     is_active: auto
     created_at: auto
+    #: D2 step 3 — the wizard has to know what was already agreed to when it resumes, and the
+    #: settings screen shows both. Own account only: `me` is the only query that returns a
+    #: UserType for the caller themselves, and a consent is nobody else's business.
+    consent_speech: auto
+    consent_attention: auto
 
     @strawberry_django.field
     def email(self, info: strawberry.Info) -> str | None:

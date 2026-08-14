@@ -86,6 +86,10 @@ type User {
   isActive: Boolean!
   avatarUrl: String
   createdAt: DateTime!
+  # Р5.4 / D2 step 3. Both default to FALSE and both are the caller's own business — `me` is
+  # the only query that returns a User for the caller themselves.
+  consentSpeech: Boolean!        # речь обрабатывается на лету ради саммари; аудио не хранится
+  consentAttention: Boolean!     # анализ внимания — ВЫКЛЮЧЕН по умолчанию (OWNER_SCOPE §19)
   studentProfile: StudentProfile
   teacherProfile: TeacherProfile
   parentProfile: ParentProfile
@@ -808,11 +812,31 @@ type Device {
   pairedAt: DateTime!
   uplink: UplinkAssessment       # Р5.1; null until this machine has measured once — an
                                  # unmeasured channel and a dead one are different facts
+  setup: DeviceSetup!            # Р5.4 / D2 — the five steps of the first run
 }
 
 # What the app gets when it asks. `secret` is its half of the credential, returned once and
 # stored as a hash: the code proves a human approved, the secret proves this is the machine
 # that asked. Holding one without the other gets you nothing.
+# Where a copy of the cabinet goes (D2 step 2, OWNER_SCOPE §19.1). NONE describes a machine
+# that has not reached step 2 — it is not a choice the screen offers, and the server refuses
+# to finish setup in it.
+enum BackupKind { NONE EXTERNAL_DISK CLOUD_FOLDER }
+
+# How far this machine's first run got, so an interrupted setup resumes on the same step.
+#
+# 🔒 There is no field here for the cabinet FOLDER and there will not be one. §19.1 makes the
+# copy mandatory, so whether one is configured is ours to know; where it lives is the teacher's
+# own disk and their OS account name, and it stays on the machine. Asserted by test_first_run.py.
+type DeviceSetup {
+  step: Int!                     # 1…5 — вход · данные · согласия · проверка · готово
+  completed: Boolean!
+  backupKind: BackupKind!
+  backupConfiguredAt: DateTime
+  cloudCopyEnabled: Boolean!     # «копия у нас, по желанию» — client-encrypted, opaque to us
+  lastBackupAt: DateTime
+}
+
 type PairingRequest { code: String! secret: String! expiresAt: DateTime! }
 
 # The machine key, handed over once and never queryable.
@@ -1546,6 +1570,17 @@ type Mutation {
   # 🔴 Recording a measurement refuses nothing (§19.3): the teacher is told what the channel
   # is good for and decides — they know what the lesson is and who the children are.
   reportUplink(mbps: Float!, connectionType: ConnectionType = UNKNOWN): Device!
+  # --- first run (лист D2, Р5.4). All four authenticate as the MACHINE, via
+  # `Authorization: Device <key>`: the five steps are this machine's progress through its own
+  # setup, so the machine is who reports them.
+  advanceDeviceSetup(step: Int!): Device!                 # monotonic — re-reading step 3 does
+                                                          # not forget step 4
+  configureCabinetBackup(                                 # 🔴 §19.1 — обязательна; NONE is
+    kind: BackupKind!                                     # refused, and so is finishing without
+    cloudCopy: Boolean = false                            # having configured one
+  ): Device!
+  recordCabinetBackup: Device!                            # «сделать сейчас» отработало
+  completeDeviceSetup: Device!                            # «готово»; refuses without the copy
 
   # signalling (Р5.1) — routes one handshake message and writes nothing down
   sendSignal(sessionId: ID!, toPeer: ID!, kind: SignalKind!, payload: String!): Boolean!
@@ -1562,6 +1597,9 @@ type Mutation {
   # PROMPT_13 §5: «речь занятий обрабатывается для саммари; видео и аудио не записываются».
   # Withheld by default — a default-on consent is not a consent.
   setSpeechConsent(granted: Boolean!): Boolean!
+  # D2 step 3 (Р5.4). Off is where every account starts, and the server keeps it that way:
+  # `recordAttention` drops the bucket without this. Not a UI default — a server one.
+  setAttentionConsent(granted: Boolean!): Boolean!
   reportAttention(input: AttentionInput!): Boolean!         # client pushes aggregate only
 
   # --- enrollment & progress

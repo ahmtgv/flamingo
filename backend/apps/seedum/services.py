@@ -129,6 +129,19 @@ def _record_attention_bucket(
     # gate) — an authenticated student cannot inject rows into an arbitrary session.
     if not can_access_course(user, session.lesson.section.course):
         raise PermissionDenied("Not a participant of this session")
+    # D2 step 3 / OWNER_SCOPE §19: «анализ внимания по умолчанию выключен», enforced by the
+    # server and not only by the switch that drew it — a default living in a component lasts
+    # until someone re-renders the component.
+    #
+    # ⚠️ Deliberately AFTER the authorization gate. Put first, it answers «no» to a stranger
+    # for the wrong reason and quietly turns a permission boundary into a preference; a
+    # non-participant must still be refused as a non-participant.
+    #
+    # Returning False rather than raising: nothing was measured, so nothing failed, and the
+    # pipeline on the device stops after the first False instead of retrying a refusal it
+    # cannot fix.
+    if not getattr(user, "consent_attention", False):
+        return False
     value = max(0, min(100, int(avg_attention)))
     metric, _ = AttentionMetric.objects.update_or_create(
         lesson_session=session,
