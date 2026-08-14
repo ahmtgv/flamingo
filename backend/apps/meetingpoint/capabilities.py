@@ -31,10 +31,17 @@ class OfflineCapabilities:
     schedule: bool
     chat: bool
     homework: bool
-    #: the pupil's mirror answers these (Р5.0-Б)
+    #: the pupil's mirror answers these (Р5.0-Б, widened by §20.5.1 in Р5.4-Б)
     my_work: bool
     my_grades: bool
     my_summaries: bool
+    my_diary: bool
+    #: saved boards of the pupil's own lessons — «то, что класс видел на экране»
+    my_boards: bool
+    #: guides the teacher HANDED OUT. Not the same field as `lesson_materials` below, and the
+    #: difference is the whole of D3's «недоступна только живая доска и методички этого урока»:
+    #: what was given is the pupil's and opens always; what is being shown right now is not.
+    my_materials: bool
     #: these need the teacher's machine
     lesson_materials: bool
     live_board: bool
@@ -50,6 +57,9 @@ WITHOUT_HOST = OfflineCapabilities(
     my_work=True,
     my_grades=True,
     my_summaries=True,
+    my_diary=True,
+    my_boards=True,
+    my_materials=True,
     lesson_materials=False,
     live_board=False,
     room=False,

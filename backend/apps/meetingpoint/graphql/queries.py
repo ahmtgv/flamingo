@@ -8,7 +8,7 @@ from apps.meetingpoint import mirror, services
 from common.auth import require_user
 from common.enums import MirrorKind
 
-from .types import MeetingPoint, MeetingPointView, MirroredRecord
+from .types import MeetingParticipant, MeetingPoint, MeetingPointView, MirroredRecord
 
 
 @strawberry.type
@@ -57,3 +57,17 @@ class MeetingPointQuery:
         return mirror.mirrored_file_url(
             require_user(info), record_id=record_id, object_key=object_key
         )
+
+    @strawberry.field
+    def meeting_participants(
+        self, info: strawberry.Info, group_id: strawberry.ID
+    ) -> list[MeetingParticipant]:
+        """«Участники · 8» с состояниями (лист D3).
+
+        Только преподаватель группы: кто из детей когда заходил — не общее знание, и запрос
+        не принимает ничьего чужого идентификатора, чтобы это выяснить.
+        """
+        return [
+            MeetingParticipant.of(row)
+            for row in services.participants(require_user(info), group_id)
+        ]

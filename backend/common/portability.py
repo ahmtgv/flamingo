@@ -130,6 +130,11 @@ NOT_EXPORTED: dict[str, str] = {
     ),
     "devices.DeviceToken": "a credential. It must not travel, and it could not: it is a hash",
     "devices.PairingCode": "a ten-minute credential; dead long before any restore",
+    "meetingpoint.MeetingVisit": (
+        "«кто открывал дверь» — сиюминутный признак для панели участников (Р5.6, лист D3), а не"
+        " чья-то учёба. Восстановленный из копии, он рассказал бы преподавателю про вчерашние"
+        " заходы как про сегодняшние; а список группы обязан говорить, что правда сейчас"
+    ),
 }
 
 

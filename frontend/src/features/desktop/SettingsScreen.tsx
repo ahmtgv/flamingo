@@ -12,10 +12,11 @@ import {
   chooseBackupDestination,
   copyBackupOut,
   type CopyOutFailure,
+  type DestinationWarning,
   lastCopyOut,
   rememberCopyOut,
 } from './backupCopy';
-import { cabinetFolder, chooseCabinetFolder, revealCabinetFolder } from './cabinetFolder';
+import { cabinetFolder, revealCabinetFolder } from './cabinetFolder';
 import styles from './settings.module.css';
 
 const TABS = ['link', 'data', 'devices'] as const;
@@ -46,6 +47,7 @@ export function SettingsScreen() {
   const [destination, setDestination] = useState('');
   const [outAt, setOutAt] = useState(() => lastCopyOut());
   const [failure, setFailure] = useState<CopyOutFailure | null>(null);
+  const [warning, setWarning] = useState<DestinationWarning | null>(null);
   useEffect(() => {
     void backupDestination().then(setDestination);
   }, []);
@@ -73,10 +75,12 @@ export function SettingsScreen() {
     await refetch();
   };
 
+  /** Своим диалогом, и с предупреждением словами вместо запрета (Р5.5-В п.1). */
   const pickDestination = async () => {
-    const folder = await chooseCabinetFolder();
-    if (!folder) return;
-    setDestination(await chooseBackupDestination(folder));
+    const chosen = await chooseBackupDestination();
+    if (!chosen) return;
+    setDestination(chosen.path);
+    setWarning(chosen.warning);
     setFailure(null);
   };
 
@@ -220,6 +224,8 @@ export function SettingsScreen() {
                 : t('settings.data.lastOutNever')
             }
           />
+          {/* Место на том же диске не запрещаем — предупреждаем (§2.2-бис). */}
+          {warning && <p className={styles.warn}>{t(`settings.data.sameDisk.${warning}`)}</p>}
           {/* Диск отключён — сказать словами, а не молча писать в старую папку. */}
           {failure && <p className={styles.warn}>{t(`settings.data.outFailed.${failure}`)}</p>}
         </section>

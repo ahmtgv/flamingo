@@ -11,6 +11,7 @@ import datetime as dt
 
 import strawberry
 
+from apps.devices import services as device_rules
 from apps.devices import uplink as uplink_rules
 from apps.signalling.graphql.types import UplinkAssessment
 from common.enums import BackupKind, ConnectionType, DevicePlatform
@@ -52,6 +53,9 @@ class DeviceSetup:
     backup_configured_at: dt.datetime | None
     cloud_copy_enabled: bool
     last_backup_at: dt.datetime | None
+    #: Р5.5-В п.3: пора ли снимать копию. Планировщика нет и не будет (Celery отложен) —
+    #: расписание §19.1 исполняет само приложение: при старте и по окончании занятия.
+    backup_due: bool
 
 
 @strawberry.type
@@ -95,6 +99,7 @@ class Device:
                 backup_configured_at=row.backup_configured_at,
                 cloud_copy_enabled=row.cloud_copy_enabled,
                 last_backup_at=row.last_backup_at,
+                backup_due=device_rules.backup_is_due(row),
             ),
         )
 

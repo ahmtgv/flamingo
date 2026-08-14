@@ -9,6 +9,7 @@ a pupil discover it by clicking.
 from __future__ import annotations
 
 import datetime as dt
+from enum import Enum
 
 import strawberry
 from strawberry.scalars import JSON
@@ -21,9 +22,10 @@ class OfflineCapabilities:
     """Reachable while the host is off. One source (meetingpoint/capabilities.py) so the
     screen and the future desktop refusals cannot disagree.
 
-    The line is drawn by whose data it is (§20.2/§20.3): a pupil's own work, grades and
-    summaries come from their mirror and open always; the teacher's guides and the live board
-    need their machine.
+    The line is drawn by whose data it is (§20.2/§20.3/§20.5): a pupil's own work, grades,
+    diary, summaries, the saved boards of their lessons and the guides they were **given**
+    come from their mirror and open always. Only the LIVE board and the guides of the lesson
+    happening right now need the machine — that is D3's «честная и маленькая цена».
     """
 
     schedule: bool
@@ -32,6 +34,9 @@ class OfflineCapabilities:
     my_work: bool
     my_grades: bool
     my_summaries: bool
+    my_diary: bool
+    my_boards: bool
+    my_materials: bool
     lesson_materials: bool
     live_board: bool
     room: bool
@@ -45,6 +50,9 @@ class OfflineCapabilities:
             my_work=caps.my_work,
             my_grades=caps.my_grades,
             my_summaries=caps.my_summaries,
+            my_diary=caps.my_diary,
+            my_boards=caps.my_boards,
+            my_materials=caps.my_materials,
             lesson_materials=caps.lesson_materials,
             live_board=caps.live_board,
             room=caps.room,
@@ -157,3 +165,34 @@ class HostPresence:
 
     slug: str
     online: bool
+
+
+@strawberry.enum
+class ParticipantState(Enum):
+    """Где человек сейчас — лист D3, «Участники».
+
+    Каждое состояние выводится из существующего признака; выдуманных здесь нет.
+    """
+
+    IN_ROOM = "in_room"  # «в комнате»
+    AT_THE_DOOR = "at_the_door"  # «открыла ссылку, ждёт»
+    INVITED = "invited"  # «приглашение открыто вчера»
+    NEVER_OPENED = "never_opened"  # «ссылка не открывалась ни разу»
+
+
+@strawberry.type
+class MeetingParticipant:
+    student_id: strawberry.ID
+    name: str
+    state: ParticipantState
+    #: Когда это стало правдой. Пусто для того, кто не заходил: времени у «никогда» нет.
+    since: dt.datetime | None
+
+    @classmethod
+    def of(cls, row: dict) -> MeetingParticipant:
+        return cls(
+            student_id=strawberry.ID(row["student_id"]),
+            name=row["name"],
+            state=ParticipantState(row["state"]),
+            since=row["since"],
+        )

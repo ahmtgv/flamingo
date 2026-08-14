@@ -24,11 +24,11 @@ from apps.devices.models import Device
 from apps.institutions.models import Group, GroupMembership
 from apps.scheduling.models import LessonSession
 from common.compliance.policy import require_feature
-from common.enums import JoinDecision, MeetingAccessMode, SessionStatus
+from common.enums import AttendanceStatus, JoinDecision, MeetingAccessMode, SessionStatus
 from common.exceptions import NotFound, PermissionDenied, ValidationError
 
 from .capabilities import without_host
-from .models import MeetingPoint, RetiredLink
+from .models import MeetingPoint, MeetingVisit, RetiredLink
 
 FEATURE_MEETING_POINT = "meeting_point"
 
@@ -273,6 +273,12 @@ def view_by_slug(user, slug: str) -> dict:
             "capabilities": without_host(),
         }
 
+    # Р5.5-В п.2, лениво: страница ожидания — то место, где пропажу хоста замечают первой.
+    # Планировщика нет и не заводим (Celery отложен, CLAUDE.md §5).
+    close_abandoned_sessions()
+    # Р5.6: и она же — единственное место, где видно, что ученик открывал дверь.
+    _record_visit(user, point)
+
     group = point.group
     teachers = _teachers_of(group)
     teacher = teachers[0].user if teachers else None
@@ -296,3 +302,146 @@ def view_by_code(user, code: str) -> dict:
     if point is None:
         raise NotFound("Meeting point not found")
     return view_by_slug(user, point.slug)
+
+
+# --- Р5.5-В п.2: занятие закрывается само -------------------------------------------------
+#: Сколько молчит машина преподавателя, прежде чем занятие считается брошенным. Больше
+#: HEARTBEAT_WINDOW на порядок: две минуты — это «крышку прикрыли и понесли в другую комнату»,
+#: десять — «сегодня уже не вернутся».
+HOST_GONE_AFTER = dt.timedelta(minutes=10)
+
+#: «Открыла ссылку, ждёт» — насколько свежим должно быть открытие, чтобы человек считался
+#: стоящим у двери, а не просто когда-то приглашённым.
+AT_THE_DOOR_WINDOW = dt.timedelta(minutes=30)
+
+
+def close_abandoned_sessions(*, now: dt.datetime | None = None) -> list:
+    """Закрыть занятия, у которых пропал хост, и написать дневник (Р5.5-В п.2).
+
+    🔴 Дыра, которую это чинит: дневник писался только на «Завершить». Преподаватель закрыл
+    ноутбук — и занятия для ученика не было вовсе: ни посещаемости, ни строки в дневнике.
+    Точка встречи видит presence, поэтому закрыть занятие может именно она.
+
+    **Ничего не выдумываем.** `end_at` — последний известный признак жизни машины, а не «сейчас»:
+    сколько занятие шло на самом деле, мы не знаем и знать не можем. Присутствие — те записи,
+    что успели появиться. Пометка `closed_automatically` едет в дневник ученика словами, потому
+    что «занятие длилось 40 минут» и «занятие оборвалось» — разные факты, и второй честнее.
+
+    Вызывается лениво — со страницы ожидания ученика и из heartbeat, — потому что Celery
+    отложен решением (CLAUDE.md §5), и заводить планировщик ради одного правила дороже.
+    """
+    from apps.scheduling.models import LessonSession
+
+    moment = now or timezone.now()
+    closed = []
+    live = LessonSession.objects.filter(status=SessionStatus.LIVE.value).select_related(
+        "lesson__section__course__owner"
+    )
+    for session in live:
+        owner_id = session.lesson.section.course.owner_id
+        last_seen = (
+            Device.objects.filter(owner_id=owner_id, revoked_at__isnull=True)
+            .order_by("-last_seen_at")
+            .values_list("last_seen_at", flat=True)
+            .first()
+        )
+        if last_seen is None:
+            # У преподавателя вообще нет связанной машины — значит занятие идёт не с рабочего
+            # стола, а по серверному контуру, который остаётся запасным путём (PROMPT_14 §6).
+            # Закрывать его по отсутствию heartbeat означало бы гасить урок, который идёт.
+            continue
+        if moment - last_seen < HOST_GONE_AFTER:
+            continue
+
+        session.status = SessionStatus.ENDED.value
+        # То, что известно: машина в последний раз давала о себе знать тогда-то. «Сейчас» —
+        # это выдуманная длительность, а её мы не пишем.
+        session.end_at = last_seen
+        session.closed_automatically = True
+        session.save(update_fields=["status", "end_at", "closed_automatically", "updated_at"])
+        _write_the_diary(session)
+        closed.append(session)
+    return closed
+
+
+def _write_the_diary(session) -> None:
+    """Дневник за брошенное занятие. Тот же вид, что и у завершённого рукой."""
+    from apps.scheduling.services import mirror_the_diary
+
+    try:
+        mirror_the_diary(session)
+    except Exception:  # noqa: BLE001 — занятие закрыто; копия — лучшее усилие
+        pass
+
+
+# --- Р5.6: список участников с состояниями (лист D3) ---------------------------------------
+def _record_visit(user, point: MeetingPoint) -> None:
+    """Отметить, что ученик открывал дверь. Молча — это не действие пользователя."""
+    profile = getattr(user, "student_profile", None)
+    if profile is None:
+        return
+    MeetingVisit.objects.update_or_create(
+        meeting_point=point, student=profile, defaults={"last_opened_at": timezone.now()}
+    )
+
+
+def participants(user, group_id) -> list[dict]:
+    """Кто где — для панели преподавателя (лист D3, «Участники · 8»).
+
+    Состояния листа и то, из чего каждое выводится. Ни одно не выдумано: где признака нет,
+    там и состояния нет.
+
+    * **в комнате** — есть запись присутствия на идущем занятии;
+    * **только звук** — то же, но человек вошёл без камеры (D3: «вход с телефона · камеры нет»);
+    * **у двери** — открывал ссылку недавно, но в комнату не вошёл: «открыла ссылку, ждёт»;
+    * **приглашён** — открывал ссылку когда-то раньше;
+    * **не заходил** — ссылка не открывалась ни разу.
+
+    Только преподаватель группы: кто из детей когда заходил — не общее знание.
+    """
+    from apps.scheduling.models import Attendance, LessonSession
+
+    group = _group_or_404(group_id)
+    _require_group_teacher(user, group)
+    point = ensure_meeting_point(group)
+
+    live = (
+        LessonSession.objects.filter(group=group, status=SessionStatus.LIVE.value)
+        .order_by("-start_at")
+        .first()
+    )
+    present = {}
+    if live is not None:
+        present = {
+            str(a.student_id): a
+            for a in Attendance.objects.filter(session=live, status=AttendanceStatus.PRESENT.value)
+        }
+    visited = {
+        str(v.student_id): v.last_opened_at
+        for v in MeetingVisit.objects.filter(meeting_point=point)
+    }
+
+    now = timezone.now()
+    rows = []
+    for membership in group.memberships.select_related("student__user"):
+        student = membership.student
+        key = str(student.pk)
+        user_row = student.user
+        name = f"{user_row.first_name} {user_row.last_name}".strip()
+        attendance = present.get(key)
+        opened = visited.get(key)
+
+        if attendance is not None:
+            state = "in_room"
+            since = attendance.joined_at
+        elif opened is not None and now - opened <= AT_THE_DOOR_WINDOW:
+            state = "at_the_door"
+            since = opened
+        elif opened is not None:
+            state = "invited"
+            since = opened
+        else:
+            state = "never_opened"
+            since = None
+        rows.append({"student_id": key, "name": name, "state": state, "since": since})
+    return rows

@@ -1,0 +1,123 @@
+# Приглашение и вход ученика — лист D3 (Р5.6).
+#
+# 🔴 Всё здесь отвечает БЕЗ машины преподавателя. В этом и смысл точки встречи: ученик,
+# пришедший в 17:59, узнаёт, когда занятие, поднят ли хост и что работает прямо сейчас —
+# с сервера, при спящем ноутбуке.
+
+# Экран прихода по ссылке: пять состояний листа выводятся отсюда.
+query MeetingPoint($slug: String!) {
+  meetingPoint(slug: $slug) {
+    slug
+    decision
+    groupName
+    teacherName
+    hostOnline
+    nextLesson {
+      sessionId
+      title
+      startAt
+      isLive
+    }
+    capabilities {
+      schedule
+      chat
+      homework
+      myWork
+      myGrades
+      mySummaries
+      myDiary
+      myBoards
+      myMaterials
+      lessonMaterials
+      liveBoard
+      room
+    }
+  }
+}
+
+# Тот же экран, если ссылку не сохранили и код продиктовали голосом.
+query MeetingPointByCode($code: String!) {
+  meetingPointByCode(code: $code) {
+    slug
+    decision
+    groupName
+    teacherName
+    hostOnline
+    nextLesson {
+      sessionId
+      title
+      startAt
+      isLive
+    }
+    capabilities {
+      schedule
+      chat
+      homework
+      myWork
+      myGrades
+      mySummaries
+      myDiary
+      myBoards
+      myMaterials
+      lessonMaterials
+      liveBoard
+      room
+    }
+  }
+}
+
+# --- сторона преподавателя ---------------------------------------------------
+# Ссылка у группы одна и постоянная — её не рассылают перед каждым занятием.
+query GroupMeetingPoint($groupId: ID!) {
+  groupMeetingPoint(groupId: $groupId) {
+    groupId
+    slug
+    code
+    accessMode
+    hostOnline
+  }
+}
+
+# «Участники · 8» с состояниями.
+query MeetingParticipants($groupId: ID!) {
+  meetingParticipants(groupId: $groupId) {
+    studentId
+    name
+    state
+    since
+  }
+}
+
+# По умолчанию «только ученики этой группы» (решение владельца 14.08, п.1).
+mutation SetMeetingAccess($groupId: ID!, $mode: MeetingAccessMode!) {
+  setMeetingAccess(groupId: $groupId, mode: $mode) {
+    groupId
+    slug
+    code
+    accessMode
+    hostOnline
+  }
+}
+
+# «Заменить» отзывает старую: пригодится, если ссылка ушла не туда.
+mutation ReplaceMeetingLink($groupId: ID!) {
+  replaceMeetingLink(groupId: $groupId) {
+    groupId
+    slug
+    code
+    accessMode
+    hostOnline
+  }
+}
+
+# --- своя учёба, которая открывается всегда ---------------------------------
+# §20.5.1: дневник · работы · саммари · доски · выданные методички — из зеркала.
+query MyMirror($kind: MirrorKind, $limit: Int) {
+  myMirror(kind: $kind, limit: $limit) {
+    id
+    kind
+    sourceId
+    occurredAt
+    payload
+  }
+}

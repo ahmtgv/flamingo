@@ -2,6 +2,7 @@ import { type ReactNode, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { isDesktop, setTrayMenu } from './bridge';
+import { useScheduledBackup } from './useScheduledBackup';
 import { DesktopFrame } from './DesktopFrame';
 import { OfflineScreen } from './OfflineScreen';
 import type { UplinkVerdict } from './hostState';
@@ -19,6 +20,8 @@ export function DesktopShell({ children }: { children: ReactNode }) {
   const [online, setOnline] = useState(() =>
     typeof navigator === 'undefined' ? true : navigator.onLine,
   );
+  // Р5.5-В п.3: копию будит приложение — при старте, если пора. Таймера нет и не заводим.
+  useScheduledBackup();
 
   useEffect(() => {
     const up = () => setOnline(true);

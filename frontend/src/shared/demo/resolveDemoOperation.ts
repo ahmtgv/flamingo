@@ -14,6 +14,13 @@ import type {
   CompleteDeviceSetupMutation,
   ConfigureCabinetBackupMutation,
   ConfirmPairingCodeMutation,
+  GroupMeetingPointQuery,
+  MeetingParticipantsQuery,
+  MeetingPointByCodeQuery,
+  MeetingPointQuery,
+  MyMirrorQuery,
+  ReplaceMeetingLinkMutation,
+  SetMeetingAccessMutation,
   ExportCabinetMutation,
   MyDevicesQuery,
   RecordCabinetBackupMutation,
@@ -168,6 +175,8 @@ function demoSetup(over: Partial<Omit<DemoSetup, '__typename'>> = {}): DemoSetup
     backupConfiguredAt: iso(-3 * 24 * 3600 * 1000),
     cloudCopyEnabled: false,
     lastBackupAt: iso(-2 * 3600 * 1000),
+    // Копия свежая — витрина не должна снимать её при каждом открытии страницы (Р5.5-В п.3).
+    backupDue: false,
     ...over,
   };
 }
@@ -199,6 +208,57 @@ function demoDevice(): MyDevicesQuery['myDevices'][number] {
     },
     setup: demoSetup(),
   };
+}
+
+
+// --- точка встречи: приход ученика (Р5.6, лист D3) --------------------------
+/** Возможности без хоста — ровно те, что отдаёт `meetingpoint/capabilities.py`. */
+function demoCapabilities(): MeetingPointQuery['meetingPoint']['capabilities'] {
+  return {
+    __typename: 'OfflineCapabilities',
+    schedule: true,
+    chat: true,
+    homework: true,
+    myWork: true,
+    myGrades: true,
+    mySummaries: true,
+    myDiary: true,
+    myBoards: true,
+    myMaterials: true,
+    // Единственная цена: живая доска и методички ИДУЩЕГО урока.
+    lessonMaterials: false,
+    liveBoard: false,
+    room: false,
+  };
+}
+
+/**
+ * Витрина показывает **главный экран листа D3** — «преподавателя нет в сети».
+ *
+ * Это не пессимизм: в десктопной архитектуре выключенный ноутбук — штатное состояние, и
+ * именно этот экран решает, поймёт ли ребёнок, что пришёл правильно. Показывать вместо него
+ * идущее занятие значило бы прятать самый важный экран фазы.
+ */
+function demoMeetingPoint(): MeetingPointQuery {
+  return {
+    __typename: 'Query',
+    meetingPoint: {
+      __typename: 'MeetingPointView',
+      slug: 'english-a2-чт18',
+      decision: 'ALLOWED',
+      groupName: 'English A2 · группа «Четверг 18:00»',
+      teacherName: 'Люция Валерьевна',
+      hostOnline: false,
+      nextLesson: {
+        __typename: 'UpcomingLesson',
+        sessionId: 'ses-algebra-live',
+        title: 'Unit 4 — Travel',
+        startAt: iso(2 * 24 * 3600 * 1000),
+        isLive: false,
+      },
+      capabilities: demoCapabilities(),
+    },
+  } satisfies MeetingPointQuery;
 }
 
 function me(): MeQuery {
@@ -3570,6 +3630,71 @@ export function resolveDemoOperation(
     // --- машина преподавателя: связывание, канал, первый запуск (Р5.0 · Р5.0-Б · Р5.1 · Р5.4)
     // Долг демо-проекций, наступивший в Р5.4 (PROMPT_14 §2.3): витрина обязана работать после
     // каждой фазы. 🔒 Ни одна проекция здесь не содержит пароля — его нет и в самих операциях.
+    case 'MeetingPoint':
+      return demoMeetingPoint();
+    case 'MeetingPointByCode':
+      return {
+        __typename: 'Query',
+        meetingPointByCode: demoMeetingPoint().meetingPoint,
+      } satisfies MeetingPointByCodeQuery;
+    case 'GroupMeetingPoint':
+      return {
+        __typename: 'Query',
+        groupMeetingPoint: {
+          __typename: 'MeetingPoint',
+          groupId: 'grp-a2-thu',
+          slug: 'english-a2-чт18',
+          code: DEMO_PAIRING_CODE,
+          // Решение владельца 14.08 п.1 — по умолчанию «только ученики этой группы».
+          accessMode: 'GROUP_ONLY',
+          hostOnline: false,
+        },
+      } satisfies GroupMeetingPointQuery;
+    case 'MeetingParticipants':
+      return {
+        __typename: 'Query',
+        meetingParticipants: [
+          { __typename: 'MeetingParticipant', studentId: 'p1', name: 'Аня Коваль', state: 'AT_THE_DOOR', since: iso(-4 * 60_000) },
+          { __typename: 'MeetingParticipant', studentId: 'p2', name: 'Петя Ковалёв', state: 'AT_THE_DOOR', since: iso(-9 * 60_000) },
+          { __typename: 'MeetingParticipant', studentId: 'p3', name: 'Лена Морозова', state: 'INVITED', since: iso(-26 * 3600 * 1000) },
+          { __typename: 'MeetingParticipant', studentId: 'p4', name: 'Дима Соколов', state: 'INVITED', since: iso(-3 * 24 * 3600 * 1000) },
+          { __typename: 'MeetingParticipant', studentId: 'p5', name: 'Ира Волкова', state: 'NEVER_OPENED', since: null },
+        ],
+      } satisfies MeetingParticipantsQuery;
+    case 'SetMeetingAccess':
+      return {
+        setMeetingAccess: {
+          __typename: 'MeetingPoint',
+          groupId: 'grp-a2-thu',
+          slug: 'english-a2-чт18',
+          code: DEMO_PAIRING_CODE,
+          accessMode: (variables?.mode as 'GROUP_ONLY') ?? 'GROUP_ONLY',
+          hostOnline: false,
+        },
+      } satisfies SetMeetingAccessMutation;
+    case 'ReplaceMeetingLink':
+      return {
+        replaceMeetingLink: {
+          __typename: 'MeetingPoint',
+          groupId: 'grp-a2-thu',
+          slug: 'english-a2-чт18-new',
+          code: 'P3R · 8W1'.replace(/[^A-Z0-9]/g, ''),
+          accessMode: 'GROUP_ONLY',
+          hostOnline: false,
+        },
+      } satisfies ReplaceMeetingLinkMutation;
+    case 'MyMirror':
+      return {
+        __typename: 'Query',
+        myMirror: [
+          { __typename: 'MirroredRecord', id: 'm1', kind: 'DIARY', sourceId: 's1', occurredAt: iso(-7 * 24 * 3600 * 1000), payload: { lessonTitle: 'Unit 3 — Food', attendance: 'present', closedAutomatically: false } },
+          { __typename: 'MirroredRecord', id: 'm2', kind: 'WORK', sourceId: 's2', occurredAt: iso(-2 * 24 * 3600 * 1000), payload: { homeworkTitle: 'Сочинение о своём городе', score: 5, comment: 'Отлично' } },
+          { __typename: 'MirroredRecord', id: 'm3', kind: 'SUMMARY', sourceId: 's3', occurredAt: iso(-7 * 24 * 3600 * 1000), payload: { intro: 'Unit 3 — Food' } },
+          { __typename: 'MirroredRecord', id: 'm4', kind: 'BOARD', sourceId: 's4', occurredAt: iso(-7 * 24 * 3600 * 1000), payload: { title: 'Доска 7 августа' } },
+          { __typename: 'MirroredRecord', id: 'm5', kind: 'MATERIAL', sourceId: 's5', occurredAt: iso(-9 * 24 * 3600 * 1000), payload: { title: 'Методичка Unit 3', body: 'Как заказать еду' } },
+        ],
+      } satisfies MyMirrorQuery;
+
     case 'RequestPairingCode':
       return {
         requestPairingCode: {

@@ -11,6 +11,7 @@ import {
 } from '@/features/auth';
 import { Cabinet } from '@/features/cabinet';
 import { SettingsScreen, SetupScreen } from '@/features/desktop';
+import { ArrivalScreen } from '@/features/meeting';
 import { AdminInstitutionScreen } from '@/features/admin';
 import { CatalogScreen, CourseDetailScreen, CreateCourseScreen } from '@/features/courses';
 import {
@@ -156,6 +157,10 @@ export function AppRouter() {
         />
         {/* Первый запуск приложения преподавателя — лист D2 (Р5.4). Шаг 1 идёт ДО входа:
             машина ещё не связана, и просить войти было бы просить пароль (§19.4). */}
+        {/* Лист D3: ссылка группы одна и постоянная. Не под ProtectedRoute — по ссылке
+            приходит и тот, кто ещё не вошёл; что ему покажут, решает `decision`. */}
+        <Route path="/к/:slug" element={<ArrivalScreen />} />
+        <Route path="/j/:slug" element={<ArrivalScreen />} />
         <Route path="/setup" element={<SetupScreenRoute />} />
         <Route
           path="/settings"

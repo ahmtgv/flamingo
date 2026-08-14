@@ -107,3 +107,30 @@ class MirroredRecord(BaseModel):
 
     def __str__(self) -> str:
         return f"{self.kind}:{self.source_id}"
+
+
+class MeetingVisit(BaseModel):
+    """Кто открывал дверь и когда (Р5.6, лист D3).
+
+    Список участников на листе различает «у двери», «приглашён» и «не заходила» — это разные
+    факты, и без отметки об открытии ссылки их не отличить. Раньше их не отличал никто, и
+    строка «не заходила ни разу» была бы выдумкой.
+
+    Хранится ровно одно: последний раз, когда этот ученик открывал эту дверь. Не история
+    посещений — она никому здесь не нужна и была бы слежкой вместо списка группы.
+    """
+
+    meeting_point = models.ForeignKey(MeetingPoint, related_name="visits", on_delete=models.CASCADE)
+    student = models.ForeignKey(
+        "accounts.StudentProfile", related_name="meeting_visits", on_delete=models.CASCADE
+    )
+    last_opened_at = models.DateTimeField()
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["meeting_point", "student"], name="uniq_meeting_visit")
+        ]
+        indexes = [models.Index(fields=["meeting_point", "last_opened_at"])]
+
+    def __str__(self) -> str:
+        return f"{self.student_id} @ {self.meeting_point_id}"

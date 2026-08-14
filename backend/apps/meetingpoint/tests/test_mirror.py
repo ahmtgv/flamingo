@@ -675,3 +675,71 @@ def test_a_shared_guide_carries_its_file_by_content(settings, tmp_path):
     assert mirror.mirrored_file_url(
         pupil, record_id=guide.id, object_key=guide.payload["objectKey"]
     )
+
+
+# --- Р5.5-В п.2: занятие закрывается само ---------------------------------------------------
+def test_a_lesson_whose_host_vanished_closes_itself_and_the_diary_still_reaches_the_pupil():
+    """🔴 Дыра, которую это чинит: преподаватель закрыл ноутбук — и занятия для ученика не было.
+
+    Дневник писался только на «Завершить». Точка встречи видит presence, поэтому закрыть
+    занятие может именно она — и посещаемость с оценками доезжают.
+    """
+    from apps.devices import services as devices
+    from apps.devices.models import Device
+    from apps.meetingpoint import services as meeting
+    from apps.scheduling.models import LessonSession
+    from common.enums import SessionStatus
+
+    teacher = make_teacher()
+    course, lesson = a_course(teacher)
+    pupil = enrolled(course)
+
+    row, secret = devices.request_pairing_code(device_name="MacBook", platform="macos")
+    devices.confirm_pairing_code(teacher, row.code)
+    device, _t = devices.claim_device_token(code=row.code, secret=secret)
+
+    started = timezone.now() - dt.timedelta(minutes=45)
+    last_alive = timezone.now() - dt.timedelta(minutes=30)
+    Device.objects.filter(id=device.id).update(last_seen_at=last_alive)
+    session = LessonSession.objects.create(
+        lesson=lesson, start_at=started, status=SessionStatus.LIVE.value
+    )
+
+    closed = meeting.close_abandoned_sessions()
+
+    assert len(closed) == 1
+    session.refresh_from_db()
+    assert session.status == SessionStatus.ENDED.value
+    assert session.closed_automatically is True
+    # Длительность не выдумана: конец — последний признак жизни машины, а не «сейчас».
+    assert abs((session.end_at - last_alive).total_seconds()) < 1
+
+    diary = mirror.my_mirror(pupil, kind=MirrorKind.DIARY)
+    assert len(diary) == 1
+    assert diary[0].payload["closedAutomatically"] is True
+
+
+def test_a_lesson_whose_host_is_alive_is_left_alone():
+    """Две минуты молчания — «крышку прикрыли», а не «сегодня уже не вернутся»."""
+    from apps.devices import services as devices
+    from apps.devices.models import Device
+    from apps.meetingpoint import services as meeting
+    from apps.scheduling.models import LessonSession
+    from common.enums import SessionStatus
+
+    teacher = make_teacher()
+    course, lesson = a_course(teacher)
+    enrolled(course)
+    row, secret = devices.request_pairing_code(device_name="MacBook", platform="macos")
+    devices.confirm_pairing_code(teacher, row.code)
+    device, _t = devices.claim_device_token(code=row.code, secret=secret)
+    Device.objects.filter(id=device.id).update(
+        last_seen_at=timezone.now() - dt.timedelta(minutes=3)
+    )
+    session = LessonSession.objects.create(
+        lesson=lesson, start_at=timezone.now(), status=SessionStatus.LIVE.value
+    )
+
+    assert meeting.close_abandoned_sessions() == []
+    session.refresh_from_db()
+    assert session.status == SessionStatus.LIVE.value

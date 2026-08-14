@@ -1,0 +1,159 @@
+/* Приход ученика — лист D3. Экран «преподавателя нет в сети» не имеет права
+   выглядеть ошибкой: это расписание, а не поломка. */
+
+.page {
+  display: grid;
+  gap: var(--space-5);
+  padding: var(--space-7);
+  min-height: 100vh;
+  background: var(--color-bg);
+  color: var(--color-text);
+  align-content: start;
+}
+.page > * {
+  max-width: 720px;
+  width: 100%;
+  margin-inline: auto;
+}
+.head {
+  display: grid;
+  gap: var(--space-1);
+}
+.group {
+  font-size: var(--text-caption);
+  color: var(--color-text-tertiary);
+}
+.lesson {
+  font-size: var(--text-small);
+  font-weight: 500;
+}
+.card {
+  display: grid;
+  gap: var(--space-4);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  padding: var(--space-7);
+}
+.card[data-live='true'] {
+  border-color: var(--color-accent);
+}
+/* Не ошибка — поэтому ни красного, ни рамки тревоги. */
+.card[data-offline='true'] {
+  background: var(--color-surface-subtle);
+}
+.h {
+  font-size: var(--text-h2);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+.p {
+  font-size: var(--text-small);
+  color: var(--color-text-secondary);
+  line-height: var(--leading-body);
+}
+.kept {
+  font-size: var(--text-small);
+  color: var(--color-success-text);
+  background: var(--color-success-bg);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+}
+.note {
+  font-size: var(--text-caption);
+  color: var(--color-text-tertiary);
+  line-height: var(--leading-snug);
+}
+.row {
+  display: flex;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+.btn,
+.btnGhost {
+  font-size: var(--text-small);
+  font-weight: 500;
+  border-radius: var(--radius-control);
+  padding: var(--space-3) var(--space-6);
+  cursor: pointer;
+  border: 1px solid var(--color-accent);
+  background: var(--color-accent);
+  color: var(--color-text-on-accent);
+}
+.btnGhost {
+  background: none;
+  border-color: var(--color-border-strong);
+  color: var(--color-text);
+}
+.btn:hover {
+  background: var(--color-accent-hover);
+}
+.btnGhost:hover {
+  background: var(--color-surface-hover);
+}
+.btn:focus-visible,
+.btnGhost:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+/* ——— проверка камеры и звука ——— */
+.chips {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+.chip {
+  font-family: var(--font-mono);
+  font-size: var(--text-overline);
+  border-radius: var(--radius-pill);
+  padding: var(--space-2) var(--space-4);
+  background: var(--color-surface-subtle);
+  color: var(--color-text-secondary);
+}
+.chip[data-ok='true'] {
+  background: var(--color-success-bg);
+  color: var(--color-success-text);
+}
+.chip[data-warn='true'] {
+  background: var(--color-warning-bg);
+  color: var(--color-warning-text);
+}
+
+/* ——— что доступно прямо сейчас ——— */
+.available {
+  display: grid;
+  gap: var(--space-3);
+  border-top: 1px solid var(--color-border);
+  padding-top: var(--space-4);
+}
+.availableTitle {
+  font-size: var(--text-caption);
+  font-weight: 600;
+}
+.list {
+  display: grid;
+  gap: var(--space-2);
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.item {
+  display: grid;
+  gap: 1px;
+  font-size: var(--text-caption);
+}
+.item small,
+.notNow small {
+  color: var(--color-text-tertiary);
+  font-size: var(--text-overline);
+  line-height: var(--leading-snug);
+}
+.notNow {
+  display: grid;
+  gap: 1px;
+  font-size: var(--text-caption);
+  color: var(--color-text-tertiary);
+  border-top: 1px dashed var(--color-border);
+  padding-top: var(--space-3);
+}

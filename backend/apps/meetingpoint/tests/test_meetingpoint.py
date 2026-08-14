@@ -343,3 +343,76 @@ def test_a_heartbeat_from_a_revoked_machine_is_refused():
     devices.revoke_device(teacher, Device.objects.get(owner=teacher).id)
     with pytest.raises(NotFound):
         mp.heartbeat(token)
+
+
+# --- Р5.6: список участников с состояниями (лист D3) ---------------------------------------
+def test_the_participant_list_says_where_each_person_is():
+    """Состояния листа D3 выводятся из признаков, а не выдумываются.
+
+    «Не заходила ни разу» — сильное утверждение о ребёнке, и до Р5.6 его нечем было сделать
+    правдой: отметки об открытии двери не существовало.
+    """
+    from apps.meetingpoint.models import MeetingVisit
+
+    teacher = make_teacher()
+    anya = make_pupil("anya@example.com", "Аня")
+    petya = make_pupil("petya@example.com", "Петя")
+    ira = make_pupil("ira@example.com", "Ира")
+    group = a_group(teacher, [anya, petya, ira])
+    point = mp.ensure_meeting_point(group)
+
+    # Аня открыла ссылку только что — стоит у двери.
+    MeetingVisit.objects.create(
+        meeting_point=point, student=anya.student_profile, last_opened_at=timezone.now()
+    )
+    # Петя открывал вчера — приглашён, но сейчас не пришёл.
+    MeetingVisit.objects.create(
+        meeting_point=point,
+        student=petya.student_profile,
+        last_opened_at=timezone.now() - dt.timedelta(days=1),
+    )
+    # Ира не открывала ни разу — и это теперь факт, а не догадка.
+
+    by_name = {row["name"]: row["state"] for row in mp.participants(teacher, group.id)}
+    assert by_name["Аня Коваль"] == "at_the_door"
+    assert by_name["Петя Коваль"] == "invited"
+    assert by_name["Ира Коваль"] == "never_opened"
+
+
+def test_only_the_groups_teacher_sees_who_came():
+    """Кто из детей когда заходил — не общее знание."""
+    teacher = make_teacher()
+    stranger = make_teacher("other@example.com")
+    pupil = make_pupil("p2@example.com", "Аня")
+    group = a_group(teacher, [pupil])
+
+    with pytest.raises(PermissionDenied):
+        mp.participants(stranger, group.id)
+    with pytest.raises(PermissionDenied):
+        mp.participants(pupil, group.id)
+
+
+def test_opening_the_door_is_remembered_so_the_teacher_can_see_it():
+    """Отметка ставится там, где ученик и так оказывается — на странице ожидания."""
+    from apps.meetingpoint.models import MeetingVisit
+
+    teacher = make_teacher()
+    pupil = make_pupil("p3@example.com", "Аня")
+    group = a_group(teacher, [pupil])
+    point = mp.ensure_meeting_point(group)
+
+    assert not MeetingVisit.objects.filter(meeting_point=point).exists()
+    mp.view_by_slug(pupil, point.slug)
+    assert MeetingVisit.objects.filter(meeting_point=point, student=pupil.student_profile).exists()
+
+
+def test_a_pupil_keeps_their_diary_boards_and_given_guides_without_the_host():
+    """§20.5 расширил зеркало — обещание экрана «нет в сети» обязано было расшириться с ним.
+
+    D3: «недоступна только живая доска и методички ЭТОГО урока». Выданное — уже у ученика.
+    """
+    from apps.meetingpoint.capabilities import without_host
+
+    caps = without_host()
+    assert (caps.my_diary, caps.my_boards, caps.my_materials) == (True, True, True)
+    assert (caps.live_board, caps.lesson_materials, caps.room) == (False, False, False)

@@ -362,7 +362,9 @@ def material_key(student_id, material_id, name: str) -> str:
     return f"{MIRROR_PREFIX}/{student_id}/materials/{material_id}/{safe}"
 
 
-def mirror_diary(session, student, *, attendance=None, progress_pct=None) -> MirroredRecord:
+def mirror_diary(
+    session, student, *, attendance=None, progress_pct=None, closed_automatically=False
+) -> MirroredRecord:
     """Одно занятие в дневнике ученика (§20.5.1 п.1).
 
     «Частично уже есть — свести в один вид»: посещаемость живёт в `Attendance`, оценки в
@@ -385,6 +387,9 @@ def mirror_diary(session, student, *, attendance=None, progress_pct=None) -> Mir
             "endAt": session.end_at.isoformat() if session.end_at else None,
             "attendance": attendance or "",
             "progressPct": progress_pct,
+            # Р5.5-В п.2: «занятие завершилось само» — отдельный факт, а не молчание. Ученик
+            # видит, что урок оборвался, вместо выдуманной длительности «как обычно».
+            "closedAutomatically": bool(closed_automatically),
         },
     )
 

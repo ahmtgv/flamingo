@@ -43,19 +43,42 @@ export async function backupDestination(): Promise<string> {
 }
 
 /**
- * Спросить место — **один раз**, дальше копии уезжают туда сами (лист D2, §19.1).
+ * Почему выбранное место плохое — но не запрещённое (Р5.5-В п.1).
  *
- * Путь приходит из системного выбора папки в оболочке; здесь он только передаётся дальше и
- * никуда больше не попадает.
+ * 🔴 Фильтра на съёмные тома нет и не будет: папка облака (iCloud, Яндекс.Диск) — законное
+ * место копии, а фильтр отрезал бы её. Предупредить и пустить (§2.2-бис).
  */
-export async function chooseBackupDestination(path: string): Promise<string> {
+export type DestinationWarning = 'inside-cabinet' | 'same-volume';
+
+export interface ChosenDestination {
+  path: string;
+  warning: DestinationWarning | null;
+}
+
+/**
+ * Спросить место — **своим диалогом**, отдельным от «где кабинет» (Р5.5-В п.1).
+ *
+ * Один диалог на два вопроса их путал, и на практике место копии вообще нельзя было выбрать:
+ * команда существовала здесь и не существовала в оболочке.
+ *
+ * Спрашивается один раз — дальше копии уезжают туда сами (лист D2, §19.1).
+ */
+export async function chooseBackupDestination(): Promise<ChosenDestination | null> {
   const call = invoke();
-  if (!call) return '';
+  if (!call) return null;
   try {
-    const value = await call('choose_backup_destination', { path });
-    return typeof value === 'string' ? value : '';
+    const chosen = (await call('choose_backup_folder')) as {
+      path?: string;
+      warning?: string;
+    } | null;
+    if (!chosen?.path) return null;
+    const stored = await call('choose_backup_destination', { path: chosen.path });
+    return {
+      path: typeof stored === 'string' ? stored : chosen.path,
+      warning: (chosen.warning || null) as DestinationWarning | null,
+    };
   } catch {
-    return '';
+    return null;
   }
 }
 

@@ -8,6 +8,16 @@ export { forgetMachineKey, hasMachineKey, rememberMachineKey } from './machineKe
 export { cabinetFolder, chooseCabinetFolder, revealCabinetFolder } from './cabinetFolder';
 export { measureUplink, PROBE_SECONDS, REQUIRED_MBPS } from './uplinkProbe';
 export { SetupScreen } from './setup/SetupScreen';
+export { useScheduledBackup } from './useScheduledBackup';
+export {
+  backupDestination,
+  chooseBackupDestination,
+  copyBackupOut,
+  lastCopyOut,
+  rememberCopyOut,
+  type CopyOutFailure,
+  type DestinationWarning,
+} from './backupCopy';
 export {
   canLeaveCabinetStep,
   canLeaveCheckStep,

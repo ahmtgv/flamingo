@@ -22,6 +22,12 @@ class LessonSession(BaseModel):
     status = models.CharField(
         max_length=12, choices=choices(SessionStatus), default=SessionStatus.SCHEDULED.value
     )
+    # Р5.5-В п.2: занятие, которое никто не завершал. Преподаватель закрыл ноутбук — точка
+    # встречи видит пропажу heartbeat и закрывает занятие сама, чтобы посещаемость и оценки
+    # доехали до ученика. Помечается ЧЕСТНО: в дневнике ученика так и написано, что занятие
+    # завершилось само, и длительность не выдумывается — `end_at` ставится по последнему
+    # известному признаку жизни, а не по «сейчас».
+    closed_automatically = models.BooleanField(default=False)
     # No recording field, deliberately: lesson video and audio are never stored (CLAUDE.md
     # §2.2, owner decision 2026-08-12). A session is an occurrence for attendance and
     # attention buckets — the record of what happened is the summary, not a media file.

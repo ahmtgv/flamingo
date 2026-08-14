@@ -852,6 +852,25 @@ type DeviceSetup {
   backupConfiguredAt: DateTime
   cloudCopyEnabled: Boolean!     # «копия у нас, по желанию» — client-encrypted, opaque to us
   lastBackupAt: DateTime
+  # Р5.5-В п.3 — пора ли снимать копию. Планировщика нет и не будет (Celery отложен): расписание
+  # §19.1 исполняет само приложение — при старте и по окончании занятия.
+  backupDue: Boolean!
+}
+
+# Р5.6 / лист D3 — «Участники · 8». Каждое состояние выводится из существующего признака.
+enum ParticipantState {
+  IN_ROOM        # есть запись присутствия на идущем занятии
+  AT_THE_DOOR    # «открыла ссылку, ждёт» — открывал дверь недавно, в комнату не вошёл
+  INVITED        # «приглашение открыто вчера»
+  NEVER_OPENED   # «ссылка не открывалась ни разу» — сильное утверждение, и теперь оно опирается
+                 # на отметку об открытии, а не на догадку
+}
+
+type MeetingParticipant {
+  studentId: ID!
+  name: String!
+  state: ParticipantState!
+  since: DateTime               # у «никогда» времени нет
 }
 
 type PairingRequest { code: String! secret: String! expiresAt: DateTime! }
@@ -887,6 +906,11 @@ type OfflineCapabilities {
   myWork: Boolean!
   myGrades: Boolean!
   mySummaries: Boolean!
+  # Р5.4-Б расширил зеркало (§20.5.1) — обещание экрана «нет в сети» расширилось с ним. D3:
+  # «недоступна только живая доска и методички ЭТОГО урока»; выданное уже принадлежит ученику.
+  myDiary: Boolean!
+  myBoards: Boolean!
+  myMaterials: Boolean!
   lessonMaterials: Boolean!
   liveBoard: Boolean!
   room: Boolean!
@@ -901,7 +925,21 @@ type OfflineCapabilities {
 # The ownership boundary is one rule with no exceptions — **выдал классу → появилось у ученика;
 # не выдал → своё** — and this enum IS that boundary: there is no member a programme, a guide
 # or an unshared board draft could be written under.
-enum MirrorKind { WORK SUMMARY ACHIEVEMENT CHAT }
+# Состав того, что лежит у ученика — OWNER_SCOPE §20.5.1, расширено в Р5.4-Б.
+#
+# ⚠️ Граница §20.5.2 при этом не сдвинулась, она сменила форму: MATERIAL и BOARD появились
+# потому, что ВЫДАННАЯ методичка и СОХРАНЁННАЯ доска принадлежат ученику. Что не выдано, сюда
+# не попадает — не потому, что вида нет, а потому, что нет события: MATERIAL пишется только из
+# share_material, BOARD — из сохранения доски, SUMMARY — из отправки.
+enum MirrorKind {
+  WORK          # работы, все попытки и пересдачи, с файлами
+  SUMMARY       # саммари занятия, чат занятия внутри
+  ACHIEVEMENT   # достижения
+  CHAT          # его чаты
+  DIARY         # занятие: когда, был ли, что получил, и оборвалось ли оно само
+  BOARD         # доски и майндмапы его занятий
+  MATERIAL      # выданные методички и материалы — содержимым
+}
 
 type MirroredRecord {
   id: ID!
@@ -1400,6 +1438,8 @@ type Query {
 
   # devices (Р5.0) — the caller's own machines, with a revoke button next to each
   myDevices: [Device!]!
+  # Только преподаватель группы: кто из детей когда заходил — не общее знание.
+  meetingParticipants(groupId: ID!): [MeetingParticipant!]!
 
   # meeting point (Р5.0) — all three answer WITHOUT the teacher's machine being awake
   meetingPoint(slug: String!): MeetingPointView!

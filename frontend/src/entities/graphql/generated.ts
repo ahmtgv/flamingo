@@ -436,6 +436,7 @@ export type DevicePlatform =
 export type DeviceSetup = {
   __typename?: 'DeviceSetup';
   backupConfiguredAt?: Maybe<Scalars['DateTime']['output']>;
+  backupDue: Scalars['Boolean']['output'];
   backupKind: BackupKind;
   cloudCopyEnabled: Scalars['Boolean']['output'];
   completed: Scalars['Boolean']['output'];
@@ -874,6 +875,14 @@ export type MeetingAccessMode =
   | 'GROUP_ONLY'
   | 'KNOCK';
 
+export type MeetingParticipant = {
+  __typename?: 'MeetingParticipant';
+  name: Scalars['String']['output'];
+  since?: Maybe<Scalars['DateTime']['output']>;
+  state: ParticipantState;
+  studentId: Scalars['ID']['output'];
+};
+
 export type MeetingPoint = {
   __typename?: 'MeetingPoint';
   accessMode: MeetingAccessMode;
@@ -906,7 +915,10 @@ export type MembershipStatus =
 
 export type MirrorKind =
   | 'ACHIEVEMENT'
+  | 'BOARD'
   | 'CHAT'
+  | 'DIARY'
+  | 'MATERIAL'
   | 'SUMMARY'
   | 'WORK';
 
@@ -1677,7 +1689,10 @@ export type OfflineCapabilities = {
   homework: Scalars['Boolean']['output'];
   lessonMaterials: Scalars['Boolean']['output'];
   liveBoard: Scalars['Boolean']['output'];
+  myBoards: Scalars['Boolean']['output'];
+  myDiary: Scalars['Boolean']['output'];
   myGrades: Scalars['Boolean']['output'];
+  myMaterials: Scalars['Boolean']['output'];
   mySummaries: Scalars['Boolean']['output'];
   myWork: Scalars['Boolean']['output'];
   room: Scalars['Boolean']['output'];
@@ -1720,6 +1735,12 @@ export type PartOfSpeech =
   | 'OTHER'
   | 'PHRASE'
   | 'VERB';
+
+export type ParticipantState =
+  | 'AT_THE_DOOR'
+  | 'INVITED'
+  | 'IN_ROOM'
+  | 'NEVER_OPENED';
 
 export type PointEvent = {
   __typename?: 'PointEvent';
@@ -1788,6 +1809,7 @@ export type Query = {
   lessonWords: Array<LexicalItem>;
   lookupWord: Array<LexicalItem>;
   me?: Maybe<User>;
+  meetingParticipants: Array<MeetingParticipant>;
   meetingPoint: MeetingPointView;
   meetingPointByCode: MeetingPointView;
   mirroredFileUrl: Scalars['String']['output'];
@@ -1951,6 +1973,11 @@ export type QueryLessonWordsArgs = {
 
 export type QueryLookupWordArgs = {
   lemma: Scalars['String']['input'];
+};
+
+
+export type QueryMeetingParticipantsArgs = {
+  groupId: Scalars['ID']['input'];
 };
 
 
@@ -3201,7 +3228,7 @@ export type ConfirmPairingCodeMutation = { __typename?: 'Mutation', confirmPairi
 export type MyDevicesQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type MyDevicesQuery = { __typename?: 'Query', myDevices: Array<{ __typename?: 'Device', id: string, name: string, platform: DevicePlatform, appVersion: string, lastSeenAt?: string | null, online: boolean, pairedAt: string, uplink?: { __typename?: 'UplinkAssessment', mbps: number, verdict: UplinkVerdict, groupSize: number, requiredForEight: number, stale: boolean, connectionType: ConnectionType } | null, setup: { __typename?: 'DeviceSetup', step: number, completed: boolean, backupKind: BackupKind, backupConfiguredAt?: string | null, cloudCopyEnabled: boolean, lastBackupAt?: string | null } }> };
+export type MyDevicesQuery = { __typename?: 'Query', myDevices: Array<{ __typename?: 'Device', id: string, name: string, platform: DevicePlatform, appVersion: string, lastSeenAt?: string | null, online: boolean, pairedAt: string, uplink?: { __typename?: 'UplinkAssessment', mbps: number, verdict: UplinkVerdict, groupSize: number, requiredForEight: number, stale: boolean, connectionType: ConnectionType } | null, setup: { __typename?: 'DeviceSetup', step: number, completed: boolean, backupKind: BackupKind, backupConfiguredAt?: string | null, cloudCopyEnabled: boolean, lastBackupAt?: string | null, backupDue: boolean } }> };
 
 export type RevokeDeviceMutationVariables = Exact<{
   deviceId: Scalars['ID']['input'];
@@ -3216,7 +3243,7 @@ export type ConfigureCabinetBackupMutationVariables = Exact<{
 }>;
 
 
-export type ConfigureCabinetBackupMutation = { __typename?: 'Mutation', configureCabinetBackup: { __typename?: 'Device', id: string, setup: { __typename?: 'DeviceSetup', step: number, completed: boolean, backupKind: BackupKind, backupConfiguredAt?: string | null, cloudCopyEnabled: boolean, lastBackupAt?: string | null } } };
+export type ConfigureCabinetBackupMutation = { __typename?: 'Mutation', configureCabinetBackup: { __typename?: 'Device', id: string, setup: { __typename?: 'DeviceSetup', step: number, completed: boolean, backupKind: BackupKind, backupConfiguredAt?: string | null, cloudCopyEnabled: boolean, lastBackupAt?: string | null, backupDue: boolean } } };
 
 export type ExportCabinetMutationVariables = Exact<{
   passphrase?: InputMaybe<Scalars['String']['input']>;
@@ -3228,7 +3255,7 @@ export type ExportCabinetMutation = { __typename?: 'Mutation', exportCabinet: { 
 export type RecordCabinetBackupMutationVariables = Exact<{ [key: string]: never; }>;
 
 
-export type RecordCabinetBackupMutation = { __typename?: 'Mutation', recordCabinetBackup: { __typename?: 'Device', id: string, setup: { __typename?: 'DeviceSetup', step: number, completed: boolean, backupKind: BackupKind, backupConfiguredAt?: string | null, cloudCopyEnabled: boolean, lastBackupAt?: string | null } } };
+export type RecordCabinetBackupMutation = { __typename?: 'Mutation', recordCabinetBackup: { __typename?: 'Device', id: string, setup: { __typename?: 'DeviceSetup', step: number, completed: boolean, backupKind: BackupKind, backupConfiguredAt?: string | null, cloudCopyEnabled: boolean, lastBackupAt?: string | null, backupDue: boolean } } };
 
 export type SetSpeechConsentMutationVariables = Exact<{
   granted: Scalars['Boolean']['input'];
@@ -3250,19 +3277,19 @@ export type ReportUplinkMutationVariables = Exact<{
 }>;
 
 
-export type ReportUplinkMutation = { __typename?: 'Mutation', reportUplink: { __typename?: 'Device', id: string, uplink?: { __typename?: 'UplinkAssessment', mbps: number, verdict: UplinkVerdict, groupSize: number, requiredForEight: number, stale: boolean, connectionType: ConnectionType } | null, setup: { __typename?: 'DeviceSetup', step: number, completed: boolean, backupKind: BackupKind, backupConfiguredAt?: string | null, cloudCopyEnabled: boolean, lastBackupAt?: string | null } } };
+export type ReportUplinkMutation = { __typename?: 'Mutation', reportUplink: { __typename?: 'Device', id: string, uplink?: { __typename?: 'UplinkAssessment', mbps: number, verdict: UplinkVerdict, groupSize: number, requiredForEight: number, stale: boolean, connectionType: ConnectionType } | null, setup: { __typename?: 'DeviceSetup', step: number, completed: boolean, backupKind: BackupKind, backupConfiguredAt?: string | null, cloudCopyEnabled: boolean, lastBackupAt?: string | null, backupDue: boolean } } };
 
 export type AdvanceDeviceSetupMutationVariables = Exact<{
   step: Scalars['Int']['input'];
 }>;
 
 
-export type AdvanceDeviceSetupMutation = { __typename?: 'Mutation', advanceDeviceSetup: { __typename?: 'Device', id: string, setup: { __typename?: 'DeviceSetup', step: number, completed: boolean, backupKind: BackupKind, backupConfiguredAt?: string | null, cloudCopyEnabled: boolean, lastBackupAt?: string | null } } };
+export type AdvanceDeviceSetupMutation = { __typename?: 'Mutation', advanceDeviceSetup: { __typename?: 'Device', id: string, setup: { __typename?: 'DeviceSetup', step: number, completed: boolean, backupKind: BackupKind, backupConfiguredAt?: string | null, cloudCopyEnabled: boolean, lastBackupAt?: string | null, backupDue: boolean } } };
 
 export type CompleteDeviceSetupMutationVariables = Exact<{ [key: string]: never; }>;
 
 
-export type CompleteDeviceSetupMutation = { __typename?: 'Mutation', completeDeviceSetup: { __typename?: 'Device', id: string, setup: { __typename?: 'DeviceSetup', step: number, completed: boolean, backupKind: BackupKind, backupConfiguredAt?: string | null, cloudCopyEnabled: boolean, lastBackupAt?: string | null } } };
+export type CompleteDeviceSetupMutation = { __typename?: 'Mutation', completeDeviceSetup: { __typename?: 'Device', id: string, setup: { __typename?: 'DeviceSetup', step: number, completed: boolean, backupKind: BackupKind, backupConfiguredAt?: string | null, cloudCopyEnabled: boolean, lastBackupAt?: string | null, backupDue: boolean } } };
 
 export type LookupWordQueryVariables = Exact<{
   lemma: Scalars['String']['input'];
@@ -3481,6 +3508,57 @@ export type ProjectorFocusChangedSubscriptionVariables = Exact<{
 
 
 export type ProjectorFocusChangedSubscription = { __typename?: 'Subscription', projectorFocusChanged: { __typename?: 'ProjectorFocus', sessionId: string, studentId?: string | null } };
+
+export type MeetingPointQueryVariables = Exact<{
+  slug: Scalars['String']['input'];
+}>;
+
+
+export type MeetingPointQuery = { __typename?: 'Query', meetingPoint: { __typename?: 'MeetingPointView', slug: string, decision: JoinDecision, groupName: string, teacherName: string, hostOnline: boolean, nextLesson?: { __typename?: 'UpcomingLesson', sessionId: string, title: string, startAt: string, isLive: boolean } | null, capabilities: { __typename?: 'OfflineCapabilities', schedule: boolean, chat: boolean, homework: boolean, myWork: boolean, myGrades: boolean, mySummaries: boolean, myDiary: boolean, myBoards: boolean, myMaterials: boolean, lessonMaterials: boolean, liveBoard: boolean, room: boolean } } };
+
+export type MeetingPointByCodeQueryVariables = Exact<{
+  code: Scalars['String']['input'];
+}>;
+
+
+export type MeetingPointByCodeQuery = { __typename?: 'Query', meetingPointByCode: { __typename?: 'MeetingPointView', slug: string, decision: JoinDecision, groupName: string, teacherName: string, hostOnline: boolean, nextLesson?: { __typename?: 'UpcomingLesson', sessionId: string, title: string, startAt: string, isLive: boolean } | null, capabilities: { __typename?: 'OfflineCapabilities', schedule: boolean, chat: boolean, homework: boolean, myWork: boolean, myGrades: boolean, mySummaries: boolean, myDiary: boolean, myBoards: boolean, myMaterials: boolean, lessonMaterials: boolean, liveBoard: boolean, room: boolean } } };
+
+export type GroupMeetingPointQueryVariables = Exact<{
+  groupId: Scalars['ID']['input'];
+}>;
+
+
+export type GroupMeetingPointQuery = { __typename?: 'Query', groupMeetingPoint: { __typename?: 'MeetingPoint', groupId: string, slug: string, code: string, accessMode: MeetingAccessMode, hostOnline: boolean } };
+
+export type MeetingParticipantsQueryVariables = Exact<{
+  groupId: Scalars['ID']['input'];
+}>;
+
+
+export type MeetingParticipantsQuery = { __typename?: 'Query', meetingParticipants: Array<{ __typename?: 'MeetingParticipant', studentId: string, name: string, state: ParticipantState, since?: string | null }> };
+
+export type SetMeetingAccessMutationVariables = Exact<{
+  groupId: Scalars['ID']['input'];
+  mode: MeetingAccessMode;
+}>;
+
+
+export type SetMeetingAccessMutation = { __typename?: 'Mutation', setMeetingAccess: { __typename?: 'MeetingPoint', groupId: string, slug: string, code: string, accessMode: MeetingAccessMode, hostOnline: boolean } };
+
+export type ReplaceMeetingLinkMutationVariables = Exact<{
+  groupId: Scalars['ID']['input'];
+}>;
+
+
+export type ReplaceMeetingLinkMutation = { __typename?: 'Mutation', replaceMeetingLink: { __typename?: 'MeetingPoint', groupId: string, slug: string, code: string, accessMode: MeetingAccessMode, hostOnline: boolean } };
+
+export type MyMirrorQueryVariables = Exact<{
+  kind?: InputMaybe<MirrorKind>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+}>;
+
+
+export type MyMirrorQuery = { __typename?: 'Query', myMirror: Array<{ __typename?: 'MirroredRecord', id: string, kind: MirrorKind, sourceId: string, occurredAt: string, payload: Record<string, unknown> }> };
 
 export type MyRepetitionQueueQueryVariables = Exact<{
   limit?: InputMaybe<Scalars['Int']['input']>;
@@ -6452,6 +6530,7 @@ export const MyDevicesDocument = gql`
       backupConfiguredAt
       cloudCopyEnabled
       lastBackupAt
+      backupDue
     }
   }
 }
@@ -6533,6 +6612,7 @@ export const ConfigureCabinetBackupDocument = gql`
       backupConfiguredAt
       cloudCopyEnabled
       lastBackupAt
+      backupDue
     }
   }
 }
@@ -6613,6 +6693,7 @@ export const RecordCabinetBackupDocument = gql`
       backupConfiguredAt
       cloudCopyEnabled
       lastBackupAt
+      backupDue
     }
   }
 }
@@ -6723,6 +6804,7 @@ export const ReportUplinkDocument = gql`
       backupConfiguredAt
       cloudCopyEnabled
       lastBackupAt
+      backupDue
     }
   }
 }
@@ -6765,6 +6847,7 @@ export const AdvanceDeviceSetupDocument = gql`
       backupConfiguredAt
       cloudCopyEnabled
       lastBackupAt
+      backupDue
     }
   }
 }
@@ -6806,6 +6889,7 @@ export const CompleteDeviceSetupDocument = gql`
       backupConfiguredAt
       cloudCopyEnabled
       lastBackupAt
+      backupDue
     }
   }
 }
@@ -8183,6 +8267,356 @@ export function useProjectorFocusChangedSubscription(baseOptions: Apollo.Subscri
       }
 export type ProjectorFocusChangedSubscriptionHookResult = ReturnType<typeof useProjectorFocusChangedSubscription>;
 export type ProjectorFocusChangedSubscriptionResult = Apollo.SubscriptionResult<ProjectorFocusChangedSubscription>;
+export const MeetingPointDocument = gql`
+    query MeetingPoint($slug: String!) {
+  meetingPoint(slug: $slug) {
+    slug
+    decision
+    groupName
+    teacherName
+    hostOnline
+    nextLesson {
+      sessionId
+      title
+      startAt
+      isLive
+    }
+    capabilities {
+      schedule
+      chat
+      homework
+      myWork
+      myGrades
+      mySummaries
+      myDiary
+      myBoards
+      myMaterials
+      lessonMaterials
+      liveBoard
+      room
+    }
+  }
+}
+    `;
+
+/**
+ * __useMeetingPointQuery__
+ *
+ * To run a query within a React component, call `useMeetingPointQuery` and pass it any options that fit your needs.
+ * When your component renders, `useMeetingPointQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useMeetingPointQuery({
+ *   variables: {
+ *      slug: // value for 'slug'
+ *   },
+ * });
+ */
+export function useMeetingPointQuery(baseOptions: Apollo.QueryHookOptions<MeetingPointQuery, MeetingPointQueryVariables> & ({ variables: MeetingPointQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<MeetingPointQuery, MeetingPointQueryVariables>(MeetingPointDocument, options);
+      }
+export function useMeetingPointLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<MeetingPointQuery, MeetingPointQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<MeetingPointQuery, MeetingPointQueryVariables>(MeetingPointDocument, options);
+        }
+// @ts-ignore
+export function useMeetingPointSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<MeetingPointQuery, MeetingPointQueryVariables>): Apollo.UseSuspenseQueryResult<MeetingPointQuery, MeetingPointQueryVariables>;
+export function useMeetingPointSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<MeetingPointQuery, MeetingPointQueryVariables>): Apollo.UseSuspenseQueryResult<MeetingPointQuery | undefined, MeetingPointQueryVariables>;
+export function useMeetingPointSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<MeetingPointQuery, MeetingPointQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<MeetingPointQuery, MeetingPointQueryVariables>(MeetingPointDocument, options);
+        }
+export type MeetingPointQueryHookResult = ReturnType<typeof useMeetingPointQuery>;
+export type MeetingPointLazyQueryHookResult = ReturnType<typeof useMeetingPointLazyQuery>;
+export type MeetingPointSuspenseQueryHookResult = ReturnType<typeof useMeetingPointSuspenseQuery>;
+export type MeetingPointQueryResult = Apollo.QueryResult<MeetingPointQuery, MeetingPointQueryVariables>;
+export const MeetingPointByCodeDocument = gql`
+    query MeetingPointByCode($code: String!) {
+  meetingPointByCode(code: $code) {
+    slug
+    decision
+    groupName
+    teacherName
+    hostOnline
+    nextLesson {
+      sessionId
+      title
+      startAt
+      isLive
+    }
+    capabilities {
+      schedule
+      chat
+      homework
+      myWork
+      myGrades
+      mySummaries
+      myDiary
+      myBoards
+      myMaterials
+      lessonMaterials
+      liveBoard
+      room
+    }
+  }
+}
+    `;
+
+/**
+ * __useMeetingPointByCodeQuery__
+ *
+ * To run a query within a React component, call `useMeetingPointByCodeQuery` and pass it any options that fit your needs.
+ * When your component renders, `useMeetingPointByCodeQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useMeetingPointByCodeQuery({
+ *   variables: {
+ *      code: // value for 'code'
+ *   },
+ * });
+ */
+export function useMeetingPointByCodeQuery(baseOptions: Apollo.QueryHookOptions<MeetingPointByCodeQuery, MeetingPointByCodeQueryVariables> & ({ variables: MeetingPointByCodeQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<MeetingPointByCodeQuery, MeetingPointByCodeQueryVariables>(MeetingPointByCodeDocument, options);
+      }
+export function useMeetingPointByCodeLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<MeetingPointByCodeQuery, MeetingPointByCodeQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<MeetingPointByCodeQuery, MeetingPointByCodeQueryVariables>(MeetingPointByCodeDocument, options);
+        }
+// @ts-ignore
+export function useMeetingPointByCodeSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<MeetingPointByCodeQuery, MeetingPointByCodeQueryVariables>): Apollo.UseSuspenseQueryResult<MeetingPointByCodeQuery, MeetingPointByCodeQueryVariables>;
+export function useMeetingPointByCodeSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<MeetingPointByCodeQuery, MeetingPointByCodeQueryVariables>): Apollo.UseSuspenseQueryResult<MeetingPointByCodeQuery | undefined, MeetingPointByCodeQueryVariables>;
+export function useMeetingPointByCodeSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<MeetingPointByCodeQuery, MeetingPointByCodeQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<MeetingPointByCodeQuery, MeetingPointByCodeQueryVariables>(MeetingPointByCodeDocument, options);
+        }
+export type MeetingPointByCodeQueryHookResult = ReturnType<typeof useMeetingPointByCodeQuery>;
+export type MeetingPointByCodeLazyQueryHookResult = ReturnType<typeof useMeetingPointByCodeLazyQuery>;
+export type MeetingPointByCodeSuspenseQueryHookResult = ReturnType<typeof useMeetingPointByCodeSuspenseQuery>;
+export type MeetingPointByCodeQueryResult = Apollo.QueryResult<MeetingPointByCodeQuery, MeetingPointByCodeQueryVariables>;
+export const GroupMeetingPointDocument = gql`
+    query GroupMeetingPoint($groupId: ID!) {
+  groupMeetingPoint(groupId: $groupId) {
+    groupId
+    slug
+    code
+    accessMode
+    hostOnline
+  }
+}
+    `;
+
+/**
+ * __useGroupMeetingPointQuery__
+ *
+ * To run a query within a React component, call `useGroupMeetingPointQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGroupMeetingPointQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGroupMeetingPointQuery({
+ *   variables: {
+ *      groupId: // value for 'groupId'
+ *   },
+ * });
+ */
+export function useGroupMeetingPointQuery(baseOptions: Apollo.QueryHookOptions<GroupMeetingPointQuery, GroupMeetingPointQueryVariables> & ({ variables: GroupMeetingPointQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GroupMeetingPointQuery, GroupMeetingPointQueryVariables>(GroupMeetingPointDocument, options);
+      }
+export function useGroupMeetingPointLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GroupMeetingPointQuery, GroupMeetingPointQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GroupMeetingPointQuery, GroupMeetingPointQueryVariables>(GroupMeetingPointDocument, options);
+        }
+// @ts-ignore
+export function useGroupMeetingPointSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<GroupMeetingPointQuery, GroupMeetingPointQueryVariables>): Apollo.UseSuspenseQueryResult<GroupMeetingPointQuery, GroupMeetingPointQueryVariables>;
+export function useGroupMeetingPointSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GroupMeetingPointQuery, GroupMeetingPointQueryVariables>): Apollo.UseSuspenseQueryResult<GroupMeetingPointQuery | undefined, GroupMeetingPointQueryVariables>;
+export function useGroupMeetingPointSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GroupMeetingPointQuery, GroupMeetingPointQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GroupMeetingPointQuery, GroupMeetingPointQueryVariables>(GroupMeetingPointDocument, options);
+        }
+export type GroupMeetingPointQueryHookResult = ReturnType<typeof useGroupMeetingPointQuery>;
+export type GroupMeetingPointLazyQueryHookResult = ReturnType<typeof useGroupMeetingPointLazyQuery>;
+export type GroupMeetingPointSuspenseQueryHookResult = ReturnType<typeof useGroupMeetingPointSuspenseQuery>;
+export type GroupMeetingPointQueryResult = Apollo.QueryResult<GroupMeetingPointQuery, GroupMeetingPointQueryVariables>;
+export const MeetingParticipantsDocument = gql`
+    query MeetingParticipants($groupId: ID!) {
+  meetingParticipants(groupId: $groupId) {
+    studentId
+    name
+    state
+    since
+  }
+}
+    `;
+
+/**
+ * __useMeetingParticipantsQuery__
+ *
+ * To run a query within a React component, call `useMeetingParticipantsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useMeetingParticipantsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useMeetingParticipantsQuery({
+ *   variables: {
+ *      groupId: // value for 'groupId'
+ *   },
+ * });
+ */
+export function useMeetingParticipantsQuery(baseOptions: Apollo.QueryHookOptions<MeetingParticipantsQuery, MeetingParticipantsQueryVariables> & ({ variables: MeetingParticipantsQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<MeetingParticipantsQuery, MeetingParticipantsQueryVariables>(MeetingParticipantsDocument, options);
+      }
+export function useMeetingParticipantsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<MeetingParticipantsQuery, MeetingParticipantsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<MeetingParticipantsQuery, MeetingParticipantsQueryVariables>(MeetingParticipantsDocument, options);
+        }
+// @ts-ignore
+export function useMeetingParticipantsSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<MeetingParticipantsQuery, MeetingParticipantsQueryVariables>): Apollo.UseSuspenseQueryResult<MeetingParticipantsQuery, MeetingParticipantsQueryVariables>;
+export function useMeetingParticipantsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<MeetingParticipantsQuery, MeetingParticipantsQueryVariables>): Apollo.UseSuspenseQueryResult<MeetingParticipantsQuery | undefined, MeetingParticipantsQueryVariables>;
+export function useMeetingParticipantsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<MeetingParticipantsQuery, MeetingParticipantsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<MeetingParticipantsQuery, MeetingParticipantsQueryVariables>(MeetingParticipantsDocument, options);
+        }
+export type MeetingParticipantsQueryHookResult = ReturnType<typeof useMeetingParticipantsQuery>;
+export type MeetingParticipantsLazyQueryHookResult = ReturnType<typeof useMeetingParticipantsLazyQuery>;
+export type MeetingParticipantsSuspenseQueryHookResult = ReturnType<typeof useMeetingParticipantsSuspenseQuery>;
+export type MeetingParticipantsQueryResult = Apollo.QueryResult<MeetingParticipantsQuery, MeetingParticipantsQueryVariables>;
+export const SetMeetingAccessDocument = gql`
+    mutation SetMeetingAccess($groupId: ID!, $mode: MeetingAccessMode!) {
+  setMeetingAccess(groupId: $groupId, mode: $mode) {
+    groupId
+    slug
+    code
+    accessMode
+    hostOnline
+  }
+}
+    `;
+export type SetMeetingAccessMutationFn = Apollo.MutationFunction<SetMeetingAccessMutation, SetMeetingAccessMutationVariables>;
+
+/**
+ * __useSetMeetingAccessMutation__
+ *
+ * To run a mutation, you first call `useSetMeetingAccessMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useSetMeetingAccessMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [setMeetingAccessMutation, { data, loading, error }] = useSetMeetingAccessMutation({
+ *   variables: {
+ *      groupId: // value for 'groupId'
+ *      mode: // value for 'mode'
+ *   },
+ * });
+ */
+export function useSetMeetingAccessMutation(baseOptions?: Apollo.MutationHookOptions<SetMeetingAccessMutation, SetMeetingAccessMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<SetMeetingAccessMutation, SetMeetingAccessMutationVariables>(SetMeetingAccessDocument, options);
+      }
+export type SetMeetingAccessMutationHookResult = ReturnType<typeof useSetMeetingAccessMutation>;
+export type SetMeetingAccessMutationResult = Apollo.MutationResult<SetMeetingAccessMutation>;
+export type SetMeetingAccessMutationOptions = Apollo.BaseMutationOptions<SetMeetingAccessMutation, SetMeetingAccessMutationVariables>;
+export const ReplaceMeetingLinkDocument = gql`
+    mutation ReplaceMeetingLink($groupId: ID!) {
+  replaceMeetingLink(groupId: $groupId) {
+    groupId
+    slug
+    code
+    accessMode
+    hostOnline
+  }
+}
+    `;
+export type ReplaceMeetingLinkMutationFn = Apollo.MutationFunction<ReplaceMeetingLinkMutation, ReplaceMeetingLinkMutationVariables>;
+
+/**
+ * __useReplaceMeetingLinkMutation__
+ *
+ * To run a mutation, you first call `useReplaceMeetingLinkMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useReplaceMeetingLinkMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [replaceMeetingLinkMutation, { data, loading, error }] = useReplaceMeetingLinkMutation({
+ *   variables: {
+ *      groupId: // value for 'groupId'
+ *   },
+ * });
+ */
+export function useReplaceMeetingLinkMutation(baseOptions?: Apollo.MutationHookOptions<ReplaceMeetingLinkMutation, ReplaceMeetingLinkMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<ReplaceMeetingLinkMutation, ReplaceMeetingLinkMutationVariables>(ReplaceMeetingLinkDocument, options);
+      }
+export type ReplaceMeetingLinkMutationHookResult = ReturnType<typeof useReplaceMeetingLinkMutation>;
+export type ReplaceMeetingLinkMutationResult = Apollo.MutationResult<ReplaceMeetingLinkMutation>;
+export type ReplaceMeetingLinkMutationOptions = Apollo.BaseMutationOptions<ReplaceMeetingLinkMutation, ReplaceMeetingLinkMutationVariables>;
+export const MyMirrorDocument = gql`
+    query MyMirror($kind: MirrorKind, $limit: Int) {
+  myMirror(kind: $kind, limit: $limit) {
+    id
+    kind
+    sourceId
+    occurredAt
+    payload
+  }
+}
+    `;
+
+/**
+ * __useMyMirrorQuery__
+ *
+ * To run a query within a React component, call `useMyMirrorQuery` and pass it any options that fit your needs.
+ * When your component renders, `useMyMirrorQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useMyMirrorQuery({
+ *   variables: {
+ *      kind: // value for 'kind'
+ *      limit: // value for 'limit'
+ *   },
+ * });
+ */
+export function useMyMirrorQuery(baseOptions?: Apollo.QueryHookOptions<MyMirrorQuery, MyMirrorQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<MyMirrorQuery, MyMirrorQueryVariables>(MyMirrorDocument, options);
+      }
+export function useMyMirrorLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<MyMirrorQuery, MyMirrorQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<MyMirrorQuery, MyMirrorQueryVariables>(MyMirrorDocument, options);
+        }
+// @ts-ignore
+export function useMyMirrorSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<MyMirrorQuery, MyMirrorQueryVariables>): Apollo.UseSuspenseQueryResult<MyMirrorQuery, MyMirrorQueryVariables>;
+export function useMyMirrorSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<MyMirrorQuery, MyMirrorQueryVariables>): Apollo.UseSuspenseQueryResult<MyMirrorQuery | undefined, MyMirrorQueryVariables>;
+export function useMyMirrorSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<MyMirrorQuery, MyMirrorQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<MyMirrorQuery, MyMirrorQueryVariables>(MyMirrorDocument, options);
+        }
+export type MyMirrorQueryHookResult = ReturnType<typeof useMyMirrorQuery>;
+export type MyMirrorLazyQueryHookResult = ReturnType<typeof useMyMirrorLazyQuery>;
+export type MyMirrorSuspenseQueryHookResult = ReturnType<typeof useMyMirrorSuspenseQuery>;
+export type MyMirrorQueryResult = Apollo.QueryResult<MyMirrorQuery, MyMirrorQueryVariables>;
 export const MyRepetitionQueueDocument = gql`
     query MyRepetitionQueue($limit: Int) {
   myRepetitionQueue(limit: $limit) {

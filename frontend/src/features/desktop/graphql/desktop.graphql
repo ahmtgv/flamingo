@@ -78,6 +78,7 @@ query MyDevices {
       backupConfiguredAt
       cloudCopyEnabled
       lastBackupAt
+      backupDue
     }
   }
 }
@@ -97,6 +98,7 @@ mutation ConfigureCabinetBackup($kind: BackupKind!, $cloudCopy: Boolean) {
       backupConfiguredAt
       cloudCopyEnabled
       lastBackupAt
+      backupDue
     }
   }
 }
@@ -127,6 +129,7 @@ mutation RecordCabinetBackup {
       backupConfiguredAt
       cloudCopyEnabled
       lastBackupAt
+      backupDue
     }
   }
 }
@@ -164,6 +167,7 @@ mutation ReportUplink($mbps: Float!, $connectionType: ConnectionType) {
       backupConfiguredAt
       cloudCopyEnabled
       lastBackupAt
+      backupDue
     }
   }
 }
@@ -179,6 +183,7 @@ mutation AdvanceDeviceSetup($step: Int!) {
       backupConfiguredAt
       cloudCopyEnabled
       lastBackupAt
+      backupDue
     }
   }
 }
@@ -193,6 +198,7 @@ mutation CompleteDeviceSetup {
       backupConfiguredAt
       cloudCopyEnabled
       lastBackupAt
+      backupDue
     }
   }
 }

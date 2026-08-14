@@ -13,6 +13,9 @@ tauri-build = { version = "2", features = [] }
 tauri = { version = "2", features = ["tray-icon"] }
 # 🔒 Ключ машины живёт только здесь: связка ключей ОС, не файл и не localStorage (§19.4).
 keyring = "3"
+tauri-plugin-dialog = "2.0.0-rc.8"
+tauri-plugin-opener = "2.5.4"
+serde = { version = "1.0.229", features = ["derive"] }
 
 [profile.release]
 # The shell is a window and a process supervisor; nothing here is hot. Optimise for the

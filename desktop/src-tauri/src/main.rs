@@ -70,6 +70,100 @@ fn forget_machine_key() -> Result<(), String> {
 // которому там нет пути к папке кабинета: имя учётной записи в системе нам знать незачем.
 const BACKUP_DEST_KEY: &str = "backup-destination";
 
+/// Р5.5-В п.1: «где кабинет» и «куда возить копии» — РАЗНЫЕ вопросы, и диалога должно быть два.
+///
+/// Одним диалогом они путались, и на практике место копии вообще нельзя было выбрать: команда
+/// существовала во фронтенде и не существовала здесь. Это и есть та самая дыра честности.
+#[derive(serde::Serialize)]
+struct ChosenFolder {
+    path: String,
+    /// Пусто — всё в порядке. Иначе причина, которую экран переведёт в слова.
+    warning: String,
+}
+
+/// Выбрать папку кабинета.
+#[tauri::command]
+async fn choose_cabinet_folder(app: tauri::AppHandle) -> Option<String> {
+    use tauri_plugin_dialog::DialogExt;
+
+    app.dialog()
+        .file()
+        .set_title("Где хранить кабинет")
+        .blocking_pick_folder()
+        .and_then(|p| p.into_path().ok())
+        .map(|p| p.to_string_lossy().to_string())
+}
+
+/// Выбрать место для копий — свой диалог, свой заголовок.
+///
+/// 🔴 Фильтра на съёмные тома НЕТ и не будет: папка облака (iCloud, Яндекс.Диск) — законное
+/// место копии, а фильтр отрезал бы её. Вместо запрета — предупреждение словами, когда место
+/// лежит внутри папки кабинета или на том же томе: «копия на том же диске не спасёт от
+/// поломки». Предупредить и пустить (§2.2-бис).
+#[tauri::command]
+async fn choose_backup_folder(app: tauri::AppHandle) -> Option<ChosenFolder> {
+    use tauri_plugin_dialog::DialogExt;
+
+    let chosen = app
+        .dialog()
+        .file()
+        .set_title("Куда возить копии кабинета")
+        .blocking_pick_folder()
+        .and_then(|p| p.into_path().ok())?;
+
+    let warning = same_disk_warning(&cabinet_dir(&app), &chosen);
+    Some(ChosenFolder {
+        path: chosen.to_string_lossy().to_string(),
+        warning,
+    })
+}
+
+/// Лежит ли выбранное место там же, где кабинет.
+///
+/// Два случая, и первый строго хуже: **внутри** папки кабинета — копия уедет вместе с ней при
+/// любом «перенёс кабинет» или «снёс и восстановил». **Тот же том** — копия переживёт удаление
+/// папки, но не смерть диска, а именно диск и умирает вместе с ноутбуком.
+fn same_disk_warning(cabinet: &std::path::Path, chosen: &std::path::Path) -> String {
+    if chosen.starts_with(cabinet) {
+        return "inside-cabinet".into();
+    }
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::MetadataExt;
+        if let (Ok(a), Ok(b)) = (std::fs::metadata(cabinet), std::fs::metadata(chosen)) {
+            if a.dev() == b.dev() {
+                return "same-volume".into();
+            }
+        }
+    }
+    #[cfg(windows)]
+    {
+        // На Windows том — это буква диска; сравниваем префиксы.
+        let root = |p: &std::path::Path| {
+            p.components().next().map(|c| c.as_os_str().to_owned())
+        };
+        if root(cabinet).is_some() && root(cabinet) == root(chosen) {
+            return "same-volume".into();
+        }
+    }
+    String::new()
+}
+
+/// Показать папку кабинета в файловом менеджере.
+#[tauri::command]
+fn reveal_cabinet_folder(app: tauri::AppHandle, path: String) -> Result<(), String> {
+    use tauri_plugin_opener::OpenerExt;
+
+    let target = if path.is_empty() {
+        cabinet_dir(&app)
+    } else {
+        std::path::PathBuf::from(path)
+    };
+    app.opener()
+        .open_path(target.to_string_lossy().to_string(), None::<&str>)
+        .map_err(|e| e.to_string())
+}
+
 /// Папка кабинета — одна на оболочку и на sidecar.
 fn cabinet_dir(app: &tauri::AppHandle) -> std::path::PathBuf {
     app.path()
@@ -260,6 +354,8 @@ fn set_tray_menu(app: tauri::AppHandle, show: String, quit: String) -> Result<()
 
 fn main() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_opener::init())
         .manage(Sidecar(Mutex::new(None)))
         .invoke_handler(tauri::generate_handler![
             minimise_to_tray,
@@ -270,7 +366,10 @@ fn main() {
             forget_machine_key,
             choose_backup_destination,
             backup_destination,
-            move_backup_out
+            move_backup_out,
+            choose_cabinet_folder,
+            choose_backup_folder,
+            reveal_cabinet_folder
         ])
         .setup(|app| {
             let binary = app
