@@ -1,6 +1,6 @@
 import { type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { BrowserRouter, Navigate, Route, Routes, useNavigate } from 'react-router-dom';
+import { BrowserRouter, Navigate, Route, Routes, useNavigate, useParams } from 'react-router-dom';
 
 import {
   LoginScreen,
@@ -11,7 +11,7 @@ import {
 } from '@/features/auth';
 import { Cabinet } from '@/features/cabinet';
 import { SettingsScreen, SetupScreen } from '@/features/desktop';
-import { ArrivalScreen } from '@/features/meeting';
+import { ArrivalScreen, InvitePanel } from '@/features/meeting';
 import { AdminInstitutionScreen } from '@/features/admin';
 import { CatalogScreen, CourseDetailScreen, CreateCourseScreen } from '@/features/courses';
 import {
@@ -49,6 +49,12 @@ function PublicOnlyRoute({ children }: { children: ReactNode }) {
 }
 
 /** Мастер первого запуска. Не под ProtectedRoute: связывание — это и есть вход. */
+function InviteRoute() {
+  const { groupId = '' } = useParams();
+  const navigate = useNavigate();
+  return <InvitePanel groupId={groupId} onStart={() => navigate('/schedule')} />;
+}
+
 function SetupScreenRoute() {
   const navigate = useNavigate();
   return <SetupScreen onFinished={() => navigate('/start')} />;
@@ -160,6 +166,15 @@ export function AppRouter() {
         {/* Лист D3: ссылка группы одна и постоянная. Не под ProtectedRoute — по ссылке
             приходит и тот, кто ещё не вошёл; что ему покажут, решает `decision`. */}
         <Route path="/к/:slug" element={<ArrivalScreen />} />
+        {/* Панель преподавателя — левая половина листа D3. */}
+        <Route
+          path="/groups/:groupId/invite"
+          element={
+            <ProtectedRoute>
+              <InviteRoute />
+            </ProtectedRoute>
+          }
+        />
         <Route path="/j/:slug" element={<ArrivalScreen />} />
         <Route path="/setup" element={<SetupScreenRoute />} />
         <Route

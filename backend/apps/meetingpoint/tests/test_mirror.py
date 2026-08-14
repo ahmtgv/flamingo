@@ -698,7 +698,8 @@ def test_a_lesson_whose_host_vanished_closes_itself_and_the_diary_still_reaches_
     devices.confirm_pairing_code(teacher, row.code)
     device, _t = devices.claim_device_token(code=row.code, secret=secret)
 
-    started = timezone.now() - dt.timedelta(minutes=45)
+    # Занятие давно должно было кончиться: 90 минут назад начали, идёт 40 по расписанию.
+    started = timezone.now() - dt.timedelta(minutes=90)
     last_alive = timezone.now() - dt.timedelta(minutes=30)
     Device.objects.filter(id=device.id).update(last_seen_at=last_alive)
     session = LessonSession.objects.create(
@@ -743,3 +744,72 @@ def test_a_lesson_whose_host_is_alive_is_left_alone():
     assert meeting.close_abandoned_sessions() == []
     session.refresh_from_db()
     assert session.status == SessionStatus.LIVE.value
+
+
+def test_a_lesson_still_inside_its_scheduled_time_is_not_closed_under_a_teacher_who_stepped_out():
+    """🔴 Десять минут тишины считаются ПОСЛЕ конца по расписанию, а не с любого момента.
+
+    Иначе преподаватель, отошедший за чаем на десятой минуте, обнаружил бы урок закрытым под
+    собой — а ученики остались бы в комнате, из которой занятие только что «завершилось само».
+    """
+    from apps.devices import services as devices
+    from apps.devices.models import Device
+    from apps.meetingpoint import services as meeting
+    from apps.scheduling.models import LessonSession
+    from common.enums import SessionStatus
+
+    teacher = make_teacher()
+    course, lesson = a_course(teacher)
+    enrolled(course)
+    row, secret = devices.request_pairing_code(device_name="MacBook", platform="macos")
+    devices.confirm_pairing_code(teacher, row.code)
+    device, _t = devices.claim_device_token(code=row.code, secret=secret)
+
+    lesson.duration_min = 40
+    lesson.save(update_fields=["duration_min"])
+    # Урок идёт десять минут, машина молчит пятнадцать — по старому правилу это уже «брошено».
+    Device.objects.filter(id=device.id).update(
+        last_seen_at=timezone.now() - dt.timedelta(minutes=15)
+    )
+    session = LessonSession.objects.create(
+        lesson=lesson,
+        start_at=timezone.now() - dt.timedelta(minutes=10),
+        status=SessionStatus.LIVE.value,
+    )
+
+    assert meeting.close_abandoned_sessions() == []
+    session.refresh_from_db()
+    assert session.status == SessionStatus.LIVE.value
+
+
+def test_the_clock_starts_at_the_scheduled_end_even_when_the_host_died_earlier():
+    """Отсчёт — от того, что случилось позже: конца по расписанию или последнего heartbeat."""
+    from apps.devices import services as devices
+    from apps.devices.models import Device
+    from apps.meetingpoint import services as meeting
+    from apps.scheduling.models import LessonSession
+    from common.enums import SessionStatus
+
+    teacher = make_teacher()
+    course, lesson = a_course(teacher)
+    enrolled(course)
+    row, secret = devices.request_pairing_code(device_name="MacBook", platform="macos")
+    devices.confirm_pairing_code(teacher, row.code)
+    device, _t = devices.claim_device_token(code=row.code, secret=secret)
+
+    # Длительность задаём явно: арифметика теста не должна зависеть от умолчания модели.
+    lesson.duration_min = 40
+    lesson.save(update_fields=["duration_min"])
+    # Машина умерла в самом начале, но занятие по расписанию кончилось только что.
+    Device.objects.filter(id=device.id).update(
+        last_seen_at=timezone.now() - dt.timedelta(minutes=39)
+    )
+    LessonSession.objects.create(
+        lesson=lesson,
+        start_at=timezone.now() - dt.timedelta(minutes=40),
+        status=SessionStatus.LIVE.value,
+    )
+    # Пять минут после конца — ещё рано, хотя машина молчит уже сорок.
+    assert meeting.close_abandoned_sessions(now=timezone.now() + dt.timedelta(minutes=5)) == []
+    # Одиннадцать — пора.
+    assert len(meeting.close_abandoned_sessions(now=timezone.now() + dt.timedelta(minutes=11))) == 1

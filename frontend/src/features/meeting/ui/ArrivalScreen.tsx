@@ -164,7 +164,15 @@ function Available({ view }: { view: NonNullable<ReturnType<typeof useMeetingPoi
         {rows.map((id) => (
           <li key={id} className={styles.item}>
             <b>{t(`available.${id}`)}</b>
-            {id === 'homework' && <small>{t('available.homeworkHint')}</small>}
+            {id === 'homework' && (
+              <>
+                <small>{t('available.homeworkHint')}</small>
+                {/* Решение владельца: очередь остаётся в браузере, второго приёмника нет.
+                    Значит ребёнок обязан знать, где лежит его черновик, — иначе он узнает
+                    это, открыв ноутбук родителей и не найдя написанного вчера. */}
+                <small>{t('available.homeworkDraft')}</small>
+              </>
+            )}
             {id === 'myWork' && <small>{t('available.kept')}</small>}
           </li>
         ))}

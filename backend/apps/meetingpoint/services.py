@@ -308,7 +308,16 @@ def view_by_code(user, code: str) -> dict:
 #: Сколько молчит машина преподавателя, прежде чем занятие считается брошенным. Больше
 #: HEARTBEAT_WINDOW на порядок: две минуты — это «крышку прикрыли и понесли в другую комнату»,
 #: десять — «сегодня уже не вернутся».
+#:
+#: ⚠️ Отсчёт идёт **от планового конца занятия**, а не от любого момента урока. Иначе
+#: преподаватель, отошедший за чаем на десятой минуте, обнаружил бы урок закрытым под собой —
+#: молчащая машина посреди занятия и молчащая машина через час после него это разные события.
 HOST_GONE_AFTER = dt.timedelta(minutes=10)
+
+#: Если у урока не проставлена длительность, считаем занятие обычной академической парой.
+#: Промахнуться в большую сторону здесь безопаснее: цена ошибки — занятие закроется позже,
+#: а не закроется под живым преподавателем.
+FALLBACK_LESSON_MINUTES = 45
 
 #: «Открыла ссылку, ждёт» — насколько свежим должно быть открытие, чтобы человек считался
 #: стоящим у двери, а не просто когда-то приглашённым.
@@ -350,7 +359,14 @@ def close_abandoned_sessions(*, now: dt.datetime | None = None) -> list:
             # стола, а по серверному контуру, который остаётся запасным путём (PROMPT_14 §6).
             # Закрывать его по отсутствию heartbeat означало бы гасить урок, который идёт.
             continue
-        if moment - last_seen < HOST_GONE_AFTER:
+
+        # 🔴 Тишина считается ПОСЛЕ планового конца. Занятие, которое ещё идёт по расписанию,
+        # не закрывается, сколько бы машина ни молчала: преподаватель мог отойти, а ученики —
+        # остаться в комнате. Отсчёт начинается с того, что случилось позже: конец по
+        # расписанию или последний признак жизни.
+        scheduled_end = session.start_at + dt.timedelta(minutes=_planned_minutes(session))
+        silence_from = max(last_seen, scheduled_end)
+        if moment - silence_from < HOST_GONE_AFTER:
             continue
 
         session.status = SessionStatus.ENDED.value
@@ -362,6 +378,12 @@ def close_abandoned_sessions(*, now: dt.datetime | None = None) -> list:
         _write_the_diary(session)
         closed.append(session)
     return closed
+
+
+def _planned_minutes(session) -> int:
+    """Сколько занятие должно было идти по расписанию."""
+    minutes = getattr(session.lesson, "duration_min", None)
+    return int(minutes) if minutes else FALLBACK_LESSON_MINUTES
 
 
 def _write_the_diary(session) -> None:
