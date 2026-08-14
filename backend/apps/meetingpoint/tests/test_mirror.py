@@ -228,39 +228,79 @@ def test_a_record_is_a_record_not_a_document_store():
         )
 
 
-def test_a_pupil_opens_the_file_they_submitted_after_the_teacher_is_gone():
-    """§20.4.1, verbatim: «ну конечно ученик видит, это же логично».
+def test_the_mirror_physically_copies_the_file_it_does_not_point_at_the_teachers_machine(
+    settings, tmp_path
+):
+    """🔴 The red debt of Р5.2, with real bytes on a real disk.
 
-    Authorised against the MIRROR, not the submission — the submission has been cascaded away
-    with the teacher's account, which is exactly the moment this has to work.
+    Recording the teacher's object key works right up to the day the cabinet moves onto their
+    laptop — and then fails silently: the record is there, the file does not open. So this
+    runs on the LOCAL backend (the desktop profile), removes the source the way a switched-off
+    laptop does, and reads the child's essay back out of the mirror.
     """
-    from unittest.mock import patch
-
     from apps.homework.models import SubmissionFile
+
+    settings.STORAGE_BACKEND = "local"
+    settings.LOCAL_STORAGE_ROOT = str(tmp_path)
 
     teacher = make_teacher()
     course, lesson = a_course(teacher)
     pupil = enrolled(course)
     row = a_homework(teacher, lesson)
     submission = homework.submit_homework(pupil, homework_id=row.id, content_text="сочинение")
-    SubmissionFile.objects.create(
-        submission=submission, file_key="sub/anya/essay.pdf", name="essay.pdf"
-    )
-    with patch(
-        "common.storage.head", return_value={"size": 2048, "content_type": "application/pdf"}
-    ):
-        mirror.mirror_submission(submission)
 
-    teacher.delete()
+    source_key = f"submission/{pupil.id}/abc/essay.pdf"
+    source = tmp_path / source_key
+    source.parent.mkdir(parents=True, exist_ok=True)
+    source.write_bytes(b"%PDF-1.4 moya rabota")
+    SubmissionFile.objects.create(submission=submission, file_key=source_key, name="essay.pdf")
+
+    mirror.mirror_submission(submission)
 
     kept = mirror.my_mirror(pupil, kind=MirrorKind.WORK)[0]
-    assert kept.payload["attachments"] == [
-        {"name": "essay.pdf", "objectKey": "sub/anya/essay.pdf", "sizeBytes": 2048}
-    ]
-    with patch("common.storage.presign_get", return_value="https://s3/signed") as presign:
-        url = mirror.mirrored_file_url(pupil, record_id=kept.id, object_key="sub/anya/essay.pdf")
-    assert url == "https://s3/signed"
-    presign.assert_called_once_with("sub/anya/essay.pdf")
+    attachment = kept.payload["attachments"][0]
+    # The mirror points at ITS OWN copy, in the pupil's namespace — never at the original.
+    assert attachment["objectKey"] != source_key
+    assert attachment["objectKey"].startswith(f"mirror/{pupil.id}/")
+    assert attachment["name"] == "essay.pdf"
+
+    # The teacher goes, and with them the machine holding the original.
+    teacher.delete()
+    source.unlink()
+
+    from apps.homework.models import Submission
+
+    assert not Submission.objects.filter(id=submission.id).exists()
+    kept = mirror.my_mirror(pupil, kind=MirrorKind.WORK)[0]
+    key = kept.payload["attachments"][0]["objectKey"]
+    assert (tmp_path / key).read_bytes() == b"%PDF-1.4 moya rabota"
+    assert mirror.mirrored_file_url(pupil, record_id=kept.id, object_key=key)
+
+
+def test_a_file_that_is_not_there_is_left_out_rather_than_recorded_as_a_dead_key(
+    settings, tmp_path
+):
+    """Recording a key that resolves to nothing is the very failure the copy exists to
+    prevent — a record that looks complete and opens to an error."""
+    from apps.homework.models import SubmissionFile
+
+    settings.STORAGE_BACKEND = "local"
+    settings.LOCAL_STORAGE_ROOT = str(tmp_path)
+
+    teacher = make_teacher()
+    course, lesson = a_course(teacher)
+    pupil = enrolled(course)
+    row = a_homework(teacher, lesson)
+    submission = homework.submit_homework(pupil, homework_id=row.id, content_text="текст")
+    SubmissionFile.objects.create(
+        submission=submission, file_key="submission/missing/x.pdf", name="x.pdf"
+    )
+
+    mirror.mirror_submission(submission)
+
+    kept = mirror.my_mirror(pupil, kind=MirrorKind.WORK)[0]
+    assert kept.payload["attachments"] == []
+    assert kept.payload["text"] == "текст"
 
 
 def test_a_valid_record_id_cannot_be_used_to_fish_for_other_objects():
@@ -290,12 +330,15 @@ def test_somebody_elses_mirrored_file_is_not_found():
         mirror.mirrored_file_url(boris, record_id=record.id, object_key="sub/anya/x.pdf")
 
 
-def test_an_oversized_attachment_is_left_out_and_the_work_still_mirrors():
+def test_an_oversized_attachment_is_left_out_and_the_work_still_mirrors(settings, tmp_path):
     """The fence is against lesson media, not economy (§20.4.1). A work whose essay is kept
     and whose one impossible attachment is not is worth far more to a child than nothing."""
     from unittest.mock import patch
 
     from apps.homework.models import SubmissionFile
+
+    settings.STORAGE_BACKEND = "local"
+    settings.LOCAL_STORAGE_ROOT = str(tmp_path)
 
     teacher = make_teacher()
     course, lesson = a_course(teacher)
@@ -450,3 +493,22 @@ def test_a_failed_copy_never_costs_a_child_their_submission():
 
     assert Submission.objects.filter(id=submission.id).exists()
     assert mirror.my_mirror(pupil) == []
+
+
+def test_a_mirrored_key_never_sits_in_the_teachers_namespace():
+    """The copy is only a copy if it lives somewhere the teacher's departure cannot reach."""
+    key = mirror.mirror_key("stu-1", "sub-2", "моя работа.pdf")
+    assert key.startswith("mirror/stu-1/sub-2/")
+    assert "submission/" not in key
+
+
+def test_an_object_key_cannot_climb_out_of_the_storage_root(settings, tmp_path):
+    """A key arrives from a database column, and a column is only as trustworthy as everything
+    that ever wrote to it. `../` must not become a path on the teacher's disk."""
+    from common import storage
+
+    settings.STORAGE_BACKEND = "local"
+    settings.LOCAL_STORAGE_ROOT = str(tmp_path)
+
+    assert storage.head("../../etc/passwd") is None
+    assert storage.copy("../../etc/passwd", "mirror/x/y/z") is False

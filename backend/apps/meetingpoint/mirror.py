@@ -38,6 +38,7 @@ from __future__ import annotations
 import datetime as dt
 
 from django.utils import timezone
+from django.utils.text import get_valid_filename
 
 from common.enums import MirrorKind
 from common.exceptions import NotFound, PermissionDenied, ValidationError
@@ -59,6 +60,10 @@ MAX_TEXT = 20_000
 #: of a solution is megabytes, an hour of video is gigabytes. A pupil's work passes; a
 #: recording could not fit even if one existed to try.
 MAX_ATTACHMENT_BYTES = 64 * 1024 * 1024
+
+#: Mirrored files live under the PUPIL's own prefix. Not the teacher's — a key under theirs
+#: disappears with them, on exactly the day the mirror is supposed to matter.
+MIRROR_PREFIX = "mirror"
 
 
 def _no_lesson_media(payload: dict) -> dict:
@@ -154,16 +159,29 @@ def mirror_summary(summary, items, students) -> int:
     return len(students)
 
 
+def mirror_key(student_id, submission_id, name: str) -> str:
+    """Where a mirrored file lives: in the PUPIL's namespace, never the teacher's.
+
+    That is the difference between a copy and a pointer. A key under the teacher's prefix goes
+    away with the teacher — which is the exact day §20.3 says the file must still open.
+    """
+    safe = get_valid_filename(name) or "file"
+    return f"{MIRROR_PREFIX}/{student_id}/{submission_id}/{safe}"
+
+
 def _attachments(submission) -> list[dict]:
-    """The pupil's own files, carried by CONTENT (§20.4.1).
+    """The pupil's own files, **physically copied** into the meeting point's storage.
 
-    What travels is a name, a size and the object key — the bytes stay in object storage and
-    the pupil opens them through their own presigned read (`mirrored_file_url`). Inlining them
-    in a JSON column would mean a photo of a solution nothing can stream.
+    🔴 PROMPT_14 Р5.2, the red debt. Until now the mirror recorded the ORIGINAL object key,
+    which works exactly as long as the file sits in shared storage. Once the cabinet moves to
+    the teacher's laptop that key points at *their computer*, and the promise «ученик откроет
+    свою работу всегда» breaks in the worst possible way: the record is there and the file
+    does not open. So the bytes are copied, into a key under the pupil's own namespace, and
+    the mirror never refers to anything the teacher owns.
 
-    Provenance is what makes this safe: a `SubmissionFile` was bound at hand-in through
+    Provenance is what keeps it safe: a `SubmissionFile` was bound at hand-in through
     `files.assert_caller_key(user, key, SUBMISSION)`, so it is this child's own upload and
-    cannot be anything else. The size fence is against lesson media, not economy.
+    cannot be anything else. The size fence is against lesson media, not economy (§20.4.1).
     """
     from common import storage
 
@@ -172,10 +190,16 @@ def _attachments(submission) -> list[dict]:
         meta = storage.head(row.file_key)
         size = meta["size"] if meta else None
         if size is not None and size > MAX_ATTACHMENT_BYTES:
-            # Refuse the one file, keep the record. A work whose essay is mirrored and whose
-            # oversized attachment is not is still worth far more to a child than nothing.
+            # Leave out the one file, keep the record. A work whose essay is mirrored and
+            # whose one impossible attachment is not is worth far more than nothing.
             continue
-        carried.append({"name": row.name, "objectKey": row.file_key, "sizeBytes": size})
+        destination = mirror_key(submission.student_id, submission.id, row.name)
+        if not storage.copy(row.file_key, destination):
+            # The source is not there. Record the work without it rather than losing both —
+            # and do not record a key that resolves to nothing, which is the very failure
+            # this copy exists to prevent.
+            continue
+        carried.append({"name": row.name, "objectKey": destination, "sizeBytes": size})
     return carried
 
 
