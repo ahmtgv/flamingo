@@ -3,6 +3,8 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<!-- Фавикон — отдельный рисунок для мелких размеров, не уменьшенный основной знак. -->
+<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 <title>Flamingo — обучение, которое подстраивается под человека</title>
 <meta name="description" content="Онлайн-платформа Flamingo: ИИ мягко помогает удерживать внимание и подбирает, когда вам учится лучше. Приватность по умолчанию — камера анализируется на вашем устройстве." />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -47,7 +49,11 @@
   /* ---- top bar ---- */
   header.bar{position:sticky;top:0;z-index:20;background:rgba(251,248,242,.82);backdrop-filter:saturate(180%) blur(10px);border-bottom:1px solid var(--border)}
   .bar .wrap{display:flex;align-items:center;justify-content:space-between;height:64px}
-  .logo{font-weight:600;font-size:21px;letter-spacing:-.01em;display:inline-flex;align-items:flex-end;color:var(--ink)}
+  /* Связка знак+слово. Знак в em, поэтому пропорция держится при любом кегле;
+     он намеренно кривой — см. docs/brand/flamingo-brandbook.html §01. */
+  .logo{font-weight:600;font-size:21px;letter-spacing:-.01em;display:inline-flex;align-items:center;gap:.42em;color:var(--ink);line-height:1}
+  .logo .wm{display:inline-flex;align-items:flex-end}
+  .logo .mk{width:1.7em;height:1.55em;flex:none;overflow:visible}
   .logo .dot{width:8px;height:8px;border-radius:50%;background:var(--coral-500);margin-left:5px;margin-bottom:4px}
   nav.links{display:flex;align-items:center;gap:28px}
   nav.links a{color:var(--n700);font-size:15px;font-weight:500}
@@ -170,7 +176,7 @@
 
 <header class="bar">
   <div class="wrap">
-    <span class="logo">flamingo<span class="dot"></span></span>
+    <span class="logo"><svg class="mk" viewBox="0 0 120 110" aria-hidden="true"><g fill="none" stroke="var(--mk-c,#D2562E)" stroke-linecap="round"><path d="M28 55 L7 44" stroke-width="5.4"/><path d="M26 61 L3 59" stroke-width="7"/><path d="M28 66 L10 74" stroke-width="5.8"/><path d="M44 80 L39 92 L36 103" stroke-width="5.6"/><path d="M57 78 L59 90 L56 102" stroke-width="5"/></g><path d="M58 52 C70 44 60 28 74 16" fill="none" stroke="var(--mk-c,#D2562E)" stroke-width="10" stroke-linecap="round"/><ellipse cx="48" cy="63" rx="26" ry="21" fill="var(--mk-c,#D2562E)" transform="rotate(-6 48 63)"/><circle cx="78" cy="13" r="8.5" fill="var(--mk-c,#D2562E)"/><path d="M85 7 L108 14 L86 19 Z" fill="var(--mk-ink,#2A2520)"/><circle cx="77" cy="8" r="2.2" fill="var(--mk-eye,#FBF8F2)"/></svg><span class="wm">flamingo<span class="dot"></span></span></span>
     <nav class="links">
       <a class="navlink" href="#value">Возможности</a>
       <a class="navlink" href="#privacy">Приватность</a>
@@ -402,7 +408,7 @@
 
 <footer class="foot">
   <div class="wrap">
-    <span class="logo">flamingo<span class="dot"></span></span>
+    <span class="logo"><svg class="mk" viewBox="0 0 120 110" aria-hidden="true"><g fill="none" stroke="var(--mk-c,#D2562E)" stroke-linecap="round"><path d="M28 55 L7 44" stroke-width="5.4"/><path d="M26 61 L3 59" stroke-width="7"/><path d="M28 66 L10 74" stroke-width="5.8"/><path d="M44 80 L39 92 L36 103" stroke-width="5.6"/><path d="M57 78 L59 90 L56 102" stroke-width="5"/></g><path d="M58 52 C70 44 60 28 74 16" fill="none" stroke="var(--mk-c,#D2562E)" stroke-width="10" stroke-linecap="round"/><ellipse cx="48" cy="63" rx="26" ry="21" fill="var(--mk-c,#D2562E)" transform="rotate(-6 48 63)"/><circle cx="78" cy="13" r="8.5" fill="var(--mk-c,#D2562E)"/><path d="M85 7 L108 14 L86 19 Z" fill="var(--mk-ink,#2A2520)"/><circle cx="77" cy="8" r="2.2" fill="var(--mk-eye,#FBF8F2)"/></svg><span class="wm">flamingo<span class="dot"></span></span></span>
     <nav class="flinks">
       <a href="#value">Возможности</a>
       <a href="#privacy">Приватность</a>
