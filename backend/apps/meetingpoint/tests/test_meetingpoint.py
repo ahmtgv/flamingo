@@ -252,17 +252,19 @@ def test_the_schedule_answers_while_the_teachers_machine_is_off():
     assert view["teacher_name"] == "Люция Валерьевна"
 
 
-def test_what_survives_the_host_being_off_is_one_list_and_materials_are_not_on_it():
-    """By design, and pinned here because the offline screen states it to a child: the
-    timetable, the standing chats and writing homework live on the server; materials, past
-    summaries and the room itself live on the teacher's machine.
+def test_what_survives_the_host_being_off_is_drawn_by_whose_data_it_is():
+    """Owner decision 14.08 (§20.2/§20.3), pinned because the offline screen states it to a
+    child: **a pupil's own** work, grades and summaries open always — from their mirror —
+    while the **teacher's** guides, the live board and the room need their machine.
 
-    The alternative — serving a stale copy of the materials — would be a promise nobody
-    keeps fresh.
+    An earlier version of this test said summaries were unavailable offline. That was the
+    superseded acceptance line, and it is exactly the kind of thing that quietly becomes the
+    product if nobody re-reads the decision.
     """
     caps = without_host()
     assert (caps.schedule, caps.chat, caps.homework) == (True, True, True)
-    assert (caps.materials, caps.summaries, caps.room) == (False, False, False)
+    assert (caps.my_work, caps.my_grades, caps.my_summaries) == (True, True, True)
+    assert (caps.lesson_materials, caps.live_board, caps.room) == (False, False, False)
 
     teacher = make_teacher()
     anya = make_pupil()

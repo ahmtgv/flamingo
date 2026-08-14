@@ -137,3 +137,38 @@ def test_a_summary_model_may_not_hold_a_verbatim_transcript():
             if getattr(field, "name", "").lower() in banned_fields:
                 offenders.append(f"{model._meta.app_label}.{model.__name__}.{field.name}")
     assert not offenders, f"summary model holds raw speech: {offenders}"
+
+
+# --- Р5.0-Б: the rule governs BOTH places the data lives -------------------------------------
+def test_the_pupils_mirror_is_held_to_the_same_storage_rule():
+    """Owner decision 14.08 (OWNER_SCOPE §20.3): «зеркало ученика — не оправдание хранить
+    видео, аудио или дословную расшифровку: запрет CLAUDE.md §2.2 действует на обе точки
+    хранения».
+
+    The model-name and field greps above already cover `MirroredRecord`, but its payload is
+    JSON — a column no grep can see into. So the sanitiser is the gate, and this asserts the
+    sanitiser exists and bites.
+    """
+    from apps.meetingpoint import mirror
+    from common.exceptions import ValidationError
+
+    for token in FORBIDDEN:
+        assert token in mirror.FORBIDDEN_KEYS, f"the mirror does not refuse {token!r}"
+
+    class _Student:  # no database needed: the refusal happens before any write
+        pk = None
+
+    for bad in ({"audio_key": "x"}, {"videoUrl": "x"}, {"transcript": "x"}, {"recording": "x"}):
+        try:
+            mirror._text_only(bad)
+        except ValidationError:
+            continue
+        raise AssertionError(f"the mirror accepted {bad}")
+
+
+def test_the_mirror_model_carries_no_media_column():
+    """Belt and braces beside the JSON check: the row itself has nowhere to put a file."""
+    from apps.meetingpoint.models import MirroredRecord
+
+    names = {f.name for f in MirroredRecord._meta.get_fields()}
+    assert not {"file_key", "blob", "attachment", "url"} & names

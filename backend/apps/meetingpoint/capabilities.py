@@ -1,22 +1,21 @@
-"""What still works when the teacher's machine is off (Р5.0).
+"""What still works when the teacher's machine is off (Р5.0 / Р5.0-Б).
 
 One place, on purpose. Atlas D3's offline screen lists this to the pupil in words, and the
 desktop phase will implement the refusals — so it has to be the same list in both, or the
 screen becomes a promise the product does not keep.
 
-The split is the architecture, not a policy choice:
+The line is drawn by **whose data it is** (owner decision 14.08, OWNER_SCOPE §20.2/§20.3),
+not by what is technically convenient:
 
-* the **meeting point** lives on the server, so the schedule, the standing chats and writing
-  homework survive the host being off. D3 says it out loud: «домашняя работа — можно писать
-  сейчас, ответ уйдёт сам, когда преподаватель появится в сети»;
-* the **cabinet** lives on the teacher's laptop, so materials, past summaries and the lesson
-  room itself do not. «Откроются, когда преподаватель будет в сети» is the honest wording,
-  and pretending otherwise would mean serving a stale copy nobody promised to keep fresh.
+* **the pupil's own** — their work, their grades and progress, the summaries of lessons they
+  attended, their chats — is mirrored to the meeting point as it happens and opens *always*.
+  A teacher leaving the platform must not take a child's schooling with them;
+* **the teacher's own** — the programme, the guides, unshared board drafts, the material of
+  the lesson happening right now — lives on their machine and needs it awake. «Их показывает
+  преподаватель, и без него показывать нечего.»
 
-⚠️ This module describes the desktop-host contour, which is what the pilot ships. The full
-server contour is still in the repo as the fallback path (OWNER_SCOPE §18) and serves
-everything; nothing here refuses a request today. What it fixes is the answer the offline
-screen gives, so Р5.2 implements against a written contract rather than a memory of one.
+Writing homework is on the first list even though the teacher receives it: D3 says «ответ
+уйдёт сам, когда преподаватель появится в сети», so the writing is never blocked.
 """
 
 from __future__ import annotations
@@ -26,26 +25,33 @@ from dataclasses import dataclass
 
 @dataclass(frozen=True)
 class OfflineCapabilities:
-    """Reachable without the host machine — true for each, and only these fields exist."""
+    """Reachable without the host machine. One boolean each, and only these fields exist."""
 
+    #: the meeting point answers these itself
     schedule: bool
     chat: bool
     homework: bool
-    materials: bool
-    summaries: bool
+    #: the pupil's mirror answers these (Р5.0-Б)
+    my_work: bool
+    my_grades: bool
+    my_summaries: bool
+    #: these need the teacher's machine
+    lesson_materials: bool
+    live_board: bool
     room: bool
 
 
 #: The one answer. A screen that disagrees with this is a screen that lies to a child about
 #: whether their evening is wasted.
 WITHOUT_HOST = OfflineCapabilities(
-    # on the server — the meeting point is exactly this
     schedule=True,
     chat=True,
     homework=True,
-    # on the teacher's machine
-    materials=False,
-    summaries=False,
+    my_work=True,
+    my_grades=True,
+    my_summaries=True,
+    lesson_materials=False,
+    live_board=False,
     room=False,
 )
 

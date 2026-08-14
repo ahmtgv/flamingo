@@ -18,7 +18,7 @@ they did not make.
 
 from django.db import models
 
-from common.enums import MeetingAccessMode, choices
+from common.enums import MeetingAccessMode, MirrorKind, choices
 from common.models import BaseModel
 
 
@@ -61,3 +61,49 @@ class RetiredLink(BaseModel):
 
     class Meta:
         ordering = ["-retired_at"]
+
+
+class MirroredRecord(BaseModel):
+    """A pupil's own learning, kept where the teacher's laptop cannot take it away (Р5.0-Б).
+
+    Owner decision 14.08, verbatim: «в любом случае данные сохраняются у ученика — то есть он
+    должен иметь возможность получить доступ к этим документам». A teacher leaving the
+    platform must not take a child's schooling with them, so this is a **second place the
+    data lives**, not a setting.
+
+    Three choices in this model are the decision rather than notes about it:
+
+    * **`source_id` is a plain UUID, not a foreign key.** That is the entire point. An FK to
+      a submission would cascade away the moment the teacher's course did, which is exactly
+      the day the mirror is supposed to matter. `test_mirror.py` deletes the teacher's
+      account and reads the pupil's work back.
+    * **`payload` is text.** Not a file key, not a blob — «зеркало не превращается в
+      медиахранилище», and CLAUDE.md §2.2 applies to *both* places data lives. The sanitiser
+      in ``mirror.py`` refuses a payload that carries anything media-shaped, and the storage
+      gate greps this model like any other.
+    * **`occurred_at` plus the inherited `updated_at`** are the stable-identity pair that
+      `common/portability.py` already requires — reused, not reinvented.
+    """
+
+    student = models.ForeignKey(
+        "accounts.StudentProfile", related_name="mirrored_records", on_delete=models.CASCADE
+    )
+    kind = models.CharField(max_length=16, choices=choices(MirrorKind))
+    #: The id of the original record on the teacher's machine. NOT an FK — see the docstring.
+    source_id = models.UUIDField()
+    #: When the thing happened (a summary was sent, a work was graded), not when it synced.
+    occurred_at = models.DateTimeField()
+    #: Text only. What it holds per kind is documented in mirror.py.
+    payload = models.JSONField(default=dict, blank=True)
+
+    class Meta:
+        ordering = ["-occurred_at"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["student", "kind", "source_id"], name="uniq_mirrored_record"
+            )
+        ]
+        indexes = [models.Index(fields=["student", "kind", "-occurred_at"])]
+
+    def __str__(self) -> str:
+        return f"{self.kind}:{self.source_id}"

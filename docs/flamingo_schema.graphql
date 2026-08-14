@@ -831,15 +831,44 @@ enum MeetingAccessMode { GROUP_ONLY ANY_AUTHENTICATED KNOCK }
 enum JoinDecision { ALLOWED NOT_IN_GROUP KNOCK_REQUIRED LINK_REPLACED }
 
 # Reachable while the host is off — one source (apps/meetingpoint/capabilities.py) so the
-# offline screen and the future desktop refusals cannot disagree. Schedule, chat and writing
-# homework live on the server; materials, summaries and the room live on the teacher's machine.
+# offline screen and the future desktop refusals cannot disagree.
+#
+# The line is drawn by WHOSE DATA IT IS (owner decision 14.08, OWNER_SCOPE §20.2/§20.3), not
+# by what is technically convenient: a pupil's own work, grades and summaries come from their
+# mirror and open always; the teacher's guides, the live board and the room need their
+# machine. Writing homework is never blocked — «ответ уйдёт сам, когда преподаватель появится».
 type OfflineCapabilities {
   schedule: Boolean!
   chat: Boolean!
   homework: Boolean!
-  materials: Boolean!
-  summaries: Boolean!
+  myWork: Boolean!
+  myGrades: Boolean!
+  mySummaries: Boolean!
+  lessonMaterials: Boolean!
+  liveBoard: Boolean!
   room: Boolean!
+}
+
+# ----------------------------------------------------------------------------- Pupil mirror (Р5.0-Б)
+# Owner decision 14.08 (OWNER_SCOPE §20.3), verbatim: «в любом случае данные сохраняются
+# у ученика — то есть он должен иметь возможность получить доступ к этим документам».
+# A teacher leaving the platform must not take a child's schooling with them, so this is a
+# SECOND place the data lives, not a setting.
+#
+# The ownership boundary is one rule with no exceptions — **выдал классу → появилось у ученика;
+# не выдал → своё** — and this enum IS that boundary: there is no member a programme, a guide
+# or an unshared board draft could be written under.
+enum MirrorKind { WORK SUMMARY ACHIEVEMENT CHAT }
+
+type MirroredRecord {
+  id: ID!
+  kind: MirrorKind!
+  sourceId: ID!                  # the original's id. NOT a foreign key — an FK would cascade
+                                 # away with the teacher's course, on exactly the day this matters
+  occurredAt: DateTime!          # when it happened, not when it synced
+  updatedAt: DateTime!
+  payload: JSON!                 # TEXT. No file key, no blob, no bytes: CLAUDE.md §2.2 governs
+                                 # both storage points, and the mirror is not a media store
 }
 
 type UpcomingLesson { sessionId: ID! title: String! startAt: DateTime! isLive: Boolean! }
@@ -1265,6 +1294,10 @@ type Query {
   meetingPoint(slug: String!): MeetingPointView!
   meetingPointByCode(code: String!): MeetingPointView!
   groupMeetingPoint(groupId: ID!): MeetingPoint!         # teacher of the group only
+
+  # the pupil's mirror (Р5.0-Б) — 🔒 the caller's OWN, always. Takes no student id, and
+  # somebody else's mirror is not reachable by asking nicely.
+  myMirror(kind: MirrorKind, limit: Int = 100): [MirroredRecord!]!
 
   # summary (R4.2) — the teacher gets the draft; everyone else gets it only once it is sent,
   # and gets NULL rather than a refusal until then (whether it is being written is not their

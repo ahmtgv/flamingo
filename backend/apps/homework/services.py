@@ -170,6 +170,7 @@ def submit_homework(user, *, homework_id, content_text: str = "", file_keys=None
         SubmissionFile.objects.create(
             submission=submission, file_key=key, name=key.rsplit("/", 1)[-1]
         )
+    _mirror(submission)
     return submission
 
 
@@ -189,7 +190,7 @@ def record_classwork(user, *, homework_id, student, score: int, comment: str = "
     last = Submission.objects.filter(homework=homework, student=student).aggregate(
         m=Max("attempt")
     )["m"]
-    return Submission.objects.create(
+    submission = Submission.objects.create(
         homework=homework,
         student=student,
         attempt=(last or 0) + 1,
@@ -200,6 +201,8 @@ def record_classwork(user, *, homework_id, student, score: int, comment: str = "
         graded_by=user,
         graded_at=now,
     )
+    _mirror(submission)
+    return submission
 
 
 def submission_file_url(user, submission_file: SubmissionFile) -> str:
@@ -239,7 +242,24 @@ def grade_submission(
     if allow_redo is not None and allow_redo != homework.allow_redo:
         homework.allow_redo = allow_redo
         homework.save(update_fields=["allow_redo", "updated_at"])
+    _mirror(submission)
     return submission
+
+
+def _mirror(submission) -> None:
+    """A pupil's work reaches their own mirror as it happens (Р5.0-Б, OWNER_SCOPE §20.3).
+
+    On the write, not on a schedule: «зеркалирование по факту события (саммари собрано ·
+    работа проверена · оценка выставлена)». Failing to mirror must never fail the submission
+    itself — a child who has just handed in their homework has done their part, and losing
+    that to a copy step would be the worst possible trade.
+    """
+    from apps.meetingpoint import mirror
+
+    try:
+        mirror.mirror_submission(submission)
+    except Exception:  # noqa: BLE001 — the copy is best-effort; the original is the record
+        pass
 
 
 # --- queries ----------------------------------------------------------------

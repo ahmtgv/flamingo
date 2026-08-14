@@ -4,10 +4,11 @@ from __future__ import annotations
 
 import strawberry
 
-from apps.meetingpoint import services
+from apps.meetingpoint import mirror, services
 from common.auth import require_user
+from common.enums import MirrorKind
 
-from .types import MeetingPoint, MeetingPointView
+from .types import MeetingPoint, MeetingPointView, MirroredRecord
 
 
 @strawberry.type
@@ -29,3 +30,17 @@ class MeetingPointQuery:
         user = require_user(info)
         point = services.for_teacher(user, group_id)
         return MeetingPoint.of(point, host_online=services.host_online(point.group))
+
+    @strawberry.field
+    def my_mirror(
+        self, info: strawberry.Info, kind: MirrorKind | None = None, limit: int = 100
+    ) -> list[MirroredRecord]:
+        """A pupil's own learning, readable whatever became of the teacher's laptop (Р5.0-Б).
+
+        🔒 The caller's own, always: the query takes no student id, and somebody else's
+        mirror is not reachable by asking nicely — the same per-resolver rule as the web.
+        """
+        return [
+            MirroredRecord.of(row)
+            for row in mirror.my_mirror(require_user(info), kind=kind, limit=limit)
+        ]

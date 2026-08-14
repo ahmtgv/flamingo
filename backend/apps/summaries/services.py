@@ -507,10 +507,41 @@ def send(user, session_id) -> LessonSummary:
         _publish_homework(user, summary, session)
         _put_in_materials(summary, session)
         _enqueue_new_words(summary, session)
+        _mirror_to_participants(summary, session)
 
     # Nothing of the lesson's speech may outlive the lesson, sent or not.
     speech_stream.clear(session.id)
     return summary
+
+
+def _mirror_to_participants(summary: LessonSummary, session: LessonSession) -> None:
+    """A SENT summary reaches every pupil who was in the lesson (Р5.0-Б, OWNER_SCOPE §20.3).
+
+    «Выдал классу — стало общим и появилось у ученика.» Sending is that act, which is why
+    this sits inside `send` and nowhere near `assemble`: a draft is the teacher's, and a
+    pupil has no copy of it to keep.
+
+    Best-effort on purpose — the summary has been sent either way, and failing the send
+    because a copy did not take would undo the thing the teacher just did.
+    """
+    from apps.meetingpoint import mirror
+
+    students = [
+        e.student
+        for e in Enrollment.objects.filter(course=session.lesson.section.course).select_related(
+            "student"
+        )
+    ]
+    if not students:
+        return
+    try:
+        mirror.mirror_summary(
+            summary,
+            list(SummaryItem.objects.filter(summary=summary).select_related("author")),
+            students,
+        )
+    except Exception:  # noqa: BLE001 — the copy is best-effort; the summary is the record
+        pass
 
 
 def _enqueue_new_words(summary: LessonSummary, session: LessonSession) -> None:

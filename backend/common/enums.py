@@ -484,6 +484,21 @@ class MeetingAccessMode(Enum):
 
 
 @strawberry.enum
+class MirrorKind(Enum):
+    """What a pupil keeps at the meeting point (Р5.0-Б, OWNER_SCOPE §20.3).
+
+    The list is the owner's ownership boundary, in one enum: **выдал классу — стало общим и
+    появилось у ученика; не выдал — своё.** There is no member for a teacher's programme, a
+    guide or an unshared board draft, and adding one would be re-deciding who owns what.
+    """
+
+    WORK = "work"  # a submission — its text, its attempt number, its score and comment
+    SUMMARY = "summary"  # a SENT lesson summary, chat section included
+    ACHIEVEMENT = "achievement"  # progress that is the child's own history
+    CHAT = "chat"  # a message from a conversation this pupil is in
+
+
+@strawberry.enum
 class JoinDecision(Enum):
     """What the person holding a link is told. Never a bare «нет» — D3 is explicit that a
     stranger sees «вы не в этой группе» with a way forward, and an old link says it was

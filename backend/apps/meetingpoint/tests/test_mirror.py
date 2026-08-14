@@ -1,0 +1,316 @@
+"""The pupil's mirror (Р5.0-Б — OWNER_SCOPE §20.3).
+
+Owner decision 14.08, verbatim: «в любом случае данные сохраняются у ученика — то есть он
+должен иметь возможность получить доступ к этим документам». A teacher leaving the platform
+must not take a child's schooling with them.
+
+Two tests carry the phase, and everything else supports them:
+
+* **the teacher's account is deleted and the pupil still reads their work** — the whole
+  promise, checked the only way that means anything;
+* **the ownership boundary** — «выдал классу → появилось у ученика; не выдал → своё». An
+  unsent summary and an unshared guide must not be in there.
+"""
+
+import datetime as dt
+from datetime import date
+
+import pytest
+from django.utils import timezone
+
+from apps.accounts import services as accounts
+from apps.courses import services as courses
+from apps.homework import services as homework
+from apps.meetingpoint import mirror
+from apps.meetingpoint.models import MirroredRecord
+from apps.scheduling.models import LessonSession
+from apps.summaries import services as summaries
+from common.enums import HomeworkType, MirrorKind, Role
+from common.exceptions import PermissionDenied, ValidationError
+
+pytestmark = pytest.mark.django_db
+
+
+def make_teacher(email="t@example.com"):
+    return accounts.register_user(
+        email=email,
+        password="strongpass1!",
+        first_name="Люция",
+        last_name="Валерьевна",
+        role=Role.TEACHER,
+        specialty="English",
+    )
+
+
+def make_pupil(email="p@example.com", first="Аня"):
+    return accounts.register_user(
+        email=email,
+        password="strongpass1!",
+        first_name=first,
+        last_name="Коваль",
+        role=Role.STUDENT,
+        birth_date=date(2010, 1, 1),
+    )
+
+
+def a_course(teacher):
+    course = courses.create_course(teacher, title="English A2", subject="Английский", level="adult")
+    section = courses.create_section(teacher, course.id, title="Unit 4 · Travel")
+    lesson = courses.create_lesson(teacher, section.id, title="Asking for directions")
+    courses.publish_lesson(teacher, lesson.id)
+    courses.publish_course(teacher, course.id)
+    return course, lesson
+
+
+def enrolled(course, email="p@example.com", first="Аня"):
+    pupil = make_pupil(email, first)
+    courses.enroll(pupil, course.id)
+    return pupil
+
+
+def a_homework(teacher, lesson, *, title="Описать дорогу"):
+    row = homework.create_homework(
+        teacher, lesson_id=lesson.id, title=title, type=HomeworkType.TEXT.value
+    )
+    homework.publish_homework(teacher, row.id)
+    return row
+
+
+# --- 🔒 the promise: the teacher goes, the learning stays ---------------------------------------
+def test_a_pupil_reads_their_work_after_the_teachers_account_is_deleted():
+    """The whole of §20.3, checked the only way that means anything.
+
+    Everything of the pupil's normally hangs off the teacher's course by foreign key, so
+    deleting the teacher cascades it away — which is precisely the day the mirror is supposed
+    to matter. `source_id` is a plain UUID for this reason and no other.
+    """
+    teacher = make_teacher()
+    course, lesson = a_course(teacher)
+    pupil = enrolled(course)
+    row = a_homework(teacher, lesson)
+    submission = homework.submit_homework(
+        pupil, homework_id=row.id, content_text="Иду прямо, потом направо"
+    )
+    homework.grade_submission(teacher, submission_id=submission.id, score=5, comment="Молодец")
+
+    teacher.delete()
+
+    from apps.homework.models import Submission
+
+    assert not Submission.objects.filter(id=submission.id).exists()  # the original is gone
+    kept = mirror.my_mirror(pupil, kind=MirrorKind.WORK)
+    assert len(kept) == 1
+    assert kept[0].payload["text"] == "Иду прямо, потом направо"
+    assert kept[0].payload["score"] == 5
+    assert kept[0].payload["comment"] == "Молодец"
+
+
+def test_a_sent_summary_survives_the_teacher_too():
+    teacher = make_teacher()
+    course, lesson = a_course(teacher)
+    pupil = enrolled(course)
+    session = LessonSession.objects.create(
+        lesson=lesson, start_at=timezone.now() - dt.timedelta(minutes=20)
+    )
+    summaries.post_chat_message(pupil, session.id, "а go straight on тоже правильно?")
+    summaries.assemble(teacher, session.id)
+    summaries.send(teacher, session.id)
+
+    teacher.delete()
+
+    kept = mirror.my_mirror(pupil, kind=MirrorKind.SUMMARY)
+    assert len(kept) == 1
+    texts = [item["text"] for item in kept[0].payload["items"]]
+    # The lesson chat rides inside the summary, exactly as it does on screen (§4.2 п.1).
+    assert "а go straight on тоже правильно?" in texts
+    assert any(item["section"] == "chat" for item in kept[0].payload["items"])
+
+
+# --- 🔒 the ownership boundary --------------------------------------------------------------------
+def test_a_draft_summary_is_the_teachers_and_reaches_nobody():
+    """«Не выдал — своё.» Sending is the act that makes a thing the class's."""
+    teacher = make_teacher()
+    course, lesson = a_course(teacher)
+    pupil = enrolled(course)
+    session = LessonSession.objects.create(lesson=lesson, start_at=timezone.now())
+    summaries.assemble(teacher, session.id)
+
+    assert mirror.my_mirror(pupil) == []
+
+
+def test_a_teachers_guide_has_no_kind_it_could_be_mirrored_under():
+    """The boundary as a type rather than as a promise: there is no `MirrorKind` for a
+    programme, a guide or an unshared board draft, so no future call site can copy one
+    without somebody first re-deciding who owns what."""
+    assert {k.value for k in MirrorKind} == {"work", "summary", "achievement", "chat"}
+
+
+def test_an_unshared_material_never_appears_in_a_mirror():
+    """The acceptance test of Р5.0-Б, stated the way the prompt states it: «невыданная
+    методичка в зеркале не появляется»."""
+    from apps.courses.models import Material
+    from common.enums import MaterialType
+
+    teacher = make_teacher()
+    course, lesson = a_course(teacher)
+    pupil = enrolled(course)
+    Material.objects.create(
+        lesson=lesson, type=MaterialType.TEXT.value, title="Методичка Unit 4", body="…"
+    )
+
+    assert mirror.my_mirror(pupil) == []
+
+
+# --- 🔒 text only, in BOTH places the data lives ---------------------------------------------------
+def test_a_mirrored_record_may_not_carry_anything_media_shaped():
+    """CLAUDE.md §2.2 governs both storage points. A mirror is not a reason to keep video,
+    audio or a transcript, and it is not a media store either."""
+    pupil = make_pupil()
+    for bad in (
+        {"audio_key": "s3://x"},
+        {"videoUrl": "https://x"},
+        {"transcript": "…"},
+        {"file_key": "sub/1"},
+        {"blob": "…"},
+        {"nested": {"recording": "…"}},
+        {"items": [{"audio": "…"}]},
+    ):
+        with pytest.raises(ValidationError):
+            mirror.put(
+                pupil.student_profile,
+                kind=MirrorKind.WORK,
+                source_id="00000000-0000-0000-0000-000000000001",
+                occurred_at=timezone.now(),
+                payload=bad,
+            )
+    assert MirroredRecord.objects.count() == 0
+
+
+def test_it_refuses_rather_than_quietly_dropping_the_offending_part():
+    """A mirror that looks complete and is not is worse than one that failed loudly — the
+    one day anybody reads it is the day the original is gone."""
+    pupil = make_pupil()
+    with pytest.raises(ValidationError):
+        mirror.put(
+            pupil.student_profile,
+            kind=MirrorKind.WORK,
+            source_id="00000000-0000-0000-0000-000000000002",
+            occurred_at=timezone.now(),
+            payload={"text": "моя работа", "audio_key": "s3://x"},
+        )
+    assert MirroredRecord.objects.count() == 0
+
+
+def test_a_record_is_a_record_not_a_document_store():
+    pupil = make_pupil()
+    with pytest.raises(ValidationError):
+        mirror.put(
+            pupil.student_profile,
+            kind=MirrorKind.WORK,
+            source_id="00000000-0000-0000-0000-000000000003",
+            occurred_at=timezone.now(),
+            payload={"text": "x" * (mirror.MAX_TEXT + 1)},
+        )
+
+
+def test_attachments_are_named_and_not_carried():
+    """The bytes stay where the file lives. ⚠️ Whether a pupil should ALSO keep the files
+    they submitted is a real question and is in the report, not answered here."""
+    teacher = make_teacher()
+    course, lesson = a_course(teacher)
+    pupil = enrolled(course)
+    row = a_homework(teacher, lesson)
+    homework.submit_homework(pupil, homework_id=row.id, content_text="текст")
+
+    kept = mirror.my_mirror(pupil, kind=MirrorKind.WORK)[0]
+    assert kept.payload["attachmentNames"] == []
+    assert "file_key" not in str(kept.payload)
+
+
+# --- 🔒 per-resolver access: the caller's own mirror, and only that ---------------------------------
+def test_a_mirror_belongs_to_one_learner_and_the_query_takes_no_id():
+    teacher = make_teacher()
+    course, lesson = a_course(teacher)
+    anya = enrolled(course, "a@example.com", "Аня")
+    boris = enrolled(course, "b@example.com", "Борис")
+    row = a_homework(teacher, lesson)
+    homework.submit_homework(anya, homework_id=row.id, content_text="Анина работа")
+
+    assert len(mirror.my_mirror(anya)) == 1
+    assert mirror.my_mirror(boris) == []
+
+
+def test_a_teacher_has_no_mirror_of_their_own_here():
+    teacher = make_teacher()
+    with pytest.raises(PermissionDenied):
+        mirror.my_mirror(teacher)
+
+
+# --- how it is filled ---------------------------------------------------------------------------------
+def test_mirroring_happens_on_the_event_not_on_a_schedule():
+    """«По факту события», so a pupil who refreshes a second later sees it — there is no
+    batch job in this codebase and there is deliberately no place for one."""
+    teacher = make_teacher()
+    course, lesson = a_course(teacher)
+    pupil = enrolled(course)
+    row = a_homework(teacher, lesson)
+
+    assert mirror.my_mirror(pupil) == []
+    homework.submit_homework(pupil, homework_id=row.id, content_text="сдал")
+    assert len(mirror.my_mirror(pupil)) == 1
+
+
+def test_every_attempt_is_kept_because_a_retake_is_not_an_overwrite():
+    """«Его работы, все попытки и пересдачи» — each attempt is its own row and its own copy."""
+    teacher = make_teacher()
+    course, lesson = a_course(teacher)
+    pupil = enrolled(course)
+    row = homework.create_homework(
+        teacher,
+        lesson_id=lesson.id,
+        title="Описать дорогу",
+        type=HomeworkType.TEXT.value,
+        allow_redo=True,
+    )
+    homework.publish_homework(teacher, row.id)
+
+    homework.submit_homework(pupil, homework_id=row.id, content_text="первая попытка")
+    homework.submit_homework(pupil, homework_id=row.id, content_text="вторая попытка")
+
+    kept = mirror.my_mirror(pupil, kind=MirrorKind.WORK)
+    assert sorted(k.payload["text"] for k in kept) == ["вторая попытка", "первая попытка"]
+
+
+def test_re_grading_updates_the_copy_rather_than_adding_a_second():
+    """The mirror answers «what is true», not «what happened to the row»."""
+    teacher = make_teacher()
+    course, lesson = a_course(teacher)
+    pupil = enrolled(course)
+    row = a_homework(teacher, lesson)
+    submission = homework.submit_homework(pupil, homework_id=row.id, content_text="работа")
+
+    homework.grade_submission(teacher, submission_id=submission.id, score=3)
+    homework.grade_submission(teacher, submission_id=submission.id, score=5)
+
+    kept = mirror.my_mirror(pupil, kind=MirrorKind.WORK)
+    assert len(kept) == 1
+    assert kept[0].payload["score"] == 5
+
+
+def test_a_failed_copy_never_costs_a_child_their_submission():
+    """A pupil who has handed in their homework has done their part. Losing that because a
+    copy step failed would be the worst possible trade."""
+    from unittest.mock import patch
+
+    teacher = make_teacher()
+    course, lesson = a_course(teacher)
+    pupil = enrolled(course)
+    row = a_homework(teacher, lesson)
+
+    with patch.object(mirror, "mirror_submission", side_effect=RuntimeError("mirror down")):
+        submission = homework.submit_homework(pupil, homework_id=row.id, content_text="сдал")
+
+    from apps.homework.models import Submission
+
+    assert Submission.objects.filter(id=submission.id).exists()
+    assert mirror.my_mirror(pupil) == []

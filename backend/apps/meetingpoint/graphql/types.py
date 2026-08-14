@@ -11,20 +11,29 @@ from __future__ import annotations
 import datetime as dt
 
 import strawberry
+from strawberry.scalars import JSON
 
-from common.enums import JoinDecision, MeetingAccessMode
+from common.enums import JoinDecision, MeetingAccessMode, MirrorKind
 
 
 @strawberry.type
 class OfflineCapabilities:
     """Reachable while the host is off. One source (meetingpoint/capabilities.py) so the
-    screen and the future desktop refusals cannot disagree."""
+    screen and the future desktop refusals cannot disagree.
+
+    The line is drawn by whose data it is (§20.2/§20.3): a pupil's own work, grades and
+    summaries come from their mirror and open always; the teacher's guides and the live board
+    need their machine.
+    """
 
     schedule: bool
     chat: bool
     homework: bool
-    materials: bool
-    summaries: bool
+    my_work: bool
+    my_grades: bool
+    my_summaries: bool
+    lesson_materials: bool
+    live_board: bool
     room: bool
 
     @classmethod
@@ -33,9 +42,41 @@ class OfflineCapabilities:
             schedule=caps.schedule,
             chat=caps.chat,
             homework=caps.homework,
-            materials=caps.materials,
-            summaries=caps.summaries,
+            my_work=caps.my_work,
+            my_grades=caps.my_grades,
+            my_summaries=caps.my_summaries,
+            lesson_materials=caps.lesson_materials,
+            live_board=caps.live_board,
             room=caps.room,
+        )
+
+
+@strawberry.type
+class MirroredRecord:
+    """One thing a pupil keeps regardless of whose laptop is on (Р5.0-Б).
+
+    `payload` is JSON and it is TEXT: no file key, no blob, no bytes. CLAUDE.md §2.2 governs
+    both places the data lives, and `mirror._text_only` refuses anything else rather than
+    quietly dropping it.
+    """
+
+    id: strawberry.ID
+    kind: MirrorKind
+    #: The id of the original record — stable across a restore, and not a foreign key.
+    source_id: strawberry.ID
+    occurred_at: dt.datetime
+    updated_at: dt.datetime
+    payload: JSON
+
+    @classmethod
+    def of(cls, row) -> MirroredRecord:
+        return cls(
+            id=strawberry.ID(str(row.id)),
+            kind=MirrorKind(row.kind),
+            source_id=strawberry.ID(str(row.source_id)),
+            occurred_at=row.occurred_at,
+            updated_at=row.updated_at,
+            payload=row.payload,
         )
 
 

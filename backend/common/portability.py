@@ -98,6 +98,12 @@ CABINET_TABLES: tuple[ExportedModel, ...] = (
         "meetingpoint.RetiredLink",
         "so a replaced link still answers «заменена» after a restore, instead of «не найдено»",
     ),
+    ExportedModel(
+        "meetingpoint.MirroredRecord",
+        "§20.3 — the pupil's own copy of their learning. It is in a cabinet export for the"
+        " same reason it exists at all: this is the copy that has to survive somebody else's"
+        " laptop",
+    ),
 )
 
 #: Deliberately NOT in a cabinet, each for a reason. Listed so the omission is a decision on
