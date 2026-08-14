@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     "django.contrib.contenttypes",
     "channels",
     "strawberry_django",
+    "common",
     "apps.accounts",
     "apps.courses",
     "apps.scheduling",
