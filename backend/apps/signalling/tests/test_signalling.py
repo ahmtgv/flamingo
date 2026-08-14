@@ -45,6 +45,7 @@ def make_teacher(email="t@example.com"):
         last_name="Валерьевна",
         role=Role.TEACHER,
         specialty="English",
+        consent_152fz=True,
     )
 
 
@@ -264,3 +265,49 @@ def test_the_turn_helper_reaches_for_no_network_and_no_storage():
     code = ast.unparse(tree).lower()
     for smell in ("requests.", "urlopen", "httpx", "objects.", "models"):
         assert smell not in code, f"the TURN helper reaches for {smell!r}"
+
+
+# --- А5 (PROMPT_16): прод-путь кредентива -------------------------------------------------
+def test_the_turn_config_comes_from_the_environment_and_nothing_is_baked_in():
+    """🔒 Ни адреса ретранслятора, ни секрета в коде (PROMPT_16 §9).
+
+    Проверяется по исходнику настроек, а не по значению: значение в тесте — то, что положил
+    тест, а вопрос в том, откуда его берёт прод.
+    """
+    import pathlib
+    import re
+
+    settings_src = pathlib.Path(__file__).resolve().parents[3] / "config" / "settings.py"
+    block = re.search(r"TURN = \{(.*?)\}", settings_src.read_text(encoding="utf-8"), re.S)
+    assert block, "блок TURN не найден"
+    body = block.group(1)
+    for key in ("TURN_URLS", "TURN_SECRET", "TURN_TTL_SECONDS"):
+        assert f'os.environ.get("{key}"' in body, f"{key} должен читаться из окружения"
+    # И ни одного адреса или IP прямо в настройках.
+    assert "82.147" not in settings_src.read_text(encoding="utf-8")
+    assert "flamingo.plus" not in settings_src.read_text(encoding="utf-8")
+
+
+def test_the_secret_never_appears_in_what_the_client_receives(settings):
+    """🔒 Клиент получает один HMAC и срок годности — и ничего, из чего секрет выводится.
+
+    Тест уже был для dev-значения; здесь он повторён на ПРОД-ФОРМЕ секрета (длинный hex из
+    `openssl rand -hex 32`), потому что короткая строка могла бы «не найтись» в ответе просто
+    по совпадению длины.
+    """
+    import json
+
+    secret = "9f" * 32  # той же формы, что генерирует владелец на сервере
+    settings.TURN = {
+        "urls": "turn:relay.example:3478",
+        "secret": secret,
+        "ttl_seconds": 3600,
+    }
+    creds = credentials_for("user-1", ttl_seconds=600)
+    payload = json.dumps(
+        {"username": creds.username, "credential": creds.credential, "urls": list(creds.urls)}
+    )
+    assert secret not in payload
+    assert creds.credential != secret
+    # username — это срок годности плюс имя, а не учётная запись: аккаунтов у ретранслятора нет.
+    assert creds.username.split(":")[0].isdigit()

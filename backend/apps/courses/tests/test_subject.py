@@ -40,6 +40,7 @@ def make_teacher(email="t@example.com"):
         last_name="Петровна",
         role=Role.TEACHER,
         specialty="Астрономия",
+        consent_152fz=True,
     )
 
 

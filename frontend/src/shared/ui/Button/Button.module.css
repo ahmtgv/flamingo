@@ -46,14 +46,16 @@
 }
 
 .primary {
-  background: var(--color-accent-strong);
-  color: var(--color-text-on-accent);
+  /* Б1: пара «заливка + текст на ней» приходит из токенов, чтобы контраст был
+     свойством системы, а не привычкой конкретного компонента. */
+  background: var(--color-accent-solid);
+  color: var(--color-on-accent);
 }
 .primary:hover {
-  background: var(--color-accent-hover);
+  background: var(--color-accent-solid-hover);
 }
 .primary:active {
-  background: var(--color-accent-pressed);
+  background: var(--color-accent-solid-hover);
   transform: translateY(1px);
 }
 
@@ -79,7 +81,7 @@
 
 .danger {
   background: var(--color-error);
-  color: var(--color-text-on-accent);
+  color: var(--color-on-accent);
 }
 .danger:hover {
   background: var(--color-error-text);

@@ -20,6 +20,7 @@ def make_admin(email="admin@example.com"):
         first_name="Алла",
         last_name="Админова",
         role=Role.ADMIN,
+        consent_152fz=True,
     )
 
 
@@ -38,6 +39,7 @@ def make_teacher(email="teacher@example.com"):
         last_name="Учитель",
         role=Role.TEACHER,
         specialty="Математика",
+        consent_152fz=True,
     )
 
 

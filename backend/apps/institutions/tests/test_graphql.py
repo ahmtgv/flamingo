@@ -25,7 +25,13 @@ GROUPS = "query($id: ID!){ groups(institutionId: $id){ id name } }"
 
 def _make(email, role, **kw):
     return accounts.register_user(
-        email=email, password="strongpass1!", first_name="И", last_name="Ф", role=role, **kw
+        email=email,
+        password="strongpass1!",
+        first_name="И",
+        last_name="Ф",
+        role=role,
+        **kw,
+        consent_152fz=True,
     )
 
 

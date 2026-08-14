@@ -41,6 +41,7 @@ def test_report_and_session_attention_through_schema(monkeypatch):
         last_name="У",
         role=Role.TEACHER,
         specialty="Математика",
+        consent_152fz=True,
     )
     student = accounts.register_user(
         email="s@example.com",

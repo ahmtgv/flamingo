@@ -39,6 +39,7 @@ def _teacher(email="t@e.com"):
         last_name="П",
         role=Role.TEACHER,
         specialty="Математика",
+        consent_152fz=True,
     )
 
 
@@ -49,6 +50,7 @@ def _admin(email="a@e.com"):
         first_name="А",
         last_name="А",
         role=Role.ADMIN,
+        consent_152fz=True,
     )
 
 

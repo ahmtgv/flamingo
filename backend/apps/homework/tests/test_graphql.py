@@ -43,6 +43,7 @@ def test_homework_flow_through_schema():
         last_name="П",
         role=Role.TEACHER,
         specialty="Математика",
+        consent_152fz=True,
     )
     student = accounts.register_user(
         email="s@example.com",

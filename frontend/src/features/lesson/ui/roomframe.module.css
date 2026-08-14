@@ -71,7 +71,7 @@
   font-size: var(--text-overline);
   color: var(--color-accent-text);
   border: 1px solid var(--color-accent);
-  border-radius: 5px;
+  border-radius: var(--radius-xs);
   padding: 2px 7px;
   letter-spacing: var(--tracking-wide);
 }
@@ -155,7 +155,7 @@
 .winWrap {
   display: inline-flex;
   align-items: center;
-  border-radius: 7px;
+  border-radius: var(--radius-sm);
 }
 .win {
   font-family: var(--font-mono);
@@ -164,7 +164,7 @@
   color: var(--color-text-secondary);
   background: none;
   border: none;
-  border-radius: 7px;
+  border-radius: var(--radius-sm);
   padding: 6px 11px;
   min-height: var(--tap-min);
   cursor: pointer;
@@ -190,7 +190,7 @@
   font-size: var(--text-overline);
   padding: 6px 6px;
   min-height: var(--tap-min);
-  border-radius: 7px;
+  border-radius: var(--radius-sm);
 }
 .pop:hover {
   color: var(--color-accent-text);
@@ -368,7 +368,7 @@
   min-height: 100vh;
   /* A video wall is dark in both themes — that is the surface, not the theme. The pair
      below is the semantic one for "dark surface, light type on it". */
-  background: var(--fl-dark-bg);
+  background: var(--color-surface-video);
   display: grid;
   grid-template-rows: auto 1fr;
   gap: var(--space-3);
@@ -377,7 +377,7 @@
 .projectorCaption {
   font-family: var(--font-mono);
   font-size: var(--text-caption);
-  color: var(--fl-dark-text);
+  color: var(--color-text-on-video);
   opacity: 0.7;
 }
 .projectorGrid {

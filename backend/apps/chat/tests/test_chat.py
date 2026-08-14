@@ -65,6 +65,7 @@ def make_teacher(email, first="Мария"):
         last_name="Петровна",
         role=Role.TEACHER,
         specialty="Астрономия",
+        consent_152fz=True,
     )
 
 

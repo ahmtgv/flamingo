@@ -84,6 +84,7 @@ def test_teacher_contact_pii_hidden_from_anonymous():
         last_name="П",
         role=Role.TEACHER,
         specialty="Математика",
+        consent_152fz=True,
     )
     teacher.phone = "+79990000000"
     teacher.save(update_fields=["phone"])

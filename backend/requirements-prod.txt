@@ -1,0 +1,26 @@
+# Прод-набор зависимостей API (PROMPT_16 §А6).
+#
+# То же, что requirements.txt, минус инструменты разработки: black · moto · pytest · pytest-django · ruff.
+# Держится вручную рядом с requirements.txt — как и requirements-desktop.txt, и по той же
+# причине: набор, который растёт сам, растёт незаметно.
+#
+# boto3 здесь ОСТАЁТСЯ, в отличие от десктопа: сервер подписывает presigned-ссылки, и
+# подписывать их нечем без SDK. На пилоте объектного хранилища нет (MEDIA_ROOT — том на
+# диске), но код подписи общий, и выкидывать его пришлось бы вместе с модулем files.
+
+Django>=5.0,<5.2
+python-dotenv>=1.0
+strawberry-graphql[django]>=0.235
+strawberry-graphql-django>=0.40
+psycopg[binary]>=3.1
+PyJWT>=2.8
+# redis is an explicit floor pin; it is also pulled transitively by channels-redis (the
+# GraphQL-subscriptions Channels layer). (Celery is deferred — no async tasks are built yet.)
+redis>=5.0
+# А1: фронт на flamingo.plus, API на api.flamingo.plus — разные origin, и без этих
+# заголовков браузер зарежет каждый запрос ещё до того, как он уйдёт.
+django-cors-headers>=4.4
+channels>=4.1
+channels-redis>=4.2
+uvicorn[standard]>=0.30
+boto3>=1.34

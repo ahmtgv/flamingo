@@ -100,7 +100,7 @@
 }
 .btn {
   border-color: var(--color-accent);
-  background: var(--color-accent);
+  background: var(--color-accent-solid);
   color: var(--color-text-on-accent);
   padding: var(--space-3) var(--space-6);
   font-size: var(--text-small);

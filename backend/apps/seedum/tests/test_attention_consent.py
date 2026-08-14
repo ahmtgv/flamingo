@@ -41,6 +41,7 @@ def _lesson_with_a_pupil():
         first_name="Люция",
         last_name="Валерьевна",
         role=Role.TEACHER,
+        consent_152fz=True,
     )
     pupil = accounts.register_user(
         email="p@example.com",

@@ -22,6 +22,7 @@ def make_teacher(email="teacher@example.com"):
         last_name="Петров",
         role=Role.TEACHER,
         specialty="Математика",
+        consent_152fz=True,
     )
 
 
@@ -44,6 +45,7 @@ def test_create_course_requires_teacher():
         first_name="A",
         last_name="B",
         role=Role.PARENT,
+        consent_152fz=True,
     )
     with pytest.raises(PermissionDenied):
         services.create_course(parent, title="Алгебра", subject="Математика", level="grade_7")

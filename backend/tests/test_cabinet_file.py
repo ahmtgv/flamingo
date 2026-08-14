@@ -56,6 +56,7 @@ def a_lesson_with_marked_work():
         first_name="Люция",
         last_name="Валерьевна",
         role=Role.TEACHER,
+        consent_152fz=True,
     )
     pupil = accounts.register_user(
         email="anya@example.com",

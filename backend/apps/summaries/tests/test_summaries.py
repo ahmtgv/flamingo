@@ -60,6 +60,7 @@ def make_teacher(email="t@example.com"):
         last_name="Соколова",
         role=Role.TEACHER,
         specialty="English",
+        consent_152fz=True,
     )
 
 
@@ -421,6 +422,7 @@ def test_a_minors_own_consent_is_not_enough_without_a_guardians():
         first_name="Мама",
         last_name="Ковалёва",
         role=Role.PARENT,
+        consent_152fz=True,
     )
 
     assert may_use_speech_of(child, tenant=teacher) is False

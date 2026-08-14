@@ -38,6 +38,7 @@ def test_course_flow_through_schema():
         last_name="П",
         role=Role.TEACHER,
         specialty="Математика",
+        consent_152fz=True,
     )
     student = accounts.register_user(
         email="s@example.com",
@@ -98,6 +99,7 @@ def test_lesson_query_is_enrollment_gated():
         last_name="П",
         role=Role.TEACHER,
         specialty="Математика",
+        consent_152fz=True,
     )
     enrolled = accounts.register_user(
         email="lg.enrolled@example.com",
@@ -158,6 +160,7 @@ def test_course_discovery_hides_gated_content_and_drafts():
         last_name="П",
         role=Role.TEACHER,
         specialty="Математика",
+        consent_152fz=True,
     )
     enrolled = accounts.register_user(
         email="disc.enrolled@example.com",
@@ -236,6 +239,7 @@ def test_catalog_counts_are_accurate_not_multiplied():
         last_name="П",
         role=Role.TEACHER,
         specialty="Математика",
+        consent_152fz=True,
     )
     course = courses.create_course(teacher, title="Счёт", subject="Математика", level="grade_7")
     courses.publish_course(teacher, course.id)
@@ -281,6 +285,7 @@ def test_enrolled_view_fields_and_unpublish_through_schema():
         last_name="П",
         role=Role.TEACHER,
         specialty="Математика",
+        consent_152fz=True,
     )
     student = accounts.register_user(
         email="ev.student@example.com",

@@ -58,6 +58,7 @@ def test_register_teacher_creates_teacher_profile():
         last_name="Петров",
         role=Role.TEACHER,
         specialty="Математика",
+        consent_152fz=True,
     )
     assert TeacherProfile.objects.filter(user=user, specialty="Математика").exists()
 
@@ -69,6 +70,7 @@ def test_duplicate_email_rejected():
         first_name="A",
         last_name="B",
         role=Role.PARENT,
+        consent_152fz=True,
     )
     with pytest.raises(ValidationError):
         services.register_user(
@@ -77,6 +79,7 @@ def test_duplicate_email_rejected():
             first_name="A",
             last_name="B",
             role=Role.PARENT,
+            consent_152fz=True,
         )
 
 
@@ -87,6 +90,7 @@ def test_login_returns_token_pair():
         first_name="A",
         last_name="B",
         role=Role.PARENT,
+        consent_152fz=True,
     )
     user, tokens = services.login(email="login@example.com", password="strongpass1!")
     assert tokens["token"] and tokens["refresh_token"]
@@ -99,6 +103,7 @@ def test_login_wrong_password_fails():
         first_name="A",
         last_name="B",
         role=Role.PARENT,
+        consent_152fz=True,
     )
     with pytest.raises(AuthError):
         services.login(email="login2@example.com", password="wrong")
@@ -113,6 +118,7 @@ def test_logout_revokes_outstanding_tokens():
         first_name="A",
         last_name="B",
         role=Role.PARENT,
+        consent_152fz=True,
     )
     user, tokens = services.login(email="lo@example.com", password="strongpass1!")
     assert authenticate_request(_auth_request(tokens["token"])) is not None
@@ -128,6 +134,7 @@ def test_refresh_rotates_and_revokes_the_presented_token():
         first_name="A",
         last_name="B",
         role=Role.PARENT,
+        consent_152fz=True,
     )
     _u, tokens = services.login(email="rf@example.com", password="strongpass1!")
     old_refresh = tokens["refresh_token"]
@@ -147,6 +154,7 @@ def test_password_reset_invalidates_existing_sessions():
         first_name="A",
         last_name="B",
         role=Role.PARENT,
+        consent_152fz=True,
     )
     _u, tokens = services.login(email="rs@example.com", password="strongpass1!")
     reset_token = signing.dumps({"uid": str(user.id)}, salt=services._RESET_SALT)
@@ -162,6 +170,7 @@ def test_add_child_creates_guardianship_with_consent():
         first_name="P",
         last_name="A",
         role=Role.PARENT,
+        consent_152fz=True,
     )
     link = services.add_child(
         parent,
@@ -185,6 +194,7 @@ def test_non_parent_cannot_add_child():
         first_name="T",
         last_name="A",
         role=Role.TEACHER,
+        consent_152fz=True,
     )
     with pytest.raises(PermissionDenied):
         services.add_child(teacher, first_name="X", last_name="Y", consent_152fz=True)
@@ -226,6 +236,7 @@ def test_set_avatar_unsupported_role(monkeypatch):
         first_name="P",
         last_name="A",
         role=Role.PARENT,
+        consent_152fz=True,
     )
     monkeypatch.setattr(storage, "head", lambda key: {"size": 10, "content_type": "image/png"})
     # Parent/admin profiles have no avatar_key — graceful error, no model change.
@@ -233,24 +244,31 @@ def test_set_avatar_unsupported_role(monkeypatch):
         services.set_avatar(parent, f"avatar/{parent.id}/x/me.png")
 
 
-# --- 🔴 R-04 (аудит 14.08): согласие 152-ФЗ — факт, а не галочка на экране -----------------
-def test_a_minor_cannot_be_registered_without_the_152fz_consent():
-    """Галочку спрашивали и выбрасывали: в мутацию она не доезжала, и согласия не было нигде.
+# --- 🔴 R-04 + Б3: согласие 152-ФЗ — факт, а не галочка на экране -------------------------
+def test_nobody_is_registered_without_the_152fz_consent():
+    """Б3 (PROMPT_16, R-15): 152-ФЗ требует согласия от ЛЮБОГО субъекта, а не только от
+    несовершеннолетнего. Блок согласия рисовался только младшему ученику — то есть у
+    преподавателя, родителя и администратора правового основания обработки не было вовсе.
 
-    Отказ стоит в сервисе, а не на экране: экран — последовательность компонентов, и обойти
-    его можно адресом. CLAUDE.md §2.3 требует согласия ПРИ РЕГИСТРАЦИИ, а не намерения его
-    когда-нибудь спросить.
+    Отказ стоит в сервисе, а не на экране: форм регистрации четыре, а закон один, и обойти
+    экран можно адресом.
     """
-    with pytest.raises(ValidationError):
-        services.register_user(
-            email="minor@example.com",
-            password="strongpass1!",
-            first_name="Ученик",
-            last_name="Первый",
-            role=Role.STUDENT,
-            birth_date=date(2013, 1, 1),
-        )
-    assert not User.objects.filter(email="minor@example.com").exists()
+    for role, extra in [
+        (Role.TEACHER, {}),
+        (Role.PARENT, {}),
+        (Role.STUDENT, {"birth_date": date(2013, 1, 1)}),
+        (Role.STUDENT, {"birth_date": date(1990, 1, 1)}),
+    ]:
+        with pytest.raises(ValidationError):
+            services.register_user(
+                email=f"no-consent-{role.value}-{len(extra)}@example.com",
+                password="strongpass1!",
+                first_name="Человек",
+                last_name="Без согласия",
+                role=role,
+                **extra,
+            )
+    assert not User.objects.filter(email__startswith="no-consent-").exists()
 
 
 def test_the_consent_is_recorded_with_the_moment_it_was_given():
@@ -267,30 +285,16 @@ def test_the_consent_is_recorded_with_the_moment_it_was_given():
     assert user.consent_152fz_at is not None
 
 
-def test_an_adult_needs_no_parental_consent():
-    """Требование — про несовершеннолетних. Взрослому его выставлять не за что."""
+def test_an_adult_records_the_same_consent():
+    """Б3: тот же флаг, тот же момент. Разница между взрослым и ребёнком — в том, КТО даёт
+    согласие, и это сказано на экране; в базе это один факт с одной отметкой времени."""
     user = services.register_user(
         email="adult@example.com",
         password="strongpass1!",
         first_name="Взрослый",
         last_name="Человек",
         role=Role.TEACHER,
+        consent_152fz=True,
     )
-    assert user.consent_152fz is False
-
-
-def test_the_age_is_taken_from_the_birth_date_not_from_what_the_screen_said():
-    """🔴 R-05 со стороны базы: проверка идёт по ВЫЧИСЛЕННОЙ возрастной группе.
-
-    Иначе согласие спрашивали бы у одних, а требовали от других — форма говорит «взрослый»,
-    дата рождения говорит «двенадцать лет», и расходятся база и юридический факт.
-    """
-    with pytest.raises(ValidationError):
-        services.register_user(
-            email="mismatch@example.com",
-            password="strongpass1!",
-            first_name="Ученик",
-            last_name="Третий",
-            role=Role.STUDENT,
-            birth_date=date(2014, 6, 1),
-        )
+    assert user.consent_152fz is True
+    assert user.consent_152fz_at is not None

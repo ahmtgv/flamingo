@@ -22,7 +22,7 @@ describe('RegisterScreen', () => {
     await user.click(screen.getByRole('button', { name: 'Создать аккаунт' }));
 
     expect(
-      await screen.findByText('Нужно согласие на обработку данных ребёнка'),
+      await screen.findByText(/Без согласия мы не можем завести учётную запись/),
     ).toBeInTheDocument();
   });
 

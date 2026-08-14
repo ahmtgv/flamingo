@@ -38,6 +38,7 @@ def _setup():
         last_name="П",
         role=Role.TEACHER,
         specialty="Математика",
+        consent_152fz=True,
     )
     student = _student("s@e.com")
     course = courses.create_course(teacher, title="Алгебра", subject="Математика", level="grade_7")
@@ -63,6 +64,7 @@ def test_schedule_session_persists_group_within_institution():
         last_name="П",
         role=Role.TEACHER,
         specialty="Математика",
+        consent_152fz=True,
     )
     staff = accounts.register_user(
         email="sg.staff@e.com",
@@ -70,6 +72,7 @@ def test_schedule_session_persists_group_within_institution():
         first_name="S",
         last_name="T",
         role=Role.ADMIN,
+        consent_152fz=True,
     )
     staff.is_staff = True
     staff.save(update_fields=["is_staff"])
@@ -79,6 +82,7 @@ def test_schedule_session_persists_group_within_institution():
         first_name="A",
         last_name="D",
         role=Role.ADMIN,
+        consent_152fz=True,
     )
     inst = institutions.create_institution(staff, name="Гимназия №3")
     institutions.add_admin(staff, institution_id=inst.id, admin_user_id=admin.id)
@@ -239,6 +243,7 @@ def test_group_delivered_student_joins_without_personal_enrollment():
         first_name="С",
         last_name="Т",
         role=Role.ADMIN,
+        consent_152fz=True,
     )
     staff.is_staff = True
     staff.save(update_fields=["is_staff"])
@@ -248,6 +253,7 @@ def test_group_delivered_student_joins_without_personal_enrollment():
         first_name="А",
         last_name="Д",
         role=Role.ADMIN,
+        consent_152fz=True,
     )
     inst = institutions.create_institution(staff, name="Школа")
     institutions.add_admin(staff, institution_id=inst.id, admin_user_id=admin.id)

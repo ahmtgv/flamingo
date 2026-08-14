@@ -38,6 +38,9 @@ export type Errors = Record<string, string>;
 
 export function validateRegister(v: RegisterFormValues, role: UiRole, age: AgeBandUi): Errors {
   const e: Errors = {};
+  // 🔴 Б3: согласие 152-ФЗ обязательно для КАЖДОЙ роли, а не только для младшего ученика.
+  // Сервер откажет в любом случае — форма просто говорит об этом раньше.
+  if (!v.consent) e.consent = 'auth:validation.consent';
   if (!v.firstName.trim()) e.firstName = 'auth:validation.firstName';
   if (!v.lastName.trim()) e.lastName = 'auth:validation.lastName';
   if (!v.password) e.password = 'auth:validation.password';
@@ -56,7 +59,7 @@ export function validateRegister(v: RegisterFormValues, role: UiRole, age: AgeBa
       if (!v.parentEmail.trim()) e.parentEmail = 'auth:validation.parentEmail';
       else if (!isEmail(v.parentEmail)) e.parentEmail = 'auth:validation.emailInvalid';
     }
-    if (age === 'junior' && !v.consent) e.consent = 'auth:validation.consent';
+
   }
 
   if (role === 'teacher' && !v.specialty.trim()) e.specialty = 'auth:validation.specialty';

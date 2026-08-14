@@ -295,19 +295,27 @@ function RegisterForm({ role }: { role: UiRole }) {
             autoComplete="new-password"
           />
 
-          {isStudent && age === 'junior' && (
-            <>
-              <Checkbox
-                boxed
-                checked={values.consent}
-                invalid={!!errors.consent}
-                onChange={(e) => setValues((v) => ({ ...v, consent: e.target.checked }))}
-              >
-                {t('consent.label')}
-              </Checkbox>
-              {errors.consent && <p className={styles.consentError}>{t(errors.consent)}</p>}
-            </>
-          )}
+          {/* 🔴 Б3 (PROMPT_16, R-15). Согласие спрашивается у ВСЕХ ролей: 152-ФЗ требует его
+              от любого субъекта, а блок рисовался только младшему ученику — то есть у
+              преподавателя, родителя и администратора правового основания обработки не было.
+              Разница между взрослым и ребёнком — в том, КТО даёт согласие, и это сказано в
+              тексте; проверка на сервере одна. */}
+          <Checkbox
+            boxed
+            checked={values.consent}
+            invalid={!!errors.consent}
+            onChange={(e) => setValues((v) => ({ ...v, consent: e.target.checked }))}
+          >
+            {isStudent && age === 'junior' ? t('consent.labelJunior') : t('consent.label')}{' '}
+            <a className={styles.linkBtn} href="/policy" target="_blank" rel="noreferrer noopener">
+              {t('consent.policy')}
+            </a>{' '}
+            {t('consent.and')}{' '}
+            <a className={styles.linkBtn} href="/offer" target="_blank" rel="noreferrer noopener">
+              {t('consent.offer')}
+            </a>
+          </Checkbox>
+          {errors.consent && <p className={styles.consentError}>{t(errors.consent)}</p>}
 
           {isStudent && age === 'teen' && (
             <p className={styles.note}>

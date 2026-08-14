@@ -34,7 +34,7 @@
   height: 18px;
   padding: 0 5px;
   border-radius: var(--radius-pill);
-  background: var(--color-accent);
+  background: var(--color-accent-solid);
   color: var(--color-text-on-accent);
   font-family: var(--font-mono);
   font-size: var(--text-overline);
@@ -169,7 +169,7 @@
   height: 18px;
   padding: 0 5px;
   border-radius: var(--radius-pill);
-  background: var(--color-accent);
+  background: var(--color-accent-solid);
   color: var(--color-text-on-accent);
   font-family: var(--font-mono);
   font-size: var(--text-overline);

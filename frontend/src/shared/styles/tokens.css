@@ -79,21 +79,62 @@
   --color-border-strong:   var(--fl-warm-300);
 
   --color-text:            var(--fl-warm-900);
-  --color-text-secondary:  var(--fl-warm-600);
-  --color-text-tertiary:   var(--fl-warm-500);  /* placeholder, muted */
+  /* 🔴 V-12 (PROMPT_16, замер axe при приёмке Б1). `--fl-warm-600` #6e6e73 на фоне #f1f1ef —
+     4,48 при пороге AA 4,5. Промах на две сотых, но им набраны пояснения под заголовками,
+     подписи полей и невыбранные сегменты — то есть текст, который читают, когда не поняли
+     с первого раза. Своя ступень вместо warm-600: роль вторичного сохранена. */
+  --color-text-secondary:  #646469;
+  /* 🔴 V-13 (замер axe при приёмке Б1). `--fl-warm-500` #98989e на белой карточке — 2,87
+     при пороге 4,5. Этим цветом набраны ПЛЕЙСХОЛДЕРЫ полей, то есть подсказка о том, что
+     в поле писать, — она нужна ровно тому, кто не понял, и ему же была не видна.
+     #6b6b75: 5,27 на белом, 4,66 на фоне, 4,33 на приглушённой поверхности. */
+  --color-text-tertiary:   #6b6b75;  /* placeholder, muted */
   --color-text-disabled:   var(--fl-warm-400);
   --color-text-inverse:    var(--fl-dark-text);
-  --color-text-on-accent:  var(--fl-white);
+  /* Б1: старое имя — псевдоним новой пары. Все его потребители рисуют текст на
+     акцентной заливке, то есть хотят именно того цвета, который теперь считается
+     по теме. Отдельного значения у него больше нет. */
+  --color-text-on-accent:  var(--color-on-accent);
+
+  /* 🔴 Б1 (PROMPT_16, решение владельца по V-10). Заливка того, что несёт ТЕКСТ, и цвет
+     этого текста — отдельная пара, потому что яркий коралл AA с текстом не проходит:
+     белый на #e14e1f — 3,95 при пороге 4,5. Числа посчитаны владельцем:
+
+       белый на #e14e1f (было)      3,95 ✗
+       тёмный #1d1d1f на #e14e1f    4,26 ✗
+       белый на #c23f14 (coral-600) 5,23 ✅   ← светлая тема
+       белый на #ff7040 (было)      2,75 ✗
+       тёмный #1d1d1f на #ff7040    6,13 ✅   ← тёмная тема
+
+     Яркий #e14e1f остаётся акцентом для НЕтекстовых элементов — точка логотипа, рамки,
+     индикаторы, графики: там порог 3,0 и он проходит. Кнопка потребляет эту пару, а не
+     расставляет цвета у себя. */
+  /* Б2 (PROMPT_16): пара для видеостены. Обход семантики через примитивы `--fl-dark-*` был
+     намеренным, но безымянным: компонент знал, что «тут тёмная поверхность», а система — нет.
+     Пара одинакова в обеих темах и это не упущение: экран, на который смотрит класс, тёмный
+     всегда — светлая видеостена слепит комнату. */
+  --color-surface-video:   var(--fl-dark-bg);
+  --color-text-on-video:   var(--fl-dark-text);
+
+  --color-accent-solid:    var(--fl-coral-600);
+  /* Наведение сдвигается относительно НОВОЙ заливки: иначе hover совпал бы с ней и кнопка
+     перестала бы отзываться. Белый на coral-700 — 6,56. */
+  --color-accent-solid-hover: var(--fl-coral-700);
+  --color-on-accent:       var(--fl-white);
 
   /* Brand / action */
   --color-accent:          var(--fl-coral-500);  /* logo dot, graphics (>=3:1) */
   --color-accent-strong:   var(--fl-coral-500);  /* button fill (white text AA) */
   --color-accent-hover:    var(--fl-coral-600);
   --color-accent-pressed:  var(--fl-coral-700);
-  --color-accent-text:     var(--fl-coral-600);  /* coral text/links on light */
+  /* 🔴 V-14 (там же). Коралловый ТЕКСТ и коралловая ЗАЛИВКА — разные задачи и разные
+     пороги. coral-600 хорош как заливка под белым текстом (5,23), но как текст на
+     приглушённой поверхности даёт 4,3. Ссылки и акцентный текст уходят на ступень ниже:
+     coral-700 — 5,39 на приглушённой, 6,56 на белой. */
+  --color-accent-text:     var(--fl-coral-700);  /* coral text/links on light */
   --color-accent-subtle:   var(--fl-coral-50);
   --color-accent-subtle-border: var(--fl-coral-100);
-  --color-link:            var(--fl-coral-600);
+  --color-link:            var(--fl-coral-700);
 
   /* Status */
   --color-success: var(--fl-success-500); --color-success-text: var(--fl-success-700); --color-success-bg: var(--fl-success-50);
@@ -224,12 +265,23 @@
      набраны подсказки и пояснения по всему продукту, то есть ровно те строки, которые человек
      читает, когда уже не понял с первого раза. #8a8a90 даёт 5,06 и остаётся третичным:
      роль та же, читаемость появилась. */
-  --color-text-tertiary:  #8a8a90;
+  /* V-08 + приёмка Б1: #8a8a90 давало 4,49 на приглушённом акценте (плашка «сегодня» в
+     недельной ленте) — на сотую под порогом. #92929a проходит на ВСЕХ четырёх фонах, где
+     третичный встречается: 6,15 / 5,63 / 5,02 / 4,99. Считать надо по худшему фону, а не
+     по основному, иначе порог держится ровно до первой цветной подложки. */
+  --color-text-tertiary:  #92929a;
   --color-text-disabled:  #4a4a4e;
   --color-text-inverse:   var(--fl-warm-900);
 
   --color-accent:         var(--fl-coral-400);
   --color-accent-strong:  var(--fl-coral-500);
+  /* Б1: в тёмной теме заливка светлее, поэтому текст на ней — тёмный. 6,13. */
+  --color-surface-video:  var(--fl-dark-bg);
+  --color-text-on-video:  var(--fl-dark-text);
+
+  --color-accent-solid:   var(--fl-coral-400);
+  --color-accent-solid-hover: var(--fl-coral-300);
+  --color-on-accent:      #1d1d1f;
   --color-accent-hover:   var(--fl-coral-300);
   --color-accent-pressed: var(--fl-coral-300);
   --color-accent-text:    var(--fl-coral-300);  /* AA on near-black */

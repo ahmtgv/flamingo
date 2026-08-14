@@ -29,6 +29,7 @@ def make_teacher(email="teacher@example.com"):
         last_name="Петров",
         role=Role.TEACHER,
         specialty="Математика",
+        consent_152fz=True,
     )
 
 
@@ -130,6 +131,7 @@ def test_paid_course_access_via_group_membership():
         first_name="S",
         last_name="T",
         role=Role.ADMIN,
+        consent_152fz=True,
     )
     staff.is_staff = True
     staff.save(update_fields=["is_staff"])
@@ -139,6 +141,7 @@ def test_paid_course_access_via_group_membership():
         first_name="A",
         last_name="D",
         role=Role.ADMIN,
+        consent_152fz=True,
     )
     inst = institutions.create_institution(staff, name="Школа №1")
     institutions.add_admin(staff, institution_id=inst.id, admin_user_id=admin.id)
@@ -172,6 +175,7 @@ def test_create_course_persists_and_honors_institutional_group():
         first_name="S",
         last_name="T",
         role=Role.ADMIN,
+        consent_152fz=True,
     )
     staff.is_staff = True
     staff.save(update_fields=["is_staff"])
@@ -181,6 +185,7 @@ def test_create_course_persists_and_honors_institutional_group():
         first_name="A",
         last_name="D",
         role=Role.ADMIN,
+        consent_152fz=True,
     )
     inst = institutions.create_institution(staff, name="Гимназия №2")
     institutions.add_admin(staff, institution_id=inst.id, admin_user_id=admin.id)

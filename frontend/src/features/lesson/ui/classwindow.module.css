@@ -116,7 +116,7 @@
   font-size: var(--text-overline);
   font-weight: var(--weight-medium);
   color: var(--color-text-on-accent);
-  background: var(--color-accent);
+  background: var(--color-accent-solid);
   border-radius: var(--radius-xs);
   padding: 2px var(--space-2);
   letter-spacing: 0.08em;
@@ -130,7 +130,7 @@
   font-size: var(--text-overline);
   font-weight: var(--weight-medium);
   color: var(--color-text-on-accent);
-  background: var(--color-accent);
+  background: var(--color-accent-solid);
   border-radius: var(--radius-xs);
   padding: 2px var(--space-2);
 }

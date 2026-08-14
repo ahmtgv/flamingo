@@ -133,7 +133,7 @@
 /* The one coral accent of this screen-state: how far you are through the programme. */
 .headBar {
   height: 3px;
-  border-radius: 2px;
+  border-radius: var(--radius-xs);
   background: var(--color-surface-subtle);
   overflow: hidden;
   margin-top: var(--space-4);
@@ -142,7 +142,7 @@
   display: block;
   height: 100%;
   background: var(--color-accent);
-  border-radius: 2px;
+  border-radius: var(--radius-xs);
 }
 
 /* --- tabs -------------------------------------------------------------------- */
@@ -190,7 +190,7 @@
   font-weight: var(--weight-medium);
   color: var(--color-text-tertiary);
   background: var(--color-surface-subtle);
-  border-radius: 7px;
+  border-radius: var(--radius-sm);
   padding: 1px 6px;
 }
 
@@ -281,7 +281,7 @@
   color: var(--color-text-secondary);
 }
 .stNow {
-  background: var(--color-accent);
+  background: var(--color-accent-solid);
   border-color: transparent;
   color: var(--color-text-on-accent);
 }
@@ -447,7 +447,7 @@ a.matName:focus-visible {
 .quiet {
   width: 22px;
   height: 22px;
-  border-radius: 6px;
+  border-radius: var(--radius-xs);
   border: none;
   background: none;
   color: var(--color-text-tertiary);
@@ -550,7 +550,7 @@ a.matName:focus-visible {
   padding: 0 var(--space-4);
   border: 0;
   border-radius: var(--radius-sm);
-  background: var(--color-accent);
+  background: var(--color-accent-solid);
   color: var(--color-text-on-accent);
   font-family: var(--font-body);
   font-size: var(--text-small);
@@ -906,7 +906,7 @@ a.srcName:focus-visible {
 }
 .tBar {
   height: 4px;
-  border-radius: 2px;
+  border-radius: var(--radius-xs);
   background: var(--color-surface-subtle);
   overflow: hidden;
 }
@@ -914,7 +914,7 @@ a.srcName:focus-visible {
   display: block;
   height: 100%;
   background: var(--color-accent);
-  border-radius: 2px;
+  border-radius: var(--radius-xs);
 }
 /* A weak topic is grey, not red — it is somewhere to go back to, not a verdict. */
 .tBar[data-weak] i {

@@ -21,7 +21,8 @@ describe('validateRegister', () => {
       'adult',
     );
     expect(e.email).toBeTruthy();
-    expect(e.consent).toBeUndefined();
+    // 🔴 Б3: согласие 152-ФЗ нужно КАЖДОЙ роли, а не только младшему ученику.
+    expect(e.consent).toBe('auth:validation.consent');
     expect(e.parentEmail).toBeUndefined();
   });
 

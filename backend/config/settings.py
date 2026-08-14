@@ -39,6 +39,7 @@ _check_prod_security(DEBUG, SECRET_KEY, ALLOWED_HOSTS)
 INSTALLED_APPS = [
     "django.contrib.auth",
     "django.contrib.contenttypes",
+    "corsheaders",
     "channels",
     "strawberry_django",
     "common",
@@ -88,7 +89,8 @@ POLICY_AUDIT_THROTTLE_SECONDS = int(os.environ.get("POLICY_AUDIT_THROTTLE_SECOND
 
 # Realtime (GraphQL subscriptions over WebSocket / graphql-ws). In-memory channel
 # layer for native dev (single process); env-switch to Redis for prod/multi-worker.
-_CHANNELS_REDIS_URL = os.environ.get("CHANNELS_REDIS_URL")
+# compose передаёт REDIS_URL — принимаем оба имени, чтобы не разойтись с конфигурацией.
+_CHANNELS_REDIS_URL = os.environ.get("CHANNELS_REDIS_URL") or os.environ.get("REDIS_URL")
 if _CHANNELS_REDIS_URL:
     CHANNEL_LAYERS = {
         "default": {
@@ -100,10 +102,37 @@ else:
     CHANNEL_LAYERS = {"default": {"BACKEND": "channels.layers.InMemoryChannelLayer"}}
 
 # JWT bearer auth only (no cookies/sessions) -> no Session/CSRF/Auth middleware.
+#
+# А1 (PROMPT_16): CorsMiddleware стоит ПЕРВЫМ и это не стилистика — предполётный OPTIONS
+# должен получить ответ раньше, чем до него доберётся что-нибудь, что его отвергнет.
 MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "common.middleware.JWTAuthMiddleware",
 ]
+
+
+def _origins(name: str) -> list[str]:
+    """Список origin из окружения. Пусто — значит пусто, а не «всем можно».
+
+    🔒 Ни домена, ни IP в коде (PROMPT_16 §9). Значения приходят из `.env.production`, и
+    отсутствие переменной означает, что никому не разрешено, — умолчание, которое ошибается
+    в безопасную сторону.
+    """
+    raw = os.environ.get(name, "")
+    return [o.strip() for o in raw.split(",") if o.strip()]
+
+
+CORS_ALLOWED_ORIGINS = _origins("CORS_ALLOWED_ORIGINS")
+CSRF_TRUSTED_ORIGINS = _origins("CSRF_TRUSTED_ORIGINS")
+# Заголовок Authorization несёт JWT; куки не используются вовсе, поэтому credentials не нужны
+# и не разрешаются — это на одну дыру меньше без единой потери.
+CORS_ALLOW_CREDENTIALS = False
+
+# В разработке фронт живёт на случайном порту vite, и перечислять их бессмысленно.
+# ⚠️ Только при DEBUG: в проде это открыло бы API любому сайту.
+if DEBUG and not CORS_ALLOWED_ORIGINS:
+    CORS_ALLOWED_ORIGIN_REGEXES = [r"^http://localhost:\d+$", r"^http://127\.0\.0\.1:\d+$"]
 
 ROOT_URLCONF = "config.urls"
 ASGI_APPLICATION = "config.asgi.application"
@@ -117,8 +146,35 @@ TEMPLATES = [
     }
 ]
 
+
+def _database_from_url(url: str) -> dict | None:
+    """`postgres://user:pass@host:port/name` → настройки Django.
+
+    🔴 Найдено при сверке с `infra/prod/docker-compose.prod.yml`: compose передаёт контейнеру
+    `DATABASE_URL`, а настройки его не читали и шли на `localhost:5432` — то есть в пустоту
+    внутри контейнера. Прод не поднялся бы вовсе, и это выяснилось бы на сервере.
+
+    Разбираем стандартной библиотекой: тащить `dj-database-url` ради восьми строк не стоит.
+    """
+    from urllib.parse import unquote, urlparse
+
+    parsed = urlparse(url)
+    if parsed.scheme not in ("postgres", "postgresql"):
+        return None
+    return {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": (parsed.path or "/").lstrip("/"),
+        "USER": unquote(parsed.username or ""),
+        "PASSWORD": unquote(parsed.password or ""),
+        "HOST": parsed.hostname or "",
+        "PORT": str(parsed.port or ""),
+    }
+
+
+_DATABASE_URL = os.environ.get("DATABASE_URL", "")
 DATABASES = {
-    "default": {
+    "default": _database_from_url(_DATABASE_URL)
+    or {
         "ENGINE": "django.db.backends.postgresql",
         "NAME": os.environ.get("POSTGRES_DB", "flamingo"),
         "USER": os.environ.get("POSTGRES_USER", "flamingo"),
@@ -180,3 +236,45 @@ LIVEKIT = {
     "api_key": os.environ.get("LIVEKIT_API_KEY", ""),
     "api_secret": os.environ.get("LIVEKIT_API_SECRET", ""),
 }
+
+
+# --- Прод-контур (PROMPT_16 §А3) --------------------------------------------------------
+# 🔴 SECURE_PROXY_SSL_HEADER. Приложение стоит за Caddy, который терминирует TLS и ходит к
+# нам по http. Без этой строки Django считает КАЖДОЕ соединение небезопасным: `is_secure()`
+# врёт, редиректы уводят на http, а `secure`-cookie не ставится вовсе. Caddy передаёт
+# `X-Forwarded-Proto` (см. infra/prod/Caddyfile), uvicorn запущен с `--proxy-headers`.
+#
+# ⚠️ Заголовку можно верить ТОЛЬКО потому, что снаружи к приложению не подойти: порт 8000
+# не опубликован, единственный путь внутрь — через Caddy. Опубликовать порт наружу = разрешить
+# любому объявить своё соединение защищённым.
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
+if not DEBUG:
+    # Caddy уже присылает HSTS; повторять его из Django незачем, а вот эти две вещи —
+    # его дело и наше одновременно, и стоят они ноль.
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    # Редирект на https делает Caddy, до Django небезопасный запрос просто не доходит.
+    SECURE_SSL_REDIRECT = False
+
+# Логи в stdout: их собирает docker, и файла на диске быть не должно — ротацию всё равно
+# никто не настроит, а диск на VPS кончится в самый неудобный момент.
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "plain": {"format": "%(asctime)s %(levelname)s %(name)s %(message)s"},
+    },
+    "handlers": {
+        "console": {"class": "logging.StreamHandler", "formatter": "plain"},
+    },
+    "root": {"handlers": ["console"], "level": os.environ.get("LOG_LEVEL", "INFO")},
+    "loggers": {
+        # Django и так шумит на INFO; ошибки запросов нужны, остальное — нет.
+        "django.request": {"handlers": ["console"], "level": "ERROR", "propagate": False},
+    },
+}
+
+# Статика: в проде админки Django нет (INSTALLED_APPS её не содержит), отдавать нечего.
+# STATIC_URL нужен самому Django, чтобы не спотыкаться на reverse().
+STATIC_URL = "/static/"
+STATIC_ROOT = os.environ.get("STATIC_ROOT", str(BASE_DIR / "staticfiles"))

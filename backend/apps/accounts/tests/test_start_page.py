@@ -4,7 +4,8 @@ The behaviour worth pinning is that switching education re-scopes the whole page
 the label in the header, and that every slot is built from real rows rather than guesses.
 """
 
-from datetime import date, timedelta
+from datetime import UTC, date, datetime, timedelta
+from unittest import mock
 
 import pytest
 from django.utils import timezone
@@ -34,6 +35,7 @@ def make_teacher(email="t@example.com"):
         last_name="Петровна",
         role=Role.TEACHER,
         specialty="Английский",
+        consent_152fz=True,
     )
 
 
@@ -119,6 +121,13 @@ def test_switching_education_rescopes_the_whole_page():
 
 
 def test_now_prefers_a_running_lesson_then_the_next_one():
+    """⚠️ Тест владеет часами, а не заимствует их.
+
+    Прежняя версия ставила занятие «через три часа» от настоящего времени и падала между
+    21:00 и 24:00 UTC: три часа перепрыгивали полночь, занятие уезжало в завтра и в
+    сегодняшнее окно не попадало. Тест, который проходит девять раз из десяти, хуже
+    отсутствующего — он приучает не верить красному.
+    """
     teacher = make_teacher()
     school = Institution.objects.create(name="Гимназия №1")
     pupil = make_pupil()
@@ -126,16 +135,16 @@ def test_now_prefers_a_running_lesson_then_the_next_one():
     course, lesson = course_with_lesson(teacher, "Астрономия", institution=school)
     courses.enroll(pupil, course.id)
 
-    later = LessonSession.objects.create(
-        lesson=lesson, start_at=timezone.now() + timedelta(hours=3)
-    )
-    assert start_page.start_page(pupil).now.session_id == str(later.id)
+    moment = datetime(2026, 8, 14, 10, 0, tzinfo=UTC)
+    later = LessonSession.objects.create(lesson=lesson, start_at=moment + timedelta(hours=3))
+    with mock.patch("django.utils.timezone.now", return_value=moment):
+        assert start_page.start_page(pupil).now.session_id == str(later.id)
 
-    live = LessonSession.objects.create(
-        lesson=lesson, start_at=timezone.now() - timedelta(minutes=5), status="live"
-    )
-    now_entry = start_page.start_page(pupil).now
-    assert now_entry.session_id == str(live.id) and now_entry.is_live
+        live = LessonSession.objects.create(
+            lesson=lesson, start_at=moment - timedelta(minutes=5), status="live"
+        )
+        now_entry = start_page.start_page(pupil).now
+        assert now_entry.session_id == str(live.id) and now_entry.is_live
 
 
 def test_a_cadet_with_nothing_scheduled_still_gets_somewhere_to_continue():

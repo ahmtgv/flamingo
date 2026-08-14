@@ -45,6 +45,7 @@ def _classroom(jurisdiction: str | None):
         last_name="У",
         role=Role.TEACHER,
         specialty="Математика",
+        consent_152fz=True,
     )
     student = accounts.register_user(
         email="s@example.com",

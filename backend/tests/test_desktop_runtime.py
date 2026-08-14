@@ -53,6 +53,7 @@ def test_the_search_a_teacher_actually_types_finds_the_course():
         last_name="Петров",
         role=Role.TEACHER,
         specialty="Биология",
+        consent_152fz=True,
     )
     course = courses.create_course(
         teacher, title="Готовый курс", subject="Биология", level="grade_9"
