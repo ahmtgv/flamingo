@@ -1,0 +1,5 @@
+# The desktop shell is built, not committed as an artefact.
+target/
+src-tauri/sidecar/
+src-tauri/gen/
+src-tauri/icon-source.png

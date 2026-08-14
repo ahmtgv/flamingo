@@ -1,0 +1,28 @@
+# Dependencies of the SIDECAR — the Django process inside the desktop app (Р5.3, ADR-001 §2).
+#
+# Three packages are absent from this list on purpose, and each was checked by fact rather
+# than crossed off a list:
+#
+#   boto3 / botocore  (21 MB)  The sidecar never signs an S3 request. It PUTs a pupil's file
+#                              to a presigned URL the SERVER minted — an ordinary HTTPS
+#                              request (apps/meetingpoint/transfer.py). The bytes still go
+#                              straight to object storage, so CLAUDE.md §5 holds; only the
+#                              SDK is unnecessary. test_desktop_runtime.py runs the whole
+#                              mirror path in a subprocess and asserts boto3 never loads.
+#   redis / channels-redis (5 MB)  One process on one machine: the channel layer is in-memory
+#                              (config/settings_desktop.py). Redis would be a second thing to
+#                              install for a queue with a single reader.
+#   psycopg[binary]  (16 MB)   The cabinet is SQLite.
+#
+# Celery was never a direct dependency — it arrives under channels-redis and leaves with it.
+#
+# Kept in step with requirements.txt by hand, deliberately: a desktop bundle that silently
+# grows a dependency is a desktop bundle nobody notices growing.
+
+Django>=5.0,<5.2
+python-dotenv>=1.0
+strawberry-graphql[django]>=0.235
+strawberry-graphql-django>=0.40
+PyJWT>=2.8
+channels>=4.1
+uvicorn[standard]>=0.30

@@ -21,9 +21,6 @@ from __future__ import annotations
 import shutil
 from pathlib import Path
 
-import boto3
-from botocore.client import Config
-from botocore.exceptions import ClientError
 from django.conf import settings
 
 # Capability-token TTLs — kept short (presigned URLs are bearer credentials).
@@ -57,6 +54,12 @@ def _local_path(key: str) -> Path:
 
 
 def _client():
+    # boto3 is imported HERE and not at module scope so the desktop profile never loads it.
+    # botocore is 21 MB of a 118 MB sidecar, and a laptop has no object store to talk to —
+    # `test_desktop_runtime.py` asserts the absence rather than trusting this comment.
+    import boto3
+    from botocore.client import Config
+
     s3 = settings.S3
     return boto3.client(
         "s3",
@@ -104,6 +107,9 @@ def head(key: str) -> dict | None:
         if not path.is_file():
             return None
         return {"size": path.stat().st_size, "content_type": ""}
+
+    from botocore.exceptions import ClientError
+
     try:
         r = _client().head_object(Bucket=settings.S3["bucket"], Key=key)
     except ClientError:
@@ -134,6 +140,8 @@ def copy(src_key: str, dst_key: str) -> bool:
         target.parent.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(source, target)
         return True
+    from botocore.exceptions import ClientError
+
     bucket = settings.S3["bucket"]
     try:
         _client().copy_object(

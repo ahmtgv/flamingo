@@ -1,0 +1,21 @@
+[package]
+name = "flamingo-desktop"
+version = "0.1.0"
+description = "Flamingo — урок идёт с машины преподавателя"
+edition = "2021"
+rust-version = "1.77"
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+
+[profile.release]
+# The shell is a window and a process supervisor; nothing here is hot. Optimise for the
+# thing a person actually feels — the size of what they download.
+opt-level = "z"
+lto = true
+codegen-units = 1
+strip = true
+panic = "abort"

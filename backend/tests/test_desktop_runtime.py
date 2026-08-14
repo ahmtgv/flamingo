@@ -6,10 +6,14 @@ search works there, storage switches by configuration rather than by a hardcode,
 build refuses a cabinet a newer one has migrated.
 """
 
+import pathlib
+
 import pytest
 from django.conf import settings
 
 from common import desktop, storage
+
+BACKEND = pathlib.Path(__file__).resolve().parents[1]
 
 pytestmark = pytest.mark.django_db
 
@@ -111,3 +115,80 @@ def test_the_desktop_settings_change_where_things_are_and_not_what_they_are():
         assert smell not in source, f"the desktop profile touches {smell}"
     # …and it still runs the same apps as the server.
     assert desktop_settings.INSTALLED_APPS == settings.INSTALLED_APPS
+
+
+# --- Р5.3: boto3 dropped by FACT, not by list -------------------------------------------------
+def test_the_sidecar_path_never_imports_boto3(tmp_path):
+    """The prompt asked to check HOW the desktop uploads a pupil's file before dropping boto3.
+
+    It uploads to a presigned URL the SERVER minted: signing is the only step that needs an
+    AWS SDK, and it happens on the server. The bytes still go straight into object storage —
+    CLAUDE.md §5 holds — but the sidecar only makes an HTTPS PUT.
+
+    Asserted by running the desktop path in a subprocess and looking at `sys.modules`, because
+    a comment saying «boto3 is lazy now» is worth nothing once somebody adds a top-level
+    import three files away.
+    """
+    import subprocess
+    import sys
+    import textwrap
+
+    script = textwrap.dedent(
+        f"""
+        import os, sys
+        os.environ["DJANGO_SETTINGS_MODULE"] = "config.settings_desktop"
+        os.environ["FLAMINGO_DATA_DIR"] = {str(tmp_path)!r}
+        import django; django.setup()
+        from django.conf import settings
+        settings.STORAGE_BACKEND = "local"
+        settings.LOCAL_STORAGE_ROOT = {str(tmp_path / "files")!r}
+
+        from common import storage
+        from apps.meetingpoint import mirror, transfer   # the whole mirror path
+        from apps.devices import services as devices     # pairing + heartbeat
+
+        p = os.path.join({str(tmp_path)!r}, "files", "a", "x.txt")
+        os.makedirs(os.path.dirname(p), exist_ok=True)
+        open(p, "wb").write(b"hi")
+        assert storage.head("a/x.txt")["size"] == 2
+        assert storage.copy("a/x.txt", "mirror/s/1/x.txt") is True
+
+        print("boto3" in sys.modules, "botocore" in sys.modules)
+        """
+    )
+    out = subprocess.run(
+        [sys.executable, "-c", script],
+        capture_output=True,
+        text=True,
+        cwd=str(BACKEND),
+    )
+    assert out.returncode == 0, out.stderr
+    assert out.stdout.strip().splitlines()[-1] == "False False", out.stdout
+
+
+def test_the_uploader_is_stdlib_only():
+    """Four lines of urllib. If this ever needs an SDK, the dependency list changes with it —
+    which is why the fact is written down with its reason, not just its conclusion."""
+    import ast
+    from pathlib import Path as _Path
+
+    from apps.meetingpoint import transfer
+
+    tree = ast.parse(_Path(transfer.__file__).read_text(encoding="utf-8"))
+    imported = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            imported |= {a.name.split(".")[0] for a in node.names}
+        elif isinstance(node, ast.ImportFrom) and node.module:
+            imported.add(node.module.split(".")[0])
+    assert not {"boto3", "botocore", "requests", "httpx"} & imported, imported
+
+
+def test_an_upload_that_fails_never_costs_the_record_it_belongs_to(tmp_path):
+    from apps.meetingpoint import transfer
+
+    source = tmp_path / "essay.pdf"
+    source.write_bytes(b"work")
+    assert transfer.put_file("http://127.0.0.1:1/nope", source) is False
+    assert transfer.put_file("not-a-url", source) is False
+    assert transfer.put_file("http://example.invalid/x", tmp_path / "missing") is False
