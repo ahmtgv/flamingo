@@ -222,6 +222,10 @@ h1{font-size:1.4rem;font-weight:600;letter-spacing:-.015em}
 .q p{font-size:var(--fs-cap);color:var(--sec)}
 .note{font:400 var(--fs-micro) var(--mono);color:var(--ter);margin-top:14px}
 @media(max-width:900px){.grid3,.streamGrid{grid-template-columns:1fr 1fr}.railWrap,.hero,.inlineMedia{grid-template-columns:1fr}}
+
+/* знак бренда в шапке — намеренно грубый рисунок, см. docs/brand/flamingo-brandbook.html §01 */
+.mk{width:1.55em;height:1.4em;flex:none;overflow:visible;vertical-align:-.3em}
+[data-theme="dark"] .mk{--mk-c:#ff7040;--mk-ink:#f2f2f0;--mk-eye:#1a1a1c}
 </style>
 </head>
 <body>
@@ -243,7 +247,7 @@ h1{font-size:1.4rem;font-weight:600;letter-spacing:-.015em}
 
   <div class="screen" data-v="ax" id="screen">
     <div class="topnav">
-      <span class="dot"></span><b>flamingo</b><span class="hubMark">HUB</span>
+      <svg class="mk" viewBox="0 0 120 110" aria-hidden="true"><g fill="none" stroke="var(--mk-c,#e14e1f)" stroke-linecap="round"><path d="M28 55 L7 44" stroke-width="5.4"/><path d="M26 61 L3 59" stroke-width="7"/><path d="M28 66 L10 74" stroke-width="5.8"/><path d="M44 80 L39 92 L36 103" stroke-width="5.6"/><path d="M57 78 L59 90 L56 102" stroke-width="5"/></g><path d="M58 52 C70 44 60 28 74 16" fill="none" stroke="var(--mk-c,#e14e1f)" stroke-width="10" stroke-linecap="round"/><ellipse cx="48" cy="63" rx="26" ry="21" fill="var(--mk-c,#e14e1f)" transform="rotate(-6 48 63)"/><circle cx="78" cy="13" r="8.5" fill="var(--mk-c,#e14e1f)"/><path d="M85 7 L108 14 L86 19 Z" fill="var(--mk-ink,#1d1d1f)"/><circle cx="77" cy="8" r="2.2" fill="var(--mk-eye,#fff)"/></svg><b>flamingo</b><span class="hubMark">HUB</span>
       <span class="avatar">СИ</span>
     </div>
     <div class="page">
