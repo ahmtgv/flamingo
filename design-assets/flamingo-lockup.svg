@@ -2,9 +2,9 @@
   <title>flamingo</title>
   <desc>Связка: знак слева, словесный знак справа. Отступ между ними — половина высоты знака, меньше нельзя.</desc>
   <g fill="none" stroke="#e14e1f" stroke-linecap="round">
-    <path d="M27 49 L8 41" stroke-width="5.6"/>
-    <path d="M26 56 L7 49" stroke-width="6"/>
-    <path d="M25 64 L5 67" stroke-width="6.6"/>
+    <path d="M28 55 L7 44" stroke-width="5.4"/>
+    <path d="M26 61 L3 59" stroke-width="7"/>
+    <path d="M28 66 L10 74" stroke-width="5.8"/>
     <path d="M44 80 L39 92 L36 103" stroke-width="5.6"/>
     <path d="M57 78 L59 90 L56 102" stroke-width="5"/>
   </g>
