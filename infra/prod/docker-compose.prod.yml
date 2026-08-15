@@ -13,9 +13,13 @@
 #               видео и не нужен новый код — coturn написан и проверен в Р5.1.
 #               Худший случай 148 ГБ/мес, пик 4 Мбит/с на канале 100 — три процента.
 #
+#   minio     — объектное хранилище файлов. Возвращено 15.08: я убрал его, решив, что файлы
+#               живут на машине преподавателя. Это верно для десктопа, но НЕ для сайта:
+#               материалы курса, вложения домашних работ и файлы зеркала ученика грузятся
+#               presigned-ссылками в S3. Без него загрузка падает — поймано владельцем
+#               на первом же курсе.
+#
 # Чего здесь НЕТ и не будет:
-#   minio     — файлы работ живут на машине преподавателя; серверу нужен только текст
-#               и файлы зеркала. Для пилота — том на диске.
 #   livekit   — медиа идёт с машины преподавателя, серверу здесь делать нечего.
 #
 # Запуск:  docker compose -f infra/prod/docker-compose.prod.yml --env-file .env.production up -d
@@ -97,6 +101,39 @@ services:
       --no-cli
       --log-file=stdout
 
+  # Объектное хранилище. Браузер грузит файлы НАПРЯМУЮ по подписанной ссылке, минуя API —
+  # поэтому хранилищу нужен публичный адрес (files.flamingo.plus), а не только внутренний.
+  minio:
+    image: minio/minio
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${S3_ACCESS_KEY}
+      MINIO_ROOT_PASSWORD: ${S3_SECRET_KEY}
+      # Подпись presigned-ссылки включает адрес, поэтому MinIO обязан знать свой внешний.
+      MINIO_SERVER_URL: https://${FILES_DOMAIN}
+      MINIO_BROWSER_REDIRECT_URL: https://${FILES_DOMAIN}/console
+    volumes:
+      - minio_data:/data
+    expose:
+      - "9000"
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  # Одноразовое создание корзины. Без неё первая же загрузка упрётся в «нет такой корзины».
+  minio-init:
+    image: minio/mc
+    depends_on:
+      minio: { condition: service_healthy }
+    entrypoint: >
+      sh -c "mc alias set fl http://minio:9000 ${S3_ACCESS_KEY} ${S3_SECRET_KEY} &&
+             mc mb --ignore-existing fl/${S3_BUCKET} &&
+             echo 'bucket ready'"
+    restart: "no"
+
   caddy:
     image: caddy:2-alpine
     restart: unless-stopped
@@ -105,6 +142,7 @@ services:
     # конфигурация невалидна и контейнер падает с кодом 1. Поймано на первом запуске 15.08.
     environment:
       API_DOMAIN: ${API_DOMAIN}
+      FILES_DOMAIN: ${FILES_DOMAIN}
     ports:
       - "80:80"
       - "443:443"
@@ -117,6 +155,7 @@ services:
 
 volumes:
   postgres_data:
+  minio_data:
   media_data:
   caddy_data:
   caddy_config:
