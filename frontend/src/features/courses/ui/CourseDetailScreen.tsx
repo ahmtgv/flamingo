@@ -43,6 +43,7 @@ import {
   useUpdateSectionMutation,
   useUploadPolicyQuery,
 } from '@/entities/graphql/generated';
+import { failureText } from '@/shared/lib/requestFailure';
 import { useUpload } from '@/shared/lib/useUpload';
 import { acceptAttribute, formatBytes, kindKeys, refuse } from '@/shared/lib/uploadLimits';
 import { Button, ErrorState, Input, Select, TextField } from '@/shared/ui';
@@ -118,6 +119,9 @@ function GuestView({
 }) {
   const { t } = useTranslation('courses');
   const [enroll, { loading }] = useEnrollMutation();
+  // Записаться может не выйти: курс сняли с публикации, сервера нет. Молчащая кнопка здесь
+  // означает ученика, который считает себя записанным.
+  const [failed, setFailed] = useState<string | null>(null);
   const totalLessons = course.sections.reduce((n, s) => n + publishedOf(s).length, 0);
 
   return (
@@ -154,12 +158,22 @@ function GuestView({
             variant="primary"
             loading={loading}
             onClick={async () => {
-              await enroll({ variables: { courseId: course.id } });
-              onDone();
+              setFailed(null);
+              try {
+                await enroll({ variables: { courseId: course.id } });
+                onDone();
+              } catch (error) {
+                setFailed(t(failureText(error)));
+              }
             }}
           >
             {t('detail.enroll')}
           </Button>
+        )}
+        {failed && (
+          <p className={styles.formError} role="alert">
+            {failed}
+          </p>
         )}
         <p className={styles.asideTeach}>
           {t('detail.teachOnCourse', {
@@ -283,6 +297,20 @@ function OwnerConstructor({ course, onDone }: { course: CourseT; onDone: () => v
   const [reorderSections] = useReorderSectionsMutation();
   const [reorderLessons] = useReorderLessonsMutation();
   const [editingCourse, setEditingCourse] = useState(false);
+  // 🔴 Аудит 16.08: шестнадцать действий конструктора вызывали мутацию без перехвата.
+  // Преподаватель нажимал «Опубликовать урок» или «Удалить раздел», сервер отказывал — и не
+  // происходило ничего. Один исполнитель на все: причина говорится одинаково и всегда.
+  const [actionError, setActionError] = useState<string | null>(null);
+
+  async function act(run: () => Promise<unknown>) {
+    setActionError(null);
+    try {
+      await run();
+      onDone();
+    } catch (error) {
+      setActionError(t(failureText(error)));
+    }
+  }
   // Фильтр уроков и свёрнутые разделы — оба про одно (находка владельца 15.08, п.2):
   // конструктор был одной плоской простынёй, и в двадцати уроках терялись.
   const [filter, setFilter] = useState<LessonFilter>('all');
@@ -324,10 +352,7 @@ function OwnerConstructor({ course, onDone }: { course: CourseT; onDone: () => v
               variant="primary"
               size="sm"
               loading={publishing}
-              onClick={async () => {
-                await publishCourse({ variables: { id: course.id } });
-                onDone();
-              }}
+              onClick={() => void act(() => publishCourse({ variables: { id: course.id } }))}
             >
               {t('manage.publish')}
             </Button>
@@ -336,16 +361,19 @@ function OwnerConstructor({ course, onDone }: { course: CourseT; onDone: () => v
               variant="secondary"
               size="sm"
               loading={unpublishing}
-              onClick={async () => {
-                await unpublishCourse({ variables: { id: course.id } });
-                onDone();
-              }}
+              onClick={() => void act(() => unpublishCourse({ variables: { id: course.id } }))}
             >
               {t('manage.unpublish')}
             </Button>
           )}
         </div>
       </div>
+
+      {actionError && (
+        <p className={styles.formError} role="alert">
+          {actionError}
+        </p>
+      )}
 
       {editingCourse && (
         <EditCourseForm
@@ -434,10 +462,7 @@ function OwnerConstructor({ course, onDone }: { course: CourseT; onDone: () => v
                   className={styles.mini}
                   aria-label={t('manage.moveUp')}
                   disabled={si === 0}
-                  onClick={async () => {
-                    await reorderSections({ variables: { courseId: course.id, orderedIds: move(sectionIds, si, -1) } });
-                    onDone();
-                  }}
+                  onClick={() => void act(() => reorderSections({ variables: { courseId: course.id, orderedIds: move(sectionIds, si, -1) } }))}
                 >
                   <ChevronUp />
                 </button>
@@ -446,10 +471,7 @@ function OwnerConstructor({ course, onDone }: { course: CourseT; onDone: () => v
                   className={styles.mini}
                   aria-label={t('manage.moveDown')}
                   disabled={si === sectionIds.length - 1}
-                  onClick={async () => {
-                    await reorderSections({ variables: { courseId: course.id, orderedIds: move(sectionIds, si, 1) } });
-                    onDone();
-                  }}
+                  onClick={() => void act(() => reorderSections({ variables: { courseId: course.id, orderedIds: move(sectionIds, si, 1) } }))}
                 >
                   <ChevronDown />
                 </button>
@@ -458,10 +480,7 @@ function OwnerConstructor({ course, onDone }: { course: CourseT; onDone: () => v
                   type="button"
                   className={styles.mini}
                   aria-label={t('manage.deleteSection')}
-                  onClick={async () => {
-                    await deleteSection({ variables: { id: section.id } });
-                    onDone();
-                  }}
+                  onClick={() => void act(() => deleteSection({ variables: { id: section.id } }))}
                 >
                   <Trash2 />
                 </button>
@@ -513,10 +532,7 @@ function OwnerConstructor({ course, onDone }: { course: CourseT; onDone: () => v
                             type="button"
                             className={styles.matChipDelete}
                             aria-label={t('manage.deleteMaterial')}
-                            onClick={async () => {
-                              await deleteMaterial({ variables: { id: m.id } });
-                              onDone();
-                            }}
+                            onClick={() => void act(() => deleteMaterial({ variables: { id: m.id } }))}
                           >
                             <X size={13} />
                           </button>
@@ -530,10 +546,7 @@ function OwnerConstructor({ course, onDone }: { course: CourseT; onDone: () => v
                       <Button
                         variant="secondary"
                         size="sm"
-                        onClick={async () => {
-                          await publishLesson({ variables: { id: lesson.id } });
-                          onDone();
-                        }}
+                        onClick={() => void act(() => publishLesson({ variables: { id: lesson.id } }))}
                       >
                         {t('manage.publishLesson')}
                       </Button>
@@ -555,10 +568,7 @@ function OwnerConstructor({ course, onDone }: { course: CourseT; onDone: () => v
                     className={styles.mini}
                     aria-label={t('manage.moveUp')}
                     disabled={li === 0}
-                    onClick={async () => {
-                      await reorderLessons({ variables: { sectionId: section.id, orderedIds: move(lessonIds, li, -1) } });
-                      onDone();
-                    }}
+                    onClick={() => void act(() => reorderLessons({ variables: { sectionId: section.id, orderedIds: move(lessonIds, li, -1) } }))}
                   >
                     <ChevronUp />
                   </button>
@@ -567,10 +577,7 @@ function OwnerConstructor({ course, onDone }: { course: CourseT; onDone: () => v
                     className={styles.mini}
                     aria-label={t('manage.moveDown')}
                     disabled={li === lessonIds.length - 1}
-                    onClick={async () => {
-                      await reorderLessons({ variables: { sectionId: section.id, orderedIds: move(lessonIds, li, 1) } });
-                      onDone();
-                    }}
+                    onClick={() => void act(() => reorderLessons({ variables: { sectionId: section.id, orderedIds: move(lessonIds, li, 1) } }))}
                   >
                     <ChevronDown />
                   </button>
@@ -579,10 +586,7 @@ function OwnerConstructor({ course, onDone }: { course: CourseT; onDone: () => v
                     type="button"
                     className={styles.mini}
                     aria-label={t('manage.deleteLesson')}
-                    onClick={async () => {
-                      await deleteLesson({ variables: { id: lesson.id } });
-                      onDone();
-                    }}
+                    onClick={() => void act(() => deleteLesson({ variables: { id: lesson.id } }))}
                   >
                     <Trash2 />
                   </button>
@@ -838,13 +842,22 @@ function ScheduleSessionForm({ lessonId }: { lessonId: string }) {
   const [open, setOpen] = useState(false);
   const [when, setWhen] = useState('');
   const [done, setDone] = useState(false);
+  const [failed, setFailed] = useState<string | null>(null);
   const [scheduleSession, { loading }] = useScheduleSessionMutation();
 
   async function submit(e: FormEvent) {
     e.preventDefault();
     if (!when) return;
-    await scheduleSession({ variables: { input: { lessonId, startAt: new Date(when).toISOString() } } });
-    setDone(true);
+    setFailed(null);
+    try {
+      await scheduleSession({
+        variables: { input: { lessonId, startAt: new Date(when).toISOString() } },
+      });
+      setDone(true);
+    } catch (error) {
+      // 🔴 Занятие, которое «как будто назначено», — это класс, пришедший в пустую комнату.
+      setFailed(t(failureText(error)));
+    }
   }
 
   if (done) {
@@ -874,6 +887,11 @@ function ScheduleSessionForm({ lessonId }: { lessonId: string }) {
       <Button type="submit" variant="secondary" size="sm" loading={loading}>
         {t('lessonForm.submit')}
       </Button>
+      {failed && (
+        <p className={styles.formError} role="alert">
+          {failed}
+        </p>
+      )}
     </form>
   );
 }

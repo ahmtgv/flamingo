@@ -26,7 +26,14 @@ function invoke(): Invoke | undefined {
  * тут вообще есть тип ошибки: молча записать в старую папку значит сделать вид, что копия
  * есть, ровно в тот момент, когда её нет.
  */
-export type CopyOutFailure = 'unavailable' | 'no-destination' | 'destination-missing' | 'failed';
+// `export-failed` — сам файл копии не собрался (сервер отказал, места нет). Отдельная причина,
+// а не общий `failed`: у неё другой совет человеку, и она про шаг ДО переноса.
+export type CopyOutFailure =
+  | 'unavailable'
+  | 'no-destination'
+  | 'destination-missing'
+  | 'failed'
+  | 'export-failed';
 
 export type CopyOutResult = { ok: true; at: string } | { ok: false; reason: CopyOutFailure };
 

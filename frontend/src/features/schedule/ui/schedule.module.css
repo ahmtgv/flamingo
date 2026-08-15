@@ -153,3 +153,13 @@
   color: var(--color-text-tertiary);
   white-space: nowrap;
 }
+
+/* Причина отказа действия — на экране (аудит 16.08). Молча кнопки больше не работают. */
+.failed {
+  margin-bottom: var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-sm);
+  background: var(--color-error-bg);
+  color: var(--color-error-text);
+  font-size: var(--text-small);
+}

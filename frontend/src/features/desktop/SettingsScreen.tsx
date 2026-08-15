@@ -61,9 +61,15 @@ export function SettingsScreen() {
    */
   const backupNow = async () => {
     setFailure(null);
-    const { data: made } = await exportCabinet();
-    const name = made?.exportCabinet?.fileName;
-    if (name) {
+    try {
+      const { data: made } = await exportCabinet();
+      const name = made?.exportCabinet?.fileName;
+      if (!name) {
+        // Файл не собрался, а ошибки не было. Сказать об этом обязательно: молчание здесь
+        // читается как «копия снята».
+        setFailure('export-failed');
+        return;
+      }
       const moved = await copyBackupOut(name);
       if (moved.ok) {
         rememberCopyOut(moved.at);
@@ -71,8 +77,14 @@ export function SettingsScreen() {
       } else {
         setFailure(moved.reason);
       }
+    } catch {
+      // 🔴 Самая опасная молчащая кнопка продукта: копия кабинета обязательна (§19.1), и
+      // человек, нажавший «Снять копию» и не увидевший ничего, уверен, что копия есть.
+      // Работы и оценки детей живут на одном ноутбуке — цена этой уверенности слишком высока.
+      setFailure('export-failed');
+    } finally {
+      await refetch();
     }
-    await refetch();
   };
 
   /** Своим диалогом, и с предупреждением словами вместо запрета (Р5.5-В п.1). */

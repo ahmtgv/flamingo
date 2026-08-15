@@ -14,6 +14,7 @@ import {
   VerificationDocumentUrlDocument,
 } from '@/entities/graphql/generated';
 import { apolloClient } from '@/app/apolloClient';
+import { failureText } from '@/shared/lib/requestFailure';
 import { formatBytes } from '@/shared/lib/uploadLimits';
 import { Button, ErrorState, Input } from '@/shared/ui';
 
@@ -244,8 +245,14 @@ function QueueCard({ entry, onDone }: { entry: Entry; onDone: () => void }) {
             size="sm"
             loading={verifying}
             onClick={async () => {
-              await verify({ variables: { teacherUserId: entry.teacherUserId } });
-              onDone();
+              // Отказ здесь объяснялся, а одобрение — нет: один экран говорил двумя голосами.
+              setError(null);
+              try {
+                await verify({ variables: { teacherUserId: entry.teacherUserId } });
+                onDone();
+              } catch (err) {
+                setError(t(failureText(err)));
+              }
             }}
           >
             {t('verification.approve')}

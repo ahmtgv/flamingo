@@ -25,6 +25,15 @@ const SITE = PUBLIC_ORIGIN || 'https://flamingo.plus';
 const CONFIRM_URL = `${SITE}/link`;
 
 /**
+ * Форма регистрации, на которую ведёт «Создать учётку».
+ *
+ * Роль зашита намеренно (ответ владельца 15.08, промпт 19 §6): приложение преподавательское,
+ * и гадать про будущие роли незачем. Именованная константа — чтобы в день, когда появится
+ * второе приложение, это место нашлось поиском, а не вычитыванием разметки.
+ */
+const REGISTER_PATH = '/register/teacher';
+
+/**
  * Куда ведут две кнопки шага 1 (OWNER_SCOPE §26.4).
  *
  * Обе несут КОД В АДРЕСЕ: человек нажимает одну кнопку, а не переписывает шесть знаков с
@@ -37,7 +46,7 @@ function confirmUrl(code: string | null): string {
 
 function registerUrl(code: string | null): string {
   const back = code ? `/link?code=${encodeURIComponent(code)}` : '/link';
-  return `${SITE}/register/teacher?next=${encodeURIComponent(back)}`;
+  return `${SITE}${REGISTER_PATH}?next=${encodeURIComponent(back)}`;
 }
 
 /** Что именно не получилось — словами, а не «что-то пошло не так». */

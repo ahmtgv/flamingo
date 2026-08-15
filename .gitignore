@@ -32,3 +32,12 @@ infra/prod/backups/
 # Рабочие файлы PyInstaller при сборке sidecar — артефакты, а не исходники.
 backend/build/
 backend/flamingo-sidecar.spec
+
+# Каталог сборки Rust — где бы он ни завёлся.
+#
+# ⚠️ Уточнение к статическому аудиту 15.08 (§1): названный там риск — «одна `git add -A`
+# в desktop/ затащит сотни мегабайт» — уже закрыт правилом `target/` в `desktop/.gitignore`,
+# проверено: `git check-ignore -v desktop/src-tauri/target/...` → `desktop/.gitignore:2`.
+# Здесь закрывается ОБЩИЙ случай: второй крейт, заведённый вне `desktop/`, своего правила
+# не унаследует.
+target/

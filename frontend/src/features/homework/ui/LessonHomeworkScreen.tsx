@@ -14,8 +14,11 @@ import {
   useMeQuery,
   usePublishHomeworkMutation,
   useSubmitHomeworkMutation,
+  useUploadPolicyQuery,
 } from '@/entities/graphql/generated';
 import { useUpload } from '@/shared/lib/useUpload';
+import { failureText } from '@/shared/lib/requestFailure';
+import { acceptAttribute, formatBytes, kindKeys, refuse } from '@/shared/lib/uploadLimits';
 import { Badge, type BadgeTone, Button, Checkbox, ErrorState, Input, TextArea, TextField } from '@/shared/ui';
 
 import { HomeworkLayout } from './HomeworkLayout';
@@ -152,6 +155,20 @@ function TeacherHomeworkCard({ hw, onDone }: { hw: HomeworkRow; onDone: () => vo
   const [grading, setGrading] = useState(false);
   const [publishHomework, { loading: publishing }] = usePublishHomeworkMutation();
   const [deleteHomework, { loading: deleting }] = useDeleteHomeworkMutation();
+  // 🔴 Аудит 16.08: выдача, снятие и проверка домашней работы вызывались без перехвата —
+  // сервер отказал, кнопка нажалась, не произошло ничего. Проверка работ идёт после каждого
+  // урока, и молчащая кнопка здесь означает потерянную оценку.
+  const [actionError, setActionError] = useState<string | null>(null);
+
+  async function act(run: () => Promise<unknown>) {
+    setActionError(null);
+    try {
+      await run();
+      await onDone();
+    } catch (err) {
+      setActionError(t(failureText(err)));
+    }
+  }
 
   const stats = hw.submissionStats;
 
@@ -172,16 +189,18 @@ function TeacherHomeworkCard({ hw, onDone }: { hw: HomeworkRow; onDone: () => vo
           late: stats.late,
         })}
       </p>
+      {actionError && (
+        <p className={styles.formError} role="alert">
+          {actionError}
+        </p>
+      )}
       <div className={styles.actionsRow}>
         {!hw.publishedAt && (
           <Button
             variant="secondary"
             size="sm"
             loading={publishing}
-            onClick={async () => {
-              await publishHomework({ variables: { id: hw.id } });
-              await onDone();
-            }}
+            onClick={() => void act(() => publishHomework({ variables: { id: hw.id } }))}
           >
             {t('actions.publish')}
           </Button>
@@ -199,10 +218,7 @@ function TeacherHomeworkCard({ hw, onDone }: { hw: HomeworkRow; onDone: () => vo
           size="sm"
           icon={<Trash2 size={ICON_SM} />}
           loading={deleting}
-          onClick={async () => {
-            await deleteHomework({ variables: { id: hw.id } });
-            await onDone();
-          }}
+          onClick={() => void act(() => deleteHomework({ variables: { id: hw.id } }))}
         >
           {t('actions.delete')}
         </Button>
@@ -245,16 +261,24 @@ function GradeRow({ submission, onGraded }: { submission: SubmissionRow; onGrade
   const [score, setScore] = useState(submission.score?.toString() ?? '');
   const [comment, setComment] = useState(submission.comment ?? '');
   const [gradeSubmission, { loading }] = useGradeSubmissionMutation();
+  // 🔴 Оценка, которая «как будто поставилась», — худший исход на этом экране: преподаватель
+  // идёт дальше по списку, а работа осталась непроверенной, и узнает об этом ученик.
+  const [failed, setFailed] = useState<string | null>(null);
 
   const who = submission.student.user.formalName;
 
   async function submit(e: FormEvent) {
     e.preventDefault();
     if (score === '') return;
-    await gradeSubmission({
-      variables: { input: { submissionId: submission.id, score: Number(score), comment } },
-    });
-    onGraded();
+    setFailed(null);
+    try {
+      await gradeSubmission({
+        variables: { input: { submissionId: submission.id, score: Number(score), comment } },
+      });
+      onGraded();
+    } catch (err) {
+      setFailed(t(failureText(err)));
+    }
   }
 
   return (
@@ -287,6 +311,11 @@ function GradeRow({ submission, onGraded }: { submission: SubmissionRow; onGrade
         <Button type="submit" variant="secondary" size="sm" loading={loading}>
           {t('grade.submit')}
         </Button>
+        {failed && (
+          <p className={styles.formError} role="alert">
+            {failed}
+          </p>
+        )}
       </div>
     </form>
   );
@@ -336,6 +365,45 @@ function SubmitForm({
   const [uploading, setUploading] = useState(false);
   const [submitHomework, { loading }] = useSubmitHomeworkMutation();
   const { upload } = useUpload();
+  // 🔴 Аудит 16.08. Правила загрузки здесь не назывались ВОВСЕ: `accept` был вписан руками и
+  // разошёлся с политикой сервера, а любой отказ — «Не удалось загрузить файл» одной строкой.
+  // Ученик, приложивший тяжёлое видео, ждал загрузку и получал общую фразу без причины.
+  // Строки `fileTooLarge` и `fileTypeNotAllowed` при этом лежали в словаре с самого начала —
+  // написанные для сообщений, которых экран не показывал.
+  const { data: policyData } = useUploadPolicyQuery({ variables: { purpose: 'SUBMISSION' } });
+  const policy = policyData?.uploadPolicy ?? null;
+  const kinds = policy
+    ? kindKeys(policy.contentTypes)
+        .map((k) => t(`upload:kinds.${k}`))
+        .join(', ')
+    : '';
+
+  /** Проверка ДО загрузки — отказ на этом шаге стоит ноль секунд ожидания. */
+  function pick(chosen: File[]) {
+    setError(null);
+    const good: File[] = [];
+    for (const file of chosen) {
+      const refusal = refuse(file, policy);
+      if (refusal?.reason === 'too-large') {
+        setError(
+          t('upload:tooLargeNamed', {
+            name: file.name,
+            size: formatBytes(refusal.size),
+            max: formatBytes(refusal.max),
+          }),
+        );
+        continue;
+      }
+      if (refusal?.reason === 'bad-type') {
+        setError(
+          t('upload:typeNotAllowedNamed', { name: file.name, type: refusal.type, kinds }),
+        );
+        continue;
+      }
+      good.push(file);
+    }
+    if (good.length) setFiles((prev) => [...prev, ...good]);
+  }
 
   async function submit(e: FormEvent) {
     e.preventDefault();
@@ -351,8 +419,10 @@ function SubmitForm({
       setText('');
       setFiles([]);
       onDone();
-    } catch {
-      setError(t('upload:uploadFailed'));
+    } catch (err) {
+      // «Сервера нет» и «сервер отказал» — разные вещи и для ученика тоже: в первом случае
+      // работа не пропала и её стоит отправить снова, во втором — звать преподавателя.
+      setError(t(failureText(err)));
     } finally {
       setUploading(false);
     }
@@ -373,10 +443,11 @@ function SubmitForm({
         <input
           type="file"
           multiple
-          accept="application/pdf,image/png,image/jpeg,image/webp,text/plain"
+          // Тот же список, что проверяет сервер: диалог и текст под ним не расходятся.
+          accept={policy ? acceptAttribute(policy.contentTypes) : undefined}
           className={styles.fileInput}
           onChange={(e) => {
-            setFiles((prev) => [...prev, ...Array.from(e.target.files ?? [])]);
+            pick(Array.from(e.target.files ?? []));
             e.target.value = '';
           }}
         />

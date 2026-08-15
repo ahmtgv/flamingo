@@ -49,3 +49,26 @@ export function serverMessage(error: unknown): string | null {
   if (!first) return null;
   return /[а-яё]/i.test(first) ? first : null;
 }
+
+
+/**
+ * Ключи строк «почему не получилось» — ОДИН набор на весь продукт.
+ *
+ * 🔴 Аудит 16.08 (§В4, согласованность). Продукт умел объяснять отказ тремя разными способами:
+ * мастер первого запуска — своими строками, экран материалов — своими, сдача домашней работы —
+ * общей фразой «Не удалось загрузить файл» на любую причину. Одно и то же должно говориться
+ * одинаково, иначе следующий экран напишет четвёртый вариант.
+ *
+ * Строки лежат в пространстве `common`, потому что причина отказа не принадлежит ни мастеру,
+ * ни домашней работе — она про связь.
+ */
+export const FAILURE_TEXT: Record<FailureKind, string> = {
+  unreachable: 'common:failure.offline',
+  rejected: 'common:failure.refused',
+  unknown: 'common:failure.unknown',
+};
+
+/** Ключ строки для показа человеку. */
+export function failureText(error: unknown): string {
+  return FAILURE_TEXT[failureKind(error)];
+}

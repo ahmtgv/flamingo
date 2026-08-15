@@ -68,7 +68,7 @@ export function CheckStep({ onNext }: { onNext: () => void }) {
       });
       const uplink = data?.reportUplink?.uplink;
       if (uplink) setResult({ verdict: uplink.verdict, groupSize: uplink.groupSize });
-      else setFailed('setup.failed.unknown');
+      else setFailed('common:failure.unknown');
     } catch (error) {
       // Замер прошёл, а вердикт даёт сервер. Без него на экране осталась бы крутилка,
       // закончившаяся ничем.
