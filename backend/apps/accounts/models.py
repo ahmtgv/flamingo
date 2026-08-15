@@ -30,6 +30,10 @@ class User(JurisdictionMixin, AbstractBaseUser, PermissionsMixin):
     role = models.CharField(max_length=16, choices=choices(Role))
     first_name = models.CharField(max_length=120)
     last_name = models.CharField(max_length=120)
+    # Отчество — требование владельца 15.08 (OWNER_SCOPE §24). **Необязательное**: его нет у
+    # части народов России и у иностранного преподавателя, и форма не должна требовать
+    # невозможного. Читается только через display_name/full_name ниже.
+    middle_name = models.CharField(max_length=120, blank=True, default="")
     locale = models.CharField(max_length=8, default="ru")  # i18n-ready
     # Which learning profile the account is currently working in ("pupil:<uuid>" /
     # "cadet:<uuid>" / "teacher:<uuid>"). The profiles themselves are NOT stored — they are
@@ -75,6 +79,59 @@ class User(JurisdictionMixin, AbstractBaseUser, PermissionsMixin):
 
     def __str__(self) -> str:
         return self.email
+
+    # --- как зовут человека (OWNER_SCOPE §24) ------------------------------------------------
+    #
+    # 🔴 Три метода вместо склейки, и это не вкусовщина. Склейка `f"{first} {last}"` жила
+    # минимум в семнадцати местах питона и в двух десятках мест фронта; добавить отчество и
+    # обойти их руками — гарантированно забыть половину, и тогда поле появилось бы в базе и не
+    # появилось бы на половине экранов.
+    #
+    # Правило обращения — та же ось, что «вы»/«ты» (§Б4 промпта 16): имя-отчество это форма
+    # ДЛЯ ПРЕПОДАВАТЕЛЯ. Ребёнка по отчеству не зовут, и звать не начнём.
+
+    @property
+    def full_name(self) -> str:
+        """Фамилия Имя Отчество — для документов и карточки надзора.
+
+        Порядок «фамилия первой» — тот, в котором пишут в документах и в котором ищут в
+        списке. Пустое отчество не оставляет двойного пробела: `join` по непустым.
+        """
+        return " ".join(p for p in (self.last_name, self.first_name, self.middle_name) if p)
+
+    @property
+    def display_name(self) -> str:
+        """Как обращаются К ЭТОМУ ЧЕЛОВЕКУ. Приветствие, его собственный кабинет.
+
+        К преподавателю — Имя Отчество («Здравствуйте, Люция Валерьевна»), к остальным — имя.
+        Отчества нет (а его нет у части народов России и у иностранного преподавателя) —
+        остаётся имя, без хвоста и без лишнего пробела.
+        """
+        if self.role == Role.TEACHER.value and self.middle_name:
+            return f"{self.first_name} {self.middle_name}".strip()
+        return self.first_name.strip()
+
+    @property
+    def formal_name(self) -> str:
+        """Как о человеке говорят ДРУГИМ: «кто ведёт этот курс», подпись автора, отправитель.
+
+        🔴 Разница с `display_name` найдена тестами, а не придумана: ученик, читающий «Мария»
+        вместо «Мария Петровна», обращается к преподавателю по-свойски, чего в русской школе
+        не делают. Обращение и упоминание — разные формы, и склеивать их в одну нельзя.
+
+        Преподаватель с отчеством — Имя Отчество. Все остальные (и преподаватель без
+        отчества) — Имя Фамилия: этого достаточно, чтобы отличить двух Тимуров, и не
+        избыточно, как полная форма из трёх слов.
+        """
+        if self.role == Role.TEACHER.value and self.middle_name:
+            return f"{self.first_name} {self.middle_name}".strip()
+        return " ".join(p for p in (self.first_name, self.last_name) if p)
+
+    @property
+    def short_name(self) -> str:
+        """Имя Ф. — там, где места мало: список участников, чат, полоса видео."""
+        initial = f" {self.last_name[0]}." if self.last_name else ""
+        return f"{self.first_name}{initial}".strip()
 
 
 class StudentProfile(TimeStampedModel):

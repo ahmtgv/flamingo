@@ -30,6 +30,9 @@ query InstitutionGroups($institutionId: ID!) {
         id
         firstName
         lastName
+        displayName
+        shortName
+        fullName
       }
     }
     teachers {
@@ -40,6 +43,9 @@ query InstitutionGroups($institutionId: ID!) {
           id
           firstName
           lastName
+          displayName
+          shortName
+          fullName
         }
       }
     }
@@ -56,6 +62,9 @@ query InstitutionMembers($institutionId: ID!, $role: MembershipRole) {
       id
       firstName
       lastName
+      displayName
+      shortName
+      fullName
       email
     }
   }
@@ -86,6 +95,9 @@ mutation InviteMember($input: InviteInput!) {
       id
       firstName
       lastName
+      displayName
+      shortName
+      fullName
       email
     }
   }
@@ -119,6 +131,9 @@ mutation AddStudentsToGroup($groupId: ID!, $studentIds: [ID!]!) {
         id
         firstName
         lastName
+        displayName
+        shortName
+        fullName
       }
     }
   }
@@ -132,6 +147,9 @@ mutation RemoveStudentFromGroup($groupId: ID!, $studentId: ID!) {
         id
         firstName
         lastName
+        displayName
+        shortName
+        fullName
       }
     }
   }
@@ -146,6 +164,9 @@ mutation AssignTeacher($groupId: ID!, $teacherId: ID!, $subject: String!) {
         id
         firstName
         lastName
+        displayName
+        shortName
+        fullName
       }
     }
   }

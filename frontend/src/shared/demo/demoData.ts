@@ -23,6 +23,12 @@ type UserRef = {
   id: string;
   firstName: string;
   lastName: string;
+  // Готовые имена — те же, что отдаёт сервер (§24). В демо-слое все три совпадают: «Ученик 1»
+  // это ЯРЛЫК роли, а не имя с фамилией, и разбирать его на формы было бы игрой в имя.
+  displayName: string;
+  formalName: string;
+  shortName: string;
+  fullName: string;
   email: string;
 };
 
@@ -32,6 +38,10 @@ export const users = {
     id: 'u-sasha',
     firstName: 'Ученик',
     lastName: '1',
+    displayName: 'Ученик 1',
+    formalName: 'Ученик 1',
+    shortName: 'Ученик 1',
+    fullName: 'Ученик 1',
     email: 'pupil1@example.org',
   },
   maria: {
@@ -39,6 +49,10 @@ export const users = {
     id: 'u-maria',
     firstName: 'Преподаватель',
     lastName: '',
+    displayName: 'Преподаватель',
+    formalName: 'Преподаватель',
+    shortName: 'Преподаватель',
+    fullName: 'Преподаватель',
     email: 'teacher@example.org',
   },
   ilya: {
@@ -46,6 +60,10 @@ export const users = {
     id: 'u-ilya',
     firstName: 'Преподаватель',
     lastName: '2',
+    displayName: 'Преподаватель 2',
+    formalName: 'Преподаватель 2',
+    shortName: 'Преподаватель 2',
+    fullName: 'Преподаватель 2',
     email: 'teacher2@example.org',
   },
   dmitry: {
@@ -53,6 +71,10 @@ export const users = {
     id: 'u-dmitry',
     firstName: 'Родитель',
     lastName: '2',
+    displayName: 'Родитель 2',
+    formalName: 'Родитель 2',
+    shortName: 'Родитель 2',
+    fullName: 'Родитель 2',
     email: 'parent2@example.org',
   },
   olga: {
@@ -60,6 +82,10 @@ export const users = {
     id: 'u-olga',
     firstName: 'Родитель',
     lastName: '',
+    displayName: 'Родитель',
+    formalName: 'Родитель',
+    shortName: 'Родитель',
+    fullName: 'Родитель',
     email: 'parent@example.org',
   },
   galina: {
@@ -67,6 +93,10 @@ export const users = {
     id: 'u-galina',
     firstName: 'Преподаватель',
     lastName: '3',
+    displayName: 'Преподаватель 3',
+    formalName: 'Преподаватель 3',
+    shortName: 'Преподаватель 3',
+    fullName: 'Преподаватель 3',
     email: 'teacher3@example.org',
   },
   mila: {
@@ -74,6 +104,10 @@ export const users = {
     id: 'u-mila',
     firstName: 'Преподаватель',
     lastName: '4',
+    displayName: 'Преподаватель 4',
+    formalName: 'Преподаватель 4',
+    shortName: 'Преподаватель 4',
+    fullName: 'Преподаватель 4',
     email: 'teacher4@example.org',
   },
   vera: {
@@ -81,6 +115,10 @@ export const users = {
     id: 'u-vera',
     firstName: 'Ученик',
     lastName: '2',
+    displayName: 'Ученик 2',
+    formalName: 'Ученик 2',
+    shortName: 'Ученик 2',
+    fullName: 'Ученик 2',
     email: 'pupil2@example.org',
   },
   timur: {
@@ -88,6 +126,10 @@ export const users = {
     id: 'u-timur',
     firstName: 'Ученик',
     lastName: '3',
+    displayName: 'Ученик 3',
+    formalName: 'Ученик 3',
+    shortName: 'Ученик 3',
+    fullName: 'Ученик 3',
     email: 'pupil3@example.org',
   },
   kostya: {
@@ -95,6 +137,10 @@ export const users = {
     id: 'u-kostya',
     firstName: 'Ученик',
     lastName: '4',
+    displayName: 'Ученик 4',
+    formalName: 'Ученик 4',
+    shortName: 'Ученик 4',
+    fullName: 'Ученик 4',
     email: 'pupil4@example.org',
   },
   liza: {
@@ -102,6 +148,10 @@ export const users = {
     id: 'u-liza',
     firstName: 'Ученик',
     lastName: '5',
+    displayName: 'Ученик 5',
+    formalName: 'Ученик 5',
+    shortName: 'Ученик 5',
+    fullName: 'Ученик 5',
     email: 'pupil5@example.org',
   },
   mark: {
@@ -109,6 +159,10 @@ export const users = {
     id: 'u-mark',
     firstName: 'Ученик',
     lastName: '6',
+    displayName: 'Ученик 6',
+    formalName: 'Ученик 6',
+    shortName: 'Ученик 6',
+    fullName: 'Ученик 6',
     email: 'pupil6@example.org',
   },
   anya: {
@@ -116,6 +170,10 @@ export const users = {
     id: 'u-anya',
     firstName: 'Ученик',
     lastName: '7',
+    displayName: 'Ученик 7',
+    formalName: 'Ученик 7',
+    shortName: 'Ученик 7',
+    fullName: 'Ученик 7',
     email: 'pupil7@example.org',
   },
   dima: {
@@ -123,6 +181,10 @@ export const users = {
     id: 'u-dima',
     firstName: 'Ученик',
     lastName: '8',
+    displayName: 'Ученик 8',
+    formalName: 'Ученик 8',
+    shortName: 'Ученик 8',
+    fullName: 'Ученик 8',
     email: 'pupil8@example.org',
   },
   annaR: {
@@ -130,6 +192,10 @@ export const users = {
     id: 'u-anna-r',
     firstName: 'Анна',
     lastName: 'Рожкова',
+    displayName: 'Анна Рожкова',
+    formalName: 'Анна Рожкова',
+    shortName: 'Анна Рожкова',
+    fullName: 'Анна Рожкова',
     email: 'anna.r@example.ru',
   },
   petrK: {
@@ -137,6 +203,10 @@ export const users = {
     id: 'u-petr-k',
     firstName: 'Пётр',
     lastName: '',
+    displayName: 'Пётр',
+    formalName: 'Пётр',
+    shortName: 'Пётр',
+    fullName: 'Пётр',
     email: 'petr.k@example.ru',
   },
 } satisfies Record<string, UserRef>;
@@ -202,7 +272,7 @@ const initialChildren: MeChild[] = [
       __typename: 'User',
       id: users.sasha.id,
       firstName: users.sasha.firstName,
-      lastName: users.sasha.lastName,
+      lastName: users.sasha.lastName, displayName: users.sasha.firstName, shortName: users.sasha.firstName,
     },
   },
   {
@@ -213,7 +283,7 @@ const initialChildren: MeChild[] = [
       __typename: 'User',
       id: users.mila.id,
       firstName: users.mila.firstName,
-      lastName: users.mila.lastName,
+      lastName: users.mila.lastName, displayName: users.mila.firstName, shortName: users.mila.firstName,
     },
   },
 ];
@@ -340,6 +410,14 @@ export function makeChild(firstName: string, lastName: string, gradeLevel: strin
     __typename: 'StudentProfile',
     ageBand,
     gradeLevel,
-    user: { __typename: 'User', id: nextId('u-child'), firstName, lastName: lastName || '' },
+    user: {
+      __typename: 'User',
+      id: nextId('u-child'),
+      firstName,
+      lastName: lastName || '',
+      // Ребёнка зовут по имени — то же правило, что на сервере (§24).
+      displayName: firstName,
+      shortName: lastName ? `${firstName} ${lastName[0]}.` : firstName,
+    },
   };
 }

@@ -246,7 +246,7 @@ function GradeRow({ submission, onGraded }: { submission: SubmissionRow; onGrade
   const [comment, setComment] = useState(submission.comment ?? '');
   const [gradeSubmission, { loading }] = useGradeSubmissionMutation();
 
-  const who = `${submission.student.user.firstName} ${submission.student.user.lastName}`.trim();
+  const who = submission.student.user.formalName;
 
   async function submit(e: FormEvent) {
     e.preventDefault();

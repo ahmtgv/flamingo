@@ -2,10 +2,17 @@
    Two rows of chrome and everything else is the approved screens: 44px title bar, a status
    strip that exists only while it has something to say, and the viewport. */
 
+/* 🔴 Находка владельца 15.08 №5: содержимое течёт вниз, и страница прокручивается.
+   `min-height: 100vh` растёт вместе с содержимым — окно приложения так себя вести не должно:
+   у него известная высота, и раскладка обязана считаться от неё. `height: 100dvh` даёт
+   раме ровно окно, а `.viewport` становится единственным местом, где что-то может прокрутиться
+   — и то лишь если окно меньше заявленного минимума. */
 .app {
   display: grid;
   grid-template-rows: auto auto 1fr;
-  min-height: 100vh;
+  height: 100dvh;
+  min-height: 0;
+  overflow: hidden;
   background: var(--color-surface);
   color: var(--color-text);
 }

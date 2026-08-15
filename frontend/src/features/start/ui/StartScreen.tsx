@@ -134,7 +134,9 @@ export function StartScreen() {
       <main className={styles.page}>
         <div className={styles.hi}>
           <h1 className={styles.hiName}>
-            {t(isTeacher ? 'greetingTeacher' : 'greeting', { name: me?.firstName ?? '' })}
+            {/* §24: «Здравствуйте, Люция Валерьевна». Форму собирает сервер — к преподавателю
+                имя-отчество, к ученику имя, и без отчества хвоста не остаётся. */}
+            {t(isTeacher ? 'greetingTeacher' : 'greeting', { name: me?.displayName ?? '' })}
           </h1>
           <span className={styles.hiDate}>{headerStamp(now)}</span>
         </div>

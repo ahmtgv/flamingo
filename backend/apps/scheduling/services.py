@@ -302,4 +302,4 @@ def teacher_name_for(session: LessonSession) -> str | None:
     (get_session is already access-gated), so no extra check is needed here."""
     owner = session.lesson.section.course.owner
     user = owner.user
-    return f"{user.first_name} {user.last_name}".strip() or None
+    return user.formal_name or None

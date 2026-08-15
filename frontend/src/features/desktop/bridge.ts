@@ -40,15 +40,35 @@ async function call(cmd: string, args?: Record<string, unknown>): Promise<boolea
 }
 
 /**
- * Свернуть в трей — **and leave the lesson running**.
+ * Свернуть — **and leave the lesson running**.
  *
  * 🔴 This is the whole point of the button and of sheet D1's tray section: «Свёрнутое окно не
- * заканчивает урок». The command hides the window; it does not touch the session, the sidecar
- * or the room. Ending a lesson has its own button in the strip, and it says «Завершить»,
- * because the teacher frequently minimises and forgets the room is open.
+ * заканчивает урок». It does not touch the session, the sidecar or the room. Ending a lesson
+ * has its own button in the strip, and it says «Завершить», because the teacher frequently
+ * minimises and forgets the room is open.
+ *
+ * ⚠️ Находка владельца 15.08 №3: «нажатие — и всё замирает». Кнопка ПРЯТАЛА окно
+ * (`window.hide()`), и вернуть его можно было только через значок в трее. Для человека,
+ * который не знал про трей, приложение просто исчезало — и это неотличимо от зависания.
+ * Теперь окно сворачивается в Dock/панель задач, как сворачивается всё остальное на машине:
+ * возврат — привычным движением, а не знанием про нашу реализацию.
  */
-export function minimiseToTray(): Promise<boolean> {
-  return call('minimise_to_tray');
+export function minimiseWindow(): Promise<boolean> {
+  return call('minimise_window');
+}
+
+/**
+ * Открыть адрес во ВНЕШНЕМ браузере.
+ *
+ * 🔴 Находка владельца 15.08 №2: «"Открыть страницу в браузере" не открывает». Внутри Tauri
+ * обычная ссылка `target="_blank"` не открывает ничего: webview не умеет заводить новые окна,
+ * и нажатие проваливалось молча.
+ *
+ * Открывать надо именно СНАРУЖИ и по существу дела, а не для удобства: человек входит в свою
+ * учётную запись, и делать это он должен там, где видны адресная строка и замок (§19.4).
+ */
+export function openExternal(url: string): Promise<boolean> {
+  return call('open_external', { url });
 }
 
 /**

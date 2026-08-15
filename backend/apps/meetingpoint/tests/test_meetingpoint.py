@@ -376,9 +376,10 @@ def test_the_participant_list_says_where_each_person_is():
     # Ира не открывала ни разу — и это теперь факт, а не догадка.
 
     by_name = {row["name"]: row["state"] for row in mp.participants(teacher, group.id)}
-    assert by_name["Аня Коваль"] == "at_the_door"
-    assert by_name["Петя Коваль"] == "invited"
-    assert by_name["Ира Коваль"] == "never_opened"
+    # §24: полоса участников узкая — там «Имя Ф.», а не имя с фамилией целиком.
+    assert by_name["Аня К."] == "at_the_door"
+    assert by_name["Петя К."] == "invited"
+    assert by_name["Ира К."] == "never_opened"
 
 
 def test_only_the_groups_teacher_sees_who_came():

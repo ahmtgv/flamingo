@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 
 import { BrandMark } from '@/shared/ui';
 
-import { APP_VERSION, minimiseToTray, setTrayLabel } from './bridge';
+import { APP_VERSION, minimiseWindow, setTrayLabel } from './bridge';
 import { ControlsContext } from './frameControls';
 import {
   connectionWord,
@@ -86,7 +86,7 @@ export function DesktopFrame({
    */
   const handleMinimise = () => {
     void setTrayLabel(trayLabel);
-    void minimiseToTray();
+    void minimiseWindow();
   };
 
   return (
@@ -130,15 +130,21 @@ export function DesktopFrame({
             >
               ▾
             </button>
-            <button
-              type="button"
-              className={styles.iconBtn}
-              onClick={onSettings}
-              title={t('title.settings')}
-              aria-label={t('title.settings')}
-            >
-              ⚙
-            </button>
+            {/* 🔴 Находка владельца 15.08 №4: шестерёнка была нарисована, а обработчика у неё
+                не было — `onSettings` необязателен, и никто его не передавал. Кнопка, которая
+                ничего не делает, хуже отсутствующей: человек решает, что сломался он.
+                Нет обработчика — нет и кнопки; это условие, а не договорённость. */}
+            {onSettings && (
+              <button
+                type="button"
+                className={styles.iconBtn}
+                onClick={onSettings}
+                title={t('title.settings')}
+                aria-label={t('title.settings')}
+              >
+                ⚙
+              </button>
+            )}
           </span>
         </header>
 

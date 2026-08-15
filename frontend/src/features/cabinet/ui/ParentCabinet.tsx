@@ -170,7 +170,7 @@ export function ParentCabinet({ me, refetchMe }: { me: Me; refetchMe: () => Prom
                 <Avatar initials={initialsOf(child.user.firstName, child.user.lastName)} />
                 <div className={styles.childInfo}>
                   <div className={styles.childName}>
-                    {child.user.firstName} {child.user.lastName}
+                    {child.user.displayName}
                   </div>
                   <div className={styles.childMeta}>
                     {child.gradeLevel || t(`ageBand.${child.ageBand}`)}

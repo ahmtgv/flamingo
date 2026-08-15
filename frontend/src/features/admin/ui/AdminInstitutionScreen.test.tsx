@@ -81,7 +81,7 @@ describe('AdminInstitutionScreen', () => {
         __typename: 'User',
         id: 'admin1', // matches me.id from adminInstitutionMock
         firstName: 'Алла',
-        lastName: 'Админова',
+        lastName: 'Админова', displayName: 'Алла', formalName: 'Алла', shortName: 'Алла', fullName: `${'Админова'} ${'Алла'}`,
         email: 'a@example.com',
       },
     };
@@ -91,7 +91,7 @@ describe('AdminInstitutionScreen', () => {
     });
     renderAdmin([adminInstitutionMock(institution), membersWithAdmin(), membersWithAdmin(), groupsMock]);
 
-    expect(await screen.findByText(/Алла Админова/)).toBeInTheDocument();
+    expect(await screen.findByText(/Админова Алла/)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Удалить' })).toBeDisabled();
   });
 });

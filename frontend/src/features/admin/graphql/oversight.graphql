@@ -4,8 +4,7 @@
 query VerificationQueue {
   verificationQueue {
     teacherUserId
-    firstName
-    lastName
+    fullName
     email
     specialty
     education

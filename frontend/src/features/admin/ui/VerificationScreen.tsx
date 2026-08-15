@@ -169,7 +169,7 @@ function QueueCard({ entry, onDone }: { entry: Entry; onDone: () => void }) {
     <div className={styles.card}>
       <div className={styles.groupHead}>
         <span className={styles.groupName}>
-          {entry.firstName} {entry.lastName}
+          {entry.fullName}
         </span>
         <span className={styles.muted}>
           {t('verification.submitted', { date: DATE.format(new Date(entry.submittedAt)) })} ·{' '}

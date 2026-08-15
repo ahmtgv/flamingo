@@ -318,10 +318,12 @@ export type ChatMessage = {
 
 export type ChatParticipant = {
   __typename?: 'ChatParticipant';
+  displayName: Scalars['String']['output'];
   firstName: Scalars['String']['output'];
   id: Scalars['ID']['output'];
   lastName: Scalars['String']['output'];
   role: Scalars['String']['output'];
+  shortName: Scalars['String']['output'];
 };
 
 export type ChatPolicyView = {
@@ -1068,6 +1070,7 @@ export type Mutation = {
   updateInstitution: Institution;
   updateLesson: Lesson;
   updateMembership: InstitutionMembership;
+  updateMyName: User;
   updateNotificationPreference: NotificationPreference;
   updateSection: Section;
   updateSummaryItem: SummaryItem;
@@ -1655,6 +1658,13 @@ export type MutationUpdateMembershipArgs = {
 };
 
 
+export type MutationUpdateMyNameArgs = {
+  firstName: Scalars['String']['input'];
+  lastName: Scalars['String']['input'];
+  middleName?: InputMaybe<Scalars['String']['input']>;
+};
+
+
 export type MutationUpdateNotificationPreferenceArgs = {
   input: NotificationPreferenceInput;
 };
@@ -2177,6 +2187,7 @@ export type RegisterUserInput = {
   firstName: Scalars['String']['input'];
   lastName: Scalars['String']['input'];
   locale?: InputMaybe<Scalars['String']['input']>;
+  middleName?: InputMaybe<Scalars['String']['input']>;
   password: Scalars['String']['input'];
   role: Role;
   student?: InputMaybe<StudentInfoInput>;
@@ -2805,15 +2816,20 @@ export type User = {
   consentAttention: Scalars['Boolean']['output'];
   consentSpeech: Scalars['Boolean']['output'];
   createdAt: Scalars['DateTime']['output'];
+  displayName: Scalars['String']['output'];
   email: Scalars['String']['output'];
   firstName: Scalars['String']['output'];
+  formalName: Scalars['String']['output'];
+  fullName: Scalars['String']['output'];
   id: Scalars['ID']['output'];
   isActive: Scalars['Boolean']['output'];
   lastName: Scalars['String']['output'];
   locale: Scalars['String']['output'];
+  middleName: Scalars['String']['output'];
   parentProfile?: Maybe<ParentProfile>;
   phone?: Maybe<Scalars['String']['output']>;
   role: Role;
+  shortName: Scalars['String']['output'];
   studentProfile?: Maybe<StudentProfile>;
   teacherProfile?: Maybe<TeacherProfile>;
 };
@@ -2844,8 +2860,7 @@ export type VerificationQueueEntry = {
   documents: Array<VerificationQueueDocument>;
   education: Scalars['String']['output'];
   email: Scalars['String']['output'];
-  firstName: Scalars['String']['output'];
-  lastName: Scalars['String']['output'];
+  fullName: Scalars['String']['output'];
   sessionCount: Scalars['Int']['output'];
   specialty: Scalars['String']['output'];
   submittedAt: Scalars['DateTime']['output'];
@@ -2874,7 +2889,7 @@ export type InstitutionGroupsQueryVariables = Exact<{
 }>;
 
 
-export type InstitutionGroupsQuery = { __typename?: 'Query', groups: Array<{ __typename?: 'Group', id: string, name: string, level?: string | null, students: Array<{ __typename?: 'StudentProfile', user: { __typename?: 'User', id: string, firstName: string, lastName: string } }>, teachers: Array<{ __typename?: 'GroupTeacher', id: string, subject: string, teacher: { __typename?: 'TeacherProfile', user: { __typename?: 'User', id: string, firstName: string, lastName: string } } }> }> };
+export type InstitutionGroupsQuery = { __typename?: 'Query', groups: Array<{ __typename?: 'Group', id: string, name: string, level?: string | null, students: Array<{ __typename?: 'StudentProfile', user: { __typename?: 'User', id: string, firstName: string, lastName: string, displayName: string, shortName: string, fullName: string } }>, teachers: Array<{ __typename?: 'GroupTeacher', id: string, subject: string, teacher: { __typename?: 'TeacherProfile', user: { __typename?: 'User', id: string, firstName: string, lastName: string, displayName: string, shortName: string, fullName: string } } }> }> };
 
 export type InstitutionMembersQueryVariables = Exact<{
   institutionId: Scalars['ID']['input'];
@@ -2882,7 +2897,7 @@ export type InstitutionMembersQueryVariables = Exact<{
 }>;
 
 
-export type InstitutionMembersQuery = { __typename?: 'Query', institutionMembers: Array<{ __typename?: 'InstitutionMembership', id: string, role: MembershipRole, status: MembershipStatus, joinedAt?: string | null, user: { __typename?: 'User', id: string, firstName: string, lastName: string, email: string } }> };
+export type InstitutionMembersQuery = { __typename?: 'Query', institutionMembers: Array<{ __typename?: 'InstitutionMembership', id: string, role: MembershipRole, status: MembershipStatus, joinedAt?: string | null, user: { __typename?: 'User', id: string, firstName: string, lastName: string, displayName: string, shortName: string, fullName: string, email: string } }> };
 
 export type UpdateInstitutionMutationVariables = Exact<{
   id: Scalars['ID']['input'];
@@ -2905,7 +2920,7 @@ export type InviteMemberMutationVariables = Exact<{
 }>;
 
 
-export type InviteMemberMutation = { __typename?: 'Mutation', inviteMember: { __typename?: 'InstitutionMembership', id: string, role: MembershipRole, status: MembershipStatus, user: { __typename?: 'User', id: string, firstName: string, lastName: string, email: string } } };
+export type InviteMemberMutation = { __typename?: 'Mutation', inviteMember: { __typename?: 'InstitutionMembership', id: string, role: MembershipRole, status: MembershipStatus, user: { __typename?: 'User', id: string, firstName: string, lastName: string, displayName: string, shortName: string, fullName: string, email: string } } };
 
 export type UpdateMembershipMutationVariables = Exact<{
   id: Scalars['ID']['input'];
@@ -2936,7 +2951,7 @@ export type AddStudentsToGroupMutationVariables = Exact<{
 }>;
 
 
-export type AddStudentsToGroupMutation = { __typename?: 'Mutation', addStudentsToGroup: { __typename?: 'Group', id: string, students: Array<{ __typename?: 'StudentProfile', user: { __typename?: 'User', id: string, firstName: string, lastName: string } }> } };
+export type AddStudentsToGroupMutation = { __typename?: 'Mutation', addStudentsToGroup: { __typename?: 'Group', id: string, students: Array<{ __typename?: 'StudentProfile', user: { __typename?: 'User', id: string, firstName: string, lastName: string, displayName: string, shortName: string, fullName: string } }> } };
 
 export type RemoveStudentFromGroupMutationVariables = Exact<{
   groupId: Scalars['ID']['input'];
@@ -2944,7 +2959,7 @@ export type RemoveStudentFromGroupMutationVariables = Exact<{
 }>;
 
 
-export type RemoveStudentFromGroupMutation = { __typename?: 'Mutation', removeStudentFromGroup: { __typename?: 'Group', id: string, students: Array<{ __typename?: 'StudentProfile', user: { __typename?: 'User', id: string, firstName: string, lastName: string } }> } };
+export type RemoveStudentFromGroupMutation = { __typename?: 'Mutation', removeStudentFromGroup: { __typename?: 'Group', id: string, students: Array<{ __typename?: 'StudentProfile', user: { __typename?: 'User', id: string, firstName: string, lastName: string, displayName: string, shortName: string, fullName: string } }> } };
 
 export type AssignTeacherMutationVariables = Exact<{
   groupId: Scalars['ID']['input'];
@@ -2953,12 +2968,12 @@ export type AssignTeacherMutationVariables = Exact<{
 }>;
 
 
-export type AssignTeacherMutation = { __typename?: 'Mutation', assignTeacher: { __typename?: 'GroupTeacher', id: string, subject: string, teacher: { __typename?: 'TeacherProfile', user: { __typename?: 'User', id: string, firstName: string, lastName: string } } } };
+export type AssignTeacherMutation = { __typename?: 'Mutation', assignTeacher: { __typename?: 'GroupTeacher', id: string, subject: string, teacher: { __typename?: 'TeacherProfile', user: { __typename?: 'User', id: string, firstName: string, lastName: string, displayName: string, shortName: string, fullName: string } } } };
 
 export type VerificationQueueQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type VerificationQueueQuery = { __typename?: 'Query', verificationQueue: Array<{ __typename?: 'VerificationQueueEntry', teacherUserId: string, firstName: string, lastName: string, email: string, specialty: string, education: string, submittedAt: string, courseCount: number, sessionCount: number, documents: Array<{ __typename?: 'VerificationQueueDocument', id: string, filename: string, sizeBytes?: number | null, createdAt: string }> }> };
+export type VerificationQueueQuery = { __typename?: 'Query', verificationQueue: Array<{ __typename?: 'VerificationQueueEntry', teacherUserId: string, fullName: string, email: string, specialty: string, education: string, submittedAt: string, courseCount: number, sessionCount: number, documents: Array<{ __typename?: 'VerificationQueueDocument', id: string, filename: string, sizeBytes?: number | null, createdAt: string }> }> };
 
 export type VerificationDocumentUrlQueryVariables = Exact<{
   id: Scalars['ID']['input'];
@@ -3003,21 +3018,21 @@ export type LoginMutationVariables = Exact<{
 }>;
 
 
-export type LoginMutation = { __typename?: 'Mutation', login: { __typename?: 'AuthPayload', token: string, refreshToken: string, user: { __typename?: 'User', id: string, email: string, firstName: string, lastName: string, role: Role, locale: string, studentProfile?: { __typename?: 'StudentProfile', ageBand: AgeBand, gradeLevel?: string | null, points: number } | null, teacherProfile?: { __typename?: 'TeacherProfile', verificationStatus: VerificationStatus } | null } } };
+export type LoginMutation = { __typename?: 'Mutation', login: { __typename?: 'AuthPayload', token: string, refreshToken: string, user: { __typename?: 'User', id: string, email: string, firstName: string, lastName: string, displayName: string, shortName: string, role: Role, locale: string, studentProfile?: { __typename?: 'StudentProfile', ageBand: AgeBand, gradeLevel?: string | null, points: number } | null, teacherProfile?: { __typename?: 'TeacherProfile', verificationStatus: VerificationStatus } | null } } };
 
 export type RegisterUserMutationVariables = Exact<{
   input: RegisterUserInput;
 }>;
 
 
-export type RegisterUserMutation = { __typename?: 'Mutation', registerUser: { __typename?: 'AuthPayload', token: string, refreshToken: string, user: { __typename?: 'User', id: string, email: string, firstName: string, lastName: string, role: Role, locale: string, studentProfile?: { __typename?: 'StudentProfile', ageBand: AgeBand, gradeLevel?: string | null, points: number } | null, teacherProfile?: { __typename?: 'TeacherProfile', verificationStatus: VerificationStatus } | null } } };
+export type RegisterUserMutation = { __typename?: 'Mutation', registerUser: { __typename?: 'AuthPayload', token: string, refreshToken: string, user: { __typename?: 'User', id: string, email: string, firstName: string, lastName: string, displayName: string, shortName: string, role: Role, locale: string, studentProfile?: { __typename?: 'StudentProfile', ageBand: AgeBand, gradeLevel?: string | null, points: number } | null, teacherProfile?: { __typename?: 'TeacherProfile', verificationStatus: VerificationStatus } | null } } };
 
 export type RefreshTokenMutationVariables = Exact<{
   refreshToken: Scalars['String']['input'];
 }>;
 
 
-export type RefreshTokenMutation = { __typename?: 'Mutation', refreshToken: { __typename?: 'AuthPayload', token: string, refreshToken: string, user: { __typename?: 'User', id: string, email: string, firstName: string, lastName: string, role: Role, locale: string, studentProfile?: { __typename?: 'StudentProfile', ageBand: AgeBand, gradeLevel?: string | null, points: number } | null, teacherProfile?: { __typename?: 'TeacherProfile', verificationStatus: VerificationStatus } | null } } };
+export type RefreshTokenMutation = { __typename?: 'Mutation', refreshToken: { __typename?: 'AuthPayload', token: string, refreshToken: string, user: { __typename?: 'User', id: string, email: string, firstName: string, lastName: string, displayName: string, shortName: string, role: Role, locale: string, studentProfile?: { __typename?: 'StudentProfile', ageBand: AgeBand, gradeLevel?: string | null, points: number } | null, teacherProfile?: { __typename?: 'TeacherProfile', verificationStatus: VerificationStatus } | null } } };
 
 export type RequestPasswordResetMutationVariables = Exact<{
   email: Scalars['String']['input'];
@@ -3039,7 +3054,7 @@ export type AddChildMutationVariables = Exact<{
 }>;
 
 
-export type AddChildMutation = { __typename?: 'Mutation', addChild: { __typename?: 'Guardianship', id: string, status: GuardianshipStatus, consent152fz: boolean, consentAt?: string | null, child: { __typename?: 'User', id: string, firstName: string, lastName: string } } };
+export type AddChildMutation = { __typename?: 'Mutation', addChild: { __typename?: 'Guardianship', id: string, status: GuardianshipStatus, consent152fz: boolean, consentAt?: string | null, child: { __typename?: 'User', id: string, firstName: string, lastName: string, displayName: string, shortName: string } } };
 
 export type SubmitVerificationDocumentMutationVariables = Exact<{
   fileKey: Scalars['String']['input'];
@@ -3051,7 +3066,7 @@ export type SubmitVerificationDocumentMutation = { __typename?: 'Mutation', subm
 export type MeQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type MeQuery = { __typename?: 'Query', me?: { __typename?: 'User', id: string, email: string, firstName: string, lastName: string, role: Role, locale: string, avatarUrl?: string | null, consentSpeech: boolean, consentAttention: boolean, studentProfile?: { __typename?: 'StudentProfile', ageBand: AgeBand, gradeLevel?: string | null, points: number } | null, teacherProfile?: { __typename?: 'TeacherProfile', verificationStatus: VerificationStatus, specialty?: string | null, verificationDocuments: Array<{ __typename?: 'VerificationDocument', id: string, filename: string, sizeBytes?: number | null, status: VerificationStatus, reason: string, createdAt: string }> } | null, parentProfile?: { __typename?: 'ParentProfile', children: Array<{ __typename?: 'StudentProfile', ageBand: AgeBand, gradeLevel?: string | null, user: { __typename?: 'User', id: string, firstName: string, lastName: string } }> } | null } | null };
+export type MeQuery = { __typename?: 'Query', me?: { __typename?: 'User', id: string, email: string, firstName: string, lastName: string, displayName: string, shortName: string, role: Role, locale: string, avatarUrl?: string | null, consentSpeech: boolean, consentAttention: boolean, studentProfile?: { __typename?: 'StudentProfile', ageBand: AgeBand, gradeLevel?: string | null, points: number } | null, teacherProfile?: { __typename?: 'TeacherProfile', verificationStatus: VerificationStatus, specialty?: string | null, verificationDocuments: Array<{ __typename?: 'VerificationDocument', id: string, filename: string, sizeBytes?: number | null, status: VerificationStatus, reason: string, createdAt: string }> } | null, parentProfile?: { __typename?: 'ParentProfile', children: Array<{ __typename?: 'StudentProfile', ageBand: AgeBand, gradeLevel?: string | null, user: { __typename?: 'User', id: string, firstName: string, lastName: string, displayName: string, shortName: string } }> } | null } | null };
 
 export type SetAvatarMutationVariables = Exact<{
   fileKey: Scalars['String']['input'];
@@ -3128,12 +3143,12 @@ export type BoardChangedSubscription = { __typename?: 'Subscription', boardChang
 export type TeacherDashboardQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type TeacherDashboardQuery = { __typename?: 'Query', teacherDashboard: { __typename?: 'TeacherDashboard', studentCount: number, newStudentsThisWeek: number, courses: Array<{ __typename?: 'Course', id: string, title: string, status: CourseStatus, lessonCount: number, enrollmentCount: number }>, upcomingSessions: Array<{ __typename?: 'LessonSession', id: string, startAt: string, endAt?: string | null, status: SessionStatus, lesson: { __typename?: 'Lesson', id: string, title: string } }>, pendingSubmissions: Array<{ __typename?: 'Submission', id: string, submittedAt?: string | null, status: SubmissionStatus, student: { __typename?: 'StudentProfile', user: { __typename?: 'User', id: string, firstName: string, lastName: string } }, homework: { __typename?: 'Homework', id: string, title: string, lesson?: { __typename?: 'Lesson', id: string, title: string } | null } }> } };
+export type TeacherDashboardQuery = { __typename?: 'Query', teacherDashboard: { __typename?: 'TeacherDashboard', studentCount: number, newStudentsThisWeek: number, courses: Array<{ __typename?: 'Course', id: string, title: string, status: CourseStatus, lessonCount: number, enrollmentCount: number }>, upcomingSessions: Array<{ __typename?: 'LessonSession', id: string, startAt: string, endAt?: string | null, status: SessionStatus, lesson: { __typename?: 'Lesson', id: string, title: string } }>, pendingSubmissions: Array<{ __typename?: 'Submission', id: string, submittedAt?: string | null, status: SubmissionStatus, student: { __typename?: 'StudentProfile', user: { __typename?: 'User', id: string, firstName: string, lastName: string, displayName: string, shortName: string, formalName: string } }, homework: { __typename?: 'Homework', id: string, title: string, lesson?: { __typename?: 'Lesson', id: string, title: string } | null } }> } };
 
 export type MyChannelsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type MyChannelsQuery = { __typename?: 'Query', myChannels: Array<{ __typename?: 'ChatChannel', id: string, kind: ChannelKind, courseId?: string | null, courseTitle?: string | null, groupName?: string | null, institutionName?: string | null, unread: number, lastMessageAt?: string | null, lastMessageText?: string | null, readOnly: boolean, openReports: number, participants: Array<{ __typename?: 'ChatParticipant', id: string, firstName: string, lastName: string, role: string }> }> };
+export type MyChannelsQuery = { __typename?: 'Query', myChannels: Array<{ __typename?: 'ChatChannel', id: string, kind: ChannelKind, courseId?: string | null, courseTitle?: string | null, groupName?: string | null, institutionName?: string | null, unread: number, lastMessageAt?: string | null, lastMessageText?: string | null, readOnly: boolean, openReports: number, participants: Array<{ __typename?: 'ChatParticipant', id: string, firstName: string, lastName: string, displayName: string, shortName: string, role: string }> }> };
 
 export type ChatUnreadQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -3217,14 +3232,14 @@ export type CatalogQueryVariables = Exact<{
 }>;
 
 
-export type CatalogQuery = { __typename?: 'Query', catalog: { __typename?: 'CourseConnection', totalCount: number, subjectCount: number, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null }, nodes: Array<{ __typename?: 'Course', id: string, title: string, description?: string | null, subject: string, level: CourseLevel, format: CourseFormat, status: CourseStatus, lessonCount: number, enrollmentCount: number, owner: { __typename?: 'TeacherProfile', specialty?: string | null, user: { __typename?: 'User', id: string, firstName: string, lastName: string } } }> } };
+export type CatalogQuery = { __typename?: 'Query', catalog: { __typename?: 'CourseConnection', totalCount: number, subjectCount: number, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null }, nodes: Array<{ __typename?: 'Course', id: string, title: string, description?: string | null, subject: string, level: CourseLevel, format: CourseFormat, status: CourseStatus, lessonCount: number, enrollmentCount: number, owner: { __typename?: 'TeacherProfile', specialty?: string | null, user: { __typename?: 'User', id: string, firstName: string, lastName: string, displayName: string, shortName: string, formalName: string } } }> } };
 
 export type CourseDetailQueryVariables = Exact<{
   id: Scalars['ID']['input'];
 }>;
 
 
-export type CourseDetailQuery = { __typename?: 'Query', course?: { __typename?: 'Course', id: string, title: string, description?: string | null, subject: string, level: CourseLevel, format: CourseFormat, status: CourseStatus, lessonCount: number, enrollmentCount: number, updatedAt: string, owner: { __typename?: 'TeacherProfile', specialty?: string | null, user: { __typename?: 'User', id: string, firstName: string, lastName: string } }, sections: Array<{ __typename?: 'Section', id: string, title: string, description?: string | null, order: number, lessons: Array<{ __typename?: 'Lesson', id: string, title: string, durationMin: number, status: LessonStatus, order: number, nextSessionAt?: string | null, options: { __typename?: 'LessonOptions', homework: boolean }, materials: Array<{ __typename?: 'Material', id: string, type: MaterialType, title: string, url?: string | null, body?: string | null, fileUrl?: string | null, order: number }> }> }>, viewerEnrollment?: { __typename?: 'Enrollment', id: string, status: EnrollmentStatus, progressPct: number, viewedLessonIds: Array<string> } | null } | null };
+export type CourseDetailQuery = { __typename?: 'Query', course?: { __typename?: 'Course', id: string, title: string, description?: string | null, subject: string, level: CourseLevel, format: CourseFormat, status: CourseStatus, lessonCount: number, enrollmentCount: number, updatedAt: string, owner: { __typename?: 'TeacherProfile', specialty?: string | null, user: { __typename?: 'User', id: string, firstName: string, lastName: string, displayName: string, shortName: string, formalName: string } }, sections: Array<{ __typename?: 'Section', id: string, title: string, description?: string | null, order: number, lessons: Array<{ __typename?: 'Lesson', id: string, title: string, durationMin: number, status: LessonStatus, order: number, nextSessionAt?: string | null, options: { __typename?: 'LessonOptions', homework: boolean }, materials: Array<{ __typename?: 'Material', id: string, type: MaterialType, title: string, url?: string | null, body?: string | null, fileUrl?: string | null, order: number }> }> }>, viewerEnrollment?: { __typename?: 'Enrollment', id: string, status: EnrollmentStatus, progressPct: number, viewedLessonIds: Array<string> } | null } | null };
 
 export type MyCoursesQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -3557,7 +3572,7 @@ export type HomeworkSubmissionsQueryVariables = Exact<{
 }>;
 
 
-export type HomeworkSubmissionsQuery = { __typename?: 'Query', homeworkSubmissions: Array<{ __typename?: 'Submission', id: string, attempt: number, status: SubmissionStatus, score?: number | null, comment?: string | null, contentText?: string | null, submittedAt?: string | null, student: { __typename?: 'StudentProfile', user: { __typename?: 'User', id: string, firstName: string, lastName: string } } }> };
+export type HomeworkSubmissionsQuery = { __typename?: 'Query', homeworkSubmissions: Array<{ __typename?: 'Submission', id: string, attempt: number, status: SubmissionStatus, score?: number | null, comment?: string | null, contentText?: string | null, submittedAt?: string | null, student: { __typename?: 'StudentProfile', user: { __typename?: 'User', id: string, firstName: string, lastName: string, formalName: string, shortName: string, displayName: string } } }> };
 
 export type MySubmissionsQueryVariables = Exact<{
   courseId?: InputMaybe<Scalars['ID']['input']>;
@@ -3634,7 +3649,7 @@ export type SessionAttendeesQueryVariables = Exact<{
 }>;
 
 
-export type SessionAttendeesQuery = { __typename?: 'Query', session?: { __typename?: 'LessonSession', id: string, attendance: Array<{ __typename?: 'Attendance', student: { __typename?: 'StudentProfile', user: { __typename?: 'User', id: string, firstName: string, lastName: string } } }> } | null };
+export type SessionAttendeesQuery = { __typename?: 'Query', session?: { __typename?: 'LessonSession', id: string, attendance: Array<{ __typename?: 'Attendance', student: { __typename?: 'StudentProfile', user: { __typename?: 'User', id: string, firstName: string, lastName: string, formalName: string, shortName: string, displayName: string } } }> } | null };
 
 export type CreateProjectorCodeMutationVariables = Exact<{
   sessionId: Scalars['ID']['input'];
@@ -3963,6 +3978,9 @@ export const InstitutionGroupsDocument = gql`
         id
         firstName
         lastName
+        displayName
+        shortName
+        fullName
       }
     }
     teachers {
@@ -3973,6 +3991,9 @@ export const InstitutionGroupsDocument = gql`
           id
           firstName
           lastName
+          displayName
+          shortName
+          fullName
         }
       }
     }
@@ -4026,6 +4047,9 @@ export const InstitutionMembersDocument = gql`
       id
       firstName
       lastName
+      displayName
+      shortName
+      fullName
       email
     }
   }
@@ -4150,6 +4174,9 @@ export const InviteMemberDocument = gql`
       id
       firstName
       lastName
+      displayName
+      shortName
+      fullName
       email
     }
   }
@@ -4293,6 +4320,9 @@ export const AddStudentsToGroupDocument = gql`
         id
         firstName
         lastName
+        displayName
+        shortName
+        fullName
       }
     }
   }
@@ -4334,6 +4364,9 @@ export const RemoveStudentFromGroupDocument = gql`
         id
         firstName
         lastName
+        displayName
+        shortName
+        fullName
       }
     }
   }
@@ -4376,6 +4409,9 @@ export const AssignTeacherDocument = gql`
         id
         firstName
         lastName
+        displayName
+        shortName
+        fullName
       }
     }
   }
@@ -4413,8 +4449,7 @@ export const VerificationQueueDocument = gql`
     query VerificationQueue {
   verificationQueue {
     teacherUserId
-    firstName
-    lastName
+    fullName
     email
     specialty
     education
@@ -4666,6 +4701,8 @@ export const LoginDocument = gql`
       email
       firstName
       lastName
+      displayName
+      shortName
       role
       locale
       studentProfile {
@@ -4717,6 +4754,8 @@ export const RegisterUserDocument = gql`
       email
       firstName
       lastName
+      displayName
+      shortName
       role
       locale
       studentProfile {
@@ -4767,6 +4806,8 @@ export const RefreshTokenDocument = gql`
       email
       firstName
       lastName
+      displayName
+      shortName
       role
       locale
       studentProfile {
@@ -4881,6 +4922,8 @@ export const AddChildDocument = gql`
       id
       firstName
       lastName
+      displayName
+      shortName
     }
   }
 }
@@ -4954,6 +4997,8 @@ export const MeDocument = gql`
     email
     firstName
     lastName
+    displayName
+    shortName
     role
     locale
     avatarUrl
@@ -4984,6 +5029,8 @@ export const MeDocument = gql`
           id
           firstName
           lastName
+          displayName
+          shortName
         }
       }
     }
@@ -5469,6 +5516,9 @@ export const TeacherDashboardDocument = gql`
           id
           firstName
           lastName
+          displayName
+          shortName
+          formalName
         }
       }
       homework {
@@ -5536,6 +5586,8 @@ export const MyChannelsDocument = gql`
       id
       firstName
       lastName
+      displayName
+      shortName
       role
     }
   }
@@ -6032,6 +6084,9 @@ export const CatalogDocument = gql`
           id
           firstName
           lastName
+          displayName
+          shortName
+          formalName
         }
       }
     }
@@ -6095,6 +6150,9 @@ export const CourseDetailDocument = gql`
         id
         firstName
         lastName
+        displayName
+        shortName
+        formalName
       }
     }
     sections {
@@ -8067,6 +8125,11 @@ export const HomeworkSubmissionsDocument = gql`
         id
         firstName
         lastName
+        formalName
+        shortName
+        displayName
+        shortName
+        formalName
       }
     }
   }
@@ -8511,6 +8574,11 @@ export const SessionAttendeesDocument = gql`
           id
           firstName
           lastName
+          formalName
+          shortName
+          displayName
+          shortName
+          formalName
         }
       }
     }

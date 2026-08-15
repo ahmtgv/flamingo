@@ -163,7 +163,7 @@ function GuestView({
         )}
         <p className={styles.asideTeach}>
           {t('detail.teachOnCourse', {
-            name: `${course.owner.user.firstName} ${course.owner.user.lastName}`,
+            name: course.owner.user.formalName,
             count: course.enrollmentCount,
           })}
         </p>

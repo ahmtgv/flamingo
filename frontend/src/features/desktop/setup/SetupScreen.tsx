@@ -40,7 +40,7 @@ export function SetupScreen({ onFinished }: { onFinished: () => void }) {
   const step: SetupStep = local ?? resumed;
 
   const me = meData?.me;
-  const teacherName = me ? `${me.firstName} ${me.lastName}`.trim() : '';
+  const teacherName = me?.displayName ?? '';
   const groupSize = machine?.uplink?.groupSize ?? null;
 
   const go = (next: SetupStep) => {

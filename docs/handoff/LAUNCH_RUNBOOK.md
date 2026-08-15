@@ -306,6 +306,35 @@ cd /opt/flamingo && docker compose -f infra/prod/docker-compose.prod.yml --env-f
 
 ---
 
+## 17 · 🔴 Обновить сервер ради приложения ⏱ 5 минут
+
+*Добавлено 15.08 — без этого шага приложение не свяжется с сервером.*
+
+Приложение обращается к API из-под собственного протокола (`tauri://localhost`). Сервер такой
+адрес не пускал, и запрос **не уходил с машины вообще**: ни строки в логах, а на экране
+приложения — заглушка «Код истёк». Правка в коде: адрес приложения добавлен в разрешённые.
+
+Чтобы она заработала: **шаг 0** (залить код с мака) и **шаг 3** (пересобрать и поднять).
+После этого проверить одной командой — **с мака**:
+
+```
+curl -s -i -X OPTIONS https://api.flamingo.plus/graphql/ -H 'Origin: tauri://localhost' -H 'Access-Control-Request-Method: POST' | grep -i "access-control-allow-origin"
+```
+
+**Должно появиться:** `access-control-allow-origin: tauri://localhost`.
+
+Пусто — значит сервер ещё со старым кодом, и приложение кода связывания не покажет.
+
+И контрольная проверка, что чужому сайту по-прежнему нельзя:
+
+```
+curl -s -i -X OPTIONS https://api.flamingo.plus/graphql/ -H 'Origin: https://example.com' -H 'Access-Control-Request-Method: POST' | grep -ci "access-control-allow-origin"
+```
+
+**Должно появиться:** `0`.
+
+---
+
 ## Если что-то пошло не так
 
 Посмотреть, что говорит API:

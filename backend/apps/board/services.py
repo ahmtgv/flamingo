@@ -212,7 +212,7 @@ def _wire(element: BoardElement) -> dict:
         "id": str(element.id),
         "kind": element.kind,
         "author_id": str(element.author_id),
-        "author_name": f"{element.author.first_name} {element.author.last_name}".strip(),
+        "author_name": element.author.formal_name,
         "x": element.x,
         "y": element.y,
         "width": element.width,

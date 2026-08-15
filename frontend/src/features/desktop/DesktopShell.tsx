@@ -1,5 +1,6 @@
 import { type ReactNode, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 
 import { isDesktop, setTrayMenu } from './bridge';
 import { useScheduledBackup } from './useScheduledBackup';
@@ -17,6 +18,7 @@ import type { UplinkVerdict } from './hostState';
  */
 export function DesktopShell({ children }: { children: ReactNode }) {
   const { t } = useTranslation('desktop');
+  const navigate = useNavigate();
   const [online, setOnline] = useState(() =>
     typeof navigator === 'undefined' ? true : navigator.onLine,
   );
@@ -50,7 +52,14 @@ export function DesktopShell({ children }: { children: ReactNode }) {
   const verdict: UplinkVerdict = 'UNKNOWN';
 
   return (
-    <DesktopFrame online={online} lessonLive={false} verdict={verdict}>
+    <DesktopFrame
+      online={online}
+      lessonLive={false}
+      verdict={verdict}
+      // Шестерёнка ведёт в настройки приложения — экран, который уже существует (Р5.4).
+      // Без этой строки кнопка рисовалась и не делала ничего (находка 15.08 №4).
+      onSettings={() => navigate('/settings')}
+    >
       {online ? children : <OfflineScreen onRetry={() => setOnline(navigator.onLine)} />}
     </DesktopFrame>
   );

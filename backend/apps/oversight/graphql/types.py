@@ -20,8 +20,7 @@ class VerificationQueueEntry:
     """Преподаватель, ждущий решения — лист D7, «Преподаватели ждут решения»."""
 
     teacher_user_id: strawberry.ID
-    first_name: str
-    last_name: str
+    full_name: str
     email: str
     specialty: str
     education: str
@@ -36,8 +35,7 @@ class VerificationQueueEntry:
     def of(cls, entry) -> VerificationQueueEntry:
         return cls(
             teacher_user_id=strawberry.ID(entry.teacher_user_id),
-            first_name=entry.first_name,
-            last_name=entry.last_name,
+            full_name=entry.full_name,
             email=entry.email,
             specialty=entry.specialty,
             education=entry.education,
@@ -74,7 +72,8 @@ class AccessLogRow:
         def name(person) -> str:
             if person is None:
                 return ""
-            return f"{person.first_name} {person.last_name}".strip()
+            # Карточка надзора — документ: там нужна полная форма, включая отчество.
+            return person.full_name
 
         return cls(
             id=strawberry.ID(str(row.id)),

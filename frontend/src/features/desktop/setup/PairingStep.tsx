@@ -8,6 +8,9 @@ import {
 
 import { PUBLIC_ORIGIN } from '@/shared/lib/env';
 
+import { failureKind, type FailureKind } from '@/shared/lib/requestFailure';
+
+import { APP_VERSION, isDesktop, openExternal } from '../bridge';
 import { rememberMachineKey } from '../machineKey';
 
 import { countdown, formatPairingCode } from './firstRun';
@@ -19,6 +22,13 @@ const POLL_MS = 2000;
 // 🔴 T-05: адрес существует (маршрут /link и псевдоним /связать). Печатаем латинский —
 // его набирают руками с чужого экрана, и кириллица в адресной строке спотыкается о раскладку.
 const CONFIRM_URL = `${PUBLIC_ORIGIN || 'https://flamingo.plus'}/link`;
+
+/** Что именно не получилось — словами, а не «что-то пошло не так». */
+const FAILURE_TEXT: Record<FailureKind, string> = {
+  unreachable: 'setup.pairing.failedOffline',
+  rejected: 'setup.pairing.failedServer',
+  unknown: 'setup.pairing.failedUnknown',
+};
 
 /**
  * Шаг 1 — связывание машины кодом (atlas D2, OWNER_SCOPE §19.4).
@@ -48,23 +58,60 @@ export function PairingStep({ onPaired }: { onPaired: () => void }) {
   // значения, перезапускается каждую секунду и однажды запрашивает новый код.
   const [expiresAt, setExpiresAt] = useState<number | null>(null);
   const [msLeft, setMsLeft] = useState(0);
+  // 🔴 Находка владельца 15.08 №1. Экран показывал «Код истёк» тогда, когда код НИКОГДА НЕ
+  // ПРИХОДИЛ: `ask()` шёл без перехвата, мутация падала (запрос блокировался CORS и не уходил
+  // с машины вовсе), `code` оставался пустым, а отсчёт — нулём, и строка «истёк» рисовалась
+  // сама собой. Это худший вид поломки: она мимикрирует под нормальную работу, и человек
+  // послушно жмёт «Новый код», пока не сдастся.
+  //
+  // Состояний теперь ЧЕТЫРЕ и они различимы: просим · ждём подтверждения · истёк · не пришёл
+  // и вот почему.
+  const [failure, setFailure] = useState<FailureKind | null>(null);
+  const [asking, setAsking] = useState(true);
+  const [openFailed, setOpenFailed] = useState(false);
   const secretRef = useRef<string | null>(null);
   const doneRef = useRef(false);
 
   const ask = async () => {
     doneRef.current = false;
-    const { data } = await request({
-      variables: {
-        deviceName: navigator.userAgent.includes('Mac') ? 'Mac' : 'ПК',
-        platform: navigator.userAgent.includes('Mac') ? 'MACOS' : 'OTHER',
-        appVersion: '0.1.0',
-      },
-    });
-    const req = data?.requestPairingCode;
-    if (!req) return;
-    secretRef.current = req.secret;
-    setCode(req.code);
-    setExpiresAt(new Date(req.expiresAt).getTime());
+    setFailure(null);
+    setAsking(true);
+    try {
+      const { data } = await request({
+        variables: {
+          deviceName: navigator.userAgent.includes('Mac') ? 'Mac' : 'ПК',
+          platform: navigator.userAgent.includes('Mac') ? 'MACOS' : 'OTHER',
+          appVersion: APP_VERSION,
+        },
+      });
+      const req = data?.requestPairingCode;
+      if (!req) {
+        setFailure('unknown');
+        return;
+      }
+      secretRef.current = req.secret;
+      setCode(req.code);
+      setExpiresAt(new Date(req.expiresAt).getTime());
+    } catch (error) {
+      // «Сервера нет» и «сервер отказал» — разные вещи для того, кто это читает: в первом
+      // случае чинить связь, во втором звать нас.
+      setFailure(failureKind(error));
+      setCode(null);
+      setExpiresAt(null);
+    } finally {
+      setAsking(false);
+    }
+  };
+
+  /** Открыть страницу подтверждения снаружи — и сказать, если не вышло. */
+  const openPage = async () => {
+    setOpenFailed(false);
+    if (isDesktop()) {
+      const opened = await openExternal(CONFIRM_URL);
+      if (!opened) setOpenFailed(true);
+      return;
+    }
+    window.open(CONFIRM_URL, '_blank', 'noreferrer,noopener');
   };
 
   useEffect(() => {
@@ -109,10 +156,13 @@ export function PairingStep({ onPaired }: { onPaired: () => void }) {
   }, [code, expiresAt, claim, onPaired]);
 
   return (
-    <div className={styles.step}>
-      <h2 className={styles.h}>{t('setup.pairing.title')}</h2>
-      <p className={styles.p}>{t('setup.pairing.body')}</p>
-      <p className={styles.pStrong}>{t('setup.pairing.noPassword')}</p>
+    // 🔴 Два столбца, а не длинный свиток (находка владельца 15.08 №5). Слева то, что ДЕЛАЮТ:
+    // код и две кнопки. Справа то, что читают: зачем это, что даёт вход, запасной путь.
+    // Шаг обязан умещаться в окно целиком — у окна известный размер, и прокрутка здесь
+    // означала бы, что код уехал за край ровно в тот момент, когда его диктуют.
+    <div className={styles.stepCols}>
+      <div className={styles.col}>
+        <h2 className={styles.h}>{t('setup.pairing.title')}</h2>
 
       <div className={styles.card}>
         <div className={styles.cardHead}>
@@ -125,44 +175,79 @@ export function PairingStep({ onPaired }: { onPaired: () => void }) {
           {code ? formatPairingCode(code) : '· · ·'}
         </output>
 
-        <p className={styles.waiting}>
-          {msLeft > 0
-            ? t('setup.pairing.waiting', { left: countdown(msLeft) })
-            : t('setup.pairing.expired')}
+        {/* 🔴 Заглушка, выдающая себя за истёкший код, недопустима: «истёк» говорится только
+            про код, который БЫЛ. Нет кода — сказано, что именно не получилось. */}
+        <p className={styles.waiting} data-failed={failure ? 'true' : undefined}>
+          {failure
+            ? `${t('setup.pairing.failedTitle')} · ${t(FAILURE_TEXT[failure])}`
+            : asking
+              ? t('setup.pairing.asking')
+              : msLeft > 0
+                ? t('setup.pairing.waiting', { left: countdown(msLeft) })
+                : t('setup.pairing.expired')}
         </p>
 
         <div className={styles.row}>
-          <a className={styles.btn} href={CONFIRM_URL} target="_blank" rel="noreferrer noopener">
+          {/* Внутри приложения обычная ссылка не открывает ничего — webview не заводит окон
+              (находка №2). Открываем внешним браузером через оболочку; в вебе — как было. */}
+          <button type="button" className={styles.btn} onClick={() => void openPage()}>
             {t('setup.pairing.open')}
-          </a>
-          <button type="button" className={styles.btnGhost} onClick={() => void ask()}>
+          </button>
+          <button
+            type="button"
+            className={styles.btnGhost}
+            disabled={asking}
+            onClick={() => void ask()}
+          >
             {t('setup.pairing.again')}
           </button>
         </div>
-        <p className={styles.note}>{t('setup.pairing.noAccount')}</p>
+        {openFailed && (
+          <p className={styles.warn} role="alert">
+            {t('setup.pairing.openFailed', { url: CONFIRM_URL })}
+          </p>
+        )}
       </div>
+      </div>
+
+      <div className={styles.col}>
+        <p className={styles.p}>{t('setup.pairing.body')}</p>
+        <p className={styles.pStrong}>{t('setup.pairing.noPassword')}</p>
 
       <div className={styles.card}>
         <div className={styles.cardHead}>
           <span className={styles.cardTitle}>{t('setup.pairing.whatItMeans')}</span>
           <span className={styles.tag}>{t('setup.pairing.important')}</span>
         </div>
+        {/* Видны те два факта, которые МЕНЯЮТ ПОВЕДЕНИЕ: машина становится ведущей и её
+            надо включать. Остальные два — «когда-нибудь вторая машина» и «ключ лежит в
+            связке» — справка; она под раскрытием, а не под прокруткой (требование владельца
+            15.08 №5: сворачивать справочный текст, а не отдавать его скроллу). */}
         <ul className={styles.facts}>
           <li>{t('setup.pairing.hostFact')}</li>
           <li>{t('setup.pairing.visibleFact')}</li>
-          <li className={styles.later}>{t('setup.pairing.secondMachine')}</li>
-          <li>{t('setup.pairing.keychain')}</li>
         </ul>
+        {/* Всё, что не «сделай сейчас», — под одним раскрытием. Не спрятано: раскрытие видно,
+            подписано и открывается одним нажатием; спрятанное — это то, что уехало под
+            прокрутку и о чём человек не знает. */}
+        <details className={styles.more}>
+          <summary>{t('setup.pairing.moreFacts')}</summary>
+          <ul className={styles.facts}>
+            <li className={styles.later}>{t('setup.pairing.secondMachine')}</li>
+            <li>{t('setup.pairing.keychain')}</li>
+          </ul>
+          <p className={styles.note}>{t('setup.pairing.noAccount')}</p>
+          {/* Запасной путь — это ВЕБ-вход, а не форма здесь. §19.4: пароль не пересекает
+              границу приложения ни разу. */}
+          <p className={styles.note}>
+            <button type="button" className={styles.link} onClick={() => void openPage()}>
+              {t('setup.pairing.fallback')}
+            </button>{' '}
+            — {t('setup.pairing.fallbackHint')}
+          </p>
+        </details>
       </div>
-
-      {/* Запасной путь — это ВЕБ-вход, а не форма здесь. §19.4: пароль не пересекает границу
-          приложения ни разу. */}
-      <p className={styles.note}>
-        <a className={styles.link} href={CONFIRM_URL} target="_blank" rel="noreferrer noopener">
-          {t('setup.pairing.fallback')}
-        </a>{' '}
-        — {t('setup.pairing.fallbackHint')}
-      </p>
+      </div>
     </div>
   );
 }

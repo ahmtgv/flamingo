@@ -87,7 +87,8 @@ def test_the_queue_shows_who_is_waiting_and_with_what():
 
     assert len(queue) == 1, "документы одного человека — одна строка очереди, а не две"
     entry = queue[0]
-    assert (entry.first_name, entry.last_name) == ("Игорь", "Ковалёв")
+    # §24: очередь — карточка человека, а не обращение к нему: полная форма имени.
+    assert entry.full_name == "Ковалёв Игорь"
     assert entry.specialty == "Физика"
     assert {doc.filename for doc in entry.documents} == {"Диплом.pdf", "Справка.pdf"}
     # Нагрузка — по ней и принимают решение о допуске к детям.

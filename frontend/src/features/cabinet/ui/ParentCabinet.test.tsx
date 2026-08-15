@@ -12,7 +12,7 @@ const me = {
   id: 'p1',
   email: 'maria@example.com',
   firstName: 'Мария',
-  lastName: 'Петрова',
+  lastName: 'Петрова', displayName: 'Мария', formalName: 'Мария', shortName: 'Мария', fullName: `${'Петрова'} ${'Мария'}`,
   role: 'PARENT',
   locale: 'ru',
   studentProfile: null,
@@ -24,7 +24,14 @@ const me = {
         __typename: 'StudentProfile',
         ageBand: 'TEEN',
         gradeLevel: '7',
-        user: { __typename: 'User', id: 'c1', firstName: 'Пётр', lastName: 'Сидоров' },
+        user: {
+          __typename: 'User',
+          id: 'c1',
+          firstName: 'Пётр',
+          lastName: 'Сидоров',
+          displayName: 'Пётр', formalName: 'Пётр',
+          shortName: 'Пётр С.',
+        },
       },
     ],
   },
@@ -33,7 +40,8 @@ const me = {
 describe('ParentCabinet', () => {
   it('lists existing children', () => {
     renderWithProviders(<ParentCabinet me={me} refetchMe={vi.fn().mockResolvedValue(undefined)} />);
-    expect(screen.getByText('Пётр Сидоров')).toBeInTheDocument();
+    // Родитель видит своего ребёнка по имени — так его и зовут дома (§24).
+    expect(screen.getByText('Пётр')).toBeInTheDocument();
   });
 
   it('gates adding a child on 152-FZ consent', async () => {

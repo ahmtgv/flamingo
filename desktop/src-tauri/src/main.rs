@@ -314,15 +314,38 @@ mod tests {
     }
 }
 
-/// Свернуть в трей — **and leave the lesson running**.
+/// Свернуть окно — **and leave the lesson running**.
 ///
-/// 🔴 Sheet D1: «Свёрнутое окно не заканчивает урок». This hides the window and touches nothing
-/// else — not the sidecar, not the session, not the room. Pupils stay connected to this machine.
-/// Ending a lesson is a different act with its own button, and it is inside the React app where
-/// it can actually close the room rather than merely hide a window.
+/// 🔴 Sheet D1: «Свёрнутое окно не заканчивает урок». This touches nothing else — not the
+/// sidecar, not the session, not the room. Pupils stay connected to this machine. Ending a
+/// lesson is a different act with its own button, and it is inside the React app where it can
+/// actually close the room rather than merely put the window away.
+///
+/// ⚠️ Находка владельца 15.08 №3: «кнопка "свернуть" вешает приложение». Здесь стоял
+/// `window.hide()`: окно ИСЧЕЗАЛО, и вернуть его можно было только через значок в трее. Для
+/// человека, который про трей не знал, это ровно то же, что зависание — приложение пропало и
+/// не отвечает. `minimize()` кладёт окно в Dock, откуда его достают привычным движением.
 #[tauri::command]
-fn minimise_to_tray(window: tauri::Window) -> Result<(), String> {
-    window.hide().map_err(|e| e.to_string())
+fn minimise_window(window: tauri::Window) -> Result<(), String> {
+    window.minimize().map_err(|e| e.to_string())
+}
+
+/// Открыть адрес во ВНЕШНЕМ браузере.
+///
+/// 🔴 Находка владельца 15.08 №2: «"Открыть страницу в браузере" не открывает». Ссылка с
+/// `target="_blank"` внутри webview не открывает ничего — окон он не заводит, и нажатие
+/// проваливалось молча.
+///
+/// Разрешены только `http`/`https`. Адрес приходит из React, а React рисует страницы; открыть
+/// по строке `file://` что-нибудь с диска — не то, ради чего эта команда заведена.
+#[tauri::command]
+fn open_external(app: tauri::AppHandle, url: String) -> Result<(), String> {
+    use tauri_plugin_opener::OpenerExt;
+
+    if !(url.starts_with("https://") || url.starts_with("http://")) {
+        return Err("only-http".into());
+    }
+    app.opener().open_url(url, None::<&str>).map_err(|e| e.to_string())
 }
 
 /// What the tray says while the window is away — the title, repeated.
@@ -358,7 +381,8 @@ fn main() {
         .plugin(tauri_plugin_opener::init())
         .manage(Sidecar(Mutex::new(None)))
         .invoke_handler(tauri::generate_handler![
-            minimise_to_tray,
+            minimise_window,
+            open_external,
             set_tray_label,
             set_tray_menu,
             store_machine_key,
@@ -405,6 +429,20 @@ fn main() {
             TrayIconBuilder::with_id("flamingo")
                 .icon(app.default_window_icon().unwrap().clone())
                 .menu(&menu)
+                // Нажатие на сам значок возвращает окно. Без этого единственной дорогой назад
+                // было меню — а его ещё надо догадаться открыть.
+                .show_menu_on_left_click(false)
+                .on_tray_icon_event(|tray, event| {
+                    if let tauri::tray::TrayIconEvent::Click { button, .. } = event {
+                        if button == tauri::tray::MouseButton::Left {
+                            if let Some(w) = tray.app_handle().get_webview_window("main") {
+                                let _ = w.unminimize();
+                                let _ = w.show();
+                                let _ = w.set_focus();
+                            }
+                        }
+                    }
+                })
                 .on_menu_event(|app, event| match event.id.as_ref() {
                     "show" => {
                         if let Some(w) = app.get_webview_window("main") {
@@ -424,7 +462,9 @@ fn main() {
             // word is «Выйти» and the person meant it.
             if let WindowEvent::CloseRequested { api, .. } = event {
                 api.prevent_close();
-                let _ = window.hide();
+                // Сворачиваем, а не прячем: спрятанное окно достаётся только из трея, и человек,
+                // который про трей не знал, считает, что программа исчезла (находка 15.08 №3).
+                let _ = window.minimize();
             }
         })
         .build(tauri::generate_context!())

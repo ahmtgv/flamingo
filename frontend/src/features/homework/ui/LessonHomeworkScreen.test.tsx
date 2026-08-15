@@ -22,7 +22,7 @@ const meMock = {
         id: 'u1',
         email: 's@example.com',
         firstName: 'Пётр',
-        lastName: 'Сидоров',
+        lastName: 'Сидоров', displayName: 'Пётр', formalName: 'Пётр', shortName: 'Пётр', fullName: `${'Сидоров'} ${'Пётр'}`,
         role: 'STUDENT',
         locale: 'ru',
         avatarUrl: null,

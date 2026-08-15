@@ -13,7 +13,9 @@ type Channel = MyChannelsQuery['myChannels'][number];
  */
 export function channelTitle(channel: Channel, t: TFunction<readonly ['chat']>): string {
   const other = channel.participants[0];
-  const name = other ? `${other.firstName} ${other.lastName}`.trim() : t('chat:someone');
+  // §24: в узком списке — «Имя Ф.». Одного имени мало (двух Вер не различить), полное имя
+  // с фамилией не помещается. Собирает сервер — правило живёт в одном месте.
+  const name = other ? other.shortName : t('chat:someone');
   switch (channel.kind) {
     case 'SUBJECT_GROUP':
       return channel.groupName

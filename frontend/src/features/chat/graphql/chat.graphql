@@ -18,6 +18,8 @@ query MyChannels {
       id
       firstName
       lastName
+      displayName
+      shortName
       role
     }
   }

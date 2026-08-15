@@ -125,6 +125,7 @@ class UserType:
     id: auto
     first_name: auto
     last_name: auto
+    middle_name: auto
     locale: auto
     is_active: auto
     created_at: auto
@@ -147,6 +148,27 @@ class UserType:
     @strawberry_django.field
     def role(self) -> Role:
         return Role(self.role)
+
+    # --- как зовут человека (§24) --------------------------------------------------------
+    # Три готовых имени вместо склейки на клиенте. Правило «преподавателю имя-отчество,
+    # ученику имя» живёт в ОДНОМ месте — на модели; повтори его во фронте, и однажды один
+    # экран начнёт звать ребёнка по отчеству, а другой перестанет звать так преподавателя.
+
+    @strawberry_django.field
+    def display_name(self) -> str:
+        return self.display_name
+
+    @strawberry_django.field
+    def formal_name(self) -> str:
+        return self.formal_name
+
+    @strawberry_django.field
+    def full_name(self) -> str:
+        return self.full_name
+
+    @strawberry_django.field
+    def short_name(self) -> str:
+        return self.short_name
 
     @strawberry_django.field
     def avatar_url(self, info: strawberry.Info) -> str | None:

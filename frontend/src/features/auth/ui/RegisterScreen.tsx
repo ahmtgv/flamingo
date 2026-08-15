@@ -74,6 +74,7 @@ function RegisterForm({ role }: { role: UiRole }) {
       password: values.password,
       firstName: values.firstName,
       lastName: values.lastName,
+      middleName: values.middleName,
       role: toGqlRole(role),
       locale: 'ru',
       // 🔴 R-04 (аудит 14.08): согласие 152-ФЗ доезжает до сервера. Раньше `values.consent`
@@ -241,6 +242,20 @@ function RegisterForm({ role }: { role: UiRole }) {
                 autoComplete="family-name"
               />
             </FieldRow>
+          )}
+
+          {/* Отчество — требование владельца 15.08 (§24). Необязательное: его нет у части
+              народов России и у иностранного преподавателя, и форма не требует невозможного.
+              Ученику здесь не показывается — по отчеству ребёнка не зовут. */}
+          {!isStudent && (
+            <TextField
+              label={t('fields.middleName')}
+              value={values.middleName}
+              onChange={set('middleName')}
+              placeholder={t('placeholders.middleName')}
+              hint={t('hints.middleName')}
+              autoComplete="additional-name"
+            />
           )}
 
           {role === 'teacher' && (

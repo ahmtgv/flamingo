@@ -56,10 +56,20 @@ describe('рама приложения — заголовок (лист D1)', (
   });
 
   it('в заголовке только свернуть и настройки — не место для функций', () => {
-    frame();
+    frame({ onSettings: () => {} });
     const bar = screen.getByRole('banner');
     const buttons = screen.getAllByRole('button').filter((b) => bar.contains(b));
     expect(buttons).toHaveLength(2);
+  });
+
+  it('🔴 шестерёнки нет, пока некому её обработать', () => {
+    // Находка владельца 15.08 №4: кнопка была нарисована, обработчика не было, нажатие не
+    // делало ничего. Кнопка, которая ничего не делает, хуже отсутствующей.
+    frame();
+    const bar = screen.getByRole('banner');
+    const buttons = screen.getAllByRole('button').filter((b) => bar.contains(b));
+    expect(buttons).toHaveLength(1);
+    expect(screen.queryByRole('button', { name: 'Настройки' })).not.toBeInTheDocument();
   });
 });
 
@@ -122,7 +132,7 @@ describe('рама приложения — трей', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Свернуть в трей' }));
 
     const commands = invoke.mock.calls.map(([cmd]) => cmd);
-    expect(commands).toContain('minimise_to_tray');
+    expect(commands).toContain('minimise_window');
     // Nothing in this path may end a lesson, close a room or stop the sidecar.
     expect(commands.join(' ')).not.toMatch(/end|finish|close|stop|quit/i);
   });

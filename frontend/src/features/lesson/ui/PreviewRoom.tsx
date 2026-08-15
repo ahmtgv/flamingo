@@ -166,7 +166,7 @@ function PreviewPane({ pane }: { pane: Pane }) {
       {cohort.slice(0, 6).map(({ user }) => (
         <div className={frame.paneRow} key={user.id}>
           <span className={frame.paneName}>
-            {user.firstName} {user.lastName}
+            {user.formalName}
           </span>
           <span className={frame.paneMeta}>
             {user.id === users.maria.id ? t('people.teacher') : ''}

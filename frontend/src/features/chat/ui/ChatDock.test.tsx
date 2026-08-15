@@ -46,6 +46,9 @@ const PEER = channel({
       id: 'u-vera',
       firstName: 'Вера',
       lastName: 'Смирнова',
+      // §24: собеседника в узком списке зовут «Имя Ф.» — сервер отдаёт готовую форму.
+      displayName: 'Вера',
+      shortName: 'Вера С.',
       role: 'STUDENT',
     },
   ],
@@ -130,7 +133,7 @@ describe('ChatDock — atlas sheet 00, the chat is a window', () => {
 
     // The server sends no title — «Астрономия · 9А» is composed here.
     expect(screen.getByText('Астрономия · 9А')).toBeInTheDocument();
-    expect(screen.getByText('Вера Смирнова')).toBeInTheDocument();
+    expect(screen.getByText('Вера С.')).toBeInTheDocument();
   });
 
   it('opening a conversation marks it read and shows its messages', async () => {
@@ -145,7 +148,7 @@ describe('ChatDock — atlas sheet 00, the chat is a window', () => {
       ]),
     ]);
     await userEvent.click(await screen.findByRole('button', { name: /Чат/ }));
-    await userEvent.click(screen.getByRole('button', { name: /Вера Смирнова/ }));
+    await userEvent.click(screen.getByRole('button', { name: /Вера С\./ }));
 
     expect(await screen.findByText('скинешь конспект?')).toBeInTheDocument();
     expect(screen.getByText('держи')).toBeInTheDocument();
@@ -189,7 +192,7 @@ describe('ChatDock — atlas sheet 00, the chat is a window', () => {
     ]);
 
     await userEvent.click(await screen.findByRole('button', { name: /Чат/ }));
-    await userEvent.click(screen.getByRole('button', { name: /Вера Смирнова/ }));
+    await userEvent.click(screen.getByRole('button', { name: /Вера С\./ }));
     const box = await screen.findByLabelText('Написать сообщение');
     await userEvent.type(box, 'сейчас');
     await userEvent.click(screen.getByRole('button', { name: 'Отправить' }));
@@ -214,7 +217,7 @@ describe('ChatDock — atlas sheet 00, the chat is a window', () => {
     ]);
 
     await userEvent.click(await screen.findByRole('button', { name: /Чат/ }));
-    await userEvent.click(screen.getByRole('button', { name: /Вера Смирнова/ }));
+    await userEvent.click(screen.getByRole('button', { name: /Вера С\./ }));
     await userEvent.type(await screen.findByLabelText('Написать сообщение'), 'нельзя');
     await userEvent.click(screen.getByRole('button', { name: 'Отправить' }));
 
@@ -234,7 +237,7 @@ describe('ChatDock — the base safety mode is visible, not hidden', () => {
       messagesMock('ch-vera', [['обидное', false]]),
     ]);
     await userEvent.click(await screen.findByRole('button', { name: /Чат/ }));
-    await userEvent.click(screen.getByRole('button', { name: /Вера Смирнова/ }));
+    await userEvent.click(screen.getByRole('button', { name: /Вера С\./ }));
 
     await userEvent.click(await screen.findByRole('button', { name: 'Пожаловаться' }));
     expect(screen.getByText(/Жалоба придёт нам, команде Flamingo/)).toBeInTheDocument();
@@ -272,7 +275,7 @@ describe('ChatDock — the base safety mode is visible, not hidden', () => {
     ]);
 
     await userEvent.click(await screen.findByRole('button', { name: /Чат/ }));
-    await userEvent.click(screen.getByRole('button', { name: /Вера Смирнова/ }));
+    await userEvent.click(screen.getByRole('button', { name: /Вера С\./ }));
     await userEvent.click(await screen.findByRole('button', { name: 'Пожаловаться' }));
     await userEvent.type(screen.getByLabelText('Что не так (необязательно)'), 'грубит');
     await userEvent.click(screen.getByRole('button', { name: 'Отправить жалобу' }));
@@ -292,7 +295,7 @@ describe('ChatDock — the base safety mode is visible, not hidden', () => {
       messagesMock('ch-vera', [['обидное', false]]),
     ]);
     await userEvent.click(await screen.findByRole('button', { name: /Чат/ }));
-    await userEvent.click(screen.getByRole('button', { name: /Вера Смирнова/ }));
+    await userEvent.click(screen.getByRole('button', { name: /Вера С\./ }));
 
     expect(await screen.findByText(/писать в него нельзя/)).toBeInTheDocument();
     expect(screen.queryByLabelText('Написать сообщение')).not.toBeInTheDocument();

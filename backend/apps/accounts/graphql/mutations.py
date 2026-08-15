@@ -40,6 +40,9 @@ class RegisterUserInput:
     first_name: str
     last_name: str
     role: Role
+    # Отчество (§24) — необязательное: его нет у части народов России и у иностранного
+    # преподавателя. Умолчание пустой строкой, а не null: «нет отчества» это факт, а не пропуск.
+    middle_name: str = ""
     locale: str = "ru"
     # 🔴 R-04: согласие 152-ФЗ доезжает до сервера. Для ученика младше 18 без него регистрация
     # не проходит — отказ в `services.register_user`, а не на экране.
@@ -69,6 +72,7 @@ class AccountsMutation:
             first_name=input.first_name,
             last_name=input.last_name,
             role=input.role,
+            middle_name=input.middle_name,
             locale=input.locale,
             birth_date=getattr(s, "birth_date", None) if s else None,
             grade_level=getattr(s, "grade_level", None) if s else None,
@@ -146,6 +150,27 @@ class AccountsMutation:
     ) -> VerificationDocumentType:
         user = require_user(info)
         return services.submit_verification_document(user, file_key)
+
+    @strawberry.mutation
+    def update_my_name(
+        self,
+        info: strawberry.Info,
+        first_name: str,
+        last_name: str,
+        middle_name: str = "",
+    ) -> UserType:
+        """Поправить своё имя. Только СВОЁ — чужого пользователя тут нет и взять неоткуда.
+
+        Отчество появилось после того, как люди уже зарегистрировались (§24): без этой мутации
+        добавить его было бы негде, и «Здравствуйте, Люция Валерьевна» осталось бы только у тех,
+        кто завёл учётку после релиза.
+        """
+        return services.update_my_name(
+            require_user(info),
+            first_name=first_name,
+            last_name=last_name,
+            middle_name=middle_name,
+        )
 
     @strawberry.mutation
     def set_avatar(self, info: strawberry.Info, file_key: str) -> UserType:

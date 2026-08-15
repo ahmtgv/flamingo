@@ -4,7 +4,7 @@ export { OfflineScreen } from './OfflineScreen';
 export { SettingsScreen } from './SettingsScreen';
 export { LinkMachineScreen } from './ui/LinkMachineScreen';
 export { useFrameControls } from './frameControls';
-export { isDesktop, minimiseToTray, setTrayLabel, setTrayMenu, APP_VERSION } from './bridge';
+export { isDesktop, minimiseWindow, setTrayLabel, setTrayMenu, APP_VERSION } from './bridge';
 export { forgetMachineKey, hasMachineKey, rememberMachineKey } from './machineKey';
 export { cabinetFolder, chooseCabinetFolder, revealCabinetFolder } from './cabinetFolder';
 export { measureUplink, PROBE_SECONDS, REQUIRED_MBPS } from './uplinkProbe';

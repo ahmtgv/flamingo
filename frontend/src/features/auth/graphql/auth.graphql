@@ -15,6 +15,8 @@ mutation Login($email: String!, $password: String!) {
       email
       firstName
       lastName
+      displayName
+      shortName
       role
       locale
       studentProfile {
@@ -38,6 +40,8 @@ mutation RegisterUser($input: RegisterUserInput!) {
       email
       firstName
       lastName
+      displayName
+      shortName
       role
       locale
       studentProfile {
@@ -61,6 +65,8 @@ mutation RefreshToken($refreshToken: String!) {
       email
       firstName
       lastName
+      displayName
+      shortName
       role
       locale
       studentProfile {
@@ -95,6 +101,8 @@ mutation AddChild($input: AddChildInput!) {
       id
       firstName
       lastName
+      displayName
+      shortName
     }
   }
 }
@@ -116,6 +124,8 @@ query Me {
     email
     firstName
     lastName
+    displayName
+    shortName
     role
     locale
     avatarUrl
@@ -150,6 +160,8 @@ query Me {
           id
           firstName
           lastName
+          displayName
+          shortName
         }
       }
     }

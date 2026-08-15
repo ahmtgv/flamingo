@@ -86,7 +86,7 @@ export function GradingQueueScreen() {
             <div className={styles.row} key={s.id}>
               <div className={styles.rowMain}>
                 <div className={styles.student}>
-                  {s.student.user.firstName} {s.student.user.lastName}
+                  {s.student.user.formalName}
                 </div>
                 <div className={styles.homework}>{s.homework.title}</div>
               </div>

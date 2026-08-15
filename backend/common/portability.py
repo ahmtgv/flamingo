@@ -130,6 +130,11 @@ NOT_EXPORTED: dict[str, str] = {
     ),
     "devices.DeviceToken": "a credential. It must not travel, and it could not: it is a hash",
     "devices.PairingCode": "a ten-minute credential; dead long before any restore",
+    "oversight.AccountStateRecord": (
+        "история состояний учётной записи — решение ПЛАТФОРМЫ о доступе, а не учёба человека."
+        " Восстановленная из чужой копии, она вернула бы снятую блокировку; состояние доступа"
+        " обязано жить там, где им управляют"
+    ),
     "oversight.AccessLogEntry": (
         "журнал доступа платформы — след НАДЗИРАЮЩЕГО, а не учёба преподавателя. В кабинете"
         " ему нечего делать: он про то, кто на платформе смотрел чужое, и обязан оставаться на"

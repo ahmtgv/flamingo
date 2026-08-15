@@ -85,7 +85,7 @@ export function TeacherCabinet({ me }: { me: Me }) {
       <div className={styles.content}>
         <div className={styles.headRow}>
           <h1 className={styles.pageTitle}>
-            {t('teacher.greeting', { name: `${me.firstName} ${me.lastName}`.trim() })}
+            {t('teacher.greeting', { name: me.displayName })}
           </h1>
           <span className={styles.headMeta}>{formatHeaderMeta(new Date())}</span>
         </div>

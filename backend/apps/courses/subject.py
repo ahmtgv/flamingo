@@ -331,7 +331,7 @@ def subject_cabinet(user, course_id) -> SubjectCabinet:
         profile_kind=kind,
         institution_name=course.institution.name if course.institution_id else None,
         group_name=_group_name(course, student_profile),
-        teacher_name=f"{course.owner.user.first_name} {course.owner.user.last_name}".strip(),
+        teacher_name=course.owner.user.formal_name,
         teacher_id=str(course.owner.user_id),
         lesson_count=total,
         student_count=group_size if is_teacher else None,
@@ -374,7 +374,7 @@ def _materials_and_sources(user, course: Course, is_teacher: bool):
     They are built together because a saved item may point at a course material, and the
     quiet corner needs to know whether this viewer already keeps it.
     """
-    teacher_name = f"{course.owner.user.first_name} {course.owner.user.last_name}".strip()
+    teacher_name = course.owner.user.formal_name
     saved_rows = list(
         SavedItem.objects.filter(user=user, course=course).select_related("material")
         if getattr(user, "is_authenticated", False)

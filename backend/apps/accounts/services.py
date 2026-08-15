@@ -87,6 +87,7 @@ def register_user(
     first_name: str,
     last_name: str,
     role,
+    middle_name: str = "",
     locale: str = "ru",
     birth_date: date | None = None,
     grade_level: str | None = None,
@@ -131,6 +132,8 @@ def register_user(
         password=password,
         first_name=first_name,
         last_name=last_name,
+        # Отчество необязательно (§24): пустая строка — законное значение, а не пропуск.
+        middle_name=(middle_name or "").strip(),
         role=role.value,
         locale=locale,
     )
@@ -164,6 +167,17 @@ def register_user(
         AdminProfile.objects.create(user=user)
 
     _send_verification_email(user)
+    return user
+
+
+def update_my_name(user: User, *, first_name: str, last_name: str, middle_name: str = "") -> User:
+    """Своё имя — своё дело. Имя и фамилия обязательны, отчество нет (§24)."""
+    if not first_name.strip() or not last_name.strip():
+        raise ValidationError("Имя и фамилия не могут быть пустыми")
+    user.first_name = first_name.strip()
+    user.last_name = last_name.strip()
+    user.middle_name = (middle_name or "").strip()
+    user.save(update_fields=["first_name", "last_name", "middle_name", "updated_at"])
     return user
 
 

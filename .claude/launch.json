@@ -2,17 +2,31 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "frontend",
+      "name": "flamingo-web",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["--prefix", "frontend", "run", "dev", "--", "--mode", "preview"],
-      "autoPort": true,
+      "runtimeArgs": [
+        "--prefix",
+        "frontend",
+        "run",
+        "dev"
+      ],
       "port": 5173
     },
     {
-      "name": "ertc",
-      "runtimeExecutable": "bash",
-      "runtimeArgs": ["-lc", "cd /Users/piu/Downloads/ertc-landing && exec npm run dev -- --port 4311"],
-      "port": 4311
+      "name": "flamingo-preview",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "--prefix",
+        "frontend",
+        "run",
+        "dev",
+        "--",
+        "--mode",
+        "preview",
+        "--port",
+        "5174"
+      ],
+      "port": 5174
     }
   ]
 }

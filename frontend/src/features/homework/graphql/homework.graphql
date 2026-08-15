@@ -40,6 +40,11 @@ query HomeworkSubmissions($homeworkId: ID!) {
         id
         firstName
         lastName
+        formalName
+        shortName
+        displayName
+        shortName
+        formalName
       }
     }
   }

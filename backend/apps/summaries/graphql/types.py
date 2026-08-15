@@ -43,9 +43,7 @@ class SummaryItem:
             at_offset_sec=item.at_offset_sec,
             text=item.text,
             author_id=strawberry.ID(str(item.author_id)) if item.author_id else None,
-            author_name=(
-                f"{author.first_name} {author.last_name}".strip() if author is not None else ""
-            ),
+            author_name=(author.formal_name if author is not None else ""),
             due_at=item.due_at,
             homework_id=strawberry.ID(str(item.homework_id)) if item.homework_id else None,
             edited=item.edited,
@@ -104,9 +102,7 @@ class ChatMessage:
             id=strawberry.ID(str(item.id)),
             session_id=strawberry.ID(str(item.summary.session_id)),
             sender_id=strawberry.ID(str(item.author_id)) if item.author_id else strawberry.ID(""),
-            sender_name=(
-                f"{author.first_name} {author.last_name}".strip() if author is not None else ""
-            ),
+            sender_name=(author.formal_name if author is not None else ""),
             text=item.text,
             sent_at=item.created_at,
         )

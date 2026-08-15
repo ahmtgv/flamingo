@@ -69,8 +69,8 @@ class QueueEntry:
     """
 
     teacher_user_id: str
-    first_name: str
-    last_name: str
+    # Полная форма имени: очередь — это карточка человека, а не обращение к нему (§24).
+    full_name: str
     email: str
     specialty: str
     education: str
@@ -126,8 +126,7 @@ def pending_verifications(user) -> list[QueueEntry]:
         entries.append(
             QueueEntry(
                 teacher_user_id=teacher_id,
-                first_name=teacher.first_name,
-                last_name=teacher.last_name,
+                full_name=teacher.full_name,
                 email=teacher.email,
                 specialty=getattr(profile, "specialty", "") or "",
                 education=getattr(profile, "education", "") or "",
@@ -211,7 +210,7 @@ def review_verification(user, teacher_user_id, *, approve: bool, reason: str = "
         user,
         OversightAction.VERIFIED if approve else OversightAction.REJECTED,
         subject=teacher,
-        label=f"{teacher.first_name} {teacher.last_name}".strip(),
+        label=teacher.full_name,
         reason=reason,
     )
     return teacher
@@ -241,7 +240,7 @@ def request_more_documents(user, teacher_user_id, *, reason: str):
         user,
         OversightAction.REQUESTED_DOCUMENTS,
         subject=teacher,
-        label=f"{teacher.first_name} {teacher.last_name}".strip(),
+        label=teacher.full_name,
         reason=reason,
     )
     return teacher

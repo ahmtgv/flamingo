@@ -432,7 +432,7 @@ def _broadcast(message: ChannelMessage) -> None:
             "id": str(message.id),
             "channel_id": str(message.channel_id),
             "sender_id": str(message.sender_id),
-            "sender_name": f"{message.sender.first_name} {message.sender.last_name}".strip(),
+            "sender_name": message.sender.formal_name,
             "text": message.text,
             "sent_at": message.sent_at.isoformat(),
         },

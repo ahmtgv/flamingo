@@ -25,6 +25,7 @@ import { RepetitionScreen } from '@/features/repetition';
 import { StartScreen } from '@/features/start';
 import { SubjectScreen } from '@/features/subject';
 import { isDesktop } from '@/features/desktop/bridge';
+import { DesktopShell } from '@/features/desktop/DesktopShell';
 import { useSession } from '@/shared/hooks/useSession';
 
 import { entryRoute } from './entryRoute';
@@ -81,6 +82,10 @@ function RootRedirect() {
 export function AppRouter() {
   return (
     <BrowserRouter>
+      {/* Рама приложения (лист D1) — внутри роутера: её кнопки ведут по маршрутам, а снаружи
+          роутера обращение к навигации падает и уносит с собой всё приложение. В браузере
+          DesktopShell отдаёт детей как есть. */}
+      <DesktopShell>
       <Routes>
         <Route path="/" element={<RootRedirect />} />
         <Route
@@ -273,6 +278,7 @@ export function AppRouter() {
         />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+      </DesktopShell>
     </BrowserRouter>
   );
 }

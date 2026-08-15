@@ -286,9 +286,7 @@ def view_by_slug(user, slug: str) -> dict:
         "slug": point.slug,
         "decision": decide(user, point),
         "group_name": group.name,
-        "teacher_name": (
-            f"{teacher.first_name} {teacher.last_name}".strip() if teacher is not None else ""
-        ),
+        "teacher_name": (teacher.formal_name if teacher is not None else ""),
         "host_online": host_online(group),
         "next_session": _next_session(group),
         "capabilities": without_host(),
@@ -449,7 +447,8 @@ def participants(user, group_id) -> list[dict]:
         student = membership.student
         key = str(student.pk)
         user_row = student.user
-        name = f"{user_row.first_name} {user_row.last_name}".strip()
+        # Полоса участников — узкая: «Имя Ф.» помещается, «Имя Фамилия» обрезается.
+        name = user_row.short_name
         attendance = present.get(key)
         opened = visited.get(key)
 

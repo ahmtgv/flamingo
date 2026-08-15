@@ -125,10 +125,14 @@ export function ArrivalScreen() {
           <h1 className={styles.h}>{t('arrival.strangerTitle')}</h1>
           <p className={styles.p}>{t('arrival.strangerBody')}</p>
           <div className={styles.row}>
-            <button type="button" className={styles.btnGhost}>
+            {/* 🔴 Кнопка была нарисована и не делала ничего: мутации «попросить доступ» в
+                продукте нет. Выключенная кнопка с честной подписью честнее живой, которая
+                молча проглатывает нажатие (решение владельца, PROMPT_16 §5). */}
+            <button type="button" className={styles.btnGhost} disabled title={t('arrival.notYet')}>
               {t('arrival.strangerAsk')}
             </button>
           </div>
+          <p className={styles.note}>{t('arrival.strangerHow')}</p>
         </section>
       )}
 
@@ -137,10 +141,13 @@ export function ArrivalScreen() {
           <h1 className={styles.h}>{t('arrival.knockTitle')}</h1>
           <p className={styles.p}>{t('arrival.knockBody')}</p>
           <div className={styles.row}>
-            <button type="button" className={styles.btn}>
+            {/* Та же история: «постучаться» некуда — приёмника нет. Пока его нет, кнопка
+                выключена и рядом написано, что делать вместо неё. */}
+            <button type="button" className={styles.btn} disabled title={t('arrival.notYet')}>
               {t('arrival.knock')}
             </button>
           </div>
+          <p className={styles.note}>{t('arrival.knockHow')}</p>
         </section>
       )}
     </div>

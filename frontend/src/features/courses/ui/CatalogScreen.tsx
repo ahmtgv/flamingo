@@ -143,7 +143,7 @@ export function CatalogScreen() {
                 {c.description && <div className={styles.courseDesc}>{c.description}</div>}
                 <div className={styles.cardMetaRow}>
                   <span>
-                    {c.owner.user.firstName} {c.owner.user.lastName}
+                    {c.owner.user.formalName}
                   </span>
                   <span>
                     {c.enrollmentCount > 0

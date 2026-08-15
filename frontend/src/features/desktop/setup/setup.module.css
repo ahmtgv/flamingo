@@ -1,12 +1,25 @@
 /* Первый запуск — atlas D2. Рельс из пяти шагов слева, один вопрос справа.
    Это единственный экран, который преподаватель видит ДО того, как начал нам доверять. */
 
+/* 🔴 Находка владельца 15.08 №5: «полширины экрана пустует, и при этом есть прокрутка».
+   Причина — экран был сделан как веб-страница: содержимое в узкой колонке 760px, всё
+   остальное течёт вниз. У окна приложения известный размер, и шаг обязан раскладываться ПО
+   ВЫСОТЕ окна, а не вниз за край.
+
+   Отсюда три правила ниже: высота ровно окна, ширина без искусственного потолка, а карточки
+   шага — во второй столбец, а не под прокрутку. */
 .screen {
   display: grid;
-  grid-template-columns: 280px minmax(0, 1fr);
-  gap: var(--space-7);
-  padding: var(--space-7);
-  min-height: 100%;
+  grid-template-columns: 240px minmax(0, 1fr);
+  gap: var(--space-6);
+  padding: var(--space-4) var(--space-6);
+  /* Высота — ровно окно. `100%` здесь не годится: у #root высота по содержимому, и цепочка
+     процентов рвётся на первом же предке (проверено в браузере). `dvh` считается от самого
+     окна и внутри рамы ограничен её `.viewport`. */
+  height: 100dvh;
+  max-height: 100%;
+  min-height: 0;
+  overflow: hidden;
   background: var(--color-bg);
   color: var(--color-text);
 }
@@ -92,7 +105,16 @@
 /* ——— тело шага ——— */
 .body {
   min-width: 0;
-  max-width: 760px;
+  min-height: 0;
+  /* Потолка ширины больше нет: он и оставлял половину окна пустой. Читаемость держат
+     отдельные абзацы (max-width по мере строки), а не вся колонка целиком. */
+  align-content: start;
+  /* Столбцы шага считаются от ШИРИНЫ ЭТОЙ КОЛОНКИ, а не от ширины окна: при рельсе в 280px
+     окно 1024 даёт телу ~650, и медиазапрос по окну ошибался ровно на ширину рельса. */
+  container-type: inline-size;
+  /* Последняя защита для окна МЕНЬШЕ минимального: обрезать содержимое хуже, чем прокрутить
+     его здесь. На заявленном размере окна (1024×700) прокрутки нет — это и проверяется. */
+  overflow: auto;
 }
 .of {
   font-family: var(--font-mono);
@@ -101,10 +123,40 @@
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
+/* Шаги 2–5 — набор карточек. Два столбца: они занимают ширину окна, которую один столбец
+   оставлял пустой (находка владельца 15.08 №5).
+   ⚠️ Многоколоночный поток (`column-count`) здесь пробовался и оказался ХУЖЕ сетки: он
+   балансирует по высоте, но `break-inside: avoid` на высоких карточках рвёт баланс, и шаг 2
+   вырастал со 123 до 234 пикселей переполнения. Замерено, а не выбрано на вкус. */
 .step {
   display: grid;
-  gap: var(--space-4);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: var(--space-4) var(--space-6);
+  align-content: start;
+  /* Карточка берёт свою высоту, а не высоту соседа. */
+  align-items: start;
   margin-top: var(--space-3);
+}
+/* Заголовок и вводные строки — во всю ширину, но текст держит меру строки: абзац в тысячу
+   пикселей не читается, сколько бы места ни было. */
+.step > .h,
+.step > .p,
+.step > .pStrong,
+.step > .note,
+.step > .warn {
+  grid-column: 1 / -1;
+  max-width: 68ch;
+}
+/* Один столбец по умолчанию, два — как только колонка достаточно широка. */
+.step {
+  grid-template-columns: minmax(0, 1fr);
+}
+@container (min-width: 560px) {
+  .step {
+    /* Слева то, что ДЕЛАЮТ (код, кнопки) — ему нужна ширина, чтобы кнопки встали в строку.
+       Справа то, что читают. Поровну делить эти две вещи не за что. */
+    grid-template-columns: minmax(0, 1.12fr) minmax(0, 0.88fr);
+  }
 }
 .h {
   font-size: var(--text-h2);
@@ -141,7 +193,7 @@
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-card);
-  padding: var(--space-5);
+  padding: var(--space-4);
 }
 /* Список «не уходит никогда» стоит выше согласий и выглядит как обещание, а не как сноска. */
 .cardNever {
@@ -180,11 +232,14 @@
 /* ——— шаг 1 ——— */
 .code {
   font-family: var(--font-mono);
-  font-size: var(--text-display);
+  /* Код диктуют вслух и набирают с чужого экрана — он обязан оставаться крупным. Но в узком
+     окне 56px забирают высоту у кнопок под ним, поэтому размер сжимается вместе с колонкой,
+     а не пропадает совсем. */
+  font-size: clamp(2.25rem, 9cqi, var(--text-display));
   font-weight: var(--weight-medium);
   letter-spacing: 0.08em;
   text-align: center;
-  padding: var(--space-5);
+  padding: var(--space-4) var(--space-5);
   background: var(--color-surface-subtle);
   border-radius: var(--radius-md);
 }
@@ -387,4 +442,45 @@
   outline: none;
   box-shadow: var(--focus-ring);
   border-radius: var(--radius-xs);
+}
+
+/* ——— шаг в два столбца (находка владельца 15.08 №5) ——————————————————————————
+   Слева то, что делают; справа то, что читают. Один длинный столбец на всю ширину окна
+   оставлял половину экрана пустой и уводил содержимое под прокрутку. */
+.stepCols {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-4) var(--space-6);
+  align-content: start;
+  align-items: start;
+  margin-top: var(--space-3);
+}
+@container (min-width: 560px) {
+  .stepCols {
+    /* Поровну: слева действие, справа объяснение, и обеим частям нужна ширина, чтобы текст
+       не превращался в лесенку из двух слов. */
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+}
+.col {
+  display: grid;
+  gap: var(--space-3);
+  align-content: start;
+  min-width: 0;
+}
+
+/* Справочный текст под раскрытием — вместо прокрутки (находка 15.08 №5). */
+.more > summary {
+  font-size: var(--text-caption);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  padding: var(--space-1) 0;
+}
+.more > summary:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+  border-radius: var(--radius-sm);
+}
+.more[open] > summary {
+  margin-bottom: var(--space-2);
 }

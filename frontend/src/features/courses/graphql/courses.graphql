@@ -25,6 +25,9 @@ query Catalog($filter: CourseFilter, $first: Int, $after: String) {
           id
           firstName
           lastName
+          displayName
+          shortName
+          formalName
         }
       }
     }
@@ -49,6 +52,9 @@ query CourseDetail($id: ID!) {
         id
         firstName
         lastName
+        displayName
+        shortName
+        formalName
       }
     }
     sections {

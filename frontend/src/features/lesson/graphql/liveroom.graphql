@@ -67,6 +67,11 @@ query SessionAttendees($id: ID!) {
           id
           firstName
           lastName
+          formalName
+          shortName
+          displayName
+          shortName
+          formalName
         }
       }
     }

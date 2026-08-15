@@ -10,7 +10,7 @@ import { CatalogScreen } from './CatalogScreen';
 const owner = (first: string, last: string) => ({
   __typename: 'TeacherProfile' as const,
   specialty: null,
-  user: { __typename: 'User' as const, id: `u-${first}`, firstName: first, lastName: last },
+  user: { __typename: 'User' as const, id: `u-${first}`, firstName: first, lastName: last, displayName: first, formalName: first, shortName: first, fullName: `${last} ${first}` },
 });
 
 const node = (over: Partial<CatalogQuery['catalog']['nodes'][number]>) => ({

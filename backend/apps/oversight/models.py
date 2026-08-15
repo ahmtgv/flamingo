@@ -28,6 +28,7 @@ class OversightAction(models.TextChoices):
     VIEWED_DOCUMENT = "viewed_document", "открыл документ"
     VIEWED_QUEUE = "viewed_queue", "открыл очередь верификации"
     VERIFIED = "verified", "верифицировал преподавателя"
+    STATE_CHANGED = "state_changed", "изменил состояние учётной записи"
     REJECTED = "rejected", "отказал в верификации"
     REQUESTED_DOCUMENTS = "requested_documents", "запросил документы"
 
@@ -67,3 +68,8 @@ class AccessLogEntry(BaseModel):
 
     def __str__(self) -> str:
         return f"{self.action} · {self.object_label}"
+
+
+# Состояние учётной записи живёт в `state.py` рядом со своими правилами; здесь оно только
+# импортируется, чтобы Django увидел модель в приложении.
+from .state import AccountState, AccountStateRecord  # noqa: E402,F401

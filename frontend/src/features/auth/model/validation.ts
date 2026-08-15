@@ -6,6 +6,8 @@ export type AgeBandUi = 'junior' | 'teen' | 'adult';
 export interface RegisterFormValues {
   firstName: string;
   lastName: string;
+  /** Отчество (§24). Необязательное — проверки на него нет и не должно быть. */
+  middleName: string;
   email: string;
   parentEmail: string;
   password: string;
@@ -18,6 +20,7 @@ export interface RegisterFormValues {
 export const EMPTY_REGISTER: RegisterFormValues = {
   firstName: '',
   lastName: '',
+  middleName: '',
   email: '',
   parentEmail: '',
   password: '',

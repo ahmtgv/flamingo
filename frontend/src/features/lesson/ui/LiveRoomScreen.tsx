@@ -524,8 +524,8 @@ function TeacherRoom({ sessionId, lessonId, roomToken, isLive, selfName }: RoomP
     const byId = new Map<string, string>();
     for (const a of attendeesData?.session?.attendance ?? []) {
       const u = a.student.user;
-      const full = `${u.firstName} ${u.lastName}`.trim();
-      if (u.id) byId.set(u.id, full || u.id.slice(0, 8));
+      // §24: полоса видео узкая — «Имя Ф.». Форму собирает сервер, а не этот экран.
+      if (u.id) byId.set(u.id, u.shortName || u.id.slice(0, 8));
     }
     return (id: string) => byId.get(id) ?? id.slice(0, 8);
   }, [attendeesData]);

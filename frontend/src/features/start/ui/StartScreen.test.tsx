@@ -27,7 +27,7 @@ const meMock = (role: 'STUDENT' | 'TEACHER' | 'PARENT' = 'STUDENT') => ({
         id: 'u1',
         email: 'a@example.com',
         firstName: 'Аня',
-        lastName: 'Коваль',
+        lastName: 'Коваль', displayName: 'Аня', formalName: 'Аня', shortName: 'Аня', fullName: `${'Коваль'} ${'Аня'}`,
         role,
         locale: 'ru',
         avatarUrl: null,

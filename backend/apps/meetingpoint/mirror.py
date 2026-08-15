@@ -139,11 +139,7 @@ def mirror_summary(summary, items, students) -> int:
                 "source": item.source,
                 "atOffsetSec": item.at_offset_sec,
                 "text": item.text,
-                "authorName": (
-                    f"{item.author.first_name} {item.author.last_name}".strip()
-                    if item.author_id
-                    else ""
-                ),
+                "authorName": (item.author.formal_name if item.author_id else ""),
             }
             for item in items
         ],
@@ -293,7 +289,7 @@ def mirror_message(message, student) -> MirroredRecord:
         occurred_at=message.sent_at,
         payload={
             "channelId": str(message.channel_id),
-            "senderName": f"{sender.first_name} {sender.last_name}".strip(),
+            "senderName": sender.formal_name,
             "text": message.text,
         },
     )

@@ -153,7 +153,7 @@ function owner(u: (typeof users)[keyof typeof users], specialty: string) {
   return {
     __typename: 'TeacherProfile' as const,
     specialty,
-    user: { __typename: 'User' as const, id: u.id, firstName: u.firstName, lastName: u.lastName },
+    user: { __typename: 'User' as const, id: u.id, firstName: u.firstName, lastName: u.lastName, displayName: u.firstName, formalName: u.firstName, shortName: u.firstName, fullName: `${u.lastName} ${u.firstName}` },
   };
 }
 
@@ -284,6 +284,8 @@ function me(): MeQuery {
         email: users.sasha.email,
         firstName: users.sasha.firstName,
         lastName: users.sasha.lastName,
+        displayName: users.sasha.displayName,
+        shortName: users.sasha.shortName,
         role: 'STUDENT',
         studentProfile: {
           __typename: 'StudentProfile',
@@ -303,6 +305,8 @@ function me(): MeQuery {
         email: users.olga.email,
         firstName: users.olga.firstName,
         lastName: users.olga.lastName,
+        displayName: users.olga.displayName,
+        shortName: users.olga.shortName,
         role: 'PARENT',
         parentProfile: { __typename: 'ParentProfile', children: store.children },
       },
@@ -317,6 +321,8 @@ function me(): MeQuery {
         email: users.galina.email,
         firstName: users.galina.firstName,
         lastName: users.galina.lastName,
+        displayName: users.galina.displayName,
+        shortName: users.galina.shortName,
         role: 'ADMIN',
       },
     };
@@ -329,6 +335,8 @@ function me(): MeQuery {
       email: users.maria.email,
       firstName: users.maria.firstName,
       lastName: users.maria.lastName,
+      displayName: users.maria.displayName,
+      shortName: users.maria.shortName,
       role: 'TEACHER',
       teacherProfile: {
         __typename: 'TeacherProfile',
@@ -1307,7 +1315,7 @@ function chatChannels(): MyChannelsQuery['myChannels'] {
     __typename: 'ChatParticipant' as const,
     id: u.id,
     firstName: u.firstName,
-    lastName: u.lastName,
+    lastName: u.lastName, displayName: u.firstName, formalName: u.firstName, shortName: u.firstName,
     role,
   });
   const channel = (over: Partial<Channel> & { id: string; kind: Channel['kind'] }): Channel => {
@@ -2397,7 +2405,7 @@ function homeworkSubmissions(): HomeworkSubmissionsQuery {
     submittedAt: times.yesterdayPast,
     student: {
       __typename: 'StudentProfile' as const,
-      user: { __typename: 'User' as const, id: u.id, firstName: u.firstName, lastName: u.lastName },
+      user: { __typename: 'User' as const, id: u.id, firstName: u.firstName, lastName: u.lastName, displayName: u.firstName, formalName: u.firstName, shortName: u.firstName, fullName: `${u.lastName} ${u.firstName}` },
     },
   });
   return {
@@ -2441,7 +2449,7 @@ function teacherDashboard(): TeacherDashboardQuery {
     status,
     student: {
       __typename: 'StudentProfile' as const,
-      user: { __typename: 'User' as const, id: u.id, firstName: u.firstName, lastName: u.lastName },
+      user: { __typename: 'User' as const, id: u.id, firstName: u.firstName, lastName: u.lastName, displayName: u.firstName, formalName: u.firstName, shortName: u.firstName, fullName: `${u.lastName} ${u.firstName}` },
     },
     homework: {
       __typename: 'Homework' as const,
@@ -2607,7 +2615,7 @@ function institutionMembers(): InstitutionMembersQuery {
       __typename: 'User' as const,
       id: u.id,
       firstName: u.firstName,
-      lastName: u.lastName,
+      lastName: u.lastName, displayName: u.firstName, formalName: u.firstName, shortName: u.firstName, fullName: `${u.lastName} ${u.firstName}`,
       email: u.email,
     },
   });
@@ -2627,7 +2635,7 @@ function institutionMembers(): InstitutionMembersQuery {
 function institutionGroups(): InstitutionGroupsQuery {
   const stud = (u: (typeof users)[keyof typeof users]) => ({
     __typename: 'StudentProfile' as const,
-    user: { __typename: 'User' as const, id: u.id, firstName: u.firstName, lastName: u.lastName },
+    user: { __typename: 'User' as const, id: u.id, firstName: u.firstName, lastName: u.lastName, displayName: u.firstName, formalName: u.firstName, shortName: u.firstName, fullName: `${u.lastName} ${u.firstName}` },
   });
   const gt = (id: string, u: (typeof users)[keyof typeof users], subject: string) => ({
     __typename: 'GroupTeacher' as const,
@@ -2635,7 +2643,7 @@ function institutionGroups(): InstitutionGroupsQuery {
     subject,
     teacher: {
       __typename: 'TeacherProfile' as const,
-      user: { __typename: 'User' as const, id: u.id, firstName: u.firstName, lastName: u.lastName },
+      user: { __typename: 'User' as const, id: u.id, firstName: u.firstName, lastName: u.lastName, displayName: u.firstName, formalName: u.firstName, shortName: u.firstName, fullName: `${u.lastName} ${u.firstName}` },
     },
   });
   return {
@@ -2703,7 +2711,7 @@ function sessionAttendees(vars: Vars): SessionAttendeesQuery {
             __typename: 'User' as const,
             id: c.user.id,
             firstName: c.user.firstName,
-            lastName: c.user.lastName,
+            lastName: c.user.lastName, displayName: c.user.firstName, formalName: c.user.firstName, shortName: c.user.firstName, fullName: `${c.user.lastName} ${c.user.firstName}`,
           },
         },
       })),
@@ -2770,7 +2778,7 @@ function authPayload(): LoginMutation['login'] {
       id: u.id,
       email: u.email,
       firstName: u.firstName,
-      lastName: u.lastName,
+      lastName: u.lastName, displayName: u.firstName, shortName: u.firstName,
       role: 'TEACHER',
       locale: 'ru',
       studentProfile: null,
@@ -3315,7 +3323,7 @@ export function resolveDemoOperation(
             __typename: 'User',
             id: child.user.id,
             firstName: child.user.firstName,
-            lastName: child.user.lastName,
+            lastName: child.user.lastName, displayName: child.user.firstName, shortName: child.user.firstName,
           },
         },
       } satisfies AddChildMutation;
@@ -3606,7 +3614,7 @@ export function resolveDemoOperation(
             __typename: 'User',
             id: nextId('u'),
             firstName: 'Приглашён',
-            lastName: '',
+            lastName: '', displayName: 'Приглашён', shortName: 'Приглашён', fullName: `${''} ${'Приглашён'}`,
             email: String(input(variables).email ?? 'new@example.ru'),
           },
         },
@@ -3644,6 +3652,9 @@ export function resolveDemoOperation(
                 id: users.kostya.id,
                 firstName: users.kostya.firstName,
                 lastName: users.kostya.lastName,
+                displayName: users.kostya.displayName,
+                shortName: users.kostya.shortName,
+                fullName: users.kostya.fullName,
               },
             },
           ],
@@ -3670,6 +3681,9 @@ export function resolveDemoOperation(
               id: users.maria.id,
               firstName: users.maria.firstName,
               lastName: users.maria.lastName,
+              displayName: users.maria.displayName,
+              shortName: users.maria.shortName,
+              fullName: users.maria.fullName,
             },
           },
         },

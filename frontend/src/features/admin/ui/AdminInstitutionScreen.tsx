@@ -196,7 +196,7 @@ function MembersSection({
           return (
           <div className={styles.row} key={m.id}>
             <span className={styles.rowMain}>
-              {m.user.firstName} {m.user.lastName}{' '}
+              {m.user.fullName}{' '}
               <span className={styles.rowSub}>· {m.user.email}</span>
             </span>
             <Badge tone="info">{t(`role.${m.role}`)}</Badge>
@@ -355,7 +355,7 @@ function GroupBlock({
         ) : (
           group.students.map((s) => (
             <span className={styles.chip} key={s.user.id}>
-              {s.user.firstName} {s.user.lastName}
+              {s.user.fullName}
               <button
                 type="button"
                 className={styles.chipDelete}
@@ -382,7 +382,7 @@ function GroupBlock({
               <option value="">{t('groups.addStudent')}</option>
               {candidates.map((s) => (
                 <option key={s.user.id} value={s.user.id}>
-                  {s.user.firstName} {s.user.lastName}
+                  {s.user.fullName}
                 </option>
               ))}
             </Select>
@@ -411,7 +411,7 @@ function GroupBlock({
         ) : (
           group.teachers.map((gt) => (
             <span className={styles.chip} key={gt.id}>
-              {gt.teacher.user.firstName} {gt.teacher.user.lastName} · {gt.subject}
+              {gt.teacher.user.fullName} · {gt.subject}
             </span>
           ))
         )}
@@ -437,7 +437,7 @@ function GroupBlock({
               <option value="">{t('groups.assignTeacher')}</option>
               {teachers.map((m) => (
                 <option key={m.user.id} value={m.user.id}>
-                  {m.user.firstName} {m.user.lastName}
+                  {m.user.fullName}
                 </option>
               ))}
             </Select>

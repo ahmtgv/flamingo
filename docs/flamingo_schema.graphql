@@ -91,6 +91,16 @@ type User {
   role: Role!
   firstName: String!
   lastName: String!
+  # Отчество — необязательное (OWNER_SCOPE §24): его нет у части народов России и у
+  # иностранного преподавателя.
+  middleName: String!
+  # 🔴 Три ГОТОВЫХ имени, чтобы клиент их не склеивал. Правило «преподавателю имя-отчество,
+  # ученику имя» — та же ось, что «вы»/«ты», и живёт в ОДНОМ месте, на модели. Повтори его
+  # во фронте, и однажды один экран начнёт звать ребёнка по отчеству.
+  displayName: String!          # обращение К человеку: Имя Отчество / Имя
+  formalName: String!           # упоминание О человеке: Имя Отчество / Имя Фамилия
+  fullName: String!             # Фамилия Имя Отчество — документы, карточка надзора
+  shortName: String!            # Имя Ф. — там, где мало места
   locale: String!
   isActive: Boolean!
   avatarUrl: String
@@ -506,6 +516,10 @@ type ChatParticipant {
   id: ID!
   firstName: String!
   lastName: String!
+  # Готовые имена — те же правила, что у User (§24). Заголовок канала берёт displayName,
+  # список участников — shortName.
+  displayName: String!
+  shortName: String!
   role: String!
 }
 
@@ -1158,6 +1172,7 @@ input RegisterUserInput {
   firstName: String!
   lastName: String!
   role: Role!
+  middleName: String = ""       # отчество, необязательное (§24)
   locale: String = "ru"
   # 🔴 R-04 (аудит 14.08). Согласие 152-ФЗ спрашивали на экране и выбрасывали: поля не было ни
   # здесь, ни в бэкенде, и юридически согласия не существовало нигде. CLAUDE.md §2.3 требует
@@ -1329,8 +1344,7 @@ type VerificationQueueDocument {
 
 type VerificationQueueEntry {
   teacherUserId: ID!
-  firstName: String!
-  lastName: String!
+  fullName: String!            # Фамилия Имя Отчество — очередь это карточка, а не обращение
   email: String!
   specialty: String!
   education: String!
@@ -1638,6 +1652,9 @@ type Mutation {
   rejectTeacher(teacherUserId: ID!, reason: String!): User!
   requestVerificationDocuments(teacherUserId: ID!, reason: String!): User!
   setAvatar(fileKey: String!): User!                                    # own avatar (student/teacher)
+  # Своё имя. Отчество появилось после того, как люди уже зарегистрировались (§24) — без этой
+  # мутации добавить его было бы негде.
+  updateMyName(firstName: String!, lastName: String!, middleName: String = ""): User!
 
   # --- files
   requestUpload(input: UploadRequestInput!): UploadTicket!

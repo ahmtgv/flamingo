@@ -23,7 +23,7 @@ const me = (id: string, role: 'TEACHER' | 'STUDENT') => ({
         id,
         email: 'x@example.com',
         firstName: 'Имя',
-        lastName: 'Фамилия',
+        lastName: 'Фамилия', displayName: 'Имя', formalName: 'Имя', shortName: 'Имя', fullName: `${'Фамилия'} ${'Имя'}`,
         role,
         locale: 'ru',
         avatarUrl: null,
@@ -72,7 +72,7 @@ function course(over: Partial<NonNullable<CourseDetailQuery['course']>> = {}): C
       owner: {
         __typename: 'TeacherProfile',
         specialty: 'Математика',
-        user: { __typename: 'User', id: 't1', firstName: 'Мария', lastName: 'Петровна' },
+        user: { __typename: 'User', id: 't1', firstName: 'Мария', lastName: 'Петровна', displayName: 'Мария', formalName: 'Мария', shortName: 'Мария П.' },
       },
       sections: [section('s1', 'Линейные уравнения', [lesson('l1'), lesson('l2')])],
       viewerEnrollment: null,

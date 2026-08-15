@@ -21,6 +21,10 @@ class ChatParticipant:
     first_name: str
     last_name: str
     role: str
+    # Готовые имена — те же, что у User (§24). В чате строка узкая: заголовок канала берёт
+    # display_name, список участников — short_name, и склеивать их экрану больше не нужно.
+    display_name: str
+    short_name: str
 
 
 @strawberry.type
@@ -39,7 +43,7 @@ class ChannelMessage:
             id=strawberry.ID(str(message.id)),
             channel_id=strawberry.ID(str(message.channel_id)),
             sender_id=strawberry.ID(str(message.sender_id)),
-            sender_name=f"{message.sender.first_name} {message.sender.last_name}".strip(),
+            sender_name=message.sender.formal_name,
             text=message.text,
             sent_at=message.sent_at,
             mine=str(message.sender_id) == str(viewer_id),
@@ -85,6 +89,8 @@ class ChatChannel:
                     first_name=p.first_name,
                     last_name=p.last_name,
                     role=p.role,
+                    display_name=p.display_name,
+                    short_name=p.short_name,
                 )
                 for p in people
                 if str(p.id) != str(viewer.id)
@@ -122,7 +128,7 @@ class ChatReport:
         return cls(
             id=strawberry.ID(str(report.id)),
             channel_id=strawberry.ID(str(report.channel_id)),
-            reporter_name=(f"{report.reporter.first_name} {report.reporter.last_name}".strip()),
+            reporter_name=report.reporter.formal_name,
             reason=report.reason or None,
             status=ReportStatus(report.status),
             created_at=report.created_at,

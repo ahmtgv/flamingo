@@ -35,6 +35,9 @@ query TeacherDashboard {
           id
           firstName
           lastName
+          displayName
+          shortName
+          formalName
         }
       }
       homework {

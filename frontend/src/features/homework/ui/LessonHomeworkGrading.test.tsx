@@ -22,7 +22,7 @@ const teacherMe = {
         id: 't1',
         email: 't@example.com',
         firstName: 'Тимур',
-        lastName: 'Учитель',
+        lastName: 'Учитель', displayName: 'Тимур', formalName: 'Тимур', shortName: 'Тимур', fullName: `${'Учитель'} ${'Тимур'}`,
         role: 'TEACHER',
         locale: 'ru',
         avatarUrl: null,
@@ -66,7 +66,7 @@ const submission = (status: string, score: number | null) => ({
   submittedAt: '2026-06-10T10:00:00Z',
   student: {
     __typename: 'StudentProfile',
-    user: { __typename: 'User', id: 'st1', firstName: 'Стёпа', lastName: 'Ученик' },
+    user: { __typename: 'User', id: 'st1', firstName: 'Стёпа', lastName: 'Ученик', displayName: 'Стёпа', formalName: 'Стёпа', shortName: 'Стёпа У.', fullName: 'Ученик Стёпа' },
   },
 });
 const homeworkSubmissionsMock = (status: string, score: number | null) => ({
@@ -121,7 +121,8 @@ describe('LessonHomeworkScreen (teacher grading)', () => {
     await user.click(screen.getByRole('button', { name: 'Проверить' }));
 
     // The student's submission shows up in the grading list.
-    expect(await screen.findByText('Стёпа Ученик')).toBeInTheDocument();
+    // §24: работу подписывает имя ученика, а не «Имя Фамилия» — по отчеству ребёнка не зовут.
+    expect(await screen.findByText('Стёпа')).toBeInTheDocument();
 
     // Enter a score and grade it.
     await user.type(screen.getByLabelText('Оценка'), '90');

@@ -1,6 +1,5 @@
 import { type ReactNode, useEffect } from 'react';
 
-import { DesktopShell } from '@/features/desktop/DesktopShell';
 import { DemoRoleSwitcher } from '@/shared/demo/DemoRoleSwitcher';
 import { bootstrapSession } from '@/shared/lib/refresh';
 import { ErrorBoundary } from '@/shared/ui';
@@ -23,10 +22,9 @@ export function App() {
     <Providers>
       <ErrorBoundary>
         <Boot>
-          {/* Рама (лист D1) появляется только внутри приложения; в браузере это no-op. */}
-          <DesktopShell>
-            <AppRouter />
-          </DesktopShell>
+          {/* Рама (лист D1) живёт ВНУТРИ роутера — см. AppRouter. Здесь она стояла снаружи, и
+              первое же обращение к навигации из рамы валило приложение целиком. */}
+          <AppRouter />
           {/* TEMPORARY: preview-only role switcher (remove with the demo layer). */}
           {IS_PREVIEW && <DemoRoleSwitcher />}
         </Boot>
