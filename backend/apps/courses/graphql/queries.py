@@ -5,7 +5,7 @@ import strawberry
 from apps.courses import models, services, subject, tasks_progress
 from apps.courses.access import can_access_course
 from common.auth import get_current_user, require_user
-from common.enums import CourseLevel, CourseStatus
+from common.enums import CourseFormat, CourseLevel, CourseStatus
 from common.pagination import paginate
 
 from .types import (
@@ -23,6 +23,9 @@ from .types import (
 @strawberry.input
 class CourseFilter:
     level: CourseLevel | None = None
+    # Вторая ось аудитории (решение владельца 15.08): по ней ищут «курсы» и «повышение
+    # квалификации», и без неё они неотличимы от школьной программы того же класса.
+    format: CourseFormat | None = None
     subject: str | None = None
     language: str | None = None
     search: str | None = None
@@ -40,6 +43,7 @@ class CoursesQuery:
         f = filter or CourseFilter()
         kwargs = {
             "level": f.level,
+            "format": f.format,
             "subject": f.subject,
             "language": f.language,
             "search": f.search,

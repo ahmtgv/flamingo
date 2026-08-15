@@ -4,16 +4,16 @@ import { type FormEvent, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
-import { type CourseLevel, useCreateCourseMutation } from '@/entities/graphql/generated';
-import { Button, Card, SelectField, TextField } from '@/shared/ui';
+import {
+  type CourseFormat,
+  type CourseLevel,
+  useCreateCourseMutation,
+} from '@/entities/graphql/generated';
+import { Button, Card, TextField } from '@/shared/ui';
 
+import { AudienceFields } from './AudienceFields';
 import { CoursesLayout } from './CoursesLayout';
 import styles from './courses.module.css';
-
-const LEVELS: CourseLevel[] = [
-  'GRADE_1', 'GRADE_2', 'GRADE_3', 'GRADE_4', 'GRADE_5', 'GRADE_6',
-  'GRADE_7', 'GRADE_8', 'GRADE_9', 'GRADE_10', 'GRADE_11', 'ADULT',
-];
 
 export function CreateCourseScreen() {
   const { t } = useTranslation(['courses', 'common']);
@@ -22,6 +22,7 @@ export function CreateCourseScreen() {
     title: '',
     subject: '',
     level: 'GRADE_7' as CourseLevel,
+    format: 'PROGRAM' as CourseFormat,
     description: '',
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -44,6 +45,7 @@ export function CreateCourseScreen() {
             title: form.title,
             subject: form.subject,
             level: form.level,
+            format: form.format,
             description: form.description || null,
           },
         },
@@ -90,17 +92,13 @@ export function CreateCourseScreen() {
               error={errors.subject ? t(errors.subject) : undefined}
               placeholder={t('create.subjectPh')}
             />
-            <SelectField
-              label={t('create.level')}
-              value={form.level}
-              onChange={(e) => setForm((f) => ({ ...f, level: e.target.value as CourseLevel }))}
-            >
-              {LEVELS.map((lvl) => (
-                <option key={lvl} value={lvl}>
-                  {t(`level.${lvl}`)}
-                </option>
-              ))}
-            </SelectField>
+            {/* Аудитория — два поля (решение владельца 15.08). См. ../audience.ts. */}
+            <AudienceFields
+              level={form.level}
+              format={form.format}
+              onLevel={(level) => setForm((f) => ({ ...f, level }))}
+              onFormat={(format) => setForm((f) => ({ ...f, format }))}
+            />
             <TextField
               label={t('create.description')}
               value={form.description}

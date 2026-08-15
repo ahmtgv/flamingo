@@ -1,0 +1,56 @@
+# Надзор — очередь верификации (лист D7). Только сотруднику платформы; каждый вызов пишет
+# строку журнала на сервере. Fragment-free, как остальные операции.
+
+query VerificationQueue {
+  verificationQueue {
+    teacherUserId
+    firstName
+    lastName
+    email
+    specialty
+    education
+    submittedAt
+    courseCount
+    sessionCount
+    documents {
+      id
+      filename
+      sizeBytes
+      createdAt
+    }
+  }
+}
+
+query VerificationDocumentUrl($id: ID!) {
+  verificationDocumentUrl(id: $id)
+}
+
+query OversightLog($limit: Int) {
+  oversightLog(limit: $limit) {
+    id
+    action
+    actorName
+    subjectName
+    objectLabel
+    reason
+    at
+  }
+}
+
+mutation VerifyTeacher($teacherUserId: ID!) {
+  verifyTeacher(teacherUserId: $teacherUserId) {
+    id
+  }
+}
+
+mutation RejectTeacher($teacherUserId: ID!, $reason: String!) {
+  rejectTeacher(teacherUserId: $teacherUserId, reason: $reason) {
+    id
+  }
+}
+
+mutation RequestVerificationDocuments($teacherUserId: ID!, $reason: String!) {
+  requestVerificationDocuments(teacherUserId: $teacherUserId, reason: $reason) {
+    id
+  }
+}

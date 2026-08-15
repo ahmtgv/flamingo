@@ -147,7 +147,7 @@ def _teacher_profiles(user) -> list[LearningProfile]:
         .select_related("institution")
         .order_by("created_at", "id")
     )
-    return [
+    profiles = [
         LearningProfile(
             id=_key(LearningProfileKind.TEACHER, membership.institution_id),
             kind=LearningProfileKind.TEACHER,
@@ -156,6 +156,30 @@ def _teacher_profiles(user) -> list[LearningProfile]:
         )
         for membership in memberships
     ]
+
+    # 🔴 Частный преподаватель — тот, кто ведёт САМ, без учебного заведения. Профиль строился
+    # только из членства в заведении, и у него не было ни одного: стартовая отвечала «здесь
+    # появится ваше обучение» человеку с пятью курсами и расписанием. Найдено при разборе
+    # находки владельца 15.08, п.2; `default_kind_for` ниже был написан ровно под этот случай
+    # и не был подключён никуда.
+    #
+    # Профиль один на все свои курсы, а не по профилю на курс: у преподавателя это ОДНА работа,
+    # и переключать её между «Алгеброй» и «Геометрией» значило бы прятать половину курсов за
+    # переключателем контекста. Курс — строка в списке, а не отдельная жизнь (в отличие от
+    # курсанта, у которого каждый курс и правда сам по себе).
+    if getattr(user, "role", None) == Role.TEACHER.value:
+        from apps.courses.models import Course
+
+        solo = Course.objects.filter(owner__user=user, institution__isnull=True)
+        if solo.exists() or not profiles:
+            profiles.append(
+                LearningProfile(
+                    id=_key(LearningProfileKind.TEACHER, "solo"),
+                    kind=LearningProfileKind.TEACHER,
+                    course_count=solo.count(),
+                )
+            )
+    return profiles
 
 
 def learning_profiles(user) -> list[LearningProfile]:

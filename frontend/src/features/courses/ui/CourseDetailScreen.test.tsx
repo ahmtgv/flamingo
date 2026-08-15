@@ -64,6 +64,7 @@ function course(over: Partial<NonNullable<CourseDetailQuery['course']>> = {}): C
       description: 'Описание курса',
       subject: 'Математика',
       level: 'GRADE_7',
+      format: 'PROGRAM',
       status: 'PUBLISHED',
       lessonCount: 3,
       enrollmentCount: 18,

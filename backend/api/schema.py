@@ -22,6 +22,7 @@ from apps.exercises.graphql.mutations import ExercisesMutation
 from apps.exercises.graphql.queries import ExercisesQuery
 from apps.exercises.graphql.subscriptions import DictionarySubscription
 from apps.files.graphql.mutations import FilesMutation
+from apps.files.graphql.queries import FilesQuery
 from apps.homework.graphql.mutations import HomeworkMutation
 from apps.homework.graphql.queries import HomeworkQuery
 from apps.institutions.graphql.mutations import InstitutionsMutation
@@ -29,6 +30,8 @@ from apps.institutions.graphql.queries import InstitutionsQuery
 from apps.meetingpoint.graphql.mutations import MeetingPointMutation
 from apps.meetingpoint.graphql.queries import MeetingPointQuery
 from apps.meetingpoint.graphql.subscriptions import MeetingPointSubscription
+from apps.oversight.graphql.mutations import OversightMutation
+from apps.oversight.graphql.queries import OversightQuery
 from apps.scheduling.graphql.mutations import SchedulingMutation
 from apps.scheduling.graphql.queries import SchedulingQuery
 from apps.scheduling.graphql.subscriptions import SchedulingSubscription
@@ -51,6 +54,7 @@ class Query(
     HomeworkQuery,
     InstitutionsQuery,
     SeedumQuery,
+    FilesQuery,
     ChatQuery,
     BoardQuery,
     ExercisesQuery,
@@ -58,6 +62,7 @@ class Query(
     DevicesQuery,
     MeetingPointQuery,
     SignallingQuery,
+    OversightQuery,
 ):
     pass
 
@@ -78,6 +83,7 @@ class Mutation(
     DevicesMutation,
     MeetingPointMutation,
     SignallingMutation,
+    OversightMutation,
 ):
     pass
 

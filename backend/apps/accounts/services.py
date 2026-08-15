@@ -308,15 +308,42 @@ def contact_visible(viewer, target: User) -> bool:
 # --- teacher verification ----------------------------------------------------
 @transaction.atomic
 def submit_verification_document(user: User, file_key: str) -> VerificationDocument:
+    from apps.files import services as files
+    from common import storage
+
     if user.role != Role.TEACHER.value:
         raise PermissionDenied("Only a teacher can submit verification documents")
+
+    # Ключ обязан быть своим и объект — существовать. Ровно те же две проверки, что у всякой
+    # привязки файла (files/services.py): без них в очередь падает ссылка на чужой объект.
+    files.assert_caller_key(user, file_key, UploadPurpose.VERIFICATION)
+    files.validate_uploaded(file_key, UploadPurpose.VERIFICATION)
+
+    meta = storage.head(file_key) or {}
     doc = VerificationDocument.objects.create(
-        teacher_user=user, file_key=file_key, status=VerificationStatus.PENDING.value
+        teacher_user=user,
+        file_key=file_key,
+        filename=file_key.rsplit("/", 1)[-1],
+        size_bytes=meta.get("size"),
+        status=VerificationStatus.PENDING.value,
     )
     TeacherProfile.objects.filter(user=user).update(
         verification_status=VerificationStatus.PENDING.value
     )
     return doc
+
+
+def my_verification_documents(user: User) -> list[VerificationDocument]:
+    """Свои документы — чтобы экран преподавателя говорил правду.
+
+    🔴 Находка владельца 15.08, п.4: баннер «Документы на проверке» висел у КАЖДОГО
+    преподавателя, потому что `verification_status` рождается со значением PENDING. Человек,
+    не загрузивший ничего, читал, что его документы проверяют. Отличить одно от другого можно
+    только по наличию документов — поэтому экран их и получает.
+    """
+    if getattr(user, "role", None) != Role.TEACHER.value:
+        return []
+    return list(VerificationDocument.objects.filter(teacher_user=user).order_by("-created_at"))
 
 
 # --- email verification & password reset ------------------------------------

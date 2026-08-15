@@ -58,6 +58,7 @@ INSTALLED_APPS = [
     "apps.devices",
     "apps.meetingpoint",
     "apps.signalling",
+    "apps.oversight",
 ]
 
 # --- Jurisdiction gate (docs/rnd/RND_01_JURISDICTION.md §6.1-6.2) ------------------------

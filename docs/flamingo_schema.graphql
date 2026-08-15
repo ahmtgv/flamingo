@@ -40,10 +40,19 @@ enum InstitutionStatus { PENDING ACTIVE INACTIVE }
 enum MembershipRole { TEACHER STUDENT ADMIN }
 enum MembershipStatus { PENDING ACTIVE INACTIVE }
 enum GuardianshipStatus { PENDING ACTIVE }
+# Аудитория курса — ДВЕ независимые оси (решение владельца 2026-08-15).
+# CourseLevel отвечает «кому» — место человека в системе образования; CourseFormat — «что это
+# за программа». Одним списком они не выражаются: «курс английского для 7 класса» требует
+# обеих осей сразу, и в едином списке пришлось бы заводить пункт на каждую пару.
+# Деление совпадает с ФЗ-273: ст. 10 перечисляет уровни, ст. 75–76 ставит дополнительное и
+# дополнительное профессиональное отдельной ветвью.
 enum CourseLevel {
+  PRESCHOOL
   GRADE_1 GRADE_2 GRADE_3 GRADE_4 GRADE_5 GRADE_6
-  GRADE_7 GRADE_8 GRADE_9 GRADE_10 GRADE_11 ADULT
+  GRADE_7 GRADE_8 GRADE_9 GRADE_10 GRADE_11
+  COLLEGE UNIVERSITY ADULT
 }
+enum CourseFormat { PROGRAM COURSE PROFESSIONAL }
 enum CourseStatus { DRAFT PUBLISHED ARCHIVED }
 enum LessonStatus { DRAFT PUBLISHED }
 enum SessionStatus { SCHEDULED LIVE ENDED CANCELED }
@@ -112,6 +121,10 @@ type TeacherProfile {
   experience: String
   bio: String
   verificationStatus: VerificationStatus!
+  # Свои документы (чужому — пустой список). Без них баннер «Документы на проверке» висел у
+  # каждого преподавателя: verificationStatus рождается со значением PENDING, и «не загружал»
+  # было неотличимо от «жду решения».
+  verificationDocuments: [VerificationDocument!]!
   rating: Float
   reviewCount: Int!
 }
@@ -158,8 +171,15 @@ type Guardianship {
 
 type VerificationDocument {
   id: ID!
-  fileUrl: String!
+  # Ссылка на СВОЙ документ; чужому — null. Раньше здесь стоял выдуманный путь `/files/<key>`,
+  # маршрута с таким адресом в продукте нет (находка владельца 2026-08-15, п.4).
+  fileUrl: String
+  filename: String!
+  sizeBytes: Int
   status: VerificationStatus!
+  # Причина отказа или «каких документов не хватает» — текстом, а не молчанием (лист D7).
+  reason: String!
+  reviewedAt: DateTime
   createdAt: DateTime!
 }
 
@@ -169,6 +189,7 @@ type Course {
   title: String!
   description: String
   level: CourseLevel!
+  format: CourseFormat!
   subject: String!
   language: String!
   owner: TeacherProfile!
@@ -205,6 +226,10 @@ type Lesson {
   kind: LessonKind!            # EXTERNAL_DEVICE opens the device's page at run time
   deviceKey: String            # only ever set on an EXTERNAL_DEVICE lesson
   materials: [Material!]!
+  # Ближайшее назначенное занятие. Без него список из двадцати уроков не отвечал на вопрос
+  # «какие уже назначены»: «Назначить занятие» ставило галочку в кнопке и теряло её при
+  # перезагрузке (находка владельца 2026-08-15, п.2).
+  nextSessionAt: DateTime
   sessions(from: DateTime, to: DateTime): [LessonSession!]!
 }
 
@@ -222,6 +247,11 @@ type LessonSession {
   startAt: DateTime!
   endAt: DateTime
   status: SessionStatus!
+  # К какому курсу относится занятие. Расписание — единственное место, где занятия ВСЕХ курсов
+  # лежат рядом, и без названия курса тридцать строк подряд не отвечают, к чему готовиться
+  # (находка владельца 2026-08-15, п.2).
+  courseTitle: String!
+  courseId: ID!
   roomToken: String            # null unless viewer is a participant of a live session
   teacherName: String          # course owner's display name; any session participant (NOT the roster)
   # Р5.1 (owner, 2026-08-13): a student's video strip shows the teacher and their own preview
@@ -526,6 +556,11 @@ type ChatReport {
 # ----------------------------------------------------------------------------- Auth / utility payloads
 type AuthPayload { token: String! refreshToken: String! user: User! }
 type UploadTicket { uploadUrl: String! fileKey: String! expiresAt: DateTime! }
+
+# Правила загрузки — числами и ДО попытки (находка владельца 2026-08-15, п.3). Правила жили
+# только на сервере и срабатывали ПОСЛЕ выбора файла: человек выбирал ролик, ждал и получал
+# отказ. Запрос, а не константа в клиенте: константа разошлась бы с политикой молча.
+type UploadPolicy { purpose: UploadPurpose! maxBytes: Int! contentTypes: [String!]! }
 type SessionJoin { session: LessonSession! roomToken: String! }
 
 # ----------------------------------------------------------------------------- Exercises (R4.1)
@@ -1150,6 +1185,7 @@ input CourseInput {
   title: String!
   description: String
   level: CourseLevel!
+  format: CourseFormat = PROGRAM
   subject: String!
   language: String = "ru"
   institutionId: ID
@@ -1202,7 +1238,7 @@ input AttentionInput { sessionId: ID! bucketStart: DateTime! avgAttention: Int! 
 input UbpBackupInput { encryptedBlob: String! keyHint: String }
 input NotificationPreferenceInput { eventType: NotificationType! channel: NotificationChannel! enabled: Boolean! childId: ID }
 
-input CourseFilter { level: CourseLevel subject: String language: String search: String }
+input CourseFilter { level: CourseLevel format: CourseFormat subject: String language: String search: String }
 
 # One of the educations inside a single account (owner req. 15, atlas sheet 00).
 # A PROJECTION over INSTITUTION_MEMBERSHIP / ENROLLMENT — no stored entity (R0.2 decision).
@@ -1253,6 +1289,21 @@ type StartProgress {
   progressPct: Int!
 }
 
+# Курс преподавателя — «что я веду» (находка владельца 2026-08-15, п.2). Наполняет тот же
+# слот, что `progress` у ученика: у преподавателя своего прогресса нет, и слот стоял пустым.
+type StartCourse {
+  courseId: ID!
+  title: String!
+  subject: String!
+  sectionCount: Int!
+  lessonCount: Int!
+  publishedLessons: Int!
+  studentCount: Int!
+  isDraft: Boolean!
+  nextAt: DateTime            # ближайшее занятие по курсу, если оно назначено
+  nextLessonTitle: String
+}
+
 type StartPage {
   profile: LearningProfile
   now: StartEntry              # running lesson, else next today, else what to carry on with
@@ -1261,6 +1312,42 @@ type StartPage {
   week: [StartDay!]!           # seven days from today
   continueEntries: [StartEntry!]!
   progress: [StartProgress!]!
+  teaching: [StartCourse!]!    # роль teacher; у остальных пусто
+}
+
+# ----------------------------------------------------------------------------- Надзор (atlas D7)
+# Панель суперадмина: пока — очередь верификации преподавателей и журнал доступа.
+# Решение владельца 2026-08-15 (OWNER_SCOPE §23): доступ полный, и КАЖДЫЙ просмотр чужого
+# личного пишется в журнал. Журнал не редактируется и не удаляется — мутаций для этого нет и
+# не будет. Учёт людей и блокировки — следующая фаза, эти же типы расширяются.
+type VerificationQueueDocument {
+  id: ID!
+  filename: String!
+  sizeBytes: Int
+  createdAt: DateTime!
+}
+
+type VerificationQueueEntry {
+  teacherUserId: ID!
+  firstName: String!
+  lastName: String!
+  email: String!
+  specialty: String!
+  education: String!
+  submittedAt: DateTime!
+  courseCount: Int!        # нагрузка: решение о допуске к детям — по человеку, не по файлу
+  sessionCount: Int!
+  documents: [VerificationQueueDocument!]!
+}
+
+type AccessLogRow {
+  id: ID!
+  action: String!
+  actorName: String!
+  subjectName: String!
+  objectLabel: String!
+  reason: String!
+  at: DateTime!
 }
 
 # ----------------------------------------------------------------------------- Subject cabinet (atlas 01)
@@ -1409,6 +1496,14 @@ type Query {
   subjectTasks(courseId: ID!): [SubjectTask!]!            # atlas 01 «Задания»
   subjectProgress(courseId: ID!): SubjectProgress!        # atlas 01 «Прогресс»
 
+  # files — правила загрузки, чтобы экран назвал потолок и типы ДО выбора файла
+  uploadPolicy(purpose: UploadPurpose!): UploadPolicy!
+
+  # надзор (D7) — только сотруднику платформы; каждый вызов пишет строку журнала
+  verificationQueue: [VerificationQueueEntry!]!
+  verificationDocumentUrl(id: ID!): String!
+  oversightLog(limit: Int = 100): [AccessLogRow!]!
+
   # chat (R2) — all scoped to the caller's own membership; none takes a user id
   myChannels: [ChatChannel!]!
   chatUnread: Int!                                        # the badge in the header
@@ -1537,6 +1632,11 @@ type Mutation {
   addChild(input: AddChildInput!): Guardianship!            # parent links/creates a child
   respondGuardianship(id: ID!, accept: Boolean!): Guardianship!   # child confirms request
   submitVerificationDocument(fileKey: String!): VerificationDocument!   # teacher
+  # Решение по преподавателю — надзор (лист D7). Отказ обязан нести причину: она уходит
+  # человеку текстом, а не молчанием.
+  verifyTeacher(teacherUserId: ID!): User!
+  rejectTeacher(teacherUserId: ID!, reason: String!): User!
+  requestVerificationDocuments(teacherUserId: ID!, reason: String!): User!
   setAvatar(fileKey: String!): User!                                    # own avatar (student/teacher)
 
   # --- files

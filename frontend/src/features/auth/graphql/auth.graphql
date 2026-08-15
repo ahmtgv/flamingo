@@ -99,13 +99,13 @@ mutation AddChild($input: AddChildInput!) {
   }
 }
 
-# Teacher submits a diploma for moderation (consumed by the teacher cabinet once
-# the files module exists; the hook is generated now).
+# Преподаватель отправляет документ на проверку. Путь замкнулся 15.08: очередь и решение
+# живут в надзоре (лист D7), а до того мутация никуда не вела — экрана подтверждения не было.
 mutation SubmitVerificationDocument($fileKey: String!) {
   submitVerificationDocument(fileKey: $fileKey) {
     id
+    filename
     status
-    fileUrl
     createdAt
   }
 }
@@ -131,6 +131,16 @@ query Me {
     teacherProfile {
       verificationStatus
       specialty
+      # Без документов «не загружал» неотличимо от «жду решения»: статус рождается PENDING,
+      # и баннер «Документы на проверке» висел у каждого (находка владельца 15.08, п.4).
+      verificationDocuments {
+        id
+        filename
+        sizeBytes
+        status
+        reason
+        createdAt
+      }
     }
     parentProfile {
       children {

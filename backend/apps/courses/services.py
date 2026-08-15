@@ -10,6 +10,7 @@ from apps.accounts.models import StudentProfile, TeacherProfile
 from apps.files import services as files
 from common import storage
 from common.enums import (
+    CourseFormat,
     CourseStatus,
     EnrollmentStatus,
     LessonKind,
@@ -122,6 +123,7 @@ def create_course(
     title: str,
     subject: str,
     level,
+    format=None,
     description: str = "",
     language: str = "ru",
     cover_key: str = "",
@@ -135,6 +137,9 @@ def create_course(
         title=title,
         subject=subject,
         level=_val(level),
+        # Второе поле аудитории. Не передали — курс остаётся программой, как и всё, что
+        # существовало до появления поля.
+        format=_val(format) if format else CourseFormat.PROGRAM.value,
         description=description or "",
         language=language or "ru",
         cover_key=cover_key or "",
@@ -146,7 +151,7 @@ def create_course(
 @transaction.atomic
 def update_course(user, course_id, **fields) -> Course:
     course = _owned_course(user, course_id)
-    allowed = {"title", "subject", "level", "description", "language", "cover_key"}
+    allowed = {"title", "subject", "level", "format", "description", "language", "cover_key"}
     for key, value in fields.items():
         if key in allowed and value is not None:
             setattr(course, key, _val(value))
@@ -431,7 +436,30 @@ def visible_lessons(user, section: Section) -> list[Lesson]:
     qs = section.lessons.all()
     if not _is_course_owner(user, section.course):
         qs = qs.filter(status=LessonStatus.PUBLISHED.value)
-    return list(qs)
+    return list(_with_next_session(qs))
+
+
+def _with_next_session(qs):
+    """Прицепить к урокам ближайшее будущее занятие ОДНИМ подзапросом.
+
+    Находка владельца 15.08, п.2: «Назначить занятие» ставило галочку в состоянии кнопки и
+    забывало её при перезагрузке — по списку из двадцати уроков нельзя было понять, какие уже
+    назначены. Урок обязан носить эту дату сам.
+
+    Подзапрос, а не отдельный запрос на урок: в курсе их бывает двадцать, и двадцать запросов
+    на экран, который открывают первым, — это не «чуть медленнее», это заметно.
+    """
+    from django.db.models import OuterRef, Subquery
+
+    from apps.scheduling.models import LessonSession
+    from common.enums import SessionStatus
+
+    upcoming = (
+        LessonSession.objects.filter(lesson_id=OuterRef("pk"), start_at__gte=timezone.now())
+        .exclude(status=SessionStatus.CANCELED.value)
+        .order_by("start_at")
+    )
+    return qs.annotate(_next_session_at=Subquery(upcoming.values("start_at")[:1]))
 
 
 def lesson_content_visible(user, lesson: Lesson) -> bool:
@@ -450,13 +478,15 @@ def visible_materials(user, lesson: Lesson) -> list[Material]:
 
 
 # --- catalog ----------------------------------------------------------------
-def _published_filtered(*, level=None, subject=None, language=None, search=None):
+def _published_filtered(*, level=None, format=None, subject=None, language=None, search=None):
     """The published-catalog queryset after applying the (optional) filters — without the
     per-card annotations, so it can back both the paginated list and the distinct-subject
     facet count without the annotations distorting a GROUP BY."""
     qs = Course.objects.filter(status=CourseStatus.PUBLISHED.value)
     if level:
         qs = qs.filter(level=_val(level))
+    if format:
+        qs = qs.filter(format=_val(format))
     if subject:
         qs = qs.filter(subject__icontains=subject)
     if language:
@@ -474,12 +504,14 @@ def _published_filtered(*, level=None, subject=None, language=None, search=None)
     return qs
 
 
-def published_courses(*, level=None, subject=None, language=None, search=None):
+def published_courses(*, level=None, format=None, subject=None, language=None, search=None):
     # Annotate the per-card counts so the catalog does not run 2 COUNT queries per course
     # (A-H1). distinct=True avoids the multiple-aggregate row multiplication; the lesson count
     # excludes soft-deleted lessons to match the Lesson (SoftDeleteManager) default.
     return (
-        _published_filtered(level=level, subject=subject, language=language, search=search)
+        _published_filtered(
+            level=level, format=format, subject=subject, language=language, search=search
+        )
         .select_related("owner__user")
         .annotate(
             _lesson_count=Count(
@@ -493,11 +525,15 @@ def published_courses(*, level=None, subject=None, language=None, search=None):
     )
 
 
-def published_subject_count(*, level=None, subject=None, language=None, search=None) -> int:
+def published_subject_count(
+    *, level=None, format=None, subject=None, language=None, search=None
+) -> int:
     """Distinct subjects across the (filtered) published catalog — the "N предметов" meta
     (atlas 04). Reflects the active filter so the headrow stays consistent with totalCount."""
     return (
-        _published_filtered(level=level, subject=subject, language=language, search=search)
+        _published_filtered(
+            level=level, format=format, subject=subject, language=language, search=search
+        )
         .values("subject")
         .distinct()
         .count()

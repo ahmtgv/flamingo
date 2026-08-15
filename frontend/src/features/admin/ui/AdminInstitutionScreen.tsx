@@ -52,6 +52,13 @@ export function AdminInstitutionScreen() {
           <ArrowLeft size={ICON_SM} /> {t('back')}
         </button>
         <h1 className={styles.pageTitle}>{t('title')}</h1>
+        {/* Дверь в верификацию. Без неё экран существует и до него никто не доходит —
+            ровно то, на что владелец пожаловался 15.08 про сам путь верификации. */}
+        <div className={styles.actionsRow}>
+          <Button variant="secondary" size="sm" onClick={() => navigate('/admin/verification')}>
+            {t('verification.link')}
+          </Button>
+        </div>
         {error && !institution ? (
           <ErrorState onRetry={() => void refetch()} />
         ) : !institution ? (

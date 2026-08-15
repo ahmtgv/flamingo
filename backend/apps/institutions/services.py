@@ -16,6 +16,7 @@ from django.utils import timezone
 from apps.accounts.models import StudentProfile, TeacherProfile, User
 from common.enums import MembershipRole, MembershipStatus
 from common.exceptions import NotFound, PermissionDenied, ValidationError
+from common.permissions import is_platform_staff
 
 from .models import Group, GroupMembership, GroupTeacher, Institution, InstitutionMembership
 
@@ -28,7 +29,7 @@ def _val(x):
 # --- permission helpers -----------------------------------------------------
 def _require_staff(user) -> None:
     """Back-office (platform) only — institution creation/onboarding."""
-    if not getattr(user, "is_staff", False):
+    if not is_platform_staff(user):
         raise PermissionDenied("Only platform staff can do this")
 
 
@@ -55,7 +56,7 @@ def _admin_for(user, institution_id) -> Institution:
     """Return the institution if the caller may administer it (its active admin,
     or platform staff). Raises NotFound/PermissionDenied otherwise."""
     institution = _get_institution(institution_id)
-    if getattr(user, "is_staff", False) or _is_active_admin(user, institution):
+    if is_platform_staff(user) or _is_active_admin(user, institution):
         return institution
     raise PermissionDenied("Not an admin of this institution")
 
@@ -73,7 +74,7 @@ def _can_view_group_roster(user, group: Group) -> bool:
     """The group roster (minors' names — PII, 152-FZ) is visible ONLY to platform staff,
     an active admin of the group's OWN institution, or a teacher ASSIGNED to this group
     (same leak class as the attendance fix b2782ba). Everyone else reads []."""
-    if getattr(user, "is_staff", False):
+    if is_platform_staff(user):
         return True
     if _is_active_admin(user, group.institution):
         return True
@@ -282,7 +283,7 @@ def get_institution(user, institution_id) -> Institution | None:
     institution = Institution.objects.filter(id=institution_id).first()
     if institution is None:
         return None
-    if getattr(user, "is_staff", False) or _is_active_admin(user, institution):
+    if is_platform_staff(user) or _is_active_admin(user, institution):
         return institution
     return None
 
@@ -296,7 +297,7 @@ def get_group(user, group_id) -> Group | None:
     group = Group.objects.filter(id=group_id).select_related("institution").first()
     if group is None:
         return None
-    if getattr(user, "is_staff", False) or _is_active_admin(user, group.institution):
+    if is_platform_staff(user) or _is_active_admin(user, group.institution):
         return group
     return None
 

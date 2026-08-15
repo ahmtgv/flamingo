@@ -7,7 +7,7 @@ from strawberry.scalars import JSON
 
 from apps.courses import services, subject
 from common.auth import require_user
-from common.enums import CourseLevel, LessonKind, MaterialType, SavedItemKind
+from common.enums import CourseFormat, CourseLevel, LessonKind, MaterialType, SavedItemKind
 
 from .types import Course, Enrollment, Lesson, Material, Section, SubjectMaterial
 
@@ -16,6 +16,9 @@ from .types import Course, Enrollment, Lesson, Material, Section, SubjectMateria
 class CourseInput:
     title: str
     level: CourseLevel
+    # Аудитория — два поля, не одно. Умолчание PROGRAM: курс, созданный до появления поля,
+    # программой и был, и старый клиент, который его не шлёт, ничего не ломает.
+    format: CourseFormat = CourseFormat.PROGRAM
     subject: str
     description: str | None = None
     language: str = "ru"
@@ -99,6 +102,7 @@ class CoursesMutation:
             title=input.title,
             subject=input.subject,
             level=input.level,
+            format=input.format,
             description=input.description or "",
             language=input.language,
             cover_key=input.cover_key or "",
@@ -114,6 +118,7 @@ class CoursesMutation:
             title=input.title,
             subject=input.subject,
             level=input.level,
+            format=input.format,
             description=input.description,
             language=input.language,
             cover_key=input.cover_key,

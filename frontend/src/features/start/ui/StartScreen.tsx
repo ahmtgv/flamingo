@@ -226,6 +226,13 @@ export function StartScreen() {
               </section>
             )}
 
+            {/* 🔴 Находка владельца 15.08, п.2: интерфейс был построен так, будто курс один.
+                Слот прогресса у преподавателя всегда пуст — прогресс считается по записи
+                ученика, которой у него нет. Здесь стоят ЕГО КУРСЫ: «что я веду» отвечается на
+                первом же экране, без клика, и отсюда же переключаются между курсами. */}
+            {isTeacher ? (
+              <TeachingSlot rows={page.teaching} />
+            ) : (
             <section
               className={`${styles.slot} ${styles.sProgress}`}
               aria-label={t('slots.progress')}
@@ -265,6 +272,7 @@ export function StartScreen() {
                 ))
               )}
             </section>
+            )}
 
             <section className={`${styles.slot} ${styles.sQuick}`} aria-label={t('slots.quick')}>
               <div className={styles.slotHead}>
@@ -442,6 +450,83 @@ function AttentionRow({
       </span>
     </div>
   );
+}
+
+// --- мои курсы (преподаватель) ---------------------------------------------------------------
+/**
+ * «Что я веду» — список курсов преподавателя со состоянием каждого.
+ *
+ * Три вещи на карточке, и каждая отвечает на вопрос, который иначе стоит клика:
+ * сколько уроков и сколько из них опубликовано · сколько учеников · когда ближайшее занятие.
+ * Без последней строки «двадцать уроков» приходилось открывать по одному, чтобы понять, какой
+ * из них уже назначен.
+ *
+ * Ссылка «все курсы →» ведёт в каталог; сам список — своё, а не выборка из общего.
+ */
+function TeachingSlot({ rows }: { rows: Page['teaching'] }) {
+  const { t } = useTranslation('start');
+  const navigate = useNavigate();
+
+  return (
+    <section className={`${styles.slot} ${styles.sProgress}`} aria-label={t('slots.teaching')}>
+      <div className={styles.slotHead}>
+        <span className={styles.slotTitle}>{t('slots.teaching')}</span>
+        <button type="button" className={styles.more} onClick={() => navigate('/courses')}>
+          {t('slots.allCourses')}
+        </button>
+      </div>
+      {rows.length === 0 ? (
+        <>
+          <p className={styles.empty}>{t('empty.teaching')}</p>
+          <Button variant="secondary" size="sm" onClick={() => navigate('/courses/new')}>
+            {t('empty.teachingCta')}
+          </Button>
+        </>
+      ) : (
+        <div className={styles.courses}>
+          {rows.map((row) => (
+            <button
+              type="button"
+              className={styles.courseCard}
+              key={row.courseId}
+              onClick={() => navigate(`/courses/${row.courseId}`)}
+            >
+              <span className={styles.courseName}>{row.title}</span>
+              <span className={styles.courseSub}>
+                {[
+                  row.subject,
+                  t('teaching.lessons', { count: row.lessonCount }),
+                  row.studentCount > 0
+                    ? t('teaching.students', { count: row.studentCount })
+                    : t('teaching.noStudents'),
+                ].join(' · ')}
+              </span>
+              <span className={styles.courseNext}>
+                {row.nextAt && row.nextLessonTitle
+                  ? `${clock(row.nextAt)} · ${t('teaching.next', { title: row.nextLessonTitle })}`
+                  : t('teaching.noNext')}
+              </span>
+              <span className={styles.courseTags}>
+                {row.isDraft && <span className={styles.tagDraft}>{t('teaching.draft')}</span>}
+                <span className={styles.courseNext}>{publishedLabel(row, t)}</span>
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
+
+/** Опубликовано ли всё — тремя разными словами, потому что это три разных положения дел. */
+function publishedLabel(
+  row: Page['teaching'][number],
+  t: (k: string, o?: Record<string, unknown>) => string,
+): string {
+  if (row.lessonCount === 0) return t('teaching.sections', { count: row.sectionCount });
+  if (row.publishedLessons === 0) return t('teaching.nothingPublished');
+  if (row.publishedLessons === row.lessonCount) return t('teaching.allPublished');
+  return t('teaching.publishedOf', { published: row.publishedLessons, total: row.lessonCount });
 }
 
 // --- недельный дневник ----------------------------------------------------------------------

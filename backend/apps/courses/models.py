@@ -4,6 +4,7 @@ from django.db import models
 
 from common.enums import (
     AccessStatus,
+    CourseFormat,
     CourseLevel,
     CourseStatus,
     EnrollmentStatus,
@@ -24,7 +25,14 @@ def default_lesson_options() -> dict:
 class Course(SoftDeleteModel):
     title = models.CharField(max_length=200)
     description = models.TextField(blank=True, default="")
+    # Аудитория курса — ДВА независимых поля (решение владельца 15.08). `level` отвечает
+    # «кому», `format` — «что это за программа». Одним списком они не выражаются: «курс
+    # английского для 7 класса» требует обоих, а объединённый список пришлось бы городить из
+    # пар. Обоснование и разбор случаев — в common/enums.py.
     level = models.CharField(max_length=12, choices=choices(CourseLevel))
+    format = models.CharField(
+        max_length=12, choices=choices(CourseFormat), default=CourseFormat.PROGRAM.value
+    )
     subject = models.CharField(max_length=120)
     language = models.CharField(max_length=8, default="ru")
     owner = models.ForeignKey(

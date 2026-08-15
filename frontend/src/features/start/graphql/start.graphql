@@ -72,5 +72,17 @@ query StartPage {
       totalLessons
       progressPct
     }
+    teaching {
+      courseId
+      title
+      subject
+      sectionCount
+      lessonCount
+      publishedLessons
+      studentCount
+      isDraft
+      nextAt
+      nextLessonTitle
+    }
   }
 }

@@ -4,5 +4,16 @@
   "fileTooLarge": "Файл слишком большой",
   "fileTypeNotAllowed": "Недопустимый тип файла",
   "uploadFailed": "Не удалось загрузить файл",
-  "remove": "Убрать"
+  "remove": "Убрать",
+  "limits": "До {{size}}. Принимаются: {{kinds}}",
+  "kinds": {
+    "image": "картинки",
+    "pdf": "PDF",
+    "text": "текст",
+    "video": "видео",
+    "audio": "аудио",
+    "other": "другие файлы"
+  },
+  "tooLargeNamed": "«{{name}}» весит {{size}} — это больше потолка {{max}}. Нужен файл поменьше или ссылка на него.",
+  "typeNotAllowedNamed": "«{{name}}» — файл типа {{type}}, такие мы не принимаем. Принимаются: {{kinds}}."
 }

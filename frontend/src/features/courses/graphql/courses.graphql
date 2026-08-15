@@ -15,6 +15,7 @@ query Catalog($filter: CourseFilter, $first: Int, $after: String) {
       description
       subject
       level
+      format
       status
       lessonCount
       enrollmentCount
@@ -37,6 +38,7 @@ query CourseDetail($id: ID!) {
     description
     subject
     level
+    format
     status
     lessonCount
     enrollmentCount
@@ -60,6 +62,7 @@ query CourseDetail($id: ID!) {
         durationMin
         status
         order
+        nextSessionAt
         options {
           homework
         }
@@ -89,6 +92,7 @@ query MyCourses {
     title
     subject
     level
+    format
     status
     lessonCount
     enrollmentCount

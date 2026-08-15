@@ -53,6 +53,21 @@ class LessonSession:
         return SessionStatus(self.status)
 
     @strawberry_django.field
+    def course_title(self) -> str:
+        """Какому курсу принадлежит занятие (находка владельца 15.08, п.2).
+
+        Расписание показывало одно название урока. Пока курс один, этого хватало; у
+        преподавателя с пятью курсами «Unit 4» и «Системы уравнений» подряд не говорят, к чему
+        готовиться — а расписание это единственное место, где занятия всех курсов лежат рядом.
+        Не поле для показа ради показа: без него список из тридцати строк нечитаем.
+        """
+        return self.lesson.section.course.title
+
+    @strawberry_django.field
+    def course_id(self) -> strawberry.ID:
+        return strawberry.ID(str(self.lesson.section.course_id))
+
+    @strawberry_django.field
     def attendance(self, info: strawberry.Info) -> list[Attendance]:
         # Teacher-only: the roster (student names = PII) is scoped to the course owner.
         return services.attendance_for(get_current_user(info), self)

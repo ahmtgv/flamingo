@@ -26,7 +26,7 @@ import {
   useMyScheduleQuery,
   useStartSessionMutation,
 } from '@/entities/graphql/generated';
-import { Badge, type BadgeTone, Button, ErrorState, Logo } from '@/shared/ui';
+import { Badge, type BadgeTone, Button, ErrorState, Logo, Select } from '@/shared/ui';
 
 import styles from './schedule.module.css';
 
@@ -71,8 +71,18 @@ export function ScheduleScreen() {
   const [endSession] = useEndSessionMutation();
   const [joinSession] = useJoinSessionMutation();
   const [joined, setJoined] = useState<Set<string>>(new Set());
+  // Пусто — все курсы. Фильтр по курсу, а не отдельный экран на курс: смысл расписания в том,
+  // что занятия всех курсов лежат рядом (находка владельца 15.08, п.2).
+  const [courseId, setCourseId] = useState('');
 
-  const sessions = data?.mySchedule ?? [];
+  const all = useMemo(() => data?.mySchedule ?? [], [data]);
+  // Курсы, по которым в этом окне вообще есть занятия — фильтр не предлагает пустых вариантов.
+  const courses = useMemo(() => {
+    const seen = new Map<string, string>();
+    for (const s of all) seen.set(s.courseId, s.courseTitle);
+    return [...seen].map(([id, title]) => ({ id, title }));
+  }, [all]);
+  const sessions = courseId ? all.filter((s) => s.courseId === courseId) : all;
 
   async function handleJoin(id: string) {
     // Acquire the room token + create ATTENDANCE, then enter the live CMF room where
@@ -112,6 +122,26 @@ export function ScheduleScreen() {
         <h1 className={styles.pageTitle}>{t('title')}</h1>
         <p className={styles.pageSub}>{t('subtitle')}</p>
 
+        {courses.length > 1 && (
+          <div className={styles.filter}>
+            <label className={styles.filterLabel} htmlFor="schedule-course">
+              {t('filter.course')}
+            </label>
+            <Select
+              id="schedule-course"
+              value={courseId}
+              onChange={(e) => setCourseId(e.target.value)}
+            >
+              <option value="">{t('filter.allCourses')}</option>
+              {courses.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.title}
+                </option>
+              ))}
+            </Select>
+          </div>
+        )}
+
         {error && sessions.length === 0 ? (
           <ErrorState onRetry={() => void refetch()} />
         ) : sessions.length === 0 ? (
@@ -122,7 +152,9 @@ export function ScheduleScreen() {
               <Video size={ICON_MD} />
               <div className={styles.sessionMain}>
                 <div className={styles.sessionTitle}>{s.lesson?.title ?? t('noLesson')}</div>
-                <div className={styles.sessionTime}>{formatTime(s.startAt)}</div>
+                <div className={styles.sessionTime}>
+                  {formatTime(s.startAt)} · {s.courseTitle}
+                </div>
               </div>
               <Badge tone={STATUS_TONE[s.status]} dot={s.status === 'LIVE'}>
                 {t(`status.${s.status}`)}

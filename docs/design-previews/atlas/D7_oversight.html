@@ -1,0 +1,673 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>АТЛАС D7 — Надзор и модерация</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f1f1ef;--surface:#fff;--subtle:#e9e9e6;--border:#d9d9d6;--border-s:#c4c4c1;
+  --ink:#1d1d1f;--sec:#6e6e73;--ter:#98989e;
+  --coral:#e14e1f;--coral-t:#c23f14;--coral-soft:#fdeee7;
+  --good:#3fa46a;--good-soft:#e9f5ee;--warn:#c9a227;--warn-soft:#fdf6da;--warn-ink:#8a7413;
+  --stop:#c0392b;--stop-soft:#fbeae8;
+  --ui:-apple-system,'SF Pro Display',Inter,system-ui,sans-serif;
+  --mono:'JetBrains Mono','SF Mono',ui-monospace,monospace;
+  --ease:cubic-bezier(.2,0,0,1);
+  --fs-body:1.0625rem;--fs-small:.875rem;--fs-cap:.8125rem;--fs-micro:.75rem;
+}
+[data-theme="dark"]{
+  --bg:#101012;--surface:#1a1a1c;--subtle:#242426;--border:#2e2e31;--border-s:#3f3f43;
+  --ink:#f2f2f0;--sec:#98989e;--ter:#6e6e73;--coral:#ff7040;--coral-t:#ff8a5f;--coral-soft:#33201a;
+  --good:#4cb87c;--good-soft:#16281e;--warn:#d9b53c;--warn-soft:#332b12;--warn-ink:#e2c74a;
+  --stop:#e56a5c;--stop-soft:#301a18;
+}
+*{box-sizing:border-box;margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--ui);font-size:var(--fs-body);
+  line-height:1.6;padding:18px 18px 90px;transition:background .32s var(--ease),color .32s var(--ease)}
+h1{font-size:1.25rem;font-weight:600;letter-spacing:-.015em}
+.sub{color:var(--sec);font-size:var(--fs-small);margin:4px 0 14px;max-width:110ch}
+.bar{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:14px;position:sticky;top:6px;z-index:20;
+  background:var(--bg);padding:8px 0}
+.bar .grp{font:500 10px var(--mono);color:var(--ter);letter-spacing:.1em;text-transform:uppercase;margin:0 2px 0 10px}
+.bar .grp:first-child{margin-left:0}
+.bar button{font:500 12px var(--mono);color:var(--sec);background:var(--bg);border:1px solid var(--border);
+  border-radius:999px;padding:7px 13px;cursor:pointer;transition:all .18s var(--ease)}
+.bar button[aria-pressed="true"]{color:var(--ink);border-color:var(--border-s);background:var(--surface)}
+.bar button:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(225,78,31,.4)}
+
+/* ═══ ОКНО БРАУЗЕРА ═══ */
+.frame{background:var(--surface);border:1px solid var(--border-s);border-radius:12px;overflow:hidden;
+  box-shadow:0 18px 50px rgba(0,0,0,.13);display:grid;grid-template-rows:auto 1fr;min-height:660px}
+[data-theme="dark"] .frame{box-shadow:0 18px 50px rgba(0,0,0,.55)}
+.chrome{display:grid;background:var(--subtle);border-bottom:1px solid var(--border)}
+.addr{display:flex;align-items:center;gap:10px;padding:9px 14px}
+.traffic{display:flex;gap:8px;flex:none}
+.traffic i{width:12px;height:12px;border-radius:50%;display:block}
+.traffic i:nth-child(1){background:#ff5f57}
+.traffic i:nth-child(2){background:#febc2e}
+.traffic i:nth-child(3){background:#28c840}
+.url{flex:1;display:flex;align-items:center;gap:9px;background:var(--surface);border:1px solid var(--border);
+  border-radius:999px;padding:7px 15px;font:400 var(--fs-micro) var(--mono);color:var(--sec);min-width:0}
+.url b{color:var(--ink);font-weight:500}
+.url .lock{color:var(--good);font-size:10px}
+
+/* ═══ ШАПКА ПРОДУКТА ═══ */
+.top{display:flex;align-items:center;gap:12px;padding:11px 22px;background:var(--surface);
+  border-bottom:1px solid var(--border);flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:8px;font:500 var(--fs-cap) var(--ui)}
+.mk{width:1.55em;height:1.4em;flex:none;overflow:visible;vertical-align:-.3em}
+[data-theme="dark"] .mk{--mk-c:#ff7040;--mk-ink:#f2f2f0;--mk-eye:#1a1a1c}
+/* Полоса надзора. Не украшение: суперадмин обязан видеть, что он не в обычном кабинете. */
+.godTag{display:inline-flex;align-items:center;gap:8px;font:500 10px var(--mono);letter-spacing:.08em;
+  text-transform:uppercase;color:var(--coral-t);background:var(--coral-soft);border:1px solid var(--coral);
+  border-radius:999px;padding:4px 12px}
+.godTag i{width:6px;height:6px;border-radius:50%;background:var(--coral);display:block}
+.top .me{margin-inline-start:auto;display:flex;align-items:center;gap:9px;font:400 10px var(--mono);color:var(--sec)}
+
+/* ═══ РАБОЧАЯ ОБЛАСТЬ ═══ */
+.work{display:grid;grid-template-columns:186px minmax(0,1fr);min-height:560px}
+@media (max-width:900px){.work{grid-template-columns:minmax(0,1fr)}.side{display:none}}
+.side{border-inline-end:1px solid var(--border);background:var(--surface);padding:14px 10px;display:grid;
+  align-content:start;gap:2px}
+.sT{font:500 9px var(--mono);color:var(--ter);letter-spacing:.1em;text-transform:uppercase;padding:8px 10px 4px}
+.sI{display:flex;align-items:center;gap:9px;border:none;background:none;border-radius:9px;padding:8px 11px;
+  cursor:pointer;font:400 var(--fs-cap) var(--ui);color:var(--sec);text-align:start;width:100%}
+.sI:hover{background:var(--subtle);color:var(--ink)}
+.sI[aria-current="page"]{background:var(--subtle);color:var(--ink);font-weight:500}
+.sI .n{margin-inline-start:auto;font:500 9px var(--mono);color:var(--ter);background:var(--bg);
+  border-radius:5px;padding:1px 6px}
+.sI .n[data-hot]{color:var(--coral-t);background:var(--coral-soft)}
+
+.pane{padding:26px 30px 34px;background:var(--bg);overflow:auto;display:none}
+body[data-view="people"] #v-people,body[data-view="card"] #v-card,
+body[data-view="verify"] #v-verify,body[data-view="log"] #v-log{display:block}
+
+.pTop{max-width:88ch;margin-bottom:18px}
+.pKick{font:500 var(--fs-micro) var(--mono);color:var(--coral-t);letter-spacing:.1em;text-transform:uppercase}
+.pH{font-size:1.5rem;font-weight:600;letter-spacing:-.02em;margin:6px 0 8px}
+.pS{color:var(--sec);font-size:var(--fs-small)}
+
+.card{background:var(--surface);border:1px solid var(--border);border-radius:13px;padding:18px 20px}
+.card + .card{margin-top:12px}
+.cardT{font:500 var(--fs-micro) var(--mono);color:var(--ter);letter-spacing:.09em;text-transform:uppercase;
+  margin-bottom:12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.cardT .tag{margin-inline-start:auto;font:500 9px var(--mono);border-radius:5px;padding:2px 8px;letter-spacing:.06em}
+.tag.ok{color:var(--good);background:var(--good-soft)}
+.tag.warn{color:var(--warn-ink);background:var(--warn-soft)}
+.tag.acc{color:var(--coral-t);background:var(--coral-soft)}
+.tag.stop{color:var(--stop);background:var(--stop-soft)}
+.cols{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:12px;align-items:start}
+@media (max-width:1040px){.cols{grid-template-columns:minmax(0,1fr)}}
+
+/* фильтры */
+.filters{display:flex;gap:7px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+.search{flex:1;min-width:200px;display:flex;align-items:center;gap:9px;background:var(--surface);
+  border:1px solid var(--border);border-radius:10px;padding:9px 14px;font:400 var(--fs-cap) var(--ui);color:var(--ter)}
+.chip{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--border);border-radius:999px;
+  padding:7px 13px;font:500 10px var(--mono);color:var(--sec);background:var(--surface);cursor:pointer}
+.chip[data-on]{color:var(--ink);border-color:var(--border-s);background:var(--subtle)}
+.chip:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(225,78,31,.4)}
+
+/* таблица людей */
+.tbl{width:100%;border-collapse:collapse;font-size:var(--fs-cap)}
+.tbl th{text-align:start;font:500 9px var(--mono);color:var(--ter);letter-spacing:.09em;text-transform:uppercase;
+  padding:0 12px 9px 0;border-bottom:1px solid var(--border);white-space:nowrap}
+.tbl td{padding:11px 12px 11px 0;border-bottom:1px solid var(--border);vertical-align:middle}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tbody tr{cursor:pointer}
+.tbl tbody tr:hover td{background:var(--subtle)}
+.who{display:grid;grid-template-columns:30px 1fr;gap:11px;align-items:center;min-width:200px}
+.av{width:30px;height:30px;border-radius:50%;background:var(--subtle);display:grid;place-content:center;
+  font:500 10px var(--mono);color:var(--sec)}
+.wN{font-weight:500}
+.wS{font:400 9px var(--mono);color:var(--ter)}
+.num{font:400 var(--fs-cap) var(--mono);color:var(--sec);font-variant-numeric:tabular-nums;white-space:nowrap}
+.st{display:inline-flex;align-items:center;gap:7px;font:500 9px var(--mono);border-radius:6px;padding:3px 9px;
+  white-space:nowrap;letter-spacing:.05em}
+.st[data-k="ok"]{color:var(--good);background:var(--good-soft)}
+.st[data-k="lim"]{color:var(--warn-ink);background:var(--warn-soft)}
+.st[data-k="off"]{color:var(--stop);background:var(--stop-soft)}
+.st[data-k="wait"]{color:var(--coral-t);background:var(--coral-soft)}
+
+/* кнопки */
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.mini{font:500 10px var(--mono);color:var(--sec);background:none;border:1px solid var(--border);border-radius:8px;
+  padding:7px 12px;cursor:pointer;white-space:nowrap}
+.mini:hover{border-color:var(--border-s);color:var(--ink)}
+.mini.primary{background:var(--coral-t);border-color:var(--coral-t);color:#fff}
+.mini.primary:hover{filter:brightness(1.08)}
+.mini.danger{color:var(--stop);border-color:var(--stop)}
+.mini.danger:hover{background:var(--stop-soft)}
+.mini:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(225,78,31,.4)}
+.hint{font:400 10px var(--mono);color:var(--ter);line-height:1.7}
+
+/* пары ключ-значение */
+.kv{display:grid;grid-template-columns:minmax(0,140px) minmax(0,1fr);gap:9px 14px;font-size:var(--fs-cap)}
+.kv dt{color:var(--ter);font:400 10px var(--mono)}
+.kv dd{margin:0}
+
+/* блок «личное» — намеренно с рамкой другого цвета */
+.priv{border:1px solid var(--coral);background:var(--coral-soft);border-radius:11px;padding:14px 16px}
+[data-theme="dark"] .priv{background:var(--coral-soft)}
+.privT{font:500 var(--fs-micro) var(--mono);color:var(--coral-t);letter-spacing:.09em;text-transform:uppercase;
+  display:flex;align-items:center;gap:9px;margin-bottom:8px}
+.priv p{font-size:var(--fs-cap);color:var(--ink)}
+.priv .hint{color:var(--coral-t)}
+
+/* журнал */
+.logRow{display:grid;grid-template-columns:96px minmax(0,1fr) auto;gap:13px;align-items:start;padding:11px 0;
+  border-bottom:1px solid var(--border)}
+.logRow:last-child{border-bottom:none}
+.logT{font:400 10px var(--mono);color:var(--ter);white-space:nowrap;padding-top:2px}
+.logW{font-size:var(--fs-cap)}
+.logW b{font-weight:500}
+.logWhy{font:400 10px var(--mono);color:var(--ter);margin-top:2px}
+.logK{font:500 9px var(--mono);border-radius:6px;padding:3px 9px;white-space:nowrap;letter-spacing:.05em;
+  color:var(--sec);background:var(--subtle)}
+.logK[data-k="priv"]{color:var(--coral-t);background:var(--coral-soft)}
+.logK[data-k="act"]{color:var(--stop);background:var(--stop-soft)}
+
+/* очередь верификации */
+.vRow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:14px;align-items:start;padding:14px 0;
+  border-bottom:1px solid var(--border)}
+.vRow:last-child{border-bottom:none}
+.docs{display:flex;gap:7px;flex-wrap:wrap;margin-top:8px}
+.doc{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--border);border-radius:8px;
+  padding:6px 11px;font:400 10px var(--mono);color:var(--sec);background:var(--surface)}
+
+/* сводка сверху */
+.sums{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:14px}
+.sum{background:var(--surface);border:1px solid var(--border);border-radius:11px;padding:13px 15px}
+.sumN{font:500 1.5rem var(--ui);letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.sumT{font:400 10px var(--mono);color:var(--ter);margin-top:1px}
+.sum[data-hot] .sumN{color:var(--coral-t)}
+
+/* заметки */
+.notes{margin-top:24px;padding-top:20px;border-top:1px solid var(--border);max-width:104ch}
+.notes h2{font-size:1.0625rem;font-weight:600;margin-bottom:8px}
+.notes h3{font-size:var(--fs-small);font-weight:600;margin:16px 0 5px}
+.notes p,.notes li{font-size:var(--fs-small);color:var(--sec);line-height:1.75}
+.notes b{color:var(--ink);font-weight:500}
+.notes ul{padding-inline-start:19px;display:grid;gap:4px}
+.q{border-inline-start:2px solid var(--coral);padding:2px 0 2px 13px;margin:9px 0}
+.q p{color:var(--ink)}
+</style>
+</head>
+<body data-view="people">
+
+  <h1>АТЛАС D7 — Надзор и модерация</h1>
+  <p class="sub">Кабинет суперадмина платформы: учёт людей, состояние учётных записей, верификация преподавателей
+  и журнал доступа. Режим бога здесь не метафора — доступ полный. Поэтому лист устроен вокруг второй половины
+  решения владельца: <b>всё видно, и всё видимое записано</b>.</p>
+
+  <div class="bar">
+    <span class="grp">Раздел</span>
+    <button data-view="people" aria-pressed="true">люди</button>
+    <button data-view="card">карточка человека</button>
+    <button data-view="verify">верификация</button>
+    <button data-view="log">журнал доступа</button>
+    <span class="grp">Тема</span>
+    <button id="thm">тёмная</button>
+  </div>
+
+  <div class="frame">
+    <div class="chrome">
+      <div class="addr">
+        <span class="traffic"><i></i><i></i><i></i></span>
+        <span class="url"><span class="lock">🔒</span><b>flamingo.plus</b>/надзор/люди</span>
+      </div>
+    </div>
+
+    <div class="work">
+      <nav class="side">
+        <span class="sT">Надзор</span>
+        <button class="sI" data-go="people" aria-current="page">Люди<span class="n">248</span></button>
+        <button class="sI" data-go="verify">Верификация<span class="n" data-hot>3</span></button>
+        <button class="sI" data-go="log">Журнал доступа<span class="n">1.2к</span></button>
+        <span class="sT">Платформа</span>
+        <button class="sI">Учреждения<span class="n">6</span></button>
+        <button class="sI">Курсы<span class="n">31</span></button>
+        <button class="sI">Обращения<span class="n">0</span></button>
+      </nav>
+
+      <!-- ═══════════ ЛЮДИ ═══════════ -->
+      <div class="pane" id="v-people">
+        <div class="pTop">
+          <div class="pKick">Надзор · учёт</div>
+          <div class="pH">Люди на платформе</div>
+          <div class="pS">Один список на всех, а не отдельные экраны для преподавателей и учеников:
+            искать чаще приходится по человеку, а не по роли. Роль — фильтр, а не раздел.</div>
+        </div>
+
+        <div class="sums">
+          <div class="sum"><div class="sumN">248</div><div class="sumT">всего учётных записей</div></div>
+          <div class="sum"><div class="sumN">17</div><div class="sumT">преподавателей</div></div>
+          <div class="sum"><div class="sumN">223</div><div class="sumT">учеников</div></div>
+          <div class="sum" data-hot><div class="sumN">3</div><div class="sumT">ждут верификации</div></div>
+          <div class="sum"><div class="sumN">2</div><div class="sumT">заблокированы</div></div>
+        </div>
+
+        <div class="card">
+          <div class="filters">
+            <span class="search">🔍 Имя, почта, учреждение…</span>
+            <button class="chip" data-on>все роли</button>
+            <button class="chip">преподаватели</button>
+            <button class="chip">ученики</button>
+            <button class="chip">родители</button>
+            <button class="chip">админы</button>
+          </div>
+          <div class="filters" style="margin-bottom:4px">
+            <button class="chip" data-on>любое состояние</button>
+            <button class="chip">активные</button>
+            <button class="chip">ограниченные</button>
+            <button class="chip">заблокированные</button>
+            <button class="chip">ждут верификации</button>
+          </div>
+
+          <table class="tbl">
+            <thead>
+              <tr>
+                <th>Человек</th><th>Роль</th><th>Состояние</th><th>Учреждение</th>
+                <th>С нами</th><th>Активность</th><th>Нагрузка</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span class="who"><span class="av">ЛВ</span>
+                  <span><span class="wN">Люция Валерьевна Хамидуллина</span>
+                  <span class="wS">luciya@example.ru</span></span></span></td>
+                <td class="num">преподаватель</td>
+                <td><span class="st" data-k="ok">активна</span></td>
+                <td class="num">Гимназия №4</td>
+                <td class="num">12.08.2026</td>
+                <td class="num">сегодня</td>
+                <td class="num">3 курса · 14 занятий</td>
+              </tr>
+              <tr>
+                <td><span class="who"><span class="av">ИК</span>
+                  <span><span class="wN">Игорь Ковалёв</span>
+                  <span class="wS">i.kovalev@example.ru</span></span></span></td>
+                <td class="num">преподаватель</td>
+                <td><span class="st" data-k="wait">ждёт верификации</span></td>
+                <td class="num">—</td>
+                <td class="num">14.08.2026</td>
+                <td class="num">вчера</td>
+                <td class="num">1 курс · 0 занятий</td>
+              </tr>
+              <tr>
+                <td><span class="who"><span class="av">АС</span>
+                  <span><span class="wN">Арина Сафина</span>
+                  <span class="wS">9 класс · группа А</span></span></span></td>
+                <td class="num">ученица</td>
+                <td><span class="st" data-k="ok">активна</span></td>
+                <td class="num">Гимназия №4</td>
+                <td class="num">12.08.2026</td>
+                <td class="num">сегодня</td>
+                <td class="num">14 занятий · 9 работ</td>
+              </tr>
+              <tr>
+                <td><span class="who"><span class="av">ТМ</span>
+                  <span><span class="wN">Тимур Мухаметшин</span>
+                  <span class="wS">9 класс · группа А</span></span></span></td>
+                <td class="num">ученик</td>
+                <td><span class="st" data-k="lim">ограничен</span></td>
+                <td class="num">Гимназия №4</td>
+                <td class="num">12.08.2026</td>
+                <td class="num">3 дня назад</td>
+                <td class="num">11 занятий · 6 работ</td>
+              </tr>
+              <tr>
+                <td><span class="who"><span class="av">ДП</span>
+                  <span><span class="wN">Дмитрий Петров</span>
+                  <span class="wS">родитель · Арина Сафина</span></span></span></td>
+                <td class="num">родитель</td>
+                <td><span class="st" data-k="ok">активен</span></td>
+                <td class="num">Гимназия №4</td>
+                <td class="num">13.08.2026</td>
+                <td class="num">2 дня назад</td>
+                <td class="num">1 ребёнок</td>
+              </tr>
+              <tr>
+                <td><span class="who"><span class="av">РГ</span>
+                  <span><span class="wN">Роман Г.</span>
+                  <span class="wS">roman.g@example.ru</span></span></span></td>
+                <td class="num">ученик</td>
+                <td><span class="st" data-k="off">заблокирован</span></td>
+                <td class="num">—</td>
+                <td class="num">09.08.2026</td>
+                <td class="num">6 дней назад</td>
+                <td class="num">0 занятий</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <p class="hint" style="margin-top:14px">Строка открывает карточку. Список — только учёт:
+            ни одно действие над человеком отсюда не совершается, чтобы блокировка не случилась
+            промахом мыши в таблице из двухсот строк.</p>
+        </div>
+      </div>
+
+      <!-- ═══════════ КАРТОЧКА ═══════════ -->
+      <div class="pane" id="v-card">
+        <div class="pTop">
+          <div class="pKick">Надзор · люди · карточка</div>
+          <div class="pH">Тимур Мухаметшин</div>
+          <div class="pS">Ученик · 9 класс, группа А · Гимназия №4 · с 12 августа 2026</div>
+        </div>
+
+        <div class="cols">
+          <div>
+            <div class="card">
+              <div class="cardT">Учётная запись<span class="tag warn">ограничен</span></div>
+              <dl class="kv">
+                <dt>почта</dt><dd>t.mukhametshin@example.ru · подтверждена</dd>
+                <dt>роль</dt><dd>ученик</dd>
+                <dt>возраст</dt><dd>15 лет</dd>
+                <dt>согласие 152-ФЗ</dt><dd>получено от родителя 12.08.2026, 19:04</dd>
+                <dt>родитель</dt><dd>Ильдар Мухаметшин · связь подтверждена</dd>
+                <dt>вход</dt><dd>последний — 12.08.2026, 17:58 · Safari, macOS</dd>
+              </dl>
+            </div>
+
+            <div class="card">
+              <div class="cardT">Состояние и история</div>
+              <div class="logRow">
+                <span class="logT">12.08 · 20:10</span>
+                <span class="logW"><b>Ограничен</b> — Адель Ахметгареев
+                  <span class="logWhy">причина: жалоба преподавателя на поведение в чате класса, разбираемся</span></span>
+                <span class="logK" data-k="act">действие</span>
+              </div>
+              <div class="logRow">
+                <span class="logT">12.08 · 19:04</span>
+                <span class="logW"><b>Учётная запись создана</b> — самостоятельная регистрация
+                  <span class="logWhy">согласие родителя получено в тот же вечер</span></span>
+                <span class="logK">событие</span>
+              </div>
+              <div class="row">
+                <button class="mini primary">Снять ограничение</button>
+                <button class="mini danger">Заблокировать</button>
+                <button class="mini">Сбросить пароль</button>
+              </div>
+              <p class="hint" style="margin-top:10px">Каждое действие требует причины и попадает и сюда,
+                и в общий журнал. Причина — не формальность: через месяц её читает другой человек
+                или ты сам, и «заблокирован» без строки рядом ничего не объясняет.</p>
+            </div>
+
+            <div class="card">
+              <div class="cardT">Учёба<span class="tag ok">данные ученика</span></div>
+              <dl class="kv">
+                <dt>занятий</dt><dd>11 из 14 · посещаемость 79%</dd>
+                <dt>работ сдано</dt><dd>6 · средняя оценка 4,2</dd>
+                <dt>курсы</dt><dd>English A2 · Введение в астрономию</dd>
+                <dt>внимание (SEduM)</dt><dd>среднее 68 по корзинам · только агрегат</dd>
+              </dl>
+              <p class="hint" style="margin-top:10px">Блокировка это не трогает. База знаний ученика
+                принадлежит ему навсегда (§20.5): заблокированный теряет вход, а не свою учёбу.</p>
+            </div>
+          </div>
+
+          <div>
+            <div class="priv">
+              <div class="privT">🔓 Личное · режим бога</div>
+              <p>Доступ полный: чаты, работы, саммари занятий, доски.</p>
+              <p class="hint" style="margin-top:8px">Каждое открытие пишется в журнал: кто, что, когда.
+                Записи журнала не редактируются и не удаляются — ни отсюда, ни мутацией.</p>
+              <div class="row">
+                <button class="mini">Чаты (34)</button>
+                <button class="mini">Работы (6)</button>
+                <button class="mini">Саммари занятий (11)</button>
+                <button class="mini">Доски (11)</button>
+              </div>
+              <p class="hint" style="margin-top:11px">Повод — необязателен, но одна строка здесь
+                превращает журнал из списка в объяснение.</p>
+            </div>
+
+            <div class="card">
+              <div class="cardT">Чего здесь нет и не будет</div>
+              <p style="font-size:var(--fs-cap);color:var(--sec)">Видео и аудио занятий, кадры с камеры,
+                покадровые признаки внимания, расшифровка речи. Это не настройка прав: таких данных
+                не существует нигде на сервере (CLAUDE.md §2.1, §2.2). Режим бога их не создаёт.</p>
+              <p class="hint" style="margin-top:10px">Из SEduM хранится только среднее внимание
+                по корзинам — оно и показано выше.</p>
+            </div>
+
+            <div class="card">
+              <div class="cardT">Кто смотрел этого человека</div>
+              <div class="logRow">
+                <span class="logT">14.08 · 11:20</span>
+                <span class="logW"><b>Чат класса</b> — Адель Ахметгареев
+                  <span class="logWhy">повод: разбор жалобы преподавателя</span></span>
+                <span class="logK" data-k="priv">личное</span>
+              </div>
+              <div class="logRow">
+                <span class="logT">12.08 · 20:08</span>
+                <span class="logW"><b>Карточка</b> — Адель Ахметгареев
+                  <span class="logWhy">повод не указан</span></span>
+                <span class="logK">просмотр</span>
+              </div>
+              <p class="hint" style="margin-top:10px">Тот же журнал, но срезом по человеку:
+                на вопрос «кто читал переписку моего ребёнка» ответ находится здесь за секунду.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════════ ВЕРИФИКАЦИЯ ═══════════ -->
+      <div class="pane" id="v-verify">
+        <div class="pTop">
+          <div class="pKick">Надзор · верификация</div>
+          <div class="pH">Преподаватели ждут решения</div>
+          <div class="pS">Это ответ на вопрос владельца от 14.08 «где я могу провести верификацию
+            преподавателей». Не отдельный экран — раздел той же панели: решение о допуске к детям
+            стоит рядом с блокировкой, а не в другом углу продукта.</div>
+        </div>
+
+        <div class="card">
+          <div class="cardT">Очередь<span class="tag acc">3 ожидают</span></div>
+
+          <div class="vRow">
+            <div>
+              <span class="who"><span class="av">ИК</span>
+                <span><span class="wN">Игорь Ковалёв</span>
+                <span class="wS">подал 14.08.2026 · ждёт 1 день</span></span></span>
+              <dl class="kv" style="margin-top:11px">
+                <dt>предмет</dt><dd>Физика · 7–11 класс</dd>
+                <dt>учреждение</dt><dd>указано «частная практика»</dd>
+                <dt>курс</dt><dd>1 черновик, занятий не вёл</dd>
+              </dl>
+              <div class="docs">
+                <span class="doc">📄 Диплом.pdf · 2,1 МБ</span>
+                <span class="doc">📄 Паспорт (разворот).pdf · 1,4 МБ</span>
+                <span class="doc">📄 Справка о несудимости.pdf · 0,8 МБ</span>
+              </div>
+            </div>
+            <div style="display:grid;gap:7px;min-width:150px">
+              <button class="mini primary">Верифицировать</button>
+              <button class="mini">Запросить документы</button>
+              <button class="mini danger">Отказать</button>
+            </div>
+          </div>
+
+          <div class="vRow">
+            <div>
+              <span class="who"><span class="av">НБ</span>
+                <span><span class="wN">Наталья Белова</span>
+                <span class="wS">подала 13.08.2026 · ждёт 2 дня</span></span></span>
+              <dl class="kv" style="margin-top:11px">
+                <dt>предмет</dt><dd>Русский язык · 5–9 класс</dd>
+                <dt>учреждение</dt><dd>Гимназия №4 · подтверждено админом учреждения</dd>
+                <dt>курс</dt><dd>2 курса, 6 занятий проведено</dd>
+              </dl>
+              <div class="docs">
+                <span class="doc">📄 Диплом.pdf · 3,3 МБ</span>
+                <span class="doc" style="border-color:var(--warn);color:var(--warn-ink)">⚠ справки о несудимости нет</span>
+              </div>
+            </div>
+            <div style="display:grid;gap:7px;min-width:150px">
+              <button class="mini primary">Верифицировать</button>
+              <button class="mini">Запросить документы</button>
+              <button class="mini danger">Отказать</button>
+            </div>
+          </div>
+
+          <p class="hint" style="margin-top:14px">Отказ требует причины и уходит человеку текстом,
+            а не молчанием. Состав документов — вопрос к юристам, не к разработке: лист рисует
+            <b>механизм</b>, а какие именно бумаги обязательны, решается по территории
+            (§21, юрисдикционная матрица).</p>
+        </div>
+      </div>
+
+      <!-- ═══════════ ЖУРНАЛ ═══════════ -->
+      <div class="pane" id="v-log">
+        <div class="pTop">
+          <div class="pKick">Надзор · журнал</div>
+          <div class="pH">Журнал доступа</div>
+          <div class="pS">Панель надзирает и за надзирающим. Здесь видно, кто из суперадминов что открывал
+            и что менял. Записи не редактируются и не удаляются: журнал, который можно подчистить, — не журнал.</div>
+        </div>
+
+        <div class="card">
+          <div class="filters">
+            <span class="search">🔍 Кто, чьё, за какой день…</span>
+            <button class="chip" data-on>всё</button>
+            <button class="chip">личное</button>
+            <button class="chip">действия</button>
+            <button class="chip">просмотры</button>
+          </div>
+
+          <div class="logRow">
+            <span class="logT">14.08 · 11:20</span>
+            <span class="logW"><b>Адель Ахметгареев</b> открыл чат класса · Тимур Мухаметшин
+              <span class="logWhy">повод: разбор жалобы преподавателя</span></span>
+            <span class="logK" data-k="priv">личное</span>
+          </div>
+          <div class="logRow">
+            <span class="logT">14.08 · 10:52</span>
+            <span class="logW"><b>Адель Ахметгареев</b> верифицировал преподавателя · Наталья Белова
+              <span class="logWhy">документы приняты</span></span>
+            <span class="logK" data-k="act">действие</span>
+          </div>
+          <div class="logRow">
+            <span class="logT">12.08 · 20:10</span>
+            <span class="logW"><b>Адель Ахметгареев</b> ограничил учётную запись · Тимур Мухаметшин
+              <span class="logWhy">причина: жалоба преподавателя на поведение в чате класса</span></span>
+            <span class="logK" data-k="act">действие</span>
+          </div>
+          <div class="logRow">
+            <span class="logT">12.08 · 20:08</span>
+            <span class="logW"><b>Адель Ахметгареев</b> открыл карточку · Тимур Мухаметшин
+              <span class="logWhy">повод не указан</span></span>
+            <span class="logK">просмотр</span>
+          </div>
+          <div class="logRow">
+            <span class="logT">12.08 · 19:41</span>
+            <span class="logW"><b>Адель Ахметгареев</b> открыл работу «Лабораторная №2» · Арина Сафина
+              <span class="logWhy">повод: спор об оценке</span></span>
+            <span class="logK" data-k="priv">личное</span>
+          </div>
+
+          <p class="hint" style="margin-top:14px">Хранится не меньше года. Выгрузка за период —
+            для ответа на запрос родителя или проверки.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ═══════════ ЗАМЕТКИ ═══════════ -->
+  <div class="notes">
+    <h2>Что решено</h2>
+
+    <h3>Полный доступ и журнал — решение владельца 15.08</h3>
+    <p>Из двух вариантов — «видеть всё» и «видеть только по жалобе» — выбран первый,
+    <b>с журналом каждого просмотра</b>. Это правильный выбор для платформы, которой год от роду:
+    механизма жалоб ещё нет, а разбираться со спорами нужно уже сейчас.</p>
+    <p>Журнал здесь не ограничение владельца, а то, что делает режим бога <b>защитимым</b>.
+    На вопрос «кто читал переписку моего ребёнка» должен существовать ответ, и он должен быть
+    короче, чем «никто, наверное». Стоит журнал одну таблицу и один декоратор на резолверах —
+    несопоставимо дешевле, чем разбирательство без него.</p>
+
+    <h3>Свой экран, Django-админку не включаем — решение владельца 15.08</h3>
+    <p>Служебная админка Django стоила бы день работы и дала бы учёт немедленно. Отклонена сознательно:
+    она правит базу <b>напрямую, в обход сервисов</b>, и первая же правка мимо <code>services.py</code>
+    разойдётся с бизнес-правилами — зеркалом ученика, правами, состояниями. Панель делается сразу
+    своим экраном: наши токены, русский язык, правила в одном месте, журнал с первого дня.</p>
+
+    <h3>Что в коде уже есть — это не работа с нуля</h3>
+    <p>Флаг <code>is_staff</code> <b>уже работает как режим бога</b>: шесть проверок в сервисах пропускают
+    такого пользователя мимо правил доступа — пять в <code>institutions/services.py</code>
+    и одна в <code>seedum/services.py</code>. Доступ есть, экрана нет, журнала нет.
+    Блокировка наполовину есть тоже: у пользователя есть <code>is_active</code>, но без причины,
+    без автора и без истории. Так что задача — <b>собрать разбросанное и сделать видимым</b>,
+    а не построить новое.</p>
+    <p>Отсюда требование к исполнителю: разбросанные <code>getattr(user, "is_staff", False)</code>
+    заменяются <b>одной</b> функцией <code>common/permissions.py: is_platform_staff(user)</code>.
+    Проверка в одном месте — иначе следующее правило снова расползётся по файлам.</p>
+
+    <h3>Три состояния, а не флажок</h3>
+    <ul>
+      <li><b>Активен</b> — обычная работа.</li>
+      <li><b>Ограничен</b> — входит и видит своё, но не ведёт занятий и не пишет в общие чаты.
+      Состояние «разбираемся», которое нужно чаще блокировки: конфликт в чате не повод отрезать
+      ребёнка от учёбы.</li>
+      <li><b>Заблокирован</b> — входа нет.</li>
+    </ul>
+    <p>У каждого перехода есть автор, причина и момент, и они складываются в историю прямо в карточке.</p>
+
+    <h3>⚠️ Блокировка не отбирает учёбу</h3>
+    <p>База знаний ученика принадлежит ему навсегда (§20.5). Заблокированный теряет <b>доступ к платформе</b>,
+    а не свои работы, оценки и саммари: снятие блокировки возвращает его к тому же, что было.
+    Удаления данных в панели нет вовсе — это отдельный разговор с юристами, а не кнопка.</p>
+
+    <h3>Чего суперадмин не увидит никогда</h3>
+    <p>Видео и аудио занятий, кадры с камеры, покадровые признаки внимания, расшифровку речи.
+    Это <b>не настройка прав</b>: таких данных не существует на сервере (CLAUDE.md §2.1, §2.2).
+    Режим бога их не создаёт. Из SEduM лежит только среднее внимание по корзинам.</p>
+
+    <h3>Верификация — часть этой панели</h3>
+    <p>Вопрос владельца от 14.08 закрывается здесь же. Решение о допуске человека к детям и решение
+    о блокировке — одна и та же работа, и разводить их по разным экранам значит заставлять
+    возвращаться. Состав документов лист не назначает: это территориальный вопрос
+    (§21, юрисдикционная матрица), и решаться он будет с юристами.</p>
+
+    <h3>Открытые вопросы владельцу</h3>
+    <div class="q"><p><b>1.</b> Суперадмин пока один — ты. Нужен ли второй уровень (модератор,
+    который видит обращения и чаты, но не может блокировать преподавателя), или до найма
+    команды это лишнее?</p></div>
+    <div class="q"><p><b>2.</b> Механизм жалоб («пожаловаться» у ученика и родителя) на этом листе
+    не нарисован — он появится, когда станет чем заняться. Ждём первых уроков или закладываем сразу?</p></div>
+  </div>
+
+<script>
+const b=document.body;
+function go(v){
+  b.dataset.view=v;
+  document.querySelectorAll('.bar button[data-view]').forEach(x=>
+    x.setAttribute('aria-pressed', x.dataset.view===v?'true':'false'));
+  document.querySelectorAll('.sI[data-go]').forEach(x=>{
+    if(x.dataset.go===v){x.setAttribute('aria-current','page');}else{x.removeAttribute('aria-current');}
+  });
+  const u={people:'люди',card:'люди/тимур-мухаметшин',verify:'верификация',log:'журнал'}[v];
+  document.querySelector('.url').innerHTML='<span class="lock">🔒</span><b>flamingo.plus</b>/надзор/'+u;
+}
+document.querySelectorAll('.bar button[data-view]').forEach(x=>
+  x.addEventListener('click',()=>go(x.dataset.view)));
+document.querySelectorAll('.sI[data-go]').forEach(x=>
+  x.addEventListener('click',()=>go(x.dataset.go)));
+document.querySelectorAll('#v-people .tbl tbody tr').forEach(r=>
+  r.addEventListener('click',()=>go('card')));
+document.querySelectorAll('.chip').forEach(c=>c.addEventListener('click',()=>{
+  c.parentElement.querySelectorAll('.chip').forEach(x=>x.removeAttribute('data-on'));
+  c.setAttribute('data-on','');
+}));
+document.getElementById('thm').addEventListener('click',e=>{
+  const d=document.documentElement.dataset.theme==='dark';
+  document.documentElement.dataset.theme=d?'':'dark';
+  e.target.textContent=d?'тёмная':'светлая';
+});
+go('people');
+</script>
+</body>
+</html>

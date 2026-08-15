@@ -110,16 +110,42 @@ def test_no_mutation_ingests_a_lesson_media_stream():
                 raise AssertionError(f"mutation may ingest lesson media: {line.strip()}")
 
 
-def test_upload_purposes_cannot_carry_lesson_media():
-    """The file pipeline is the other way media could arrive. Every purpose is checked:
-    none is named for recordings, and none accepts an audio/* or video/* content type."""
+def test_no_upload_purpose_exists_for_recording_a_lesson():
+    """The file pipeline is the other way lesson media could arrive — and the gate is the
+    PURPOSE, not the MIME family.
+
+    ⚠️ Правка 15.08 (владелец, OWNER_SCOPE §22). Раньше здесь стояло «ни одна цель не
+    принимает audio/* или video/*», и это было слишком широким прочтением инварианта. Оно
+    запрещало учебный ролик, который преподаватель прикрепил сам, — а это пункт 2 белого
+    списка §2.2 («прикреплённые материалы»), а вовсе не запись занятия.
+
+    Что стережётся вместо этого — то же, что и стереглось: **нет цели, назначенной под запись
+    урока**. Запись делает система, и её нет: ни кода, ни ручки, ни имени. Ингресс потока
+    отдельно пришпилен `test_privacy.py`, который не менялся.
+    """
     from apps.files.services import PURPOSE_POLICY
 
     for purpose, policy in PURPOSE_POLICY.items():
         name = f"{purpose.name}{policy.prefix}".lower()
         assert not any(token in name for token in FORBIDDEN), f"media upload purpose: {purpose}"
-        media = [ct for ct in policy.content_types if ct.startswith(("audio/", "video/"))]
-        assert not media, f"{purpose} accepts lesson media content types: {media}"
+
+
+def test_media_is_allowed_only_where_a_person_attaches_it_deliberately():
+    """Граница правки §22: ролик кладёт ЧЕЛОВЕК в материалы, а не система в запись.
+
+    Аватар, обложка и логотип учреждения остаются картинками. Это не вкусовщина: цель, куда
+    можно положить видео, — это цель, которую однажды используют как место для записи урока.
+    """
+    from apps.files.services import PURPOSE_POLICY
+    from common.enums import UploadPurpose
+
+    def media_of(purpose):
+        types = PURPOSE_POLICY[purpose].content_types
+        return [ct for ct in types if ct.startswith(("audio/", "video/"))]
+
+    assert media_of(UploadPurpose.MATERIAL), "материалы курса обязаны принимать видео (§22)"
+    for purpose in (UploadPurpose.AVATAR, UploadPurpose.COVER, UploadPurpose.INSTITUTION_LOGO):
+        assert not media_of(purpose), f"{purpose} — картинка, медиа тут незачем"
 
 
 def test_a_summary_model_may_not_hold_a_verbatim_transcript():

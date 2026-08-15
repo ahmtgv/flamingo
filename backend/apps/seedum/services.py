@@ -28,6 +28,7 @@ from apps.scheduling.models import LessonSession
 from common.compliance import require_feature
 from common.enums import GuardianshipStatus, RecommendationKind, Role
 from common.exceptions import NotFound, PermissionDenied, ValidationError
+from common.permissions import is_platform_staff
 
 from .models import AttentionMetric, Recommendation, UbpBackup
 
@@ -58,7 +59,7 @@ def _assert_can_view_student(user, student_user_id) -> None:
     if user is None:
         raise PermissionDenied("Authentication required")
     uid = getattr(user, "id", None)
-    if str(uid) == str(student_user_id) or getattr(user, "is_staff", False):
+    if str(uid) == str(student_user_id) or is_platform_staff(user):
         return
     if Guardianship.objects.filter(
         parent_user_id=uid,

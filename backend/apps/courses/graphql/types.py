@@ -21,6 +21,7 @@ from apps.courses.tasks_progress import TaskState
 from apps.institutions.graphql.types import Institution as InstitutionType
 from common.auth import get_current_user, require_user
 from common.enums import (
+    CourseFormat,
     CourseLevel,
     CourseStatus,
     EnrollmentStatus,
@@ -109,6 +110,16 @@ class Lesson:
         return LessonStatus(self.status)
 
     @strawberry_django.field
+    def next_session_at(self) -> dt.datetime | None:
+        """Ближайшее назначенное занятие по этому уроку — или ничего.
+
+        Приходит аннотацией из `visible_lessons` (один подзапрос на раздел). Урок, вынутый
+        мимо этого пути, честно отвечает «не знаю», а не тихо «занятий нет»: разница ровно в
+        том, назначит ли преподаватель второе занятие поверх первого.
+        """
+        return getattr(self, "_next_session_at", None)
+
+    @strawberry_django.field
     def materials(self, info: strawberry.Info) -> list[Material]:
         # Gated content (A-authz-1): only enrolled/owner viewers see materials; [] otherwise.
         return services.visible_materials(get_current_user(info), self)
@@ -174,6 +185,12 @@ class Course:
     @strawberry_django.field
     def level(self) -> CourseLevel:
         return CourseLevel(self.level)
+
+    @strawberry_django.field
+    def format(self) -> CourseFormat:
+        # Вторая ось аудитории. Пусто у курсов, созданных до 15.08 — читаем как «программа»,
+        # чем они и были, а не как «не указано»: пустого варианта в списке нет.
+        return CourseFormat(self.format or CourseFormat.PROGRAM.value)
 
     @strawberry_django.field
     def status(self) -> CourseStatus:

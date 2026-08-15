@@ -61,6 +61,23 @@ class TeacherProfileType:
     def review_count(self) -> int:
         return 0  # populated by the engagement module
 
+    @strawberry_django.field
+    def verification_documents(self, info: strawberry.Info) -> list["VerificationDocumentType"]:
+        """Свои документы — и только свои.
+
+        🔴 Находка владельца 15.08, п.4: баннер «Документы на проверке» висел у каждого
+        преподавателя, потому что `verification_status` рождается со значением PENDING.
+        Человек, не загрузивший ничего, читал, что его документы проверяют. Отличить
+        «не загружал» от «жду решения» можно только по наличию документов — вот они.
+
+        Чужой профиль отдаёт пустой список: список документов человека — его личное, а карточка
+        преподавателя открыта всем, кто смотрит курс.
+        """
+        viewer = get_current_user(info)
+        if viewer is None or str(viewer.id) != str(self.user_id):
+            return []
+        return services.my_verification_documents(viewer)
+
 
 @strawberry_django.type(models.AdminProfile)
 class AdminProfileType:
@@ -183,15 +200,32 @@ class GuardianshipType:
 class VerificationDocumentType:
     id: auto
     created_at: auto
+    filename: auto
+    size_bytes: auto
+    # Причина отказа или «каких документов не хватает» — то, что человек обязан прочитать
+    # словами. Молчащий отказ и есть то, на что владелец пожаловался 15.08.
+    reason: auto
+    reviewed_at: auto
 
     @strawberry_django.field
     def status(self) -> VerificationStatus:
         return VerificationStatus(self.status)
 
     @strawberry_django.field
-    def file_url(self) -> str:
-        # Presigned GET is wired with the files module.
-        return f"/files/{self.file_key}"
+    def file_url(self, info: strawberry.Info) -> str | None:
+        """Ссылка на СВОЙ документ — и только на свой.
+
+        🔴 Здесь стояло `f"/files/{self.file_key}"` — маршрута с таким адресом в продукте нет
+        и не было. Поле выглядело работающим и не открывало ничего.
+
+        Надзор берёт документ другим путём (`verificationDocumentUrl`), потому что там просмотр
+        чужого личного обязан попасть в журнал, а здесь человек смотрит своё — журналу нечего
+        записывать.
+        """
+        viewer = get_current_user(info)
+        if viewer is None or str(viewer.id) != str(self.teacher_user_id):
+            return None
+        return storage.presign_get(self.file_key)
 
 
 @strawberry.type
@@ -291,6 +325,22 @@ class StartProgress:
 
 
 @strawberry.type
+class StartCourse:
+    """Курс преподавателя на стартовой — «что я веду», одной строкой на курс."""
+
+    course_id: strawberry.ID
+    title: str
+    subject: str
+    section_count: int
+    lesson_count: int
+    published_lessons: int
+    student_count: int
+    is_draft: bool
+    next_at: dt.datetime | None
+    next_lesson_title: str | None
+
+
+@strawberry.type
 class StartPage:
     """Atlas sheet 00. The frame is the same for every role; the active learning profile
     decides what fills it."""
@@ -302,6 +352,8 @@ class StartPage:
     week: list[StartDay]
     continue_entries: list[StartEntry]
     progress: list[StartProgress]
+    # Наполнение того же слота у преподавателя: у него нет своего прогресса, зато есть курсы.
+    teaching: list[StartCourse]
 
     @classmethod
     def of(cls, page) -> "StartPage":
@@ -328,5 +380,20 @@ class StartPage:
                     progress_pct=row.progress_pct,
                 )
                 for row in page.progress
+            ],
+            teaching=[
+                StartCourse(
+                    course_id=strawberry.ID(row.course_id),
+                    title=row.title,
+                    subject=row.subject,
+                    section_count=row.section_count,
+                    lesson_count=row.lesson_count,
+                    published_lessons=row.published_lessons,
+                    student_count=row.student_count,
+                    is_draft=row.is_draft,
+                    next_at=row.next_at,
+                    next_lesson_title=row.next_lesson_title,
+                )
+                for row in page.teaching
             ],
         )

@@ -20,6 +20,17 @@ export type Scalars = {
   JSON: { input: Record<string, unknown>; output: Record<string, unknown>; }
 };
 
+export type AccessLogRow = {
+  __typename?: 'AccessLogRow';
+  action: Scalars['String']['output'];
+  actorName: Scalars['String']['output'];
+  at: Scalars['DateTime']['output'];
+  id: Scalars['ID']['output'];
+  objectLabel: Scalars['String']['output'];
+  reason: Scalars['String']['output'];
+  subjectName: Scalars['String']['output'];
+};
+
 export type Achievement = {
   __typename?: 'Achievement';
   earnedAt: Scalars['DateTime']['output'];
@@ -342,6 +353,7 @@ export type Course = {
   createdAt: Scalars['DateTime']['output'];
   description?: Maybe<Scalars['String']['output']>;
   enrollmentCount: Scalars['Int']['output'];
+  format: CourseFormat;
   id: Scalars['ID']['output'];
   institution?: Maybe<Institution>;
   language: Scalars['String']['output'];
@@ -366,15 +378,22 @@ export type CourseConnection = {
 };
 
 export type CourseFilter = {
+  format?: InputMaybe<CourseFormat>;
   language?: InputMaybe<Scalars['String']['input']>;
   level?: InputMaybe<CourseLevel>;
   search?: InputMaybe<Scalars['String']['input']>;
   subject?: InputMaybe<Scalars['String']['input']>;
 };
 
+export type CourseFormat =
+  | 'COURSE'
+  | 'PROFESSIONAL'
+  | 'PROGRAM';
+
 export type CourseInput = {
   coverKey?: InputMaybe<Scalars['String']['input']>;
   description?: InputMaybe<Scalars['String']['input']>;
+  format?: InputMaybe<CourseFormat>;
   groupId?: InputMaybe<Scalars['ID']['input']>;
   institutionId?: InputMaybe<Scalars['ID']['input']>;
   language?: InputMaybe<Scalars['String']['input']>;
@@ -385,6 +404,7 @@ export type CourseInput = {
 
 export type CourseLevel =
   | 'ADULT'
+  | 'COLLEGE'
   | 'GRADE_1'
   | 'GRADE_2'
   | 'GRADE_3'
@@ -395,7 +415,9 @@ export type CourseLevel =
   | 'GRADE_8'
   | 'GRADE_9'
   | 'GRADE_10'
-  | 'GRADE_11';
+  | 'GRADE_11'
+  | 'PRESCHOOL'
+  | 'UNIVERSITY';
 
 export type CourseStatus =
   | 'ARCHIVED'
@@ -735,6 +757,7 @@ export type Lesson = {
   id: Scalars['ID']['output'];
   kind: LessonKind;
   materials: Array<Material>;
+  nextSessionAt?: Maybe<Scalars['DateTime']['output']>;
   options: LessonOptions;
   order: Scalars['Int']['output'];
   scheduleRule?: Maybe<Scalars['JSON']['output']>;
@@ -787,6 +810,8 @@ export type LessonSession = {
   __typename?: 'LessonSession';
   attendance: Array<Attendance>;
   attentionSummary?: Maybe<AttentionSummary>;
+  courseId: Scalars['ID']['output'];
+  courseTitle: Scalars['String']['output'];
   endAt?: Maybe<Scalars['DateTime']['output']>;
   group?: Maybe<Group>;
   id: Scalars['ID']['output'];
@@ -993,6 +1018,7 @@ export type Mutation = {
   redeemProjectorCode: ProjectorJoin;
   refreshToken: AuthPayload;
   registerUser: AuthPayload;
+  rejectTeacher: User;
   removeBoardElement: Scalars['Boolean']['output'];
   removeMember: Scalars['Boolean']['output'];
   removeSavedItem: Scalars['Boolean']['output'];
@@ -1007,6 +1033,7 @@ export type Mutation = {
   requestPairingCode: PairingRequest;
   requestPasswordReset: Scalars['Boolean']['output'];
   requestUpload: UploadTicket;
+  requestVerificationDocuments: User;
   resetPassword: Scalars['Boolean']['output'];
   resolveChatReport: ChatReport;
   respondGuardianship: Guardianship;
@@ -1045,6 +1072,7 @@ export type Mutation = {
   updateSection: Section;
   updateSummaryItem: SummaryItem;
   verifyEmail: Scalars['Boolean']['output'];
+  verifyTeacher: User;
 };
 
 
@@ -1336,6 +1364,12 @@ export type MutationRegisterUserArgs = {
 };
 
 
+export type MutationRejectTeacherArgs = {
+  reason: Scalars['String']['input'];
+  teacherUserId: Scalars['ID']['input'];
+};
+
+
 export type MutationRemoveBoardElementArgs = {
   elementId: Scalars['ID']['input'];
   lessonId: Scalars['ID']['input'];
@@ -1412,6 +1446,12 @@ export type MutationRequestPasswordResetArgs = {
 
 export type MutationRequestUploadArgs = {
   input: UploadRequestInput;
+};
+
+
+export type MutationRequestVerificationDocumentsArgs = {
+  reason: Scalars['String']['input'];
+  teacherUserId: Scalars['ID']['input'];
 };
 
 
@@ -1636,6 +1676,11 @@ export type MutationVerifyEmailArgs = {
   token: Scalars['String']['input'];
 };
 
+
+export type MutationVerifyTeacherArgs = {
+  teacherUserId: Scalars['ID']['input'];
+};
+
 export type Notification = {
   __typename?: 'Notification';
   body?: Maybe<Scalars['String']['output']>;
@@ -1828,6 +1873,7 @@ export type Query = {
   myWords: Array<SrsCard>;
   notificationPreferences: Array<NotificationPreference>;
   notifications: NotificationConnection;
+  oversightLog: Array<AccessLogRow>;
   parentChildOverview: ParentChildOverview;
   parentChildren: Array<StudentProfile>;
   recommendations: Array<Recommendation>;
@@ -1845,6 +1891,9 @@ export type Query = {
   turnCredentials: TurnCredentials;
   ubpBackup?: Maybe<UbpBackup>;
   uplinkProbe: UplinkProbe;
+  uploadPolicy: UploadPolicy;
+  verificationDocumentUrl: Scalars['String']['output'];
+  verificationQueue: Array<VerificationQueueEntry>;
   verifyCertificate: CertificateVerification;
 };
 
@@ -2041,6 +2090,11 @@ export type QueryNotificationsArgs = {
 };
 
 
+export type QueryOversightLogArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
 export type QueryParentChildOverviewArgs = {
   childId: Scalars['ID']['input'];
 };
@@ -2083,6 +2137,16 @@ export type QueryTeacherArgs = {
 
 export type QueryTeacherReviewsArgs = {
   teacherId: Scalars['ID']['input'];
+};
+
+
+export type QueryUploadPolicyArgs = {
+  purpose: UploadPurpose;
+};
+
+
+export type QueryVerificationDocumentUrlArgs = {
+  id: Scalars['ID']['input'];
 };
 
 
@@ -2261,6 +2325,20 @@ export type SrsCard = {
   state: CardState;
 };
 
+export type StartCourse = {
+  __typename?: 'StartCourse';
+  courseId: Scalars['ID']['output'];
+  isDraft: Scalars['Boolean']['output'];
+  lessonCount: Scalars['Int']['output'];
+  nextAt?: Maybe<Scalars['DateTime']['output']>;
+  nextLessonTitle?: Maybe<Scalars['String']['output']>;
+  publishedLessons: Scalars['Int']['output'];
+  sectionCount: Scalars['Int']['output'];
+  studentCount: Scalars['Int']['output'];
+  subject: Scalars['String']['output'];
+  title: Scalars['String']['output'];
+};
+
 export type StartDay = {
   __typename?: 'StartDay';
   date: Scalars['Date']['output'];
@@ -2298,6 +2376,7 @@ export type StartPage = {
   now?: Maybe<StartEntry>;
   profile?: Maybe<LearningProfile>;
   progress: Array<StartProgress>;
+  teaching: Array<StartCourse>;
   today: Array<StartEntry>;
   week: Array<StartDay>;
 };
@@ -2633,6 +2712,7 @@ export type TeacherProfile = {
   reviewCount: Scalars['Int']['output'];
   specialty?: Maybe<Scalars['String']['output']>;
   user: User;
+  verificationDocuments: Array<VerificationDocument>;
   verificationStatus: VerificationStatus;
 };
 
@@ -2690,6 +2770,13 @@ export type UplinkVerdict =
   | 'UNKNOWN'
   | 'WORKABLE';
 
+export type UploadPolicy = {
+  __typename?: 'UploadPolicy';
+  contentTypes: Array<Scalars['String']['output']>;
+  maxBytes: Scalars['Int']['output'];
+  purpose: UploadPurpose;
+};
+
 export type UploadPurpose =
   | 'AVATAR'
   | 'COVER'
@@ -2734,9 +2821,35 @@ export type User = {
 export type VerificationDocument = {
   __typename?: 'VerificationDocument';
   createdAt: Scalars['DateTime']['output'];
-  fileUrl: Scalars['String']['output'];
+  fileUrl?: Maybe<Scalars['String']['output']>;
+  filename: Scalars['String']['output'];
   id: Scalars['ID']['output'];
+  reason: Scalars['String']['output'];
+  reviewedAt?: Maybe<Scalars['DateTime']['output']>;
+  sizeBytes?: Maybe<Scalars['Int']['output']>;
   status: VerificationStatus;
+};
+
+export type VerificationQueueDocument = {
+  __typename?: 'VerificationQueueDocument';
+  createdAt: Scalars['DateTime']['output'];
+  filename: Scalars['String']['output'];
+  id: Scalars['ID']['output'];
+  sizeBytes?: Maybe<Scalars['Int']['output']>;
+};
+
+export type VerificationQueueEntry = {
+  __typename?: 'VerificationQueueEntry';
+  courseCount: Scalars['Int']['output'];
+  documents: Array<VerificationQueueDocument>;
+  education: Scalars['String']['output'];
+  email: Scalars['String']['output'];
+  firstName: Scalars['String']['output'];
+  lastName: Scalars['String']['output'];
+  sessionCount: Scalars['Int']['output'];
+  specialty: Scalars['String']['output'];
+  submittedAt: Scalars['DateTime']['output'];
+  teacherUserId: Scalars['ID']['output'];
 };
 
 export type VerificationStatus =
@@ -2842,6 +2955,48 @@ export type AssignTeacherMutationVariables = Exact<{
 
 export type AssignTeacherMutation = { __typename?: 'Mutation', assignTeacher: { __typename?: 'GroupTeacher', id: string, subject: string, teacher: { __typename?: 'TeacherProfile', user: { __typename?: 'User', id: string, firstName: string, lastName: string } } } };
 
+export type VerificationQueueQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type VerificationQueueQuery = { __typename?: 'Query', verificationQueue: Array<{ __typename?: 'VerificationQueueEntry', teacherUserId: string, firstName: string, lastName: string, email: string, specialty: string, education: string, submittedAt: string, courseCount: number, sessionCount: number, documents: Array<{ __typename?: 'VerificationQueueDocument', id: string, filename: string, sizeBytes?: number | null, createdAt: string }> }> };
+
+export type VerificationDocumentUrlQueryVariables = Exact<{
+  id: Scalars['ID']['input'];
+}>;
+
+
+export type VerificationDocumentUrlQuery = { __typename?: 'Query', verificationDocumentUrl: string };
+
+export type OversightLogQueryVariables = Exact<{
+  limit?: InputMaybe<Scalars['Int']['input']>;
+}>;
+
+
+export type OversightLogQuery = { __typename?: 'Query', oversightLog: Array<{ __typename?: 'AccessLogRow', id: string, action: string, actorName: string, subjectName: string, objectLabel: string, reason: string, at: string }> };
+
+export type VerifyTeacherMutationVariables = Exact<{
+  teacherUserId: Scalars['ID']['input'];
+}>;
+
+
+export type VerifyTeacherMutation = { __typename?: 'Mutation', verifyTeacher: { __typename?: 'User', id: string } };
+
+export type RejectTeacherMutationVariables = Exact<{
+  teacherUserId: Scalars['ID']['input'];
+  reason: Scalars['String']['input'];
+}>;
+
+
+export type RejectTeacherMutation = { __typename?: 'Mutation', rejectTeacher: { __typename?: 'User', id: string } };
+
+export type RequestVerificationDocumentsMutationVariables = Exact<{
+  teacherUserId: Scalars['ID']['input'];
+  reason: Scalars['String']['input'];
+}>;
+
+
+export type RequestVerificationDocumentsMutation = { __typename?: 'Mutation', requestVerificationDocuments: { __typename?: 'User', id: string } };
+
 export type LoginMutationVariables = Exact<{
   email: Scalars['String']['input'];
   password: Scalars['String']['input'];
@@ -2891,12 +3046,12 @@ export type SubmitVerificationDocumentMutationVariables = Exact<{
 }>;
 
 
-export type SubmitVerificationDocumentMutation = { __typename?: 'Mutation', submitVerificationDocument: { __typename?: 'VerificationDocument', id: string, status: VerificationStatus, fileUrl: string, createdAt: string } };
+export type SubmitVerificationDocumentMutation = { __typename?: 'Mutation', submitVerificationDocument: { __typename?: 'VerificationDocument', id: string, filename: string, status: VerificationStatus, createdAt: string } };
 
 export type MeQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type MeQuery = { __typename?: 'Query', me?: { __typename?: 'User', id: string, email: string, firstName: string, lastName: string, role: Role, locale: string, avatarUrl?: string | null, consentSpeech: boolean, consentAttention: boolean, studentProfile?: { __typename?: 'StudentProfile', ageBand: AgeBand, gradeLevel?: string | null, points: number } | null, teacherProfile?: { __typename?: 'TeacherProfile', verificationStatus: VerificationStatus, specialty?: string | null } | null, parentProfile?: { __typename?: 'ParentProfile', children: Array<{ __typename?: 'StudentProfile', ageBand: AgeBand, gradeLevel?: string | null, user: { __typename?: 'User', id: string, firstName: string, lastName: string } }> } | null } | null };
+export type MeQuery = { __typename?: 'Query', me?: { __typename?: 'User', id: string, email: string, firstName: string, lastName: string, role: Role, locale: string, avatarUrl?: string | null, consentSpeech: boolean, consentAttention: boolean, studentProfile?: { __typename?: 'StudentProfile', ageBand: AgeBand, gradeLevel?: string | null, points: number } | null, teacherProfile?: { __typename?: 'TeacherProfile', verificationStatus: VerificationStatus, specialty?: string | null, verificationDocuments: Array<{ __typename?: 'VerificationDocument', id: string, filename: string, sizeBytes?: number | null, status: VerificationStatus, reason: string, createdAt: string }> } | null, parentProfile?: { __typename?: 'ParentProfile', children: Array<{ __typename?: 'StudentProfile', ageBand: AgeBand, gradeLevel?: string | null, user: { __typename?: 'User', id: string, firstName: string, lastName: string } }> } | null } | null };
 
 export type SetAvatarMutationVariables = Exact<{
   fileKey: Scalars['String']['input'];
@@ -3062,19 +3217,19 @@ export type CatalogQueryVariables = Exact<{
 }>;
 
 
-export type CatalogQuery = { __typename?: 'Query', catalog: { __typename?: 'CourseConnection', totalCount: number, subjectCount: number, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null }, nodes: Array<{ __typename?: 'Course', id: string, title: string, description?: string | null, subject: string, level: CourseLevel, status: CourseStatus, lessonCount: number, enrollmentCount: number, owner: { __typename?: 'TeacherProfile', specialty?: string | null, user: { __typename?: 'User', id: string, firstName: string, lastName: string } } }> } };
+export type CatalogQuery = { __typename?: 'Query', catalog: { __typename?: 'CourseConnection', totalCount: number, subjectCount: number, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null }, nodes: Array<{ __typename?: 'Course', id: string, title: string, description?: string | null, subject: string, level: CourseLevel, format: CourseFormat, status: CourseStatus, lessonCount: number, enrollmentCount: number, owner: { __typename?: 'TeacherProfile', specialty?: string | null, user: { __typename?: 'User', id: string, firstName: string, lastName: string } } }> } };
 
 export type CourseDetailQueryVariables = Exact<{
   id: Scalars['ID']['input'];
 }>;
 
 
-export type CourseDetailQuery = { __typename?: 'Query', course?: { __typename?: 'Course', id: string, title: string, description?: string | null, subject: string, level: CourseLevel, status: CourseStatus, lessonCount: number, enrollmentCount: number, updatedAt: string, owner: { __typename?: 'TeacherProfile', specialty?: string | null, user: { __typename?: 'User', id: string, firstName: string, lastName: string } }, sections: Array<{ __typename?: 'Section', id: string, title: string, description?: string | null, order: number, lessons: Array<{ __typename?: 'Lesson', id: string, title: string, durationMin: number, status: LessonStatus, order: number, options: { __typename?: 'LessonOptions', homework: boolean }, materials: Array<{ __typename?: 'Material', id: string, type: MaterialType, title: string, url?: string | null, body?: string | null, fileUrl?: string | null, order: number }> }> }>, viewerEnrollment?: { __typename?: 'Enrollment', id: string, status: EnrollmentStatus, progressPct: number, viewedLessonIds: Array<string> } | null } | null };
+export type CourseDetailQuery = { __typename?: 'Query', course?: { __typename?: 'Course', id: string, title: string, description?: string | null, subject: string, level: CourseLevel, format: CourseFormat, status: CourseStatus, lessonCount: number, enrollmentCount: number, updatedAt: string, owner: { __typename?: 'TeacherProfile', specialty?: string | null, user: { __typename?: 'User', id: string, firstName: string, lastName: string } }, sections: Array<{ __typename?: 'Section', id: string, title: string, description?: string | null, order: number, lessons: Array<{ __typename?: 'Lesson', id: string, title: string, durationMin: number, status: LessonStatus, order: number, nextSessionAt?: string | null, options: { __typename?: 'LessonOptions', homework: boolean }, materials: Array<{ __typename?: 'Material', id: string, type: MaterialType, title: string, url?: string | null, body?: string | null, fileUrl?: string | null, order: number }> }> }>, viewerEnrollment?: { __typename?: 'Enrollment', id: string, status: EnrollmentStatus, progressPct: number, viewedLessonIds: Array<string> } | null } | null };
 
 export type MyCoursesQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type MyCoursesQuery = { __typename?: 'Query', myCourses: Array<{ __typename?: 'Course', id: string, title: string, subject: string, level: CourseLevel, status: CourseStatus, lessonCount: number, enrollmentCount: number }> };
+export type MyCoursesQuery = { __typename?: 'Query', myCourses: Array<{ __typename?: 'Course', id: string, title: string, subject: string, level: CourseLevel, format: CourseFormat, status: CourseStatus, lessonCount: number, enrollmentCount: number }> };
 
 export type CreateCourseMutationVariables = Exact<{
   input: CourseInput;
@@ -3597,7 +3752,7 @@ export type MyScheduleQueryVariables = Exact<{
 }>;
 
 
-export type MyScheduleQuery = { __typename?: 'Query', mySchedule: Array<{ __typename?: 'LessonSession', id: string, startAt: string, endAt?: string | null, status: SessionStatus, lesson: { __typename?: 'Lesson', id: string, title: string } }> };
+export type MyScheduleQuery = { __typename?: 'Query', mySchedule: Array<{ __typename?: 'LessonSession', id: string, startAt: string, endAt?: string | null, status: SessionStatus, courseId: string, courseTitle: string, lesson: { __typename?: 'Lesson', id: string, title: string } }> };
 
 export type ScheduleSessionMutationVariables = Exact<{
   input: ScheduleSessionInput;
@@ -3630,7 +3785,7 @@ export type JoinSessionMutation = { __typename?: 'Mutation', joinSession: { __ty
 export type StartPageQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type StartPageQuery = { __typename?: 'Query', startPage: { __typename?: 'StartPage', profile?: { __typename?: 'LearningProfile', id: string, kind: LearningProfileKind, institutionName?: string | null, groupName?: string | null, courseTitle?: string | null, courseCount: number } | null, now?: { __typename?: 'StartEntry', id: string, kind: StartEntryKind, title: string, courseTitle?: string | null, teacherName?: string | null, at?: string | null, count?: number | null, ageDays?: number | null, sessionId?: string | null, lessonId?: string | null, courseId?: string | null, isLive: boolean } | null, today: Array<{ __typename?: 'StartEntry', id: string, kind: StartEntryKind, title: string, courseTitle?: string | null, teacherName?: string | null, at?: string | null, isLive: boolean, sessionId?: string | null, lessonId?: string | null }>, attention: Array<{ __typename?: 'StartEntry', id: string, kind: StartEntryKind, title: string, courseTitle?: string | null, at?: string | null, count?: number | null, ageDays?: number | null, lessonId?: string | null }>, week: Array<{ __typename?: 'StartDay', date: any, isToday: boolean, entries: Array<{ __typename?: 'StartEntry', id: string, kind: StartEntryKind, title: string, at?: string | null, isLive: boolean }> }>, continueEntries: Array<{ __typename?: 'StartEntry', id: string, kind: StartEntryKind, title: string, courseTitle?: string | null, lessonId?: string | null, courseId?: string | null }>, progress: Array<{ __typename?: 'StartProgress', courseId: string, courseTitle: string, doneLessons: number, totalLessons: number, progressPct: number }> } };
+export type StartPageQuery = { __typename?: 'Query', startPage: { __typename?: 'StartPage', profile?: { __typename?: 'LearningProfile', id: string, kind: LearningProfileKind, institutionName?: string | null, groupName?: string | null, courseTitle?: string | null, courseCount: number } | null, now?: { __typename?: 'StartEntry', id: string, kind: StartEntryKind, title: string, courseTitle?: string | null, teacherName?: string | null, at?: string | null, count?: number | null, ageDays?: number | null, sessionId?: string | null, lessonId?: string | null, courseId?: string | null, isLive: boolean } | null, today: Array<{ __typename?: 'StartEntry', id: string, kind: StartEntryKind, title: string, courseTitle?: string | null, teacherName?: string | null, at?: string | null, isLive: boolean, sessionId?: string | null, lessonId?: string | null }>, attention: Array<{ __typename?: 'StartEntry', id: string, kind: StartEntryKind, title: string, courseTitle?: string | null, at?: string | null, count?: number | null, ageDays?: number | null, lessonId?: string | null }>, week: Array<{ __typename?: 'StartDay', date: any, isToday: boolean, entries: Array<{ __typename?: 'StartEntry', id: string, kind: StartEntryKind, title: string, at?: string | null, isLive: boolean }> }>, continueEntries: Array<{ __typename?: 'StartEntry', id: string, kind: StartEntryKind, title: string, courseTitle?: string | null, lessonId?: string | null, courseId?: string | null }>, progress: Array<{ __typename?: 'StartProgress', courseId: string, courseTitle: string, doneLessons: number, totalLessons: number, progressPct: number }>, teaching: Array<{ __typename?: 'StartCourse', courseId: string, title: string, subject: string, sectionCount: number, lessonCount: number, publishedLessons: number, studentCount: number, isDraft: boolean, nextAt?: string | null, nextLessonTitle?: string | null }> } };
 
 export type SubjectCabinetQueryVariables = Exact<{
   courseId: Scalars['ID']['input'];
@@ -3733,6 +3888,13 @@ export type RequestUploadMutationVariables = Exact<{
 
 
 export type RequestUploadMutation = { __typename?: 'Mutation', requestUpload: { __typename?: 'UploadTicket', uploadUrl: string, fileKey: string, expiresAt: string } };
+
+export type UploadPolicyQueryVariables = Exact<{
+  purpose: UploadPurpose;
+}>;
+
+
+export type UploadPolicyQuery = { __typename?: 'Query', uploadPolicy: { __typename?: 'UploadPolicy', purpose: UploadPurpose, maxBytes: number, contentTypes: Array<string> } };
 
 
 export const AdminInstitutionDocument = gql`
@@ -4247,6 +4409,253 @@ export function useAssignTeacherMutation(baseOptions?: Apollo.MutationHookOption
 export type AssignTeacherMutationHookResult = ReturnType<typeof useAssignTeacherMutation>;
 export type AssignTeacherMutationResult = Apollo.MutationResult<AssignTeacherMutation>;
 export type AssignTeacherMutationOptions = Apollo.BaseMutationOptions<AssignTeacherMutation, AssignTeacherMutationVariables>;
+export const VerificationQueueDocument = gql`
+    query VerificationQueue {
+  verificationQueue {
+    teacherUserId
+    firstName
+    lastName
+    email
+    specialty
+    education
+    submittedAt
+    courseCount
+    sessionCount
+    documents {
+      id
+      filename
+      sizeBytes
+      createdAt
+    }
+  }
+}
+    `;
+
+/**
+ * __useVerificationQueueQuery__
+ *
+ * To run a query within a React component, call `useVerificationQueueQuery` and pass it any options that fit your needs.
+ * When your component renders, `useVerificationQueueQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useVerificationQueueQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useVerificationQueueQuery(baseOptions?: Apollo.QueryHookOptions<VerificationQueueQuery, VerificationQueueQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<VerificationQueueQuery, VerificationQueueQueryVariables>(VerificationQueueDocument, options);
+      }
+export function useVerificationQueueLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<VerificationQueueQuery, VerificationQueueQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<VerificationQueueQuery, VerificationQueueQueryVariables>(VerificationQueueDocument, options);
+        }
+// @ts-ignore
+export function useVerificationQueueSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<VerificationQueueQuery, VerificationQueueQueryVariables>): Apollo.UseSuspenseQueryResult<VerificationQueueQuery, VerificationQueueQueryVariables>;
+export function useVerificationQueueSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<VerificationQueueQuery, VerificationQueueQueryVariables>): Apollo.UseSuspenseQueryResult<VerificationQueueQuery | undefined, VerificationQueueQueryVariables>;
+export function useVerificationQueueSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<VerificationQueueQuery, VerificationQueueQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<VerificationQueueQuery, VerificationQueueQueryVariables>(VerificationQueueDocument, options);
+        }
+export type VerificationQueueQueryHookResult = ReturnType<typeof useVerificationQueueQuery>;
+export type VerificationQueueLazyQueryHookResult = ReturnType<typeof useVerificationQueueLazyQuery>;
+export type VerificationQueueSuspenseQueryHookResult = ReturnType<typeof useVerificationQueueSuspenseQuery>;
+export type VerificationQueueQueryResult = Apollo.QueryResult<VerificationQueueQuery, VerificationQueueQueryVariables>;
+export const VerificationDocumentUrlDocument = gql`
+    query VerificationDocumentUrl($id: ID!) {
+  verificationDocumentUrl(id: $id)
+}
+    `;
+
+/**
+ * __useVerificationDocumentUrlQuery__
+ *
+ * To run a query within a React component, call `useVerificationDocumentUrlQuery` and pass it any options that fit your needs.
+ * When your component renders, `useVerificationDocumentUrlQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useVerificationDocumentUrlQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useVerificationDocumentUrlQuery(baseOptions: Apollo.QueryHookOptions<VerificationDocumentUrlQuery, VerificationDocumentUrlQueryVariables> & ({ variables: VerificationDocumentUrlQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<VerificationDocumentUrlQuery, VerificationDocumentUrlQueryVariables>(VerificationDocumentUrlDocument, options);
+      }
+export function useVerificationDocumentUrlLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<VerificationDocumentUrlQuery, VerificationDocumentUrlQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<VerificationDocumentUrlQuery, VerificationDocumentUrlQueryVariables>(VerificationDocumentUrlDocument, options);
+        }
+// @ts-ignore
+export function useVerificationDocumentUrlSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<VerificationDocumentUrlQuery, VerificationDocumentUrlQueryVariables>): Apollo.UseSuspenseQueryResult<VerificationDocumentUrlQuery, VerificationDocumentUrlQueryVariables>;
+export function useVerificationDocumentUrlSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<VerificationDocumentUrlQuery, VerificationDocumentUrlQueryVariables>): Apollo.UseSuspenseQueryResult<VerificationDocumentUrlQuery | undefined, VerificationDocumentUrlQueryVariables>;
+export function useVerificationDocumentUrlSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<VerificationDocumentUrlQuery, VerificationDocumentUrlQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<VerificationDocumentUrlQuery, VerificationDocumentUrlQueryVariables>(VerificationDocumentUrlDocument, options);
+        }
+export type VerificationDocumentUrlQueryHookResult = ReturnType<typeof useVerificationDocumentUrlQuery>;
+export type VerificationDocumentUrlLazyQueryHookResult = ReturnType<typeof useVerificationDocumentUrlLazyQuery>;
+export type VerificationDocumentUrlSuspenseQueryHookResult = ReturnType<typeof useVerificationDocumentUrlSuspenseQuery>;
+export type VerificationDocumentUrlQueryResult = Apollo.QueryResult<VerificationDocumentUrlQuery, VerificationDocumentUrlQueryVariables>;
+export const OversightLogDocument = gql`
+    query OversightLog($limit: Int) {
+  oversightLog(limit: $limit) {
+    id
+    action
+    actorName
+    subjectName
+    objectLabel
+    reason
+    at
+  }
+}
+    `;
+
+/**
+ * __useOversightLogQuery__
+ *
+ * To run a query within a React component, call `useOversightLogQuery` and pass it any options that fit your needs.
+ * When your component renders, `useOversightLogQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useOversightLogQuery({
+ *   variables: {
+ *      limit: // value for 'limit'
+ *   },
+ * });
+ */
+export function useOversightLogQuery(baseOptions?: Apollo.QueryHookOptions<OversightLogQuery, OversightLogQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<OversightLogQuery, OversightLogQueryVariables>(OversightLogDocument, options);
+      }
+export function useOversightLogLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<OversightLogQuery, OversightLogQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<OversightLogQuery, OversightLogQueryVariables>(OversightLogDocument, options);
+        }
+// @ts-ignore
+export function useOversightLogSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<OversightLogQuery, OversightLogQueryVariables>): Apollo.UseSuspenseQueryResult<OversightLogQuery, OversightLogQueryVariables>;
+export function useOversightLogSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<OversightLogQuery, OversightLogQueryVariables>): Apollo.UseSuspenseQueryResult<OversightLogQuery | undefined, OversightLogQueryVariables>;
+export function useOversightLogSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<OversightLogQuery, OversightLogQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<OversightLogQuery, OversightLogQueryVariables>(OversightLogDocument, options);
+        }
+export type OversightLogQueryHookResult = ReturnType<typeof useOversightLogQuery>;
+export type OversightLogLazyQueryHookResult = ReturnType<typeof useOversightLogLazyQuery>;
+export type OversightLogSuspenseQueryHookResult = ReturnType<typeof useOversightLogSuspenseQuery>;
+export type OversightLogQueryResult = Apollo.QueryResult<OversightLogQuery, OversightLogQueryVariables>;
+export const VerifyTeacherDocument = gql`
+    mutation VerifyTeacher($teacherUserId: ID!) {
+  verifyTeacher(teacherUserId: $teacherUserId) {
+    id
+  }
+}
+    `;
+export type VerifyTeacherMutationFn = Apollo.MutationFunction<VerifyTeacherMutation, VerifyTeacherMutationVariables>;
+
+/**
+ * __useVerifyTeacherMutation__
+ *
+ * To run a mutation, you first call `useVerifyTeacherMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useVerifyTeacherMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [verifyTeacherMutation, { data, loading, error }] = useVerifyTeacherMutation({
+ *   variables: {
+ *      teacherUserId: // value for 'teacherUserId'
+ *   },
+ * });
+ */
+export function useVerifyTeacherMutation(baseOptions?: Apollo.MutationHookOptions<VerifyTeacherMutation, VerifyTeacherMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<VerifyTeacherMutation, VerifyTeacherMutationVariables>(VerifyTeacherDocument, options);
+      }
+export type VerifyTeacherMutationHookResult = ReturnType<typeof useVerifyTeacherMutation>;
+export type VerifyTeacherMutationResult = Apollo.MutationResult<VerifyTeacherMutation>;
+export type VerifyTeacherMutationOptions = Apollo.BaseMutationOptions<VerifyTeacherMutation, VerifyTeacherMutationVariables>;
+export const RejectTeacherDocument = gql`
+    mutation RejectTeacher($teacherUserId: ID!, $reason: String!) {
+  rejectTeacher(teacherUserId: $teacherUserId, reason: $reason) {
+    id
+  }
+}
+    `;
+export type RejectTeacherMutationFn = Apollo.MutationFunction<RejectTeacherMutation, RejectTeacherMutationVariables>;
+
+/**
+ * __useRejectTeacherMutation__
+ *
+ * To run a mutation, you first call `useRejectTeacherMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useRejectTeacherMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [rejectTeacherMutation, { data, loading, error }] = useRejectTeacherMutation({
+ *   variables: {
+ *      teacherUserId: // value for 'teacherUserId'
+ *      reason: // value for 'reason'
+ *   },
+ * });
+ */
+export function useRejectTeacherMutation(baseOptions?: Apollo.MutationHookOptions<RejectTeacherMutation, RejectTeacherMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<RejectTeacherMutation, RejectTeacherMutationVariables>(RejectTeacherDocument, options);
+      }
+export type RejectTeacherMutationHookResult = ReturnType<typeof useRejectTeacherMutation>;
+export type RejectTeacherMutationResult = Apollo.MutationResult<RejectTeacherMutation>;
+export type RejectTeacherMutationOptions = Apollo.BaseMutationOptions<RejectTeacherMutation, RejectTeacherMutationVariables>;
+export const RequestVerificationDocumentsDocument = gql`
+    mutation RequestVerificationDocuments($teacherUserId: ID!, $reason: String!) {
+  requestVerificationDocuments(teacherUserId: $teacherUserId, reason: $reason) {
+    id
+  }
+}
+    `;
+export type RequestVerificationDocumentsMutationFn = Apollo.MutationFunction<RequestVerificationDocumentsMutation, RequestVerificationDocumentsMutationVariables>;
+
+/**
+ * __useRequestVerificationDocumentsMutation__
+ *
+ * To run a mutation, you first call `useRequestVerificationDocumentsMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useRequestVerificationDocumentsMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [requestVerificationDocumentsMutation, { data, loading, error }] = useRequestVerificationDocumentsMutation({
+ *   variables: {
+ *      teacherUserId: // value for 'teacherUserId'
+ *      reason: // value for 'reason'
+ *   },
+ * });
+ */
+export function useRequestVerificationDocumentsMutation(baseOptions?: Apollo.MutationHookOptions<RequestVerificationDocumentsMutation, RequestVerificationDocumentsMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<RequestVerificationDocumentsMutation, RequestVerificationDocumentsMutationVariables>(RequestVerificationDocumentsDocument, options);
+      }
+export type RequestVerificationDocumentsMutationHookResult = ReturnType<typeof useRequestVerificationDocumentsMutation>;
+export type RequestVerificationDocumentsMutationResult = Apollo.MutationResult<RequestVerificationDocumentsMutation>;
+export type RequestVerificationDocumentsMutationOptions = Apollo.BaseMutationOptions<RequestVerificationDocumentsMutation, RequestVerificationDocumentsMutationVariables>;
 export const LoginDocument = gql`
     mutation Login($email: String!, $password: String!) {
   login(email: $email, password: $password) {
@@ -4506,8 +4915,8 @@ export const SubmitVerificationDocumentDocument = gql`
     mutation SubmitVerificationDocument($fileKey: String!) {
   submitVerificationDocument(fileKey: $fileKey) {
     id
+    filename
     status
-    fileUrl
     createdAt
   }
 }
@@ -4558,6 +4967,14 @@ export const MeDocument = gql`
     teacherProfile {
       verificationStatus
       specialty
+      verificationDocuments {
+        id
+        filename
+        sizeBytes
+        status
+        reason
+        createdAt
+      }
     }
     parentProfile {
       children {
@@ -5605,6 +6022,7 @@ export const CatalogDocument = gql`
       description
       subject
       level
+      format
       status
       lessonCount
       enrollmentCount
@@ -5666,6 +6084,7 @@ export const CourseDetailDocument = gql`
     description
     subject
     level
+    format
     status
     lessonCount
     enrollmentCount
@@ -5689,6 +6108,7 @@ export const CourseDetailDocument = gql`
         durationMin
         status
         order
+        nextSessionAt
         options {
           homework
         }
@@ -5755,6 +6175,7 @@ export const MyCoursesDocument = gql`
     title
     subject
     level
+    format
     status
     lessonCount
     enrollmentCount
@@ -8849,6 +9270,8 @@ export const MyScheduleDocument = gql`
     startAt
     endAt
     status
+    courseId
+    courseTitle
     lesson {
       id
       title
@@ -9104,6 +9527,18 @@ export const StartPageDocument = gql`
       doneLessons
       totalLessons
       progressPct
+    }
+    teaching {
+      courseId
+      title
+      subject
+      sectionCount
+      lessonCount
+      publishedLessons
+      studentCount
+      isDraft
+      nextAt
+      nextLessonTitle
     }
   }
 }
@@ -9829,3 +10264,48 @@ export function useRequestUploadMutation(baseOptions?: Apollo.MutationHookOption
 export type RequestUploadMutationHookResult = ReturnType<typeof useRequestUploadMutation>;
 export type RequestUploadMutationResult = Apollo.MutationResult<RequestUploadMutation>;
 export type RequestUploadMutationOptions = Apollo.BaseMutationOptions<RequestUploadMutation, RequestUploadMutationVariables>;
+export const UploadPolicyDocument = gql`
+    query UploadPolicy($purpose: UploadPurpose!) {
+  uploadPolicy(purpose: $purpose) {
+    purpose
+    maxBytes
+    contentTypes
+  }
+}
+    `;
+
+/**
+ * __useUploadPolicyQuery__
+ *
+ * To run a query within a React component, call `useUploadPolicyQuery` and pass it any options that fit your needs.
+ * When your component renders, `useUploadPolicyQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useUploadPolicyQuery({
+ *   variables: {
+ *      purpose: // value for 'purpose'
+ *   },
+ * });
+ */
+export function useUploadPolicyQuery(baseOptions: Apollo.QueryHookOptions<UploadPolicyQuery, UploadPolicyQueryVariables> & ({ variables: UploadPolicyQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<UploadPolicyQuery, UploadPolicyQueryVariables>(UploadPolicyDocument, options);
+      }
+export function useUploadPolicyLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<UploadPolicyQuery, UploadPolicyQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<UploadPolicyQuery, UploadPolicyQueryVariables>(UploadPolicyDocument, options);
+        }
+// @ts-ignore
+export function useUploadPolicySuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<UploadPolicyQuery, UploadPolicyQueryVariables>): Apollo.UseSuspenseQueryResult<UploadPolicyQuery, UploadPolicyQueryVariables>;
+export function useUploadPolicySuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<UploadPolicyQuery, UploadPolicyQueryVariables>): Apollo.UseSuspenseQueryResult<UploadPolicyQuery | undefined, UploadPolicyQueryVariables>;
+export function useUploadPolicySuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<UploadPolicyQuery, UploadPolicyQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<UploadPolicyQuery, UploadPolicyQueryVariables>(UploadPolicyDocument, options);
+        }
+export type UploadPolicyQueryHookResult = ReturnType<typeof useUploadPolicyQuery>;
+export type UploadPolicyLazyQueryHookResult = ReturnType<typeof useUploadPolicyLazyQuery>;
+export type UploadPolicySuspenseQueryHookResult = ReturnType<typeof useUploadPolicySuspenseQuery>;
+export type UploadPolicyQueryResult = Apollo.QueryResult<UploadPolicyQuery, UploadPolicyQueryVariables>;

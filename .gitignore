@@ -28,3 +28,7 @@ dist/
 # прод-секреты
 .env.production
 infra/prod/backups/
+
+# Рабочие файлы PyInstaller при сборке sidecar — артефакты, а не исходники.
+backend/build/
+backend/flamingo-sidecar.spec

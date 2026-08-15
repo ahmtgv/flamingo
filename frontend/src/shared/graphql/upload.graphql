@@ -8,3 +8,13 @@ mutation RequestUpload($input: UploadRequestInput!) {
     expiresAt
   }
 }
+
+# Правила загрузки — числами и ДО попытки (находка владельца 15.08, п.3). Запрашиваются у
+# сервера, а не хранятся константой в клиенте: константа разошлась бы с политикой молча.
+query UploadPolicy($purpose: UploadPurpose!) {
+  uploadPolicy(purpose: $purpose) {
+    purpose
+    maxBytes
+    contentTypes
+  }
+}

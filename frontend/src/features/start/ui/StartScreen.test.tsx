@@ -110,6 +110,7 @@ function page(over: Partial<StartPageQuery['startPage']> = {}): StartPageQuery {
       week: week(),
       continueEntries: [],
       progress: [],
+      teaching: [],
       ...over,
     } as StartPageQuery['startPage'],
   };
@@ -180,7 +181,42 @@ describe('StartScreen — atlas sheet 00', () => {
     render([
       meMock('TEACHER'),
       profilesMock([teacherProfile]),
-      pageMock(page({ profile: teacherProfile, attention: [queue], now: null, today: [] })),
+      pageMock(
+        page({
+          profile: teacherProfile,
+          attention: [queue],
+          now: null,
+          today: [],
+          teaching: [
+            {
+              __typename: 'StartCourse',
+              courseId: 'c-alg',
+              title: 'Алгебра',
+              subject: 'Математика',
+              sectionCount: 3,
+              lessonCount: 20,
+              publishedLessons: 14,
+              studentCount: 8,
+              isDraft: false,
+              nextAt: null,
+              nextLessonTitle: null,
+            },
+            {
+              __typename: 'StartCourse',
+              courseId: 'c-geo',
+              title: 'Геометрия',
+              subject: 'Математика',
+              sectionCount: 1,
+              lessonCount: 0,
+              publishedLessons: 0,
+              studentCount: 0,
+              isDraft: true,
+              nextAt: null,
+              nextLessonTitle: null,
+            },
+          ],
+        }),
+      ),
     ]);
 
     expect(await screen.findByText('Здравствуйте, Аня')).toBeInTheDocument();
@@ -188,6 +224,19 @@ describe('StartScreen — atlas sheet 00', () => {
     expect(screen.getByText('старшей 2 дня')).toBeInTheDocument();
     // "Продолжить" belongs to a learner, not to a teaching context.
     expect(screen.queryByRole('region', { name: 'Продолжить' })).not.toBeInTheDocument();
+
+    // 🔴 Находка владельца 15.08, п.2: у преподавателя слот прогресса стоял пустым, и «что я
+    // веду» не отвечалось нигде. Теперь в нём его курсы — ВСЕ, а не тот один, что открыт.
+    const mine = screen.getByRole('region', { name: 'Мои курсы' });
+    expect(screen.queryByRole('region', { name: 'Прогресс' })).not.toBeInTheDocument();
+    expect(within(mine).getByText('Алгебра')).toBeInTheDocument();
+    expect(within(mine).getByText('Геометрия')).toBeInTheDocument();
+    // Состояние курса читается со строки, без открытия: сколько уроков и сколько готово.
+    expect(within(mine).getByText(/20 уроков/)).toBeInTheDocument();
+    expect(within(mine).getByText('опубликовано 14 из 20')).toBeInTheDocument();
+    expect(within(mine).getByText('черновик')).toBeInTheDocument();
+    // Занятие не назначено — так и сказано, а не пусто.
+    expect(within(mine).getAllByText('занятия не назначены')).toHaveLength(2);
   });
 
   it('cadet: no timetable, and the week says so instead of inventing repetitions', async () => {

@@ -31,6 +31,23 @@ _IMAGE = ("image/jpeg", "image/png", "image/webp")
 # Documents accepted for submissions / materials / verification (+ images).
 _DOC = (*_IMAGE, "application/pdf", "text/plain")
 
+# 🔴 Видео в материалах — решение владельца 15.08 (OWNER_SCOPE §22). Это ИСПРАВЛЕНИЕ, а не
+# расширение белого списка §2.2.
+#
+# Инвариант «не храним видео и аудио урока» — про ЗАПИСЬ ЗАНЯТИЯ, которую делает система:
+# нет кода записи, нет ручки, принимающей поток, нет цели загрузки с именем recording. Учебный
+# ролик, который преподаватель прикрепил сам, — это пункт 2 белого списка («прикреплённые
+# материалы»), и запрещать его было нечем. Слишком широкая трактовка снимается здесь; сам
+# запрет остаётся ровно там, где стоял, и его стережёт `test_privacy.py`.
+_VIDEO = ("video/mp4", "video/webm", "video/quicktime")
+
+# Потолок из §22. Ограничение дисковое, не юридическое: VPS на 20–40 ГБ.
+#
+# ⚠️ Это же число стоит в `infra/prod/Caddyfile` (`request_body max_size`). Разойдись они — и
+# файл между двумя порогами загружался бы пять минут и умирал на 413 без объяснения, то есть
+# ровно тем поведением, из-за которого правка и делается.
+_MATERIAL_MAX = 500 * _MB
+
 
 @dataclass(frozen=True)
 class Policy:
@@ -43,7 +60,7 @@ class Policy:
 PURPOSE_POLICY: dict[UploadPurpose, Policy] = {
     UploadPurpose.AVATAR: Policy(None, "avatar", 5 * _MB, _IMAGE),
     UploadPurpose.SUBMISSION: Policy((Role.STUDENT,), "submission", 25 * _MB, _DOC),
-    UploadPurpose.MATERIAL: Policy((Role.TEACHER,), "material", 50 * _MB, _DOC),
+    UploadPurpose.MATERIAL: Policy((Role.TEACHER,), "material", _MATERIAL_MAX, (*_DOC, *_VIDEO)),
     UploadPurpose.COVER: Policy((Role.TEACHER,), "cover", 5 * _MB, _IMAGE),
     UploadPurpose.INSTITUTION_LOGO: Policy((Role.ADMIN,), "institution/logo", 5 * _MB, _IMAGE),
     UploadPurpose.VERIFICATION: Policy((Role.TEACHER,), "verification", 25 * _MB, _DOC),

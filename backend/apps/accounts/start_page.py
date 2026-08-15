@@ -74,6 +74,31 @@ class StartProgress:
 
 
 @dataclass(frozen=True)
+class StartCourse:
+    """Один курс преподавателя — строка слота «мои курсы» (находка владельца 15.08, п.2).
+
+    🔴 Диагноз находки: у преподавателя не было НИ ОДНОГО места, отвечающего на вопрос «что я
+    веду». Был экран одного курса, был недельный дневник — и каталог, где лежат курсы всех.
+    Своего списка не было нигде, и интерфейс поэтому выглядел так, будто курс ровно один.
+
+    Слот при этом был: `progress` листа 00 у преподавателя всегда пуст — прогресс считается по
+    записи ученика, которой у него нет. Заводить седьмой слот, когда шестой у этой роли пустой,
+    значит чинить симптом. Роль меняет наполнение рамы, а не саму раму — так лист 00 и написан.
+    """
+
+    course_id: str
+    title: str
+    subject: str
+    section_count: int
+    lesson_count: int
+    published_lessons: int
+    student_count: int
+    is_draft: bool
+    next_at: dt.datetime | None
+    next_lesson_title: str | None
+
+
+@dataclass(frozen=True)
 class StartPage:
     profile: LearningProfile | None
     now: StartEntry | None
@@ -82,6 +107,7 @@ class StartPage:
     week: list[StartDay]
     continue_entries: list[StartEntry]
     progress: list[StartProgress]
+    teaching: list[StartCourse]
 
 
 # --- scope ---------------------------------------------------------------------------------
@@ -310,6 +336,72 @@ def _progress(user, course_ids) -> list[StartProgress]:
     return rows
 
 
+def _teaching(user, course_ids, sessions) -> list[StartCourse]:
+    """Курсы преподавателя — с состоянием каждого и с ближайшим занятием по нему.
+
+    Одним запросом с аннотациями, а не «курс, потом счётчик, потом ещё счётчик»: у активного
+    преподавателя курсов десяток, и три запроса на строку — это тридцать запросов на экран,
+    который открывается первым.
+
+    Ближайшее занятие берётся из УЖЕ загруженных сессий недели: второй поход в расписание дал
+    бы другой ответ, чем недельная полоса на том же экране, и объяснять расхождение пришлось бы
+    преподавателю.
+    """
+    from django.db.models import Count, Q
+
+    from apps.courses.models import Course
+    from common.enums import CourseStatus, LessonStatus
+
+    if not course_ids:
+        return []
+
+    soonest: dict[str, StartEntry] = {}
+    for entry in sorted(sessions, key=_entry_sort_key):
+        if entry.course_id and entry.course_id not in soonest:
+            soonest[entry.course_id] = entry
+
+    rows = (
+        Course.objects.filter(id__in=course_ids, owner__user=user)
+        .annotate(
+            _sections=Count("sections", distinct=True),
+            _lessons=Count(
+                "sections__lessons",
+                distinct=True,
+                filter=Q(sections__lessons__deleted_at__isnull=True),
+            ),
+            _published=Count(
+                "sections__lessons",
+                distinct=True,
+                filter=Q(
+                    sections__lessons__deleted_at__isnull=True,
+                    sections__lessons__status=LessonStatus.PUBLISHED.value,
+                ),
+            ),
+            _students=Count("enrollments", distinct=True),
+        )
+        .order_by("title", "id")
+    )
+
+    result = []
+    for course in rows:
+        upcoming = soonest.get(str(course.id))
+        result.append(
+            StartCourse(
+                course_id=str(course.id),
+                title=course.title,
+                subject=course.subject,
+                section_count=course._sections,
+                lesson_count=course._lessons,
+                published_lessons=course._published,
+                student_count=course._students,
+                is_draft=course.status == CourseStatus.DRAFT.value,
+                next_at=upcoming.at if upcoming else None,
+                next_lesson_title=upcoming.title if upcoming else None,
+            )
+        )
+    return result
+
+
 def _week(sessions, attention, today: dt.date) -> list[StartDay]:
     """Seven days from today — sessions plus anything with a deadline in that window.
 
@@ -338,7 +430,7 @@ def _entry_sort_key(entry: StartEntry):
 
 def start_page(user) -> StartPage:
     """Assemble the start page for the caller's ACTIVE learning profile."""
-    empty = StartPage(None, None, [], [], [], [], [])
+    empty = StartPage(None, None, [], [], [], [], [], [])
     if user is None or not getattr(user, "is_authenticated", False):
         return empty
 
@@ -367,10 +459,13 @@ def start_page(user) -> StartPage:
         attention = _teacher_attention(user)
         continue_entries: list[StartEntry] = []
         progress: list[StartProgress] = []
+        # Слот «мои курсы» вместо всегда пустого прогресса — см. StartCourse.
+        teaching = _teaching(user, course_ids, week_entries)
     else:
         attention = _pupil_attention(user, course_ids, now)
         continue_entries = _continue_entries(user, course_ids)
         progress = _progress(user, course_ids)
+        teaching = []
 
     # "Сейчас" — the live lesson if one is running, else the next one today, else (for a
     # self-paced learner with no timetable) the thing to carry on with.
@@ -388,4 +483,5 @@ def start_page(user) -> StartPage:
         week=_week(week_entries, attention, today),
         continue_entries=continue_entries,
         progress=progress,
+        teaching=teaching,
     )

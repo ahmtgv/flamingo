@@ -19,6 +19,7 @@ import { Navigate, useNavigate, useParams } from 'react-router-dom';
 
 import {
   type CourseDetailQuery,
+  type CourseFormat,
   type CourseLevel,
   type MaterialType,
   useAddMaterialMutation,
@@ -30,6 +31,7 @@ import {
   useDeleteSectionMutation,
   useEnrollMutation,
   useMeQuery,
+  useMyCoursesQuery,
   usePublishCourseMutation,
   usePublishLessonMutation,
   useReorderLessonsMutation,
@@ -39,18 +41,18 @@ import {
   useUpdateCourseMutation,
   useUpdateLessonMutation,
   useUpdateSectionMutation,
+  useUploadPolicyQuery,
 } from '@/entities/graphql/generated';
 import { useUpload } from '@/shared/lib/useUpload';
+import { acceptAttribute, formatBytes, kindKeys, refuse } from '@/shared/lib/uploadLimits';
 import { Button, ErrorState, Input, Select, TextField } from '@/shared/ui';
 
+import { LESSON_FILTERS, type LessonFilter, focusSectionId, matches } from '../constructorNav';
+
+import { AudienceFields } from './AudienceFields';
 import { CoursesLayout } from './CoursesLayout';
 import styles from './courses.module.css';
 import { move } from './reorder';
-
-const COURSE_LEVELS: CourseLevel[] = [
-  'GRADE_1', 'GRADE_2', 'GRADE_3', 'GRADE_4', 'GRADE_5', 'GRADE_6',
-  'GRADE_7', 'GRADE_8', 'GRADE_9', 'GRADE_10', 'GRADE_11', 'ADULT',
-];
 
 type CourseT = NonNullable<CourseDetailQuery['course']>;
 type SectionT = CourseT['sections'][number];
@@ -122,8 +124,7 @@ function GuestView({
     <div className={styles.detailGrid}>
       <div>
         <div className={styles.dSubj}>
-          {course.subject} · {t(`level.${course.level}`)} ·{' '}
-          {t('detail.dSubjLessons', { count: totalLessons })} ·{' '}
+          {audienceLine(course, t)} · {t('detail.dSubjLessons', { count: totalLessons })} ·{' '}
           {t('detail.dSubjSections', { count: course.sections.length })}
         </div>
         <h1 className={styles.pageTitle}>{course.title}</h1>
@@ -194,7 +195,7 @@ function EnrolledView({ course }: { course: CourseT }) {
     <div className={styles.detailGrid}>
       <div>
         <div className={styles.dSubj}>
-          {course.subject} · {t(`level.${course.level}`)} · {t('detail.enrolledTag')}
+          {audienceLine(course, t)} · {t('detail.enrolledTag')}
         </div>
         <h1 className={styles.pageTitle}>{course.title}</h1>
 
@@ -282,9 +283,16 @@ function OwnerConstructor({ course, onDone }: { course: CourseT; onDone: () => v
   const [reorderSections] = useReorderSectionsMutation();
   const [reorderLessons] = useReorderLessonsMutation();
   const [editingCourse, setEditingCourse] = useState(false);
+  // Фильтр уроков и свёрнутые разделы — оба про одно (находка владельца 15.08, п.2):
+  // конструктор был одной плоской простынёй, и в двадцати уроках терялись.
+  const [filter, setFilter] = useState<LessonFilter>('all');
+  const [collapsed, setCollapsed] = useState<Set<string>>(
+    () => new Set(course.sections.map((s) => s.id).filter((id) => id !== focusSectionId(course))),
+  );
 
   const isDraft = course.status === 'DRAFT';
   const sectionIds = course.sections.map((s) => s.id);
+  const matchesAnything = course.sections.some((s) => s.lessons.some((l) => matches(l, filter)));
 
   return (
     <>
@@ -298,6 +306,9 @@ function OwnerConstructor({ course, onDone }: { course: CourseT; onDone: () => v
             {updatedLabel(course.updatedAt, t)}
           </div>
           <h1 className={styles.pageTitle}>{course.title}</h1>
+          {/* Переключение между своими курсами прямо отсюда: возвращаться в каталог, чтобы
+              попасть в соседний курс, — лишний экран на каждом переходе. */}
+          <CourseSwitcher currentId={course.id} />
         </div>
         <div className={styles.cHeadActions}>
           <Button
@@ -348,14 +359,74 @@ function OwnerConstructor({ course, onDone }: { course: CourseT; onDone: () => v
 
       {course.sections.length === 0 && <p className={styles.empty}>{t('detail.noSections')}</p>}
 
+      {course.sections.length > 0 && (
+        <div className={styles.lessonFilter} role="group" aria-label={t('manage.filterLabel')}>
+          {LESSON_FILTERS.map((key) => (
+            <button
+              key={key}
+              type="button"
+              className={`${styles.chip} ${filter === key ? styles.chipOn : ''}`}
+              aria-pressed={filter === key}
+              onClick={() => setFilter(key)}
+            >
+              {t(`manage.filter${key[0].toUpperCase()}${key.slice(1)}`)}
+            </button>
+          ))}
+          <button
+            type="button"
+            className={styles.mini}
+            onClick={() =>
+              setCollapsed((prev) =>
+                prev.size === course.sections.length
+                  ? new Set()
+                  : new Set(course.sections.map((s) => s.id)),
+              )
+            }
+          >
+            {collapsed.size === course.sections.length
+              ? t('manage.expandAll')
+              : t('manage.collapseAll')}
+          </button>
+        </div>
+      )}
+
+      {course.sections.length > 0 && !matchesAnything && (
+        <p className={styles.empty}>{t('manage.nothingMatches')}</p>
+      )}
+
       {course.sections.map((section, si) => {
         const lessonIds = section.lessons.map((l) => l.id);
+        const shown = section.lessons.filter((l) => matches(l, filter));
         const allDraft =
           section.lessons.length > 0 && section.lessons.every((l) => l.status === 'DRAFT');
+        // Свёрнут — если так решил человек; но фильтр раскрывает раздел, в котором есть
+        // совпадения: иначе нажатие на «черновики» выглядело бы как «ничего не нашлось».
+        const isOpen = !collapsed.has(section.id) || (filter !== 'all' && shown.length > 0);
         return (
           <div key={section.id}>
             <div className={styles.cSecTitle}>
+              <button
+                type="button"
+                className={styles.mini}
+                aria-expanded={isOpen}
+                aria-label={isOpen ? t('manage.collapseSection') : t('manage.expandSection')}
+                onClick={() =>
+                  setCollapsed((prev) => {
+                    const next = new Set(prev);
+                    if (next.has(section.id)) next.delete(section.id);
+                    else next.add(section.id);
+                    return next;
+                  })
+                }
+              >
+                {isOpen ? <ChevronUp /> : <ChevronDown />}
+              </button>
               <span>{t('manage.sectionHeading', { n: idx2(si + 1), title: section.title })}</span>
+              <span className={styles.secCount}>
+                {section.lessons.length === 0
+                  ? t('manage.sectionEmpty')
+                  : t('manage.sectionCounts', { count: section.lessons.length })}
+              </span>
               {allDraft && <span className={`${styles.pill} ${styles.pillDraft}`}>{t('manage.pillDraft')}</span>}
               <span className={styles.cControls}>
                 <button
@@ -397,7 +468,13 @@ function OwnerConstructor({ course, onDone }: { course: CourseT; onDone: () => v
               </span>
             </div>
 
-            {section.lessons.map((lesson, li) => (
+            {isOpen && shown.length === 0 && section.lessons.length > 0 && (
+              <p className={styles.empty}>{t('manage.filterEmpty')}</p>
+            )}
+
+            {isOpen && shown.map((lesson) => {
+              const li = section.lessons.indexOf(lesson);
+              return (
               <div className={styles.cRow} key={lesson.id}>
                 <span className={styles.progIdx}>
                   {si + 1}.{li + 1}
@@ -416,6 +493,15 @@ function OwnerConstructor({ course, onDone }: { course: CourseT; onDone: () => v
                       ? t('manage.materialsCount', { count: lesson.materials.length })
                       : t('manage.noMaterials')}
                     {lesson.options.homework ? ` · ${t('manage.homeworkTag')}` : ''}
+                    {' · '}
+                    {/* 🔴 «Назначить занятие» ставило галочку в состоянии кнопки и теряло её
+                        при перезагрузке. По списку из двадцати уроков нельзя было понять, какие
+                        уже назначены — теперь урок носит эту дату сам. */}
+                    <span className={lesson.nextSessionAt ? styles.sessionOn : undefined}>
+                      {lesson.nextSessionAt
+                        ? t('manage.sessionAt', { when: sessionStamp(lesson.nextSessionAt) })
+                        : t('manage.noSession')}
+                    </span>
                   </div>
                   {lesson.materials.length > 0 && (
                     <div className={styles.matChips}>
@@ -502,11 +588,14 @@ function OwnerConstructor({ course, onDone }: { course: CourseT; onDone: () => v
                   </button>
                 </span>
               </div>
-            ))}
+              );
+            })}
 
-            <div className={styles.addRow}>
-              <AddLessonForm sectionId={section.id} onDone={onDone} />
-            </div>
+            {isOpen && (
+              <div className={styles.addRow}>
+                <AddLessonForm sectionId={section.id} onDone={onDone} />
+              </div>
+            )}
           </div>
         );
       })}
@@ -516,6 +605,63 @@ function OwnerConstructor({ course, onDone }: { course: CourseT; onDone: () => v
       </div>
     </>
   );
+}
+
+const SESSION_FORMAT = new Intl.DateTimeFormat('ru-RU', {
+  day: '2-digit',
+  month: 'short',
+  hour: '2-digit',
+  minute: '2-digit',
+});
+
+function sessionStamp(iso: string): string {
+  return SESSION_FORMAT.format(new Date(iso));
+}
+
+/**
+ * Переключатель между своими курсами.
+ *
+ * Список берётся из `myCourses` — того же запроса, что кормит стартовую. Один курс — молчим:
+ * выпадающий список из одного пункта это мебель.
+ */
+function CourseSwitcher({ currentId }: { currentId: string }) {
+  const { t } = useTranslation('courses');
+  const navigate = useNavigate();
+  const { data } = useMyCoursesQuery();
+  const mine = data?.myCourses ?? [];
+  if (mine.length < 2) return null;
+
+  return (
+    <div className={styles.switcher}>
+      <label className={styles.switcherLabel} htmlFor="course-switcher">
+        {t('manage.switchCourse')}
+      </label>
+      <Select
+        id="course-switcher"
+        value={currentId}
+        title={t('manage.switchHint')}
+        onChange={(e) => navigate(`/courses/${e.target.value}`)}
+      >
+        {mine.map((c) => (
+          <option key={c.id} value={c.id}>
+            {c.title}
+            {c.status === 'DRAFT' ? ` · ${t('manage.pillDraft')}` : ''}
+          </option>
+        ))}
+      </Select>
+    </div>
+  );
+}
+
+/**
+ * Строка аудитории — предмет, ступень и, если он что-то добавляет, вид программы.
+ * «Программа» не пишется: школьный предмет и так выглядит предметом, а лишнее слово в шапке
+ * читается как признак, которого у соседнего курса нет.
+ */
+function audienceLine(course: CourseT, t: (k: string) => string): string {
+  return [course.subject, t(`level.${course.level}`), course.format !== 'PROGRAM' ? t(`format.${course.format}`) : null]
+    .filter(Boolean)
+    .join(' · ');
 }
 
 const DAY_MS = 86_400_000;
@@ -732,6 +878,17 @@ function ScheduleSessionForm({ lessonId }: { lessonId: string }) {
   );
 }
 
+/**
+ * Материал урока — ссылка, файл или текст (находка владельца 15.08, п.3).
+ *
+ * Два требования владельца, и оба про честность до нажатия:
+ *
+ * 1. **«Ссылка» и «файл» — явно.** Раньше вид материала выбирался безымянным выпадающим
+ *    списком внутри тесной строки; человек его не находил и не знал, что файл вообще можно.
+ * 2. **Ограничения сказаны заранее.** Потолок и типы стоят на экране ДО выбора файла и
+ *    приходят числом сервера, а не константой клиента. Отказ называет имя файла, его размер
+ *    и потолок — «Файл слишком большой» не говорит ничего тому, у кого ролик на 600 МБ.
+ */
 function MaterialForm({ lessonId, onDone }: { lessonId: string; onDone: () => void }) {
   const { t } = useTranslation(['courses', 'upload']);
   const [open, setOpen] = useState(false);
@@ -743,6 +900,41 @@ function MaterialForm({ lessonId, onDone }: { lessonId: string; onDone: () => vo
   const [busy, setBusy] = useState(false);
   const [addMaterial, { loading }] = useAddMaterialMutation();
   const { upload } = useUpload();
+  // Политика тянется только когда форма открыта: на курсе из двадцати уроков это двадцать
+  // форм, и двадцать запросов за одним и тем же ответом были бы платой ни за что.
+  const { data: policyData } = useUploadPolicyQuery({
+    variables: { purpose: 'MATERIAL' },
+    skip: !open,
+  });
+  const policy = policyData?.uploadPolicy ?? null;
+  const kinds = policy ? kindKeys(policy.contentTypes).map((k) => t(`upload:kinds.${k}`)).join(', ') : '';
+
+  /** Проверка ДО загрузки. Отказ на этом шаге стоит ноль секунд человеку. */
+  function pick(chosen: File | null) {
+    setError(null);
+    if (!chosen) {
+      setFile(null);
+      return;
+    }
+    const refusal = refuse(chosen, policy);
+    if (refusal?.reason === 'too-large') {
+      setFile(null);
+      setError(
+        t('upload:tooLargeNamed', {
+          name: chosen.name,
+          size: formatBytes(refusal.size),
+          max: formatBytes(refusal.max),
+        }),
+      );
+      return;
+    }
+    if (refusal?.reason === 'bad-type') {
+      setFile(null);
+      setError(t('upload:typeNotAllowedNamed', { name: chosen.name, type: refusal.type, kinds }));
+      return;
+    }
+    setFile(chosen);
+  }
 
   async function submit(e: FormEvent) {
     e.preventDefault();
@@ -785,12 +977,23 @@ function MaterialForm({ lessonId, onDone }: { lessonId: string; onDone: () => vo
   }
   return (
     <form className={styles.inlineForm} onSubmit={submit}>
-      <div>
-        <Select value={type} onChange={(e) => setType(e.target.value as MaterialType)} aria-label={t('manage.materialType')}>
-          <option value="LINK">{t('manage.materialLink')}</option>
-          <option value="TEXT">{t('manage.materialText')}</option>
-          <option value="FILE">{t('manage.materialFile')}</option>
-        </Select>
+      {/* Вид материала — кнопками, а не выпадающим списком. Владелец требует, чтобы «ссылка»
+          и «файл» были видны сразу: спрятанные в select, они не находились. */}
+      <div className={styles.matTypes} role="group" aria-label={t('manage.materialType')}>
+        {MATERIAL_TYPES.map((kind) => (
+          <button
+            key={kind}
+            type="button"
+            className={`${styles.chip} ${type === kind ? styles.chipOn : ''}`}
+            aria-pressed={type === kind}
+            onClick={() => {
+              setType(kind);
+              setError(null);
+            }}
+          >
+            {t(`manage.material${kind[0]}${kind.slice(1).toLowerCase()}`)}
+          </button>
+        ))}
       </div>
       <div>
         <Input
@@ -806,9 +1009,10 @@ function MaterialForm({ lessonId, onDone }: { lessonId: string; onDone: () => vo
             <Paperclip size={14} /> {file ? file.name : t('upload:uploadFile')}
             <input
               type="file"
-              accept="application/pdf,image/png,image/jpeg,image/webp,text/plain"
+              // Тот же список, что проверяет сервер: диалог и текст под ним не расходятся.
+              accept={policy ? acceptAttribute(policy.contentTypes) : undefined}
               className={styles.fileInput}
-              onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+              onChange={(e) => pick(e.target.files?.[0] ?? null)}
             />
           </label>
         ) : (
@@ -820,6 +1024,13 @@ function MaterialForm({ lessonId, onDone }: { lessonId: string; onDone: () => vo
           />
         )}
       </div>
+      {/* 🔴 Потолок и типы — ДО выбора файла. Раньше человек узнавал их отказом после
+          загрузки; для получасового ролика это пять минут ожидания ради «нельзя». */}
+      {type === 'FILE' && policy && (
+        <p className={styles.matLimits}>
+          {t('upload:limits', { size: formatBytes(policy.maxBytes), kinds })}
+        </p>
+      )}
       {error && (
         <p className={styles.formError} role="alert">
           {error}
@@ -832,18 +1043,24 @@ function MaterialForm({ lessonId, onDone }: { lessonId: string; onDone: () => vo
   );
 }
 
+/** Порядок листа: ссылка и файл первыми — это то, чем пользуются; текст третьим. */
+const MATERIAL_TYPES: MaterialType[] = ['LINK', 'FILE', 'TEXT'];
+
 function EditCourseForm({ course, onDone }: { course: CourseT; onDone: () => void }) {
   const { t } = useTranslation('courses');
   const [title, setTitle] = useState(course.title);
   const [subject, setSubject] = useState(course.subject);
   const [level, setLevel] = useState<CourseLevel>(course.level);
+  const [format, setFormat] = useState<CourseFormat>(course.format);
   const [description, setDescription] = useState(course.description ?? '');
   const [updateCourse, { loading }] = useUpdateCourseMutation();
 
   async function submit(e: FormEvent) {
     e.preventDefault();
     if (!title.trim() || !subject.trim()) return;
-    await updateCourse({ variables: { id: course.id, input: { title, subject, level, description } } });
+    await updateCourse({
+      variables: { id: course.id, input: { title, subject, level, format, description } },
+    });
     onDone();
   }
 
@@ -851,19 +1068,7 @@ function EditCourseForm({ course, onDone }: { course: CourseT; onDone: () => voi
     <form className={styles.inlineForm} onSubmit={submit}>
       <TextField label={t('create.name')} value={title} onChange={(e) => setTitle(e.target.value)} />
       <TextField label={t('create.subject')} value={subject} onChange={(e) => setSubject(e.target.value)} />
-      <div>
-        <Select
-          value={level}
-          onChange={(e) => setLevel(e.target.value as CourseLevel)}
-          aria-label={t('create.level')}
-        >
-          {COURSE_LEVELS.map((lvl) => (
-            <option key={lvl} value={lvl}>
-              {t(`level.${lvl}`)}
-            </option>
-          ))}
-        </Select>
-      </div>
+      <AudienceFields level={level} format={format} onLevel={setLevel} onFormat={setFormat} />
       <TextField label={t('create.description')} value={description} onChange={(e) => setDescription(e.target.value)} />
       <Button type="submit" variant="secondary" size="sm" loading={loading}>
         {t('manage.save')}

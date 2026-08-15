@@ -84,6 +84,24 @@ class GuardianshipStatus(Enum):
 
 @strawberry.enum
 class CourseLevel(Enum):
+    """WHERE in the education system the learner stands — one of two independent axes of a
+    course's audience (owner decision 2026-08-15). The other is :class:`CourseFormat`.
+
+    Two axes and not one, because the owner's list mixes them: «дошкольники · колледжи · вузы»
+    are places in the system, «курсы · повышение квалификации» are kinds of programme, and a
+    single list cannot express «курс английского для 7 класса» without inventing a combined
+    item for every pair. It also matches the law: ФЗ-273 ст. 10 counts дошкольное · общее ·
+    среднее профессиональное · высшее as levels, and ст. 75/76 puts дополнительное and
+    дополнительное профессиональное alongside them as a separate branch — which is exactly
+    CourseFormat.
+
+    The school years stay per-grade rather than collapsing into «начальная/средняя/старшая»:
+    a course for grade 5 is not a course for grade 9, and the constructor already stores one
+    value. The UI keeps the list short by asking the stage first (five options) and the class
+    only when the stage is school — never twenty items in one select.
+    """
+
+    PRESCHOOL = "preschool"
     GRADE_1 = "grade_1"
     GRADE_2 = "grade_2"
     GRADE_3 = "grade_3"
@@ -95,7 +113,25 @@ class CourseLevel(Enum):
     GRADE_9 = "grade_9"
     GRADE_10 = "grade_10"
     GRADE_11 = "grade_11"
+    COLLEGE = "college"
+    UNIVERSITY = "university"
     ADULT = "adult"
+
+
+@strawberry.enum
+class CourseFormat(Enum):
+    """WHAT KIND of programme it is — the second audience axis (owner decision 2026-08-15).
+
+    PROGRAM — a subject inside a stage: a school year of algebra, a university course.
+    COURSE — дополнительное образование: a standalone course, the thing a CADET profile takes.
+    PROFESSIONAL — дополнительное профессиональное: повышение квалификации, профпереподготовка.
+
+    Default PROGRAM, which is what every course created before this field existed actually was.
+    """
+
+    PROGRAM = "program"
+    COURSE = "course"
+    PROFESSIONAL = "professional"
 
 
 @strawberry.enum

@@ -758,3 +758,46 @@ button.progRow:focus-visible {
   outline: none;
   box-shadow: var(--focus-ring);
 }
+
+/* --- навигация конструктора (находка владельца 15.08, п.2) ------------------ */
+/* Переключатель курса стоит под названием: он про «где я», а не про действие. */
+.switcher {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+  max-width: 420px;
+}
+.switcherLabel {
+  font-size: var(--text-caption);
+  color: var(--color-text-tertiary);
+  white-space: nowrap;
+}
+.lessonFilter {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin: var(--space-4) 0 var(--space-2);
+}
+.secCount {
+  font-family: var(--font-body);
+  color: var(--color-text-tertiary);
+}
+/* Назначенное занятие — единственное, что на строке урока говорит о будущем; остальное
+   описывает содержимое. Поэтому оно и выделено, а не набрано тем же серым. */
+.sessionOn {
+  color: var(--color-text-secondary);
+}
+
+/* --- материал урока (находка владельца 15.08, п.3) -------------------------- */
+.matTypes {
+  display: flex;
+  gap: var(--space-1);
+}
+/* Правила загрузки стоят под полем и читаются до выбора файла, а не после отказа. */
+.matLimits {
+  font-size: var(--text-caption);
+  color: var(--color-text-tertiary);
+  margin: 0;
+}

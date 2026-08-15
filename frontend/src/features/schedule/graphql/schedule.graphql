@@ -1,6 +1,6 @@
 # Scheduling operations. Fragment-free; LessonSession/Lesson type names match the SDL.
-# Note: the schema has no Lesson->course back-reference, so the schedule shows the
-# lesson title (course context can be added when the schema grows).
+# Занятие несёт название своего курса: у преподавателя их несколько, и «Unit 4» подряд с
+# «Системы уравнений» без курса не читается (находка владельца 15.08, п.2).
 
 query MySchedule($from: DateTime!, $to: DateTime!) {
   mySchedule(from: $from, to: $to) {
@@ -8,6 +8,8 @@ query MySchedule($from: DateTime!, $to: DateTime!) {
     startAt
     endAt
     status
+    courseId
+    courseTitle
     lesson {
       id
       title

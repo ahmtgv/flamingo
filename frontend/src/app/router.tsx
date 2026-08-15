@@ -12,7 +12,7 @@ import {
 import { Cabinet } from '@/features/cabinet';
 import { LinkMachineScreen, SettingsScreen, SetupScreen } from '@/features/desktop';
 import { ArrivalScreen, InvitePanel } from '@/features/meeting';
-import { AdminInstitutionScreen } from '@/features/admin';
+import { AdminInstitutionScreen, VerificationScreen } from '@/features/admin';
 import { CatalogScreen, CourseDetailScreen, CreateCourseScreen } from '@/features/courses';
 import {
   GradingQueueScreen,
@@ -24,7 +24,10 @@ import { ScheduleScreen } from '@/features/schedule';
 import { RepetitionScreen } from '@/features/repetition';
 import { StartScreen } from '@/features/start';
 import { SubjectScreen } from '@/features/subject';
+import { isDesktop } from '@/features/desktop/bridge';
 import { useSession } from '@/shared/hooks/useSession';
+
+import { entryRoute } from './entryRoute';
 
 import styles from './app.module.css';
 
@@ -35,17 +38,20 @@ function FullScreenLoader() {
   return <div className={styles.loader}>{t('actions.loading')}</div>;
 }
 
-/** Gate authenticated areas; redirect anonymous users to login. */
+/** Gate authenticated areas; redirect anonymous users to the right door (см. entryRoute). */
 function ProtectedRoute({ children }: { children: ReactNode }) {
   const { status } = useSession();
   if (status === 'unknown') return <FullScreenLoader />;
-  if (status !== 'authenticated') return <Navigate to="/login" replace />;
+  if (status !== 'authenticated') return <Navigate to={entryRoute()} replace />;
   return <>{children}</>;
 }
 
 /** Keep authenticated users out of the auth screens. */
 function PublicOnlyRoute({ children }: { children: ReactNode }) {
   const { status } = useSession();
+  // В приложении формы входа и регистрации не показываются вовсе: пароль здесь не спрашивают,
+  // а регистрация и восстановление живут в вебе, где видны адресная строка и замок (§19.4).
+  if (isDesktop()) return <Navigate to="/setup" replace />;
   // 🔴 R-17 (волна 2). Витрина собирается с VITE_PREVIEW=1 и потому «всегда вошедшая» — а
   // значит вход и регистрация недостижимы: посетителя уносит на /start. Аудит требует, чтобы
   // регистрация ЧЕСТНО говорила, что запись закрыта (§0.1), а сказать это может только экран,
@@ -69,7 +75,7 @@ function SetupScreenRoute() {
 function RootRedirect() {
   const { status } = useSession();
   if (status === 'unknown') return <FullScreenLoader />;
-  return <Navigate to={status === 'authenticated' ? '/start' : '/login'} replace />;
+  return <Navigate to={status === 'authenticated' ? '/start' : entryRoute()} replace />;
 }
 
 export function AppRouter() {
@@ -225,6 +231,16 @@ export function AppRouter() {
           element={
             <ProtectedRoute>
               <AdminInstitutionScreen />
+            </ProtectedRoute>
+          }
+        />
+        {/* Надзор · верификация — лист D7. Отдельный маршрут на пилоте; фаза 17 сводит его
+            в панель надзора вместе с учётом людей и блокировками. */}
+        <Route
+          path="/admin/verification"
+          element={
+            <ProtectedRoute>
+              <VerificationScreen />
             </ProtectedRoute>
           }
         />

@@ -130,6 +130,11 @@ NOT_EXPORTED: dict[str, str] = {
     ),
     "devices.DeviceToken": "a credential. It must not travel, and it could not: it is a hash",
     "devices.PairingCode": "a ten-minute credential; dead long before any restore",
+    "oversight.AccessLogEntry": (
+        "журнал доступа платформы — след НАДЗИРАЮЩЕГО, а не учёба преподавателя. В кабинете"
+        " ему нечего делать: он про то, кто на платформе смотрел чужое, и обязан оставаться на"
+        " сервере, где его нельзя ни вывезти, ни подменить восстановлением из чужой копии"
+    ),
     "meetingpoint.MeetingVisit": (
         "«кто открывал дверь» — сиюминутный признак для панели участников (Р5.6, лист D3), а не"
         " чья-то учёба. Восстановленный из копии, он рассказал бы преподавателю про вчерашние"

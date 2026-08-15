@@ -135,15 +135,43 @@ class Guardianship(BaseModel):
 
 
 class VerificationDocument(BaseModel):
-    """Teacher diploma/certificate submitted for moderation."""
+    """Teacher diploma/certificate submitted for moderation.
+
+    Решение принимается на листе D7 («Надзор · верификация») и обязано быть объяснимым:
+    отказ без причины уходит человеку молчанием, а он ждёт допуска к детям. Поэтому у
+    документа есть автор решения, момент и причина — а не только статус.
+
+    Состав документов (диплом, справка, паспорт) — вопрос к юристам и к юрисдикционной
+    матрице, а не к коду: лист рисует МЕХАНИЗМ, и здесь его ровно столько.
+    """
 
     teacher_user = models.ForeignKey(
         User, related_name="verification_documents", on_delete=models.CASCADE
     )
     file_key = models.CharField(max_length=512)
+    # Что человек видит в очереди: имя и вес файла. Без них строка очереди — «документ»,
+    # и админ вынужден открывать каждый, чтобы понять, что перед ним.
+    filename = models.CharField(max_length=200, blank=True, default="")
+    size_bytes = models.PositiveBigIntegerField(null=True, blank=True)
     status = models.CharField(
         max_length=12, choices=choices(VerificationStatus), default=VerificationStatus.PENDING.value
     )
+    reviewed_by = models.ForeignKey(
+        User,
+        related_name="verifications_reviewed",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+    )
+    reviewed_at = models.DateTimeField(null=True, blank=True)
+    # 🔴 Причина отказа. Лист D7: «Отказ требует причины и уходит человеку текстом, а не
+    # молчанием». Пустая при одобрении — там объяснять нечего.
+    reason = models.TextField(blank=True, default="")
+
+    class Meta:
+        ordering = ["created_at"]
+        # Очередь — «ждут решения, сначала самые давние»: один индекс на весь экран.
+        indexes = [models.Index(fields=["status", "created_at"])]
 
 
 class RevokedToken(BaseModel):

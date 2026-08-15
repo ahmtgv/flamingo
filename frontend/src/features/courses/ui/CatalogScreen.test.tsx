@@ -20,6 +20,7 @@ const node = (over: Partial<CatalogQuery['catalog']['nodes'][number]>) => ({
   description: 'Системный курс на учебный год.',
   subject: 'Математика',
   level: 'GRADE_7' as const,
+  format: 'PROGRAM' as const,
   status: 'PUBLISHED' as const,
   lessonCount: 36,
   enrollmentCount: 18,

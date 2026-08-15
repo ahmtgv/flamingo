@@ -3,9 +3,7 @@ import {
   BookOpen,
   FileText,
   LayoutDashboard,
-  ShieldCheck,
   Video,
-  XCircle,
 } from 'lucide-react';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -16,6 +14,7 @@ import { useTeacherDashboardQuery } from '@/entities/graphql/generated';
 import { Button, ErrorState } from '@/shared/ui';
 
 import { CabinetLayout, type CabinetNavItem } from './CabinetLayout';
+import { VerificationBanner } from './VerificationBanner';
 import styles from './cabinet.module.css';
 import { initialsOf } from './initials';
 import {
@@ -38,7 +37,6 @@ export function TeacherCabinet({ me }: { me: Me }) {
   const { t } = useTranslation('cabinet');
   const navigate = useNavigate();
   const tp = me.teacherProfile;
-  const status = tp?.verificationStatus ?? 'PENDING';
   const { data, loading, error, refetch } = useTeacherDashboardQuery();
 
   const nav: CabinetNavItem[] = [
@@ -48,15 +46,6 @@ export function TeacherCabinet({ me }: { me: Me }) {
     { key: 'grading', label: t('nav.grading'), icon: FileText, to: '/grading' },
     { key: 'analytics', label: t('nav.analytics'), icon: BarChart3 },
   ];
-
-  // The verification banner is real product info, but the approved happy-path (sheet 03) is
-  // clean — so it only shows while action is still needed (pending / rejected).
-  const banner =
-    status === 'REJECTED'
-      ? { cls: styles.bannerErr, icon: <XCircle />, text: t('teacher.verify.rejected') }
-      : status !== 'APPROVED'
-        ? { cls: styles.bannerWarn, icon: <ShieldCheck />, text: t('teacher.verify.pending') }
-        : null;
 
   const units = { hour: t('teacher.units.hour'), minute: t('teacher.units.minute') };
 
@@ -101,16 +90,9 @@ export function TeacherCabinet({ me }: { me: Me }) {
           <span className={styles.headMeta}>{formatHeaderMeta(new Date())}</span>
         </div>
 
-        {banner && (
-          <div
-            className={`${styles.banner} ${banner.cls}`}
-            role="status"
-            style={{ marginTop: 'var(--space-4)' }}
-          >
-            {banner.icon}
-            {banner.text}
-          </div>
-        )}
+        {/* Верификация — свой блок: у неё четыре состояния и своя кнопка загрузки, а не
+            одна строка текста (находка владельца 15.08, п.4). */}
+        <VerificationBanner profile={tp} />
 
         {loading && !dash ? (
           <div data-testid="teacher-dash-skeleton" aria-busy="true">

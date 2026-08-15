@@ -25,7 +25,9 @@
       "langs": "языки",
       "physics": "физика",
       "grade7": "7 класс",
-      "oge": "ОГЭ"
+      "oge": "ОГЭ",
+      "courses": "курсы",
+      "cpd": "повышение квалификации"
     },
     "noResults": {
       "title": "Ничего не нашлось",
@@ -37,6 +39,7 @@
     }
   },
   "level": {
+    "PRESCHOOL": "Дошкольники",
     "GRADE_1": "1 класс",
     "GRADE_2": "2 класс",
     "GRADE_3": "3 класс",
@@ -48,6 +51,8 @@
     "GRADE_9": "9 класс",
     "GRADE_10": "10 класс",
     "GRADE_11": "11 класс",
+    "COLLEGE": "Колледж",
+    "UNIVERSITY": "Вуз",
     "ADULT": "Взрослые"
   },
   "status": {
@@ -136,7 +141,26 @@
     "editSection": "Редактировать раздел",
     "addLessonShort": "+ Урок",
     "addSectionShort": "+ Раздел",
-    "addMaterialShort": "+ Материал"
+    "addMaterialShort": "+ Материал",
+    "switchCourse": "Курс",
+    "switchHint": "Переключиться на другой свой курс",
+    "collapseAll": "Свернуть всё",
+    "expandAll": "Развернуть всё",
+    "filterLabel": "Показать уроки",
+    "filterAll": "все",
+    "filterPublished": "опубликованные",
+    "filterDraft": "черновики",
+    "filterScheduled": "с занятием",
+    "filterEmpty": "В этом разделе таких уроков нет.",
+    "nothingMatches": "Ни один урок не подходит под фильтр. Сбросьте его, чтобы увидеть все.",
+    "sectionCounts_one": "{{count}} урок",
+    "sectionCounts_few": "{{count}} урока",
+    "sectionCounts_many": "{{count}} уроков",
+    "sectionEmpty": "уроков нет",
+    "sessionAt": "занятие {{when}}",
+    "noSession": "занятие не назначено",
+    "expandSection": "Развернуть раздел",
+    "collapseSection": "Свернуть раздел"
   },
   "create": {
     "title": "Новый курс",
@@ -157,5 +181,24 @@
   },
   "errors": {
     "generic": "Что-то пошло не так. Попробуйте ещё раз."
+  },
+  "format": {
+    "PROGRAM": "Программа",
+    "COURSE": "Курс",
+    "PROFESSIONAL": "Повышение квалификации"
+  },
+  "stage": {
+    "label": "Ступень",
+    "hint": "Кому адресован курс",
+    "PRESCHOOL": "Дошкольники",
+    "SCHOOL": "Школа",
+    "COLLEGE": "Колледж",
+    "UNIVERSITY": "Вуз",
+    "ADULT": "Взрослые",
+    "gradeLabel": "Класс"
+  },
+  "formatField": {
+    "label": "Вид программы",
+    "hint": "Программа идёт внутри ступени; курс и повышение квалификации — сами по себе"
   }
 }

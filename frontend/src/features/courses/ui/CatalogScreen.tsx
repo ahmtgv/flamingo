@@ -10,7 +10,7 @@ import { Button, ErrorState, Input } from '@/shared/ui';
 import { CoursesLayout } from './CoursesLayout';
 import styles from './courses.module.css';
 
-type ChipKey = 'all' | 'math' | 'langs' | 'physics' | 'grade7' | 'oge';
+type ChipKey = 'all' | 'math' | 'langs' | 'physics' | 'grade7' | 'oge' | 'courses' | 'cpd';
 
 // Chips map to REAL CourseFilter fields (subject / level / search) so filtering works in both
 // modes; "ОГЭ" has no exam dimension in the model, so it rides the free-text search.
@@ -21,6 +21,10 @@ const CHIPS: { key: ChipKey; filter: CourseFilter }[] = [
   { key: 'physics', filter: { subject: 'физика' } },
   { key: 'grade7', filter: { level: 'GRADE_7' } },
   { key: 'oge', filter: { search: 'ОГЭ' } },
+  // Вторая ось аудитории (решение владельца 15.08). Без этих двух «курсы» и «повышение
+  // квалификации» в каталоге неотличимы от школьной программы того же класса.
+  { key: 'courses', filter: { format: 'COURSE' } },
+  { key: 'cpd', filter: { format: 'PROFESSIONAL' } },
 ];
 
 export function CatalogScreen() {
@@ -129,7 +133,11 @@ export function CatalogScreen() {
                 onClick={() => navigate(`/courses/${c.id}`)}
               >
                 <div className={styles.cardSubj}>
-                  {c.subject} · {t(`level.${c.level}`)}
+                  {/* «Программа» на карточке — шум: школьный предмет и так выглядит предметом.
+                      Вид пишем тогда, когда он что-то добавляет: курс и ДПО. */}
+                  {[c.subject, t(`level.${c.level}`), c.format !== 'PROGRAM' ? t(`format.${c.format}`) : null]
+                    .filter(Boolean)
+                    .join(' · ')}
                 </div>
                 <div className={styles.courseTitle}>{c.title}</div>
                 {c.description && <div className={styles.courseDesc}>{c.description}</div>}
