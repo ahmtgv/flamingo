@@ -4,6 +4,7 @@
   "version": "0.1.0",
   "identifier": "plus.flamingo.desktop",
   "build": {
+    "beforeBuildCommand": "npm --prefix ../frontend run build:desktop",
     "frontendDist": "../../frontend/dist"
   },
   "app": {

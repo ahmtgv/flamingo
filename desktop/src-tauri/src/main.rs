@@ -375,6 +375,28 @@ fn set_tray_menu(app: tauri::AppHandle, show: String, quit: String) -> Result<()
     Ok(())
 }
 
+/// Куда оболочка пишет, что с ней происходит при старте.
+///
+/// 🔴 Заведено 15.08, когда приложение запустилось и не показало окна: процесс жив, вывода нет,
+/// сказать нечего. Без этого файла единственным способом узнать, докуда дошёл запуск, была
+/// пересборка с печатью — то есть день на каждую догадку.
+///
+/// Пишется рядом с кабинетом, куда человек и так умеет заглядывать, и содержит ТОЛЬКО ход
+/// запуска: ни путей к чужим файлам, ни ключей, ни имени учётной записи.
+fn note(app: &tauri::AppHandle, line: &str) {
+    use std::io::Write;
+    let dir = cabinet_dir(app);
+    let _ = std::fs::create_dir_all(&dir);
+    if let Ok(mut file) = std::fs::OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open(dir.join("start.log"))
+    {
+        let _ = writeln!(file, "{line}");
+    }
+    eprintln!("[flamingo] {line}");
+}
+
 fn main() {
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
@@ -396,6 +418,7 @@ fn main() {
             reveal_cabinet_folder
         ])
         .setup(|app| {
+            note(app.handle(), "setup: начали");
             let binary = app
                 .path()
                 .resolve(
@@ -412,6 +435,7 @@ fn main() {
                         .spawn()
                         .ok();
                     *app.state::<Sidecar>().0.lock().unwrap() = child;
+                    note(app.handle(), "setup: sidecar запущен");
                 }
             }
 
@@ -454,6 +478,18 @@ fn main() {
                     _ => {}
                 })
                 .build(app)?;
+            note(app.handle(), "setup: трей собран");
+
+            // Окно описано в конфигурации и создаётся до setup. Если его вдруг нет — сказать
+            // об этом здесь, а не оставлять человека с работающим процессом без окна.
+            match app.get_webview_window("main") {
+                Some(w) => {
+                    let _ = w.show();
+                    let _ = w.set_focus();
+                    note(app.handle(), "setup: окно на месте и показано");
+                }
+                None => note(app.handle(), "setup: 🔴 ОКНА НЕТ — проверьте app.windows в конфигурации"),
+            }
             Ok(())
         })
         .on_window_event(|window, event| {

@@ -27,6 +27,19 @@
         "5174"
       ],
       "port": 5174
+    },
+    {
+      "name": "flamingo-dist",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": [
+        "--yes",
+        "serve",
+        "-s",
+        "frontend/dist",
+        "-l",
+        "5180"
+      ],
+      "port": 5180
     }
   ]
 }
