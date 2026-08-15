@@ -13,9 +13,9 @@ import { getMainDefinition } from '@apollo/client/utilities';
 import { createClient } from 'graphql-ws';
 
 import { demoLink } from '@/shared/demo/demoLink';
-import { machineKeyInMemory } from '@/features/desktop/machineKey';
 import { GRAPHQL_HTTP_URL, GRAPHQL_WS_URL } from '@/shared/lib/env';
 import { refreshAccessToken } from '@/shared/lib/refresh';
+import { credentialFor } from '@/shared/lib/credential';
 import { clearSession, getAccessToken, getRefreshToken } from '@/shared/lib/session';
 
 const httpLink = new HttpLink({ uri: GRAPHQL_HTTP_URL });
@@ -29,24 +29,31 @@ const httpLink = new HttpLink({ uri: GRAPHQL_HTTP_URL });
  * Предъявить его было нечем, и весь мастер после связывания стоял: кнопки нажимались и молча
  * ничего не делали.
  *
- * Два правила, и оба важны:
+ * 🔴 РЕГРЕССИЯ 16.08 ОТ СОБСТВЕННОЙ ЖЕ ПРАВКИ (промпт 21 §2.2). Выбор был **по наличию**:
+ * есть токен — `Bearer`, нет — `Device`. Пока пользовательской сессии в приложении не бывало
+ * никогда, «по наличию» случайно совпадало с «по смыслу». §Б0-септ научил связывание выдавать
+ * сессию — и все восемь `require_device`-операций пошли как `Bearer`. Мастер встал на переходе
+ * 1→2: `advanceDeviceSetup` отвечала «Device authentication required».
  *
- * 1. **Приоритет у человека.** Есть пользовательская сессия — идёт она. Машина представляется
- *    только там, где человека нет; иначе браузер преподавателя, открытый рядом, начал бы
+ * Правка открыла тропинку, по которой код раньше не ходил. Третий такой случай подряд, поэтому
+ * теперь выбор **по операции**, а список операций **сгенерирован из резолверов бэкенда**
+ * (`deviceOperations.generated.ts`) — рукописный разошёлся бы с кодом на первой новой мутации.
+ *
+ * Три правила:
+ *
+ * 1. **Операция решает, кто нужен.** `require_device` на сервере ⇒ `Device` в заголовке, даже
+ *    когда сессия человека есть. Наоборот тоже: обычная операция идёт от человека.
+ * 2. **Приоритет у человека там, где годятся оба.** `consenting_user`-резолверы принимают и
+ *    того, и другого; идёт человек — иначе браузер преподавателя, открытый рядом, начал бы
  *    ходить с правами машины.
- * 2. **Никогда оба заголовка сразу.** Заголовок один, и сервер не должен гадать, кто перед
+ * 3. **Никогда оба заголовка сразу.** Заголовок один, и сервер не должен гадать, кто перед
  *    ним: `Device` — это НЕ сессия, он разрешается в машину, а не в пользователя, и подменять
  *    им человека нельзя (`common/auth.py`).
  */
-const authLink = setContext((_operation, prevContext) => {
+const authLink = setContext((operation, prevContext) => {
   const headers = (prevContext.headers as Record<string, string>) ?? {};
-  const token = getAccessToken();
-  if (token) return { headers: { ...headers, authorization: `Bearer ${token}` } };
-
-  const machineKey = machineKeyInMemory();
-  if (machineKey) return { headers: { ...headers, authorization: `Device ${machineKey}` } };
-
-  return { headers };
+  const credential = credentialFor(operation.operationName);
+  return credential ? { headers: { ...headers, ...credential } } : { headers };
 });
 
 const AUTH_ERROR = /authentication required|invalid token|token has expired|wrong token type/i;

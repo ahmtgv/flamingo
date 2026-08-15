@@ -1,3 +1,5 @@
+import { isDesktop } from '@/features/desktop/bridge';
+
 import styles from './Logo.module.css';
 
 /**
@@ -20,9 +22,21 @@ export function Logo({
   as?: 'span' | 'h1';
   mark?: boolean;
 }) {
+  /**
+   * 🔴 В ПРИЛОЖЕНИИ ЗНАК ОДИН РАЗ — В ЗАГОЛОВКЕ ОКНА (владелец 16.08, промпт 21 §2.4).
+   *
+   * Рама приложения (`DesktopFrame`) рисует птицу слева в заголовке. Страница внутри рисовала
+   * свой логотип целиком — и две одинаковые птицы оказывались в двадцати пикселях друг от
+   * друга. В браузере такого нет: там заголовка окна нашего нет вовсе.
+   *
+   * Различаем здесь, В ОДНОМ МЕСТЕ, а не проверками `isDesktop()` по экранам: страниц с
+   * логотипом уже шесть, и седьмая забудет проверку — как забыли эту.
+   */
+  const showMark = mark && !isDesktop();
+
   return (
     <Tag className={styles.logo}>
-      {mark && (
+      {showMark && (
         <svg className={styles.mark} viewBox="0 0 120 110" aria-hidden="true" focusable="false">
           <g fill="none" stroke="var(--color-accent)" strokeLinecap="round">
             <path d="M28 55 L7 44" strokeWidth="5.4" />

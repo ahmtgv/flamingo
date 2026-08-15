@@ -1,10 +1,35 @@
 .loader {
   min-height: 100vh;
   display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
   align-items: center;
   justify-content: center;
   background: var(--color-bg);
   color: var(--color-text-secondary);
   font-family: var(--font-body);
   font-size: var(--text-small);
+}
+
+/* Кнопка «Повторить» на затянувшейся загрузке (промпт 21 §2.1). Экран этот человек видит
+   в худшую минуту — когда приложение уже кажется зависшим, — поэтому кнопка обычная и
+   заметная, а не текстовая ссылка. */
+.loaderRetry {
+  padding: var(--space-2) var(--space-5);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  font-size: var(--text-small);
+  cursor: pointer;
+}
+
+.loaderRetry:hover {
+  background: var(--color-surface-hover);
+}
+
+.loaderRetry:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
 }

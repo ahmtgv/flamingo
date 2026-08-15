@@ -4,6 +4,7 @@ The behaviour worth pinning is that switching education re-scopes the whole page
 the label in the header, and that every slot is built from real rows rather than guesses.
 """
 
+from contextlib import contextmanager
 from datetime import UTC, date, datetime, timedelta
 from unittest import mock
 
@@ -76,6 +77,27 @@ def course_with_lesson(teacher, title, institution=None, lesson_title="Урок 
     return course, lesson
 
 
+#: Полдень по UTC — момент, от которого «сегодня» считается однозначно.
+#:
+#: 🔴 НАЙДЕНО 16.08 В 01:10 (промпт 21). Тесты ставили занятие на `timezone.now() + 2 часа`
+#: и ждали его в «сегодня». `TIME_ZONE = "UTC"`, и после 22:00 UTC эти два часа переносят
+#: занятие на СЛЕДУЮЩИЙ день — список «сегодня» пустеет, тест краснеет.
+#:
+#: ⚠️ То есть тест был зелёным 22 часа в сутки и лгал два. Поймано не разбором, а тем, что
+#: работа шла ночью: в 23:00 UTC прогон впервые попал в эту дырку. Дефект не в продукте —
+#: в проверке, и он ровно того же рода, что ловит эта фаза: зелёное, которое ничего не значит.
+#:
+#: Час дня выбран так, чтобы ±3 часа в любую сторону оставались тем же днём.
+MIDDAY = datetime(2026, 8, 14, 12, 0, tzinfo=UTC)
+
+
+@contextmanager
+def clock_at(moment=MIDDAY):
+    """Остановить часы, чтобы «сегодня» не зависело от того, когда запущен прогон."""
+    with mock.patch("django.utils.timezone.now", return_value=moment):
+        yield moment
+
+
 def test_account_without_an_education_gets_an_empty_page():
     """A fresh sign-up has no profile, so the page comes back empty rather than erroring —
     the client renders the empty state from that."""
@@ -104,12 +126,13 @@ def test_switching_education_rescopes_the_whole_page():
     solo_course, solo_lesson = course_with_lesson(teacher, "English A2", lesson_title="Unit 4")
     courses.enroll(pupil, school_course.id)
     courses.enroll(pupil, solo_course.id)
-    LessonSession.objects.create(lesson=school_lesson, start_at=timezone.now() + timedelta(hours=2))
+    LessonSession.objects.create(lesson=school_lesson, start_at=MIDDAY + timedelta(hours=2))
 
-    as_pupil = start_page.start_page(pupil)
-    assert as_pupil.profile.kind.value == "pupil"
-    assert [e.title for e in as_pupil.today] == ["Экзопланеты"]
-    assert {p.course_title for p in as_pupil.progress} == {"Астрономия"}
+    with clock_at():
+        as_pupil = start_page.start_page(pupil)
+        assert as_pupil.profile.kind.value == "pupil"
+        assert [e.title for e in as_pupil.today] == ["Экзопланеты"]
+        assert {p.course_title for p in as_pupil.progress} == {"Астрономия"}
 
     learning.set_active_learning_profile(pupil, f"cadet:{solo_course.id}")
     pupil.refresh_from_db()
@@ -257,10 +280,11 @@ def test_another_pupils_lessons_never_appear():
     my_course, my_lesson = course_with_lesson(teacher, "Моя астрономия", institution=mine)
     courses.enroll(pupil, my_course.id)
     _, their_lesson = course_with_lesson(teacher, "Чужая физика", institution=theirs)
-    LessonSession.objects.create(lesson=my_lesson, start_at=timezone.now() + timedelta(hours=1))
-    LessonSession.objects.create(lesson=their_lesson, start_at=timezone.now() + timedelta(hours=1))
+    LessonSession.objects.create(lesson=my_lesson, start_at=MIDDAY + timedelta(hours=1))
+    LessonSession.objects.create(lesson=their_lesson, start_at=MIDDAY + timedelta(hours=1))
 
-    titles = {e.course_title for e in start_page.start_page(pupil).today}
+    with clock_at():
+        titles = {e.course_title for e in start_page.start_page(pupil).today}
     assert titles == {"Моя астрономия"}
 
 

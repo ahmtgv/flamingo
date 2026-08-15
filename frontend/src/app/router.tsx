@@ -1,4 +1,4 @@
-import { type ReactNode } from 'react';
+import { type ReactNode, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   BrowserRouter,
@@ -43,9 +43,38 @@ import styles from './app.module.css';
 
 const IS_PREVIEW = import.meta.env.VITE_PREVIEW === '1';
 
+/**
+ * 🔴 ЗАГРУЗКА, КОТОРАЯ НЕ КОНЧАЕТСЯ, — ЭТО МОЛЧАЩИЙ ЭКРАН (промпт 21 §2.1 п.3).
+ *
+ * Находка владельца 16.08: приложение открывалось и висело на «Загрузка…». Ни мастера, ни
+ * ошибки — статус навсегда `unknown`, потому что обновление сессии не возвращалось.
+ * Причину закрыли в `refresh.ts` таймаутом, но одного таймаута мало: десять секунд перед
+ * пустым словом «Загрузка…» человек уже считает зависанием.
+ *
+ * Через четыре секунды экран говорит, что происходит, и даёт кнопку. Четыре — потому что
+ * нормальный ответ приходит за доли секунды, и всё, что дольше, уже не «сейчас загрузится».
+ */
+const SLOW_AFTER_MS = 4000;
+
 function FullScreenLoader() {
   const { t } = useTranslation('common');
-  return <div className={styles.loader}>{t('actions.loading')}</div>;
+  const [slow, setSlow] = useState(false);
+
+  useEffect(() => {
+    const id = window.setTimeout(() => setSlow(true), SLOW_AFTER_MS);
+    return () => window.clearTimeout(id);
+  }, []);
+
+  if (!slow) return <div className={styles.loader}>{t('actions.loading')}</div>;
+
+  return (
+    <div className={styles.loader} role="alert">
+      <p>{t('failure.slowBoot')}</p>
+      <button type="button" className={styles.loaderRetry} onClick={() => location.reload()}>
+        {t('actions.retry')}
+      </button>
+    </div>
+  );
 }
 
 /** Gate authenticated areas; redirect anonymous users to the right door (см. entryRoute). */
@@ -61,6 +90,30 @@ function ProtectedRoute({ children }: { children: ReactNode }) {
     return <Navigate to={withReturnTo(entryRoute(), target)} replace />;
   }
   return <>{children}</>;
+}
+
+/**
+ * 🔴 ЭКРАН МАШИНЫ, А НЕ ЧЕЛОВЕКА (владелец 16.08, промпт 21 §2.3).
+ *
+ * Владелец сообщил ПОВТОРНО: шестерёнка в раме не работает. Кнопка при этом была на месте и
+ * обработчик тоже — `onSettings={() => navigate('/settings')}`. Не работала не кнопка, а
+ * маршрут: `/settings` стоял под `ProtectedRoute`, а в мастере пользовательской сессии ещё
+ * нет. Нажатие уводило на `/settings`, охрана видела «не вошёл» и возвращала на `entryRoute()`
+ * — то есть на `/setup`. Человек нажимал и оставался там же, где стоял.
+ *
+ * ⚠️ Почему проверка это пропустила: смотрели, что кнопка есть и обработчик привязан. Нажать
+ * её В МАСТЕРЕ, то есть без сессии, никто не пробовал — а это единственное состояние, в
+ * котором приложение живёт первые десять минут. Ровно ловушка №1: наличие вместо работы.
+ *
+ * И это снова «переход, который никуда не привёл» — третий случай подряд.
+ *
+ * Настройки приложения принадлежат МАШИНЕ: экран ходит `require_device`-операциями
+ * (`exportCabinet`, `configureCabinetBackup`), а не пользовательскими. Ключ машины и есть
+ * его пропуск. В браузере экран смысла не имеет — там правило прежнее.
+ */
+function MachineRoute({ children }: { children: ReactNode }) {
+  if (isDesktop()) return <>{children}</>;
+  return <ProtectedRoute>{children}</ProtectedRoute>;
 }
 
 /** Keep authenticated users out of the auth screens. */
@@ -215,14 +268,7 @@ export function AppRouter() {
         <Route path="/связать" element={<ProtectedRoute><LinkMachineScreen /></ProtectedRoute>} />
         <Route path="/link" element={<ProtectedRoute><LinkMachineScreen /></ProtectedRoute>} />
         <Route path="/setup" element={<SetupScreenRoute />} />
-        <Route
-          path="/settings"
-          element={
-            <ProtectedRoute>
-              <SettingsScreen />
-            </ProtectedRoute>
-          }
-        />
+        <Route path="/settings" element={<MachineRoute><SettingsScreen /></MachineRoute>} />
         <Route
           path="/schedule"
           element={
