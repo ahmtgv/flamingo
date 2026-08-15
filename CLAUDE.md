@@ -68,7 +68,13 @@ Models map 1:1 to `docs/flamingo_erd.md`. The API mirrors `docs/flamingo_schema.
 - GraphQL resolvers stay **thin**: validate input, check permissions, delegate to a service function (`apps/<x>/services.py`). Business logic and DB writes live in services, not resolvers.
 - **Authorization is server-side and per-resolver/field.** Never trust a client-provided role or id for access decisions. A student can only read their own metrics/submissions; a parent only their linked children (via `GUARDIANSHIP`); a teacher only their courses/groups; an admin only their institution.
 - Celery tasks (**DEFERRED — not built**): recording post-processing, weekly parent digests, recommendation batch, certificate PDF generation. Email/reset currently run inline (stubs). Redis is the Channels layer only (no Celery broker until async lands).
-- Subscriptions (`attentionUpdates`, `sessionStatusChanged`, `chatMessageReceived`, `notificationReceived`) run over Channels; `attentionUpdates` payloads are aggregates only.
+- Subscriptions run over Channels; `attentionUpdates` payloads are aggregates only. **Live today
+  (8):** `attentionUpdates`, `chatMessageReceived`, `channelMessageReceived`, `boardChanged`,
+  `projectorFocusChanged`, `wordShown`, `hostPresenceChanged`, `signals`.
+  ⚠️ `sessionStatusChanged` and `notificationReceived` stood here as working — they are **SDL
+  only, no resolver** (checked 16.08 against `schema.as_str()`). The first is not missed in
+  practice: `hostPresenceChanged` answers «машина преподавателя в сети», and the arrival screen
+  polls the meeting point. The second waits for the notifications app, which is not built.
 
 ## 6. Frontend conventions
 - Server state via Apollo (cache-first); **local/UI state** (toggles, wizard steps, theme/age mode) via Redux Toolkit. Don't duplicate server data into Redux.

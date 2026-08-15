@@ -350,7 +350,9 @@ describe('SubjectScreen — atlas sheet 01', () => {
     ]);
 
     await screen.findByRole('heading', { name: 'English · A2' });
-    expect(screen.getByText(/Свой темп · с тобой преподаватель Ирина/)).toBeInTheDocument();
+    // Обращение на «вы»: единственная строка продукта, выпадавшая на «ты» (аудит 16.08,
+    // 1 из 1521). Форму держит `i18n/address.test.ts`.
+    expect(screen.getByText(/Свой темп · с вами преподаватель Ирина/)).toBeInTheDocument();
     const rail = screen.getByRole('region', { name: 'Ближайшее действие' });
     expect(within(rail).getByRole('button', { name: 'Продолжить' })).toBeInTheDocument();
   });

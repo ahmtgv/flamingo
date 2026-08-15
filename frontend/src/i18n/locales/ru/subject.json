@@ -7,7 +7,7 @@
   "head": {
     "pupilMeta": "{{group}} · {{institution}} · {{teacher}}",
     "pupilMetaNoGroup": "{{institution}} · {{teacher}}",
-    "cadetMeta": "Свой темп · с тобой преподаватель {{teacher}}",
+    "cadetMeta": "Свой темп · с вами преподаватель {{teacher}}",
     "teacherMeta_one": "{{institution}} · {{count}} ученик",
     "teacherMeta_few": "{{institution}} · {{count}} ученика",
     "teacherMeta_many": "{{institution}} · {{count}} учеников",

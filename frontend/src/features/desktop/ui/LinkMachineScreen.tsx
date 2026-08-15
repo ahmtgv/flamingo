@@ -50,18 +50,18 @@ export function LinkMachineScreen() {
 
   if (linked !== null) {
     return (
-      <div className={styles.page}>
+      <main className={styles.page}>
         <Card className={styles.card}>
           <h1 className={styles.h}>{t('linkMachine.doneTitle')}</h1>
           <p className={styles.p}>{t('linkMachine.doneBody', { name: linked })}</p>
           <p className={styles.note}>{t('linkMachine.doneHint')}</p>
         </Card>
-      </div>
+      </main>
     );
   }
 
   return (
-    <div className={styles.page}>
+    <main className={styles.page}>
       <Card className={styles.card}>
         <h1 className={styles.h}>{t('linkMachine.title')}</h1>
         <p className={styles.p}>{t('linkMachine.body')}</p>
@@ -82,6 +82,6 @@ export function LinkMachineScreen() {
         {/* 🔒 Пароль тут не спрашивают — и это сказано вслух, чтобы человек не искал поле. */}
         <p className={styles.note}>{t('linkMachine.noPassword')}</p>
       </Card>
-    </div>
+    </main>
   );
 }
