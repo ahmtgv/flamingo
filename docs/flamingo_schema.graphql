@@ -931,7 +931,14 @@ type MeetingParticipant {
 type PairingRequest { code: String! secret: String! expiresAt: DateTime! }
 
 # The machine key, handed over once and never queryable.
-type DeviceClaim { device: Device! token: String! }
+# 🔴 §Б0-септ (владелец, 15.08). Связывание отдаёт машине не только её ключ, но и СЕССИЮ
+# того преподавателя, который подтвердил код в браузере. Без неё мастер доходил до
+# «Приложение настроено», а «Открыть кабинет» вела обратно в мастер: кабинет, расписание,
+# курсы и комната урока стоят за пользовательской сессией, а у приложения был только ключ.
+# Граница «машина ≠ человек» цела — приложение получает обычную сессию вдобавок к ключу,
+# а не ключ с расширенными правами.
+type DeviceSession { token: String! refreshToken: String! displayName: String! }
+type DeviceClaim { device: Device! token: String! session: DeviceSession! }
 
 # ----------------------------------------------------------------------------- Meeting point (Р5.0)
 # Atlas D3. The link belongs to the GROUP, not to the lesson: a fresh link every week is a

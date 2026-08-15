@@ -698,7 +698,7 @@ def test_a_lesson_whose_host_vanished_closes_itself_and_the_diary_still_reaches_
 
     row, secret = devices.request_pairing_code(device_name="MacBook", platform="macos")
     devices.confirm_pairing_code(teacher, row.code)
-    device, _t = devices.claim_device_token(code=row.code, secret=secret)
+    device, _t, _session = devices.claim_device_token(code=row.code, secret=secret)
 
     # Занятие давно должно было кончиться: 90 минут назад начали, идёт 40 по расписанию.
     started = timezone.now() - dt.timedelta(minutes=90)
@@ -735,7 +735,7 @@ def test_a_lesson_whose_host_is_alive_is_left_alone():
     enrolled(course)
     row, secret = devices.request_pairing_code(device_name="MacBook", platform="macos")
     devices.confirm_pairing_code(teacher, row.code)
-    device, _t = devices.claim_device_token(code=row.code, secret=secret)
+    device, _t, _session = devices.claim_device_token(code=row.code, secret=secret)
     Device.objects.filter(id=device.id).update(
         last_seen_at=timezone.now() - dt.timedelta(minutes=3)
     )
@@ -765,7 +765,7 @@ def test_a_lesson_still_inside_its_scheduled_time_is_not_closed_under_a_teacher_
     enrolled(course)
     row, secret = devices.request_pairing_code(device_name="MacBook", platform="macos")
     devices.confirm_pairing_code(teacher, row.code)
-    device, _t = devices.claim_device_token(code=row.code, secret=secret)
+    device, _t, _session = devices.claim_device_token(code=row.code, secret=secret)
 
     lesson.duration_min = 40
     lesson.save(update_fields=["duration_min"])
@@ -797,7 +797,7 @@ def test_the_clock_starts_at_the_scheduled_end_even_when_the_host_died_earlier()
     enrolled(course)
     row, secret = devices.request_pairing_code(device_name="MacBook", platform="macos")
     devices.confirm_pairing_code(teacher, row.code)
-    device, _t = devices.claim_device_token(code=row.code, secret=secret)
+    device, _t, _session = devices.claim_device_token(code=row.code, secret=secret)
 
     # Длительность задаём явно: арифметика теста не должна зависеть от умолчания модели.
     lesson.duration_min = 40

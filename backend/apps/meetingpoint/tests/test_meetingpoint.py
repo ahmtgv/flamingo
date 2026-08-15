@@ -95,7 +95,7 @@ def bring_host_online(teacher):
         device_name="MacBook", platform=DevicePlatform.MACOS.value
     )
     devices.confirm_pairing_code(teacher, row.code)
-    _device, token = devices.claim_device_token(code=row.code, secret=secret)
+    _device, token, _session = devices.claim_device_token(code=row.code, secret=secret)
     mp.heartbeat(token)
     return token
 

@@ -118,13 +118,36 @@ class PairingRequest:
 
 
 @strawberry.type
+class DeviceSession:
+    """Сессия преподавателя, выданная приложению при связывании (промпт 18 §Б0-септ).
+
+    Та же пара токенов, что выдаёт обычный вход, — приложение кладёт её туда же, где её
+    держит браузер, и обновляет обычным `refresh`. Ключ машины при этом живёт своей жизнью
+    в связке ключей и здесь ни при чём.
+
+    ⚠️ Токены помечены машиной, которой выданы: «Отозвать» на листе D8 гасит и эту сессию.
+    """
+
+    token: str
+    refresh_token: str
+    #: Кто именно связал машину — чтобы «Готово» назвало преподавателя по имени, а не
+    #: показывало «Вход выполнен — .» с пустотой на месте человека.
+    display_name: str
+
+
+@strawberry.type
 class DeviceClaim:
-    """The machine key, handed over once.
+    """The machine key, handed over once — вместе с сессией того, кто подтвердил код.
 
     After this reply the plaintext exists only in the machine's OS keychain (PROMPT_14
     §2.2.2). There is no query that returns it — a key you can read back is a key that ends
     up in a screenshot.
+
+    🔴 `session` появилась после находки владельца 15.08: мастер доходил до конца, а
+    «Открыть кабинет» вела обратно в мастер — весь кабинет стоит за пользовательской
+    сессией, а у приложения был только ключ машины.
     """
 
     device: Device
     token: str
+    session: DeviceSession

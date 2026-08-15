@@ -9,6 +9,7 @@ import {
 import { PUBLIC_ORIGIN } from '@/shared/lib/env';
 
 import { failureKind, type FailureKind } from '@/shared/lib/requestFailure';
+import { setSession } from '@/shared/lib/session';
 
 import { APP_VERSION, isDesktop, openExternal } from '../bridge';
 import { rememberMachineKey } from '../machineKey';
@@ -186,12 +187,17 @@ export function PairingStep({ onPaired }: { onPaired: () => void }) {
       try {
         const { data } = await claim({ variables: { code, secret: secretRef.current } });
         const token = data?.claimDeviceToken?.token;
-        if (!token) return;
+        const session = data?.claimDeviceToken?.session;
+        if (!token || !session) return;
         doneRef.current = true;
         window.clearInterval(id);
         // 🔒 Straight into the OS keychain — never a config file, never localStorage
         // (PROMPT_14 §2.2.2). `rememberMachineKey` is the only thing that ever holds it.
         await rememberMachineKey(token);
+        // 🔴 §Б0-септ: сессия преподавателя — туда же, где её держит браузер. Без этого шага
+        // мастер доходил до конца, а «Открыть кабинет» вела обратно в мастер: весь кабинет
+        // стоит за пользовательской сессией. Ключ машины кабинета не открывает и не должен.
+        setSession(session.token, session.refreshToken);
         onPaired();
       } catch {
         // Not confirmed yet is the ordinary case, and it arrives as an error. Waiting is not

@@ -37,7 +37,7 @@ def paired_machine(user) -> Device:
         device_name="MacBook Люции", platform="macos", app_version="0.1.0"
     )
     services.confirm_pairing_code(user, row.code)
-    device, _token = services.claim_device_token(code=row.code, secret=secret)
+    device, _token, _session = services.claim_device_token(code=row.code, secret=secret)
     return device
 
 

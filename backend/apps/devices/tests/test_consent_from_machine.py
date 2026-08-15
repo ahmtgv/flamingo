@@ -48,7 +48,7 @@ def paired(owner, name="Mac"):
         device_name=name, platform="macos", app_version="0.1.0"
     )
     devices.confirm_pairing_code(owner, row.code)
-    device, key = devices.claim_device_token(code=row.code, secret=secret)
+    device, key, _session = devices.claim_device_token(code=row.code, secret=secret)
     return device, key
 
 

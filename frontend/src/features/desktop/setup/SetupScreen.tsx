@@ -47,7 +47,10 @@ export function SetupScreen({ onFinished }: { onFinished: () => void }) {
   const step: SetupStep = local ?? resumed;
 
   const me = meData?.me;
-  const teacherName = me?.displayName ?? '';
+  // `null`, а не `''`: «имени не знаем» и «имя пустое» — разные вещи, и на «Готово» они
+  // выглядят по-разному. §Б0-септ: пустая строка читалась как оформление и три часа скрывала,
+  // что `me` вообще не отвечает.
+  const teacherName = me?.displayName || null;
   const groupSize = machine?.uplink?.groupSize ?? null;
 
   const go = (next: SetupStep) => {

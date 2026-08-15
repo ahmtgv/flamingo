@@ -3,6 +3,8 @@ import { useTranslation } from 'react-i18next';
 
 import { useCompleteDeviceSetupMutation } from '@/entities/graphql/generated';
 
+import { getSessionSnapshot } from '@/shared/lib/session';
+
 import { stepFailureKey } from './stepFailure';
 import styles from './setup.module.css';
 
@@ -21,7 +23,8 @@ export function DoneStep({
   groupSize,
   onOpenCabinet,
 }: {
-  teacherName: string;
+  /** `null` — имени НЕ ЗНАЕМ. Это не то же самое, что пустая строка, см. §Б0-септ ниже. */
+  teacherName: string | null;
   attentionOn: boolean;
   groupSize: number | null;
   onOpenCabinet: () => void;
@@ -36,11 +39,26 @@ export function DoneStep({
     setFailed(null);
     try {
       await complete();
-      onOpenCabinet();
     } catch (error) {
       // Последняя кнопка мастера. Молчащая, она оставляет человека в настройке навсегда.
       setFailed(stepFailureKey(error));
+      return;
     }
+
+    // 🔴 ПЕРЕХОД, КОТОРЫЙ НИКУДА НЕ ВЕДЁТ, — ЭТО МОЛЧАЩАЯ КНОПКА (§Б0-септ).
+    //
+    // Находка владельца 15.08: мутация проходила, `onOpenCabinet()` вызывался, `/start` под
+    // `ProtectedRoute` отправлял обратно в мастер — и человек оказывался на том же экране.
+    // Кнопка сработала, ошибки нет, ничего не изменилось. Час на поиск того, чего не было.
+    //
+    // Сессию теперь выдаёт связывание, так что в норме её тут не может не быть. Но «в норме
+    // не может» — это ровно та формулировка, за которой прячутся все четыре дефекта августа.
+    // Проверяем факт и говорим словами, а не отправляем человека по кругу.
+    if (getSessionSnapshot().status !== 'authenticated') {
+      setFailed('setup.done.noSession');
+      return;
+    }
+    onOpenCabinet();
   };
 
   return (
@@ -51,7 +69,14 @@ export function DoneStep({
       <div className={styles.card}>
         <span className={styles.cardTitle}>{t('setup.done.whatTitle')}</span>
         <ul className={styles.facts}>
-          <li>{t('setup.done.signedIn', { name: teacherName })}</li>
+          {/* Имени нет — говорим об этом, а не показываем «Вход выполнен — .» с пустотой
+              на месте человека. Пустая строка в тексте выглядит как оформление; она и
+              выглядела так весь вечер 15.08, пока причина была совсем в другом. */}
+          <li className={teacherName === null ? styles.warn : undefined}>
+            {teacherName === null
+              ? t('setup.done.signedInUnknown')
+              : t('setup.done.signedIn', { name: teacherName })}
+          </li>
           <li>{t('setup.done.cabinetAt')}</li>
           <li>{attentionOn ? t('setup.done.consentsDoneOn') : t('setup.done.consentsDone')}</li>
           <li>

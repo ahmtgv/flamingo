@@ -50,7 +50,7 @@ def paired_machine():
         device_name="Mac", platform="macos", app_version="0.1.0"
     )
     devices.confirm_pairing_code(teacher, row.code)
-    _, key = devices.claim_device_token(code=row.code, secret=secret)
+    _, key, _session = devices.claim_device_token(code=row.code, secret=secret)
     return teacher, key
 
 

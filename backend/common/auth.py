@@ -8,6 +8,7 @@ from typing import Any
 
 import jwt
 from django.conf import settings
+from django.core.exceptions import ValidationError
 
 from .exceptions import AuthError
 
@@ -30,16 +31,26 @@ def _encode(user_id: Any, token_type: str, ttl: dt.timedelta, extra: dict | None
     return jwt.encode(payload, settings.SECRET_KEY, algorithm=ALGORITHM)
 
 
-def issue_tokens(user) -> dict[str, str]:
+def issue_tokens(user, *, device_id=None) -> dict[str, str]:
     """Mint an access+refresh pair. Both carry the user's ``token_version`` (A-authz-3): a
     logout/password-reset bumps it and instantly invalidates every outstanding token. The
     refresh token additionally carries a unique ``jti`` so a rotated/revoked refresh token can
-    be denylisted individually (see accounts.services.refresh)."""
+    be denylisted individually (see accounts.services.refresh).
+
+    ``device_id`` marks a session **issued to a machine** at pairing (промпт 18 §Б0-септ).
+    Without it «Отозвать» on sheet D8 would be a half-revocation: the machine key dies, the
+    session it was handed alongside keeps working, and the stolen-laptop button stops meaning
+    what it says. With it, `authenticate_request` refuses the session the moment the machine
+    is revoked.
+    """
     tv = getattr(user, "token_version", 0)
+    stamp = {"tv": tv}
+    if device_id is not None:
+        stamp["did"] = str(device_id)
     return {
-        "token": _encode(user.id, "access", _ttl_access(), {"tv": tv}),
+        "token": _encode(user.id, "access", _ttl_access(), stamp),
         "refresh_token": _encode(
-            user.id, "refresh", _ttl_refresh(), {"tv": tv, "jti": str(uuid.uuid4())}
+            user.id, "refresh", _ttl_refresh(), {**stamp, "jti": str(uuid.uuid4())}
         ),
     }
 
@@ -75,7 +86,26 @@ def authenticate_request(request):
     # logout / password-reset bump token_version, so stale access tokens are rejected here.
     if payload.get("tv") != user.token_version:
         return None
+    # §Б0-септ: a session handed to a machine at pairing lives exactly as long as that machine.
+    if payload.get("did") is not None and not _device_is_live(payload["did"]):
+        return None
     return user
+
+
+def _device_is_live(device_id) -> bool:
+    """Is the machine this session was issued to still paired?
+
+    Kept separate and boring on purpose: it runs on every request that carries a `did`, and a
+    session that outlives «Отозвать» is the whole defect this guards against.
+    """
+    from apps.devices.models import Device
+
+    try:
+        device = Device.objects.filter(id=device_id).only("revoked_at").first()
+    except (ValueError, ValidationError):
+        # A `did` that is not a UUID cannot name a machine of ours — refuse rather than crash.
+        return False
+    return device is not None and device.revoked_at is None
 
 
 def authenticate_device_request(request):

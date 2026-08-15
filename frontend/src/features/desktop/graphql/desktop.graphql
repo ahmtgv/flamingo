@@ -22,6 +22,11 @@ mutation RequestPairingCode($deviceName: String!, $platform: DevicePlatform, $ap
 mutation ClaimDeviceToken($code: String!, $secret: String!) {
   claimDeviceToken(code: $code, secret: $secret) {
     token
+    session {
+      token
+      refreshToken
+      displayName
+    }
     device {
       id
       name

@@ -13,7 +13,7 @@ from apps.devices import services
 from common.auth import require_device, require_user
 from common.enums import BackupKind, ConnectionType, DevicePlatform
 
-from .types import CabinetBackup, Device, DeviceClaim, PairingRequest
+from .types import CabinetBackup, Device, DeviceClaim, DeviceSession, PairingRequest
 
 
 @strawberry.type
@@ -44,9 +44,21 @@ class DevicesMutation:
 
     @strawberry.mutation
     def claim_device_token(self, info: strawberry.Info, code: str, secret: str) -> DeviceClaim:
-        """The app collects the key, once. The secret proves it is the machine that asked."""
-        device, token = services.claim_device_token(code=code, secret=secret)
-        return DeviceClaim(device=Device.of(device), token=token)
+        """The app collects the key, once — и сессию преподавателя вместе с ним.
+
+        §Б0-септ: без сессии мастер доходил до «Приложение настроено» и упирался — кабинет
+        стоит за `require_user`, а у приложения был только ключ машины.
+        """
+        device, token, tokens = services.claim_device_token(code=code, secret=secret)
+        return DeviceClaim(
+            device=Device.of(device),
+            token=token,
+            session=DeviceSession(
+                token=tokens["token"],
+                refresh_token=tokens["refresh_token"],
+                display_name=device.owner.display_name if device.owner else "",
+            ),
+        )
 
     @strawberry.mutation
     def revoke_device(self, info: strawberry.Info, device_id: strawberry.ID) -> bool:

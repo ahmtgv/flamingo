@@ -3786,6 +3786,14 @@ export function resolveDemoOperation(
         claimDeviceToken: {
           __typename: 'DeviceClaim',
           token: 'demo-machine-key',
+          // §Б0-септ: связывание отдаёт машине и сессию преподавателя — иначе мастер
+          // доходит до «Готово» и упирается в кабинет, который требует входа.
+          session: {
+            __typename: 'DeviceSession',
+            token: 'demo-access',
+            refreshToken: 'demo-refresh',
+            displayName: 'Ирина Петровна',
+          },
           device: demoDevice(),
         },
       } satisfies ClaimDeviceTokenMutation;

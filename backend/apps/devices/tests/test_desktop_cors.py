@@ -17,9 +17,8 @@ HTTP-клиент. Слой, на котором живут CORS, middleware и 
 """
 
 import pytest
-from django.test import Client
-
 from django.conf import settings
+from django.test import Client
 
 pytestmark = pytest.mark.django_db
 

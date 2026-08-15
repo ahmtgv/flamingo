@@ -62,7 +62,9 @@ def a_pairing(name="MacBook Ирины"):
 def paired(user, name="MacBook Ирины"):
     row, secret = a_pairing(name)
     devices.confirm_pairing_code(user, row.code)
-    return devices.claim_device_token(code=row.code, secret=secret)
+    # Связывание отдаёт три вещи (§Б0-септ); здешним тестам нужны машина и ключ.
+    device, token, _session = devices.claim_device_token(code=row.code, secret=secret)
+    return device, token
 
 
 # --- 🔒 invariant 1: no password ever crosses the app's boundary --------------------------------

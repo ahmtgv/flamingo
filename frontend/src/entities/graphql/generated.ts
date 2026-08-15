@@ -448,6 +448,7 @@ export type Device = {
 export type DeviceClaim = {
   __typename?: 'DeviceClaim';
   device: Device;
+  session: DeviceSession;
   token: Scalars['String']['output'];
 };
 
@@ -456,6 +457,13 @@ export type DevicePlatform =
   | 'MACOS'
   | 'OTHER'
   | 'WINDOWS';
+
+export type DeviceSession = {
+  __typename?: 'DeviceSession';
+  displayName: Scalars['String']['output'];
+  refreshToken: Scalars['String']['output'];
+  token: Scalars['String']['output'];
+};
 
 export type DeviceSetup = {
   __typename?: 'DeviceSetup';
@@ -3389,7 +3397,7 @@ export type ClaimDeviceTokenMutationVariables = Exact<{
 }>;
 
 
-export type ClaimDeviceTokenMutation = { __typename?: 'Mutation', claimDeviceToken: { __typename?: 'DeviceClaim', token: string, device: { __typename?: 'Device', id: string, name: string, platform: DevicePlatform, appVersion: string, lastSeenAt?: string | null, online: boolean, pairedAt: string, setup: { __typename?: 'DeviceSetup', step: number, completed: boolean, backupKind: BackupKind, backupConfiguredAt?: string | null, cloudCopyEnabled: boolean, lastBackupAt?: string | null } } } };
+export type ClaimDeviceTokenMutation = { __typename?: 'Mutation', claimDeviceToken: { __typename?: 'DeviceClaim', token: string, session: { __typename?: 'DeviceSession', token: string, refreshToken: string, displayName: string }, device: { __typename?: 'Device', id: string, name: string, platform: DevicePlatform, appVersion: string, lastSeenAt?: string | null, online: boolean, pairedAt: string, setup: { __typename?: 'DeviceSetup', step: number, completed: boolean, backupKind: BackupKind, backupConfiguredAt?: string | null, cloudCopyEnabled: boolean, lastBackupAt?: string | null } } } };
 
 export type ConfirmPairingCodeMutationVariables = Exact<{
   code: Scalars['String']['input'];
@@ -6910,6 +6918,11 @@ export const ClaimDeviceTokenDocument = gql`
     mutation ClaimDeviceToken($code: String!, $secret: String!) {
   claimDeviceToken(code: $code, secret: $secret) {
     token
+    session {
+      token
+      refreshToken
+      displayName
+    }
     device {
       id
       name

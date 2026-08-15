@@ -43,7 +43,9 @@ def paired(user):
         device_name="MacBook", platform=DevicePlatform.MACOS.value
     )
     devices.confirm_pairing_code(user, row.code)
-    return devices.claim_device_token(code=row.code, secret=secret)
+    # Связывание отдаёт три вещи (§Б0-септ); здешним тестам нужны машина и ключ.
+    device, token, _session = devices.claim_device_token(code=row.code, secret=secret)
+    return device, token
 
 
 # --- the numbers are the budget's ----------------------------------------------------------------

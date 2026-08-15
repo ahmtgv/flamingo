@@ -26,6 +26,7 @@ from pathlib import Path
 from django.db import transaction
 from django.utils import timezone
 
+from common.auth import issue_tokens
 from common.compliance.policy import require_feature
 from common.enums import BackupKind, ConnectionType
 from common.exceptions import NotFound, PermissionDenied, ValidationError
@@ -142,12 +143,27 @@ def _confirm(user, code: str) -> Device:
 
 
 @transaction.atomic
-def claim_device_token(*, code: str, secret: str) -> tuple[Device, str]:
-    """Exchange a confirmed code for the machine key. Returns ``(device, raw_token)``.
+def claim_device_token(*, code: str, secret: str) -> tuple[Device, str, dict[str, str]]:
+    """Exchange a confirmed code for the machine key **and a session**.
+
+    Returns ``(device, raw_token, tokens)``.
 
     The secret is what makes this safe to leave unauthenticated: the code proves a human
     approved, the secret proves this is the machine that asked. Holding only one of the two
     gets you nothing.
+
+    🔴 Почему вместе с ключом выдаётся сессия (владелец 15.08, промпт 18 §Б0-септ). Мастер
+    доходил до «Приложение настроено», а «Открыть кабинет» не делала НИЧЕГО: кабинет,
+    расписание, курсы и комната урока стоят за пользовательской сессией, а у приложения был
+    только ключ машины. Круг замыкался обратно в мастер, молча.
+
+    Связывание — это и есть акт входа: человек подтвердил код **в браузере**, где видны
+    адресная строка и замок. Пароль при этом границы приложения не пересекает (§19.4), а
+    граница «машина ≠ человек» из §Б0-тер остаётся целой: ключ машины по-прежнему открывает
+    только своё, приложение просто получает вдобавок обычную сессию — ту же, что у браузера.
+
+    ⚠️ Сессия помечена машиной (`did`), поэтому «Отозвать» на листе D8 гасит и её. Иначе
+    кнопка для украденного ноутбука убивала бы ключ и оставляла живой доступ к кабинету.
     """
     row = _live_code(code)
     if row.confirmed_at is None or row.device is None:
@@ -157,11 +173,17 @@ def claim_device_token(*, code: str, secret: str) -> tuple[Device, str]:
         # keep trying the secret».
         raise NotFound("Pairing code not found")
 
+    teacher = row.confirmed_by or row.device.owner
+    if teacher is None or not teacher.is_active:
+        # Некому выдавать сессию: код подтверждён, а подтвердивший исчез или отключён.
+        # Молча отдать один ключ — значит вернуть ровно тот дефект, что чинится здесь.
+        raise ValidationError("The account that confirmed this code is no longer active")
+
     raw = secrets.token_urlsafe(48)
     DeviceToken.objects.create(device=row.device, token_hash=hash_secret(raw))
     row.consumed_at = timezone.now()
     row.save(update_fields=["consumed_at", "updated_at"])
-    return row.device, raw
+    return row.device, raw, issue_tokens(teacher, device_id=row.device_id)
 
 
 # --- living with a paired machine -------------------------------------------------------------
