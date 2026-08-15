@@ -7,6 +7,7 @@ import type { UplinkVerdict } from '@/entities/graphql/generated';
 import { measureUplink, PROBE_SECONDS, REQUIRED_MBPS } from '../uplinkProbe';
 
 import { canLeaveCheckStep, channelVerdict } from './firstRun';
+import { stepFailureKey } from './stepFailure';
 import styles from './setup.module.css';
 
 /**
@@ -30,6 +31,7 @@ export function CheckStep({ onNext }: { onNext: () => void }) {
   const [camera, setCamera] = useState<'checking' | 'found' | 'missing'>('checking');
   const [mic, setMic] = useState<string | null>(null);
   const [probing, setProbing] = useState(false);
+  const [failed, setFailed] = useState<string | null>(null);
   const [left, setLeft] = useState(PROBE_SECONDS);
   const [result, setResult] = useState<{ verdict: UplinkVerdict; groupSize: number } | null>(null);
 
@@ -59,11 +61,19 @@ export function CheckStep({ onNext }: { onNext: () => void }) {
     const measured = await measureUplink();
     window.clearInterval(tick);
     setProbing(false);
-    const { data } = await report({
-      variables: { mbps: measured.mbps, connectionType: measured.connectionType },
-    });
-    const uplink = data?.reportUplink?.uplink;
-    if (uplink) setResult({ verdict: uplink.verdict, groupSize: uplink.groupSize });
+    setFailed(null);
+    try {
+      const { data } = await report({
+        variables: { mbps: measured.mbps, connectionType: measured.connectionType },
+      });
+      const uplink = data?.reportUplink?.uplink;
+      if (uplink) setResult({ verdict: uplink.verdict, groupSize: uplink.groupSize });
+      else setFailed('setup.failed.unknown');
+    } catch (error) {
+      // Замер прошёл, а вердикт даёт сервер. Без него на экране осталась бы крутилка,
+      // закончившаяся ничем.
+      setFailed(stepFailureKey(error));
+    }
   };
 
   const verdict = result ? channelVerdict(result.verdict, result.groupSize) : null;
@@ -133,6 +143,13 @@ export function CheckStep({ onNext }: { onNext: () => void }) {
       </details>
 
       {/* 🔴 §19.3 — кнопка не заблокирована ни при каком вердикте, включая «не годится». */}
+      {/* Причина словами — на каждом шаге, а не только на первом. */}
+      {failed && (
+        <p className={styles.warn} role="alert">
+          {t(failed)}
+        </p>
+      )}
+
       <button
         type="button"
         className={styles.btn}

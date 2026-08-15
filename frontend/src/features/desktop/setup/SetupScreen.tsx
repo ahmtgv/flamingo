@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { useMeQuery, useMyDevicesQuery } from '@/entities/graphql/generated';
+import { useMeQuery, useThisDeviceQuery } from '@/entities/graphql/generated';
 
 import { CabinetStep } from './CabinetStep';
 import { CheckStep } from './CheckStep';
@@ -28,10 +28,14 @@ const IS_PREVIEW = import.meta.env.VITE_PREVIEW === '1';
 export function SetupScreen({ onFinished }: { onFinished: () => void }) {
   const { t } = useTranslation('desktop');
   const { data: meData } = useMeQuery();
-  const { data: devicesData, refetch } = useMyDevicesQuery();
+  // 🔴 Прогресс машины спрашивается ЕЮ САМОЙ (`thisDevice`), а не через `myDevices`: тот
+  // требует пользовательской сессии, которой в приложении нет и не будет (§19.4). Пока здесь
+  // стоял `myDevices`, обещание экрана «приложение вернёт на тот же шаг» было ложным —
+  // перезапуск всегда возвращал на шаг 1.
+  const { data: devicesData, refetch } = useThisDeviceQuery();
 
   // Прогресс машины — с сервера; локальный шаг ведёт мастер, пока идёт сессия.
-  const machine = devicesData?.myDevices?.[0];
+  const machine = devicesData?.thisDevice;
   const [local, setLocal] = useState<SetupStep | null>(null);
   // TEMPORARY: витрина (VITE_PREVIEW=1) показывает лист целиком, поэтому открывается с первого
   // шага. В приложении мастер возвращает на пройденный — «сделанное сохраняется». Уходит

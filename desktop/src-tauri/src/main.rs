@@ -50,6 +50,21 @@ fn has_machine_key() -> bool {
     keyring().and_then(|e| e.get_password().map_err(|x| x.to_string())).is_ok()
 }
 
+/// Отдать ключ В ПАМЯТЬ процесса — чтобы приложению было чем представиться серверу.
+///
+/// 🔴 Здесь стояло «геттера нет и не будет: ничего в React не нуждается видеть ключ». Это
+/// оказалось неверным, и цена ошибки — весь мастер. Шаги 2–5 ходят на мутации, требующие
+/// `Authorization: Device <ключ>`; отправить его было физически нечем, и кнопки молча ничего
+/// не делали.
+///
+/// 🔒 Что осталось от той осторожности и остаётся правилом: ключ живёт в памяти вкладки и
+/// нигде больше. Он не пишется в `localStorage`, не попадает в конфиг и не логируется —
+/// `machineKey.ts` держит его в переменной модуля и отдаёт только сетевому слою.
+#[tauri::command]
+fn read_machine_key() -> Option<String> {
+    keyring().ok().and_then(|e| e.get_password().ok())
+}
+
 /// Забыть ключ на этой машине. Серверный отзыв — отдельная мутация в кабинете.
 #[tauri::command]
 fn forget_machine_key() -> Result<(), String> {
@@ -409,6 +424,7 @@ fn main() {
             set_tray_menu,
             store_machine_key,
             has_machine_key,
+            read_machine_key,
             forget_machine_key,
             choose_backup_destination,
             backup_destination,

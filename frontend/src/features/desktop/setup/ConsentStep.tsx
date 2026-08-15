@@ -6,6 +6,7 @@ import {
   useSetSpeechConsentMutation,
 } from '@/entities/graphql/generated';
 
+import { stepFailureKey } from './stepFailure';
 import styles from './setup.module.css';
 
 /**
@@ -32,15 +33,24 @@ export function ConsentStep({ onNext }: { onNext: () => void }) {
   // 🔴 false — и это состояние, в котором экран открывается.
   const [attention, setAttentionOn] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [failed, setFailed] = useState<string | null>(null);
 
   const accept = async () => {
     setSaving(true);
-    await Promise.all([
-      setSpeech({ variables: { granted: speech } }),
-      setAttention({ variables: { granted: attention } }),
-    ]);
-    setSaving(false);
-    onNext();
+    setFailed(null);
+    try {
+      await Promise.all([
+        setSpeech({ variables: { granted: speech } }),
+        setAttention({ variables: { granted: attention } }),
+      ]);
+      onNext();
+    } catch (error) {
+      // Согласие, которое «как будто сохранилось», — худший случай из всех: человек считает,
+      // что сказал своё слово, а на сервере его нет.
+      setFailed(stepFailureKey(error));
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -100,6 +110,19 @@ export function ConsentStep({ onNext }: { onNext: () => void }) {
           <small>{t('setup.consents.attentionHint')}</small>
         </label>
       </div>
+
+      {/* Причина словами — на каждом шаге, а не только на первом. */}
+
+      {failed && (
+
+        <p className={styles.warn} role="alert">
+
+          {t(failed)}
+
+        </p>
+
+      )}
+
 
       <button type="button" className={styles.btn} disabled={saving} onClick={() => void accept()}>
         {t('setup.consents.accept')}

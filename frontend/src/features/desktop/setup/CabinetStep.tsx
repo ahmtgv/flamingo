@@ -7,6 +7,7 @@ import { useConfigureCabinetBackupMutation } from '@/entities/graphql/generated'
 import { cabinetFolder, chooseCabinetFolder } from '../cabinetFolder';
 
 import { canLeaveCabinetStep } from './firstRun';
+import { stepFailureKey } from './stepFailure';
 import styles from './setup.module.css';
 
 /**
@@ -31,15 +32,27 @@ export function CabinetStep({ onNext }: { onNext: () => void }) {
   const [folder, setFolder] = useState<string>(() => cabinetFolder());
   const [kind, setKind] = useState<BackupKind>('EXTERNAL_DISK');
   const [cloudCopy, setCloudCopy] = useState(false);
+  const [failed, setFailed] = useState<string | null>(null);
 
   const pick = async () => {
     const chosen = await chooseCabinetFolder();
     if (chosen) setFolder(chosen);
   };
 
+  /**
+   * 🔴 Находка владельца 15.08: здесь стояло `await configure(...)` без перехвата, и кнопка
+   * «Дальше» нажималась, ничего не делала и ничего не говорила. Мутация требует
+   * `Authorization: Device`, которого приложению было нечем предъявить, — и человек оставался
+   * перед экраном, который выглядит рабочим.
+   */
   const next = async () => {
-    await configure({ variables: { kind, cloudCopy } });
-    onNext();
+    setFailed(null);
+    try {
+      await configure({ variables: { kind, cloudCopy } });
+      onNext();
+    } catch (error) {
+      setFailed(stepFailureKey(error));
+    }
   };
 
   return (
@@ -65,6 +78,7 @@ export function CabinetStep({ onNext }: { onNext: () => void }) {
           <span className={styles.tagStrong}>{t('setup.cabinet.copyTag')}</span>
         </div>
         <p className={styles.p}>{t('setup.cabinet.copyWhy')}</p>
+        <p className={styles.note}>{t('setup.cabinet.copySchedule')}</p>
 
         {/* 🔴 §19.1: не галочка «если хотите». Выбор — куда, а не «делать ли». */}
         <fieldset className={styles.choice}>
@@ -89,8 +103,8 @@ export function CabinetStep({ onNext }: { onNext: () => void }) {
               onChange={() => setKind('CLOUD_FOLDER')}
             />
             <span>
-              <b>{t('settings.data.kindCloud')}</b>
-              <small>{t('setup.cabinet.externalDiskHint')}</small>
+              <b>{t('setup.cabinet.cloudFolder')}</b>
+              <small>{t('setup.cabinet.cloudFolderHint')}</small>
             </span>
           </label>
         </fieldset>
@@ -113,6 +127,13 @@ export function CabinetStep({ onNext }: { onNext: () => void }) {
             невосстановима. Это честная цена за то, что данные детей не читает посторонний. */}
         {cloudCopy && <p className={styles.warn}>{t('setup.cabinet.keyWarning')}</p>}
       </div>
+
+      {/* Причина словами — на каждом шаге, а не только на первом. */}
+      {failed && (
+        <p className={styles.warn} role="alert">
+          {t(failed)}
+        </p>
+      )}
 
       <button
         type="button"

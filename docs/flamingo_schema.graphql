@@ -1552,6 +1552,11 @@ type Query {
 
   # devices (Р5.0) — the caller's own machines, with a revoke button next to each
   myDevices: [Device!]!
+  # Эта машина — о себе, по ключу машины (Authorization: Device). Аргументов не принимает:
+  # спросить о ЧУЖОЙ машине через эту дверь невозможно by construction. Без неё мастер первого
+  # запуска не мог вернуться на пройденный шаг — состояние он брал из myDevices, а тот требует
+  # пользовательской сессии, которой в приложении нет (§19.4).
+  thisDevice: Device!
   # Только преподаватель группы: кто из детей когда заходил — не общее знание.
   meetingParticipants(groupId: ID!): [MeetingParticipant!]!
 

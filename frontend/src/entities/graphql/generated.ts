@@ -1898,6 +1898,7 @@ export type Query = {
   teacher?: Maybe<TeacherProfile>;
   teacherDashboard: TeacherDashboard;
   teacherReviews: Array<Review>;
+  thisDevice: Device;
   turnCredentials: TurnCredentials;
   ubpBackup?: Maybe<UbpBackup>;
   uplinkProbe: UplinkProbe;
@@ -3400,6 +3401,11 @@ export type MyDevicesQueryVariables = Exact<{ [key: string]: never; }>;
 
 
 export type MyDevicesQuery = { __typename?: 'Query', myDevices: Array<{ __typename?: 'Device', id: string, name: string, platform: DevicePlatform, appVersion: string, lastSeenAt?: string | null, online: boolean, pairedAt: string, uplink?: { __typename?: 'UplinkAssessment', mbps: number, verdict: UplinkVerdict, groupSize: number, requiredForEight: number, stale: boolean, connectionType: ConnectionType } | null, setup: { __typename?: 'DeviceSetup', step: number, completed: boolean, backupKind: BackupKind, backupConfiguredAt?: string | null, cloudCopyEnabled: boolean, lastBackupAt?: string | null, backupDue: boolean } }> };
+
+export type ThisDeviceQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type ThisDeviceQuery = { __typename?: 'Query', thisDevice: { __typename?: 'Device', id: string, name: string, uplink?: { __typename?: 'UplinkAssessment', mbps: number, verdict: UplinkVerdict, groupSize: number } | null, setup: { __typename?: 'DeviceSetup', step: number, completed: boolean, backupKind: BackupKind, cloudCopyEnabled: boolean } } };
 
 export type RevokeDeviceMutationVariables = Exact<{
   deviceId: Scalars['ID']['input'];
@@ -7050,6 +7056,60 @@ export type MyDevicesQueryHookResult = ReturnType<typeof useMyDevicesQuery>;
 export type MyDevicesLazyQueryHookResult = ReturnType<typeof useMyDevicesLazyQuery>;
 export type MyDevicesSuspenseQueryHookResult = ReturnType<typeof useMyDevicesSuspenseQuery>;
 export type MyDevicesQueryResult = Apollo.QueryResult<MyDevicesQuery, MyDevicesQueryVariables>;
+export const ThisDeviceDocument = gql`
+    query ThisDevice {
+  thisDevice {
+    id
+    name
+    uplink {
+      mbps
+      verdict
+      groupSize
+    }
+    setup {
+      step
+      completed
+      backupKind
+      cloudCopyEnabled
+    }
+  }
+}
+    `;
+
+/**
+ * __useThisDeviceQuery__
+ *
+ * To run a query within a React component, call `useThisDeviceQuery` and pass it any options that fit your needs.
+ * When your component renders, `useThisDeviceQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useThisDeviceQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useThisDeviceQuery(baseOptions?: Apollo.QueryHookOptions<ThisDeviceQuery, ThisDeviceQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<ThisDeviceQuery, ThisDeviceQueryVariables>(ThisDeviceDocument, options);
+      }
+export function useThisDeviceLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<ThisDeviceQuery, ThisDeviceQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<ThisDeviceQuery, ThisDeviceQueryVariables>(ThisDeviceDocument, options);
+        }
+// @ts-ignore
+export function useThisDeviceSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<ThisDeviceQuery, ThisDeviceQueryVariables>): Apollo.UseSuspenseQueryResult<ThisDeviceQuery, ThisDeviceQueryVariables>;
+export function useThisDeviceSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ThisDeviceQuery, ThisDeviceQueryVariables>): Apollo.UseSuspenseQueryResult<ThisDeviceQuery | undefined, ThisDeviceQueryVariables>;
+export function useThisDeviceSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ThisDeviceQuery, ThisDeviceQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<ThisDeviceQuery, ThisDeviceQueryVariables>(ThisDeviceDocument, options);
+        }
+export type ThisDeviceQueryHookResult = ReturnType<typeof useThisDeviceQuery>;
+export type ThisDeviceLazyQueryHookResult = ReturnType<typeof useThisDeviceLazyQuery>;
+export type ThisDeviceSuspenseQueryHookResult = ReturnType<typeof useThisDeviceSuspenseQuery>;
+export type ThisDeviceQueryResult = Apollo.QueryResult<ThisDeviceQuery, ThisDeviceQueryVariables>;
 export const RevokeDeviceDocument = gql`
     mutation RevokeDevice($deviceId: ID!) {
   revokeDevice(deviceId: $deviceId)

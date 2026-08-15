@@ -13,19 +13,40 @@ import { getMainDefinition } from '@apollo/client/utilities';
 import { createClient } from 'graphql-ws';
 
 import { demoLink } from '@/shared/demo/demoLink';
+import { machineKeyInMemory } from '@/features/desktop/machineKey';
 import { GRAPHQL_HTTP_URL, GRAPHQL_WS_URL } from '@/shared/lib/env';
 import { refreshAccessToken } from '@/shared/lib/refresh';
 import { clearSession, getAccessToken, getRefreshToken } from '@/shared/lib/session';
 
 const httpLink = new HttpLink({ uri: GRAPHQL_HTTP_URL });
 
-// Inject the in-memory access token on every request.
+/**
+ * Кто делает запрос: человек или машина.
+ *
+ * 🔴 Найдено владельцем 15.08: отсюда уходил ТОЛЬКО пользовательский токен, а в приложении
+ * пользовательской сессии нет и не будет — пароль там не спрашивают (§19.4). Между тем шаги
+ * 2–5 мастера ходят на мутации с `require_device`, то есть требуют `Authorization: Device`.
+ * Предъявить его было нечем, и весь мастер после связывания стоял: кнопки нажимались и молча
+ * ничего не делали.
+ *
+ * Два правила, и оба важны:
+ *
+ * 1. **Приоритет у человека.** Есть пользовательская сессия — идёт она. Машина представляется
+ *    только там, где человека нет; иначе браузер преподавателя, открытый рядом, начал бы
+ *    ходить с правами машины.
+ * 2. **Никогда оба заголовка сразу.** Заголовок один, и сервер не должен гадать, кто перед
+ *    ним: `Device` — это НЕ сессия, он разрешается в машину, а не в пользователя, и подменять
+ *    им человека нельзя (`common/auth.py`).
+ */
 const authLink = setContext((_operation, prevContext) => {
-  const token = getAccessToken();
   const headers = (prevContext.headers as Record<string, string>) ?? {};
-  return {
-    headers: token ? { ...headers, authorization: `Bearer ${token}` } : headers,
-  };
+  const token = getAccessToken();
+  if (token) return { headers: { ...headers, authorization: `Bearer ${token}` } };
+
+  const machineKey = machineKeyInMemory();
+  if (machineKey) return { headers: { ...headers, authorization: `Device ${machineKey}` } };
+
+  return { headers };
 });
 
 const AUTH_ERROR = /authentication required|invalid token|token has expired|wrong token type/i;

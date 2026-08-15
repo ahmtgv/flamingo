@@ -83,6 +83,27 @@ query MyDevices {
   }
 }
 
+# Эта машина о себе — по ключу машины. Мастер первого запуска берёт отсюда пройденный шаг:
+# `myDevices` требует пользовательской сессии, которой в приложении нет (§19.4), и обещание
+# «приложение вернёт на тот же шаг» без этого запроса было ложным.
+query ThisDevice {
+  thisDevice {
+    id
+    name
+    uplink {
+      mbps
+      verdict
+      groupSize
+    }
+    setup {
+      step
+      completed
+      backupKind
+      cloudCopyEnabled
+    }
+  }
+}
+
 mutation RevokeDevice($deviceId: ID!) {
   revokeDevice(deviceId: $deviceId)
 }
