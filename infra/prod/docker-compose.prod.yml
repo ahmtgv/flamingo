@@ -100,6 +100,11 @@ services:
   caddy:
     image: caddy:2-alpine
     restart: unless-stopped
+    # Caddyfile обращается к {$API_DOMAIN} — это подстановка САМОГО Caddy, а не compose.
+    # Значит переменная обязана быть внутри контейнера: без неё имя сайта пустое,
+    # конфигурация невалидна и контейнер падает с кодом 1. Поймано на первом запуске 15.08.
+    environment:
+      API_DOMAIN: ${API_DOMAIN}
     ports:
       - "80:80"
       - "443:443"
