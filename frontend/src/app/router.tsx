@@ -1,6 +1,14 @@
 import { type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { BrowserRouter, Navigate, Route, Routes, useNavigate, useParams } from 'react-router-dom';
+import {
+  BrowserRouter,
+  Navigate,
+  Route,
+  Routes,
+  useLocation,
+  useNavigate,
+  useParams,
+} from 'react-router-dom';
 
 import {
   LoginScreen,
@@ -26,6 +34,7 @@ import { StartScreen } from '@/features/start';
 import { SubjectScreen } from '@/features/subject';
 import { isDesktop } from '@/features/desktop/bridge';
 import { DesktopShell } from '@/features/desktop/DesktopShell';
+import { withReturnTo } from '@/shared/lib/returnTo';
 import { useSession } from '@/shared/hooks/useSession';
 
 import { entryRoute } from './entryRoute';
@@ -42,8 +51,15 @@ function FullScreenLoader() {
 /** Gate authenticated areas; redirect anonymous users to the right door (см. entryRoute). */
 function ProtectedRoute({ children }: { children: ReactNode }) {
   const { status } = useSession();
+  const location = useLocation();
   if (status === 'unknown') return <FullScreenLoader />;
-  if (status !== 'authenticated') return <Navigate to={entryRoute()} replace />;
+  if (status !== 'authenticated') {
+    // 🔴 §26.4: адрес назначения обязан пережить вход и регистрацию. Здесь он терялся —
+    // человека уносило на вход, и после регистрации он оказывался на стартовой, а не там,
+    // куда шёл. Для `/link?code=…` это значит вернуться к приложению за кодом руками.
+    const target = `${location.pathname}${location.search}`;
+    return <Navigate to={withReturnTo(entryRoute(), target)} replace />;
+  }
   return <>{children}</>;
 }
 

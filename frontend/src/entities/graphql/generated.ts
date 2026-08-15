@@ -2814,6 +2814,7 @@ export type User = {
   __typename?: 'User';
   adminProfile?: Maybe<AdminProfile>;
   avatarUrl?: Maybe<Scalars['String']['output']>;
+  consent152fzAt?: Maybe<Scalars['DateTime']['output']>;
   consentAttention: Scalars['Boolean']['output'];
   consentSpeech: Scalars['Boolean']['output'];
   createdAt: Scalars['DateTime']['output'];
@@ -3067,7 +3068,7 @@ export type SubmitVerificationDocumentMutation = { __typename?: 'Mutation', subm
 export type MeQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type MeQuery = { __typename?: 'Query', me?: { __typename?: 'User', id: string, email: string, firstName: string, lastName: string, displayName: string, shortName: string, role: Role, locale: string, avatarUrl?: string | null, consentSpeech: boolean, consentAttention: boolean, studentProfile?: { __typename?: 'StudentProfile', ageBand: AgeBand, gradeLevel?: string | null, points: number } | null, teacherProfile?: { __typename?: 'TeacherProfile', verificationStatus: VerificationStatus, specialty?: string | null, verificationDocuments: Array<{ __typename?: 'VerificationDocument', id: string, filename: string, sizeBytes?: number | null, status: VerificationStatus, reason: string, createdAt: string }> } | null, parentProfile?: { __typename?: 'ParentProfile', children: Array<{ __typename?: 'StudentProfile', ageBand: AgeBand, gradeLevel?: string | null, user: { __typename?: 'User', id: string, firstName: string, lastName: string, displayName: string, shortName: string } }> } | null } | null };
+export type MeQuery = { __typename?: 'Query', me?: { __typename?: 'User', id: string, email: string, firstName: string, lastName: string, displayName: string, shortName: string, role: Role, locale: string, avatarUrl?: string | null, consentSpeech: boolean, consentAttention: boolean, consent152fzAt?: string | null, studentProfile?: { __typename?: 'StudentProfile', ageBand: AgeBand, gradeLevel?: string | null, points: number } | null, teacherProfile?: { __typename?: 'TeacherProfile', verificationStatus: VerificationStatus, specialty?: string | null, verificationDocuments: Array<{ __typename?: 'VerificationDocument', id: string, filename: string, sizeBytes?: number | null, status: VerificationStatus, reason: string, createdAt: string }> } | null, parentProfile?: { __typename?: 'ParentProfile', children: Array<{ __typename?: 'StudentProfile', ageBand: AgeBand, gradeLevel?: string | null, user: { __typename?: 'User', id: string, firstName: string, lastName: string, displayName: string, shortName: string } }> } | null } | null };
 
 export type SetAvatarMutationVariables = Exact<{
   fileKey: Scalars['String']['input'];
@@ -5010,6 +5011,7 @@ export const MeDocument = gql`
     avatarUrl
     consentSpeech
     consentAttention
+    consent152fzAt
     studentProfile {
       ageBand
       gradeLevel

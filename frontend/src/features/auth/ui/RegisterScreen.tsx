@@ -4,7 +4,7 @@ import { type ChangeEvent, type FormEvent, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { failureKind, serverMessage } from '@/shared/lib/requestFailure';
-import { Navigate, useNavigate, useParams } from 'react-router-dom';
+import { Navigate, useLocation, useNavigate, useParams } from 'react-router-dom';
 
 import type { RegisterUserInput } from '@/entities/graphql/generated';
 import { useRegisterUserMutation } from '@/entities/graphql/generated';
@@ -20,6 +20,8 @@ import {
   validateRegister,
 } from '../model/validation';
 import { AuthLayout } from './AuthLayout';
+import { returnTo, withReturnTo } from '@/shared/lib/returnTo';
+
 import styles from './auth.module.css';
 
 const IS_PREVIEW = import.meta.env.VITE_PREVIEW === '1';
@@ -38,6 +40,11 @@ export function RegisterScreen() {
 function RegisterForm({ role }: { role: UiRole }) {
   const { t } = useTranslation(['auth', 'common']);
   const navigate = useNavigate();
+  const location = useLocation();
+  // 🔴 §26.4: адрес назначения обязан пережить регистрацию. Приложение присылает сюда с
+  // `?next=/link?code=…`, и после «Создать аккаунт» человек должен оказаться ТАМ, а не на
+  // стартовой — иначе он вернётся к приложению переписывать код руками.
+  const back = returnTo(location.search);
   const [values, setValues] = useState({ ...EMPTY_REGISTER });
   const [errors, setErrors] = useState<Errors>({});
   const [age, setAge] = useState<AgeBandUi>('teen');
@@ -100,7 +107,7 @@ function RegisterForm({ role }: { role: UiRole }) {
         applyAuth(data.registerUser);
         // 🔴 R-09: /start — утверждённый лист 00. Новый преподаватель попадал в архивный
         // кабинет, а после F5 — в новый: ровно то ощущение «продукт собран из двух разных».
-        navigate('/start', { replace: true });
+        navigate(back ?? '/start', { replace: true });
       }
     } catch (error) {
       // 🔴 R-06: «сервер не ответил» и «почта занята» — разные события, и текст у них разный.
@@ -361,7 +368,11 @@ function RegisterForm({ role }: { role: UiRole }) {
 
       <p className={styles.footer}>
         {t('roleSelect.haveAccount')}{' '}
-        <button type="button" className={styles.link} onClick={() => navigate('/login')}>
+        <button
+          type="button"
+          className={styles.link}
+          onClick={() => navigate(withReturnTo('/login', back ?? ''))}
+        >
           {t('roleSelect.signIn')}
         </button>
       </p>

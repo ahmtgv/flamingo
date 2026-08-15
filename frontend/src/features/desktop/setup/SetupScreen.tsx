@@ -40,7 +40,10 @@ export function SetupScreen({ onFinished }: { onFinished: () => void }) {
   // TEMPORARY: витрина (VITE_PREVIEW=1) показывает лист целиком, поэтому открывается с первого
   // шага. В приложении мастер возвращает на пройденный — «сделанное сохраняется». Уходит
   // вместе с демо-слоем.
-  const resumed = IS_PREVIEW ? 'pairing' : stepFromNumber(machine?.setup?.step ?? 1);
+  // Как далеко машина дошла НА САМОМ ДЕЛЕ — с сервера. Это не то же, что показанный шаг:
+  // вернувшись на второй, человек остаётся дошедшим до четвёртого.
+  const reached: SetupStep = stepFromNumber(machine?.setup?.step ?? 1);
+  const resumed: SetupStep = IS_PREVIEW ? 'pairing' : reached;
   const step: SetupStep = local ?? resumed;
 
   const me = meData?.me;
@@ -56,25 +59,41 @@ export function SetupScreen({ onFinished }: { onFinished: () => void }) {
     <div className={styles.screen}>
       <aside className={styles.rail}>
         <span className={styles.railTitle}>{t('setup.title')}</span>
+        {/* 🔴 Возврат на пройденный шаг (OWNER_SCOPE §26.3). Экран обещает «приложение вернёт
+            на тот же шаг», но вернуться НАЖАТИЕМ было нельзя: рельс только показывал.
+            Зелёный шаг открывается, непройденный — нет: он ещё не наступил, и кнопка, ведущая
+            в никуда, хуже её отсутствия. `advanceDeviceSetup` монотонен, поэтому возврат
+            ничего не забывает. */}
         <ol className={styles.steps}>
-          {SETUP_STEPS.map((id) => (
-            <li key={id} className={styles.stepItem} data-state={stateOf(id, step)}>
-              <span className={styles.stepNo}>{stepNumber(id)}</span>
-              {/* TEMPORARY: на витрине шаги кликабельны, иначе лист D2 не посмотреть — связывание
-                  в демо подтверждается мгновенно. В приложении рельс только показывает. */}
-              {IS_PREVIEW ? (
-                <button type="button" className={styles.railJump} onClick={() => setLocal(id)}>
-                  <b>{t(`setup.steps.${id}.title`)}</b>
-                  <small>{t(`setup.steps.${id}.hint`)}</small>
-                </button>
-              ) : (
-                <span>
-                  <b>{t(`setup.steps.${id}.title`)}</b>
-                  <small>{t(`setup.steps.${id}.hint`)}</small>
-                </span>
-              )}
-            </li>
-          ))}
+          {SETUP_STEPS.map((id) => {
+            const state = stateOf(id, step);
+            // 🔴 Открываемость считается от ДОСТИГНУТОГО шага, а не от показанного. Иначе
+            // возврат становится ловушкой: вернулся на второй — и третий с четвёртым, которые
+            // ты уже прошёл, перестали быть зелёными и вперёд не пускают.
+            // На витрине открыты все — иначе лист D2 не посмотреть (связывание там мгновенно).
+            const openable = IS_PREVIEW || stepNumber(id) <= stepNumber(reached);
+            return (
+              <li key={id} className={styles.stepItem} data-state={state}>
+                <span className={styles.stepNo}>{stepNumber(id)}</span>
+                {openable ? (
+                  <button
+                    type="button"
+                    className={styles.railJump}
+                    aria-current={state === 'now' ? 'step' : undefined}
+                    onClick={() => setLocal(id)}
+                  >
+                    <b>{t(`setup.steps.${id}.title`)}</b>
+                    <small>{t(`setup.steps.${id}.hint`)}</small>
+                  </button>
+                ) : (
+                  <span aria-current={state === 'now' ? 'step' : undefined}>
+                    <b>{t(`setup.steps.${id}.title`)}</b>
+                    <small>{t(`setup.steps.${id}.hint`)}</small>
+                  </span>
+                )}
+              </li>
+            );
+          })}
         </ol>
         <p className={styles.railNote}>{t('setup.resume')}</p>
         {/* Правда, которая стоит того, чтобы быть на экране: до шага 3 ничего не уходит. */}
@@ -86,7 +105,9 @@ export function SetupScreen({ onFinished }: { onFinished: () => void }) {
 
         {step === 'pairing' && <PairingStep onPaired={() => go('cabinet')} />}
         {step === 'cabinet' && <CabinetStep onNext={() => go('consents')} />}
-        {step === 'consents' && <ConsentStep onNext={() => go('check')} />}
+        {step === 'consents' && (
+          <ConsentStep onNext={() => go('check')} consent152fzAt={me?.consent152fzAt} />
+        )}
         {step === 'check' && <CheckStep onNext={() => go('done')} />}
         {step === 'done' && (
           <DoneStep

@@ -9,6 +9,18 @@ import {
 import { stepFailureKey } from './stepFailure';
 import styles from './setup.module.css';
 
+interface ConsentStepProps {
+  onNext: () => void;
+  /** Когда подписано согласие 152-ФЗ — при регистрации. Пусто у старых учёток. */
+  consent152fzAt?: string | null;
+}
+
+const SIGNED_ON = new Intl.DateTimeFormat('ru-RU', {
+  day: '2-digit',
+  month: '2-digit',
+  year: 'numeric',
+});
+
 /**
  * Шаг 3 — что уходит и что не уходит никогда (atlas D2, OWNER_SCOPE §19).
  *
@@ -24,16 +36,24 @@ import styles from './setup.module.css';
  * it that way too — `record_attention` drops the bucket without the consent, so the default
  * survives a re-render of this component.
  */
-export function ConsentStep({ onNext }: { onNext: () => void }) {
+export function ConsentStep({ onNext, consent152fzAt }: ConsentStepProps) {
   const { t } = useTranslation('desktop');
   const [setSpeech] = useSetSpeechConsentMutation();
   const [setAttention] = useSetAttentionConsentMutation();
 
   const [speech, setSpeechOn] = useState(true);
-  // 🔴 false — и это состояние, в котором экран открывается.
-  const [attention, setAttentionOn] = useState(false);
+  // 🔴 Решение владельца 15.08 (OWNER_SCOPE §26.1): включён по умолчанию. Прежнее «выключен,
+  // потому что включать наблюдение должно быть осознанным действием» было ревьюерской
+  // осторожностью, а не решением владельца, и отменено: SEduM — то, ради чего продукт
+  // существует, и приходить выключенным он не должен.
+  //
+  // ⚠️ Меняется УМОЛЧАНИЕ ЭКРАНА, а не право сервера: `record_attention` по-прежнему
+  // отбрасывает корзину без согласия. Выключается здесь же одним нажатием — и преподавателем,
+  // и учеником, в любой момент.
+  const [attention, setAttentionOn] = useState(true);
   const [saving, setSaving] = useState(false);
   const [failed, setFailed] = useState<string | null>(null);
+  const signedAt = consent152fzAt ? SIGNED_ON.format(new Date(consent152fzAt)) : null;
 
   const accept = async () => {
     setSaving(true);
@@ -75,11 +95,17 @@ export function ConsentStep({ onNext }: { onNext: () => void }) {
       <div className={styles.card}>
         <span className={styles.cardTitle}>{t('setup.consents.listTitle')}</span>
 
-        {/* 152-ФЗ: обязательное, не выбор. Показано, а не спрятано. */}
+        {/* 🔴 152-ФЗ подписан ПРИ РЕГИСТРАЦИИ — здесь это справка, а не поле. Метка
+            «обязательно» стояла без единого элемента управления рядом и читалась как поломка:
+            человек искал галочку, которой нет. Теперь сказано, что уже подписано и когда. */}
         <div className={styles.consent}>
           <span className={styles.consentHead}>
             <b>{t('setup.consents.pd')}</b>
-            <span className={styles.tagStrong}>{t('setup.consents.required')}</span>
+            <span className={styles.tagGood}>
+              {signedAt
+                ? t('setup.consents.signedOn', { date: signedAt })
+                : t('setup.consents.signed')}
+            </span>
           </span>
           <small>{t('setup.consents.pdHint')}</small>
         </div>

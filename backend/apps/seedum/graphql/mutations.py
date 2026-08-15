@@ -53,17 +53,30 @@ class SeedumMutation:
     def set_attention_consent(self, info: strawberry.Info, granted: bool) -> bool:
         """Turn attention analysis on, or off again (D2 step 3, OWNER_SCOPE §19).
 
-        Off is the state a fresh account is in, and it is the server that keeps it that way:
-        `services.record_attention` drops the bucket without this. Withdrawing takes effect on
-        the next bucket — and what was already stored is one averaged number per interval,
-        which is all that ever left the device.
+        ⚠️ Право сервера не менялось и не меняется: `services.record_attention` отбрасывает
+        корзину без согласия. Решение владельца 15.08 (§26.1) поменяло **умолчание экрана** —
+        мастер приходит с включённым переключателем, — а не то, что сервер принимает без
+        разрешения. Отзыв действует со следующей корзины, а сохранено было одно усреднённое
+        число на интервал: это всё, что вообще покидало устройство.
+
+        Принимает и вошедшего человека, и ключ связанной машины (`consenting_user`, §26).
         """
         from django.utils import timezone
 
-        user = require_user(info)
+        from common.auth import consenting_user
+
+        user, device = consenting_user(info)
         user.consent_attention = granted
         user.consent_attention_at = timezone.now() if granted else None
-        user.save(update_fields=["consent_attention", "consent_attention_at", "updated_at"])
+        user.consent_attention_device_id = device.id if device else None
+        user.save(
+            update_fields=[
+                "consent_attention",
+                "consent_attention_at",
+                "consent_attention_device_id",
+                "updated_at",
+            ]
+        )
         return user.consent_attention
 
     @strawberry.mutation

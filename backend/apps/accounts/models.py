@@ -47,13 +47,24 @@ class User(JurisdictionMixin, AbstractBaseUser, PermissionsMixin):
     # live in apps/summaries/consent.py, which is the only place that reads these fields.
     consent_speech = models.BooleanField(default=False)
     consent_speech_at = models.DateTimeField(null=True, blank=True)
-    # D2 step 3 / OWNER_SCOPE §19: attention analysis is **off until someone turns it on**,
-    # and the sheet says why in a sentence worth keeping — «это не осторожность, а уважение:
-    # включать наблюдение за вниманием ребёнка должно быть осознанным действием, а не
-    # следствием того, что кто-то не снял галочку». Read by apps/seedum/services.py, which
-    # refuses the bucket without it — a default enforced only by a checkbox is not a default.
+    # С какой машины дано согласие (OWNER_SCOPE §26, промпт 18 §Б0-кватер). Пусто — дано самим
+    # человеком в браузере. Это ФАКТ УЧЁТА, а не право: на вопрос «кто это записал» должен быть
+    # ответ. UUID, а не внешний ключ, — по той же причине, что у `MirroredRecord.source_id`:
+    # запись обязана пережить отзыв и удаление самой машины.
+    consent_speech_device_id = models.UUIDField(null=True, blank=True)
+    # Анализ внимания. Поле рождается False, и это НЕ «выключено по умолчанию» в смысле
+    # продукта: `apps/seedum/services.py` отбрасывает корзину, пока согласия нет, — то есть
+    # умолчание здесь охраняет право сервера принимать данные, а не выбор человека.
+    #
+    # ⚠️ Правка 15.08 (OWNER_SCOPE §26.1). Прежний довод «включать наблюдение должно быть
+    # осознанным действием» был **ревьюерской осторожностью, а не решением владельца**, и
+    # отменён: SEduM — то, ради чего продукт существует, и приходить выключенным он не должен.
+    # Изменилось **умолчание ЭКРАНА** (мастер приходит с включённым переключателем), а не это
+    # поле и не проверка в сервисе. Выключается в любой момент — и преподавателем, и учеником;
+    # умолчания по территориям решает юрисдикционная матрица (§21).
     consent_attention = models.BooleanField(default=False)
     consent_attention_at = models.DateTimeField(null=True, blank=True)
+    consent_attention_device_id = models.UUIDField(null=True, blank=True)
     # 🔴 R-04 (аудит 14.08). CLAUDE.md §2.3: «Children < 18 require parental consent
     # (consent152fz) captured at registration». Галочку спрашивали и выбрасывали — в мутацию
     # она не доезжала, и юридически согласия не существовало нигде.

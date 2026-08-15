@@ -21,7 +21,24 @@ const POLL_MS = 2000;
 /** Адрес страницы подтверждения — тот же, что напечатан на экране. */
 // 🔴 T-05: адрес существует (маршрут /link и псевдоним /связать). Печатаем латинский —
 // его набирают руками с чужого экрана, и кириллица в адресной строке спотыкается о раскладку.
-const CONFIRM_URL = `${PUBLIC_ORIGIN || 'https://flamingo.plus'}/link`;
+const SITE = PUBLIC_ORIGIN || 'https://flamingo.plus';
+const CONFIRM_URL = `${SITE}/link`;
+
+/**
+ * Куда ведут две кнопки шага 1 (OWNER_SCOPE §26.4).
+ *
+ * Обе несут КОД В АДРЕСЕ: человек нажимает одну кнопку, а не переписывает шесть знаков с
+ * экрана приложения в браузер. «Создать учётку» ведёт сразу на форму регистрации преподавателя
+ * и просит вернуть человека на подтверждение — `?next=/link?code=…`.
+ */
+function confirmUrl(code: string | null): string {
+  return code ? `${CONFIRM_URL}?code=${encodeURIComponent(code)}` : CONFIRM_URL;
+}
+
+function registerUrl(code: string | null): string {
+  const back = code ? `/link?code=${encodeURIComponent(code)}` : '/link';
+  return `${SITE}/register/teacher?next=${encodeURIComponent(back)}`;
+}
 
 /** Что именно не получилось — словами, а не «что-то пошло не так». */
 const FAILURE_TEXT: Record<FailureKind, string> = {
@@ -69,6 +86,11 @@ export function PairingStep({ onPaired }: { onPaired: () => void }) {
   const [failure, setFailure] = useState<FailureKind | null>(null);
   const [asking, setAsking] = useState(true);
   const [openFailed, setOpenFailed] = useState(false);
+  // 🔴 §26.4: код живёт десять минут, а регистрация с подтверждением почты занимает дольше —
+  // это обычный первый запуск, а не редкий случай. Приложение берёт новый код САМО и говорит
+  // об этом словами; заставлять человека нажимать «Новый код» вслепую нельзя, тем более что
+  // тот, который у него уже открыт в браузере, к этому моменту не подойдёт.
+  const [renewed, setRenewed] = useState(false);
   const secretRef = useRef<string | null>(null);
   const doneRef = useRef(false);
 
@@ -103,16 +125,19 @@ export function PairingStep({ onPaired }: { onPaired: () => void }) {
     }
   };
 
-  /** Открыть страницу подтверждения снаружи — и сказать, если не вышло. */
-  const openPage = async () => {
+  /** Открыть адрес снаружи — и сказать, если не вышло. */
+  const openOutside = async (url: string) => {
     setOpenFailed(false);
     if (isDesktop()) {
-      const opened = await openExternal(CONFIRM_URL);
+      const opened = await openExternal(url);
       if (!opened) setOpenFailed(true);
       return;
     }
-    window.open(CONFIRM_URL, '_blank', 'noreferrer,noopener');
+    window.open(url, '_blank', 'noreferrer,noopener');
   };
+
+  const openPage = () => openOutside(confirmUrl(code));
+  const openRegistration = () => openOutside(registerUrl(code));
 
   useEffect(() => {
     void ask();
@@ -123,12 +148,24 @@ export function PairingStep({ onPaired }: { onPaired: () => void }) {
 
   // Обратный отсчёт — «осталось 9:41». Считается от expiresAt, поэтому переживает и то, что
   // ноутбук закрыли на минуту: вернётся правильное число, а не то, на котором остановились.
+  //
+  // По исчерпании — сразу просим новый, не дожидаясь нажатия: человек в этот момент читает
+  // письмо с подтверждением почты, а не смотрит на наш отсчёт.
   useEffect(() => {
     if (expiresAt === null) return;
-    const tick = () => setMsLeft(Math.max(0, expiresAt - Date.now()));
+    const tick = () => {
+      const left = Math.max(0, expiresAt - Date.now());
+      setMsLeft(left);
+      if (left === 0 && !doneRef.current) {
+        setRenewed(true);
+        void ask();
+      }
+    };
     tick();
     const id = window.setInterval(tick, 1000);
     return () => window.clearInterval(id);
+    // `ask` пересоздаётся каждый рендер; в зависимостях он перезапускал бы таймер ежесекундно.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [expiresAt]);
 
   // Опрос: подтвердили ли в браузере. Claim отдаёт ключ ровно один раз.
@@ -177,6 +214,13 @@ export function PairingStep({ onPaired }: { onPaired: () => void }) {
 
         {/* 🔴 Заглушка, выдающая себя за истёкший код, недопустима: «истёк» говорится только
             про код, который БЫЛ. Нет кода — сказано, что именно не получилось. */}
+        {/* Код обновился сам — сказать об этом, иначе человек введёт в браузере старый. */}
+        {renewed && !failure && (
+          <p className={styles.warn} role="status">
+            {t('setup.pairing.renewed')}
+          </p>
+        )}
+
         <p className={styles.waiting} data-failed={failure ? 'true' : undefined}>
           {failure
             ? `${t('setup.pairing.failedTitle')} · ${t(FAILURE_TEXT[failure])}`
@@ -193,6 +237,17 @@ export function PairingStep({ onPaired }: { onPaired: () => void }) {
           <button type="button" className={styles.btn} onClick={() => void openPage()}>
             {t('setup.pairing.open')}
           </button>
+          {/* 🔴 §26.4: у того, у кого учётки нет, шаг 1 был тупиком — про регистрацию говорила
+              строчка мелким шрифтом внизу, и её не замечали. Теперь это кнопка рядом с первой,
+              ведущая сразу на форму регистрации, с кодом в адресе и с возвратом на
+              подтверждение: переписывать шесть знаков не придётся. */}
+          <button
+            type="button"
+            className={styles.btnGhost}
+            onClick={() => void openRegistration()}
+          >
+            {t('setup.pairing.createAccount')}
+          </button>
           <button
             type="button"
             className={styles.btnGhost}
@@ -204,7 +259,7 @@ export function PairingStep({ onPaired }: { onPaired: () => void }) {
         </div>
         {openFailed && (
           <p className={styles.warn} role="alert">
-            {t('setup.pairing.openFailed', { url: CONFIRM_URL })}
+            {t('setup.pairing.openFailed', { url: confirmUrl(code) })}
           </p>
         )}
       </div>

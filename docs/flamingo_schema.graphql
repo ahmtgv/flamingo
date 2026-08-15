@@ -108,7 +108,13 @@ type User {
   # Р5.4 / D2 step 3. Both default to FALSE and both are the caller's own business — `me` is
   # the only query that returns a User for the caller themselves.
   consentSpeech: Boolean!        # речь обрабатывается на лету ради саммари; аудио не хранится
-  consentAttention: Boolean!     # анализ внимания — ВЫКЛЮЧЕН по умолчанию (OWNER_SCOPE §19)
+  # ⚠️ Правка 15.08 (OWNER_SCOPE §26.1): анализ внимания приходит ВКЛЮЧЁННЫМ на экране мастера.
+  # Поле по-прежнему рождается false, и сервер по-прежнему отбрасывает корзину без согласия —
+  # изменилось умолчание экрана, а не право сервера.
+  consentAttention: Boolean!
+  # Когда подписано согласие 152-ФЗ (при регистрации). Мастер показывает дату вместо метки
+  # «обязательно»: галочки там нет, и метка без элемента управления читалась как поломка.
+  consent152fzAt: DateTime
   studentProfile: StudentProfile
   teacherProfile: TeacherProfile
   parentProfile: ParentProfile

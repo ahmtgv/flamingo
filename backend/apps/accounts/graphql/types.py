@@ -134,6 +134,10 @@ class UserType:
     #: UserType for the caller themselves, and a consent is nobody else's business.
     consent_speech: auto
     consent_attention: auto
+    #: Когда подписано согласие 152-ФЗ. Мастер показывает это вместо метки «обязательно»:
+    #: галочки там нет — согласие даётся при регистрации, и здесь оно справка, а не поле
+    #: (промпт 18 §Б0-кватер). Своя учётка: `me` — единственный запрос, отдающий UserType себе.
+    consent_152fz_at: auto
 
     @strawberry_django.field
     def email(self, info: strawberry.Info) -> str | None:

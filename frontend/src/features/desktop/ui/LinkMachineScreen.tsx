@@ -1,4 +1,5 @@
 import { type FormEvent, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
 import { useConfirmPairingCodeMutation } from '@/entities/graphql/generated';
@@ -21,7 +22,10 @@ import styles from './linkMachine.module.css';
  */
 export function LinkMachineScreen() {
   const { t } = useTranslation('desktop');
-  const [code, setCode] = useState('');
+  const [params] = useSearchParams();
+  // 🔴 §26.4: код приходит В АДРЕСЕ — приложение открывает эту страницу с ним. Человек
+  // нажимает одну кнопку, а не переписывает шесть знаков с одного экрана на другой.
+  const [code, setCode] = useState(() => (params.get('code') ?? '').toUpperCase());
   const [confirm, { loading }] = useConfirmPairingCodeMutation();
   const [linked, setLinked] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);

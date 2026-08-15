@@ -4,7 +4,7 @@ import { type FormEvent, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { failureKind } from '@/shared/lib/requestFailure';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 import { useLoginMutation } from '@/entities/graphql/generated';
 import { Button, Card, TextField } from '@/shared/ui';
@@ -12,6 +12,8 @@ import { Button, Card, TextField } from '@/shared/ui';
 import { applyAuth } from '../model/auth';
 import { type Errors, validateLogin } from '../model/validation';
 import { AuthLayout } from './AuthLayout';
+import { returnTo, withReturnTo } from '@/shared/lib/returnTo';
+
 import styles from './auth.module.css';
 
 const IS_PREVIEW = import.meta.env.VITE_PREVIEW === '1';
@@ -19,6 +21,9 @@ const IS_PREVIEW = import.meta.env.VITE_PREVIEW === '1';
 export function LoginScreen() {
   const { t } = useTranslation(['auth', 'common']);
   const navigate = useNavigate();
+  const location = useLocation();
+  // Адрес, ради которого сюда прислали (например /link?code=…). Свой путь или ничего.
+  const back = returnTo(location.search);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState<Errors>({});
@@ -37,7 +42,7 @@ export function LoginScreen() {
         applyAuth(data.login);
         // 🔴 R-09: /start — утверждённый лист 00. На /app вёл только этот путь, и человек
         // после входа попадал в архивный кабинет, а после F5 — в новый.
-        navigate('/start', { replace: true });
+        navigate(back ?? '/start', { replace: true });
       }
     } catch (error) {
       // 🔴 R-02: «неверная почта или пароль» — только когда сервер ДЕЙСТВИТЕЛЬНО отказал.
@@ -108,7 +113,11 @@ export function LoginScreen() {
       </Card>
       <p className={styles.footer}>
         {t('login.noAccount')}{' '}
-        <button type="button" className={styles.link} onClick={() => navigate('/register')}>
+        <button
+          type="button"
+          className={styles.link}
+          onClick={() => navigate(withReturnTo('/register', back ?? ''))}
+        >
           {t('login.signUp')}
         </button>
       </p>

@@ -119,6 +119,35 @@ def get_current_device(info):
     return authenticate_device_request(request)
 
 
+def consenting_user(info):
+    """Чьё согласие записывается: вошедший человек — или преподаватель связанной машины.
+
+    🔴 Решение владельца 15.08 (OWNER_SCOPE §26, промпт 18 §Б0-кватер). Шаг 3 мастера отказывал:
+    обе мутации согласий требуют `require_user`, а пользовательской сессии в приложении нет и
+    не будет (§19.4). Связывание уже доказало, что машина принадлежит этому преподавателю —
+    гонять его в браузер посреди мастера незачем.
+
+    ⚠️ Граница из §Б0-тер этим НЕ отменяется. Расширяется ровно один случай: **собственные
+    согласия связанного преподавателя**. Работы, оценки, чаты и зеркало ключом машины
+    по-прежнему не открываются — там стоит `require_user`, и десять проверок на это остаются.
+
+    Возвращает `(user, device)`: второе — та машина, с которой пришло согласие, или None, если
+    его дал сам человек. Это факт учёта, а не право: «кто записал» имеет право быть известным.
+    """
+    user = get_current_user(info)
+    if user is not None:
+        return user, None
+
+    device = get_current_device(info)
+    if device is None:
+        raise AuthError("Authentication required")
+    # У машины владелец называется `owner` — это тот преподаватель, который подтвердил
+    # связывание в браузере. Он и есть автор согласия.
+    if device.owner is None or not device.owner.is_active:
+        raise AuthError("Authentication required")
+    return device.owner, device
+
+
 def require_device(info):
     """The paired machine, or a refusal.
 

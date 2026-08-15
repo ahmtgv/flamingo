@@ -9,7 +9,7 @@ from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
 
 from apps.summaries import services
-from common.auth import require_user
+from common.auth import consenting_user, require_user
 from common.enums import SummarySection
 
 from .types import ChatMessage, LessonSummary, SummaryItem
@@ -95,13 +95,25 @@ class SummariesMutation:
     @strawberry.mutation
     def set_speech_consent(self, info: strawberry.Info, granted: bool) -> bool:
         """The §5 consent point, on and off. Withdrawing it takes effect on the next
-        assembly — and nothing of the speech was stored in the meantime anyway."""
+        assembly — and nothing of the speech was stored in the meantime anyway.
+
+        Принимает и вошедшего человека, и ключ связанной машины — см. `consenting_user`
+        (решение владельца §26). Мастер первого запуска идёт именно вторым путём.
+        """
         from django.utils import timezone
 
-        user = require_user(info)
+        user, device = consenting_user(info)
         user.consent_speech = granted
         user.consent_speech_at = timezone.now() if granted else None
-        user.save(update_fields=["consent_speech", "consent_speech_at", "updated_at"])
+        user.consent_speech_device_id = device.id if device else None
+        user.save(
+            update_fields=[
+                "consent_speech",
+                "consent_speech_at",
+                "consent_speech_device_id",
+                "updated_at",
+            ]
+        )
         return user.consent_speech
 
 

@@ -1,10 +1,12 @@
 import { ICON_LG } from '@/shared/ui/iconSizes';
 import { BookOpen, Building2, GraduationCap, type LucideIcon, Users } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 import type { UiRole } from '../model/roles';
 import { AuthLayout } from './AuthLayout';
+import { returnTo, withReturnTo } from '@/shared/lib/returnTo';
+
 import styles from './auth.module.css';
 
 const ROLE_ICONS: Record<UiRole, LucideIcon> = {
@@ -19,6 +21,10 @@ const ORDER: UiRole[] = ['student', 'parent', 'teacher', 'admin'];
 export function RoleSelectScreen() {
   const { t } = useTranslation('auth');
   const navigate = useNavigate();
+  const location = useLocation();
+  // 🔴 §26.4: адрес назначения обязан пережить и выбор роли. Здесь он терялся — человек,
+  // пришедший из приложения на `/link?code=…`, после регистрации оказывался на стартовой.
+  const back = returnTo(location.search);
 
   return (
     <AuthLayout wide>
@@ -36,7 +42,7 @@ export function RoleSelectScreen() {
               key={role}
               type="button"
               className={styles.roleCard}
-              onClick={() => navigate(`/register/${role}`)}
+              onClick={() => navigate(withReturnTo(`/register/${role}`, back ?? ''))}
             >
               <span className={styles.roleIcon}>
                 <Icon size={ICON_LG} />
@@ -50,7 +56,11 @@ export function RoleSelectScreen() {
 
       <p className={styles.footer}>
         {t('roleSelect.haveAccount')}{' '}
-        <button type="button" className={styles.link} onClick={() => navigate('/login')}>
+        <button
+          type="button"
+          className={styles.link}
+          onClick={() => navigate(withReturnTo('/login', back ?? ''))}
+        >
           {t('roleSelect.signIn')}
         </button>
       </p>

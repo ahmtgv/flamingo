@@ -133,6 +133,7 @@ query Me {
     # оба по умолчанию false, и анализ внимания остаётся выключенным, пока его не включат.
     consentSpeech
     consentAttention
+    consent152fzAt
     studentProfile {
       ageBand
       gradeLevel
