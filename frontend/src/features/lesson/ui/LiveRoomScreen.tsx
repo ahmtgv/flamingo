@@ -38,6 +38,7 @@ import { ClassWindow } from './ClassWindow';
 import { type Pane, RoomFrame, type Scene } from './RoomFrame';
 import { PreviewRoom } from './PreviewRoom';
 import { VideoRoom } from './VideoRoom';
+import { preferredConstraints } from '@/features/desktop/setup/mediaPreference';
 
 /**
  * Shared chrome — atlas sheet 02's frame around whatever the room is doing.
@@ -228,7 +229,9 @@ function useSharedCamera() {
 
   const acquire = useCallback(async (): Promise<MediaStream | null> => {
     try {
-      const s = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+      // Камера и микрофон, выбранные на шаге 4 мастера (промпт 21 §3.2 п.5). Без этого
+      // выбор на проверке был бы вежливым вопросом без последствий.
+      const s = await navigator.mediaDevices.getUserMedia(preferredConstraints());
       streamRef.current = s;
       setStream(s);
       setCameraError(null);

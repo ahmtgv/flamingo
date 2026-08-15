@@ -484,3 +484,79 @@
 .more[open] > summary {
   margin-bottom: var(--space-2);
 }
+
+/* --- Шаг 4: настоящая проверка камеры и звука (промпт 21 §3.2) -------------------------
+   Раньше здесь стояли две строки текста. Человек узнавал, что камера смотрит в потолок,
+   уже на уроке. 🔒 Превью и уровень считаются на устройстве — наружу не уходит ничего. */
+.preview {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.previewVideo {
+  width: 100%;
+  max-width: 320px;
+  aspect-ratio: 4 / 3;
+  border-radius: var(--radius-md);
+  background: var(--color-surface-subtle);
+  object-fit: cover;
+  /* Зеркалим: человек привык видеть себя как в зеркале, а не как чужого. */
+  transform: scaleX(-1);
+}
+
+.levelRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.level {
+  flex: 1;
+  height: 8px;
+  max-width: 200px;
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-subtle);
+  overflow: hidden;
+}
+
+.levelFill {
+  height: 100%;
+  background: var(--color-accent);
+  /* Короткий переход: полоса должна ЖИТЬ вместе с голосом, а не догонять его. */
+  transition: width 60ms linear;
+}
+
+.pickers {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: var(--space-3);
+  margin-top: var(--space-3);
+}
+
+.picker {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.btnGhost {
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--color-text);
+  font-family: var(--font-body);
+  font-size: var(--text-small);
+  cursor: pointer;
+}
+
+.btnGhost:hover {
+  background: var(--color-surface-hover);
+}
+
+.btnGhost:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
