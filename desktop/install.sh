@@ -59,9 +59,24 @@ cp -R "$APP_BUILT" "$INSTALLED" || { echo "✗ Не удалось скопир�
 # Снять карантин: установщик не подписан (§19.2), иначе система спросит про «неизвестного разработчика».
 xattr -dr com.apple.quarantine "$INSTALLED" 2>/dev/null
 
+# 🔴 Иконка — ресурс, а не код: пересборка ради неё не нужна, но и не происходит сама.
+# 15.08 владелец получил приложение со старым знаком, потому что иконку перерисовали
+# в репозитории уже ПОСЛЕ сборки. Синхронизируем принудительно и сверяем.
+ICNS_SRC="$REPO/desktop/src-tauri/icons/icon.icns"
+ICNS_DST="$INSTALLED/Contents/Resources/icon.icns"
+if [ -f "$ICNS_SRC" ]; then
+  cp "$ICNS_SRC" "$ICNS_DST"
+  cmp -s "$ICNS_SRC" "$ICNS_DST" && echo "  иконка синхронизирована с репозиторием"
+fi
+
+# macOS держит иконки в кэше и показывает старую, пока его не тронуть.
+touch "$INSTALLED"
+killall Dock 2>/dev/null && echo "  Dock перезапущен — кэш иконок сброшен"
+
 echo
 echo "── Что установлено ──────────────────────────"
 echo "  отпечаток:  $(fingerprint "$INSTALLED/$BIN")"
 echo "  ожидался:   $BUILT_FP"
+echo "  иконка:     $(cmp -s "$ICNS_SRC" "$ICNS_DST" && echo "актуальная" || echo "⚠️ РАСХОДИТСЯ")"
 echo
 echo "Готово. Запускай: open -a Flamingo"
