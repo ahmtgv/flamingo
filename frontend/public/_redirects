@@ -4,7 +4,14 @@
 # The target below is NOT named 404.html on purpose: Cloudflare Pages serves a
 # file named 404.html for every unmatched path, before the /* rewrite below is
 # applied - which silently killed every deep link on the site.
+#
+# Three graphql lines, not two: "/graphql/" with a trailing slash matches neither
+# "/graphql" nor "/graphql/*" (the splat wants at least one character), so it fell
+# through to the SPA rule and returned the app. Found live 16.08.
 /graphql/*   /no-api.html   404
+/graphql/    /no-api.html   404
 /graphql     /no-api.html   404
 /api/*       /no-api.html   404
+/api/        /no-api.html   404
+/api         /no-api.html   404
 /*           /index.html    200
