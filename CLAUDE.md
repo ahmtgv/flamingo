@@ -135,7 +135,7 @@ A module is done when: models + migrations, services, GraphQL types/queries/muta
 
 ## 12. References (in `docs/`)
 - `docs/design-previews/atlas/00_start.html` · `01_subject.html` · `02_english_room.html` · `12_sources.html` — **approved UI/UX contract** (owner, 2026-08-12); each sheet carries a "what is decided" block with the owner's answers.
-- `docs/design-previews/atlas/D1_app_frame.html` · `D2_first_run.html` · `D3_invite_and_join.html` · `D7_oversight.html` — desktop-host and platform-oversight sheets (owner, 2026-08-14/15). Same standing as the sheets above: implement them, do not reinvent them.
+- `docs/design-previews/atlas/D1_app_frame.html` · `D2_first_run.html` · `D3_invite_and_join.html` · `D7_oversight.html` · `D8_my_account.html` — desktop-host, platform-oversight and per-role account sheets (owner, 2026-08-14/15). Same standing as the sheets above: implement them, do not reinvent them.
 - `docs/handoff/PROMPT_13_release_v1.md` — active release plan (R0–R5).
 - `Flamingo_Product_Brief_v1.md` — product decisions (source of truth).
 - `flamingo_ux_foundation_stage1.md` — user stories, flows, screen map (IDs).
