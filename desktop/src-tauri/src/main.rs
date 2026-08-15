@@ -340,6 +340,20 @@ mod tests {
 /// `window.hide()`: окно ИСЧЕЗАЛО, и вернуть его можно было только через значок в трее. Для
 /// человека, который про трей не знал, это ровно то же, что зависание — приложение пропало и
 /// не отвечает. `minimize()` кладёт окно в Dock, откуда его достают привычным движением.
+/// Положить строку в буфер обмена.
+///
+/// 🔴 Владелец 16.08: шесть знаков кода связывания переписывают руками — в браузер на ТОМ ЖЕ
+/// компьютере. Копируем без разделителя (`F3D2SK`, не `F3D · 2SK`): разделитель нарисован
+/// для чтения вслух, а в поле его вставлять незачем.
+///
+/// Через оболочку, а не `navigator.clipboard`: в webview тот упирается в разрешения и молча
+/// ничего не делает — а молчащая кнопка здесь уже была не раз.
+#[tauri::command]
+fn copy_text(app: tauri::AppHandle, text: String) -> Result<(), String> {
+    use tauri_plugin_clipboard_manager::ClipboardExt;
+    app.clipboard().write_text(text).map_err(|e| e.to_string())
+}
+
 #[tauri::command]
 fn minimise_window(window: tauri::Window) -> Result<(), String> {
     window.minimize().map_err(|e| e.to_string())
@@ -416,10 +430,14 @@ fn main() {
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
+        // Буфер обмена — через оболочку, а не через `navigator.clipboard`: в webview он
+        // упирается в разрешения и молча ничего не делает (промпт 21 §6.1).
+        .plugin(tauri_plugin_clipboard_manager::init())
         .manage(Sidecar(Mutex::new(None)))
         .invoke_handler(tauri::generate_handler![
             minimise_window,
             open_external,
+            copy_text,
             set_tray_label,
             set_tray_menu,
             store_machine_key,

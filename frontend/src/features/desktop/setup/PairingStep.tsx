@@ -11,7 +11,7 @@ import { PUBLIC_ORIGIN } from '@/shared/lib/env';
 import { failureKind, type FailureKind } from '@/shared/lib/requestFailure';
 import { setSession } from '@/shared/lib/session';
 
-import { APP_VERSION, isDesktop, openExternal } from '../bridge';
+import { APP_VERSION, copyText, isDesktop, openExternal } from '../bridge';
 import { rememberMachineKey } from '../machineKey';
 
 import { countdown, formatPairingCode } from './firstRun';
@@ -101,6 +101,7 @@ export function PairingStep({ onPaired }: { onPaired: () => void }) {
   // об этом словами; заставлять человека нажимать «Новый код» вслепую нельзя, тем более что
   // тот, который у него уже открыт в браузере, к этому моменту не подойдёт.
   const [renewed, setRenewed] = useState(false);
+  const [copied, setCopied] = useState<'ok' | 'failed' | null>(null);
   const secretRef = useRef<string | null>(null);
   const doneRef = useRef(false);
 
@@ -226,6 +227,28 @@ export function PairingStep({ onPaired }: { onPaired: () => void }) {
         <output className={styles.code} aria-live="polite">
           {code ? formatPairingCode(code) : '· · ·'}
         </output>
+
+        {/* 🔴 Владелец 16.08 (§6.1): шесть знаков переписывают руками — в браузер на ТОМ ЖЕ
+            компьютере. Копируем БЕЗ разделителя: точка нарисована для чтения вслух, в поле
+            ей делать нечего. Не вышло — говорим, а не молчим. */}
+        {code && (
+          <button
+            type="button"
+            className={styles.copyBtn}
+            onClick={() => {
+              void copyText(code).then((ok) => {
+                setCopied(ok ? 'ok' : 'failed');
+                window.setTimeout(() => setCopied(null), 2500);
+              });
+            }}
+          >
+            {copied === 'ok'
+              ? t('setup.pairing.copied')
+              : copied === 'failed'
+                ? t('setup.pairing.copyFailed')
+                : t('setup.pairing.copy')}
+          </button>
+        )}
 
         {/* 🔴 Заглушка, выдающая себя за истёкший код, недопустима: «истёк» говорится только
             про код, который БЫЛ. Нет кода — сказано, что именно не получилось. */}
