@@ -200,6 +200,29 @@ cd /opt/flamingo && docker compose -f infra/prod/docker-compose.prod.yml --env-f
 
 ---
 
+## 13 · Ежедневный дамп базы ⏱ 2 минуты
+
+На сервере теперь лежат учётки, расписание и зеркало ученика — работы и оценки живых детей.
+Копия кабинета преподавателя это **не** покрывает: она про его машину, а не про сервер.
+
+```bash
+cd /opt/flamingo
+./infra/prod/backup-db.sh          # проверить, что дамп снимается
+crontab -l 2>/dev/null | { cat; echo "15 4 * * * cd /opt/flamingo && ./infra/prod/backup-db.sh >> /var/log/flamingo-backup.log 2>&1"; } | crontab -
+crontab -l                          # убедиться, что строка встала
+```
+
+**Что должно появиться:** строка вида `дамп готов: …/flamingo_2026-08-15_0416.sql.gz (48K)`.
+
+Хранится семь дней, старое удаляется само. Раз в неделю забирай копию к себе на мак —
+дамп на том же диске, что и база, от потери сервера не спасает:
+
+```bash
+rsync -az root@82.147.71.204:/opt/flamingo/infra/prod/backups/ ~/Downloads/flamingo-backups/
+```
+
+---
+
 ## Если что-то пошло не так
 
 Посмотреть, что говорит API:
