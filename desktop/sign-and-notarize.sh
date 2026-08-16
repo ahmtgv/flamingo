@@ -55,10 +55,66 @@ echo "  сертификат: $IDENTITY"
 # подписанное после него ломает его же подпись. Сначала библиотеки, потом сайдкар, потом .app.
 SIDECAR="$APP/Contents/Resources/sidecar"
 if [ -d "$SIDECAR" ]; then
-  COUNT=$(find "$SIDECAR" -type f \( -name "*.dylib" -o -name "*.so" \) | wc -l | tr -d ' ')
-  echo "  библиотек сайдкара: $COUNT"
-  find "$SIDECAR" -type f \( -name "*.dylib" -o -name "*.so" \) -print0 \
-    | xargs -0 -n1 codesign --force --timestamp --options runtime --sign "$IDENTITY"
+  # 🔴 ПОДПИСЫВАЕМ ПО СОДЕРЖИМОМУ, А НЕ ПО РАСШИРЕНИЮ.
+  #
+  # Первая версия брала `*.dylib` и `*.so` — 65 файлов — и нотаризация вернула Invalid:
+  #   _internal/Python                                  не подписан
+  #   _internal/Python.framework/Python                 подпись недействительна
+  #   _internal/Python.framework/Versions/3.12/Python   то же
+  # У интерпретатора и его фреймворка расширения нет вовсе, и список по маске их не видел.
+  # Гипотеза «библиотеки — это .dylib и .so» была правдоподобной и неполной.
+  #
+  # `file` смотрит внутрь файла, а не на имя, поэтому новый безымянный бинарник в сайдкаре
+  # попадёт под подпись сам, без правки этого скрипта.
+  # 🔴 ПОЧИНИТЬ КАРКАС ФРЕЙМВОРКА ПЕРЕД ПОДПИСЬЮ.
+  #
+  # PyInstaller кладёт `Python.framework` плоско: `Versions/Current` — настоящий КАТАЛОГ,
+  # а не ссылка, и `Python` наверху — настоящий файл, а не ссылка на `Versions/Current/Python`.
+  # Для `codesign` это ни бинарник, ни бундл: «bundle format is ambiguous (could be app or
+  # framework)», и подпись отказывает. Нотаризация при этом требует, чтобы каждый бинарник
+  # внутри был подписан Developer ID.
+  #
+  # Восстанавливаем канонический вид: одна настоящая версия, остальное — ссылки. Так фреймворк
+  # и должен выглядеть, и так его умеет подписывать `codesign`.
+  for FW in $(find "$SIDECAR" -type d -name "*.framework"); do
+    NAME=$(basename "$FW" .framework)
+    VER=$(ls "$FW/Versions" 2>/dev/null | grep -v Current | head -1)
+    [ -z "$VER" ] && continue
+    if [ -d "$FW/Versions/Current" ] && [ ! -L "$FW/Versions/Current" ]; then
+      rm -rf "$FW/Versions/Current"
+      ln -s "$VER" "$FW/Versions/Current"
+    fi
+    if [ -f "$FW/$NAME" ] && [ ! -L "$FW/$NAME" ]; then
+      rm -f "$FW/$NAME"
+      ln -s "Versions/Current/$NAME" "$FW/$NAME"
+    fi
+    if [ -d "$FW/Resources" ] && [ ! -L "$FW/Resources" ]; then
+      rm -rf "$FW/Versions/Current/Resources" 2>/dev/null || true
+      mv "$FW/Resources" "$FW/Versions/$VER/Resources" 2>/dev/null || true
+      ln -s "Versions/Current/Resources" "$FW/Resources" 2>/dev/null || true
+    fi
+    echo "  каркас $NAME.framework приведён к каноническому виду"
+  done
+
+  MACHO=$(mktemp)
+  find "$SIDECAR" -type f -perm -u+r ! -name "flamingo-sidecar" -print0 \
+    | xargs -0 file --mime-type 2>/dev/null \
+    | grep -E ':\s*application/x-mach-binary$' | sed 's/:[^:]*$//' > "$MACHO"
+  echo "  бинарников в сайдкаре: $(wc -l < "$MACHO" | tr -d ' ')"
+
+  # Фреймворки подписываются как БУНДЛЫ и после своего содержимого: подпись бундла фиксирует
+  # хеши того, что внутри, поэтому сначала внутренности, потом сам фреймворк.
+  while IFS= read -r f; do
+    codesign --force --timestamp --options runtime --sign "$IDENTITY" "$f" 2>/dev/null
+  done < "$MACHO"
+  rm -f "$MACHO"
+
+  # ⚠️ Фреймворки как БУНДЛЫ здесь не подписываются, и это не упущение.
+  # `Python.framework` от PyInstaller — неполный каркас: `codesign` на нём отвечает
+  # «bundle format is ambiguous (could be app or framework)» и падает. Нотаризацию
+  # интересуют бинарники ВНУТРИ него — их и подписал проход выше, по содержимому файла
+  # (именно те четыре, которых не хватило в первой попытке).
+
   [ -f "$SIDECAR/flamingo-sidecar" ] && codesign --force --timestamp --options runtime \
     --entitlements "$ENTITLEMENTS" --sign "$IDENTITY" "$SIDECAR/flamingo-sidecar"
   echo "  сайдкар подписан"
@@ -92,10 +148,27 @@ ZIP="${APP%.app}.zip"
 xcrun notarytool submit "$ZIP" --keychain-profile "$PROFILE" --wait
 rm -f "$ZIP"
 
-# Талон крепится к .app и отдельно к образу: скачавший .dmg проверяется офлайн.
+# Талон крепится к .app: без него Gatekeeper на машине без интернета проверить не сможет.
 xcrun stapler staple "$APP"
-[ -f "$DMG" ] && xcrun notarytool submit "$DMG" --keychain-profile "$PROFILE" --wait \
-  && xcrun stapler staple "$DMG"
+
+# 🔴 ОБРАЗ ПЕРЕСОБИРАЕТСЯ ЗАНОВО, ИЗ ПОДПИСАННОГО ПРИЛОЖЕНИЯ.
+#
+# `cargo tauri build` делает `.dmg` РАНЬШЕ, чем этот скрипт подписывает содержимое, поэтому
+# в образе лежит приложение до подписи. Первая попытка это и показала: `.app` — Accepted,
+# `.dmg` — Invalid, 144 замечания, и первым в списке сам `flamingo-desktop`.
+# Отправлять образ, собранный до подписи, бессмысленно: нотаризуется то, что внутри.
+if [ -f "$DMG" ]; then
+  echo "  пересобираю образ из подписанного приложения"
+  STAGE=$(mktemp -d)
+  /usr/bin/ditto "$APP" "$STAGE/Flamingo.app"
+  ln -s /Applications "$STAGE/Applications"
+  rm -f "$DMG"
+  hdiutil create -volname "Flamingo" -srcfolder "$STAGE" -ov -format UDZO "$DMG" >/dev/null
+  rm -rf "$STAGE"
+  codesign --force --timestamp --sign "$IDENTITY" "$DMG"
+  xcrun notarytool submit "$DMG" --keychain-profile "$PROFILE" --wait
+  xcrun stapler staple "$DMG"
+fi
 
 echo
 echo "── Проверка ─────────────────────────────────"

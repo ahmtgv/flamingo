@@ -38,5 +38,17 @@
     -->
     <key>com.apple.security.cs.disable-library-validation</key>
     <true/>
+
+    <!--
+      🔴 Доступ к устройствам под hardened runtime (промпт 23 §2.2). Без App Sandbox камеру
+      и микрофон обычно спрашивают строками из Info.plist, но hardened runtime добавляет
+      СВОЙ слой — «Resource Access», — и без этих двух прав шаг 4 мастера и урок остались бы
+      без картинки и звука. Строки в Info.plist при этом всё равно нужны: они объясняют
+      человеку, зачем спрашиваем. Одно не заменяет другое.
+    -->
+    <key>com.apple.security.device.camera</key>
+    <true/>
+    <key>com.apple.security.device.audio-input</key>
+    <true/>
 </dict>
 </plist>

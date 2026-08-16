@@ -33,9 +33,7 @@ def _camel(name: str) -> str:
 
 
 def _calls_device_door(node: ast.FunctionDef | ast.AsyncFunctionDef) -> bool:
-    return any(
-        isinstance(child, ast.Name) and child.id == DEVICE_DOOR for child in ast.walk(node)
-    )
+    return any(isinstance(child, ast.Name) and child.id == DEVICE_DOOR for child in ast.walk(node))
 
 
 def _explicit_name(node: ast.FunctionDef | ast.AsyncFunctionDef) -> str | None:
@@ -68,7 +66,7 @@ TS_PATH = (
     Path(__file__).resolve().parents[3] / "frontend/src/shared/lib/deviceOperations.generated.ts"
 )
 
-_HEADER = '''/**
+_HEADER = """/**
  * СГЕНЕРИРОВАНО. Не править руками.
  *
  * Список операций, которым нужен ключ машины (`Authorization: Device`), а не сессия человека.
@@ -82,7 +80,7 @@ _HEADER = '''/**
  * новой мутации, и разошёлся бы так же молча.
  */
 export const DEVICE_OPERATIONS: ReadonlySet<string> = new Set([
-'''
+"""
 
 
 def render_ts() -> str:

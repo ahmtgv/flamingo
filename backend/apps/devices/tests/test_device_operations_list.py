@@ -38,9 +38,9 @@ def test_the_generated_file_is_byte_for_byte_what_the_generator_produces():
     или переставил строки: имена-то совпадут. Сгенерированное должно быть сгенерированным.
     """
     assert TS_PATH.exists(), f"нет файла {TS_PATH}"
-    assert TS_PATH.read_text(encoding="utf-8") == render_ts(), (
-        "сгенерированный файл разошёлся с генератором — пересоберите, а не правьте руками"
-    )
+    assert (
+        TS_PATH.read_text(encoding="utf-8") == render_ts()
+    ), "сгенерированный файл разошёлся с генератором — пересоберите, а не правьте руками"
 
 
 def test_the_list_is_not_empty_and_holds_the_wizard():
