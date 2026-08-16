@@ -105,3 +105,29 @@ describe('список операций машины', () => {
     }
   });
 });
+
+// 🔴 Найдено владельцем 16.08, третий заход подряд: мастер вставал на переходе 1→2, хотя
+// выбор «по операции» уже был сделан. Список сгенерирован из резолверов, где операции зовутся
+// именами ПОЛЕЙ (`configureCabinetBackup`), а Apollo подставляет имя ДОКУМЕНТА
+// (`ConfigureCabinetBackup`). Совпадений не было ни одного.
+//
+// Тест выше перебирает сам список и потому проходит всегда — он проверяет себя. Здесь имена
+// взяты из документов `.graphql`, то есть ровно те, с которыми приходит Apollo.
+describe('имя документа, а не поля схемы', () => {
+  const FROM_DOCUMENTS = [
+    'ConfigureCabinetBackup',
+    'AdvanceDeviceSetup',
+    'CompleteDeviceSetup',
+    'RecordCabinetBackup',
+    'ReportUplink',
+    'ExportCabinet',
+    'ThisDevice',
+  ];
+
+  it.each(FROM_DOCUMENTS)('%s ходит ключом машины, а не сессией', (name) => {
+    mockKey = 'ключ-машины';
+    setSession('токен-преподавателя', 'refresh');
+
+    expect(credentialFor(name)).toEqual({ authorization: 'Device ключ-машины' });
+  });
+});

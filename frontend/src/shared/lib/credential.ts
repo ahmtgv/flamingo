@@ -18,12 +18,25 @@ import { getAccessToken } from './session';
  */
 export type Credential = { authorization: string } | null;
 
+/**
+ * 🔴 Регистр. Список сгенерирован из резолверов бэкенда, где операции зовутся именами ПОЛЕЙ
+ * схемы: `configureCabinetBackup`. Apollo же подставляет имя ДОКУМЕНТА: `ConfigureCabinetBackup`.
+ * Сравнение «как есть» не совпадало ни разу — и каждая операция машины уходила сессией,
+ * то есть мастер вставал на переходе 1→2 ровно так же, как до починки (найдено владельцем 16.08,
+ * третий заход подряд).
+ *
+ * Тест этого не ловил, потому что перебирал сам список: он проверял себя, а не соответствие
+ * именам, с которыми приходит Apollo.
+ */
+const DEVICE_OPERATION_KEYS: ReadonlySet<string> = new Set(
+  [...DEVICE_OPERATIONS].map((name) => name.toLowerCase()),
+);
+
 export function credentialFor(operationName: string | undefined): Credential {
   const machineKey = machineKeyInMemory();
 
   // Правило 1: операция машины ходит ключом машины — даже когда сессия человека есть.
-  // Список сгенерирован из резолверов бэкенда, зовущих `require_device`.
-  if (DEVICE_OPERATIONS.has(operationName ?? '')) {
+  if (DEVICE_OPERATION_KEYS.has((operationName ?? '').toLowerCase())) {
     return machineKey ? { authorization: `Device ${machineKey}` } : null;
   }
 
