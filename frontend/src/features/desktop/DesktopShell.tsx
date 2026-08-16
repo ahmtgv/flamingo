@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
 import { isDesktop, setTrayMenu } from './bridge';
+import { useHeartbeat } from './useHeartbeat';
 import { useScheduledBackup } from './useScheduledBackup';
 import { DesktopFrame } from './DesktopFrame';
 import { OfflineScreen } from './OfflineScreen';
@@ -24,6 +25,9 @@ export function DesktopShell({ children }: { children: ReactNode }) {
   );
   // Р5.5-В п.3: копию будит приложение — при старте, если пора. Таймера нет и не заводим.
   useScheduledBackup();
+  // 🔴 Пульс машины (находка Н-1): без него преподаватель числится офлайн всегда, а живой
+  // урок закрывается сам через десять минут после планового конца.
+  useHeartbeat();
 
   useEffect(() => {
     const up = () => setOnline(true);

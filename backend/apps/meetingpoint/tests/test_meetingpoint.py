@@ -419,3 +419,35 @@ def test_a_pupil_keeps_their_diary_boards_and_given_guides_without_the_host():
     caps = without_host()
     assert (caps.my_diary, caps.my_boards, caps.my_materials) == (True, True, True)
     assert (caps.live_board, caps.lesson_materials, caps.room) == (False, False, False)
+
+
+def test_auto_closed_session_never_ends_before_it_started():
+    """🔴 Аудит 17.08: `end_at` брался из метки машины и мог оказаться раньше `start_at`.
+
+    Метку двигал только замер канала на шаге 4 мастера, то есть она бывала недельной
+    давности. Занятие закрывалось «само» с отрицательной длительностью, и это уезжало
+    в дневник ученика как факт о его учёбе.
+
+    ⚠️ Условие автозакрытия воспроизводится ЯВНО: метка машины отодвигается в прошлое, а
+    занятие ставится начавшимся позже неё. Первая версия теста проверяла исход под `if
+    session in closed` — и проходила, ничего не проверив, потому что занятие не закрывалось.
+    """
+    teacher = make_teacher()
+    group = a_group(teacher)
+    bring_host_online(teacher)
+    from apps.devices.models import Device
+
+    # Машина замолчала неделю назад — ровно то, чем была метка до появления пульса.
+    week_ago = timezone.now() - dt.timedelta(days=7)
+    Device.objects.filter(owner=teacher).update(last_seen_at=week_ago)
+
+    # А занятие началось час назад, то есть ПОЗЖЕ последнего признака жизни машины.
+    session = a_lesson_session(teacher, group, minutes_ahead=-60, status=SessionStatus.LIVE)
+
+    closed = mp.close_abandoned_sessions()
+
+    assert session in closed, "предусловие: занятие должно было закрыться само"
+    session.refresh_from_db()
+    assert (
+        session.end_at >= session.start_at
+    ), f"занятие закрыто задним числом: end_at={session.end_at} < start_at={session.start_at}"

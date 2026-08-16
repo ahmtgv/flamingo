@@ -249,3 +249,13 @@
   display: block;
   color: var(--color-text-tertiary);
 }
+
+/* Отказ рядом с кнопкой, которую нажали (промпт 24 §Б1). До этого сохранение настроек
+   учреждения молчало: форма закрывалась, правки не доезжали, и админ узнавал об этом
+   в следующий заход. */
+.formError {
+  margin: 0;
+  color: var(--color-error-text);
+  font-family: var(--font-body);
+  font-size: var(--text-small);
+}

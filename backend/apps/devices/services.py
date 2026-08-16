@@ -201,6 +201,17 @@ def authenticate_device(raw_token: str) -> Device | None:
     )
     if token is None or token.device.is_revoked:
         return None
+    # 🔴 Заблокированный преподаватель не ведёт уроки и своей машиной (найдено аудитом 17.08).
+    #
+    # Здесь проверялись только отзыв ключа и отзыв машины. Блокировка человека (`is_active`)
+    # гасила его пользовательские сессии — и НЕ ТРОГАЛА ключ машины: `exportCabinet`,
+    # `configureCabinetBackup`, `advanceDeviceSetup`, `reportUplink` продолжали работать.
+    #
+    # Что код это умеет, было известно: `consenting_user` (`common/auth.py`) делает ровно
+    # такую проверку — и делал её в одиночку.
+    owner = token.device.owner
+    if owner is None or not owner.is_active:
+        return None
     return token.device
 
 

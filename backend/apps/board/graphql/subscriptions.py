@@ -12,6 +12,8 @@ from collections.abc import AsyncGenerator
 import strawberry
 from asgiref.sync import sync_to_async
 
+from common.ws_auth import token_from_connection_params
+
 from .types import BoardChange, BoardElement
 
 
@@ -45,7 +47,7 @@ class BoardSubscription:
         self, info: strawberry.Info, lesson_id: strawberry.ID
     ) -> AsyncGenerator[BoardChange, None]:
         ws = info.context["ws"]
-        token = (ws.connection_params or {}).get("token", "") if ws.connection_params else ""
+        token = token_from_connection_params(ws.connection_params if ws else None)
         if not await _may_watch(token, lesson_id):
             return
         async with ws.listen_to_channel("board.change", groups=[f"board_{lesson_id}"]) as messages:

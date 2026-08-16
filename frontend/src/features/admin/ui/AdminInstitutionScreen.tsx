@@ -22,6 +22,7 @@ import {
   useUpdateInstitutionMutation,
   useUpdateMembershipMutation,
 } from '@/entities/graphql/generated';
+import { failureText } from '@/shared/lib/requestFailure';
 import { Badge, type BadgeTone, Button, ErrorState, Input, Select, SelectField, TextField } from '@/shared/ui';
 
 import { AdminLayout } from './AdminLayout';
@@ -90,19 +91,36 @@ function SettingsSection({ institution, onDone }: { institution: Institution; on
   const [updateInstitution, { loading: savingInst }] = useUpdateInstitutionMutation();
   const [updateBranding, { loading: savingBrand }] = useUpdateBrandingMutation();
 
+  // 🔴 Отказ либо обработан, либо показан — третьего нет (промпт 24 §Б1).
+  // Здесь стояло `await updateInstitution(...)` без перехвата: сервер отказывал, форма
+  // закрывалась как ни в чём не бывало, и админ узнавал о потере правок в следующий заход.
+  const [failed, setFailed] = useState<string | null>(null);
+
+  const act = async (run: () => Promise<unknown>) => {
+    setFailed(null);
+    try {
+      await run();
+      onDone();
+    } catch (error) {
+      setFailed(failureText(error));
+    }
+  };
+
   async function saveSettings(e: FormEvent) {
     e.preventDefault();
     if (!name.trim()) return;
-    await updateInstitution({ variables: { id: institution.id, input: { name, address, website } } });
-    onDone();
+    await act(() =>
+      updateInstitution({ variables: { id: institution.id, input: { name, address, website } } }),
+    );
   }
 
   async function saveBranding(e: FormEvent) {
     e.preventDefault();
-    await updateBranding({
-      variables: { institutionId: institution.id, branding: { ...brand, primaryColor: color } },
-    });
-    onDone();
+    await act(() =>
+      updateBranding({
+        variables: { institutionId: institution.id, branding: { ...brand, primaryColor: color } },
+      }),
+    );
   }
 
   return (
@@ -123,6 +141,13 @@ function SettingsSection({ institution, onDone }: { institution: Institution; on
           onChange={(e) => setAddress(e.target.value)}
         />
         <div className={styles.actionsRow}>
+          {/* Отказ виден там же, где нажимали: уводить админа искать его в другое место
+              незачем — он в этот момент смотрит на кнопку. */}
+          {failed && (
+            <p role="alert" className={styles.formError}>
+              {t(failed)}
+            </p>
+          )}
           <Button type="submit" variant="primary" size="sm" loading={savingInst}>
             {t('settings.save')}
           </Button>
@@ -168,6 +193,17 @@ function MembersSection({
   const [updateMembership] = useUpdateMembershipMutation();
   const [removeMember] = useRemoveMemberMutation();
 
+  // 🔴 Одобрение и удаление участника молчали при отказе (промпт 24 §Б1): строка в списке
+  // не менялась, и админ жал ещё раз, пока не решал, что сломан весь экран.
+  const act = async (run: () => Promise<unknown>) => {
+    setErr('');
+    try {
+      await run();
+    } catch (error) {
+      setErr(t(failureText(error)));
+    }
+  };
+
   async function invite(e: FormEvent) {
     e.preventDefault();
     setErr('');
@@ -206,10 +242,12 @@ function MembersSection({
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={async () => {
-                    await updateMembership({ variables: { id: m.id, status: 'ACTIVE' } });
-                    await refetch();
-                  }}
+                  onClick={() =>
+                    void act(async () => {
+                      await updateMembership({ variables: { id: m.id, status: 'ACTIVE' } });
+                      await refetch();
+                    })
+                  }
                 >
                   {t('members.approve')}
                 </Button>
@@ -226,10 +264,12 @@ function MembersSection({
                       ? t('members.cannotRemoveLast')
                       : undefined
                 }
-                onClick={async () => {
-                  await removeMember({ variables: { id: m.id } });
-                  await refetch();
-                }}
+                onClick={() =>
+                  void act(async () => {
+                    await removeMember({ variables: { id: m.id } });
+                    await refetch();
+                  })
+                }
               >
                 {t('members.remove')}
               </Button>

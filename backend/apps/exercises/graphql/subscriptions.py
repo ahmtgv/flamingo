@@ -11,6 +11,8 @@ from collections.abc import AsyncGenerator
 import strawberry
 from asgiref.sync import sync_to_async
 
+from common.ws_auth import token_from_connection_params
+
 from .types import WordShown
 
 
@@ -48,7 +50,7 @@ class DictionarySubscription:
         self, info: strawberry.Info, session_id: strawberry.ID
     ) -> AsyncGenerator[WordShown, None]:
         ws = info.context["ws"]
-        token = (ws.connection_params or {}).get("token", "") if ws.connection_params else ""
+        token = token_from_connection_params(ws.connection_params if ws else None)
         if not await _may_watch(token, session_id):
             return
         async with ws.listen_to_channel("dict.shown", groups=[f"dict_{session_id}"]) as messages:

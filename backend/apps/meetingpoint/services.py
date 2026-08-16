@@ -370,7 +370,14 @@ def close_abandoned_sessions(*, now: dt.datetime | None = None) -> list:
         session.status = SessionStatus.ENDED.value
         # То, что известно: машина в последний раз давала о себе знать тогда-то. «Сейчас» —
         # это выдуманная длительность, а её мы не пишем.
-        session.end_at = last_seen
+        #
+        # 🔴 Но не РАНЬШЕ НАЧАЛА (найдено аудитом 17.08). `last_seen` — это метка машины, и
+        # до 17.08 её двигал только замер канала на шаге 4 мастера, то есть она могла быть
+        # недельной давности. Занятие закрывалось с `end_at < start_at`, и это уезжало
+        # в дневник ученика: «занятие длилось минус трое суток».
+        #
+        # Невозможное состояние, записанное «честно», — хуже выдуманной длительности.
+        session.end_at = max(last_seen, session.start_at)
         session.closed_automatically = True
         session.save(update_fields=["status", "end_at", "closed_automatically", "updated_at"])
         _write_the_diary(session)

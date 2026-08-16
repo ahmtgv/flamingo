@@ -3477,6 +3477,11 @@ export type CompleteDeviceSetupMutationVariables = Exact<{ [key: string]: never;
 
 export type CompleteDeviceSetupMutation = { __typename?: 'Mutation', completeDeviceSetup: { __typename?: 'Device', id: string, setup: { __typename?: 'DeviceSetup', step: number, completed: boolean, backupKind: BackupKind, backupConfiguredAt?: string | null, cloudCopyEnabled: boolean, lastBackupAt?: string | null, backupDue: boolean } } };
 
+export type HostHeartbeatMutationVariables = Exact<{ [key: string]: never; }>;
+
+
+export type HostHeartbeatMutation = { __typename?: 'Mutation', hostHeartbeat: { __typename?: 'HostPresence', slug: string, online: boolean } };
+
 export type LookupWordQueryVariables = Exact<{
   lemma: Scalars['String']['input'];
 }>;
@@ -7474,6 +7479,39 @@ export function useCompleteDeviceSetupMutation(baseOptions?: Apollo.MutationHook
 export type CompleteDeviceSetupMutationHookResult = ReturnType<typeof useCompleteDeviceSetupMutation>;
 export type CompleteDeviceSetupMutationResult = Apollo.MutationResult<CompleteDeviceSetupMutation>;
 export type CompleteDeviceSetupMutationOptions = Apollo.BaseMutationOptions<CompleteDeviceSetupMutation, CompleteDeviceSetupMutationVariables>;
+export const HostHeartbeatDocument = gql`
+    mutation HostHeartbeat {
+  hostHeartbeat {
+    slug
+    online
+  }
+}
+    `;
+export type HostHeartbeatMutationFn = Apollo.MutationFunction<HostHeartbeatMutation, HostHeartbeatMutationVariables>;
+
+/**
+ * __useHostHeartbeatMutation__
+ *
+ * To run a mutation, you first call `useHostHeartbeatMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useHostHeartbeatMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [hostHeartbeatMutation, { data, loading, error }] = useHostHeartbeatMutation({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useHostHeartbeatMutation(baseOptions?: Apollo.MutationHookOptions<HostHeartbeatMutation, HostHeartbeatMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<HostHeartbeatMutation, HostHeartbeatMutationVariables>(HostHeartbeatDocument, options);
+      }
+export type HostHeartbeatMutationHookResult = ReturnType<typeof useHostHeartbeatMutation>;
+export type HostHeartbeatMutationResult = Apollo.MutationResult<HostHeartbeatMutation>;
+export type HostHeartbeatMutationOptions = Apollo.BaseMutationOptions<HostHeartbeatMutation, HostHeartbeatMutationVariables>;
 export const LookupWordDocument = gql`
     query LookupWord($lemma: String!) {
   lookupWord(lemma: $lemma) {

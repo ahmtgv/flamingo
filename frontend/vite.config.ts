@@ -63,6 +63,9 @@ export default defineConfig({
   },
   test: {
     globals: true,
+    // e2e/ — прогоны Playwright, у них свой запускатель и свой \`test\`.
+    // Без исключения vitest пытается их выполнить и падает на чужом импорте.
+    exclude: ['node_modules/**', 'e2e/**', 'dist/**'],
     environment: 'jsdom',
     setupFiles: './src/test/setup.ts',
   },

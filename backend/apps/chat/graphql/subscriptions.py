@@ -14,6 +14,8 @@ from collections.abc import AsyncGenerator
 import strawberry
 from asgiref.sync import sync_to_async
 
+from common.ws_auth import token_from_connection_params
+
 from .types import ChannelMessage
 
 
@@ -71,7 +73,7 @@ class ChatSubscription:
         self, info: strawberry.Info, channel_id: strawberry.ID
     ) -> AsyncGenerator[ChannelMessage, None]:
         ws = info.context["ws"]
-        token = (ws.connection_params or {}).get("token", "") if ws.connection_params else ""
+        token = token_from_connection_params(ws.connection_params if ws else None)
         viewer_id = await _authorize_member(token, channel_id)
         if viewer_id is None:
             return
