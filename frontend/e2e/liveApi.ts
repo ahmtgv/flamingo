@@ -11,8 +11,23 @@
 
 const API = process.env.FLAMINGO_API ?? 'https://api.flamingo.plus/graphql/';
 
+async function withRetries(run: () => Promise<Response>, attempts = 4): Promise<Response> {
+  let last: unknown;
+  for (let i = 0; i < attempts; i += 1) {
+    try {
+      return await run();
+    } catch (error) {
+      last = error;
+      await new Promise((r) => setTimeout(r, 400 * (i + 1)));
+    }
+  }
+  throw last;
+}
+
 async function gql<T>(query: string, variables: Record<string, unknown>, auth?: string): Promise<T> {
-  const res = await fetch(API, {
+  // ⚠️ Те же повторы, что в прокси: сеть до боевого сервера отсюда нестабильна, а ложный
+  // красный в сквозном прогоне стоит дороже лишней секунды ожидания.
+  const res = await withRetries(() => fetch(API, {
     method: 'POST',
     headers: {
       'content-type': 'application/json',
@@ -22,7 +37,7 @@ async function gql<T>(query: string, variables: Record<string, unknown>, auth?: 
       ...(auth ? { authorization: auth } : {}),
     },
     body: JSON.stringify({ query, variables }),
-  });
+  }));
   const json = (await res.json()) as { data?: T; errors?: { message: string }[] };
   if (json.errors?.length) throw new Error(`API: ${json.errors[0].message}`);
   if (!json.data) throw new Error('API: пустой ответ');

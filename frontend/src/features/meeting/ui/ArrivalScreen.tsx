@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
 
-import { useMeetingPointQuery } from '@/entities/graphql/generated';
+import { useJoinSessionMutation, useMeetingPointQuery } from '@/entities/graphql/generated';
 import { ErrorState } from '@/shared/ui';
 
 import { arrivalState, availableWithoutHost, minutesUntil } from '../arrival';
@@ -33,6 +33,34 @@ export function ArrivalScreen() {
     // Преподаватель откроет комнату — страница откроет её сама, без «обновите».
     pollInterval: 15_000,
   });
+  const [joinSession] = useJoinSessionMutation();
+
+  /**
+   * 🔴 ВОЙТИ — ЗНАЧИТ ОТМЕТИТЬСЯ (найдено аудитом 17.08).
+   *
+   * Здесь стоял простой `navigate(...)`: ученик попадал в комнату, комната брала токен
+   * через `room_token_for`, которому присутствие не нужно, и `Attendance` НЕ СОЗДАВАЛСЯ.
+   * `joinSession` звали только из расписания — то есть отмечались лишь те, кто вошёл
+   * из кабинета.
+   *
+   * В дневник ребёнка после урока уезжало «отсутствовал» — ложный факт о нём самом,
+   * записанный про урок, на котором он был. И преподаватель в списке участников никогда
+   * не видел «в комнате».
+   *
+   * ⚠️ Отказ отметки не запирает дверь: не пустить ребёнка на урок из-за неудавшейся
+   * записи присутствия — хуже, чем пустая строка в журнале. Но и молчать нельзя, поэтому
+   * причина остаётся в консоли, а не проглатывается.
+   */
+  const enterRoom = async (sessionId: string | undefined, audioOnly: boolean) => {
+    if (!sessionId) return;
+    try {
+      await joinSession({ variables: { sessionId } });
+    } catch (error) {
+      // Урок важнее журнала: входим всё равно.
+      console.warn('joinSession отказал, входим без отметки присутствия', error);
+    }
+    navigate(`/sessions/${sessionId}/room${audioOnly ? '?audio=1' : ''}`);
+  };
 
   if (loading && !data) return <p className={styles.note}>…</p>;
   if (error || !data?.meetingPoint) {
@@ -71,7 +99,7 @@ export function ArrivalScreen() {
             <button
               type="button"
               className={styles.btn}
-              onClick={() => navigate(`/sessions/${next?.sessionId}/room`)}
+              onClick={() => void enterRoom(next?.sessionId, false)}
             >
               {t('arrival.enter')}
             </button>
@@ -80,7 +108,7 @@ export function ArrivalScreen() {
             <button
               type="button"
               className={styles.btnGhost}
-              onClick={() => navigate(`/sessions/${next?.sessionId}/room?audio=1`)}
+              onClick={() => void enterRoom(next?.sessionId, true)}
             >
               {t('arrival.enterAudio')}
             </button>

@@ -18,10 +18,28 @@ import type { Page } from '@playwright/test';
  * Наружу идёт тот же адрес, тот же заголовок `Authorization` и тот же `Origin`, каким
  * представляется приложение, — то есть сервер видит ровно то, что увидел бы от приложения.
  */
+/**
+ * ⚠️ С ПОВТОРАМИ. Сеть до боевого сервера из этой песочницы отваливается через раз
+ * (`TypeError: fetch failed`, `UND_ERR_CONNECT_TIMEOUT`) — прогон краснел на исправном
+ * продукте. Один такой ложный красный обесценивает всю проверку: ему перестают верить.
+ */
+async function fetchWithRetries(api: string, init: RequestInit, attempts = 4): Promise<Response> {
+  let last: unknown;
+  for (let i = 0; i < attempts; i += 1) {
+    try {
+      return await fetch(api, init);
+    } catch (error) {
+      last = error;
+      await new Promise((r) => setTimeout(r, 400 * (i + 1)));
+    }
+  }
+  throw last;
+}
+
 export async function proxyLiveApi(page: Page, api = 'https://api.flamingo.plus/graphql/') {
   await page.route(api, async (route) => {
     const request = route.request();
-    const upstream = await fetch(api, {
+    const upstream = await fetchWithRetries(api, {
       method: request.method(),
       headers: {
         'content-type': 'application/json',
