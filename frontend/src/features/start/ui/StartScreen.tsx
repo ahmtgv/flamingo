@@ -135,8 +135,16 @@ export function StartScreen() {
         <div className={styles.hi}>
           <h1 className={styles.hiName}>
             {/* §24: «Здравствуйте, Люция Валерьевна». Форму собирает сервер — к преподавателю
-                имя-отчество, к ученику имя, и без отчества хвоста не остаётся. */}
-            {t(isTeacher ? 'greetingTeacher' : 'greeting', { name: me?.displayName ?? '' })}
+                имя-отчество, к ученику имя, и без отчества хвоста не остаётся.
+
+                🔴 Имени может не быть — и тогда приветствие БЕЗ запятой (найдено сквозным
+                прогоном 17.08). Здесь стояло `me?.displayName ?? ''`, и при неотвеченном
+                `me` заголовок читался «Привет,» — висящая запятая на месте человека.
+                Ровно та же подмена, что дала «Вход выполнен — .» на «Готово»: умолчание,
+                неотличимое от настоящего значения (промпт 24 §Б1). */}
+            {me?.displayName
+              ? t(isTeacher ? 'greetingTeacher' : 'greeting', { name: me.displayName })
+              : t(isTeacher ? 'greetingTeacherNoName' : 'greetingNoName')}
           </h1>
           <span className={styles.hiDate}>{headerStamp(now)}</span>
         </div>

@@ -241,7 +241,10 @@ export function PairingStep({ onPaired }: { onPaired: () => void }) {
         </div>
         <p className={styles.p}>{t('setup.pairing.instruction')}</p>
 
-        <output className={styles.code} aria-live="polite">
+        {/* Метка для сквозного прогона: в раме есть свой `output` («урок не идёт»), и
+            выбор «первого на странице» брал именно его. Опора на порядок элементов —
+            то же гадание, что опора на регистр имён; лучше назвать явно. */}
+        <output className={styles.code} aria-live="polite" data-testid="pairing-code">
           {code ? formatPairingCode(code) : '· · ·'}
         </output>
 

@@ -14,7 +14,9 @@
     "codegen": "graphql-codegen --config codegen.ts",
     "vendor:seedum": "node scripts/vendor-seedum-assets.mjs",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "e2e": "playwright test",
+    "e2e:wizard": "playwright test e2e/wizard.spec.ts"
   },
   "dependencies": {
     "@apollo/client": "^3.12.3",
@@ -39,6 +41,7 @@
     "@graphql-codegen/typescript": "^4.1.2",
     "@graphql-codegen/typescript-operations": "^4.4.0",
     "@graphql-codegen/typescript-react-apollo": "^4.3.2",
+    "@playwright/test": "^1.62.1",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.1.0",
     "@testing-library/user-event": "^14.5.2",
