@@ -1,0 +1,79 @@
+# 🔴 СТОРОЖ Р-7: связка ключей настоящая, а не подделка в памяти процесса.
+#
+# Подделка `keyring` прожила в продукте с первого дня и не была видна ни одному из 1148
+# зелёных тестов. Крейт без платформенной фичи собирается с хранилищем В ПАМЯТИ ПРОЦЕССА:
+# `set_password` отвечает `Ok(())`, чтение в том же процессе возвращает записанное — всё
+# выглядит исправным. Ключ машины при этом не доживал до перезапуска, то есть приложение
+# переставало быть связанной машиной, а урок ведётся именно с неё.
+#
+# Вернётся молча: `cargo update`, смена фичи, мажорное обновление крейта. Здесь это станет
+# видно раньше, чем на ноутбуке владельца.
+#
+# ⚠️ Отдельный workflow, а не шаг в `desktop-release`: релиз запускается вручную по тегу,
+# то есть редко, а регресс приезжает с любым обновлением зависимостей. Проверка должна идти
+# на каждый толчок в ветку, где меняются зависимости оболочки.
+#
+# ⚠️ Только macOS: подделка — платформенная история, и `security` есть лишь здесь. На Windows
+# и Linux у крейта свои хранилища и понадобится свой сторож — это отдельная задача, и пока
+# её нет, честнее это написать, чем сделать вид, что проверено везде.
+
+name: keychain-guard
+
+on:
+  push:
+    paths:
+      - 'desktop/src-tauri/Cargo.toml'
+      - 'desktop/src-tauri/Cargo.lock'
+      - 'desktop/src-tauri/tests/**'
+      - 'desktop/src-tauri/src/main.rs'
+      - '.github/workflows/keychain-guard.yml'
+  pull_request:
+    paths:
+      - 'desktop/src-tauri/Cargo.toml'
+      - 'desktop/src-tauri/Cargo.lock'
+      - 'desktop/src-tauri/tests/**'
+      - 'desktop/src-tauri/src/main.rs'
+  workflow_dispatch:
+
+jobs:
+  keychain-is-real:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      # Раннер приходит с запертой связкой и без связки «Вход». Заводим свою, временную:
+      # тест пишет туда и проверяет, видит ли запись ДРУГОЙ процесс. Пароль здесь не секрет —
+      # связка живёт минуты и умирает вместе с раннером; настоящих ключей в ней не бывает.
+      - name: Завести временную связку ключей
+        run: |
+          security create-keychain -p ci-temp ci.keychain
+          security set-keychain-settings -lut 900 ci.keychain
+          security unlock-keychain -p ci-temp ci.keychain
+          security list-keychains -d user -s ci.keychain $(security list-keychains -d user | tr -d '"')
+          security default-keychain -s ci.keychain
+
+      - name: Связка настоящая, а не подделка
+        working-directory: desktop/src-tauri
+        run: cargo test --release --test keychain_is_real -- --nocapture
+
+      # ⚠️ Проверка проверки. Если тест однажды перестанет уметь падать — а он уже дважды
+      # был написан так, что не умел, — сторож станет украшением. Собираем НАРОЧНО без фичи
+      # и требуем красного: зелёное здесь означает, что проверять больше нечем.
+      - name: А теперь докажи, что умеешь падать
+        working-directory: desktop/src-tauri
+        run: |
+          cp Cargo.toml /tmp/Cargo.toml.bak
+          sed -i '' 's/^keyring = .*/keyring = { version = "3", default-features = false }/' Cargo.toml
+          if cargo test --release --test keychain_is_real >/dev/null 2>&1; then
+            cp /tmp/Cargo.toml.bak Cargo.toml
+            echo "::error::Сторож не падает на подделке — значит он ничего не сторожит."
+            exit 1
+          fi
+          cp /tmp/Cargo.toml.bak Cargo.toml
+          echo "✓ на подделке краснеет, как и должен"
+
+      - name: Убрать временную связку
+        if: always()
+        run: security delete-keychain ci.keychain || true

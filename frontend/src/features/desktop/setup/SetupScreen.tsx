@@ -9,6 +9,8 @@ import { ConsentStep } from './ConsentStep';
 import { DoneStep } from './DoneStep';
 import { PairingStep } from './PairingStep';
 import { SETUP_STEPS, type SetupStep, stepFromNumber, stepNumber } from './firstRun';
+import { machineKeyInMemory } from '../machineKey';
+
 import styles from './setup.module.css';
 
 const IS_PREVIEW = import.meta.env.VITE_PREVIEW === '1';
@@ -42,7 +44,22 @@ export function SetupScreen({ onFinished }: { onFinished: () => void }) {
   // вместе с демо-слоем.
   // Как далеко машина дошла НА САМОМ ДЕЛЕ — с сервера. Это не то же, что показанный шаг:
   // вернувшись на второй, человек остаётся дошедшим до четвёртого.
-  const reached: SetupStep = stepFromNumber(machine?.setup?.step ?? 1);
+  const serverStep: SetupStep = stepFromNumber(machine?.setup?.step ?? 1);
+
+  // 🔴 СВЯЗАННУЮ МАШИНУ НЕ ПРОСЯТ СВЯЗАТЬСЯ ЗАНОВО (строка 4 таблицы состояний, 16.08).
+  //
+  // Шаг машины и факт связывания живут в разных местах: шаг — на сервере, ключ — в связке
+  // ключей ОС. Счётчик шага двигает только «Дальше», поэтому у машины, которая связалась и
+  // на этом остановилась, он равен единице — и мастер показывал шаг 1 со свежим кодом,
+  // предлагая связать уже связанное.
+  //
+  // Чем это опасно: повторное связывание заводит ВТОРУЮ запись машины на ту же машину.
+  // В кабинете (лист D8) их станет две, и «Отозвать» отзовёт не ту — то есть кнопка для
+  // украденного ноутбука перестанет значить, что написано.
+  //
+  // Ключ в связке и есть доказательство, что шаг 1 пройден: другого у нас нет и не нужно.
+  const paired = machine != null || machineKeyInMemory() != null;
+  const reached: SetupStep = paired && serverStep === 'pairing' ? 'cabinet' : serverStep;
   const resumed: SetupStep = IS_PREVIEW ? 'pairing' : reached;
   const step: SetupStep = local ?? resumed;
 
