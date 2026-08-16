@@ -20,6 +20,7 @@ export default defineConfig({
   workers: 1,
   reporter: [['list']],
   use: {
+    baseURL: 'http://localhost:4180',
     ...devices['Desktop Safari'],
     // Размер окна приложения из tauri.conf.json: экран обязан умещаться без прокрутки,
     // и проверять это надо на том размере, с которым приложение открывается.
