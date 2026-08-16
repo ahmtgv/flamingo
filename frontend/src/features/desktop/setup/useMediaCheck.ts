@@ -107,6 +107,14 @@ export function useMediaCheck(): MediaCheck {
         if (audioRef.current) audioRef.current.raf = raf;
       };
       audioRef.current = { ctx, raf: requestAnimationFrame(loop) };
+
+      // 🔴 WebKit создаёт AudioContext в состоянии «приостановлен», пока не случится жест
+      // пользователя. Анализатор при этом читает тишину, и полоса уровня не шевелится —
+      // ровно то, что видел владелец 16.08: «полоса не реагирует ни на голос, ни на шум».
+      // Оживало после переключения камеры, потому что переключение — это и есть жест.
+      //
+      // Просим возобновить сразу; отказ не роняет проверку — камера от него не зависит.
+      if (ctx.state === 'suspended') void ctx.resume().catch(() => undefined);
     },
     [teardown],
   );

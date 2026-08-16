@@ -51,7 +51,13 @@ export function CheckStep({ onNext }: { onNext: () => void }) {
 
   // Превью — локальное, поток наружу не уходит (CLAUDE.md §2.1).
   useEffect(() => {
-    if (videoRef.current && media.stream) videoRef.current.srcObject = media.stream;
+    const el = videoRef.current;
+    if (!el || !media.stream) return;
+    el.srcObject = media.stream;
+    // 🔴 В WKWebView одного `srcObject` мало: `autoPlay` там не срабатывает для потока,
+    // и превью остаётся серым прямоугольником при живой камере — зелёный огонёк горит,
+    // картинки нет (найдено владельцем 16.08). Просим воспроизведение явно.
+    void el.play().catch(() => undefined);
   }, [media.stream]);
 
   // Выбор запоминается: урок откроет именно эти устройства.
