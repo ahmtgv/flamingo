@@ -102,6 +102,10 @@ export function PairingStep({ onPaired }: { onPaired: () => void }) {
   // тот, который у него уже открыт в браузере, к этому моменту не подойдёт.
   const [renewed, setRenewed] = useState(false);
   const [copied, setCopied] = useState<'ok' | 'failed' | null>(null);
+  // 🔴 §2.5: отдельно от `failure` — это НЕ сетевая беда. Сервер ответил как надо, ключ
+  // пришёл; не получилось положить его в связку ключей на этой машине. Лечится это другим,
+  // и сказать надо другое.
+  const [keychainFailed, setKeychainFailed] = useState(false);
   const secretRef = useRef<string | null>(null);
   const doneRef = useRef(false);
 
@@ -194,7 +198,20 @@ export function PairingStep({ onPaired }: { onPaired: () => void }) {
         window.clearInterval(id);
         // 🔒 Straight into the OS keychain — never a config file, never localStorage
         // (PROMPT_14 §2.2.2). `rememberMachineKey` is the only thing that ever holds it.
-        await rememberMachineKey(token);
+        //
+        // 🔴 РЕЗУЛЬТАТ ПРОВЕРЯЕТСЯ (промпт 21 §2.5). Здесь стояло `await rememberMachineKey(token)`
+        // без проверки, а при неудаче функция не кладёт ключ ДАЖЕ В ПАМЯТЬ. Получалось: ключа
+        // нет ни в связке, ни в памяти, мастер уходит на шаг 2, и там «Сервер не принял запрос»
+        // — про причину, случившуюся шагом раньше. Третий молчащий отказ за три дня.
+        //
+        // Не сохранили — со шага 1 НЕ УХОДИМ: связывание не завершено, и делать вид, что
+        // завершено, значит отправить человека искать поломку не там, где она есть.
+        const stored = await rememberMachineKey(token);
+        if (!stored) {
+          doneRef.current = false;
+          setKeychainFailed(true);
+          return;
+        }
         // 🔴 §Б0-септ: сессия преподавателя — туда же, где её держит браузер. Без этого шага
         // мастер доходил до конца, а «Открыть кабинет» вела обратно в мастер: весь кабинет
         // стоит за пользовательской сессией. Ключ машины кабинета не открывает и не должен.
@@ -253,9 +270,18 @@ export function PairingStep({ onPaired }: { onPaired: () => void }) {
         {/* 🔴 Заглушка, выдающая себя за истёкший код, недопустима: «истёк» говорится только
             про код, который БЫЛ. Нет кода — сказано, что именно не получилось. */}
         {/* Код обновился сам — сказать об этом, иначе человек введёт в браузере старый. */}
-        {renewed && !failure && (
+        {renewed && !failure && !keychainFailed && (
           <p className={styles.warn} role="status">
             {t('setup.pairing.renewed')}
+          </p>
+        )}
+
+        {/* 🔴 §2.5. Ключ пришёл, а лечь в связку не смог. Раньше здесь не было НИЧЕГО:
+            мастер уходил на шаг 2, и человек читал «Сервер не принял запрос» — про причину,
+            случившуюся шагом раньше и совсем в другом месте. */}
+        {keychainFailed && (
+          <p className={styles.warn} role="alert">
+            {t('setup.pairing.keychainFailed')}
           </p>
         )}
 

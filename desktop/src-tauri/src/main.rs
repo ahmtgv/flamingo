@@ -40,8 +40,19 @@ fn keyring() -> Result<keyring::Entry, String> {
 
 /// Положить ключ машины в связку ключей. Вызывается ровно один раз — после связывания.
 #[tauri::command]
-fn store_machine_key(token: String) -> Result<(), String> {
-    keyring()?.set_password(&token).map_err(|e| e.to_string())
+fn store_machine_key(app: tauri::AppHandle, token: String) -> Result<(), String> {
+    // 🔴 §2.5: запись ключа падала МОЛЧА. Теперь её исход попадает в лог дословно — не
+    // «не получилось», а то, что ответила связка. Сам ключ в лог не попадает и не попадёт.
+    match keyring().and_then(|e| e.set_password(&token).map_err(|x| x.to_string())) {
+        Ok(()) => {
+            note(&app, "ключ машины: записан в связку");
+            Ok(())
+        }
+        Err(e) => {
+            note(&app, &format!("ключ машины: 🔴 НЕ ЗАПИСАН — {e}"));
+            Err(e)
+        }
+    }
 }
 
 /// Есть ли ключ — без выдачи ключа.

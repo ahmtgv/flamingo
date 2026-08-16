@@ -35,6 +35,7 @@ import { SubjectScreen } from '@/features/subject';
 import { isDesktop } from '@/features/desktop/bridge';
 import { DesktopShell } from '@/features/desktop/DesktopShell';
 import { withReturnTo } from '@/shared/lib/returnTo';
+import { useThisDeviceQuery } from '@/entities/graphql/generated';
 import { useSession } from '@/shared/hooks/useSession';
 
 import { entryRoute } from './entryRoute';
@@ -142,10 +143,41 @@ function SetupScreenRoute() {
   return <SetupScreen onFinished={() => navigate('/start')} />;
 }
 
+/**
+ * 🔴 МАСТЕР ПРИНАДЛЕЖИТ МАШИНЕ, А НЕ СЕАНСУ (найдено 16.08 на живом проходе).
+ *
+ * Пройдя связывание, приложение перезапустили — и оно открыло КАБИНЕТ, хотя мастер стоял на
+ * шаге 2. Обещание на самом же экране — «настройку можно прервать: приложение вернёт на тот
+ * же шаг» — перестало быть правдой.
+ *
+ * Почему: до §Б0-септ пользовательской сессии в приложении не бывало, и «не вошёл ⇒ мастер»
+ * покрывало все случаи. Связывание начало выдавать сессию, и человек стал «вошедшим» уже
+ * на шаге 1 — с этого момента корень уводил его на `/start` мимо шагов 2–5.
+ *
+ * Ровно тот же механизм, что в Р-2 и Р-3 (см. REGRESSION_LOG): правка сделала возможным
+ * состояние, которого раньше не бывало, и правило, написанное без него, стало неверным.
+ *
+ * Настройка не косметика: на шаге 2 настраивается ОБЯЗАТЕЛЬНАЯ копия кабинета (§19.1), на
+ * шаге 3 — согласия. Пропустить их значит начать первый урок без копии данных детей.
+ */
 function RootRedirect() {
   const { status } = useSession();
+  const { data, loading } = useThisDeviceQuery({
+    skip: !isDesktop(),
+    fetchPolicy: 'cache-and-network',
+  });
+
   if (status === 'unknown') return <FullScreenLoader />;
-  return <Navigate to={status === 'authenticated' ? '/start' : entryRoute()} replace />;
+  if (status !== 'authenticated') return <Navigate to={entryRoute()} replace />;
+
+  // В браузере машины нет и мастера нет — сразу в кабинет.
+  if (!isDesktop()) return <Navigate to="/start" replace />;
+
+  // Ответа ещё нет: ждём. Отправить в кабинет «пока не знаем» — это и есть тот пропуск.
+  if (loading && !data) return <FullScreenLoader />;
+
+  const done = data?.thisDevice?.setup?.completed ?? false;
+  return <Navigate to={done ? '/start' : '/setup'} replace />;
 }
 
 export function AppRouter() {

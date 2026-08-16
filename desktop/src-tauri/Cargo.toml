@@ -12,7 +12,13 @@ tauri-build = { version = "2", features = [] }
 # `tray-icon`: свёрнутое окно не заканчивает урок — трей это то, во что оно сворачивается (D1).
 tauri = { version = "2", features = ["tray-icon"] }
 # 🔒 Ключ машины живёт только здесь: связка ключей ОС, не файл и не localStorage (§19.4).
-keyring = "3"
+#
+# 🔴 `features = ["apple-native"]` — НЕ УКРАШЕНИЕ (промпт 21 §2.5). Без явной платформенной
+# фичи keyring 3 собирается с ПОДДЕЛЬНЫМ хранилищем в памяти процесса: `set_password` отвечает
+# `Ok(())`, `security find-generic-password` не находит ничего, а другой процесс читает
+# `NoEntry`. Ключ машины не доживал до перезапуска — и обещание «ключ живёт в связке ключей ОС»
+# было неправдой с самого начала.
+keyring = { version = "3", features = ["apple-native"] }
 tauri-plugin-dialog = "2.0.0-rc.8"
 tauri-plugin-opener = "2.5.4"
 serde = { version = "1.0.229", features = ["derive"] }
