@@ -18,6 +18,7 @@ set -u
 
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 APP_BUILT="$REPO/desktop/src-tauri/target/release/bundle/macos/Flamingo.app"
+DMG="$REPO/desktop/src-tauri/target/release/bundle/dmg/Flamingo_0.1.0_aarch64.dmg"
 INSTALLED="/Applications/Flamingo.app"
 CABINET="$HOME/Library/Application Support/plus.flamingo.desktop"
 BIN="Contents/MacOS/flamingo-desktop"
@@ -34,7 +35,7 @@ echo "━━━ 2 · УБРАТЬ ВСЕ КОПИИ"
 COPIES=$(mdfind "kMDItemFSName == 'Flamingo.app'" 2>/dev/null | grep -v "^/Volumes/")
 if [ -n "$COPIES" ]; then
   echo "$COPIES" | while read -r p; do
-    [ "$p" = "$APP_BUILT" ] && { echo "  оставляю сборку: $p"; continue; }
+    [ "$p" = "$APP_BUILT" ] && continue   # её уберём в конце, после установки
     rm -rf "$p" && echo "  удалено: $p"
   done
 fi
@@ -58,19 +59,40 @@ fi
 
 echo
 echo "━━━ 4 · ПОСТАВИТЬ ЗАНОВО"
-if [ ! -d "$APP_BUILT" ]; then
-  echo "  ✗ сборки нет: $APP_BUILT"
-  echo "    Её делает исполнитель. Без неё ставить нечего."
+
+# Откуда ставим. Сборочная копия удаляется после установки (иначе в Launchpad две иконки),
+# поэтому при повторном запуске берём приложение из образа .dmg — он остаётся артефактом.
+MOUNT=""
+if [ -d "$APP_BUILT" ]; then
+  SRC="$APP_BUILT"
+elif [ -f "$DMG" ]; then
+  MOUNT="$(mktemp -d)"
+  hdiutil attach "$DMG" -nobrowse -quiet -mountpoint "$MOUNT" || { echo "  ✗ не удалось открыть образ"; exit 1; }
+  SRC="$MOUNT/Flamingo.app"
+  echo "  ставлю из образа: $DMG"
+else
+  echo "  ✗ ставить нечего: ни сборки, ни образа"
+  echo "    Сборку делает исполнитель."
   exit 1
 fi
-cp -R "$APP_BUILT" "$INSTALLED" || { echo "  ✗ не удалось скопировать"; exit 1; }
+cp -R "$SRC" "$INSTALLED" || { echo "  ✗ не удалось скопировать"; exit 1; }
+# Прибираем за собой: образ отмонтировать, сборочную копию убрать — она вторая иконка
+# в Launchpad, а `open -a Flamingo` выбирает из двух наугад (найдено владельцем 16.08).
+[ -n "$MOUNT" ] && hdiutil detach "$MOUNT" -quiet 2>/dev/null && rmdir "$MOUNT" 2>/dev/null
+[ -d "$APP_BUILT" ] && rm -rf "$APP_BUILT" && echo "  сборочная копия убрана (образ .dmg на месте)"
+
 xattr -dr com.apple.quarantine "$INSTALLED" 2>/dev/null
 touch "$INSTALLED"
 killall Dock 2>/dev/null
 
 echo
 echo "━━━ ИТОГ"
-echo "  копий на диске:  $(mdfind "kMDItemFSName == 'Flamingo.app'" 2>/dev/null | grep -vc "^/Volumes/") (сборка + установленная)"
+REMAIN=0
+while IFS= read -r f; do
+  [ -n "$f" ] && [ -d "$f" ] && case "$f" in /Volumes/*) ;; *) REMAIN=$((REMAIN+1));; esac
+done <<< "$(mdfind "kMDItemFSName == 'Flamingo.app'" 2>/dev/null)"
+if [ "$REMAIN" -le 1 ]; then echo "  копий на машине: 1 — /Applications/Flamingo.app"
+else echo "  ⚠️ КОПИЙ НА МАШИНЕ: $REMAIN"; mdfind "kMDItemFSName == 'Flamingo.app'" 2>/dev/null | sed 's/^/     /'; fi
 echo "  отпечаток:       $(fingerprint "$INSTALLED/$BIN")"
 echo "  подпись:         $(codesign -dv --verbose=2 "$INSTALLED" 2>&1 | grep -m1 '^Authority=' | cut -d= -f2- || echo 'нет')"
 echo "  ключ машины:     нет (это правильно — свяжем заново)"

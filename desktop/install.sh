@@ -23,12 +23,30 @@ BIN="Contents/MacOS/flamingo-desktop"
 fingerprint() { grep -ao "index-[A-Za-z0-9_-]\{8\}\.js" "$1" 2>/dev/null | sort -u | head -1; }
 
 echo "── Что собрано ──────────────────────────────"
-[ -d "$APP_BUILT" ] || { echo "✗ Сборки нет: $APP_BUILT"; echo "  Сначала пересборка — это задача исполнителя."; exit 1; }
+if [ ! -d "$APP_BUILT" ] && [ ! -f "$DMG" ]; then
+  echo "✗ Ставить нечего: ни сборки, ни образа. Пересборка — задача исполнителя."; exit 1
+fi
 
-BUILT_FP="$(fingerprint "$APP_BUILT/$BIN")"
+
+# Откуда ставим. Сборочная копия удаляется после установки (иначе в Launchpad две иконки),
+# поэтому при повторном запуске берём приложение из образа .dmg — он остаётся артефактом.
+MOUNT=""
+if [ -d "$APP_BUILT" ]; then
+  SRC="$APP_BUILT"
+elif [ -f "$DMG" ]; then
+  MOUNT="$(mktemp -d)"
+  hdiutil attach "$DMG" -nobrowse -quiet -mountpoint "$MOUNT" || { echo "  ✗ не удалось открыть образ"; exit 1; }
+  SRC="$MOUNT/Flamingo.app"
+  echo "  ставлю из образа: $DMG"
+else
+  echo "  ✗ ставить нечего: ни сборки, ни образа"
+  echo "    Сборку делает исполнитель."
+  exit 1
+fi
+BUILT_FP="$(fingerprint "$SRC/$BIN")"
 DIST_FP="$(ls "$DIST" 2>/dev/null | grep -o 'index-[A-Za-z0-9_-]\{8\}\.js' | head -1)"
 
-echo "  собрано:    $(date -r "$APP_BUILT" '+%d.%m %H:%M')"
+echo "  собрано:    $(date -r "$SRC" '+%d.%m %H:%M')"
 echo "  отпечаток:  ${BUILT_FP:-НЕ НАЙДЕН}"
 echo "  в dist:     ${DIST_FP:-нет}"
 
@@ -74,9 +92,14 @@ while IFS= read -r stray; do
 done <<< "$(mdfind "kMDItemFSName == 'Flamingo.app'" 2>/dev/null)"
 [ "$STRAYS" -eq 0 ] && echo "    других копий не найдено"
 
-cp -R "$APP_BUILT" "$INSTALLED" || { echo "✗ Не удалось скопировать в /Applications"; exit 1; }
+cp -R "$SRC" "$INSTALLED" || { echo "✗ Не удалось скопировать в /Applications"; exit 1; }
 # Снять карантин: установщик не подписан (§19.2), иначе система спросит про «неизвестного разработчика».
 xattr -dr com.apple.quarantine "$INSTALLED" 2>/dev/null
+
+# Прибираем за собой: образ отмонтировать, сборочную копию убрать — она вторая иконка
+# в Launchpad, а `open -a Flamingo` выбирает из двух наугад (найдено владельцем 16.08).
+[ -n "$MOUNT" ] && hdiutil detach "$MOUNT" -quiet 2>/dev/null && rmdir "$MOUNT" 2>/dev/null
+[ -d "$APP_BUILT" ] && rm -rf "$APP_BUILT" && echo "  сборочная копия убрана (образ .dmg на месте)"
 
 # 🔴 УСТОЙЧИВАЯ ПОДПИСЬ — ИНАЧЕ СВЯЗКА КЛЮЧЕЙ СПРАШИВАЕТ ПАРОЛЬ ПОСЛЕ КАЖДОГО ОБНОВЛЕНИЯ.
 #
