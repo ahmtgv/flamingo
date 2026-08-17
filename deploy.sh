@@ -67,10 +67,25 @@ if [ "$WHAT" = "all" ] || [ "$WHAT" = "server" ] || [ "$WHAT" = "site" ]; then
   sleep 3
 
   # API отвечает и пускает приложение — это ловил дефект CORS 15.08 утром.
-  H=$(curl -s -m 10 -X OPTIONS https://api.flamingo.plus/graphql/ \
-        -H 'Origin: tauri://localhost' -H 'Access-Control-Request-Method: POST' -D - -o /dev/null)
-  echo "$H" | grep -qi 'access-control-allow-origin: tauri://localhost' \
-    && ok "API пускает приложение" || bad "API НЕ пускает приложение — проверь выкат сервера"
+  # Три захода, а не один: 17.08 проверка сказала «НЕ пускает», а тот же запрос руками
+  # через минуту вернул заголовок. Одиночный запрос с таймаутом ловит не только поломку,
+  # но и любую помеху связи — и врёт про сервер, который жив.
+  API=""
+  for _ in 1 2 3; do
+    if curl -s -m 15 -X OPTIONS https://api.flamingo.plus/graphql/ \
+         -H 'Origin: tauri://localhost' -H 'Access-Control-Request-Method: POST' -D - -o /dev/null \
+       | grep -qi 'access-control-allow-origin: tauri://localhost'; then
+      API=1; break
+    fi
+    sleep 5
+  done
+  if [ -n "$API" ]; then
+    ok "API пускает приложение"
+  else
+    bad "API НЕ пускает приложение (три попытки) — проверь выкат сервера"
+    echo "    Живой ли контейнер: ssh root@82.147.71.204 'cd /opt/flamingo && \\"
+    echo "      docker compose -f infra/prod/docker-compose.prod.yml --env-file .env.production ps'"
+  fi
 
   # Сайт отдаёт приложение, а /graphql/ — заглушку. Это ловило дефект 404.html.
   curl -s -m 10 -o /dev/null -w '' https://flamingo.plus/link \
