@@ -97,7 +97,10 @@ if [ "$WHAT" = "all" ] || [ "$WHAT" = "server" ] || [ "$WHAT" = "site" ]; then
   echo "  жду сборку сайта (до 6 минут)…"
   SEEN=""
   for _ in $(seq 1 24); do
-    if curl -s -m 10 https://flamingo.plus/graphql/ | grep -q 'API живёт на другом адресе'; then
+    # -L обязателен: Cloudflare Pages приводит /no-api.html к «красивому» /no-api и отвечает
+    # 308 с пустым телом. Без -L проверка искала текст там, где его нет, и объявляла живое
+    # правило потерянным (17.08, второй ложный тревожный сигнал за вечер).
+    if curl -sL -m 10 https://flamingo.plus/graphql/ | grep -q 'API живёт на другом адресе'; then
       SEEN=1; break
     fi
     sleep 15
