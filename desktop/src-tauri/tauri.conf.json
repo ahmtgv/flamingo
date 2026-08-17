@@ -4,7 +4,7 @@
   "version": "0.1.0",
   "identifier": "plus.flamingo.desktop",
   "build": {
-    "beforeBuildCommand": "bash ../build-all.sh",
+    "beforeBuildCommand": "bash build-all.sh",
     "frontendDist": "../../frontend/dist"
   },
   "app": {
