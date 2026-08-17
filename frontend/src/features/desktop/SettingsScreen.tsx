@@ -5,6 +5,7 @@ import {
   useExportCabinetMutation,
   useMyDevicesQuery,
   useRevokeDeviceMutation,
+  useThisDeviceQuery,
 } from '@/entities/graphql/generated';
 
 import {
@@ -42,6 +43,7 @@ export function SettingsScreen() {
   // Р5.5: кнопка снимает НАСТОЯЩУЮ копию — до этой фазы она лишь отмечала время.
   const [exportCabinet, { data: made, loading: backingUp }] = useExportCabinetMutation();
   const [revoke] = useRevokeDeviceMutation();
+  const thisDevice = useThisDeviceQuery();
 
   // Р5.5-Б: место, куда уезжает копия, и результат последнего переноса.
   const [destination, setDestination] = useState('');
@@ -97,7 +99,21 @@ export function SettingsScreen() {
   };
 
   const devices = data?.myDevices ?? [];
-  const machine = devices[0];
+  /**
+   * 🔴 «ЭТА МАШИНА» — ТА, ЧТО СПРАШИВАЕТ, А НЕ ПЕРВАЯ В СПИСКЕ (промпт 30 §2.1).
+   *
+   * Здесь стояло `devices[0]`. Список приходит отсортированным по `-last_seen_at`, а
+   * `last_seen_at` у машины, которая ещё не отметилась, пустой — и PostgreSQL в порядке
+   * DESC ставит пустые ПЕРВЫМИ. То есть у преподавателя с двумя компьютерами «этой машиной»
+   * назывался запасной ноутбук, который ни разу не выходил на связь.
+   *
+   * Экран настроек показывал его канал и его копию кабинета, а «Отозвать» рядом — читалось
+   * как «отозвать вот эту». Отозвал бы преподаватель посреди урока не тот компьютер.
+   *
+   * Гадать по сортировке не нужно вовсе: `thisDevice` отвечает по ключу машины — то есть
+   * знает, кто спрашивает, а не догадывается.
+   */
+  const machine = thisDevice.data?.thisDevice ?? null;
   const uplink = machine?.uplink ?? null;
   const setup = machine?.setup ?? null;
 

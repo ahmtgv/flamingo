@@ -95,16 +95,30 @@ query ThisDevice {
   thisDevice {
     id
     name
+    platform
+    appVersion
+    lastSeenAt
+    online
+    pairedAt
     uplink {
       mbps
       verdict
       groupSize
+      requiredForEight
+      stale
+      connectionType
     }
+    # 🔴 §30.2.1: экран настроек и расписание копий брали это у `myDevices[0]` — то есть у
+    # ПЕРВОЙ машины в списке, а не у той, за которой сидят. Теперь берут здесь, где ответ
+    # даётся по ключу машины. Поля те же, что у `myDevices`, иначе экран пришлось бы делить.
     setup {
       step
       completed
       backupKind
+      backupConfiguredAt
       cloudCopyEnabled
+      lastBackupAt
+      backupDue
     }
   }
 }

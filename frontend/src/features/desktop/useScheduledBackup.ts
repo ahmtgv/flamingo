@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef } from 'react';
 
-import { useExportCabinetMutation, useMyDevicesQuery } from '@/entities/graphql/generated';
+import { useExportCabinetMutation, useThisDeviceQuery } from '@/entities/graphql/generated';
 
 import { copyBackupOut, rememberCopyOut } from './backupCopy';
 import { isDesktop } from './bridge';
@@ -20,7 +20,7 @@ import { isDesktop } from './bridge';
  * случая, что и оригинал (Р5.5-Б).
  */
 export function useScheduledBackup() {
-  const { data, refetch } = useMyDevicesQuery({ skip: !isDesktop() });
+  const thisDevice = useThisDeviceQuery({ skip: !isDesktop() });
   const [exportCabinet] = useExportCabinetMutation();
   const running = useRef(false);
 
@@ -36,17 +36,22 @@ export function useScheduledBackup() {
         // Отмечаем только удавшийся перенос — см. `backupCopy.rememberCopyOut`.
         if (moved.ok) rememberCopyOut(moved.at);
       }
-      await refetch();
+      await thisDevice.refetch();
     } catch {
       // Копия — обязательство продукта, но не повод уронить экран, на котором её ждали.
       // Настройки покажут, что последней копии нет, и это честнее модального окна при старте.
     } finally {
       running.current = false;
     }
-  }, [exportCabinet, refetch]);
+  }, [exportCabinet, thisDevice]);
 
   // При старте — если пора.
-  const due = data?.myDevices?.[0]?.setup?.backupDue ?? false;
+  /**
+   * 🔴 Та же ошибка, что на экране настроек (§2.1): `myDevices[0]` — не «эта машина», а
+   * первая в списке, отсортированном по `-last_seen_at`; пустые отметки PostgreSQL в DESC
+   * ставит первыми. Копию кабинета будили по расписанию ЧУЖОЙ машины.
+   */
+  const due = thisDevice.data?.thisDevice?.setup?.backupDue ?? false;
   const startedRef = useRef(false);
   useEffect(() => {
     if (!due || startedRef.current) return;

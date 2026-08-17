@@ -356,3 +356,28 @@ def test_no_mutation_takes_a_machine_key_as_an_argument_any_more():
     block = _re.search(r"type Mutation \{(.*?)\n\}", schema.as_str(), _re.S).group(1)
     for line in block.splitlines():
         assert "deviceToken" not in line, line
+
+
+# --- §30.2.1 · «ЭТА МАШИНА» И ПОРЯДОК СПИСКА --------------------------------------------
+def test_a_machine_that_never_checked_in_does_not_outrank_the_one_in_use():
+    """🔴 Дефект, который останавливает урок.
+
+    Модель сортирует `-last_seen_at`, а PostgreSQL в DESC ставит пустые ПЕРВЫМИ. У
+    преподавателя с двумя компьютерами первой в списке оказывалась машина, которая ни разу
+    не выходила на связь, — а экран настроек звал первую «этой машиной» и ставил рядом
+    «Отозвать». Отозвал бы посреди урока не тот компьютер.
+    """
+    from django.utils import timezone
+
+    from apps.devices.models import Device
+
+    teacher = make_teacher()
+    never = Device.objects.create(owner=teacher, name="Запасной", platform="macos")
+    working = Device.objects.create(owner=teacher, name="Рабочий", platform="macos")
+    working.last_seen_at = timezone.now()
+    working.save(update_fields=["last_seen_at"])
+
+    order = [d.name for d in devices.my_devices(teacher)]
+
+    assert order[0] == "Рабочий", f"первой идёт машина без единой отметки: {order}"
+    assert never.name in order, "забытая машина из списка не пропала — её просто подвинули"

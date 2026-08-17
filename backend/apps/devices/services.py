@@ -24,6 +24,7 @@ import secrets
 from pathlib import Path
 
 from django.db import transaction
+from django.db.models import F
 from django.utils import timezone
 
 from common.auth import issue_tokens
@@ -269,8 +270,24 @@ def record_uplink(device: Device, *, mbps: float, connection_type: str) -> Devic
 
 
 def my_devices(user) -> list[Device]:
-    """The caller's own machines. Takes no user id."""
-    return list(Device.objects.filter(owner=user, revoked_at__isnull=True))
+    """The caller's own machines. Takes no user id.
+
+    🔴 ПОРЯДОК: КТО ОТМЕТИЛСЯ НЕДАВНО — ВЫШЕ, НЕОТМЕТИВШИЕСЯ — ВНИЗ (промпт 30 §2.1).
+
+    По умолчанию модель сортирует `-last_seen_at`, а PostgreSQL в порядке DESC ставит
+    пустые значения ПЕРВЫМИ. То есть машина, которая ни разу не выходила на связь, шла
+    впереди той, за которой сидят прямо сейчас. Экран настроек звал первую «этой машиной»,
+    а рядом стояло «Отозвать»: преподаватель с двумя компьютерами отозвал бы не тот.
+
+    Экран настроек чинится не здесь — он теперь спрашивает `thisDevice`, то есть отвечает
+    по ключу машины, а не по догадке. Но список «мои машины» показывается человеку, и
+    первой в нём должна стоять живая, а не забытая.
+    """
+    return list(
+        Device.objects.filter(owner=user, revoked_at__isnull=True).order_by(
+            F("last_seen_at").desc(nulls_last=True), "-created_at"
+        )
+    )
 
 
 @transaction.atomic

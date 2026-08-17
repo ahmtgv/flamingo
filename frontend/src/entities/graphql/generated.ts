@@ -3508,7 +3508,7 @@ export type MyDevicesQuery = { __typename?: 'Query', myDevices: Array<{ __typena
 export type ThisDeviceQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type ThisDeviceQuery = { __typename?: 'Query', thisDevice: { __typename?: 'Device', id: string, name: string, uplink?: { __typename?: 'UplinkAssessment', mbps: number, verdict: UplinkVerdict, groupSize: number } | null, setup: { __typename?: 'DeviceSetup', step: number, completed: boolean, backupKind: BackupKind, cloudCopyEnabled: boolean } } };
+export type ThisDeviceQuery = { __typename?: 'Query', thisDevice: { __typename?: 'Device', id: string, name: string, platform: DevicePlatform, appVersion: string, lastSeenAt?: string | null, online: boolean, pairedAt: string, uplink?: { __typename?: 'UplinkAssessment', mbps: number, verdict: UplinkVerdict, groupSize: number, requiredForEight: number, stale: boolean, connectionType: ConnectionType } | null, setup: { __typename?: 'DeviceSetup', step: number, completed: boolean, backupKind: BackupKind, backupConfiguredAt?: string | null, cloudCopyEnabled: boolean, lastBackupAt?: string | null, backupDue: boolean } } };
 
 export type RevokeDeviceMutationVariables = Exact<{
   deviceId: Scalars['ID']['input'];
@@ -7346,16 +7346,27 @@ export const ThisDeviceDocument = gql`
   thisDevice {
     id
     name
+    platform
+    appVersion
+    lastSeenAt
+    online
+    pairedAt
     uplink {
       mbps
       verdict
       groupSize
+      requiredForEight
+      stale
+      connectionType
     }
     setup {
       step
       completed
       backupKind
+      backupConfiguredAt
       cloudCopyEnabled
+      lastBackupAt
+      backupDue
     }
   }
 }
