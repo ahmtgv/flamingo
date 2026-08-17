@@ -92,7 +92,7 @@ export function CourseDetailScreen() {
         </button>
 
         {error && !course ? (
-          <ErrorState onRetry={() => void refetch()} />
+          <ErrorState error={error} onRetry={() => void refetch()} />
         ) : !course ? (
           <p className={styles.empty}>{loading ? t('common:actions.loading') : t('catalog.empty')}</p>
         ) : isOwner ? (

@@ -75,7 +75,7 @@ export function ArrivalScreen() {
 
   if (loading && !data) return <p className={styles.note}>…</p>;
   if (error || !data?.meetingPoint) {
-    return <ErrorState onRetry={() => void refetch()} />;
+    return <ErrorState error={error} onRetry={() => void refetch()} />;
   }
 
   const view = data.meetingPoint;

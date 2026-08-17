@@ -51,7 +51,7 @@ export function InvitePanel({ groupId }: { groupId: string }) {
   const [startFailed, setStartFailed] = useState<string | null>(null);
 
   if (loading && !data) return <p className={styles.note}>…</p>;
-  if (error || !data?.groupMeetingPoint) return <ErrorState onRetry={() => void refetch()} />;
+  if (error || !data?.groupMeetingPoint) return <ErrorState error={error} onRetry={() => void refetch()} />;
 
   const point = data.groupMeetingPoint;
   const next = point.nextLesson;

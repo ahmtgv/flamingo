@@ -67,7 +67,7 @@ export function AdminInstitutionScreen() {
           </Button>
         </div>
         {error && !institution ? (
-          <ErrorState onRetry={() => void refetch()} />
+          <ErrorState error={error} onRetry={() => void refetch()} />
         ) : !institution ? (
           <p className={styles.empty}>
             {loading ? t('common:actions.loading') : t('noInstitution')}

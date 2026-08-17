@@ -177,7 +177,7 @@ export function ScheduleScreen() {
         )}
 
         {error && sessions.length === 0 ? (
-          <ErrorState onRetry={() => void refetch()} />
+          <ErrorState error={error} onRetry={() => void refetch()} />
         ) : sessions.length === 0 ? (
           <p className={styles.empty}>{loading ? t('common:actions.loading') : t('empty')}</p>
         ) : (

@@ -108,7 +108,7 @@ export function CatalogScreen() {
         )}
 
         {error && nodes.length === 0 ? (
-          <ErrorState onRetry={() => void refetch()} />
+          <ErrorState error={error} onRetry={() => void refetch()} />
         ) : loading && nodes.length === 0 ? (
           <p className={styles.empty}>{t('common:actions.loading')}</p>
         ) : isZero ? (

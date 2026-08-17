@@ -38,7 +38,7 @@ export function Cabinet() {
   if (error && !me) {
     return (
       <div className={styles.shell} style={{ alignItems: 'center', justifyContent: 'center' }}>
-        <ErrorState onRetry={() => void refetch()} />
+        <ErrorState error={error} onRetry={() => void refetch()} />
       </div>
     );
   }

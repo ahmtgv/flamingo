@@ -33,7 +33,7 @@ export function StudentHomeworkScreen() {
         <p className={styles.pageSub}>{t('my.subtitle')}</p>
 
         {error && submissions.length === 0 ? (
-          <ErrorState onRetry={() => void refetch()} />
+          <ErrorState error={error} onRetry={() => void refetch()} />
         ) : submissions.length === 0 ? (
           <p className={styles.empty}>{loading ? t('common:actions.loading') : t('my.empty')}</p>
         ) : (
