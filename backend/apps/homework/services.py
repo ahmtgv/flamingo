@@ -16,7 +16,7 @@ Authorization is split in two, on purpose:
 
 from __future__ import annotations
 
-from django.db import transaction
+from django.db import IntegrityError, transaction
 from django.db.models import Max, Q
 from django.utils import timezone
 
@@ -153,14 +153,32 @@ def submit_homework(user, *, homework_id, content_text: str = "", file_keys=None
 
     now = timezone.now()
     overdue = homework.due_at is not None and now > homework.due_at
-    submission = Submission.objects.create(
-        homework=homework,
-        student=profile,
-        attempt=(last_attempt or 0) + 1,
-        content_text=content_text or "",
-        status=SubmissionStatus.LATE.value if overdue else SubmissionStatus.SUBMITTED.value,
-        submitted_at=now,
-    )
+    try:
+        with transaction.atomic():
+            submission = Submission.objects.create(
+                homework=homework,
+                student=profile,
+                attempt=(last_attempt or 0) + 1,
+                content_text=content_text or "",
+                status=(
+                    SubmissionStatus.LATE.value if overdue else SubmissionStatus.SUBMITTED.value
+                ),
+                submitted_at=now,
+            )
+    except IntegrityError as clash:
+        # 🔴 ДВА ОКНА ОДНОГО УЧЕНИКА, ОДНА СЕКУНДА (найдено RnD-заходом 18.08, §3.5).
+        #
+        # Данные при этом не пострадали — ограничение базы своё дело сделало и второй копии
+        # не пустило. Пострадал ЧЕЛОВЕК: второе окно получало `IntegrityError`, то есть общий
+        # отказ, из которого невозможно понять, ушла работа или нет. Ученик за минуту до срока
+        # нажимает ещё раз, потом ещё, и не знает, сдал ли.
+        #
+        # Говорим правду целиком: работа отправлена, но эта копия — не добавлена. Иначе
+        # «отправлено» было бы неправдой о ЕГО тексте, который в гонке не сохранился.
+        raise ValidationError(
+            "Эта работа уже отправлена — с другого окна или устройства. "
+            "Написанное здесь не добавилось: откройте работу заново и проверьте, что ушло."
+        ) from clash
     for key in file_keys or []:
         # Bind-time authz: the key must be in THIS student's own upload namespace (no binding
         # someone else's / a forged key), and the object must exist within the SUBMISSION
