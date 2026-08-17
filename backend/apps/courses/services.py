@@ -21,6 +21,7 @@ from common.enums import (
     UploadPurpose,
 )
 from common.exceptions import NotFound, PermissionDenied, ValidationError
+from common.text_input import clean_text
 
 from .access import can_access_course
 from .models import Course, Enrollment, Lesson, Material, Section
@@ -132,6 +133,10 @@ def create_course(
 ) -> Course:
     profile = _teacher_profile(user)
     institution, group = _resolve_institutional(user, institution_id, group_id)
+    # 🔴 §30.3.6: пятитысячезначное имя роняло запрос ошибкой базы, нулевой байт — тоже, а
+    # пустое имя принималось и вставало пустой строкой в каталоге. Отказ словами вместо обоих.
+    title = clean_text(title, field="Название курса", max_length=200)
+    subject = clean_text(subject, field="Предмет", max_length=120)
     return Course.objects.create(
         owner=profile,
         title=title,
@@ -203,6 +208,7 @@ def create_section(
 ) -> Section:
     course = _owned_course(user, course_id)
     order = (course.sections.aggregate(m=Max("order"))["m"] or 0) + 1
+    title = clean_text(title, field="Название раздела", max_length=200)
     return Section.objects.create(
         course=course,
         title=title,
@@ -257,6 +263,7 @@ def create_lesson(
 ) -> Lesson:
     section = _owned_section(user, section_id)
     order = (section.lessons.aggregate(m=Max("order"))["m"] or 0) + 1
+    title = clean_text(title, field="Название урока", max_length=200)
     create_kwargs = {
         "section": section,
         "title": title,
