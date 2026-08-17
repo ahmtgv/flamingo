@@ -8,10 +8,17 @@
 # Three graphql lines, not two: "/graphql/" with a trailing slash matches neither
 # "/graphql" nor "/graphql/*" (the splat wants at least one character), so it fell
 # through to the SPA rule and returned the app. Found live 16.08.
-/graphql/*   /no-api.html   404
-/graphql/    /no-api.html   404
-/graphql     /no-api.html   404
-/api/*       /no-api.html   404
-/api/        /no-api.html   404
-/api         /no-api.html   404
+#
+# Status 200, not 404, and that is NOT a compromise we chose - Cloudflare Pages
+# does not support a rewrite with status 404 in _redirects. Their own docs mark
+# "/blog/* /blog/404.html 404" as unsupported. An unsupported line is dropped
+# SILENTLY, so all six exclusions below were dead from the day they were written
+# and /graphql/ kept serving the app with 200. Found live 17.08 - the earlier
+# 16.08 fix could never have worked. A real 404 here needs a Pages Function.
+/graphql/*   /no-api.html   200
+/graphql/    /no-api.html   200
+/graphql     /no-api.html   200
+/api/*       /no-api.html   200
+/api/        /no-api.html   200
+/api         /no-api.html   200
 /*           /index.html    200

@@ -75,10 +75,25 @@ if [ "$WHAT" = "all" ] || [ "$WHAT" = "server" ] || [ "$WHAT" = "site" ]; then
   # Сайт отдаёт приложение, а /graphql/ — заглушку. Это ловило дефект 404.html.
   curl -s -m 10 -o /dev/null -w '' https://flamingo.plus/link \
     && ok "сайт отвечает" || bad "сайт не отвечает"
-  if curl -s -m 10 https://flamingo.plus/graphql/ | grep -q 'API живёт на другом адресе'; then
+  # Ждём, а не спрашиваем один раз: Cloudflare Pages собирает сайт 1-5 минут после push,
+  # а прежняя проверка ждала три секунды и ругалась на то, чего ещё не случилось (17.08).
+  # Смотрим на ТЕЛО страницы, не на статус: 404 в _redirects Cloudflare не поддерживает,
+  # заглушка отдаётся со статусом 200 — см. docs/handoff/DEPLOY_NOTES_redirects.md.
+  echo "  жду сборку сайта (до 6 минут)…"
+  SEEN=""
+  for _ in $(seq 1 24); do
+    if curl -s -m 10 https://flamingo.plus/graphql/ | grep -q 'API живёт на другом адресе'; then
+      SEEN=1; break
+    fi
+    sleep 15
+  done
+  if [ -n "$SEEN" ]; then
     ok "исключение /graphql/ на месте"
   else
-    bad "/graphql/ отдаёт НЕ заглушку — сборка сайта отстала или правило потеряно"
+    bad "/graphql/ отдаёт НЕ заглушку — правило потеряно"
+    echo "    Сборка ли это — видно тут: Cloudflare → Workers & Pages → flamingo → Deployments."
+    echo "    Отпечаток index-*.js сравнивать с локальным dist БЕСПОЛЕЗНО: локально собирается"
+    echo "    версия для приложения, у неё другой хэш при том же коммите."
   fi
 fi
 
