@@ -1,6 +1,6 @@
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { renderWithProviders } from '@/test/renderWithProviders';
@@ -99,14 +99,20 @@ describe('рама приложения — полоса состояния', ()
   });
 
   it('без сети переключатели прячутся: переключать нечего', () => {
-    // The room publishes its switchers through the frame's context, so the test walks the same
-    // path the lesson does rather than a prop that only exists for tests.
+    /**
+     * ⚠️ ЭТОТ ТЕСТ БЫЛ ЗЕЛЁН И ПРОВЕРЯЛ САМ СЕБЯ (аудит 17.08).
+     *
+     * Он объявлял свою `Room`, звал `useFrameControls()` и убеждался, что напечатанное
+     * появилось в полосе. Всё честно — кроме одного: `useFrameControls` не вызывал НИ ОДИН
+     * экран продукта. Комната рисовала свою строку над сценой, ту самую, которую лист D1
+     * отменил, а тест подтверждал работу канала, по которому никто не ходил.
+     *
+     * Теперь канал — портал (рама даёт МЕСТО, комната рисует в него), и подставная комната
+     * ниже устроена ровно так же, как настоящая: `createPortal` в узел из контекста.
+     */
     function Room() {
-      const publish = useFrameControls();
-      useEffect(() => {
-        publish(<button type="button">Доска</button>);
-      }, [publish]);
-      return <p>комната</p>;
+      const slot = useFrameControls();
+      return slot ? createPortal(<button type="button">Доска</button>, slot) : <p>комната</p>;
     }
 
     const { rerender } = renderWithProviders(

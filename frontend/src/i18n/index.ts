@@ -1,6 +1,7 @@
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 
+import accountRu from './locales/ru/account.json';
 import adminRu from './locales/ru/admin.json';
 import authRu from './locales/ru/auth.json';
 import cabinetRu from './locales/ru/cabinet.json';
@@ -19,6 +20,7 @@ import dictionaryRu from './locales/ru/dictionary.json';
 import meetingRu from './locales/ru/meeting.json';
 import repetitionRu from './locales/ru/repetition.json';
 import roomRu from './locales/ru/room.json';
+import sourcesRu from './locales/ru/sources.json';
 import startRu from './locales/ru/start.json';
 import subjectRu from './locales/ru/subject.json';
 import uploadRu from './locales/ru/upload.json';
@@ -30,6 +32,7 @@ export const defaultNS = 'common';
 export const resources = {
   ru: {
     common: commonRu,
+    account: accountRu,
     auth: authRu,
     cabinet: cabinetRu,
     courses: coursesRu,
@@ -46,6 +49,7 @@ export const resources = {
     meeting: meetingRu,
     repetition: repetitionRu,
     room: roomRu,
+    sources: sourcesRu,
     start: startRu,
     subject: subjectRu,
     lesson: lessonRu,
@@ -58,6 +62,7 @@ void i18n.use(initReactI18next).init({
   fallbackLng: 'ru',
   ns: [
     'common',
+    'account',
     'auth',
     'cabinet',
     'courses',
@@ -76,6 +81,7 @@ void i18n.use(initReactI18next).init({
     'meeting',
     'repetition',
     'room',
+    'sources',
     'start',
     'subject',
   ],

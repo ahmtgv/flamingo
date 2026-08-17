@@ -1,4 +1,4 @@
-import { type ReactNode, useMemo, useState } from 'react';
+import { type ReactNode, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { BrandMark } from '@/shared/ui';
@@ -62,8 +62,9 @@ export function DesktopFrame({
   children,
 }: DesktopFrameProps) {
   const { t } = useTranslation('desktop');
-  const [controls, setControls] = useState<ReactNode>(null);
-  const controlsValue = useMemo(() => ({ controls, setControls }), [controls]);
+  // Место для переключателей урока. `useState`, а не `useRef`: нужен ПЕРЕРЕНДЕР в момент,
+  // когда узел появился, иначе комната прочитает `null` и нарисует строку у себя.
+  const [slot, setSlot] = useState<HTMLElement | null>(null);
 
   const facts: HostFacts = { online, lessonLive, verdict };
   const state = hostState(facts);
@@ -90,9 +91,11 @@ export function DesktopFrame({
   };
 
   return (
-    <ControlsContext.Provider value={controlsValue}>
+    <ControlsContext.Provider value={slot}>
       <div className={styles.app} data-state={state}>
-        <header className={styles.titlebar}>
+        {/* Перетаскивание окна: системная строка теперь прозрачна и лежит ПОД нашей,
+            поэтому тянуть окно человек будет за эту. */}
+        <header className={styles.titlebar} data-tauri-drag-region>
           <span className={styles.appName}>
             <BrandMark className={styles.mark} />
             {t('app.name')}
@@ -185,7 +188,9 @@ export function DesktopFrame({
             {state === 'weak' && <span className={styles.hostWhy}>{t('bar.whyWeak')}</span>}
             {state === 'offline' && <span className={styles.hostWhy}>{t('bar.whyOffline')}</span>}
 
-            {showsSwitchers(state) && controls}
+            {/* Переключатели окон урока рисует комната — прямо сюда (лист D1, правка
+                владельца 14.08). Рама даёт место и не знает, что такое «Методичка». */}
+            {showsSwitchers(state) && <span className={styles.frameSlot} ref={setSlot} />}
 
             <span className={styles.hostActs}>{actions}</span>
           </div>

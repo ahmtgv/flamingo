@@ -27,6 +27,7 @@ import { Badge, type BadgeTone, Button, ErrorState, Input, Select, SelectField, 
 
 import { AdminLayout } from './AdminLayout';
 import styles from './admin.module.css';
+import { HOME_ROUTE } from '@/shared/lib/homeRoute';
 
 const STATUS_TONE: Record<string, BadgeTone> = {
   ACTIVE: 'success',
@@ -49,7 +50,7 @@ export function AdminInstitutionScreen() {
   return (
     <AdminLayout>
       <div className={styles.content}>
-        <button type="button" className={styles.back} onClick={() => navigate('/app')}>
+        <button type="button" className={styles.back} onClick={() => navigate(HOME_ROUTE)}>
           <ArrowLeft size={ICON_SM} /> {t('back')}
         </button>
         <h1 className={styles.pageTitle}>{t('title')}</h1>
@@ -58,6 +59,11 @@ export function AdminInstitutionScreen() {
         <div className={styles.actionsRow}>
           <Button variant="secondary" size="sm" onClick={() => navigate('/admin/verification')}>
             {t('verification.link')}
+          </Button>
+          {/* Второй раздел листа D7. Без двери он повторил бы судьбу самой блокировки:
+              механизм есть, дойти до него нельзя. */}
+          <Button variant="secondary" size="sm" onClick={() => navigate('/admin/people')}>
+            {t('people.title')}
           </Button>
         </div>
         {error && !institution ? (

@@ -41,6 +41,9 @@ query SessionRoom($id: ID!) {
   session(id: $id) {
     id
     status
+    # Начало занятия — рама приложения показывает «Идёт 24:16» от него, а не от момента,
+    # когда преподаватель нажал «Войти в эфир» (лист D1).
+    startAt
     roomToken
     teacherName
     # Р5.1: the student's strip shows the teacher and their own preview — the client needs to

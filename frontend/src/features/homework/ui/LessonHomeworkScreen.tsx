@@ -23,6 +23,7 @@ import { Badge, type BadgeTone, Button, Checkbox, ErrorState, Input, TextArea, T
 
 import { HomeworkLayout } from './HomeworkLayout';
 import styles from './homework.module.css';
+import { HOME_ROUTE } from '@/shared/lib/homeRoute';
 
 const STATUS_TONE: Record<SubmissionStatus, BadgeTone> = {
   SUBMITTED: 'info',
@@ -53,7 +54,7 @@ export function LessonHomeworkScreen() {
     skip: !lessonId,
   });
 
-  if (!lessonId) return <Navigate to="/app" replace />;
+  if (!lessonId) return <Navigate to={HOME_ROUTE} replace />;
 
   const isTeacher = meData?.me?.role === 'TEACHER';
   const items = data?.lessonHomework ?? [];

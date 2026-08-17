@@ -1,0 +1,174 @@
+/* ХАБ «Источники мира» — лист атласа 12. Только семантические токены. */
+.page {
+  min-height: 100vh;
+  background: var(--color-bg);
+  display: flex;
+  flex-direction: column;
+}
+
+.top {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-5);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.logoBtn {
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  display: flex;
+}
+
+/* Знак хаба из шапки листа — говорит, где человек находится. */
+.hubMark {
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  letter-spacing: 0.12em;
+  color: var(--color-text-tertiary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 2px 6px;
+}
+
+.tabs {
+  display: flex;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-5) 0;
+  border-bottom: 1px solid var(--color-border);
+  overflow-x: auto;
+}
+
+.tab {
+  background: none;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--text-body);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.tab[aria-selected='true'] {
+  color: var(--color-text);
+  border-bottom-color: var(--color-accent);
+}
+.tab:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: 2px;
+}
+
+.body {
+  padding: var(--space-5);
+  max-width: 1120px;
+  width: 100%;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.head { display: flex; flex-direction: column; gap: var(--space-2); }
+.h1 { margin: 0; font-family: var(--font-heading); font-size: var(--text-h1); color: var(--color-text); }
+.lead { margin: 0; color: var(--color-text-secondary); }
+.count { font-family: var(--font-mono); font-size: var(--text-caption); color: var(--color-text-tertiary); }
+
+.filters { display: flex; flex-direction: column; gap: var(--space-2); }
+.chips { display: flex; gap: var(--space-2); flex-wrap: wrap; }
+
+.chip {
+  font-size: var(--text-small);
+  color: var(--color-text-secondary);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  padding: var(--space-1) var(--space-3);
+  cursor: pointer;
+}
+.chip[aria-pressed='true'] {
+  color: var(--color-text);
+  border-color: var(--color-accent);
+  background: var(--color-accent-subtle);
+}
+.chip:focus-visible { outline: var(--focus-ring); outline-offset: 2px; }
+
+.cards {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: var(--space-4);
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+}
+
+.cardHead { display: flex; align-items: center; gap: var(--space-2); }
+
+.liveTag {
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  color: var(--color-accent);
+  border: 1px solid var(--color-accent);
+  border-radius: var(--radius-pill);
+  padding: 0 var(--space-2);
+}
+
+.org { font-size: var(--text-caption); color: var(--color-text-tertiary); }
+
+.cardTitle {
+  font-weight: var(--weight-medium);
+  color: var(--color-text);
+  text-decoration: none;
+}
+.cardTitle:hover { text-decoration: underline; }
+.cardTitle:focus-visible { outline: var(--focus-ring); outline-offset: 2px; }
+
+.cardDesc { margin: 0; font-size: var(--text-small); color: var(--color-text-secondary); }
+
+.permission {
+  font-size: var(--text-caption);
+  color: var(--color-text-tertiary);
+  margin-top: auto;
+}
+.permission[data-kind='reuse'] { color: var(--color-success-text); }
+.permission[data-kind='yours'] { color: var(--color-accent); }
+
+.region { display: flex; flex-direction: column; gap: var(--space-3); }
+.regionTitle { margin: 0; font-size: var(--text-h3); color: var(--color-text); }
+
+.orgs {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: var(--space-3);
+}
+
+.orgs a {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  text-decoration: none;
+}
+.orgs a:focus-visible { outline: var(--focus-ring); outline-offset: 2px; }
+
+.orgName { color: var(--color-text); font-weight: var(--weight-medium); }
+.orgWhat { font-size: var(--text-caption); color: var(--color-text-secondary); }
+
+.empty { color: var(--color-text-secondary); }

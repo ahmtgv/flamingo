@@ -21,7 +21,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from django.db import transaction
+from django.db import models, transaction
 from django.utils import timezone
 
 from apps.accounts.models import TeacherProfile, User, VerificationDocument
@@ -252,3 +252,51 @@ def access_log(user, *, limit: int = 100) -> list[AccessLogEntry]:
     return list(
         AccessLogEntry.objects.select_related("actor", "subject_user").all()[: max(1, limit)]
     )
+
+
+def account_state_history(user, target_user_id) -> list:
+    """История состояний одного человека — для карточки в панели надзора (лист D7).
+
+    Право то же, что у журнала: панель надзирает и за надзирающим, поэтому чтение здесь тоже
+    сотрудницкое и проходит через `_require_staff`, а не через «ну это же просто чтение».
+    """
+    from apps.accounts.models import User
+
+    from .state import history
+
+    _require_staff(user)
+    target = User.objects.filter(id=target_user_id).first()
+    if target is None:
+        raise NotFound("Пользователь не найден")
+    return history(target)
+
+
+def people(user, *, query: str = "", limit: int = 50) -> list[tuple]:
+    """Люди платформы для раздела «Люди» листа D7 — с текущим состоянием каждого.
+
+    Поиск по имени и почте: панель открывают, когда про КОНКРЕТНОГО человека пришёл разбор, а
+    не чтобы листать всех подряд. Пустой запрос отдаёт последних заведённых — этого хватает,
+    чтобы экран не был пустым, и не превращает его в выгрузку базы.
+
+    Состояние считается одним запросом на всех, а не по одному на строку: `current_state` ходит
+    в базу за последней записью, и на списке это N+1.
+    """
+    from apps.accounts.models import User
+
+    from .state import AccountState, AccountStateRecord
+
+    _require_staff(user)
+    rows = User.objects.all()
+    if query.strip():
+        needle = query.strip()
+        rows = rows.filter(
+            models.Q(email__icontains=needle)
+            | models.Q(first_name__icontains=needle)
+            | models.Q(last_name__icontains=needle)
+        )
+    rows = list(rows.order_by("-created_at")[: max(1, min(limit, 200))])
+
+    latest: dict = {}
+    for record_row in AccountStateRecord.objects.filter(user__in=rows).order_by("created_at"):
+        latest[record_row.user_id] = record_row.state
+    return [(person, latest.get(person.id, AccountState.ACTIVE.value)) for person in rows]

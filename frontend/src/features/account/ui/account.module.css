@@ -1,0 +1,73 @@
+/* «Мой кабинет» — лист D8. Пока один раздел: камера и внимание. */
+.page {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: var(--space-6) var(--space-4) var(--space-8);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.head { display: flex; flex-direction: column; gap: var(--space-2); }
+
+.h1 {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: var(--text-h1);
+  color: var(--color-text);
+}
+
+.lead { margin: 0; color: var(--color-text-secondary); font-size: var(--text-small); }
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-5);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+}
+
+.cardHead { display: flex; align-items: center; gap: var(--space-3); }
+
+.cardTitle {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: var(--text-h3);
+  color: var(--color-text);
+}
+
+.tag {
+  font-family: var(--font-mono);
+  font-size: var(--text-small);
+  color: var(--color-text-tertiary);
+  letter-spacing: 0.08em;
+}
+
+.row { display: flex; align-items: start; gap: var(--space-3); cursor: pointer; }
+
+.hint {
+  display: block;
+  color: var(--color-text-secondary);
+  font-size: var(--text-small);
+}
+
+/* 🔒 Блок «что уходит с этого компьютера» стоит рядом с переключателем, а не в сноске:
+   человек соглашается на то, что понял. */
+.privacy {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-subtle);
+  color: var(--color-text-secondary);
+  font-size: var(--text-small);
+}
+
+.privacy p { margin: 0; }
+
+.privacyTitle { color: var(--color-text); font-weight: 600; }
+
+.warn { margin: 0; color: var(--color-error-text); font-size: var(--text-small); }

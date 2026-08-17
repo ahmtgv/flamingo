@@ -17,10 +17,11 @@ import {
   ResetRequestScreen,
   RoleSelectScreen,
 } from '@/features/auth';
+import { AccountScreen } from '@/features/account';
 import { Cabinet } from '@/features/cabinet';
 import { LinkMachineScreen, SettingsScreen, SetupScreen } from '@/features/desktop';
 import { ArrivalScreen, InvitePanel } from '@/features/meeting';
-import { AdminInstitutionScreen, VerificationScreen } from '@/features/admin';
+import { AdminInstitutionScreen, PeopleScreen, VerificationScreen } from '@/features/admin';
 import { CatalogScreen, CourseDetailScreen, CreateCourseScreen } from '@/features/courses';
 import {
   GradingQueueScreen,
@@ -30,6 +31,7 @@ import {
 import { LiveRoomScreen, ProjectorScreen, RoomWindowScreen } from '@/features/lesson';
 import { ScheduleScreen } from '@/features/schedule';
 import { RepetitionScreen } from '@/features/repetition';
+import { SourcesScreen } from '@/features/sources';
 import { StartScreen } from '@/features/start';
 import { SubjectScreen } from '@/features/subject';
 import { isDesktop } from '@/features/desktop/bridge';
@@ -301,6 +303,44 @@ export function AppRouter() {
         <Route path="/link" element={<ProtectedRoute><LinkMachineScreen /></ProtectedRoute>} />
         <Route path="/setup" element={<SetupScreenRoute />} />
         <Route path="/settings" element={<MachineRoute><SettingsScreen /></MachineRoute>} />
+        {/* 🔴 Лист D8 не имел маршрута ВООБЩЕ, и это стоило продукту главной функции:
+            согласие на анализ внимания давалось только в мастере ПРЕПОДАВАТЕЛЯ, а ученику
+            дать его было негде — SEduM не записал ни одного числа. См. AttentionConsentCard. */}
+        {/* 🔴 Лист 12 утверждён 12.08 и не имел маршрута ВООБЩЕ, при четырёх кнопках,
+            которые на него вели. Все четыре открывали архивный каталог курсов — это и есть
+            «получаем кабинет преподавателя, курсы» из письма владельца. */}
+        <Route
+          path="/источники"
+          element={
+            <ProtectedRoute>
+              <SourcesScreen />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/sources"
+          element={
+            <ProtectedRoute>
+              <SourcesScreen />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/кабинет"
+          element={
+            <ProtectedRoute>
+              <AccountScreen />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/account"
+          element={
+            <ProtectedRoute>
+              <AccountScreen />
+            </ProtectedRoute>
+          }
+        />
         <Route
           path="/schedule"
           element={
@@ -335,6 +375,14 @@ export function AppRouter() {
         />
         {/* Надзор · верификация — лист D7. Отдельный маршрут на пилоте; фаза 17 сводит его
             в панель надзора вместе с учётом людей и блокировками. */}
+        <Route
+          path="/admin/people"
+          element={
+            <ProtectedRoute>
+              <PeopleScreen />
+            </ProtectedRoute>
+          }
+        />
         <Route
           path="/admin/verification"
           element={

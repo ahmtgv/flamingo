@@ -163,6 +163,9 @@ function owner(u: (typeof users)[keyof typeof users], specialty: string) {
 /** Шесть знаков, которые преподаватель переносит в браузер. Стабильные — витрина, не игра. */
 const DEMO_PAIRING_CODE = 'K7M4Q2';
 
+/** Демо-урок идёт четырнадцатую минуту — чтобы «Идёт» в раме показывало живое число. */
+const DEMO_LESSON_START = new Date(Date.now() - 14 * 60_000).toISOString();
+
 type DemoSetup = MyDevicesQuery['myDevices'][number]['setup'];
 
 /** Настроенная машина: копия на внешнем диске, настройка пройдена (§19.1 — копия обязательна). */
@@ -2689,6 +2692,9 @@ function sessionRoom(vars: Vars): SessionRoomQuery {
       __typename: 'LessonSession',
       id,
       status: 'LIVE',
+      // Рама приложения считает «Идёт 24:16» от начала занятия (лист D1) — витрина обязана
+      // отдавать это поле, иначе демо-урок падает там, где боевой работает.
+      startAt: DEMO_LESSON_START,
       roomToken: 'demo-room-token',
       teacherName: 'Преподаватель',
       lesson: { __typename: 'Lesson', id: 'les-1-1', title: 'Алгебра — линейные уравнения' },

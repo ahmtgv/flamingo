@@ -142,10 +142,29 @@ def _channel_or_deny(user, channel_id) -> ChatChannel:
     raise NotFound("Channel not found")
 
 
+# Общие чаты — те, где сидит больше двух человек. Личная переписка с преподавателем к ним не
+# относится: у ограниченного человека разбирают дело, и отрезать его от собеседника, с которым
+# это дело обсуждают, значило бы наказать вместо того, чтобы ограничить (лист D7).
+SHARED_CHANNEL_KINDS = frozenset({ChannelKind.SUBJECT_GROUP.value, ChannelKind.STAFF_ROOM.value})
+
+
 def _require_writer(user, channel: ChatChannel) -> None:
-    """Being able to read a conversation is never permission to join it."""
+    """Being able to read a conversation is never permission to join it.
+
+    🔴 §3-тер: сюда же подключено состояние учётной записи. Оно существовало с описанием
+    «ограничен — входит и видит СВОЁ, но не ведёт занятий и **не пишет в общие чаты**», и
+    вторая половина этого предложения не была написана в коде нигде: `may_write_to_shared_chats`
+    не вызывался ни одной строкой продукта.
+    """
+    from apps.oversight.state import may_write_to_shared_chats
+
     if not is_member(user, channel):
         raise PermissionDenied("Not a member of this channel")
+    if channel.kind in SHARED_CHANNEL_KINDS and not may_write_to_shared_chats(user):
+        raise PermissionDenied(
+            "Учётная запись ограничена: писать в общий чат нельзя. "
+            "Личная переписка с преподавателем открыта."
+        )
 
 
 # --- provisioning ------------------------------------------------------------------------

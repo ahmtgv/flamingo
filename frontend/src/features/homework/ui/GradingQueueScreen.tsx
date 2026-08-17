@@ -10,6 +10,7 @@ import { ICON_MD, ICON_SM } from '@/shared/ui/iconSizes';
 import { Button, ErrorState, Logo } from '@/shared/ui';
 
 import styles from './gradingQueue.module.css';
+import { HOME_ROUTE } from '@/shared/lib/homeRoute';
 
 const MS_PER_DAY = 86_400_000;
 
@@ -43,7 +44,7 @@ export function GradingQueueScreen() {
         <button
           type="button"
           className={styles.logoBtn}
-          onClick={() => navigate('/app')}
+          onClick={() => navigate(HOME_ROUTE)}
           aria-label="Flamingo"
         >
           <Logo />
@@ -69,7 +70,7 @@ export function GradingQueueScreen() {
       </header>
 
       <div className={styles.content}>
-        <button type="button" className={styles.back} onClick={() => navigate('/app')}>
+        <button type="button" className={styles.back} onClick={() => navigate(HOME_ROUTE)}>
           <ArrowLeft size={ICON_SM} /> {t('grading.back')}
         </button>
         <h1 className={styles.pageTitle}>{t('grading.title')}</h1>

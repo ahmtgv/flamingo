@@ -147,3 +147,98 @@ def test_the_consent_check_never_stands_in_for_a_permission_check(monkeypatch):
             stranger, session_id=session.id, bucket_start=timezone.now(), avg_attention=50
         )
     assert teacher is not None
+
+
+# --- ЧЕРЕЗ ДВЕРЬ, А НЕ ЧЕРЕЗ ПРИСВАИВАНИЕ ПОЛЯ (§3-бис, 17.08) --------------------------
+#
+# 🔴 Пять тестов выше зелены с первого дня, и всё это время SEduM НЕ ЗАПИСАЛ НИ ОДНОГО ЧИСЛА
+# в живом продукте. Причина в одной строке, общей для всех пяти:
+#
+#     pupil.consent_attention = True
+#     pupil.save(update_fields=["consent_attention"])
+#
+# Согласие включается ПРИСВАИВАНИЕМ ПОЛЯ. Такой тест проверяет, что сервер умеет принять
+# корзину у согласившегося, и никогда не спрашивает главного: **есть ли у ученика способ
+# в это состояние попасть**. Способа не было — единственный экран с переключателем жил в
+# мастере первого запуска ПРЕПОДАВАТЕЛЯ, а лист D8 («Камера и внимание» в кабинете) не имел
+# маршрута вообще. У ученика поле оставалось `False` навсегда, `record_attention` возвращал
+# `False` на каждое ведро, и главная функция продукта молчала.
+#
+# Тот же механизм, что у `hostHeartbeat`: резолвер, который умеет ответить, и никто не
+# спрашивает. Поэтому ниже — путь целиком: **мутация схемы от лица ученика**, затем корзина.
+# Если экран согласия снова исчезнет, красным станет здесь.
+
+
+def _exec(query, user, **variables):
+    from types import SimpleNamespace
+
+    from django.contrib.auth.models import AnonymousUser
+
+    from api.schema import schema
+
+    request = SimpleNamespace(META={}, user=user or AnonymousUser())
+    return schema.execute_sync(
+        query, variable_values=variables or None, context_value=SimpleNamespace(request=request)
+    )
+
+
+CONSENT = "mutation($g: Boolean!){ setAttentionConsent(granted: $g) }"
+REPORT = "mutation($i: AttentionInput!){ reportAttention(input: $i) }"
+
+
+def test_a_pupil_can_reach_the_consent_state_through_the_api(monkeypatch):
+    """Согласие включается ТЕМ ЖЕ ПУТЁМ, каким его включает человек, — мутацией."""
+    _cast(monkeypatch)
+    _t, pupil, _s = _lesson_with_a_pupil()
+
+    result = _exec(CONSENT, pupil, g=True)
+
+    assert result.errors is None, result.errors
+    assert result.data == {"setAttentionConsent": True}
+    pupil.refresh_from_db()
+    assert pupil.consent_attention is True
+    assert pupil.consent_attention_at is not None
+
+
+def test_consent_given_by_the_pupil_makes_the_bucket_land(monkeypatch):
+    """Согласие есть → число в базе. Весь путь, ни одного присваивания поля."""
+    _cast(monkeypatch)
+    _t, pupil, session = _lesson_with_a_pupil()
+    assert _exec(CONSENT, pupil, g=True).errors is None
+
+    bucket = {
+        "sessionId": str(session.id),
+        "bucketStart": timezone.now().isoformat(),
+        "avgAttention": 74,
+    }
+    result = _exec(REPORT, pupil, i=bucket)
+
+    assert result.errors is None, result.errors
+    assert result.data == {"reportAttention": True}
+    assert AttentionMetric.objects.filter(lesson_session=session).count() == 1
+
+
+def test_without_consent_the_database_is_empty_and_that_is_silence_not_an_error(monkeypatch):
+    """Не дал согласия → в базе ноль, и это НЕ ошибка.
+
+    Разница существенная и её легко потерять. `errors is None` означает, что продукт не
+    показывает ученику ничего красного: он просто не включал анализ внимания, а не сломал
+    урок. `reportAttention == False` означает, что конвейер на устройстве об этом узнал и
+    может остановиться, а не повторять отказ, который ему не исправить.
+    """
+    _cast(monkeypatch)
+    _t, pupil, session = _lesson_with_a_pupil()
+
+    result = _exec(
+        REPORT,
+        pupil,
+        i={
+            "sessionId": str(session.id),
+            "bucketStart": timezone.now().isoformat(),
+            "avgAttention": 74,
+        },
+    )
+
+    assert result.errors is None, "отказ по согласию — это тишина, а не ошибка урока"
+    assert result.data == {"reportAttention": False}
+    assert AttentionMetric.objects.count() == 0

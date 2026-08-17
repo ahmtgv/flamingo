@@ -10,6 +10,7 @@ import { useLogout } from '@/app/useLogout';
 import { Logo } from '@/shared/ui';
 
 import styles from './courses.module.css';
+import { HOME_ROUTE } from '@/shared/lib/homeRoute';
 
 export function CoursesLayout({ children }: { children: ReactNode }) {
   const { t } = useTranslation(['common', 'cabinet']);
@@ -25,7 +26,7 @@ export function CoursesLayout({ children }: { children: ReactNode }) {
         <button
           type="button"
           className={styles.logoBtn}
-          onClick={() => navigate('/app')}
+          onClick={() => navigate(HOME_ROUTE)}
           aria-label="Flamingo"
         >
           <Logo />

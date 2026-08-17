@@ -219,3 +219,163 @@ def test_a_state_change_is_written_to_the_journal():
     assert row.subject_user_id == pupil.id
     assert row.reason == "жалоба преподавателя"
     assert "ограничен" in row.object_label
+
+
+# --- ЧТО СОСТОЯНИЕ МЕНЯЕТ НА САМОМ ДЕЛЕ (§3-тер, 17.08) ---------------------------------
+#
+# 🔴 Тринадцать тестов выше проверяли ПЕРЕХОДЫ: что состояние записывается, что причина
+# обязательна, что журнал ведётся, что себя заблокировать нельзя. Все зелёные с первого дня.
+#
+# И всё это время блокировка была ДЕКОРАЦИЕЙ. `set_state` не имел ни одного вызывающего:
+# мутации в схеме не было, значит из продукта в неё не попасть. `may_teach` и
+# `may_write_to_shared_chats` не вызывались ни одной строкой продукта — перевод человека в
+# «ограничен» не менял в его дне ничего. А заблокированному вход отвечал «неверная почта или
+# пароль»: единственное слово, которое он слышал от платформы, было неправдой.
+#
+# Ниже — не переходы, а ПОСЛЕДСТВИЯ. Три вопроса, которых прежние тесты не задавали:
+# ведёт ли ограниченный занятие, пишет ли он в общий чат, что слышит заблокированный на входе.
+
+
+def test_a_limited_teacher_cannot_start_a_lesson(monkeypatch):
+    """«Ограничен» = входит и видит своё, но НЕ ВЕДЁТ (лист D7). До 17.08 — вёл."""
+    from datetime import date
+
+    from django.utils import timezone
+
+    from apps.courses import services as courses
+    from apps.scheduling import services as scheduling
+    from common.exceptions import PermissionDenied
+
+    staff = make_staff()
+    teacher = accounts.register_user(
+        email="lim@example.com",
+        password="strongpass1!",
+        first_name="Ограниченный",
+        last_name="Преподаватель",
+        role=Role.TEACHER,
+        specialty="Английский",
+        consent_152fz=True,
+    )
+    course = courses.create_course(teacher, title="English A2", subject="Английский", level="a2")
+    section = courses.create_section(teacher, course.id, title="Unit 1")
+    lesson = courses.create_lesson(teacher, section.id, title="Travel", duration_min=40)
+    courses.publish_lesson(teacher, lesson.id)
+    courses.publish_course(teacher, course.id)
+    session = scheduling.schedule_session(teacher, lesson_id=lesson.id, start_at=timezone.now())
+
+    # Пока активен — ведёт.
+    assert scheduling.start_session(teacher, session.id).status == "live"
+
+    account_state.set_state(staff, teacher.id, state="limited", reason="разбор жалобы")
+    later = scheduling.schedule_session(
+        teacher, lesson_id=lesson.id, start_at=timezone.now() + timezone.timedelta(days=1)
+    )
+    # Запланировать может — ограничение снимут раньше вторника. Встать перед классом — нет.
+    with pytest.raises(PermissionDenied):
+        scheduling.start_session(teacher, later.id)
+    assert date is not None
+
+
+def test_a_limited_pupil_is_silent_in_the_group_chat_but_not_with_the_teacher():
+    """Вторая половина того же предложения листа: «не пишет в общие чаты».
+
+    ⚠️ Личная переписка с преподавателем остаётся открытой намеренно: у человека разбирают
+    дело, и отрезать его от собеседника, с которым это дело обсуждают, значило бы наказать
+    вместо того, чтобы ограничить.
+    """
+    from apps.chat import services as chat
+    from apps.courses import services as courses
+    from apps.institutions.models import (
+        Group,
+        GroupMembership,
+        GroupTeacher,
+        Institution,
+        InstitutionMembership,
+    )
+    from common.enums import MembershipRole, MembershipStatus
+    from common.exceptions import PermissionDenied
+
+    staff, pupil = make_staff(), make_pupil()
+    teacher = make_teacher("t2@example.com")
+
+    # Предметный чат — это «предмет × ГРУППА»: без класса за курсом комнаты не существует.
+    school = Institution.objects.create(name="Гимназия №1")
+    group = Group.objects.create(institution=school, name="9А")
+    GroupMembership.objects.create(group=group, student=pupil.student_profile)
+    GroupTeacher.objects.create(group=group, teacher=teacher.teacher_profile, subject="Английский")
+    for person, role in ((pupil, MembershipRole.STUDENT), (teacher, MembershipRole.TEACHER)):
+        InstitutionMembership.objects.create(
+            user=person,
+            institution=school,
+            role=role.value,
+            status=MembershipStatus.ACTIVE.value,
+        )
+
+    course = courses.create_course(
+        teacher, title="Английский A2", subject="Английский", level="a2", group_id=group.id
+    )
+    courses.publish_course(teacher, course.id)
+    courses.enroll(pupil, course.id)
+
+    group_chat = chat.subject_channel(pupil, course.id)
+    personal = chat.direct_channel(pupil, str(teacher.id))
+    assert chat.send_message(pupil, group_chat.id, "здравствуйте").text == "здравствуйте"
+
+    account_state.set_state(staff, pupil.id, state="limited", reason="разбор")
+    with pytest.raises(PermissionDenied):
+        chat.send_message(pupil, group_chat.id, "снова здравствуйте")
+    # А преподавателю — пишет.
+    assert chat.send_message(pupil, personal.id, "объясните, пожалуйста").text.startswith("объясн")
+
+
+def test_a_blocked_person_is_told_they_are_blocked_not_that_the_password_is_wrong():
+    """🔴 Единственное слово платформы заблокированному было неправдой.
+
+    Проверяем обе стороны: свой слышит правду, чужой — прежний общий отказ, иначе форма входа
+    стала бы справочником «кто на платформе есть».
+    """
+    from common.exceptions import AuthError
+
+    staff, pupil = make_staff(), make_pupil()
+    account_state.set_state(staff, pupil.id, state="blocked", reason="разбор")
+
+    with pytest.raises(AuthError) as blocked:
+        accounts.login(email=pupil.email, password="strongpass1!")
+    assert "закрыт" in str(blocked.value)
+    assert "пароль" not in str(blocked.value).lower()
+
+    # Неверный пароль у заблокированного — тот же общий отказ, что у всех.
+    with pytest.raises(AuthError) as wrong:
+        accounts.login(email=pupil.email, password="совершенно-не-тот")
+    assert "Invalid email or password" in str(wrong.value)
+
+
+def test_the_state_can_be_reached_through_the_schema_at_all():
+    """Дверь есть. Прежде её не было: `set_state` вызывали только тесты.
+
+    Идём мутацией, как пойдёт панель надзора, а не сервисом.
+    """
+    from types import SimpleNamespace
+
+    from api.schema import schema
+
+    staff, pupil = make_staff(), make_pupil()
+    request = SimpleNamespace(META={}, user=staff)
+    result = schema.execute_sync(
+        "mutation($u: ID!, $s: AccountStateValue!, $r: String!)"
+        "{ setAccountState(userId: $u, state: $s, reason: $r) { id } }",
+        variable_values={"u": str(pupil.id), "s": "LIMITED", "r": "жалоба преподавателя"},
+        context_value=SimpleNamespace(request=request),
+    )
+    assert result.errors is None, result.errors
+    assert account_state.current_state(pupil) == "limited"
+
+    # И тем же путём — обратно, потому что «снять ограничение» тоже должно быть достижимо.
+    back = schema.execute_sync(
+        "mutation($u: ID!, $s: AccountStateValue!)"
+        "{ setAccountState(userId: $u, state: $s) { id } }",
+        variable_values={"u": str(pupil.id), "s": "ACTIVE"},
+        context_value=SimpleNamespace(request=request),
+    )
+    assert back.errors is None, back.errors
+    assert account_state.current_state(pupil) == "active"

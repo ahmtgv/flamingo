@@ -73,7 +73,15 @@ const sessionRoomMock = {
   },
 };
 
-const meMock = (role: Role) => ({
+/**
+ * 🔴 `consentAttention` — НЕ УКРАШЕНИЕ МОКА (§3-бис, 17.08).
+ *
+ * До 17.08 конвейер CMF на устройстве запускался всегда, а согласие спрашивал только сервер —
+ * молча отбрасывая каждое ведро. У ученика включить его было негде, и SEduM не записал ни
+ * одного числа за всё время. Теперь браузер не смотрит в камеру без разрешения, и мок обязан
+ * говорить, дано оно или нет: тест без этого поля проверял бы мир, которого больше нет.
+ */
+const meMock = (role: Role, consentAttention = true) => ({
   request: { query: MeDocument, variables: {} },
   result: {
     data: {
@@ -86,6 +94,9 @@ const meMock = (role: Role) => ({
         role,
         locale: 'ru',
         avatarUrl: null,
+        consentSpeech: false,
+        consentAttention,
+        consent152fzAt: null,
         studentProfile:
           role === 'STUDENT'
             ? { __typename: 'StudentProfile', ageBand: 'TEEN', gradeLevel: '7', points: 0 }
@@ -154,10 +165,33 @@ describe('LiveRoomScreen', () => {
     expect(h.getUserMedia).toHaveBeenCalledWith({ video: true, audio: true });
     // Consumer A: LiveKit publishes the shared tracks.
     await waitFor(() => expect(h.publishTrack).toHaveBeenCalled());
-    // Consumer B: the on-device CMF pipeline runs off the same stream.
+    // Consumer B: the on-device CMF pipeline runs off the same stream — с согласия ученика.
     await waitFor(() => expect(h.startAttentionPipeline).toHaveBeenCalledTimes(1));
     // The call surface is honest that the camera is published.
     expect(await screen.findByText(/Камера в эфире/)).toBeInTheDocument();
+  });
+
+  it('🔴 без согласия ученика конвейер внимания не запускается — и это тишина, а не ошибка', async () => {
+    // Зеркало теста выше. Разрешение владельца (D2 шаг 3, OWNER_SCOPE §19) держал ОДИН
+    // сервер: он отвечал `false` и выбрасывал ведро, а MediaPipe на устройстве всё равно
+    // смотрел в лицо ребёнка, который ничего не включал. Переключатель обязан управлять тем,
+    // что на нём написано.
+    const video = { kind: 'video', enabled: true, stop: vi.fn() };
+    const audio = { kind: 'audio', enabled: true, stop: vi.fn() };
+    h.getUserMedia.mockResolvedValue({
+      getVideoTracks: () => [video],
+      getAudioTracks: () => [audio],
+      getTracks: () => [video, audio],
+    });
+
+    renderRoom([meMock('STUDENT', false), sessionRoomMock]);
+    fireEvent.click(await screen.findByRole('button', { name: /Войти в эфир/ }));
+
+    // Урок идёт как обычно: камера в эфире, преподаватель на связи.
+    await waitFor(() => expect(h.publishTrack).toHaveBeenCalled());
+    // А анализа внимания нет — и человеку об этом сказано словами, а не молчанием.
+    expect(h.startAttentionPipeline).not.toHaveBeenCalled();
+    expect(await screen.findByText(/Анализ внимания выключен/)).toBeInTheDocument();
   });
 
   it('classifies a camera/device failure into an actionable message + Retry that recovers', async () => {

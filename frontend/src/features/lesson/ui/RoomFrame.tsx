@@ -1,6 +1,10 @@
 import { type ReactNode } from 'react';
+import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
+
+import { isDesktop } from '@/features/desktop/bridge';
+import { useFrameControls } from '@/features/desktop/frameControls';
 
 import { Logo } from '@/shared/ui';
 
@@ -65,19 +69,63 @@ export function RoomFrame({
 }) {
   const { t } = useTranslation('room');
   const navigate = useNavigate();
+  const frameSlot = useFrameControls();
+
+  const windows = (
+    <div className={styles.wins} role="tablist" aria-label={t('windows.label')}>
+      {SCENES.map((id) => (
+        <span key={id} className={styles.winWrap}>
+          <button
+            type="button"
+            role="tab"
+            id={`room-win-${id}`}
+            aria-controls="room-scene"
+            aria-selected={scene === id}
+            className={styles.win}
+            onClick={() => onScene(id)}
+          >
+            {t(`windows.${id}`)}
+          </button>
+          {/* Any window can leave for its own tab or a second display — that is what
+              «многоэкранность» means here. The lesson is not interrupted by it. */}
+          <button
+            type="button"
+            className={styles.pop}
+            aria-label={t('windows.popOut', { window: t(`windows.${id}`) })}
+            onClick={() =>
+              window.open(`/sessions/${sessionId}/window/${id}`, '_blank', 'noopener')
+            }
+          >
+            ↗
+          </button>
+        </span>
+      ))}
+      {layoutSwitch}
+      {/* Подсказка про отдельную вкладку уступает место переключателю раскладки: в
+          одной строке они не помещаются, а управление важнее пояснения. */}
+      {!layoutSwitch && <span className={styles.winsNote}>{t('windows.note')}</span>}
+    </div>
+  );
 
   return (
     <div className={styles.shell}>
-      <header className={styles.topbar}>
-        <button
-          type="button"
-          className={styles.logoBtn}
-          onClick={() => navigate('/start')}
-          aria-label="Flamingo"
-        >
-          <Logo />
-        </button>
-      </header>
+      {/* 🔴 ВТОРАЯ ПОЛОСА С ЛОГОТИПОМ (владелец 17.08: «выглядит как поломанный код»).
+          В приложении строка заголовка уже несёт знак бренда и версию — эта рисовалась
+          сразу под ней, третьей по счёту после системной. Лист D1 показывает содержимое
+          СРАЗУ под полосой состояния, без своей шапки. В браузере шапка нужна: там нет
+          рамы, и уйти из комнаты больше нечем. */}
+      {!isDesktop() && (
+        <header className={styles.topbar}>
+          <button
+            type="button"
+            className={styles.logoBtn}
+            onClick={() => navigate('/start')}
+            aria-label="Flamingo"
+          >
+            <Logo />
+          </button>
+        </header>
+      )}
 
       <div className={styles.screen}>
         <div className={styles.roomTop}>
@@ -100,39 +148,12 @@ export function RoomFrame({
                 высоту у главного (лист D1). */}
             {strip && scene !== 'class' && <div className={styles.strip}>{strip}</div>}
 
-            <div className={styles.wins} role="tablist" aria-label={t('windows.label')}>
-              {SCENES.map((id) => (
-                <span key={id} className={styles.winWrap}>
-                  <button
-                    type="button"
-                    role="tab"
-                    id={`room-win-${id}`}
-                    aria-controls="room-scene"
-                    aria-selected={scene === id}
-                    className={styles.win}
-                    onClick={() => onScene(id)}
-                  >
-                    {t(`windows.${id}`)}
-                  </button>
-                  {/* Any window can leave for its own tab or a second display — that is what
-                      «многоэкранность» means here. The lesson is not interrupted by it. */}
-                  <button
-                    type="button"
-                    className={styles.pop}
-                    aria-label={t('windows.popOut', { window: t(`windows.${id}`) })}
-                    onClick={() =>
-                      window.open(`/sessions/${sessionId}/window/${id}`, '_blank', 'noopener')
-                    }
-                  >
-                    ↗
-                  </button>
-                </span>
-              ))}
-              {layoutSwitch}
-              {/* Подсказка про отдельную вкладку уступает место переключателю раскладки: в
-                  одной строке они не помещаются, а управление важнее пояснения. */}
-              {!layoutSwitch && <span className={styles.winsNote}>{t('windows.note')}</span>}
-            </div>
+            {/* 🔴 Лист D1, правка владельца 14.08: «отдельной строки над сценой БОЛЬШЕ НЕ
+                СУЩЕСТВУЕТ… это вернуло сцене около семидесяти пикселей». Внутри приложения
+                во время урока переключатели уезжают в полосу состояния рамы; в браузере и
+                вне урока полосы нет, и они остаются здесь — иначе управление окнами просто
+                исчезло бы. */}
+            {frameSlot ? createPortal(windows, frameSlot) : windows}
 
             <main
               className={styles.scene}

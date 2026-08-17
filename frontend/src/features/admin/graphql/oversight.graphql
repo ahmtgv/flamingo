@@ -53,3 +53,32 @@ mutation RequestVerificationDocuments($teacherUserId: ID!, $reason: String!) {
     id
   }
 }
+
+# --- раздел «Люди» листа D7 --------------------------------------------------------------
+# 🔴 §3-тер: три состояния учётной записи существовали в коде и НЕ ИМЕЛИ ДВЕРИ — мутации в
+# схеме не было, `set_state` звали только тесты. Эти три операции и есть дверь.
+
+query OversightPeople($query: String, $limit: Int) {
+  oversightPeople(query: $query, limit: $limit) {
+    userId
+    fullName
+    email
+    role
+    state
+  }
+}
+
+query AccountStateHistory($userId: ID!) {
+  accountStateHistory(userId: $userId) {
+    state
+    reason
+    actorName
+    at
+  }
+}
+
+mutation SetAccountState($userId: ID!, $state: AccountStateValue!, $reason: String) {
+  setAccountState(userId: $userId, state: $state, reason: $reason) {
+    id
+  }
+}

@@ -2,13 +2,14 @@ import { ICON_SM } from '@/shared/ui/iconSizes';
 import { BarChart3, RefreshCw, ShieldCheck, Video } from 'lucide-react';
 import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Navigate, useParams } from 'react-router-dom';
+import { Link, Navigate, useParams } from 'react-router-dom';
 
 import {
   useAttentionUpdatesSubscription,
   useMeQuery,
   useReportAttentionMutation,
   useSessionAttendeesQuery,
+  useEndSessionMutation,
   useSessionRoomQuery,
 } from '@/entities/graphql/generated';
 import { AttentionChart, PrivacyIndicator, startAttentionPipeline } from '@/seedum';
@@ -39,6 +40,7 @@ import { type Pane, RoomFrame, type Scene } from './RoomFrame';
 import { PreviewRoom } from './PreviewRoom';
 import { VideoRoom } from './VideoRoom';
 import { preferredConstraints } from '@/features/desktop/setup/mediaPreference';
+import { usePublishHostLesson } from '@/features/desktop/hostBeacon';
 
 /**
  * Shared chrome — atlas sheet 02's frame around whatever the room is doing.
@@ -316,6 +318,9 @@ type RoomProps = {
   teacherId: string | null;
   /** Имя того, кто сидит за этим экраном — для его плитки в окне «Класс». */
   selfName: string;
+  /** Название урока и его начало — рама приложения печатает их в заголовке (лист D1). */
+  lessonTitle: string | null;
+  startAt: string | null;
 };
 
 /**
@@ -334,6 +339,10 @@ function StudentRoom({
 }: RoomProps) {
   const { t } = useTranslation(['seedum', 'lesson']);
   const [reportAttention] = useReportAttentionMutation();
+  // Согласие на анализ внимания — состояние ЧЕЛОВЕКА, а не комнаты; спрашиваем его здесь,
+  // потому что здесь оно единственный раз что-то решает.
+  const { data: meData } = useMeQuery();
+  const attentionOn = meData?.me?.consentAttention ?? null;
   // Keep the latest mutate fn in a ref so it is NOT a dependency of the pipeline
   // effect (else LiveKit re-renders would tear down + recreate the MediaPipe worker).
   const reportRef = useRef(reportAttention);
@@ -381,7 +390,17 @@ function StudentRoom({
   // CMF runs locally off the SAME stream (a dedicated, hidden <video> source).
   useEffect(() => {
     const video = cmfVideoRef.current;
-    if (!joined || !stream || !video) return undefined;
+    // 🔴 БЕЗ СОГЛАСИЯ КОНВЕЙЕР НЕ ЗАПУСКАЕТСЯ (§3-бис, 17.08).
+    //
+    // Здесь его пускали всегда, и решение владельца «анализ внимания по умолчанию выключен»
+    // (D2 шаг 3, OWNER_SCOPE §19) держал один сервер: он отвечал `false` и молча выбрасывал
+    // каждое ведро. То есть у ученика без согласия MediaPipe всё равно смотрел в лицо, грел
+    // процессор и раз в 2.5 секунды слал агрегат, который никому не был нужен.
+    //
+    // Наружу при этом ничего лишнего не уходило — инвариант §2.1 цел, — но переключатель,
+    // который человек видит на листе D8, обязан управлять именно тем, что написано на нём.
+    // `null` (ответа ещё нет) — не «нет»: ждём, а не решаем за человека.
+    if (!joined || !stream || !video || attentionOn !== true) return undefined;
     video.srcObject = stream;
     void video.play().catch(() => undefined);
     let cancelled = false;
@@ -421,7 +440,7 @@ function StudentRoom({
       pipelineRef.current?.stop();
       pipelineRef.current = null;
     };
-  }, [joined, stream, sessionId]);
+  }, [joined, stream, sessionId, attentionOn]);
 
   const join = useCallback(async () => {
     const s = await acquire();
@@ -507,6 +526,14 @@ function StudentRoom({
               aria-hidden="true"
             />
             {hudEnabled && <CmfDebugHud ref={hudRef} status={cmfStatus} />}
+            {/* Выключенный анализ — это состояние, а не поломка, и молчать о нём нельзя:
+                ученик, которому обещали график внимания, иначе решит, что он сломан. */}
+            {attentionOn === false && (
+              <p className={styles.privacyFootnote}>
+                {t('seedum:room.attentionOff')}{' '}
+                <Link to="/кабинет">{t('seedum:room.attentionOffWhere')}</Link>
+              </p>
+            )}
             <p className={styles.privacyFootnote}>
               <ShieldCheck size={13} /> {t('room.studentSub')}
             </p>
@@ -521,7 +548,15 @@ function StudentRoom({
  * Teacher: publishes own camera to the call AND watches the class attention live
  * (attentionUpdates — aggregates only, never video) + the post-session report.
  */
-function TeacherRoom({ sessionId, lessonId, roomToken, isLive, selfName }: RoomProps) {
+function TeacherRoom({
+  sessionId,
+  lessonId,
+  roomToken,
+  isLive,
+  selfName,
+  lessonTitle,
+  startAt,
+}: RoomProps) {
   const { t } = useTranslation(['seedum', 'lesson']);
   const { stream, cameraError, acquire, release } = useSharedCamera();
   const [joined, setJoined] = useState(false);
@@ -628,6 +663,47 @@ function TeacherRoom({ sessionId, lessonId, roomToken, isLive, selfName }: RoomP
     release();
     setJoined(false);
   }, [lk, release]);
+
+  /**
+   * 🔴 РАМА УЗНАЁТ ОБ УРОКЕ ОТСЮДА (лист D1, найдено аудитом 17.08).
+   *
+   * До этой правки `DesktopShell` держал `lessonLive={false}` константой, и весь лист D1 был
+   * выключен: ни названия урока в заголовке, ни «Подключено 6 из 8», ни «Идёт 24:16», ни
+   * кнопки «Завершить». Факты знает комната — она их и объявляет.
+   *
+   * Объявляем ТОЛЬКО когда преподаватель вошёл в эфир: «идёт урок» — это про раздачу с этой
+   * машины, а открытая вкладка комнаты за десять минут до звонка уроком не является.
+   *
+   * ⚠️ `participantCount` — сколько человек ЖДЁТ (список посещаемости), `joined` — сколько
+   * уже в комнате. Разные числа, и именно их разность лист называет вслух: «двое не дошли, и
+   * это видно раньше, чем они напишут в чат». Ставить сюда одно и то же значило бы навсегда
+   * показывать «8 из 8».
+   */
+  const [endSession] = useEndSessionMutation();
+  const roster = attendeesData?.session?.attendance?.length;
+  const endAction = (
+    <Button
+      variant="secondary"
+      size="sm"
+      onClick={() => {
+        void endSession({ variables: { sessionId } }).catch(() => undefined);
+        leave();
+      }}
+    >
+      {t('lesson:endLesson')}
+    </Button>
+  );
+  usePublishHostLesson(
+    joined && isLive && startAt
+      ? {
+          lessonName: lessonTitle ?? t('seedum:room.title'),
+          participantCount: roster,
+          joined: lk.participants.length,
+          startedAt: new Date(startAt).getTime(),
+          actions: endAction,
+        }
+      : null,
+  );
 
   return (
     <RoomShell
@@ -750,6 +826,8 @@ function LiveRoomRealScreen() {
     teacherName: session?.teacherName ?? null,
     teacherId: session?.teacherId ?? null,
     selfName: `${meData?.me?.firstName ?? ''} ${meData?.me?.lastName ?? ''}`.trim(),
+    lessonTitle: session?.lesson?.title ?? null,
+    startAt: session?.startAt ?? null,
   };
   return meData?.me?.role === 'TEACHER' ? <TeacherRoom {...props} /> : <StudentRoom {...props} />;
 }

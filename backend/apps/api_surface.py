@@ -106,11 +106,17 @@ def frontend_operations() -> set[str]:
             ]
             # Хук из codegen: `useHostHeartbeatMutation`, плюс ленивый вариант у запросов
             # и прямое использование документа (`ThisDeviceDocument`) в обход хука.
+            # ⚠️ ИМЕНА ХУКОВ — РОВНО ТЕ, ЧТО ПЕЧАТАЕТ CODEGEN. Здесь стояло
+            # `useLazy{doc}Query`, а codegen печатает `use{doc}LazyQuery` — порядок слов
+            # обратный. Ошибка нашлась 17.08 на `accountStateHistory`: операция была
+            # подключена ленивым хуком, сторож её не видел и звал сиротой. Сторож, врущий в
+            # сторону «всё плохо», опаснее отсутствующего — ему верят и правят работающее.
             used = any(
                 token in code
                 for token in (
                     f"use{doc_name}{suffix}",
-                    f"useLazy{doc_name}Query",
+                    f"use{doc_name}LazyQuery",
+                    f"use{doc_name}SuspenseQuery",
                     f"{doc_name}Document",
                 )
             )

@@ -2,7 +2,10 @@ import { type ReactNode, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
+import { useThisDeviceQuery } from '@/entities/graphql/generated';
+
 import { isDesktop, setTrayMenu } from './bridge';
+import { elapsedSince, useHostLesson } from './hostBeacon';
 import { useHeartbeat } from './useHeartbeat';
 import { useScheduledBackup } from './useScheduledBackup';
 import { DesktopFrame } from './DesktopFrame';
@@ -29,6 +32,21 @@ export function DesktopShell({ children }: { children: ReactNode }) {
   // урок закрывается сам через десять минут после планового конца.
   useHeartbeat();
 
+  // Факты урока — от комнаты (см. hostBeacon), качество канала — от сервера.
+  const lesson = useHostLesson();
+  const { data: deviceData } = useThisDeviceQuery({ skip: !isDesktop() });
+  const verdict: UplinkVerdict = deviceData?.thisDevice?.uplink?.verdict ?? 'UNKNOWN';
+
+  // Часы тикают ТОЛЬКО пока идёт урок: «Идёт 24:16» обязано идти, а вне урока таймер в раме
+  // — это перерисовка всего дерева раз в секунду без единого зрителя.
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    if (!lesson) return undefined;
+    setNow(Date.now());
+    const id = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => window.clearInterval(id);
+  }, [lesson]);
+
   useEffect(() => {
     const up = () => setOnline(true);
     const down = () => setOnline(false);
@@ -47,19 +65,20 @@ export function DesktopShell({ children }: { children: ReactNode }) {
 
   if (!isDesktop()) return <>{children}</>;
 
-  /**
-   * The lesson's own facts — which lesson, how many joined, how long — are published by the
-   * room screen once it exists on the desktop path. Until then the frame reports the machine
-   * truthfully rather than inventing a lesson: `lessonLive: false` means the title bar carries
-   * no name, which is exactly what «вне урока строка не носит пустое название» asks for.
-   */
-  const verdict: UplinkVerdict = 'UNKNOWN';
-
   return (
     <DesktopFrame
       online={online}
-      lessonLive={false}
+      /* 🔴 Здесь стояли две константы — `lessonLive={false}` и `verdict = 'UNKNOWN'` — и от них
+         весь лист D1 был выключен: см. `hostBeacon.ts`. Теперь оба факта настоящие: урок
+         объявляет комната, качество канала измерил сам сервер (`thisDevice.uplink`). */
+      lessonLive={lesson !== null}
       verdict={verdict}
+      lessonName={lesson?.lessonName}
+      lessonNumber={lesson?.lessonNumber}
+      participantCount={lesson?.participantCount}
+      joined={lesson?.joined}
+      elapsed={lesson ? elapsedSince(lesson.startedAt, now) : undefined}
+      actions={lesson?.actions}
       // Шестерёнка ведёт в настройки приложения — экран, который уже существует (Р5.4).
       // Без этой строки кнопка рисовалась и не делала ничего (находка 15.08 №4).
       onSettings={() => navigate('/settings')}

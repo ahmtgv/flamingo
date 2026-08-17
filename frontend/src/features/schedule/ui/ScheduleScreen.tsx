@@ -30,6 +30,7 @@ import { failureText } from '@/shared/lib/requestFailure';
 import { Badge, type BadgeTone, Button, ErrorState, Logo, Select } from '@/shared/ui';
 
 import styles from './schedule.module.css';
+import { HOME_ROUTE } from '@/shared/lib/homeRoute';
 
 // AIR: exactly one coral accent per screen-state — LIVE is the "act now" state, so it carries
 // the accent; the rest are muted neutral (no green/red traffic-light, per approved sheet 05).
@@ -123,7 +124,7 @@ export function ScheduleScreen() {
   return (
     <div className={styles.shell}>
       <header className={styles.topbar}>
-        <button type="button" className={styles.logoBtn} onClick={() => navigate('/app')} aria-label="Flamingo">
+        <button type="button" className={styles.logoBtn} onClick={() => navigate(HOME_ROUTE)} aria-label="Flamingo">
           <Logo />
         </button>
         <div className={styles.topActions}>
@@ -142,7 +143,7 @@ export function ScheduleScreen() {
       </header>
 
       <div className={styles.content}>
-        <button type="button" className={styles.back} onClick={() => navigate('/app')}>
+        <button type="button" className={styles.back} onClick={() => navigate(HOME_ROUTE)}>
           <ArrowLeft size={ICON_SM} /> {t('back')}
         </button>
         <h1 className={styles.pageTitle}>{t('title')}</h1>

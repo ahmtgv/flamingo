@@ -8,6 +8,7 @@ import { Badge, type BadgeTone, ErrorState } from '@/shared/ui';
 
 import { HomeworkLayout } from './HomeworkLayout';
 import styles from './homework.module.css';
+import { HOME_ROUTE } from '@/shared/lib/homeRoute';
 
 const STATUS_TONE: Record<SubmissionStatus, BadgeTone> = {
   SUBMITTED: 'info',
@@ -25,7 +26,7 @@ export function StudentHomeworkScreen() {
   return (
     <HomeworkLayout>
       <div className={styles.content}>
-        <button type="button" className={styles.back} onClick={() => navigate('/app')}>
+        <button type="button" className={styles.back} onClick={() => navigate(HOME_ROUTE)}>
           <ArrowLeft size={ICON_SM} /> {t('back')}
         </button>
         <h1 className={styles.pageTitle}>{t('my.title')}</h1>

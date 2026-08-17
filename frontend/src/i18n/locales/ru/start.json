@@ -1,6 +1,6 @@
 {
   "greeting": "Привет, {{name}}",
-  "greetingTeacher": "Здравствуйте, {{name}}",
+  "greetingTeacher": "{{name}}",
   "greetingNoName": "Привет",
   "greetingTeacherNoName": "Здравствуйте",
   "nav": {
@@ -108,7 +108,6 @@
     "courses": "Курсы",
     "schedule": "Расписание",
     "homework": "Задания",
-    "cabinet": "Кабинет",
     "sources": "Источники мира"
   },
   "noProfile": {

@@ -71,7 +71,24 @@ def schedule_session(user, *, lesson_id, start_at: dt.datetime, group_id=None) -
 
 
 def start_session(user, session_id) -> LessonSession:
+    """Начать занятие. Ограниченная учётка входит и видит своё, но не ведёт (лист D7).
+
+    🔴 §3-тер, найдено аудитом 17.08: состояние `limited` было ДЕКОРАЦИЕЙ. Три состояния,
+    журнал переходов, тринадцать зелёных тестов — и `may_teach()` не вызывался ни одной
+    строкой продукта. Перевод человека в «ограничен» не менял ровно ничего: он вёл занятия
+    как прежде. Разбор жалобы заканчивался записью в журнал и ничем больше.
+
+    Проверка стоит здесь, а не при планировании: запланировать занятие ограниченный может —
+    его снимут с ограничения раньше, чем настанет вторник, — а вот встать перед классом
+    прямо сейчас не может.
+    """
+    from apps.oversight.state import may_teach
+
     session = _owned_session(user, session_id)
+    if not may_teach(user):
+        raise PermissionDenied(
+            "Учётная запись ограничена: вести занятия нельзя. Причина — в решении по вашему делу."
+        )
     session.status = SessionStatus.LIVE.value
     session.save(update_fields=["status", "updated_at"])
     return session

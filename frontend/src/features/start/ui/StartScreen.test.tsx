@@ -219,7 +219,11 @@ describe('StartScreen — atlas sheet 00', () => {
       ),
     ]);
 
-    expect(await screen.findByText('Здравствуйте, Аня')).toBeInTheDocument();
+    // 🔴 Решение владельца 14.08 (лист D1): «приветствие на стартовой уменьшено и оставлено
+    // ИМЕНЕМ БЕЗ "Здравствуйте"» — рабочая площадь важнее подписей. Правка сделана 17.08,
+    // до неё стартовая противоречила листу, а тест держал это противоречие зелёным.
+    expect(await screen.findByText('Аня')).toBeInTheDocument();
+    expect(screen.queryByText(/Здравствуйте/)).not.toBeInTheDocument();
     expect(screen.getByText('11 работ на проверке')).toBeInTheDocument();
     expect(screen.getByText('старшей 2 дня')).toBeInTheDocument();
     // "Продолжить" belongs to a learner, not to a teaching context.

@@ -1,6 +1,7 @@
 import { ChevronDown } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 
 import type { LearningProfilesQuery } from '@/entities/graphql/generated';
 import { ICON_SM } from '@/shared/ui/iconSizes';
@@ -31,6 +32,7 @@ export function AccountMenu({
   switching: boolean;
 }) {
   const { t } = useTranslation('start');
+  const navigate = useNavigate();
   const [open, setOpen] = useState(false);
 
   /** Labels are composed HERE, never shipped from the server, so they stay translatable:
@@ -148,7 +150,20 @@ export function AccountMenu({
             </span>
             <span className={styles.accMark}>{t('account.soon')}</span>
           </button>
-          <button type="button" role="menuitem" className={styles.accItem} disabled>
+          {/* 🔴 «камера · данные · согласия» стояло «скоро» — и это был ЕДИНСТВЕННЫЙ вход
+              к согласию на анализ внимания у всех, кроме преподавателя за мастером. Пока
+              пункт был выключен, ученик не мог включить SEduM никак, и главная функция
+              продукта не записала ни одного числа. Лист D8 теперь исполнен хотя бы этим
+              разделом — пункт живой. */}
+          <button
+            type="button"
+            role="menuitem"
+            className={styles.accItem}
+            onClick={() => {
+              setOpen(false);
+              navigate('/кабинет');
+            }}
+          >
             <span className={styles.accIc} aria-hidden="true">
               ⚙
             </span>
@@ -156,7 +171,7 @@ export function AccountMenu({
               <span className={styles.accT}>{t('account.settings')}</span>
               <span className={styles.accS}>{t('account.settingsSub')}</span>
             </span>
-            <span className={styles.accMark}>{t('account.soon')}</span>
+            <span className={styles.accMark} />
           </button>
 
           <div className={styles.accFoot}>{t('account.foot')}</div>

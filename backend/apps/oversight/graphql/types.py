@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import datetime as dt
+from enum import Enum
 
 import strawberry
 
@@ -83,4 +84,66 @@ class AccessLogRow:
             object_label=row.object_label,
             reason=row.reason,
             at=row.created_at,
+        )
+
+
+@strawberry.enum
+class AccountStateValue(Enum):
+    """Три положения учётной записи (лист D7, OWNER_SCOPE §23.3.3).
+
+    Перечисление в схеме, а не строка: «ограничен» и «заблокирован» — разные решения с разными
+    последствиями, и опечатка в них не должна доезжать до базы.
+    """
+
+    ACTIVE = "active"
+    LIMITED = "limited"
+    BLOCKED = "blocked"
+
+
+@strawberry.type
+class AccountStateRow:
+    """Один ПЕРЕХОД: кто перевёл, когда и почему.
+
+    История, а не текущее значение, — потому что вопрос человека звучит «почему у меня нет
+    доступа», и ответом на него может быть только запись с датой и автором.
+    """
+
+    state: AccountStateValue
+    reason: str
+    actor_name: str
+    at: dt.datetime
+
+    @classmethod
+    def of(cls, row) -> AccountStateRow:
+        return cls(
+            state=AccountStateValue(row.state),
+            reason=row.reason,
+            actor_name=row.actor.full_name if row.actor else "",
+            at=row.created_at,
+        )
+
+
+@strawberry.type
+class PersonRow:
+    """Человек в разделе «Люди» листа D7.
+
+    Показываем ровно то, по чему принимают решение: кто это, какая роль, в каком состоянии
+    учётка. Ни адреса, ни телефона, ни детей — панель надзора не витрина персональных данных,
+    а место, где закрывают и открывают доступ.
+    """
+
+    user_id: strawberry.ID
+    full_name: str
+    email: str
+    role: str
+    state: AccountStateValue
+
+    @classmethod
+    def of(cls, user, state: str) -> PersonRow:
+        return cls(
+            user_id=strawberry.ID(str(user.id)),
+            full_name=user.full_name,
+            email=user.email,
+            role=user.role,
+            state=AccountStateValue(state),
         )

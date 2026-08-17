@@ -9,6 +9,7 @@ import { Button, ErrorState, Input } from '@/shared/ui';
 
 import { CoursesLayout } from './CoursesLayout';
 import styles from './courses.module.css';
+import { HOME_ROUTE } from '@/shared/lib/homeRoute';
 
 type ChipKey = 'all' | 'math' | 'langs' | 'physics' | 'grade7' | 'oge' | 'courses' | 'cpd';
 
@@ -59,7 +60,7 @@ export function CatalogScreen() {
   return (
     <CoursesLayout>
       <div className={styles.content}>
-        <button type="button" className={styles.back} onClick={() => navigate('/app')}>
+        <button type="button" className={styles.back} onClick={() => navigate(HOME_ROUTE)}>
           <ArrowLeft size={ICON_SM} /> {t('courses:back')}
         </button>
 

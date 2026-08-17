@@ -31,6 +31,19 @@ export type AccessLogRow = {
   subjectName: Scalars['String']['output'];
 };
 
+export type AccountStateRow = {
+  __typename?: 'AccountStateRow';
+  actorName: Scalars['String']['output'];
+  at: Scalars['DateTime']['output'];
+  reason: Scalars['String']['output'];
+  state: AccountStateValue;
+};
+
+export type AccountStateValue =
+  | 'ACTIVE'
+  | 'BLOCKED'
+  | 'LIMITED';
+
 export type Achievement = {
   __typename?: 'Achievement';
   earnedAt: Scalars['DateTime']['output'];
@@ -1056,6 +1069,7 @@ export type Mutation = {
   sendChatMessage: ChatMessage;
   sendLessonSummary: LessonSummary;
   sendSignal: Scalars['Boolean']['output'];
+  setAccountState: User;
   setActiveLearningProfile: LearningProfile;
   setAttendance: Attendance;
   setAttentionConsent: Scalars['Boolean']['output'];
@@ -1541,6 +1555,13 @@ export type MutationSendSignalArgs = {
 };
 
 
+export type MutationSetAccountStateArgs = {
+  reason?: InputMaybe<Scalars['String']['input']>;
+  state: AccountStateValue;
+  userId: Scalars['ID']['input'];
+};
+
+
 export type MutationSetActiveLearningProfileArgs = {
   id: Scalars['ID']['input'];
 };
@@ -1805,6 +1826,15 @@ export type ParticipantState =
   | 'IN_ROOM'
   | 'NEVER_OPENED';
 
+export type PersonRow = {
+  __typename?: 'PersonRow';
+  email: Scalars['String']['output'];
+  fullName: Scalars['String']['output'];
+  role: Scalars['String']['output'];
+  state: AccountStateValue;
+  userId: Scalars['ID']['output'];
+};
+
 export type PointEvent = {
   __typename?: 'PointEvent';
   amount: Scalars['Int']['output'];
@@ -1841,6 +1871,7 @@ export type ProjectorJoin = {
 
 export type Query = {
   __typename?: 'Query';
+  accountStateHistory: Array<AccountStateRow>;
   adminDashboard: AdminDashboard;
   attentionAnalytics: AttentionAnalytics;
   board: Board;
@@ -1892,6 +1923,7 @@ export type Query = {
   notificationPreferences: Array<NotificationPreference>;
   notifications: NotificationConnection;
   oversightLog: Array<AccessLogRow>;
+  oversightPeople: Array<PersonRow>;
   parentChildOverview: ParentChildOverview;
   parentChildren: Array<StudentProfile>;
   recommendations: Array<Recommendation>;
@@ -1914,6 +1946,11 @@ export type Query = {
   verificationDocumentUrl: Scalars['String']['output'];
   verificationQueue: Array<VerificationQueueEntry>;
   verifyCertificate: CertificateVerification;
+};
+
+
+export type QueryAccountStateHistoryArgs = {
+  userId: Scalars['ID']['input'];
 };
 
 
@@ -2111,6 +2148,12 @@ export type QueryNotificationsArgs = {
 
 export type QueryOversightLogArgs = {
   limit?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
+export type QueryOversightPeopleArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  query?: InputMaybe<Scalars['String']['input']>;
 };
 
 
@@ -3022,6 +3065,30 @@ export type RequestVerificationDocumentsMutationVariables = Exact<{
 
 export type RequestVerificationDocumentsMutation = { __typename?: 'Mutation', requestVerificationDocuments: { __typename?: 'User', id: string } };
 
+export type OversightPeopleQueryVariables = Exact<{
+  query?: InputMaybe<Scalars['String']['input']>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+}>;
+
+
+export type OversightPeopleQuery = { __typename?: 'Query', oversightPeople: Array<{ __typename?: 'PersonRow', userId: string, fullName: string, email: string, role: string, state: AccountStateValue }> };
+
+export type AccountStateHistoryQueryVariables = Exact<{
+  userId: Scalars['ID']['input'];
+}>;
+
+
+export type AccountStateHistoryQuery = { __typename?: 'Query', accountStateHistory: Array<{ __typename?: 'AccountStateRow', state: AccountStateValue, reason: string, actorName: string, at: string }> };
+
+export type SetAccountStateMutationVariables = Exact<{
+  userId: Scalars['ID']['input'];
+  state: AccountStateValue;
+  reason?: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type SetAccountStateMutation = { __typename?: 'Mutation', setAccountState: { __typename?: 'User', id: string } };
+
 export type LoginMutationVariables = Exact<{
   email: Scalars['String']['input'];
   password: Scalars['String']['input'];
@@ -3667,7 +3734,7 @@ export type SessionRoomQueryVariables = Exact<{
 }>;
 
 
-export type SessionRoomQuery = { __typename?: 'Query', session?: { __typename?: 'LessonSession', id: string, status: SessionStatus, roomToken?: string | null, teacherName?: string | null, teacherId?: string | null, lesson: { __typename?: 'Lesson', id: string, title: string } } | null };
+export type SessionRoomQuery = { __typename?: 'Query', session?: { __typename?: 'LessonSession', id: string, status: SessionStatus, startAt: string, roomToken?: string | null, teacherName?: string | null, teacherId?: string | null, lesson: { __typename?: 'Lesson', id: string, title: string } } | null };
 
 export type SessionAttendeesQueryVariables = Exact<{
   id: Scalars['ID']['input'];
@@ -4716,6 +4783,135 @@ export function useRequestVerificationDocumentsMutation(baseOptions?: Apollo.Mut
 export type RequestVerificationDocumentsMutationHookResult = ReturnType<typeof useRequestVerificationDocumentsMutation>;
 export type RequestVerificationDocumentsMutationResult = Apollo.MutationResult<RequestVerificationDocumentsMutation>;
 export type RequestVerificationDocumentsMutationOptions = Apollo.BaseMutationOptions<RequestVerificationDocumentsMutation, RequestVerificationDocumentsMutationVariables>;
+export const OversightPeopleDocument = gql`
+    query OversightPeople($query: String, $limit: Int) {
+  oversightPeople(query: $query, limit: $limit) {
+    userId
+    fullName
+    email
+    role
+    state
+  }
+}
+    `;
+
+/**
+ * __useOversightPeopleQuery__
+ *
+ * To run a query within a React component, call `useOversightPeopleQuery` and pass it any options that fit your needs.
+ * When your component renders, `useOversightPeopleQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useOversightPeopleQuery({
+ *   variables: {
+ *      query: // value for 'query'
+ *      limit: // value for 'limit'
+ *   },
+ * });
+ */
+export function useOversightPeopleQuery(baseOptions?: Apollo.QueryHookOptions<OversightPeopleQuery, OversightPeopleQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<OversightPeopleQuery, OversightPeopleQueryVariables>(OversightPeopleDocument, options);
+      }
+export function useOversightPeopleLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<OversightPeopleQuery, OversightPeopleQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<OversightPeopleQuery, OversightPeopleQueryVariables>(OversightPeopleDocument, options);
+        }
+// @ts-ignore
+export function useOversightPeopleSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<OversightPeopleQuery, OversightPeopleQueryVariables>): Apollo.UseSuspenseQueryResult<OversightPeopleQuery, OversightPeopleQueryVariables>;
+export function useOversightPeopleSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<OversightPeopleQuery, OversightPeopleQueryVariables>): Apollo.UseSuspenseQueryResult<OversightPeopleQuery | undefined, OversightPeopleQueryVariables>;
+export function useOversightPeopleSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<OversightPeopleQuery, OversightPeopleQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<OversightPeopleQuery, OversightPeopleQueryVariables>(OversightPeopleDocument, options);
+        }
+export type OversightPeopleQueryHookResult = ReturnType<typeof useOversightPeopleQuery>;
+export type OversightPeopleLazyQueryHookResult = ReturnType<typeof useOversightPeopleLazyQuery>;
+export type OversightPeopleSuspenseQueryHookResult = ReturnType<typeof useOversightPeopleSuspenseQuery>;
+export type OversightPeopleQueryResult = Apollo.QueryResult<OversightPeopleQuery, OversightPeopleQueryVariables>;
+export const AccountStateHistoryDocument = gql`
+    query AccountStateHistory($userId: ID!) {
+  accountStateHistory(userId: $userId) {
+    state
+    reason
+    actorName
+    at
+  }
+}
+    `;
+
+/**
+ * __useAccountStateHistoryQuery__
+ *
+ * To run a query within a React component, call `useAccountStateHistoryQuery` and pass it any options that fit your needs.
+ * When your component renders, `useAccountStateHistoryQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useAccountStateHistoryQuery({
+ *   variables: {
+ *      userId: // value for 'userId'
+ *   },
+ * });
+ */
+export function useAccountStateHistoryQuery(baseOptions: Apollo.QueryHookOptions<AccountStateHistoryQuery, AccountStateHistoryQueryVariables> & ({ variables: AccountStateHistoryQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<AccountStateHistoryQuery, AccountStateHistoryQueryVariables>(AccountStateHistoryDocument, options);
+      }
+export function useAccountStateHistoryLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<AccountStateHistoryQuery, AccountStateHistoryQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<AccountStateHistoryQuery, AccountStateHistoryQueryVariables>(AccountStateHistoryDocument, options);
+        }
+// @ts-ignore
+export function useAccountStateHistorySuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<AccountStateHistoryQuery, AccountStateHistoryQueryVariables>): Apollo.UseSuspenseQueryResult<AccountStateHistoryQuery, AccountStateHistoryQueryVariables>;
+export function useAccountStateHistorySuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<AccountStateHistoryQuery, AccountStateHistoryQueryVariables>): Apollo.UseSuspenseQueryResult<AccountStateHistoryQuery | undefined, AccountStateHistoryQueryVariables>;
+export function useAccountStateHistorySuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<AccountStateHistoryQuery, AccountStateHistoryQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<AccountStateHistoryQuery, AccountStateHistoryQueryVariables>(AccountStateHistoryDocument, options);
+        }
+export type AccountStateHistoryQueryHookResult = ReturnType<typeof useAccountStateHistoryQuery>;
+export type AccountStateHistoryLazyQueryHookResult = ReturnType<typeof useAccountStateHistoryLazyQuery>;
+export type AccountStateHistorySuspenseQueryHookResult = ReturnType<typeof useAccountStateHistorySuspenseQuery>;
+export type AccountStateHistoryQueryResult = Apollo.QueryResult<AccountStateHistoryQuery, AccountStateHistoryQueryVariables>;
+export const SetAccountStateDocument = gql`
+    mutation SetAccountState($userId: ID!, $state: AccountStateValue!, $reason: String) {
+  setAccountState(userId: $userId, state: $state, reason: $reason) {
+    id
+  }
+}
+    `;
+export type SetAccountStateMutationFn = Apollo.MutationFunction<SetAccountStateMutation, SetAccountStateMutationVariables>;
+
+/**
+ * __useSetAccountStateMutation__
+ *
+ * To run a mutation, you first call `useSetAccountStateMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useSetAccountStateMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [setAccountStateMutation, { data, loading, error }] = useSetAccountStateMutation({
+ *   variables: {
+ *      userId: // value for 'userId'
+ *      state: // value for 'state'
+ *      reason: // value for 'reason'
+ *   },
+ * });
+ */
+export function useSetAccountStateMutation(baseOptions?: Apollo.MutationHookOptions<SetAccountStateMutation, SetAccountStateMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<SetAccountStateMutation, SetAccountStateMutationVariables>(SetAccountStateDocument, options);
+      }
+export type SetAccountStateMutationHookResult = ReturnType<typeof useSetAccountStateMutation>;
+export type SetAccountStateMutationResult = Apollo.MutationResult<SetAccountStateMutation>;
+export type SetAccountStateMutationOptions = Apollo.BaseMutationOptions<SetAccountStateMutation, SetAccountStateMutationVariables>;
 export const LoginDocument = gql`
     mutation Login($email: String!, $password: String!) {
   login(email: $email, password: $password) {
@@ -8666,6 +8862,7 @@ export const SessionRoomDocument = gql`
   session(id: $id) {
     id
     status
+    startAt
     roomToken
     teacherName
     teacherId

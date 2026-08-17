@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Navigate, useNavigate } from 'react-router-dom';
 
 import { useAppDispatch, useAppSelector } from '@/app/hooks';
+import { VerificationBanner } from '@/features/cabinet/ui/VerificationBanner';
 import { ChatDock, useChatUnread } from '@/features/chat';
 import { toggleTheme } from '@/app/uiSlice';
 import { useLogout } from '@/app/useLogout';
@@ -98,7 +99,13 @@ export function StartScreen() {
             {t('nav.chat')}
             {unreadChats > 0 && <span className={styles.badge}>{unreadChats}</span>}
           </button>
-          <button type="button" className={styles.navBtn} onClick={() => navigate('/courses')}>
+          {/* 🔴 Подпись обещала хаб источников (лист 12), а вела в архивный каталог курсов.
+              Это первое, что назвал владелец 17.08. Теперь ведёт туда, что написано. */}
+          <button
+            type="button"
+            className={styles.navBtn}
+            onClick={() => navigate('/источники')}
+          >
             {t('nav.sources')}
           </button>
           <button
@@ -148,6 +155,14 @@ export function StartScreen() {
           </h1>
           <span className={styles.hiDate}>{headerStamp(now)}</span>
         </div>
+
+        {/* 🔴 БАННЕР ВЕРИФИКАЦИИ ЖИЛ ТОЛЬКО В ПРЕЖНЕМ КАБИНЕТЕ (аудит продукта 17.08).
+            Он стоял в `TeacherCabinet`, то есть на `/app`, а преподаватель после мастера
+            живёт здесь и на `/app` не заходит вовсе. Единственное место, где человек узнаёт,
+            что его документы на проверке — или что в них отказано и почему, — было ему
+            недоступно. Лист D8 прямо называет это невыполненным обещанием.
+            Компонент тот же самый: у экрана не должно быть своей версии этого разговора. */}
+        {isTeacher && <VerificationBanner profile={me?.teacherProfile} />}
 
         {loading && !page ? (
           <Skeleton />
@@ -310,8 +325,16 @@ export function StartScreen() {
                 >
                   {t('quick.homework')}
                 </button>
-                <button type="button" className={styles.quickBtn} onClick={() => navigate('/app')}>
-                  {t('quick.cabinet')}
+                {/* 🔴 Плитка «Кабинет», уводившая на `/app`. Смеси хуже неё в продукте не
+                    было: лист 00 САМ и есть кабинет, такой плитки на нём нет, а нажатие
+                    уносило человека в прежнюю сборку без дороги назад. Заменена на пятый
+                    быстрый вход листа — «Источники мира». */}
+                <button
+                  type="button"
+                  className={styles.quickBtn}
+                  onClick={() => navigate('/источники')}
+                >
+                  {t('quick.sources')}
                 </button>
               </div>
             </section>

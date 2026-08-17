@@ -1377,6 +1377,29 @@ type AccessLogRow {
   at: DateTime!
 }
 
+# Состояние учётной записи — три положения, не флажок (лист D7, OWNER_SCOPE §23.3.3).
+# ACTIVE — обычная работа; LIMITED — входит и видит своё, но не ведёт занятий и не пишет в
+# общие чаты; BLOCKED — входа нет. Ни одно состояние не трогает учёбу ученика (§20.5).
+enum AccountStateValue { ACTIVE LIMITED BLOCKED }
+
+# Один ПЕРЕХОД, а не текущее значение: на вопрос «почему у меня нет доступа» ответом может
+# быть только запись с датой, автором и причиной.
+type AccountStateRow {
+  state: AccountStateValue!
+  reason: String!
+  actorName: String!
+  at: DateTime!
+}
+
+# Человек в разделе «Люди». Ровно то, по чему принимают решение: кто, какая роль, состояние.
+type PersonRow {
+  userId: ID!
+  fullName: String!
+  email: String!
+  role: String!
+  state: AccountStateValue!
+}
+
 # ----------------------------------------------------------------------------- Subject cabinet (atlas 01)
 # One frame for pupil, cadet and teacher. Rows carry DATA — "6 из 8 пройдено" and the lesson
 # chips are worded client-side through i18n.
@@ -1530,6 +1553,10 @@ type Query {
   verificationQueue: [VerificationQueueEntry!]!
   verificationDocumentUrl(id: ID!): String!
   oversightLog(limit: Int = 100): [AccessLogRow!]!
+  # Раздел «Люди» листа D7. Поиск по имени и почте: панель открывают по конкретному разбору,
+  # а не чтобы листать базу.
+  oversightPeople(query: String = "", limit: Int = 50): [PersonRow!]!
+  accountStateHistory(userId: ID!): [AccountStateRow!]!
 
   # chat (R2) — all scoped to the caller's own membership; none takes a user id
   myChannels: [ChatChannel!]!
@@ -1669,6 +1696,9 @@ type Mutation {
   verifyTeacher(teacherUserId: ID!): User!
   rejectTeacher(teacherUserId: ID!, reason: String!): User!
   requestVerificationDocuments(teacherUserId: ID!, reason: String!): User!
+  # Перевести учётную запись в состояние. Причина обязательна для всего, кроме возврата в
+  # ACTIVE: закрыть человеку доступ молча — то же, что отказать в верификации без причины.
+  setAccountState(userId: ID!, state: AccountStateValue!, reason: String = ""): User!
   setAvatar(fileKey: String!): User!                                    # own avatar (student/teacher)
   # Своё имя. Отчество появилось после того, как люди уже зарегистрировались (§24) — без этой
   # мутации добавить его было бы негде.

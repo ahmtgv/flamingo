@@ -134,7 +134,12 @@ export function SubjectScreen() {
           <Logo />
         </button>
         <div className={styles.navSpace}>
-          <button type="button" className={styles.navBtn} onClick={() => navigate('/courses')}>
+          {/* Та же смесь, второй экран: подпись «Источники», адрес — каталог курсов. */}
+          <button
+            type="button"
+            className={styles.navBtn}
+            onClick={() => navigate('/источники')}
+          >
             {t('rail.sources')}
           </button>
           <button
@@ -285,7 +290,7 @@ export function SubjectScreen() {
                   sources={cab.sources}
                   onKeep={(s, note, later) => void keepSource(s, note, later)}
                   onDrop={(id) => void drop(id)}
-                  onAll={() => navigate('/courses')}
+                  onAll={() => navigate('/источники')}
                 />
               </aside>
             </div>

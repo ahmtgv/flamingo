@@ -183,10 +183,36 @@ def update_my_name(user: User, *, first_name: str, last_name: str, middle_name: 
 
 # --- sessions ----------------------------------------------------------------
 def login(*, email: str, password: str) -> tuple[User, dict[str, str]]:
+    """Вход. Заблокированному говорим, что он заблокирован, а не «неверный пароль».
+
+    🔴 НАЙДЕНО АУДИТОМ ПРОДУКТА 17.08. Здесь стояло одно условие на два разных случая:
+    `user is None or not user.is_active` → «Invalid email or password». Человек с ВЕРНЫМ
+    паролем, которому закрыли доступ, читал «неверная почта или пароль» — и шёл менять пароль,
+    писать в поддержку, заводить вторую учётку. Ни одного слова правды на экране.
+
+    Причина, по которой это не было видно: `is_active` — булев флаг, он умеет сказать только
+    «нет», а почему — не хранит. Три состояния и журнал переходов (`oversight/state.py`)
+    заведены ровно затем, чтобы ответ существовал; до этой правки их не спрашивал никто.
+
+    ⚠️ Порядок проверок важен и он не косметика. Про блокировку говорим ТОЛЬКО тому, кто уже
+    доказал, что он — это он, то есть после верной пары почта+пароль. Скажи мы раньше, форма
+    входа стала бы справочной: по ответу можно было бы перебором узнать, кто на платформе
+    есть. Чужому — прежний общий отказ, своему — правда.
+    """
     user = authenticate(username=email.lower(), password=password)
-    if user is None or not user.is_active:
-        raise AuthError("Invalid email or password")
-    return user, issue_tokens(user)
+    if user is not None:
+        return user, issue_tokens(user)
+
+    # ⚠️ `authenticate()` не различает «пароль не тот» и «учётка выключена»: `ModelBackend`
+    # проверяет `is_active` внутри себя и в обоих случаях возвращает `None`. Именно поэтому
+    # заблокированный слышал про пароль — различать было нечем, и никто не заметил, потому
+    # что снаружи оба случая выглядят одинаково.
+    #
+    # Спрашиваем пароль сами и ровно затем, чтобы правду услышал ТОЛЬКО тот, кто её доказал.
+    blocked = User.objects.filter(email=email.lower(), is_active=False).first()
+    if blocked is not None and blocked.check_password(password):
+        raise AuthError("Доступ к платформе закрыт. Ваши работы и оценки сохранены.")
+    raise AuthError("Invalid email or password")
 
 
 @transaction.atomic

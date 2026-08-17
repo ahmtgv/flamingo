@@ -259,3 +259,54 @@
   font-family: var(--font-body);
   font-size: var(--text-small);
 }
+
+/* --- раздел «Люди» листа D7 -------------------------------------------------------- */
+.people {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.person {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+}
+
+.personWho { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.personName { color: var(--color-text); font-weight: var(--weight-medium); }
+.personMeta { font-size: var(--text-caption); color: var(--color-text-secondary); }
+
+/* Состояние — словом, а не цветной точкой: решение читают, а не угадывают. */
+.state {
+  font-size: var(--text-caption);
+  color: var(--color-text-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill, 999px);
+  padding: 2px var(--space-2);
+  white-space: nowrap;
+}
+.state[data-state='limited'] { color: var(--color-warning-text); border-color: var(--color-warning-text); }
+.state[data-state='blocked'] { color: var(--color-error-text); border-color: var(--color-error-text); }
+
+.personActs { display: flex; gap: var(--space-2); flex-wrap: wrap; }
+
+.stateLog {
+  grid-column: 1 / -1;
+  list-style: none;
+  margin: 0;
+  padding: var(--space-3) 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  border-top: 1px solid var(--color-border);
+}
+.stateLog li { display: flex; gap: var(--space-3); flex-wrap: wrap; align-items: baseline; }
