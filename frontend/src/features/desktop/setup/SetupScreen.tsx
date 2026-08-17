@@ -1,7 +1,11 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { useMeQuery, useThisDeviceQuery } from '@/entities/graphql/generated';
+import {
+  useAdvanceDeviceSetupMutation,
+  useMeQuery,
+  useThisDeviceQuery,
+} from '@/entities/graphql/generated';
 
 import { CabinetStep } from './CabinetStep';
 import { CheckStep } from './CheckStep';
@@ -39,6 +43,7 @@ export function SetupScreen({ onFinished }: { onFinished: () => void }) {
   // Прогресс машины — с сервера; локальный шаг ведёт мастер, пока идёт сессия.
   const machine = devicesData?.thisDevice;
   const [local, setLocal] = useState<SetupStep | null>(null);
+  const [advance] = useAdvanceDeviceSetupMutation();
   // TEMPORARY: витрина (VITE_PREVIEW=1) показывает лист целиком, поэтому открывается с первого
   // шага. В приложении мастер возвращает на пройденный — «сделанное сохраняется». Уходит
   // вместе с демо-слоем.
@@ -70,9 +75,27 @@ export function SetupScreen({ onFinished }: { onFinished: () => void }) {
   const teacherName = me?.displayName || null;
   const groupSize = machine?.uplink?.groupSize ?? null;
 
+  /**
+   * 🔴 ШАГ ЗАПИСЫВАЕТСЯ НА СЕРВЕР (найдено аудитом 17.08).
+   *
+   * `advanceDeviceSetup` существовала с первого дня и **не вызывалась ни одним экраном**.
+   * Сервер умел записать только три значения из пяти: 1 (по умолчанию), 3 (настройка копии)
+   * и 5 (завершение). Шагов 2 и 4 он не видел никогда.
+   *
+   * Из-за этого обещание на этом же экране — «настройку можно прервать: приложение вернёт
+   * на тот же шаг» — было неверным на два шага: прошёл согласия и проверку, закрыл окно —
+   * откроется на согласиях. И рельс слева не пускал на шаги 4 и 5 **даже после того, как
+   * их прошли**, потому что открываемость считается от серверного шага, а тот не рос.
+   *
+   * ⚠️ Отказ записи не запирает мастер: человек уже сделал то, что делал, и держать его
+   * из-за неудавшейся отметки прогресса — хуже, чем вернуть на шаг назад в следующий раз.
+   * Но и молча не глотаем.
+   */
   const go = (next: SetupStep) => {
     setLocal(next);
-    void refetch();
+    void advance({ variables: { step: stepNumber(next) } })
+      .catch(() => undefined)
+      .finally(() => void refetch());
   };
 
   return (

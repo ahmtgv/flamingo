@@ -117,6 +117,7 @@ def confirm_pairing_code(user, code: str) -> Device:
     # Before the transaction: a refusal writes evidence and then raises, and inside an atomic
     # block that raise would roll the evidence back with it (common/compliance/policy.py).
     require_feature(user, FEATURE_PAIRING)
+
     return _confirm(user, code)
 
 

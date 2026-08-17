@@ -85,7 +85,11 @@ def frontend_operations() -> set[str]:
     )
 
     asked: set[str] = set()
-    field = re.compile(r"^\s{2,4}(\w+)\s*[({]", re.M)
+    # ⚠️ Скалярное поле без аргументов и без набора — тоже поле. Первая версия требовала
+    # `(` или `{` после имени и потому не видела `mutation Logout { logout }`: операция
+    # была подключена, а сторож считал её сиротой. Проверка, которая врёт в свою сторону,
+    # опаснее отсутствующей — ей верят.
+    field = re.compile(r"^\s{2,4}(\w+)\s*[({\n]", re.M)
     header = re.compile(r"^(query|mutation|subscription)\s+(\w+)", re.M)
 
     for path in FRONTEND.rglob("*.graphql"):
