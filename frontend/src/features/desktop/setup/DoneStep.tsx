@@ -25,7 +25,15 @@ export function DoneStep({
 }: {
   /** `null` — имени НЕ ЗНАЕМ. Это не то же самое, что пустая строка, см. §Б0-септ ниже. */
   teacherName: string | null;
-  attentionOn: boolean;
+  /**
+   * `null` — СОСТОЯНИЯ НЕ ЗНАЕМ (найдено аудитом 17.08).
+   *
+   * Здесь стояло `me?.consentAttention ?? false`, и два отказа сходились в одно значение:
+   * «сервер не ответил» и «согласия нет» рисовались одинаково — «анализ внимания выключен».
+   * Это единственное место во всём продукте, где состояние согласия вообще показывается, и
+   * этой строкой преподаватель отвечает родителю.
+   */
+  attentionOn: boolean | null;
   groupSize: number | null;
   onOpenCabinet: () => void;
 }) {
@@ -78,7 +86,13 @@ export function DoneStep({
               : t('setup.done.signedIn', { name: teacherName })}
           </li>
           <li>{t('setup.done.cabinetAt')}</li>
-          <li>{attentionOn ? t('setup.done.consentsDoneOn') : t('setup.done.consentsDone')}</li>
+          <li className={attentionOn === null ? styles.warn : undefined}>
+            {attentionOn === null
+              ? t('setup.done.consentsUnknown')
+              : attentionOn
+                ? t('setup.done.consentsDoneOn')
+                : t('setup.done.consentsDone')}
+          </li>
           <li>
             {groupSize === null
               ? t('setup.done.checkedUnknown')

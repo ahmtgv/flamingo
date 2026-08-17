@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
 
@@ -34,6 +35,7 @@ export function ArrivalScreen() {
     pollInterval: 15_000,
   });
   const [joinSession] = useJoinSessionMutation();
+  const [entering, setEntering] = useState(false);
 
   /**
    * 🔴 ВОЙТИ — ЗНАЧИТ ОТМЕТИТЬСЯ (найдено аудитом 17.08).
@@ -51,8 +53,17 @@ export function ArrivalScreen() {
    * записи присутствия — хуже, чем пустая строка в журнале. Но и молчать нельзя, поэтому
    * причина остаётся в консоли, а не проглатывается.
    */
+  /**
+   * 🔴 ОДНО НАЖАТИЕ ЗА РАЗ (найдено аудитом 17.08).
+   *
+   * Кнопки «Войти» и «Войти без камеры» были живы одновременно и без обратной связи.
+   * Нажали обе — побеждала та, чей `navigate()` отработает ПОСЛЕДНИМ, а порядок задаёт
+   * сеть, не человек. Для продукта, чей главный принцип — приватность на устройстве, это
+   * худший из возможных исходов гонки: ребёнок выбрал «без камеры» и попал с камерой.
+   */
   const enterRoom = async (sessionId: string | undefined, audioOnly: boolean) => {
-    if (!sessionId) return;
+    if (!sessionId || entering) return;
+    setEntering(true);
     try {
       await joinSession({ variables: { sessionId } });
     } catch (error) {
@@ -99,6 +110,7 @@ export function ArrivalScreen() {
             <button
               type="button"
               className={styles.btn}
+              disabled={entering}
               onClick={() => void enterRoom(next?.sessionId, false)}
             >
               {t('arrival.enter')}
@@ -108,6 +120,7 @@ export function ArrivalScreen() {
             <button
               type="button"
               className={styles.btnGhost}
+              disabled={entering}
               onClick={() => void enterRoom(next?.sessionId, true)}
             >
               {t('arrival.enterAudio')}

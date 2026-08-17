@@ -155,7 +155,7 @@ export function SetupScreen({ onFinished }: { onFinished: () => void }) {
         {step === 'done' && (
           <DoneStep
             teacherName={teacherName}
-            attentionOn={me?.consentAttention ?? false}
+            attentionOn={me ? me.consentAttention : null}
             groupSize={groupSize}
             onOpenCabinet={onFinished}
           />

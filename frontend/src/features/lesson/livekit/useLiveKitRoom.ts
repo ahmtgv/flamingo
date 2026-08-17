@@ -115,7 +115,18 @@ export function useLiveKitRoom({ url, token, stream, active }: UseLiveKitRoomArg
   const [screenSharing, setScreenSharing] = useState(false);
 
   useEffect(() => {
-    if (!active || !token || !stream || !url) return undefined;
+    // 🔴 `stream` СЮДА НЕ ВХОДИТ (найдено аудитом 17.08 — «тёмный экран на планшете»).
+    //
+    // Здесь стояло `!stream` в одном ряду с `!token` и `!url`, и это было верно ровно до
+    // появления первого экрана, который СМОТРИТ, но не публикует. Проектор (`/projector`)
+    // передаёт `stream: null` намеренно — «watch-only, ремни и подтяжки», — и потому
+    // `room.connect()` не вызывался никогда: ни участников, ни ошибки, ни состояния.
+    // Оставался пустой прямоугольник цвета `--color-surface-video`. Ровно то, что владелец
+    // видел на планшете.
+    //
+    // Отсутствие потока — причина не подключаться, а не публиковать. Проверка переехала
+    // к публикации, десятью строками ниже.
+    if (!active || !token || !url) return undefined;
     let cancelled = false;
     const room = new Room();
     roomRef.current = room;
@@ -192,8 +203,10 @@ export function useLiveKitRoom({ url, token, stream, active }: UseLiveKitRoomArg
           await room.disconnect();
           return;
         }
-        const video = stream.getVideoTracks()[0];
-        const audio = stream.getAudioTracks()[0];
+        // Смотрящий без потока — полноправный участник комнаты: он видит и слышит, просто
+        // не публикует ничего. Именно так устроен второй экран.
+        const video = stream?.getVideoTracks()[0];
+        const audio = stream?.getAudioTracks()[0];
         if (video) await room.localParticipant.publishTrack(video, { source: Track.Source.Camera });
         if (audio)
           await room.localParticipant.publishTrack(audio, { source: Track.Source.Microphone });
