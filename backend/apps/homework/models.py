@@ -12,6 +12,11 @@ class Homework(SoftDeleteModel):
     type = models.CharField(max_length=8, choices=choices(HomeworkType))
     due_at = models.DateTimeField(null=True, blank=True)
     allow_redo = models.BooleanField(default=False)
+    #: 🔴 Свой максимум у задания (решение владельца §28.2). Без него четвёрка из пяти и
+    #: четвёрка из ста были неразличимы: `score` — просто число, и «4» ничего не значило,
+    #: пока не знаешь, из скольких. Умолчание пятибалльное — школьная норма РФ.
+    #: `null` = зачёт/незачёт: числа у такой отметки нет вовсе (см. GradingScale.PASS_FAIL).
+    max_score = models.PositiveIntegerField(default=5, null=True, blank=True)
     # Attached to a lesson and/or a course (at least one); optionally targeted at a
     # group for institutional delivery (Option A). All nullable/additive.
     lesson = models.ForeignKey(
