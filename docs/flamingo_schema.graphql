@@ -87,7 +87,9 @@ enum PointReason { ATTENDANCE HOMEWORK GRADE STREAK }
 enum ReviewStatus { VISIBLE PENDING HIDDEN }
 enum NotificationType { GRADE NEW_LESSON ABSENCE HOMEWORK_DONE CMF_INSIGHT WEEKLY_DIGEST }
 enum NotificationChannel { PUSH EMAIL IN_APP }
-enum UploadPurpose { AVATAR MATERIAL SUBMISSION VERIFICATION COVER INSTITUTION_LOGO }
+# 🔴 BOARD_IMAGE добавлен 17.08 (§28.1.1): картинка на доске уходила в JSONB целиком, base64,
+# и рассылалась подпиской каждому в классе. Теперь она идёт тем же путём, что любой файл.
+enum UploadPurpose { AVATAR MATERIAL SUBMISSION VERIFICATION COVER INSTITUTION_LOGO BOARD_IMAGE }
 
 # ----------------------------------------------------------------------------- Identity & org
 type User {

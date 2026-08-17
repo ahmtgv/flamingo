@@ -11,6 +11,7 @@ import {
   useSaveBoardMutation,
   useSetBoardOpenMutation,
 } from '@/entities/graphql/generated';
+import { useUpload } from '@/shared/lib/useUpload';
 import { Button } from '@/shared/ui';
 
 import {
@@ -53,11 +54,30 @@ const TOOLS: Tool[] = ['select', 'pen', 'text', 'sticker', 'shape', 'link', 'han
 export function BoardCanvas({ lessonId }: { lessonId: string }) {
   const { t } = useTranslation('board');
   const surface = useRef<HTMLDivElement>(null);
+  const wrap = useRef<HTMLDivElement>(null);
   const [view, setView] = useState<Viewport>({ x: 0, y: 0, zoom: 1 });
-  const [tool, setTool] = useState<Tool>('select');
+  /**
+   * 🔴 ОТКРЫЛ ДОСКУ — УЖЕ РИСУЕШЬ (§28.2 п.1, требование владельца).
+   *
+   * Здесь стоял `'select'`: человек брал мел и обнаруживал, что мела в руке нет. На обычной
+   * доске не выбирают сначала инструмент — берут и пишут. Выделение осталось отдельным
+   * инструментом и первым в панели, так что дотянуться до него не дальше, чем было.
+   *
+   * ⚠️ Ученику, которому доска не открыта, перо ни к чему: `canWrite` у него false, и
+   * рисование не начнётся. Ему по-прежнему доступны «выделить» и «рука» — то есть смотреть
+   * и двигать холст. Поэтому умолчание зависит от права, а не одно на всех.
+   */
+  const [tool, setTool] = useState<Tool>('pen');
   const [local, setLocal] = useState<Element[]>([]);
   const [selected, setSelected] = useState<string | null>(null);
   const [linkFrom, setLinkFrom] = useState<string | null>(null);
+  const { upload } = useUpload();
+  const [uploading, setUploading] = useState(false);
+  const [uploadFailed, setUploadFailed] = useState<string | null>(null);
+  const [dropping, setDropping] = useState(false);
+  /** Связь рвалась и состояние восстановлено — человеку об этом сказано, а не подменено молча. */
+  const [resynced, setResynced] = useState<'reconnect' | 'return' | null>(null);
+  const [fullscreen, setFullscreen] = useState(false);
   const [stroke, setStroke] = useState<number[] | null>(null);
   const [saved, setSaved] = useState(false);
   const [failed, setFailed] = useState(false);
@@ -83,9 +103,46 @@ export function BoardCanvas({ lessonId }: { lessonId: string }) {
     setOpenForStudents(board.openForStudents);
   }, [board]);
 
+  // Право узнаём с ответом сервера, а не при первом рендере: до него `canWrite` ещё false,
+  // и перо, выставленное сразу, оказалось бы выключенным у того, кто писать МОЖЕТ.
+  useEffect(() => {
+    setTool(canWrite ? 'pen' : 'select');
+  }, [canWrite]);
+
+  /**
+   * 🔴 ДОСКА ДОСИНХРОНИЗИРУЕТСЯ ПОСЛЕ ОБРЫВА (§28.1.2).
+   *
+   * Подписка приносит ИЗМЕНЕНИЯ и не приносит того, что случилось, пока тебя не было.
+   * Оборвалась связь на минуту — три штриха, нарисованные за эту минуту, не приезжали
+   * никогда, и никто об этом не узнавал: у преподавателя на экране одно, у половины класса
+   * другое, и оба уверены, что видят доску.
+   *
+   * Здесь два разных случая, и лечатся они по-разному:
+   *   * `onComplete` — канал закрылся. Возвращаемся: перезапрашиваем состояние ЦЕЛИКОМ.
+   *   * возврат вкладки/сцены — `visibilitychange`: подписка могла и не рваться, но пока
+   *     вкладка спала, сообщения ушли в никуда.
+   *
+   * ⚠️ Молча подменять картинку нельзя. Преподаватель обязан понимать, что видит класс, —
+   * поэтому после досинхронизации на доске появляется строка о том, что связь рвалась.
+   */
+  const resync = useCallback(
+    async (why: 'reconnect' | 'return') => {
+      const { data: fresh } = await refetch();
+      if (!fresh?.board) return;
+      setLocal(fresh.board.elements);
+      setOpenForStudents(fresh.board.openForStudents);
+      setResynced(why);
+    },
+    [refetch],
+  );
+
   // Live: apply whatever arrives. No merge strategy beyond last-write-wins, by design.
   useBoardChangedSubscription({
     variables: { lessonId },
+    onComplete: () => {
+      // Канал закрылся — всё, что нарисовали без нас, мы не видели.
+      void resync('reconnect');
+    },
     onData: ({ data: payload }) => {
       const change = payload.data?.boardChanged;
       if (!change) return;
@@ -103,6 +160,85 @@ export function BoardCanvas({ lessonId }: { lessonId: string }) {
       }
     },
   });
+
+  useEffect(() => {
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') void resync('return');
+    };
+    document.addEventListener('visibilitychange', onVisible);
+    // Возврат на сцену доски внутри урока — то же самое: пока смотрели тест, доска ушла вперёд.
+    window.addEventListener('focus', onVisible);
+    return () => {
+      document.removeEventListener('visibilitychange', onVisible);
+      window.removeEventListener('focus', onVisible);
+    };
+  }, [resync]);
+
+  /**
+   * 🔴 КОЛЕСО И ЩИПОК (§28.2 п.2). `zoomAt` был написан и покрыт тестами — и не подключён
+   * ни к одному событию: масштаб меняли только две кнопки ±20%, и те к ЦЕНТРУ ЭКРАНА.
+   *
+   * Масштаб идёт к точке под пальцами. Иначе холст «убегает»: приближаешь угол схемы, а
+   * он уезжает за край, потому что растёт всё от середины.
+   *
+   * ⚠️ Слушатель вешаем руками с `passive: false`. React вешает `onWheel` пассивным, и
+   * `preventDefault` в нём не работает — страница прокручивалась бы вместе с холстом.
+   * На трекпаде щипок приходит тем же `wheel` с `ctrlKey`, поэтому отдельного кода для
+   * трекпада нет: он тут уже есть.
+   */
+  useEffect(() => {
+    const node = surface.current;
+    if (!node) return undefined;
+    const onWheel = (e: WheelEvent) => {
+      if (!e.ctrlKey && !e.metaKey) return; // просто прокрутка — не наше дело
+      e.preventDefault();
+      const box = node.getBoundingClientRect();
+      const at = { x: e.clientX - box.left, y: e.clientY - box.top };
+      // Шаг мягкий: у трекпада событий много, и множитель 1.2 на каждое прыгал бы рывками.
+      setView((v) => zoomAt(v, at, Math.exp(-e.deltaY / 300)));
+    };
+    node.addEventListener('wheel', onWheel, { passive: false });
+    return () => node.removeEventListener('wheel', onWheel);
+  }, []);
+
+  /**
+   * 🔴 ПОЛНЫЙ ЭКРАН (§28.2 п.4, обещан владельцу 16.08 и не сделан).
+   *
+   * Просим у браузера настоящий полный экран — тогда уходит и рама приложения, и панель
+   * задач. Если браузер отказал (политика, iOS Safari), доска всё равно раскрывается на
+   * окно: свой режим лучше отсутствия, а `Esc` работает в обоих случаях.
+   *
+   * ⚠️ Состояние держим по СОБЫТИЮ браузера, а не по своему флажку: выйти из полного экрана
+   * можно системным `Esc` мимо нашей кнопки, и тогда флажок врал бы.
+   */
+  useEffect(() => {
+    const onChange = () => setFullscreen(Boolean(document.fullscreenElement));
+    document.addEventListener('fullscreenchange', onChange);
+    return () => document.removeEventListener('fullscreenchange', onChange);
+  }, []);
+
+  const toggleFullscreen = useCallback(() => {
+    const node = wrap.current;
+    if (!node) return;
+    if (document.fullscreenElement) {
+      void document.exitFullscreen().catch(() => undefined);
+      setFullscreen(false);
+      return;
+    }
+    node.requestFullscreen?.().catch(() => undefined);
+    // Свой режим — сразу, не дожидаясь браузера: если он откажет, доска всё равно
+    // раскроется, а `fullscreenchange` поправит состояние, когда ответит.
+    setFullscreen(true);
+  }, []);
+
+  useEffect(() => {
+    if (!fullscreen) return undefined;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && !document.fullscreenElement) setFullscreen(false);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [fullscreen]);
 
   const pointerWorld = useCallback(
     (e: { clientX: number; clientY: number }) => {
@@ -147,7 +283,39 @@ export function BoardCanvas({ lessonId }: { lessonId: string }) {
     [lessonId, put, refetch],
   );
 
+  /**
+   * 🔴 ЩИПОК ДВУМЯ ПАЛЬЦАМИ НА ПЛАНШЕТЕ (§28.2 п.2).
+   *
+   * `wheel` покрывает трекпад, но не сенсорный экран: там приходят два `pointer`-а. Держим
+   * их сами, а не через жесты браузера — `touch-action: none` на холсте уже стоит, иначе
+   * рисование конфликтовало бы с прокруткой страницы.
+   *
+   * Пока пальцев два, рисование не идёт: начатый штрих отменяется, чтобы от щипка не
+   * оставалась случайная закорючка.
+   */
+  const pinch = useRef<Map<number, { x: number; y: number }>>(new Map());
+  const pinchStart = useRef<{ dist: number; zoom: number } | null>(null);
+
+  function pinchDistance(): number {
+    const [a, b] = [...pinch.current.values()];
+    return Math.hypot(a.x - b.x, a.y - b.y);
+  }
+
+  function pinchCentre(): { x: number; y: number } {
+    const [a, b] = [...pinch.current.values()];
+    const box = surface.current?.getBoundingClientRect();
+    return { x: (a.x + b.x) / 2 - (box?.left ?? 0), y: (a.y + b.y) / 2 - (box?.top ?? 0) };
+  }
+
   function onPointerDown(e: React.PointerEvent) {
+    if (e.pointerType === 'touch') {
+      pinch.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (pinch.current.size === 2) {
+        pinchStart.current = { dist: pinchDistance(), zoom: view.zoom };
+        setStroke(null); // от щипка не должно оставаться закорючки
+        return;
+      }
+    }
     const world = pointerWorld(e);
     if (tool === 'hand' || e.button === 1) {
       panning.current = { x: e.clientX, y: e.clientY };
@@ -203,6 +371,18 @@ export function BoardCanvas({ lessonId }: { lessonId: string }) {
   }
 
   function onPointerMove(e: React.PointerEvent) {
+    if (e.pointerType === 'touch' && pinch.current.has(e.pointerId)) {
+      pinch.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (pinch.current.size === 2 && pinchStart.current) {
+        const start = pinchStart.current;
+        const factor = pinchDistance() / (start.dist || 1);
+        // Масштаб считаем от НАЧАЛА щипка, а не накопительно: иначе к концу движения
+        // множители перемножатся и холст улетит.
+        const at = pinchCentre();
+        setView((v) => zoomAt({ ...v, zoom: start.zoom }, at, factor));
+        return;
+      }
+    }
     if (panning.current) {
       setView((v) => panBy(v, e.clientX - panning.current!.x, e.clientY - panning.current!.y));
       panning.current = { x: e.clientX, y: e.clientY };
@@ -224,7 +404,11 @@ export function BoardCanvas({ lessonId }: { lessonId: string }) {
     );
   }
 
-  function onPointerUp() {
+  function onPointerUp(e?: React.PointerEvent) {
+    if (e?.pointerType === 'touch') {
+      pinch.current.delete(e.pointerId);
+      if (pinch.current.size < 2) pinchStart.current = null;
+    }
     panning.current = null;
     if (stroke && stroke.length >= 4) {
       const bounds = strokeBounds(stroke);
@@ -238,32 +422,56 @@ export function BoardCanvas({ lessonId }: { lessonId: string }) {
     if (moved) void commit(moved, moved.id);
   }
 
-  /** Ctrl+V puts an image straight on the canvas (sheet 02). */
+  /**
+   * 🔴 КАРТИНКА ИДЁТ В ХРАНИЛИЩЕ, А НЕ В БАЗУ (§28.1.1).
+   *
+   * Здесь стоял `FileReader.readAsDataURL`, и base64 ложился прямо в `data` элемента — в
+   * `JSONField`. Оттуда картинка уходила подпиской КАЖДОМУ в классе и лежала в каждом
+   * ответе `board(lessonId:)`. Фотография с телефона — три-четыре мегабайта, в base64
+   * около пяти: один вставленный снимок клал канал всему классу.
+   *
+   * Теперь путь тот же, что у любого файла продукта: `requestUpload` → подписанная ссылка →
+   * клиент грузит в хранилище → в `data` ложится КЛЮЧ. По каналу летит ключ; ссылку на
+   * показ выдаёт сервер (`resolved_data`), и живёт она минуты.
+   *
+   * Три двери, одна дорога: `Ctrl+V`, перетаскивание файла на холст и кнопка на панели.
+   */
+  const putImage = useCallback(
+    async (file: File, at?: { x: number; y: number }) => {
+      if (!file.type.startsWith('image/')) return;
+      setUploading(true);
+      setUploadFailed(null);
+      try {
+        const key = await upload(file, 'BOARD_IMAGE');
+        await commit({
+          kind: 'IMAGE' as BoardElementKind,
+          x: at?.x ?? view.x + 80,
+          y: at?.y ?? view.y + 80,
+          width: 320,
+          height: 240,
+          data: { key },
+        });
+      } catch {
+        // Молча проглоченная картинка — худший вид отказа: человек ждёт её на доске.
+        setUploadFailed(t('image.failed'));
+      } finally {
+        setUploading(false);
+      }
+    },
+    [commit, t, upload, view.x, view.y],
+  );
+
   useEffect(() => {
     if (!canWrite) return undefined;
     const onPaste = (e: ClipboardEvent) => {
       const file = [...(e.clipboardData?.items ?? [])]
         .find((i) => i.type.startsWith('image/'))
         ?.getAsFile();
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = () => {
-        void commit({
-          kind: 'IMAGE' as BoardElementKind,
-          x: view.x + 80,
-          y: view.y + 80,
-          width: 320,
-          height: 240,
-          // The preview keeps the data URL; a real upload swaps it for an object key, which
-          // is what the model stores — a board never holds a media stream.
-          data: { src: String(reader.result) },
-        });
-      };
-      reader.readAsDataURL(file);
+      if (file) void putImage(file);
     };
     window.addEventListener('paste', onPaste);
     return () => window.removeEventListener('paste', onPaste);
-  }, [canWrite, commit, view.x, view.y]);
+  }, [canWrite, putImage]);
 
   if (loading && !data) return <p className={styles.hint}>…</p>;
   if (error && !data) {
@@ -279,7 +487,7 @@ export function BoardCanvas({ lessonId }: { lessonId: string }) {
   const byId = new Map(local.map((e) => [e.id, e]));
 
   return (
-    <div className={styles.wrap}>
+    <div className={styles.wrap} ref={wrap} data-fullscreen={fullscreen || undefined}>
       <div className={styles.toolbar} role="toolbar" aria-label={t('title')}>
         {TOOLS.map((id) => (
           <button
@@ -297,6 +505,31 @@ export function BoardCanvas({ lessonId }: { lessonId: string }) {
             {TOOL_GLYPH[id]}
           </button>
         ))}
+        <button
+          type="button"
+          className={styles.tool}
+          aria-pressed={fullscreen}
+          aria-label={t(fullscreen ? 'fullscreen.exit' : 'fullscreen.enter')}
+          title={t(fullscreen ? 'fullscreen.exit' : 'fullscreen.enter')}
+          onClick={toggleFullscreen}
+        >
+          {fullscreen ? '⤡' : '⤢'}
+        </button>
+        {/* Третья дверь: кнопка. `Ctrl+V` знают не все, перетащить можно не отовсюду. */}
+        <label className={styles.tool} aria-label={t('image.add')} title={t('image.add')}>
+          {uploading ? '…' : '🖼'}
+          <input
+            type="file"
+            accept="image/*"
+            hidden
+            disabled={!canWrite || uploading}
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) void putImage(file);
+              e.target.value = '';
+            }}
+          />
+        </label>
         <span className={styles.spacer} />
         <button
           type="button"
@@ -317,14 +550,54 @@ export function BoardCanvas({ lessonId }: { lessonId: string }) {
         </button>
       </div>
 
+      {resynced && (
+        <p className={styles.hint} role="status">
+          {t(resynced === 'reconnect' ? 'resync.afterBreak' : 'resync.afterReturn')}{' '}
+          <button type="button" className={styles.hintBtn} onClick={() => setResynced(null)}>
+            {t('resync.ok')}
+          </button>
+        </p>
+      )}
+
+      {uploadFailed && (
+        <p className={styles.hint} role="alert">
+          {uploadFailed}
+        </p>
+      )}
+
       <div
         ref={surface}
         className={styles.surface}
         data-tool={tool}
+        data-dropping={dropping || undefined}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
         onPointerLeave={onPointerUp}
+        onPointerCancel={onPointerUp}
+        /* Вторая дверь для картинки (§28.2 п.3): перетащить файл прямо на холст.
+           `preventDefault` на dragOver обязателен — без него браузер откроет файл вместо
+           того, чтобы отдать его нам. */
+        onDragOver={(e) => {
+          if (!canWrite) return;
+          e.preventDefault();
+          setDropping(true);
+        }}
+        onDragLeave={() => setDropping(false)}
+        onDrop={(e) => {
+          if (!canWrite) return;
+          e.preventDefault();
+          setDropping(false);
+          const file = e.dataTransfer.files[0];
+          if (!file) return;
+          // Кладём туда, куда отпустили, а не в угол: холст бесконечный, и «где-то там»
+          // означает «ищи сам».
+          const box = surface.current?.getBoundingClientRect();
+          const at = box
+            ? toWorld({ x: e.clientX - box.left, y: e.clientY - box.top }, view)
+            : undefined;
+          void putImage(file, at);
+        }}
       >
         <svg className={styles.svg} role="presentation">
           <g
@@ -395,6 +668,31 @@ export function BoardCanvas({ lessonId }: { lessonId: string }) {
         )}
         {linkFrom && <span className={styles.hint}>{t('linkFirst')}</span>}
         {tool === 'link' && !linkFrom && <span className={styles.hint}>{t('linkHint')}</span>}
+        <button
+          type="button"
+          className={styles.tool}
+          aria-pressed={fullscreen}
+          aria-label={t(fullscreen ? 'fullscreen.exit' : 'fullscreen.enter')}
+          title={t(fullscreen ? 'fullscreen.exit' : 'fullscreen.enter')}
+          onClick={toggleFullscreen}
+        >
+          {fullscreen ? '⤡' : '⤢'}
+        </button>
+        {/* Третья дверь: кнопка. `Ctrl+V` знают не все, перетащить можно не отовсюду. */}
+        <label className={styles.tool} aria-label={t('image.add')} title={t('image.add')}>
+          {uploading ? '…' : '🖼'}
+          <input
+            type="file"
+            accept="image/*"
+            hidden
+            disabled={!canWrite || uploading}
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) void putImage(file);
+              e.target.value = '';
+            }}
+          />
+        </label>
         <span className={styles.spacer} />
         {selected && canWrite && (
           <Button

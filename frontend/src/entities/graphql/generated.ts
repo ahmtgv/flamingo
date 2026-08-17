@@ -2863,6 +2863,7 @@ export type UploadPolicy = {
 
 export type UploadPurpose =
   | 'AVATAR'
+  | 'BOARD_IMAGE'
   | 'COVER'
   | 'INSTITUTION_LOGO'
   | 'MATERIAL'

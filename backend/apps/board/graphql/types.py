@@ -14,6 +14,29 @@ from strawberry.scalars import JSON
 from common.enums import BoardElementKind
 
 
+def resolved_data(data) -> dict:
+    """Данные элемента для показа: ключ объекта → короткоживущая подписанная ссылка.
+
+    🔴 §28.1.1. Картинка хранится КЛЮЧОМ (`data.key`) — в базе, в снимке доски, в зеркале
+    ученика и в сообщении канала. Пять мегабайт base64 больше никуда не едут: по каналу
+    летит ключ, а саму картинку каждый забирает у хранилища сам.
+
+    ⚠️ СТАРЫЕ ЭЛЕМЕНТЫ ПРОДОЛЖАЮТ ПОКАЗЫВАТЬСЯ. Всё, что нарисовано до этой правки, лежит
+    как `data.src` с `data:`-строкой внутри. Такие данные проходят НАСКВОЗЬ и не трогаются:
+    сломать уже нарисованное — ровно то, чего эта фаза запрещает («не навреди»).
+
+    Ссылка не хранится нигде и живёт минуты: она выдаётся на чтение и протухает сама.
+    """
+    if not isinstance(data, dict):
+        return data
+    key = data.get("key")
+    if not key or data.get("src"):
+        return data
+    from common import storage
+
+    return {**data, "src": storage.presign_get(str(key))}
+
+
 @strawberry.type
 class BoardElement:
     id: strawberry.ID
@@ -40,7 +63,7 @@ class BoardElement:
             y=element.y,
             width=element.width,
             height=element.height,
-            data=element.data,
+            data=resolved_data(element.data),
             revision=element.revision,
         )
 
@@ -77,8 +100,17 @@ class BoardSnapshot:
             saved_by_name=who.formal_name,
             lesson_id=strawberry.ID(str(lesson.id)),
             lesson_title=lesson.title,
-            elements=snapshot.elements,
+            # Снимок хранит ЭЛЕМЕНТЫ целиком, а ключ лежит внутри их `data` — резолвим его,
+            # иначе сохранённая доска показывала бы пустые рамки вместо картинок.
+            elements=[_snapshot_element(e) for e in snapshot.elements],
         )
+
+
+def _snapshot_element(element):
+    """Замороженный элемент снимка: ключ картинки внутри него — тоже ключ."""
+    if not isinstance(element, dict) or "data" not in element:
+        return element
+    return {**element, "data": resolved_data(element["data"])}
 
 
 @strawberry.type

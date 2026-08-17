@@ -192,6 +192,10 @@ class UploadPurpose(Enum):
     VERIFICATION = "verification"
     COVER = "cover"
     INSTITUTION_LOGO = "institution_logo"
+    # 🔴 §28.1.1: картинка на доске уходила в `data` целиком, base64 (~5 МБ с телефона), и
+    # оттуда — подпиской КАЖДОМУ в классе плюс в каждый ответ `board(lessonId:)`. Один
+    # снимок клал канал всему классу. Теперь она идёт тем же путём, что любой файл продукта.
+    BOARD_IMAGE = "board_image"
 
 
 @strawberry.enum

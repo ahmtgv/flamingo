@@ -64,6 +64,10 @@ PURPOSE_POLICY: dict[UploadPurpose, Policy] = {
     UploadPurpose.COVER: Policy((Role.TEACHER,), "cover", 5 * _MB, _IMAGE),
     UploadPurpose.INSTITUTION_LOGO: Policy((Role.ADMIN,), "institution/logo", 5 * _MB, _IMAGE),
     UploadPurpose.VERIFICATION: Policy((Role.TEACHER,), "verification", 25 * _MB, _DOC),
+    # Роли не ограничиваем: на доску пишет и ученик, когда преподаватель её открыл
+    # (`openForStudents`). Право писать на ЭТУ доску проверяется при добавлении элемента —
+    # здесь проверять роль значило бы завести второе, расходящееся правило.
+    UploadPurpose.BOARD_IMAGE: Policy(None, "board", 10 * _MB, _IMAGE),
 }
 
 

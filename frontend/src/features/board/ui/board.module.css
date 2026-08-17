@@ -166,3 +166,31 @@ g[data-linking] rect {
   font-size: var(--text-caption);
   color: var(--color-error-text);
 }
+
+/* Файл тащат на холст — показываем, что отпускать можно сюда (§28.2 п.3). */
+.surface[data-dropping] {
+  outline: 2px dashed var(--color-accent);
+  outline-offset: -4px;
+}
+
+/* Кнопка внутри строки-подсказки: доска — сцена, а не диалог, и закрыть сообщение надо
+   одним движением, не уводя внимание с холста. */
+.hintBtn {
+  background: none;
+  border: 0;
+  color: var(--color-accent);
+  cursor: pointer;
+  font: inherit;
+  padding: 0;
+  text-decoration: underline;
+}
+.hintBtn:focus-visible { outline: var(--focus-ring); outline-offset: 2px; }
+
+/* Полный экран (§28.2 п.4). Работает и когда браузер отказал в настоящем fullscreen —
+   тогда доска раскрывается на окно поверх рамы: свой режим лучше отсутствия. */
+.wrap[data-fullscreen] {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: var(--color-bg);
+}

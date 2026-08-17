@@ -14,7 +14,7 @@ from asgiref.sync import sync_to_async
 
 from common.ws_auth import token_from_connection_params
 
-from .types import BoardChange, BoardElement
+from .types import BoardChange, BoardElement, resolved_data
 
 
 @sync_to_async
@@ -66,7 +66,9 @@ class BoardSubscription:
                             y=raw["y"],
                             width=raw["width"],
                             height=raw["height"],
-                            data=raw["data"],
+                            # По каналу приезжает ключ (см. resolved_data): подписчик
+                            # получает ссылку, а не пять мегабайт base64 на каждого в классе.
+                            data=resolved_data(raw["data"]),
                             revision=raw["revision"],
                         )
                         if raw
