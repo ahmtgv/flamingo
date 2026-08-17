@@ -210,6 +210,16 @@ def _broadcast_presence(group: Group, *, online: bool) -> None:
 # --- what the person holding a link sees ---------------------------------------------------------
 
 
+def next_session_of(group: Group) -> LessonSession | None:
+    """То же, что видит ученик по ссылке, — но для преподавателя (§27.4).
+
+    Публичное имя у уже существовавшей функции: ответ на «какой урок сейчас» обязан быть один
+    на обе стороны. Свой такой же расчёт на стороне преподавателя разошёлся бы с ученическим
+    ровно в тот момент, когда это важнее всего.
+    """
+    return _next_session(group)
+
+
 def _next_session(group: Group) -> LessonSession | None:
     """The nearest lesson worth waiting for: the one running now, else the next scheduled."""
     live = (

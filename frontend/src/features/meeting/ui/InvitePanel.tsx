@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 
 import {
   type MeetingAccessMode,
@@ -7,7 +8,9 @@ import {
   useMeetingParticipantsQuery,
   useReplaceMeetingLinkMutation,
   useSetMeetingAccessMutation,
+  useStartSessionMutation,
 } from '@/entities/graphql/generated';
+import { failureText } from '@/shared/lib/requestFailure';
 import { ErrorState } from '@/shared/ui';
 
 import { hasCanonicalOrigin, joinUrl, MEETING_MODES, whenOpened } from '../invite';
@@ -32,7 +35,7 @@ import styles from './invite.module.css';
  * владельца 14.08 и по хорошей причине: компьютер QR не читает, он его только показывает, а
  * читать нужно устройством с камерой в руке. Обе оставшиеся дороги короче.
  */
-export function InvitePanel({ groupId, onStart }: { groupId: string; onStart?: () => void }) {
+export function InvitePanel({ groupId }: { groupId: string }) {
   const { t } = useTranslation('meeting');
   const { data, loading, error, refetch } = useGroupMeetingPointQuery({ variables: { groupId } });
   const { data: people } = useMeetingParticipantsQuery({
@@ -41,14 +44,36 @@ export function InvitePanel({ groupId, onStart }: { groupId: string; onStart?: (
   });
   const [setAccess] = useSetMeetingAccessMutation();
   const [replaceLink, { loading: replacing }] = useReplaceMeetingLinkMutation();
+  const [startSession, { loading: starting }] = useStartSessionMutation();
+  const navigate = useNavigate();
 
   const [copied, setCopied] = useState(false);
+  const [startFailed, setStartFailed] = useState<string | null>(null);
 
   if (loading && !data) return <p className={styles.note}>…</p>;
   if (error || !data?.groupMeetingPoint) return <ErrorState onRetry={() => void refetch()} />;
 
   const point = data.groupMeetingPoint;
+  const next = point.nextLesson;
   const url = joinUrl(point.slug);
+
+  /**
+   * Начать занятие и открыть комнату — то, что обещает подпись.
+   *
+   * ⚠️ Идущее занятие НЕ начинаем повторно: `startSession` у идущего сработал бы вхолостую,
+   * а преподаватель, вернувшийся в комнату посреди урока, не должен ничего «начинать».
+   */
+  const begin = async () => {
+    if (!next) return;
+    setStartFailed(null);
+    try {
+      if (!next.isLive) await startSession({ variables: { sessionId: next.sessionId } });
+      navigate(`/sessions/${next.sessionId}/room`);
+    } catch (err) {
+      // Молчащая кнопка на этом месте оставила бы класс ждать, а преподавателя — гадать.
+      setStartFailed(failureText(err));
+    }
+  };
   const participants = people?.meetingParticipants ?? [];
 
   const copy = async () => {
@@ -160,7 +185,19 @@ export function InvitePanel({ groupId, onStart }: { groupId: string; onStart?: (
         <span className={styles.label}>{t('invite.pupilsSeeTitle')}</span>
         <p className={styles.note}>{t('invite.pupilsSee')}</p>
         <div className={styles.actions}>
-          <button type="button" className={styles.btn} onClick={onStart}>
+          {/* 🔴 КНОПКА ОБЯЗАНА ДЕЛАТЬ ТО, ЧТО НА НЕЙ НАПИСАНО (решение владельца §27.4).
+              «Начать урок» вело в РАСПИСАНИЕ, хотя текст рядом на этом же экране обещает
+              обратное: «Пока вы не нажали „Начать урок", у них экран ожидания». Ученики
+              ждали, преподаватель нажимал — и попадал в список занятий.
+              Причина была не в кнопке: экран не знал, какое занятие начинать. Теперь знает —
+              `groupMeetingPoint.nextLesson`, то самое, что видит ученик по ссылке. */}
+          <button
+            type="button"
+            className={styles.btn}
+            onClick={() => void begin()}
+            disabled={!next || starting}
+            title={next ? undefined : t('invite.startNothing')}
+          >
             {t('invite.start')}
           </button>
           <a
@@ -172,6 +209,12 @@ export function InvitePanel({ groupId, onStart }: { groupId: string; onStart?: (
             {t('invite.seeAsPupil')}
           </a>
         </div>
+        {startFailed && (
+          <p className={styles.note} role="alert">
+            {t(startFailed)}
+          </p>
+        )}
+        {!next && <p className={styles.note}>{t('invite.startNothing')}</p>}
       </section>
     </div>
   );

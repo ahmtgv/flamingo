@@ -75,6 +75,13 @@ query GroupMeetingPoint($groupId: ID!) {
     code
     accessMode
     hostOnline
+    # §27.4: какое занятие открывает «Начать урок». Без этого кнопка вела в расписание.
+    nextLesson {
+      sessionId
+      title
+      startAt
+      isLive
+    }
   }
 }
 

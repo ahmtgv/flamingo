@@ -136,8 +136,9 @@ function PublicOnlyRoute({ children }: { children: ReactNode }) {
 /** Мастер первого запуска. Не под ProtectedRoute: связывание — это и есть вход. */
 function InviteRoute() {
   const { groupId = '' } = useParams();
-  const navigate = useNavigate();
-  return <InvitePanel groupId={groupId} onStart={() => navigate('/schedule')} />;
+  // §27.4: панель сама открывает комнату того занятия, которое начинает. Прежде отсюда
+  // приезжал переход в расписание — и «Начать урок» уводило в список занятий.
+  return <InvitePanel groupId={groupId} />;
 }
 
 function SetupScreenRoute() {

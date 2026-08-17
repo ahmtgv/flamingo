@@ -147,15 +147,22 @@ class MeetingPoint:
     code: str
     access_mode: MeetingAccessMode
     host_online: bool
+    #: 🔴 Ключ встречи у группы (решение владельца §27.4). Без него «Начать урок» на листе D3
+    #: обещало комнату и вело в расписание: занятие, которое надо начать, экрану было
+    #: неизвестно. Ученику то же самое поле отдаётся давно (`MeetingPointView.next_lesson`) —
+    #: преподаватель был единственным, кому его не показывали.
+    #: `None` — занятия впереди нет, и кнопка обязана сказать это словами, а не молчать.
+    next_lesson: UpcomingLesson | None
 
     @classmethod
-    def of(cls, point, *, host_online: bool) -> MeetingPoint:
+    def of(cls, point, *, host_online: bool, next_session=None) -> MeetingPoint:
         return cls(
             group_id=strawberry.ID(str(point.group_id)),
             slug=point.slug,
             code=point.code,
             access_mode=MeetingAccessMode(point.access_mode),
             host_online=host_online,
+            next_lesson=UpcomingLesson.of(next_session) if next_session is not None else None,
         )
 
 

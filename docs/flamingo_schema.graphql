@@ -1040,6 +1040,11 @@ type MeetingPoint {
   code: String!
   accessMode: MeetingAccessMode!
   hostOnline: Boolean!
+  # 🔴 Ключ встречи у группы (решение владельца 17.08, §27.4). Без него «Начать урок» на
+  # листе D3 обещало комнату и вело в расписание. Ученику это поле отдавалось всегда
+  # (MeetingPointView.nextLesson) — преподаватель был единственным, кому его не показывали.
+  # null — занятия впереди нет, и кнопка обязана сказать это словами.
+  nextLesson: UpcomingLesson
 }
 
 # A slug and a boolean. Nothing about where the machine is or what it is doing.

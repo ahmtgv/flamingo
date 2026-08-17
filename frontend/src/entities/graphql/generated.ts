@@ -937,6 +937,7 @@ export type MeetingPoint = {
   code: Scalars['String']['output'];
   groupId: Scalars['ID']['output'];
   hostOnline: Scalars['Boolean']['output'];
+  nextLesson?: Maybe<UpcomingLesson>;
   slug: Scalars['String']['output'];
 };
 
@@ -3791,7 +3792,7 @@ export type GroupMeetingPointQueryVariables = Exact<{
 }>;
 
 
-export type GroupMeetingPointQuery = { __typename?: 'Query', groupMeetingPoint: { __typename?: 'MeetingPoint', groupId: string, slug: string, code: string, accessMode: MeetingAccessMode, hostOnline: boolean } };
+export type GroupMeetingPointQuery = { __typename?: 'Query', groupMeetingPoint: { __typename?: 'MeetingPoint', groupId: string, slug: string, code: string, accessMode: MeetingAccessMode, hostOnline: boolean, nextLesson?: { __typename?: 'UpcomingLesson', sessionId: string, title: string, startAt: string, isLive: boolean } | null } };
 
 export type MeetingParticipantsQueryVariables = Exact<{
   groupId: Scalars['ID']['input'];
@@ -9244,6 +9245,12 @@ export const GroupMeetingPointDocument = gql`
     code
     accessMode
     hostOnline
+    nextLesson {
+      sessionId
+      title
+      startAt
+      isLive
+    }
   }
 }
     `;

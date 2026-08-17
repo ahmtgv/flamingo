@@ -451,3 +451,38 @@ def test_auto_closed_session_never_ends_before_it_started():
     assert (
         session.end_at >= session.start_at
     ), f"занятие закрыто задним числом: end_at={session.end_at} < start_at={session.start_at}"
+
+
+# --- §27.4 · КЛЮЧ ВСТРЕЧИ У ГРУППЫ ------------------------------------------------------
+#
+# 🔴 «Начать урок» на листе D3 обещало комнату и вело в расписание. Причина была не в кнопке:
+# экран не знал, КАКОЕ занятие начинать — у группы в схеме не было ближайшего занятия.
+# Ученик по ссылке это поле получал всегда (`MeetingPointView.next_lesson`); преподаватель
+# был единственным, кому его не показывали.
+#
+# Тест держит именно обещание подписи, а не наличие поля: одно занятие, один ответ на обе
+# стороны — иначе ученик и преподаватель разойдутся в том, что идёт прямо сейчас.
+
+
+def test_the_teacher_sees_the_same_lesson_the_pupil_is_waiting_for():
+    teacher = make_teacher()
+    anya = make_pupil()
+    group = a_group(teacher, [anya])
+    point = mp.for_teacher(teacher, group.id)
+    session = a_lesson_session(teacher, group, minutes_ahead=30)
+
+    mine = mp.next_session_of(group)
+    assert mine is not None, "преподавателю начинать нечего — кнопка снова соврёт"
+    assert mine.id == session.id
+
+    theirs = mp.view_by_slug(anya, point.slug)["next_session"]
+    assert (
+        theirs is not None and theirs.id == mine.id
+    ), "ученик и преподаватель видят разные занятия — они разойдутся посреди урока"
+
+
+def test_a_group_with_nothing_ahead_says_so_instead_of_offering_a_dead_button():
+    teacher = make_teacher()
+    group = a_group(teacher, [make_pupil()])
+    mp.for_teacher(teacher, group.id)
+    assert mp.next_session_of(group) is None

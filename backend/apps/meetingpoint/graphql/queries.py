@@ -29,7 +29,13 @@ class MeetingPointQuery:
         """The teacher's own view: the permanent link, the code, the access mode."""
         user = require_user(info)
         point = services.for_teacher(user, group_id)
-        return MeetingPoint.of(point, host_online=services.host_online(point.group))
+        return MeetingPoint.of(
+            point,
+            host_online=services.host_online(point.group),
+            # То же занятие, что видит ученик по ссылке, — один источник на обе стороны:
+            # два разных ответа на «какой урок сейчас» разойдутся ровно посреди урока.
+            next_session=services.next_session_of(point.group),
+        )
 
     @strawberry.field
     def my_mirror(
