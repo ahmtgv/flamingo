@@ -59,10 +59,11 @@ export default defineConfig({
      * Порт контура постоянный, поэтому адрес известен заранее.
      */
     env: {
-      // Контур пока по запросу (см. globalSetup): без переменной адрес остаётся прежним.
-      VITE_PROXY_TARGET: process.env.FLAMINGO_E2E_CIRCUIT
-        ? `http://127.0.0.1:${CIRCUIT_PORT}`
-        : (process.env.VITE_PROXY_TARGET ?? 'http://localhost:8000'),
+      // Прокси preview — для браузерной половины; сам мастер ходит по вшитому адресу через
+      // перехватчик, см. e2e/apiProxy.ts.
+      VITE_PROXY_TARGET: process.env.FLAMINGO_API
+        ? process.env.FLAMINGO_API.replace(/\/graphql\/?$/, '')
+        : `http://127.0.0.1:${CIRCUIT_PORT}`,
     },
     // Сервер поднимаем СВОЙ: чужой, оставшийся от прошлого запуска, смотрит в другую сторону.
     reuseExistingServer: true,

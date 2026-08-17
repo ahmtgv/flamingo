@@ -1,5 +1,8 @@
 import type { Page } from '@playwright/test';
 
+/** Адрес, вшитый в десктопную сборку (`.env.desktop`). По нему ходит приложение. */
+const BAKED_IN_API = 'https://api.flamingo.plus/graphql/';
+
 /**
  * Прогон ходит на боевой API через Node, а не напрямую из страницы.
  *
@@ -49,9 +52,24 @@ async function fetchWithRetries(api: string, init: RequestInit, attempts = 4): P
  */
 export async function proxyLiveApi(
   page: Page,
-  api = process.env.FLAMINGO_API ?? 'https://api.flamingo.plus/graphql/',
+  api = process.env.FLAMINGO_API ?? BAKED_IN_API,
 ) {
-  await page.route(api, async (route) => {
+  /**
+   * 🔴 ПЕРЕХВАТЫВАТЬ НАДО ТОТ АДРЕС, ПО КОТОРОМУ ХОДИТ ПРИЛОЖЕНИЕ (промпт 30 §2.2).
+   *
+   * Прошлой ночью пятнадцатый сценарий не пошёл по тестовому контуру, и причину я не нашёл.
+   * Вот она: адрес API **вшит в сборку** (`.env.desktop`, `VITE_GRAPHQL_HTTP_URL`) — внутри
+   * приложения страница отдаётся протоколом `tauri://localhost`, относительный `/graphql/`
+   * указывал бы в само приложение. Перехватчик же слушал `FLAMINGO_API`.
+   *
+   * Стоило увести прогон на контур — и адреса разошлись: приложение звало боевой, а
+   * перехватчик сторожил контур. Запрос кода связывания уходил мимо, кодов в базе контура
+   * ноль, на экране «· · ·».
+   *
+   * Слушаем ВШИТЫЙ адрес — тот, по которому реально пойдёт приложение, — а выполняем запрос
+   * по `api`. Так прогон можно направить куда угодно, не пересобирая фронт.
+   */
+  await page.route(BAKED_IN_API, async (route) => {
     const request = route.request();
     const upstream = await fetchWithRetries(api, {
       method: request.method(),
