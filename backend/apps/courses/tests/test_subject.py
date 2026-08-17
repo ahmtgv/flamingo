@@ -401,3 +401,79 @@ def test_a_school_subject_reads_as_a_pupil_context_with_its_class():
     assert cabinet.profile_kind is LearningProfileKind.PUPIL
     assert cabinet.institution_name == "Гимназия №1" and cabinet.group_name == "9А"
     assert cabinet.teacher_name == "Мария Петровна"
+
+
+# --- §27.2 · «МОИ МАТЕРИАЛЫ» ПРИНАДЛЕЖАТ УЧЕНИКУ ----------------------------------------
+#
+# Решение владельца 17.08: личная папка ученика — сохранённое из уроков и из хаба источников,
+# с его заметками. По §20.5 «принадлежит навсегда» значит одно конкретное: уезжает в зеркало
+# вместе с остальной его учёбой и находится там, когда машина преподавателя выключена.
+
+
+def test_what_a_pupil_saves_lands_in_their_own_mirror():
+    from apps.meetingpoint import mirror
+
+    teacher = make_teacher()
+    course, _, _lessons = build_course(teacher)
+    pupil = make_pupil()
+    courses.enroll(pupil, course.id)
+
+    subject.save_item(
+        pupil,
+        course_id=course.id,
+        title="Met Open Access",
+        url="https://www.metmuseum.org/",
+        source_name="The Met",
+        note="взять для проекта",
+    )
+
+    kept = [r for r in mirror.my_mirror(pupil) if r.kind == "saved"]
+    assert len(kept) == 1
+    assert kept[0].payload["title"] == "Met Open Access"
+    assert kept[0].payload["note"] == "взять для проекта"
+    # 🔒 Ссылка, а не копия: лицензия остаётся у источника (RND_02 §1).
+    assert kept[0].payload["url"] == "https://www.metmuseum.org/"
+    assert "body" not in kept[0].payload and "content" not in kept[0].payload
+
+
+def test_saving_the_same_thing_twice_does_not_double_the_mirror():
+    """⚠️ Прямо названный риск правила трёх: у кого зеркало уже идёт, записи не должны
+    удвоиться. `mirror.put` идемпотентен по (ученик, вид, источник) — проверяем это, а не
+    надеемся на это."""
+    from apps.meetingpoint import mirror
+
+    teacher = make_teacher()
+    course, _, lessons = build_course(teacher)
+    pupil = make_pupil()
+    courses.enroll(pupil, course.id)
+    material = courses.add_material(
+        teacher,
+        type=MaterialType.LINK,
+        title="NASA Exoplanet Archive",
+        lesson_id=lessons[0].id,
+        url="https://exoplanetarchive.ipac.caltech.edu/",
+    )
+
+    subject.save_item(pupil, material_id=material.id, note="первая заметка")
+    subject.save_item(pupil, material_id=material.id, note="вторая заметка")
+
+    kept = [r for r in mirror.my_mirror(pupil) if r.kind == "saved"]
+    assert len(kept) == 1, "пересохранение завело вторую запись вместо замены"
+    assert kept[0].payload["note"] == "вторая заметка"
+
+
+def test_removing_a_saved_item_removes_it_from_the_mirror_too():
+    """Иначе «я это удалил» перестаёт быть правдой ровно там, где ученик хранит своё."""
+    from apps.meetingpoint import mirror
+
+    teacher = make_teacher()
+    course, _, _lessons = build_course(teacher)
+    pupil = make_pupil()
+    courses.enroll(pupil, course.id)
+    row = subject.save_item(
+        pupil, course_id=course.id, title="Europeana", url="https://www.europeana.eu/"
+    )
+
+    subject.remove_saved_item(pupil, row.id)
+
+    assert [r for r in mirror.my_mirror(pupil) if r.kind == "saved"] == []

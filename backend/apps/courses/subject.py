@@ -30,6 +30,7 @@ from common.enums import (
     LessonKind,
     LessonStatus,
     MaterialType,
+    MirrorKind,
     Role,
     SavedItemKind,
     SessionStatus,
@@ -486,9 +487,10 @@ def save_item(
         existing.note = note or existing.note
         existing.kind = kind.value
         existing.save(update_fields=["note", "kind", "updated_at"])
+        _mirror_saved(user, existing)
         return existing
 
-    return SavedItem.objects.create(
+    row = SavedItem.objects.create(
         user=user,
         course=course,
         lesson_id=lesson_id or (material.lesson_id if material else None),
@@ -499,6 +501,40 @@ def save_item(
         kind=kind.value,
         note=note,
     )
+    _mirror_saved(user, row)
+    return row
+
+
+def _mirror_saved(user, row: SavedItem) -> None:
+    """Личная папка ученика уезжает в зеркало — §27.2 + §20.5 («принадлежит навсегда»).
+
+    ⚠️ УДВОЕНИЯ НЕ БУДЕТ, и это не надежда: `mirror.put` идемпотентен по тройке
+    (ученик, вид, источник), а источник здесь — id самой записи. Пересохранить с другой
+    заметкой значит заменить копию, а не завести вторую (правило трёх, п. 2).
+
+    Уезжает ССЫЛКА и заметка, никогда не содержимое: лицензия остаётся у источника
+    (RND_02 §1). Преподаватель зеркала не имеет — это папка ученика.
+    """
+    student = getattr(user, "student_profile", None)
+    if student is None:
+        return
+
+    from apps.meetingpoint import mirror
+
+    mirror.put(
+        student,
+        kind=MirrorKind.SAVED,
+        source_id=str(row.id),
+        occurred_at=row.created_at,
+        payload={
+            "title": row.title or (row.material.title if row.material_id else ""),
+            "url": row.url or "",
+            "sourceName": row.source_name or "",
+            "note": row.note or "",
+            "kind": row.kind,
+            "courseTitle": row.course.title if row.course_id else "",
+        },
+    )
 
 
 def remove_saved_item(user, saved_id) -> bool:
@@ -506,6 +542,15 @@ def remove_saved_item(user, saved_id) -> bool:
     row = SavedItem.objects.filter(id=saved_id, user=user).first()
     if row is None:
         raise NotFound("Saved item not found")
+    # Убрали из папки — убираем и из зеркала: иначе «я это удалил» перестало бы быть правдой
+    # ровно там, где ученик хранит своё.
+    student = getattr(user, "student_profile", None)
+    if student is not None:
+        from apps.meetingpoint.models import MirroredRecord
+
+        MirroredRecord.objects.filter(
+            student=student, kind=MirrorKind.SAVED.value, source_id=str(row.id)
+        ).delete()
     row.delete()
     return True
 

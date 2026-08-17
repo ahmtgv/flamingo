@@ -424,6 +424,17 @@ class StartPage:
                 )
                 for row in page.progress
             ],
+            mastery=[
+                StartMastery(
+                    lesson_id=strawberry.ID(row.lesson_id),
+                    title=row.title,
+                    course_title=row.course_title,
+                    mastery_pct=row.mastery_pct,
+                    answers=row.answers,
+                    struggling=row.struggling,
+                )
+                for row in page.mastery
+            ],
             teaching=[
                 StartCourse(
                     course_id=strawberry.ID(row.course_id),

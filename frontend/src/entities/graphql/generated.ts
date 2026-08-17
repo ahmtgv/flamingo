@@ -3910,6 +3910,11 @@ export type JoinSessionMutationVariables = Exact<{
 
 export type JoinSessionMutation = { __typename?: 'Mutation', joinSession: { __typename?: 'SessionJoin', roomToken: string, session: { __typename?: 'LessonSession', id: string, status: SessionStatus } } };
 
+export type MySavedItemsQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type MySavedItemsQuery = { __typename?: 'Query', mySavedItems: Array<{ __typename?: 'SubjectMaterial', id: string, title: string, url?: string | null, fromLabel?: string | null, note?: string | null, savedId?: string | null, savedKind?: SavedItemKind | null, lessonId?: string | null }> };
+
 export type StartPageQueryVariables = Exact<{ [key: string]: never; }>;
 
 
@@ -9903,6 +9908,55 @@ export function useJoinSessionMutation(baseOptions?: Apollo.MutationHookOptions<
 export type JoinSessionMutationHookResult = ReturnType<typeof useJoinSessionMutation>;
 export type JoinSessionMutationResult = Apollo.MutationResult<JoinSessionMutation>;
 export type JoinSessionMutationOptions = Apollo.BaseMutationOptions<JoinSessionMutation, JoinSessionMutationVariables>;
+export const MySavedItemsDocument = gql`
+    query MySavedItems {
+  mySavedItems {
+    id
+    title
+    url
+    fromLabel
+    note
+    savedId
+    savedKind
+    lessonId
+  }
+}
+    `;
+
+/**
+ * __useMySavedItemsQuery__
+ *
+ * To run a query within a React component, call `useMySavedItemsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useMySavedItemsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useMySavedItemsQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useMySavedItemsQuery(baseOptions?: Apollo.QueryHookOptions<MySavedItemsQuery, MySavedItemsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<MySavedItemsQuery, MySavedItemsQueryVariables>(MySavedItemsDocument, options);
+      }
+export function useMySavedItemsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<MySavedItemsQuery, MySavedItemsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<MySavedItemsQuery, MySavedItemsQueryVariables>(MySavedItemsDocument, options);
+        }
+// @ts-ignore
+export function useMySavedItemsSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<MySavedItemsQuery, MySavedItemsQueryVariables>): Apollo.UseSuspenseQueryResult<MySavedItemsQuery, MySavedItemsQueryVariables>;
+export function useMySavedItemsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<MySavedItemsQuery, MySavedItemsQueryVariables>): Apollo.UseSuspenseQueryResult<MySavedItemsQuery | undefined, MySavedItemsQueryVariables>;
+export function useMySavedItemsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<MySavedItemsQuery, MySavedItemsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<MySavedItemsQuery, MySavedItemsQueryVariables>(MySavedItemsDocument, options);
+        }
+export type MySavedItemsQueryHookResult = ReturnType<typeof useMySavedItemsQuery>;
+export type MySavedItemsLazyQueryHookResult = ReturnType<typeof useMySavedItemsLazyQuery>;
+export type MySavedItemsSuspenseQueryHookResult = ReturnType<typeof useMySavedItemsSuspenseQuery>;
+export type MySavedItemsQueryResult = Apollo.QueryResult<MySavedItemsQuery, MySavedItemsQueryVariables>;
 export const StartPageDocument = gql`
     query StartPage {
   startPage {

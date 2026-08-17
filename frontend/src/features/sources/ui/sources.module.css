@@ -172,3 +172,69 @@
 .orgWhat { font-size: var(--text-caption); color: var(--color-text-secondary); }
 
 .empty { color: var(--color-text-secondary); }
+
+/* --- тихий уголок «^» листа 12 ------------------------------------------------------ */
+.corner {
+  position: relative;
+  align-self: flex-end;
+  margin-top: var(--space-2);
+}
+
+.cornerBtn {
+  background: none;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-tertiary);
+  cursor: pointer;
+  font-family: var(--font-mono);
+  line-height: 1;
+  padding: 2px var(--space-2);
+}
+.cornerBtn:hover { color: var(--color-text); border-color: var(--color-border-strong); }
+.cornerBtn:focus-visible { outline: var(--focus-ring); outline-offset: 2px; }
+
+.cornerMenu {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + var(--space-2));
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 15rem;
+  padding: var(--space-3);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+}
+
+.cornerMenu button {
+  background: none;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  color: var(--color-text);
+  cursor: pointer;
+  font: inherit;
+  padding: var(--space-1) var(--space-2);
+  text-align: left;
+}
+.cornerMenu button:hover { border-color: var(--color-accent); }
+.cornerMenu button:focus-visible { outline: var(--focus-ring); outline-offset: 2px; }
+
+.cornerNote {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: var(--text-caption);
+  color: var(--color-text-secondary);
+}
+.cornerNote input {
+  font: inherit;
+  color: var(--color-text);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: var(--space-1) var(--space-2);
+}
+.cornerNote input:focus-visible { outline: var(--focus-ring); outline-offset: 1px; }

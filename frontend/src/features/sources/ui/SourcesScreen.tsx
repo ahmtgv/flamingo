@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
+import { useMySavedItemsQuery, useSaveItemMutation } from '@/entities/graphql/generated';
 import { isDesktop } from '@/features/desktop/bridge';
 import { Logo } from '@/shared/ui';
 
@@ -17,8 +18,11 @@ import {
 } from '../catalog';
 import styles from './sources.module.css';
 
-type Tab = 'world' | 'atlas' | 'live';
-const TABS: readonly Tab[] = ['world', 'atlas', 'live'];
+type Tab = 'world' | 'atlas' | 'live' | 'mine';
+const TABS: readonly Tab[] = ['world', 'atlas', 'live', 'mine'];
+
+/** После скольких материалов лист 12 включает каталог вместо простого списка. */
+const CATALOGUE_FROM = 20;
 
 /**
  * ХАБ «Источники мира» — лист атласа 12.
@@ -30,11 +34,14 @@ const TABS: readonly Tab[] = ['world', 'atlas', 'live'];
  * Три вкладки листа: «Источники мира» (полки по теме и роду), «Атлас источников» (кто в мире
  * открыл коллекции — по регионам), «Сейчас в эфире» (что идёт прямо сейчас).
  *
- * ⚠️ Чего здесь ПОКА НЕТ, и это сказано вслух, а не заметено: «+ в мои материалы» (уголок «^»
- * на карточке) и «Добавленные материалы» в кабинете. Это решение владельца ред. 4 и оно будет
- * исполнено, но за ним стоит новая хранимая сущность — а её заводят по §2.2 отдельно, вместе с
- * правами и миграцией, а не попутно. Мёртвого уголка на карточке нет: кнопка, которая ничего
- * не делает, хуже отсутствующей.
+ * 🔴 §27.2 (решение владельца 17.08): у каждой карточки тихий уголок «^» — «в мои материалы»,
+ * и четвёртая вкладка «Добавленные материалы». Сохраняется ССЫЛКА и заметка, никогда не копия:
+ * лицензия остаётся у источника (RND_02 §1), поэтому «поделиться» — это передать адрес.
+ *
+ * ⚠️ Из меню уголка на листе сделаны две позиции из пяти — «в мои материалы» и «посмотреть
+ * позднее»: ровно те, за которыми стоит рабочий механизм (`SavedItemKind`). «Напомнить»
+ * требует напоминаний, которых в продукте нет; рисовать её выключенной посреди меню из двух
+ * живых пунктов — шум, а живой она была бы обманом. Сказано здесь, а не заметено.
  */
 export function SourcesScreen() {
   const { t } = useTranslation(['sources', 'common']);
@@ -44,6 +51,7 @@ export function SourcesScreen() {
   const [kind, setKind] = useState<Kind | 'all'>('all');
 
   const total = useMemo(counts, []);
+  const mine = useMySavedItemsQuery();
 
   const shelf = useMemo(
     () =>
@@ -123,7 +131,7 @@ export function SourcesScreen() {
           ) : (
             <ul className={styles.cards}>
               {shelf.map((s) => (
-                <SourceCard key={s.id} source={s} />
+                <SourceCard key={s.id} source={s} onSaved={() => void mine.refetch()} />
               ))}
             </ul>
           )}
@@ -159,6 +167,8 @@ export function SourcesScreen() {
         </section>
       )}
 
+      {tab === 'mine' && <MineTab query={mine} />}
+
       {tab === 'live' && (
         <section className={styles.body} aria-label={t('sources:tabs.live')}>
           <header className={styles.head}>
@@ -167,7 +177,7 @@ export function SourcesScreen() {
           </header>
           <ul className={styles.cards}>
             {SOURCES.filter((s) => s.kind === 'live').map((s) => (
-              <SourceCard key={s.id} source={s} />
+              <SourceCard key={s.id} source={s} onSaved={() => void mine.refetch()} />
             ))}
           </ul>
           {/* Решение владельца ред. 4, п. 1: счётчик зрителей УБРАН — «достоверно чужую
@@ -175,6 +185,103 @@ export function SourcesScreen() {
         </section>
       )}
     </div>
+  );
+}
+
+/**
+ * «Добавленные материалы» — вкладка листа 12, раздел «кабинет».
+ *
+ * Лист: «до двадцати материалов это простой список; после — каталог собирается сам в этом же
+ * окне: поиск и фильтры по намерению, группировка по предметам». Порог оттуда же, не выдуман.
+ */
+function MineTab({ query }: { query: ReturnType<typeof useMySavedItemsQuery> }) {
+  const { t } = useTranslation('sources');
+  const [search, setSearch] = useState('');
+  const [intent, setIntent] = useState<'all' | 'SAVED' | 'WATCH_LATER'>('all');
+  const rows = query.data?.mySavedItems ?? [];
+  const catalogue = rows.length > CATALOGUE_FROM;
+
+  const shown = rows.filter((row) => {
+    if (intent !== 'all' && row.savedKind !== intent) return false;
+    if (!search.trim()) return true;
+    const needle = search.trim().toLowerCase();
+    return `${row.title} ${row.note ?? ''} ${row.fromLabel ?? ''}`.toLowerCase().includes(needle);
+  });
+
+  // Группировка по предмету — то, что лист называет «по предметам». `fromLabel` несёт
+  // источник; предмет приезжает пустым у находок вне курса, и они собираются в «найдено в хабе».
+  const groups = new Map<string, typeof shown>();
+  for (const row of shown) {
+    const key = row.fromLabel || t('mine.fromHub');
+    groups.set(key, [...(groups.get(key) ?? []), row]);
+  }
+
+  return (
+    <section className={styles.body} aria-label={t('tabs.mine')}>
+      <header className={styles.head}>
+        <h1 className={styles.h1}>{t('mine.title')}</h1>
+        <p className={styles.lead}>{t('mine.lead')}</p>
+        <span className={styles.count}>{t('mine.count', { count: rows.length })}</span>
+      </header>
+
+      {catalogue && (
+        <div className={styles.filters}>
+          {/* Каталог включается сам, когда материалов стало больше двадцати (лист 12).
+              До этого поиск и фильтры по трём строкам — мебель. */}
+          <label className={styles.cornerNote}>
+            <span>{t('mine.search')}</span>
+            <input value={search} onChange={(e) => setSearch(e.target.value)} />
+          </label>
+          <div className={styles.chips} role="group" aria-label={t('mine.intent')}>
+            <Chip on={intent === 'all'} onClick={() => setIntent('all')} label={t('filter.all')} />
+            <Chip
+              on={intent === 'SAVED'}
+              onClick={() => setIntent('SAVED')}
+              label={t('keep.mine')}
+            />
+            <Chip
+              on={intent === 'WATCH_LATER'}
+              onClick={() => setIntent('WATCH_LATER')}
+              label={t('keep.later')}
+            />
+          </div>
+        </div>
+      )}
+
+      {rows.length === 0 ? (
+        <p className={styles.empty}>{t('mine.empty')}</p>
+      ) : (
+        [...groups.entries()].map(([group, items]) => (
+          <div key={group} className={styles.region}>
+            <h2 className={styles.regionTitle}>{group}</h2>
+            <ul className={styles.cards}>
+              {items.map((row) => (
+                <li key={row.id} className={styles.card}>
+                  {row.url ? (
+                    <a
+                      className={styles.cardTitle}
+                      href={row.url}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      {row.title}
+                      <span aria-hidden="true"> ↗</span>
+                    </a>
+                  ) : (
+                    <span className={styles.cardTitle}>{row.title}</span>
+                  )}
+                  {/* Заметка ученика и есть конспект (лист 12). */}
+                  {row.note && <p className={styles.cardDesc}>{row.note}</p>}
+                  <span className={styles.permission}>
+                    {t(`keep.${row.savedKind === 'WATCH_LATER' ? 'later' : 'mine'}`)}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))
+      )}
+    </section>
   );
 }
 
@@ -186,8 +293,36 @@ function Chip({ on, onClick, label }: { on: boolean; onClick: () => void; label:
   );
 }
 
-function SourceCard({ source }: { source: Source }) {
+function SourceCard({ source, onSaved }: { source: Source; onSaved: () => void }) {
   const { t } = useTranslation('sources');
+  const [save, { loading }] = useSaveItemMutation();
+  const [open, setOpen] = useState(false);
+  const [note, setNote] = useState('');
+  const [done, setDone] = useState(false);
+
+  const keep = async (kind: 'SAVED' | 'WATCH_LATER') => {
+    try {
+      await save({
+        variables: {
+          input: {
+            title: t(`card.${source.id}.title`),
+            url: source.url,
+            sourceName: source.org,
+            note,
+            kind,
+          },
+        },
+      });
+      setDone(true);
+      setOpen(false);
+      setNote('');
+      onSaved();
+    } catch {
+      // Тихий уголок и отказывает тихо: урок не ломается оттого, что закладка не легла.
+      setDone(false);
+    }
+  };
+
   return (
     <li className={styles.card}>
       <div className={styles.cardHead}>
@@ -209,6 +344,32 @@ function SourceCard({ source }: { source: Source }) {
       <span className={styles.permission} data-kind={source.permission}>
         {t(`permission.${source.permission}`)}
       </span>
+
+      {/* Тихий уголок листа 12 — «^» в правом нижнем углу карточки. */}
+      <div className={styles.corner}>
+        <button
+          type="button"
+          className={styles.cornerBtn}
+          aria-expanded={open}
+          onClick={() => setOpen((v) => !v)}
+        >
+          {done ? t('keep.done') : '^'}
+        </button>
+        {open && (
+          <div className={styles.cornerMenu}>
+            <label className={styles.cornerNote}>
+              <span>{t('keep.note')}</span>
+              <input value={note} onChange={(e) => setNote(e.target.value)} />
+            </label>
+            <button type="button" disabled={loading} onClick={() => void keep('SAVED')}>
+              {t('keep.mine')}
+            </button>
+            <button type="button" disabled={loading} onClick={() => void keep('WATCH_LATER')}>
+              {t('keep.later')}
+            </button>
+          </div>
+        )}
+      </div>
     </li>
   );
 }
