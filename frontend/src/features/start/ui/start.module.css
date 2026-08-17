@@ -731,3 +731,39 @@
   max-width: 46ch;
   margin: var(--space-3) auto var(--space-5);
 }
+
+/* --- полоса недели: стрелки и нажимаемый день (лист 00, §27.5 п.2) ------------------ */
+.weekNav {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.weekArrow {
+  background: none;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  line-height: 1;
+  padding: 2px var(--space-2);
+}
+.weekArrow:hover { color: var(--color-text); border-color: var(--color-border-strong); }
+.weekArrow:focus-visible { outline: var(--focus-ring); outline-offset: 2px; }
+
+/* День стал кнопкой — снимаем кнопочные умолчания, вид остаётся прежним. */
+.day {
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  width: 100%;
+}
+.day:focus-visible { outline: var(--focus-ring); outline-offset: 2px; }
+
+/* «Усвоение группы» — лист 00. Процент справа, как в остальных строках слотов. */
+.sMastery { grid-column: span 1; }
+.masteryPct {
+  font-family: var(--font-mono);
+  color: var(--color-text);
+  font-size: var(--text-body);
+}

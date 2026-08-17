@@ -21,13 +21,17 @@ from dataclasses import dataclass, field
 from enum import Enum
 
 import strawberry
+from django.db import models
 from django.utils import timezone
 
 from common.enums import LearningProfileKind, SessionStatus, SubmissionStatus
+from common.exceptions import PermissionDenied
 
 from .learning import LearningProfile, active_learning_profile
 
 WEEK_DAYS = 7
+#: Сколько тем показывать в «Усвоении группы» — лист рисует три.
+MASTERY_ROWS = 3
 
 
 @strawberry.enum
@@ -39,6 +43,12 @@ class StartEntryKind(Enum):
     HOMEWORK_GRADED = "homework_graded"  # graded, feedback waiting to be read
     GRADING_QUEUE = "grading_queue"  # teacher: work awaiting their marking
     CONTINUE_LESSON = "continue_lesson"  # next unviewed lesson of a course
+    # 🔴 §27.5 п.1: лист 00 обещает у «Требует внимания» ТРИ вида записей, реализован был
+    # один — очередь проверки. Преподаватель не узнавал ни про вопросы в чате, ни про
+    # занятие сегодня без материалов; ученик — про накопившееся повторение.
+    CHAT_QUESTIONS = "chat_questions"  # teacher: unread messages from their people
+    MATERIALS_MISSING = "materials_missing"  # teacher: a lesson today with nothing attached
+    REPETITION_DUE = "repetition_due"  # pupil: cards the spacing says are due now
 
 
 @dataclass(frozen=True)
@@ -62,6 +72,19 @@ class StartDay:
     date: dt.date
     is_today: bool
     entries: list[StartEntry] = field(default_factory=list)
+
+
+@dataclass(frozen=True)
+class StartMastery:
+    """Одна тема и то, как она зашла классу (лист 00, «Усвоение группы»)."""
+
+    lesson_id: str
+    title: str
+    course_title: str
+    mastery_pct: int
+    #: Сколько ответов легло в основу — без него процент нечем взвесить.
+    answers: int
+    struggling: int
 
 
 @dataclass(frozen=True)
@@ -108,6 +131,7 @@ class StartPage:
     continue_entries: list[StartEntry]
     progress: list[StartProgress]
     teaching: list[StartCourse]
+    mastery: list[StartMastery] = field(default_factory=list)
 
 
 # --- scope ---------------------------------------------------------------------------------
@@ -263,6 +287,152 @@ def _teacher_attention(user) -> list[StartEntry]:
             age_days=(now - oldest).days if oldest else None,
         )
     ]
+
+
+def _teacher_chat_questions(user) -> list[StartEntry]:
+    """«3 вопроса от учеников» — лист 00.
+
+    Непрочитанное в своих каналах и ничего больше: чей это канал и что там написано, строка
+    не знает и знать не должна — она отправляет человека в чат, а не пересказывает его.
+    """
+    from apps.chat.services import total_unread
+
+    unread = total_unread(user)
+    if not unread:
+        return []
+    return [
+        StartEntry(id="chat-unread", kind=StartEntryKind.CHAT_QUESTIONS, title="", count=unread)
+    ]
+
+
+def _teacher_materials_missing(user, now) -> list[StartEntry]:
+    """«Материалы к 15:00 не прикреплены» — лист 00.
+
+    Считаем только СЕГОДНЯШНИЕ занятия и только те, где не приложено ничего: ни к уроку, ни
+    к курсу. Напоминание про завтрашний урок в семь утра — шум; про сегодняшний в 14:40 —
+    то самое, ради чего слот существует.
+    """
+    from apps.courses.models import Material
+    from apps.scheduling.models import LessonSession
+
+    profile = getattr(user, "teacher_profile", None)
+    if profile is None:
+        return []
+    day_end = timezone.localtime(now).replace(hour=23, minute=59, second=59)
+    sessions = (
+        LessonSession.objects.filter(
+            lesson__section__course__owner=profile,
+            status=SessionStatus.SCHEDULED.value,
+            start_at__gte=now,
+            start_at__lte=day_end,
+        )
+        .select_related("lesson__section__course")
+        .order_by("start_at")[:5]
+    )
+    entries = []
+    for session in sessions:
+        course_id = session.lesson.section.course_id
+        has_any = Material.objects.filter(
+            models.Q(lesson_id=session.lesson_id) | models.Q(course_id=course_id)
+        ).exists()
+        if has_any:
+            continue
+        entries.append(
+            StartEntry(
+                id=f"materials:{session.id}",
+                kind=StartEntryKind.MATERIALS_MISSING,
+                title=session.lesson.title,
+                course_title=session.lesson.section.course.title,
+                at=session.start_at,
+                session_id=str(session.id),
+                lesson_id=str(session.lesson_id),
+            )
+        )
+    return entries
+
+
+def _pupil_repetition(user) -> list[StartEntry]:
+    """«Повторение» — лист 00. Сколько карточек интервальное повторение считает созревшими.
+
+    ⚠️ Число берётся у самого механизма (`due_cards`), а не считается здесь заново: свой
+    расчёт «что созрело» разошёлся бы с тем, что ученик увидит, открыв повторение.
+    """
+    from apps.exercises.repetition import due_cards
+
+    try:
+        cards = due_cards(user)
+    except PermissionDenied:
+        return []  # не ученик — повторения у него и нет
+    if not cards:
+        return []
+    return [
+        StartEntry(
+            id="repetition-due", kind=StartEntryKind.REPETITION_DUE, title="", count=len(cards)
+        )
+    ]
+
+
+def _teacher_mastery(user, course_ids) -> list[StartMastery]:
+    """«Усвоение группы» — лист 00, у преподавателя.
+
+    🔴 §27.5 п.3: на месте этого блока стояли «Мои курсы» — другая вещь. Преподаватель видел,
+    ЧТО он ведёт, и не видел, КАК это усвоено.
+
+    Считаем по объективным ответам (`Attempt.is_correct`), а НЕ по оценкам за работы: у оценки
+    в этой базе нет максимума (`Submission.score` — просто число), и «84%» из неё пришлось бы
+    вывести из договорённости, которой никто не проверяет. Число, выведенное из догадки,
+    выглядит точным и потому опаснее отсутствующего.
+
+    ⚠️ «Тема даётся тяжело» — доля верных ниже половины. Порог — не ограничение и не правило
+    доступа, а полоса на шкале; названа здесь вслух, чтобы её было где менять.
+    """
+    from django.db.models import Count, Q
+
+    from apps.exercises.models import Attempt
+
+    profile = getattr(user, "teacher_profile", None)
+    if profile is None or not course_ids:
+        return []
+
+    rows = (
+        Attempt.objects.filter(
+            exercise__exercise_set__lesson__section__course_id__in=course_ids,
+            is_correct__isnull=False,  # открытые ждут самого преподавателя — не считаем
+        )
+        .values(
+            "exercise__exercise_set__lesson_id",
+            "exercise__exercise_set__lesson__title",
+            "exercise__exercise_set__lesson__section__course__title",
+        )
+        .annotate(total=Count("id"), correct=Count("id", filter=Q(is_correct=True)))
+        .order_by("-total")[:MASTERY_ROWS]
+    )
+
+    out: list[StartMastery] = []
+    for row in rows:
+        total = row["total"]
+        if not total:
+            continue
+        lesson_id = row["exercise__exercise_set__lesson_id"]
+        per_student = (
+            Attempt.objects.filter(
+                exercise__exercise_set__lesson_id=lesson_id, is_correct__isnull=False
+            )
+            .values("student_id")
+            .annotate(total=Count("id"), correct=Count("id", filter=Q(is_correct=True)))
+        )
+        struggling = sum(1 for s in per_student if s["total"] and s["correct"] * 2 < s["total"])
+        out.append(
+            StartMastery(
+                lesson_id=str(lesson_id),
+                title=row["exercise__exercise_set__lesson__title"],
+                course_title=row["exercise__exercise_set__lesson__section__course__title"],
+                mastery_pct=round(row["correct"] * 100 / total),
+                answers=total,
+                struggling=struggling,
+            )
+        )
+    return out
 
 
 def _continue_entries(user, course_ids) -> list[StartEntry]:
@@ -428,6 +598,56 @@ def _entry_sort_key(entry: StartEntry):
     return (entry.at is None, entry.at or timezone.now())
 
 
+def week_strip(user, week_start: dt.date | None = None) -> list[StartDay]:
+    """Полоса на семь дней от указанной даты — для стрелок «‹ ›» листа 00 (§27.5 п.2).
+
+    Отдельный запрос, а не аргумент у `startPage`: перелистнуть неделю — это не пересобрать
+    всю стартовую. Стартовая работает, и трогать её ради соседней недели значит рисковать
+    восемью слотами ради одного.
+
+    ⚠️ `is_today` считается от НАСТОЯЩЕГО сегодня, а не от начала запрошенной недели: человек,
+    листающий вперёд, не должен увидеть «сегодня» в следующем вторнике.
+    """
+    profile = active_learning_profile(user)
+    if profile is None:
+        return []
+    today = timezone.localdate()
+    start = week_start or today
+    now = timezone.now()
+    course_ids = _scoped_course_ids(user, profile)
+
+    day_start = timezone.make_aware(
+        dt.datetime.combine(start, dt.time.min), timezone.get_current_timezone()
+    )
+    sessions = [
+        _session_entry(session, now=now)
+        for session in _sessions_in_range(
+            user, course_ids, day_start, day_start + dt.timedelta(days=WEEK_DAYS)
+        )
+    ]
+    # Сроки работ показываем только на текущей неделе: у прошедшей недели «сдать через 2 дня»
+    # это неправда, а у будущей — угадывание.
+    attention = (
+        _pupil_attention(user, course_ids, now)
+        if start == today and profile.kind is not LearningProfileKind.TEACHER
+        else []
+    )
+
+    by_day: dict[dt.date, list[StartEntry]] = {
+        start + dt.timedelta(days=offset): [] for offset in range(WEEK_DAYS)
+    }
+    for entry in [*sessions, *attention]:
+        if entry.at is None:
+            continue
+        day = timezone.localtime(entry.at).date()
+        if day in by_day:
+            by_day[day].append(entry)
+    return [
+        StartDay(date=day, is_today=day == today, entries=sorted(items, key=_entry_sort_key))
+        for day, items in sorted(by_day.items())
+    ]
+
+
 def start_page(user) -> StartPage:
     """Assemble the start page for the caller's ACTIVE learning profile."""
     empty = StartPage(None, None, [], [], [], [], [], [])
@@ -456,16 +676,24 @@ def start_page(user) -> StartPage:
     week_entries = [_session_entry(session, now=now) for session in week_sessions]
 
     if profile.kind is LearningProfileKind.TEACHER:
-        attention = _teacher_attention(user)
+        # Три вида записей листа, а не один (§27.5 п.1). Порядок — по срочности: работа
+        # ждёт дольше всего, вопрос ждёт человека, материалы ждут до начала занятия.
+        attention = [
+            *_teacher_attention(user),
+            *_teacher_chat_questions(user),
+            *_teacher_materials_missing(user, now),
+        ]
         continue_entries: list[StartEntry] = []
         progress: list[StartProgress] = []
         # Слот «мои курсы» вместо всегда пустого прогресса — см. StartCourse.
         teaching = _teaching(user, course_ids, week_entries)
+        mastery = _teacher_mastery(user, course_ids)
     else:
-        attention = _pupil_attention(user, course_ids, now)
+        attention = [*_pupil_attention(user, course_ids, now), *_pupil_repetition(user)]
         continue_entries = _continue_entries(user, course_ids)
         progress = _progress(user, course_ids)
         teaching = []
+        mastery = []
 
     # "Сейчас" — the live lesson if one is running, else the next one today, else (for a
     # self-paced learner with no timetable) the thing to carry on with.
@@ -484,4 +712,5 @@ def start_page(user) -> StartPage:
         continue_entries=continue_entries,
         progress=progress,
         teaching=teaching,
+        mastery=mastery,
     )

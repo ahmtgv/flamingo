@@ -110,6 +110,7 @@ function page(over: Partial<StartPageQuery['startPage']> = {}): StartPageQuery {
       week: week(),
       continueEntries: [],
       progress: [],
+      mastery: [],
       teaching: [],
       ...over,
     } as StartPageQuery['startPage'],
@@ -187,6 +188,7 @@ describe('StartScreen — atlas sheet 00', () => {
           attention: [queue],
           now: null,
           today: [],
+          mastery: [],
           teaching: [
             {
               __typename: 'StartCourse',

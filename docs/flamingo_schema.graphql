@@ -23,7 +23,13 @@ scalar JSON
 enum Role { STUDENT PARENT TEACHER ADMIN }
 enum AgeBand { JUNIOR TEEN ADULT }
 enum LearningProfileKind { PUPIL CADET TEACHER }
-enum StartEntryKind { LESSON_SESSION HOMEWORK_DUE HOMEWORK_GRADED GRADING_QUEUE CONTINUE_LESSON }
+# 🔴 §27.5 п.1: у «Требует внимания» лист 00 обещает ТРИ вида записей, был один.
+enum StartEntryKind {
+  LESSON_SESSION HOMEWORK_DUE HOMEWORK_GRADED GRADING_QUEUE CONTINUE_LESSON
+  CHAT_QUESTIONS      # преподаватель: непрочитанное от своих людей
+  MATERIALS_MISSING   # преподаватель: занятие сегодня, к которому ничего не приложено
+  REPETITION_DUE      # ученик: карточки, которые интервальное повторение считает созревшими
+}
 enum LessonProgress { DONE CURRENT AHEAD }
 # A telescope lesson stays a lesson in the programme; doing it opens the instrument's page.
 enum LessonKind { STANDARD EXTERNAL_DEVICE }
@@ -1346,6 +1352,22 @@ type StartPage {
   continueEntries: [StartEntry!]!
   progress: [StartProgress!]!
   teaching: [StartCourse!]!    # роль teacher; у остальных пусто
+  # 🔴 §27.5 п.3: «Усвоение группы» листа 00. На его месте стояли «Мои курсы» — другая вещь:
+  # преподаватель видел, ЧТО ведёт, и не видел, КАК это усвоено.
+  mastery: [StartMastery!]!
+}
+
+# Одна тема и то, как она зашла классу. `answers` едет вместе с процентом намеренно: «84%»
+# по четырём ответам и «84%» по двумстам — разные утверждения.
+# Считается по объективным ответам (Attempt.is_correct), а НЕ по оценкам: у Submission.score
+# в этой базе нет максимума, и процент из него был бы выведен из непроверяемой договорённости.
+type StartMastery {
+  lessonId: ID!
+  title: String!
+  courseTitle: String!
+  masteryPct: Int!
+  answers: Int!
+  struggling: Int!
 }
 
 # ----------------------------------------------------------------------------- Надзор (atlas D7)
@@ -1546,6 +1568,9 @@ type Query {
   me: User
   learningProfiles: [LearningProfile!]!                    # caller's own educations
   startPage: StartPage!                                   # atlas 00, for the active education
+  # Соседняя неделя для стрелок «‹ ›» полосы (лист 00, §27.5 п.2). Отдельный запрос, а не
+  # аргумент стартовой: перелистнуть неделю — не повод пересобрать восемь работающих слотов.
+  weekStrip(weekStart: Date!): [StartDay!]!
   subjectCabinet(courseId: ID!): SubjectCabinet!          # atlas 01 (access via can_access_course)
   mySavedItems(courseId: ID): [SubjectMaterial!]!         # caller's own saved items
   subjectTasks(courseId: ID!): [SubjectTask!]!            # atlas 01 «Задания»

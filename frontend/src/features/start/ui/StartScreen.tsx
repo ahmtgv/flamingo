@@ -12,6 +12,7 @@ import {
   type StartPageQuery,
   useLearningProfilesQuery,
   useMeQuery,
+  useWeekStripQuery,
   useSetActiveLearningProfileMutation,
   useStartPageQuery,
 } from '@/entities/graphql/generated';
@@ -212,7 +213,13 @@ export function StartScreen() {
                 <p className={styles.empty}>{t('empty.attention')}</p>
               ) : (
                 page.attention.map((entry) => (
-                  <AttentionRow key={entry.id} entry={entry} now={now} navigate={navigate} />
+                  <AttentionRow
+                    key={entry.id}
+                    entry={entry}
+                    now={now}
+                    navigate={navigate}
+                    onOpenChat={() => setChatOpen(true)}
+                  />
                 ))
               )}
             </section>
@@ -255,8 +262,14 @@ export function StartScreen() {
                 Слот прогресса у преподавателя всегда пуст — прогресс считается по записи
                 ученика, которой у него нет. Здесь стоят ЕГО КУРСЫ: «что я веду» отвечается на
                 первом же экране, без клика, и отсюда же переключаются между курсами. */}
+            {/* 🔴 §27.5 п.3: «Усвоение группы» листа 00 — блок, вместо которого стояли «Мои
+                курсы». Это разные вещи, и лист просит обе: одна отвечает «что я веду», другая
+                — «как это зашло классу». Порядок с листа: усвоение выше. */}
             {isTeacher ? (
-              <TeachingSlot rows={page.teaching} />
+              <>
+                <MasterySlot rows={page.mastery} />
+                <TeachingSlot rows={page.teaching} />
+              </>
             ) : (
             <section
               className={`${styles.slot} ${styles.sProgress}`}
@@ -426,12 +439,76 @@ function AttentionRow({
   entry,
   now,
   navigate,
+  onOpenChat,
 }: {
   entry: AttentionEntry;
   now: Date;
   navigate: ReturnType<typeof useNavigate>;
+  /** Чат — окно поверх страницы (лист 00), а не экран: строка открывает его же. */
+  onOpenChat: () => void;
 }) {
   const { t } = useTranslation('start');
+
+  // 🔴 §27.5 п.1. Три вида записей листа, а не один. Ветки ЯВНЫЕ: неизвестный вид иначе
+  // проваливался бы в ветку домашней работы ниже и рисовался как задание со сроком —
+  // строка выглядела бы осмысленной и была бы неправдой.
+  if (entry.kind === 'CHAT_QUESTIONS') {
+    return (
+      <div className={`${styles.row} ${styles.rowNoTime}`}>
+        <span>
+          <span className={styles.rName}>
+            <span className={styles.rDot} aria-hidden="true" />
+            {t('entry.chat', { count: entry.count ?? 0 })}
+          </span>
+        </span>
+        <Button variant="secondary" size="sm" onClick={onOpenChat}>
+          {t('entry.openChat')}
+        </Button>
+      </div>
+    );
+  }
+
+  if (entry.kind === 'MATERIALS_MISSING') {
+    return (
+      <div className={`${styles.row} ${styles.rowNoTime}`}>
+        <span>
+          <span className={styles.rName}>
+            <span className={styles.rDot} aria-hidden="true" />
+            {t('entry.materials', { at: entry.at ? clock(entry.at) : '' })}
+          </span>
+          <span className={styles.rSub}>
+            {entry.title}
+            {entry.courseTitle ? ` · ${entry.courseTitle}` : ''}
+          </span>
+        </span>
+        {entry.lessonId && (
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => navigate(`/lessons/${entry.lessonId}/homework`)}
+          >
+            {t('entry.openLesson')}
+          </Button>
+        )}
+      </div>
+    );
+  }
+
+  if (entry.kind === 'REPETITION_DUE') {
+    return (
+      <div className={`${styles.row} ${styles.rowNoTime}`}>
+        <span>
+          <span className={styles.rName}>
+            <span className={styles.rDot} aria-hidden="true" />
+            {t('entry.repetition', { count: entry.count ?? 0 })}
+          </span>
+        </span>
+        <Button variant="secondary" size="sm" onClick={() => navigate('/repetition')}>
+          {t('entry.openRepetition')}
+        </Button>
+      </div>
+    );
+  }
 
   if (entry.kind === 'GRADING_QUEUE') {
     return (
@@ -496,6 +573,46 @@ function AttentionRow({
  *
  * Ссылка «все курсы →» ведёт в каталог; сам список — своё, а не выборка из общего.
  */
+/**
+ * «Усвоение группы» — лист 00.
+ *
+ * ⚠️ Процент считается по объективным ответам, и рядом с ним всегда стоит, СКОЛЬКИМИ ответами
+ * он подкреплён: «84% по четырём ответам» и «84% по двумстам» — разные утверждения, и
+ * преподаватель имеет право их различить. Числа без опоры выглядят точнее, чем есть.
+ */
+function MasterySlot({ rows }: { rows: Page['mastery'] }) {
+  const { t } = useTranslation('start');
+  const navigate = useNavigate();
+  return (
+    <section className={`${styles.slot} ${styles.sMastery}`} aria-label={t('slots.mastery')}>
+      <div className={styles.slotHead}>
+        <span className={styles.slotTitle}>{t('slots.mastery')}</span>
+      </div>
+      {rows.length === 0 ? (
+        <p className={styles.empty}>{t('empty.mastery')}</p>
+      ) : (
+        rows.map((row) => (
+          <button
+            type="button"
+            className={`${styles.row} ${styles.rowNoTime}`}
+            key={row.lessonId}
+            onClick={() => navigate(`/lessons/${row.lessonId}/homework`)}
+          >
+            <span>
+              <span className={styles.rName}>{row.title}</span>
+              <span className={styles.rSub}>
+                {row.courseTitle} · {t('mastery.answers', { count: row.answers })}
+                {row.struggling > 0 ? ` · ${t('mastery.struggling', { count: row.struggling })}` : ''}
+              </span>
+            </span>
+            <span className={styles.masteryPct}>{t('mastery.pct', { n: row.masteryPct })}</span>
+          </button>
+        ))
+      )}
+    </section>
+  );
+}
+
 function TeachingSlot({ rows }: { rows: Page['teaching'] }) {
   const { t } = useTranslation('start');
   const navigate = useNavigate();
@@ -563,16 +680,62 @@ function publishedLabel(
 }
 
 // --- недельный дневник ----------------------------------------------------------------------
+/**
+ * Полоса недели — лист 00: «Тап по дню открывает дневник этого дня; стрелки листают недели».
+ *
+ * 🔴 §27.5 п.2: была КАРТИНКА. Ни дня нажать, ни недели перелистнуть; ключи `week.openDay`,
+ * `week.prev`, `week.next` лежали в словаре и не читались ниоткуда — обещание листа было
+ * записано словами и не сделано.
+ *
+ * ⚠️ Соседняя неделя приезжает отдельным запросом (`weekStrip`), а не пересборкой стартовой:
+ * восемь слотов работают, и перелистывание недели — не повод трогать их все.
+ */
+/** Дата через `days` дней, в том же виде `YYYY-MM-DD`, что отдаёт сервер. */
+function shiftDate(iso: string | undefined, days: number): string {
+  const base = iso ? new Date(iso) : new Date();
+  base.setDate(base.getDate() + days);
+  return base.toISOString().slice(0, 10);
+}
+
 function WeekStrip({ week, isCadet }: { week: Page['week']; isCadet: boolean }) {
   const { t } = useTranslation('start');
-  const range = weekRange(week);
-  const hasAnything = week.some((day) => day.entries.length > 0);
+  const navigate = useNavigate();
+  /** Насколько недель ушли от текущей. 0 — та, что пришла со стартовой. */
+  const [offset, setOffset] = useState(0);
+  const shifted = useWeekStripQuery({
+    variables: { weekStart: shiftDate(week[0]?.date, offset * 7) },
+    skip: offset === 0 || !week[0],
+  });
+
+  // Пока соседняя неделя едет, показываем ПРЕЖНЮЮ, а не пустоту: мигающая полоса читается
+  // как «на той неделе ничего нет», хотя мы просто ещё не знаем.
+  const shown = offset === 0 ? week : (shifted.data?.weekStrip ?? shifted.previousData?.weekStrip ?? []);
+  const range = weekRange(shown.length ? shown : week);
+  const hasAnything = shown.some((day) => day.entries.length > 0);
 
   return (
     <section className={`${styles.slot} ${styles.sWeek}`} aria-label={t('slots.week')}>
       <div className={styles.weekHead}>
         <span className={styles.slotTitle}>{t('slots.week')}</span>
-        <span className={styles.weekRange}>{t('week.range', range)}</span>
+        <span className={styles.weekNav}>
+          <button
+            type="button"
+            className={styles.weekArrow}
+            aria-label={t('week.prev')}
+            onClick={() => setOffset((n) => n - 1)}
+          >
+            ‹
+          </button>
+          <span className={styles.weekRange}>{t('week.range', range)}</span>
+          <button
+            type="button"
+            className={styles.weekArrow}
+            aria-label={t('week.next')}
+            onClick={() => setOffset((n) => n + 1)}
+          >
+            ›
+          </button>
+        </span>
       </div>
       {!hasAnything && (
         // A self-paced learner has no timetable; the sheet fills this with repetition load,
@@ -580,11 +743,15 @@ function WeekStrip({ week, isCadet }: { week: Page['week']; isCadet: boolean }) 
         <p className={styles.empty}>{t(isCadet ? 'empty.weekCadet' : 'empty.week')}</p>
       )}
       <div className={styles.days}>
-        {week.map((day) => (
-          <div
+        {shown.map((day) => (
+          // Тап по дню открывает расписание этого дня — то, что лист называет дневником дня.
+          <button
+            type="button"
             className={`${styles.day} ${day.isToday ? styles.dayToday : ''}`}
             key={day.date}
             aria-current={day.isToday ? 'date' : undefined}
+            aria-label={t('week.openDay', { date: dayNumber(day.date) })}
+            onClick={() => navigate(`/schedule?day=${day.date}`)}
           >
             <div className={styles.dHead}>
               <span>{weekday(day.date)}</span>
@@ -606,7 +773,7 @@ function WeekStrip({ week, isCadet }: { week: Page['week']; isCadet: boolean }) 
               </span>
             )}
             {day.entries.length === 0 && <span className={styles.dMore}>{t('week.free')}</span>}
-          </div>
+          </button>
         ))}
       </div>
     </section>

@@ -1947,6 +1947,7 @@ export type Query = {
   verificationDocumentUrl: Scalars['String']['output'];
   verificationQueue: Array<VerificationQueueEntry>;
   verifyCertificate: CertificateVerification;
+  weekStrip: Array<StartDay>;
 };
 
 
@@ -2217,6 +2218,11 @@ export type QueryVerifyCertificateArgs = {
   verificationId: Scalars['ID']['input'];
 };
 
+
+export type QueryWeekStripArgs = {
+  weekStart: Scalars['Date']['input'];
+};
+
 export type Recommendation = {
   __typename?: 'Recommendation';
   body: Scalars['String']['output'];
@@ -2427,16 +2433,30 @@ export type StartEntry = {
 };
 
 export type StartEntryKind =
+  | 'CHAT_QUESTIONS'
   | 'CONTINUE_LESSON'
   | 'GRADING_QUEUE'
   | 'HOMEWORK_DUE'
   | 'HOMEWORK_GRADED'
-  | 'LESSON_SESSION';
+  | 'LESSON_SESSION'
+  | 'MATERIALS_MISSING'
+  | 'REPETITION_DUE';
+
+export type StartMastery = {
+  __typename?: 'StartMastery';
+  answers: Scalars['Int']['output'];
+  courseTitle: Scalars['String']['output'];
+  lessonId: Scalars['ID']['output'];
+  masteryPct: Scalars['Int']['output'];
+  struggling: Scalars['Int']['output'];
+  title: Scalars['String']['output'];
+};
 
 export type StartPage = {
   __typename?: 'StartPage';
   attention: Array<StartEntry>;
   continueEntries: Array<StartEntry>;
+  mastery: Array<StartMastery>;
   now?: Maybe<StartEntry>;
   profile?: Maybe<LearningProfile>;
   progress: Array<StartProgress>;
@@ -3893,7 +3913,14 @@ export type JoinSessionMutation = { __typename?: 'Mutation', joinSession: { __ty
 export type StartPageQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type StartPageQuery = { __typename?: 'Query', startPage: { __typename?: 'StartPage', profile?: { __typename?: 'LearningProfile', id: string, kind: LearningProfileKind, institutionName?: string | null, groupName?: string | null, courseTitle?: string | null, courseCount: number } | null, now?: { __typename?: 'StartEntry', id: string, kind: StartEntryKind, title: string, courseTitle?: string | null, teacherName?: string | null, at?: string | null, count?: number | null, ageDays?: number | null, sessionId?: string | null, lessonId?: string | null, courseId?: string | null, isLive: boolean } | null, today: Array<{ __typename?: 'StartEntry', id: string, kind: StartEntryKind, title: string, courseTitle?: string | null, teacherName?: string | null, at?: string | null, isLive: boolean, sessionId?: string | null, lessonId?: string | null }>, attention: Array<{ __typename?: 'StartEntry', id: string, kind: StartEntryKind, title: string, courseTitle?: string | null, at?: string | null, count?: number | null, ageDays?: number | null, lessonId?: string | null }>, week: Array<{ __typename?: 'StartDay', date: any, isToday: boolean, entries: Array<{ __typename?: 'StartEntry', id: string, kind: StartEntryKind, title: string, at?: string | null, isLive: boolean }> }>, continueEntries: Array<{ __typename?: 'StartEntry', id: string, kind: StartEntryKind, title: string, courseTitle?: string | null, lessonId?: string | null, courseId?: string | null }>, progress: Array<{ __typename?: 'StartProgress', courseId: string, courseTitle: string, doneLessons: number, totalLessons: number, progressPct: number }>, teaching: Array<{ __typename?: 'StartCourse', courseId: string, title: string, subject: string, sectionCount: number, lessonCount: number, publishedLessons: number, studentCount: number, isDraft: boolean, nextAt?: string | null, nextLessonTitle?: string | null }> } };
+export type StartPageQuery = { __typename?: 'Query', startPage: { __typename?: 'StartPage', profile?: { __typename?: 'LearningProfile', id: string, kind: LearningProfileKind, institutionName?: string | null, groupName?: string | null, courseTitle?: string | null, courseCount: number } | null, now?: { __typename?: 'StartEntry', id: string, kind: StartEntryKind, title: string, courseTitle?: string | null, teacherName?: string | null, at?: string | null, count?: number | null, ageDays?: number | null, sessionId?: string | null, lessonId?: string | null, courseId?: string | null, isLive: boolean } | null, today: Array<{ __typename?: 'StartEntry', id: string, kind: StartEntryKind, title: string, courseTitle?: string | null, teacherName?: string | null, at?: string | null, isLive: boolean, sessionId?: string | null, lessonId?: string | null }>, attention: Array<{ __typename?: 'StartEntry', id: string, kind: StartEntryKind, title: string, courseTitle?: string | null, at?: string | null, count?: number | null, ageDays?: number | null, lessonId?: string | null }>, week: Array<{ __typename?: 'StartDay', date: any, isToday: boolean, entries: Array<{ __typename?: 'StartEntry', id: string, kind: StartEntryKind, title: string, at?: string | null, isLive: boolean }> }>, mastery: Array<{ __typename?: 'StartMastery', lessonId: string, title: string, courseTitle: string, masteryPct: number, answers: number, struggling: number }>, continueEntries: Array<{ __typename?: 'StartEntry', id: string, kind: StartEntryKind, title: string, courseTitle?: string | null, lessonId?: string | null, courseId?: string | null }>, progress: Array<{ __typename?: 'StartProgress', courseId: string, courseTitle: string, doneLessons: number, totalLessons: number, progressPct: number }>, teaching: Array<{ __typename?: 'StartCourse', courseId: string, title: string, subject: string, sectionCount: number, lessonCount: number, publishedLessons: number, studentCount: number, isDraft: boolean, nextAt?: string | null, nextLessonTitle?: string | null }> } };
+
+export type WeekStripQueryVariables = Exact<{
+  weekStart: Scalars['Date']['input'];
+}>;
+
+
+export type WeekStripQuery = { __typename?: 'Query', weekStrip: Array<{ __typename?: 'StartDay', date: any, isToday: boolean, entries: Array<{ __typename?: 'StartEntry', id: string, kind: StartEntryKind, title: string, at?: string | null, isLive: boolean }> }> };
 
 export type SubjectCabinetQueryVariables = Exact<{
   courseId: Scalars['ID']['input'];
@@ -9933,6 +9960,14 @@ export const StartPageDocument = gql`
         isLive
       }
     }
+    mastery {
+      lessonId
+      title
+      courseTitle
+      masteryPct
+      answers
+      struggling
+    }
     continueEntries {
       id
       kind
@@ -9998,6 +10033,57 @@ export type StartPageQueryHookResult = ReturnType<typeof useStartPageQuery>;
 export type StartPageLazyQueryHookResult = ReturnType<typeof useStartPageLazyQuery>;
 export type StartPageSuspenseQueryHookResult = ReturnType<typeof useStartPageSuspenseQuery>;
 export type StartPageQueryResult = Apollo.QueryResult<StartPageQuery, StartPageQueryVariables>;
+export const WeekStripDocument = gql`
+    query WeekStrip($weekStart: Date!) {
+  weekStrip(weekStart: $weekStart) {
+    date
+    isToday
+    entries {
+      id
+      kind
+      title
+      at
+      isLive
+    }
+  }
+}
+    `;
+
+/**
+ * __useWeekStripQuery__
+ *
+ * To run a query within a React component, call `useWeekStripQuery` and pass it any options that fit your needs.
+ * When your component renders, `useWeekStripQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useWeekStripQuery({
+ *   variables: {
+ *      weekStart: // value for 'weekStart'
+ *   },
+ * });
+ */
+export function useWeekStripQuery(baseOptions: Apollo.QueryHookOptions<WeekStripQuery, WeekStripQueryVariables> & ({ variables: WeekStripQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<WeekStripQuery, WeekStripQueryVariables>(WeekStripDocument, options);
+      }
+export function useWeekStripLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<WeekStripQuery, WeekStripQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<WeekStripQuery, WeekStripQueryVariables>(WeekStripDocument, options);
+        }
+// @ts-ignore
+export function useWeekStripSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<WeekStripQuery, WeekStripQueryVariables>): Apollo.UseSuspenseQueryResult<WeekStripQuery, WeekStripQueryVariables>;
+export function useWeekStripSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<WeekStripQuery, WeekStripQueryVariables>): Apollo.UseSuspenseQueryResult<WeekStripQuery | undefined, WeekStripQueryVariables>;
+export function useWeekStripSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<WeekStripQuery, WeekStripQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<WeekStripQuery, WeekStripQueryVariables>(WeekStripDocument, options);
+        }
+export type WeekStripQueryHookResult = ReturnType<typeof useWeekStripQuery>;
+export type WeekStripLazyQueryHookResult = ReturnType<typeof useWeekStripLazyQuery>;
+export type WeekStripSuspenseQueryHookResult = ReturnType<typeof useWeekStripSuspenseQuery>;
+export type WeekStripQueryResult = Apollo.QueryResult<WeekStripQuery, WeekStripQueryVariables>;
 export const SubjectCabinetDocument = gql`
     query SubjectCabinet($courseId: ID!) {
   subjectCabinet(courseId: $courseId) {

@@ -342,6 +342,22 @@ class StartDay:
 
 
 @strawberry.type
+class StartMastery:
+    """Одна тема и то, как она зашла классу — «Усвоение группы» листа 00 (§27.5 п.3).
+
+    `answers` едет вместе с процентом намеренно: «84%» по четырём ответам и «84%» по двумстам
+    — разные утверждения, и преподаватель имеет право отличить одно от другого.
+    """
+
+    lesson_id: strawberry.ID
+    title: str
+    course_title: str
+    mastery_pct: int
+    answers: int
+    struggling: int
+
+
+@strawberry.type
 class StartProgress:
     course_id: strawberry.ID
     course_title: str
@@ -380,6 +396,7 @@ class StartPage:
     progress: list[StartProgress]
     # Наполнение того же слота у преподавателя: у него нет своего прогресса, зато есть курсы.
     teaching: list[StartCourse]
+    mastery: list[StartMastery]
 
     @classmethod
     def of(cls, page) -> "StartPage":

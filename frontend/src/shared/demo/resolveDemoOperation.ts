@@ -472,7 +472,8 @@ function startPage(): StartPageQuery {
         today: [],
         attention: [],
         week: emptyWeek(), // no timetable; repetition load arrives with FSRS (R4.4)
-        teaching: [],
+        mastery: [],
+      teaching: [],
         continueEntries: [carryOn],
         progress: [
           {
@@ -513,6 +514,7 @@ function startPage(): StartPageQuery {
       __typename: 'Query',
       startPage: {
         __typename: 'StartPage',
+        mastery: [],
         profile: active,
         now: lesson,
         today: [lesson, later],
@@ -621,6 +623,17 @@ function startPage(): StartPageQuery {
       today: [lesson, english],
       attention: [due, graded],
       week: emptyWeek({ 0: [lesson, english], 1: [due], 2: [english], 3: [lesson] }),
+      mastery: [
+        {
+          __typename: 'StartMastery' as const,
+          lessonId: 'les-1-2',
+          title: 'Asking for directions',
+          courseTitle: 'English A2',
+          masteryPct: 84,
+          answers: 96,
+          struggling: 3,
+        },
+      ],
       teaching: [],
       continueEntries: [carryOn],
       progress: [

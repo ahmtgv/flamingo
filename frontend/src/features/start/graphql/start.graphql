@@ -57,6 +57,14 @@ query StartPage {
         isLive
       }
     }
+    mastery {
+      lessonId
+      title
+      courseTitle
+      masteryPct
+      answers
+      struggling
+    }
     continueEntries {
       id
       kind
@@ -83,6 +91,21 @@ query StartPage {
       isDraft
       nextAt
       nextLessonTitle
+    }
+  }
+}
+
+# Соседняя неделя — стрелки «‹ ›» полосы (лист 00, §27.5 п.2).
+query WeekStrip($weekStart: Date!) {
+  weekStrip(weekStart: $weekStart) {
+    date
+    isToday
+    entries {
+      id
+      kind
+      title
+      at
+      isLive
     }
   }
 }
