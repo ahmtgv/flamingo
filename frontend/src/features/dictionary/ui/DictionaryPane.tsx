@@ -190,7 +190,19 @@ function WordCard({
         {head.ipa && <span className={styles.ipa}>{head.ipa}</span>}
         {head.cefrLevel && <span className={styles.level}>{head.cefrLevel}</span>}
         {head.pronunciationId && (
-          <button type="button" className={styles.say} aria-label={t('say')}>
+          /* 🔴 НАРИСОВАНО И МОЛЧИТ — четвёртое состояние, которого быть не должно (§1.3).
+             Кнопка рисовалась включённой у каждого слова с `pronunciationId` и НЕ ИМЕЛА
+             обработчика вовсе. Звука за ней тоже нет: в схеме только идентификатор, ни
+             ссылки, ни выдачи файла — сервер не умеет отдать произношение никак.
+             Пока умеет только молчать — пусть молчит ЧЕСТНО: выключенная кнопка с подписью
+             честнее живой, которая проглатывает нажатие (решение владельца, PROMPT_16 §5). */
+          <button
+            type="button"
+            className={styles.say}
+            aria-label={t('say')}
+            disabled
+            title={t('saySoon')}
+          >
             ▶
           </button>
         )}
