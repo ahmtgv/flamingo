@@ -594,6 +594,7 @@ def share_material(user, material_id) -> Material:
 
     Идемпотентно: повторная выдача обновляет копию, а не плодит вторую.
     """
+    from apps.courses.access import students_of_course
     from apps.meetingpoint import mirror
 
     material = Material.objects.filter(id=material_id).select_related("lesson", "course").first()
@@ -607,9 +608,9 @@ def share_material(user, material_id) -> Material:
         material.shared_at = timezone.now()
         material.save(update_fields=["shared_at", "updated_at"])
 
-    students = [
-        e.student for e in Enrollment.objects.filter(course=course).select_related("student")
-    ]
+    # 🔴 §29.1: и здесь список был только из `Enrollment` — выданная методичка не доходила
+    # до тех, кто учится классом.
+    students = students_of_course(course)
     if students:
         try:
             mirror.mirror_material(material, students)

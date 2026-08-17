@@ -114,18 +114,26 @@ def mirror_the_diary(session) -> None:
 
     Лучшее усилие: копия не должна уметь отменить окончание урока.
     """
+    from apps.courses.access import students_of_course
     from apps.courses.models import Enrollment
     from apps.meetingpoint import mirror
 
     attended = {str(a.student_id): a.status for a in Attendance.objects.filter(session=session)}
-    rows = Enrollment.objects.filter(course=session.lesson.section.course).select_related("student")
-    for enrollment in rows:
+    course = session.lesson.section.course
+    # 🔴 §29.1: список строился из `Enrollment`, и ученик, пришедший классом, дневника не
+    # получал никогда. Прогресс по-прежнему берём из записи, если она есть: у группового
+    # ученика её нет, и это не пустое значение, а честное «не считали».
+    progress_by_student = {
+        str(e.student_id): getattr(e, "progress_pct", None)
+        for e in Enrollment.objects.filter(course=course)
+    }
+    for student in students_of_course(course):
         try:
             mirror.mirror_diary(
                 session,
-                enrollment.student,
-                attendance=attended.get(str(enrollment.student_id), AttendanceStatus.ABSENT.value),
-                progress_pct=getattr(enrollment, "progress_pct", None),
+                student,
+                attendance=attended.get(str(student.pk), AttendanceStatus.ABSENT.value),
+                progress_pct=progress_by_student.get(str(student.pk)),
                 closed_automatically=session.closed_automatically,
             )
         except Exception:  # noqa: BLE001

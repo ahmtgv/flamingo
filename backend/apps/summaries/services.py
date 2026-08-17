@@ -372,7 +372,11 @@ def _from_test(summary: LessonSummary, session: LessonSession) -> list[SummaryIt
         return []
 
     correct = sum(1 for value in latest.values() if value)
-    group_size = Enrollment.objects.filter(course=session.lesson.section.course).count()
+    # 🔴 §29.1: размер класса тоже считался по `Enrollment` — у группового курса он выходил
+    # нулевым, и «правильно ответили 6 из 0» было бы написано в саммари урока.
+    from apps.courses.access import students_of_course
+
+    group_size = len(students_of_course(session.lesson.section.course))
     return [
         SummaryItem(
             summary=summary,
@@ -524,14 +528,11 @@ def _mirror_to_participants(summary: LessonSummary, session: LessonSession) -> N
     Best-effort on purpose — the summary has been sent either way, and failing the send
     because a copy did not take would undo the thing the teacher just did.
     """
+    from apps.courses.access import students_of_course
     from apps.meetingpoint import mirror
 
-    students = [
-        e.student
-        for e in Enrollment.objects.filter(course=session.lesson.section.course).select_related(
-            "student"
-        )
-    ]
+    # 🔴 §29.1: саммари занятия с чатом внутри не доезжало до группового ученика.
+    students = students_of_course(session.lesson.section.course)
     if not students:
         return
     try:

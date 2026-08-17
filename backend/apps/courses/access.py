@@ -72,3 +72,46 @@ def can_access_course(user, course: Course) -> bool:
         student__user=user,
         access_status=AccessStatus.ACTIVE.value,
     ).exists()
+
+
+def students_of_course(course: Course) -> list:
+    """Кто учится на этом курсе — ПОИМЁННО ЗАПИСАННЫЕ И ПРИШЕДШИЕ ГРУППОЙ, одним списком.
+
+    🔴 БЕЗ ЭТОЙ ФУНКЦИИ ГРУППОВОЙ УЧЕНИК НЕ СУЩЕСТВОВАЛ ДЛЯ ЗЕРКАЛА (промпт 29 §1).
+
+    `can_access_course` выше пускает к содержимому двумя дорогами: по `Enrollment` и по
+    членству в группе курса. А зеркало наполнялось так — в четырёх местах, каждое своим
+    кодом:
+
+        students = [e.student for e in Enrollment.objects.filter(course=...)]
+
+    Ученик, пришедший в составе класса, строки `Enrollment` не имеет: она заводится ровно в
+    одном месте — `enroll()`, куда он не ходит. Значит для зеркала его не «плохо копировали»
+    — его **не было**. Выключил преподаватель ноутбук, и ребёнок не видел ничего: ни дневника,
+    ни работ, ни досок. Обещание §20.5, данное родителям, было неверным.
+
+    Почему одна функция, а не четыре заплатки: четыре места, каждое само отвечающее на вопрос
+    «кто ученики этого курса», — это и есть причина, по которой дефект появился и по которой
+    он бы вернулся. Правило доступа живёт здесь же, рядом с `can_access_course`, чтобы «кому
+    можно» и «кому копируем» не разошлись снова.
+
+    ⚠️ Дубли возможны и они безвредны: ученик может быть И записан поимённо, И состоять в
+    группе. Возвращаем уникальные профили; ниже по течению `mirror.put` идемпотентен по
+    тройке (ученик, вид, источник), и это проверено тестом, а не доводом.
+    """
+    from apps.accounts.models import StudentProfile
+
+    enrolled = Enrollment.objects.filter(
+        course=course, access_status=AccessStatus.ACTIVE.value
+    ).values_list("student_id", flat=True)
+
+    ids = set(enrolled)
+    if course.group_id is not None:
+        ids |= set(
+            GroupMembership.objects.filter(group_id=course.group_id).values_list(
+                "student_id", flat=True
+            )
+        )
+    if not ids:
+        return []
+    return list(StudentProfile.objects.filter(pk__in=ids).select_related("user"))

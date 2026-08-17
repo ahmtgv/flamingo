@@ -176,13 +176,12 @@ def _mirror_to_the_class(snapshot, lesson) -> None:
     Лучшее усилие: не скопировалось — доска всё равно сохранена. Уронить сохранение из-за
     копии значило бы отменить то, что преподаватель только что сделал.
     """
-    from apps.courses.models import Enrollment
+    from apps.courses.access import students_of_course
     from apps.meetingpoint import mirror
 
-    students = [
-        e.student
-        for e in Enrollment.objects.filter(course=lesson.section.course).select_related("student")
-    ]
+    # 🔴 §29.1: было `Enrollment.objects.filter(...)` — и групповой ученик не существовал
+    # для зеркала вовсе. Теперь один общий ответ на «кто учится», см. `students_of_course`.
+    students = students_of_course(lesson.section.course)
     if not students:
         return
     try:
