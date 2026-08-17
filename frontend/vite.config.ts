@@ -33,6 +33,18 @@ function serveSeedumWasmRaw(): Plugin {
   };
 }
 
+/** Куда фронт отправляет GraphQL. Один ответ на dev и preview — иначе они разойдутся. */
+function apiProxy() {
+  return {
+    '/graphql': {
+      target: process.env.VITE_PROXY_TARGET ?? 'http://localhost:8000',
+      changeOrigin: true,
+      // Forward the WebSocket upgrade too (graphql-ws subscriptions → ASGI consumer).
+      ws: true,
+    },
+  };
+}
+
 export default defineConfig({
   plugins: [react(), serveSeedumWasmRaw()],
   // The SEduM worker is a MODULE worker so both `vite dev` and `vite build` serve it
@@ -52,14 +64,14 @@ export default defineConfig({
     port: Number(process.env.PORT) || 5173,
     strictPort: false,
     // Forward GraphQL to the API so the browser stays same-origin (no CORS).
-    proxy: {
-      '/graphql': {
-        target: process.env.VITE_PROXY_TARGET ?? 'http://localhost:8000',
-        changeOrigin: true,
-        // Forward the WebSocket upgrade too (graphql-ws subscriptions → ASGI consumer).
-        ws: true,
-      },
-    },
+    proxy: apiProxy(),
+  },
+  // 🔴 У `vite preview` СВОЙ раздел настроек (промпт 29 §2). Сквозной прогон ходит именно
+  // через preview, и без этого он проксировал на localhost:8000 — то есть половина сценария
+  // шла на тестовый контур, а половина на рабочий сервер. Код связывания заводился на одном
+  // и искался на другом: «Pairing code not found» на полностью исправном продукте.
+  preview: {
+    proxy: apiProxy(),
   },
   test: {
     globals: true,

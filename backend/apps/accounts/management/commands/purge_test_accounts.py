@@ -26,7 +26,14 @@ from django.db import transaction
 TEST_EMAIL_SUFFIX = "@flamingo-test.invalid"
 
 #: Защита от опечатки: если под маску попало больше — что-то не так, и лучше остановиться.
-MAX_REASONABLE = 10
+#:
+#: 🔴 БЫЛО 10 (промпт 29 §2.4). Прогон заводит по учётке за проход; после десятка ночных
+#: прогонов команда отказывалась убирать НАКОПЛЕННОЕ — то есть переставала работать ровно
+#: тогда, когда становилась нужна. Уборщик, который бастует при виде мусора, бесполезен.
+#:
+#: Порог остался — он ловит опечатку в маске, — но сдвинут и стал параметром: сотня покрывает
+#: месяц ночных прогонов, а осознанное «уберу больше» теперь возможно и видно в команде.
+MAX_REASONABLE = 100
 
 
 class Command(BaseCommand):
@@ -38,6 +45,15 @@ class Command(BaseCommand):
             action="store_true",
             help="Действительно удалить. Без него — только показать.",
         )
+        parser.add_argument(
+            "--max",
+            type=int,
+            default=MAX_REASONABLE,
+            help=(
+                f"Предохранитель: больше скольких учёток считать ошибкой, а не уборкой "
+                f"(по умолчанию {MAX_REASONABLE})."
+            ),
+        )
 
     def handle(self, *args, **options):
         user_model = get_user_model()
@@ -47,10 +63,12 @@ class Command(BaseCommand):
             self.stdout.write(f"Учёток по маске *{TEST_EMAIL_SUFFIX} не найдено.")
             return
 
-        if len(victims) > MAX_REASONABLE:
+        ceiling = options["max"]
+        if len(victims) > ceiling:
             raise CommandError(
-                f"Под маску попало {len(victims)} учёток — больше разумного предела "
-                f"{MAX_REASONABLE}. Это похоже на ошибку, а не на уборку. Ничего не удалено."
+                f"Под маску попало {len(victims)} учёток — больше предела {ceiling}. "
+                f"Это похоже на ошибку, а не на уборку. Ничего не удалено. "
+                f"Если накопилось за месяц прогонов — поднимите: --max {len(victims)}"
             )
 
         counts = self._count_traces(victims)

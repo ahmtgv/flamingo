@@ -1,5 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 
+import { CIRCUIT_PORT } from './e2e/testCircuit';
+
 /**
  * 🔴 WEBKIT, А НЕ CHROMIUM — и это не вкусовщина (промпт 24 §1.1).
  *
@@ -15,6 +17,18 @@ import { defineConfig, devices } from '@playwright/test';
  */
 export default defineConfig({
   testDir: './e2e',
+  /**
+   * 🔴 ПРОГОН ПОДНИМАЕТ СВОЙ КОНТУР САМ (промпт 29 §2).
+   *
+   * Раньше он ходил на боевой сервер и заводил там учётку каждый проход. Теперь
+   * `globalSetup` поднимает отдельную базу и отдельный порт и выставляет `FLAMINGO_API`
+   * на них; `globalTeardown` сносит базу.
+   *
+   * ⚠️ Ручной способ НЕ СЛОМАН: задайте `FLAMINGO_API` сами — и прогон пойдёт туда, куда
+   * вы сказали, включая боевой. Контур поднимается, только если переменной нет.
+   */
+  globalSetup: './e2e/globalSetup.ts',
+  globalTeardown: './e2e/globalTeardown.ts',
   timeout: 180_000,
   // Прогон ходит на боевой сервер: параллельные попытки связывания мешают друг другу.
   workers: 1,
@@ -37,6 +51,20 @@ export default defineConfig({
     // Playwright, ходящий на 127.0.0.1, ждёт сервер до таймаута на полностью рабочем сервере.
     command: 'npx vite preview --mode desktop --port 4180 --strictPort --host 127.0.0.1',
     url: 'http://localhost:4180',
+    /**
+     * ⚠️ ПЕРЕМЕННУЮ ЗАДАЁМ ЗДЕСЬ, А НЕ В `globalSetup`. Playwright поднимает `webServer`
+     * РАНЬШЕ, чем зовёт `globalSetup`, — процесс preview просто не увидел бы её. Из-за
+     * этого половина сценария шла на контур, половина на рабочий сервер, и код связывания
+     * заводился на одном, а искался на другом: «Pairing code not found» на исправном коде.
+     * Порт контура постоянный, поэтому адрес известен заранее.
+     */
+    env: {
+      // Контур пока по запросу (см. globalSetup): без переменной адрес остаётся прежним.
+      VITE_PROXY_TARGET: process.env.FLAMINGO_E2E_CIRCUIT
+        ? `http://127.0.0.1:${CIRCUIT_PORT}`
+        : (process.env.VITE_PROXY_TARGET ?? 'http://localhost:8000'),
+    },
+    // Сервер поднимаем СВОЙ: чужой, оставшийся от прошлого запуска, смотрит в другую сторону.
     reuseExistingServer: true,
     timeout: 120_000,
   },

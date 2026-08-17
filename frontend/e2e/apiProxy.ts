@@ -36,7 +36,21 @@ async function fetchWithRetries(api: string, init: RequestInit, attempts = 4): P
   throw last;
 }
 
-export async function proxyLiveApi(page: Page, api = 'https://api.flamingo.plus/graphql/') {
+/**
+ * 🔴 АДРЕС ЗДЕСЬ БЫЛ СВОЙ, И ЭТО РАЗВОДИЛО СЦЕНАРИЙ НАДВОЕ (промпт 29 §2).
+ *
+ * `liveApi.ts` ходил по `FLAMINGO_API`, а перехватчик — по своему умолчанию. Пока обоими
+ * умолчаниями был боевой сервер, они совпадали случайно. Стоило направить прогон на тестовый
+ * контур — половина сценария (регистрация преподавателя) пошла на контур, а вторая
+ * (запрос кода связывания приложением) осталась на боевом. Код заводился на одном сервере,
+ * искался на другом: «Pairing code not found» на полностью исправном продукте.
+ *
+ * Один источник адреса на обе половины. Умолчание прежнее — боевое, для ручных проверок.
+ */
+export async function proxyLiveApi(
+  page: Page,
+  api = process.env.FLAMINGO_API ?? 'https://api.flamingo.plus/graphql/',
+) {
   await page.route(api, async (route) => {
     const request = route.request();
     const upstream = await fetchWithRetries(api, {

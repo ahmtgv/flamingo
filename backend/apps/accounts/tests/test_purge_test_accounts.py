@@ -62,14 +62,29 @@ def test_with_confirm_it_deletes_only_the_masked_ones():
 
 
 def test_it_refuses_when_too_many_match():
-    """Защита от опечатки: больше десяти — это уже не уборка, а авария."""
-    for i in range(11):
+    """Защита от опечатки остаётся — но предел теперь параметр (§29.2 п.4).
+
+    ⚠️ Проверяем сам предохранитель, а не число 10: прежний тест держал десятку, и когда
+    ночные прогоны накопили больше, команда отказалась убирать НАКОПЛЕННОЕ — то есть
+    перестала работать ровно тогда, когда стала нужна.
+    """
+    for i in range(4):
         a_teacher(f"test-teacher-{i}@flamingo-test.invalid")
 
-    with pytest.raises(CommandError, match="больше разумного предела"):
-        run("--confirm")
+    with pytest.raises(CommandError, match="больше предела"):
+        run("--confirm", "--max", "3")
 
-    assert User.objects.filter(email__endswith="@flamingo-test.invalid").count() == 11
+    assert User.objects.filter(email__endswith="@flamingo-test.invalid").count() == 4
+
+
+def test_the_ceiling_can_be_raised_when_a_month_of_runs_piled_up():
+    """И поднимается осознанно — видно прямо в команде."""
+    for i in range(12):
+        a_teacher(f"test-teacher-{i}@flamingo-test.invalid")
+
+    run("--confirm", "--max", "50")
+
+    assert User.objects.filter(email__endswith="@flamingo-test.invalid").count() == 0
 
 
 def test_it_names_what_goes_with_them():
