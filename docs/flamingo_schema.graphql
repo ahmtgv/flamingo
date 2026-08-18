@@ -1731,7 +1731,12 @@ type Query {
 
   # certificates
   certificate(id: ID!): Certificate
-  verifyCertificate(verificationId: ID!): CertificateVerification!   # PUBLIC
+  """⚠️ НЕ ПОСТРОЕНО (проверено 18.08, промпт 35-36). Ни резолвера, ни приложения
+  `certificates`, ни экрана `/verify` — маршрута в роутере нет ни одного, и всё, что туда
+  приходит, ловит `path="*"`. Два теста на этот адрес годами проходили, потому что смотрели
+  на страницу переадресации; строка убрана из списка маршрутов до появления экрана.
+  Обещание в силе (MVP заменяет NFT-сертификаты на PDF + QR) — это форвард-контракт."""
+  verifyCertificate(verificationId: ID!): CertificateVerification!   # PUBLIC, НЕ ПОСТРОЕНО
 
   # notifications
   notifications(first: Int = 20, after: String, unreadOnly: Boolean = false): NotificationConnection!
