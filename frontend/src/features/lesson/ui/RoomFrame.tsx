@@ -50,6 +50,7 @@ export function RoomFrame({
   layoutSwitch,
   children,
   panel,
+  roomAudio,
 }: {
   title: string;
   meta: string;
@@ -66,6 +67,8 @@ export function RoomFrame({
   layoutSwitch?: ReactNode;
   children: ReactNode;
   panel: ReactNode;
+  /** Звук комнаты — рисуется вне сцен, см. `RoomAudio` (наряд 38). */
+  roomAudio?: ReactNode;
 }) {
   const { t } = useTranslation('room');
   const navigate = useNavigate();
@@ -73,8 +76,20 @@ export function RoomFrame({
 
   const windows = (
     <div className={styles.wins} role="tablist" aria-label={t('windows.label')}>
+      {/*
+        🔴 `aria-required-children/critical` — единственное критическое нарушение доступности
+        в продукте (обход всех экранов, наряд 38 §2). Внутри `role="tablist"` стояли обёртки
+        `<span>`, а рядом с каждой вкладкой — вторая кнопка «в отдельное окно», которая
+        вкладкой не является. Для читалки это ломало саму сетку вкладок.
+
+        `presentation` снимает обёртку с дерева доступности, оставляя вкладку на месте.
+
+        ⚠️ Комментарий стоит ЗДЕСЬ, а не внутри `map`: JSX-комментарий первым элементом
+        стрелки, возвращающей выражение, — это синтаксическая ошибка, и dev-сервер отдал
+        500 на всё приложение. Поймано сразу же собственным замером.
+      */}
       {SCENES.map((id) => (
-        <span key={id} className={styles.winWrap}>
+        <span key={id} className={styles.winWrap} role="presentation">
           <button
             type="button"
             role="tab"
@@ -109,6 +124,9 @@ export function RoomFrame({
 
   return (
     <div className={styles.shell}>
+      {/* 🔴 Звук комнаты — САМЫМ ВЕРХОМ, вне сцен и вкладок: он не должен исчезать, когда
+          человек переключился на «Класс» или ушёл в тест (наряд 38, RnD 19.08). */}
+      {roomAudio}
       {/* 🔴 ВТОРАЯ ПОЛОСА С ЛОГОТИПОМ (владелец 17.08: «выглядит как поломанный код»).
           В приложении строка заголовка уже несёт знак бренда и версию — эта рисовалась
           сразу под ней, третьей по счёту после системной. Лист D1 показывает содержимое

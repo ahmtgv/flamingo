@@ -322,9 +322,12 @@
   font-size: var(--text-caption);
   color: var(--color-text-secondary);
 }
+/* 🔴 `--color-text-tertiary` — «decoration-grade only» по дизайн-системе (§1), и на подложке
+   `--color-surface-subtle` он даёт 4.33:1: ниже AA. Здесь стоит НЕ украшение, а «когда
+   следующее занятие» — то, ради чего на карточку и смотрят. */
 .courseNext {
   font-size: var(--text-caption);
-  color: var(--color-text-tertiary);
+  color: var(--color-text-secondary);
 }
 .courseTags {
   display: flex;

@@ -16,6 +16,8 @@
   gap: var(--space-3);
   padding: var(--space-3) var(--space-4) 0;
   min-height: 0;
+  /* Сцена «Класса» забирает всю высоту, которую ей выдала комната. */
+  block-size: 100%;
 }
 /* вдвоём — поровну */
 .faces[data-layout='pair'] .stage {
@@ -48,9 +50,15 @@
   background: var(--color-surface-subtle);
   border: 1px solid var(--color-border);
 }
+/*
+ * 🔴 260 ПИКСЕЛЕЙ БЫЛИ ПОТОЛКОМ, А НЕ ПОЛОМ (наряд 38 §1.1). Плитка держала 362×258 и на
+ * 1440×900, и на 1920×1080: сцена не росла, а `min-height` без растяжки ничего не давал.
+ * Теперь плитка занимает всю выданную клетку, а 260 остаётся полом на узком окне.
+ */
 .mainTile {
   position: relative;
   min-height: 260px;
+  block-size: 100%;
 }
 /* Опора урока, а не «активный говорящий». */
 .mainTile[data-teacher='true'] {

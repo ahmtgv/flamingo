@@ -42,16 +42,18 @@ export function VideoTile({
 }) {
   const { t } = useTranslation('lesson');
   const videoRef = useRef<HTMLVideoElement>(null);
-  const audioRef = useRef<HTMLAudioElement>(null);
 
+  /**
+   * 🔴 ЗВУК ОТСЮДА УБРАН НАМЕРЕННО (наряд 38, RnD 19.08). Он привязывался здесь, а плитка
+   * живёт в полосе видео — и в сцене «Класс», где полосы нет, собеседника переставало быть
+   * слышно. Теперь звуком комнаты владеет `RoomAudio`: он висит один раз и переживает любое
+   * переключение сцены. Плитка отвечает за картинку — и только.
+   */
   useEffect(() => {
     const cam = participant.getTrackPublication(TrackNs.Source.Camera)?.track;
-    const mic = participant.getTrackPublication(TrackNs.Source.Microphone)?.track;
     if (cam && videoRef.current) cam.attach(videoRef.current);
-    if (mic && audioRef.current) mic.attach(audioRef.current);
     return () => {
       cam?.detach();
-      mic?.detach();
     };
     // `version` bumps when this participant's tracks change/mute (sub/unsub + mute/unmute).
   }, [participant, version]);
@@ -80,7 +82,6 @@ export function VideoTile({
   const inner = (
     <>
       <video ref={videoRef} className={styles.video} autoPlay playsInline />
-      <audio ref={audioRef} autoPlay />
       {cameraOff && (
         <span className={styles.camOff} aria-hidden="true">
           <VideoOff size={ICON_MD} />

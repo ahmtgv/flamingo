@@ -124,7 +124,10 @@
 
   /* Brand / action */
   --color-accent:          var(--fl-coral-500);  /* logo dot, graphics (>=3:1) */
-  --color-accent-strong:   var(--fl-coral-500);  /* button fill (white text AA) */
+  /* 🔴 ПОДПИСЬ ВРАЛА (обход экранов 19.08, наряд 38 §2): белый на `coral-500` даёт 3.95:1
+     при 14px — это НЕ AA. Пара «заливка + белый текст», которая проходит порог, одна:
+     `--color-accent-solid`. Этот токен остаётся для графики и крупного текста. */
+  --color-accent-strong:   var(--fl-coral-500);  /* графика; для текста — accent-solid */
   --color-accent-hover:    var(--fl-coral-600);
   --color-accent-pressed:  var(--fl-coral-700);
   /* 🔴 V-14 (там же). Коралловый ТЕКСТ и коралловая ЗАЛИВКА — разные задачи и разные

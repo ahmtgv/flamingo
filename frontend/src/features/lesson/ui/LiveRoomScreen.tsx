@@ -46,6 +46,7 @@ import { PreviewRoom } from './PreviewRoom';
 import { VideoRoom } from './VideoRoom';
 import { preferredConstraints } from '@/features/desktop/setup/mediaPreference';
 import { usePublishHostLesson } from '@/features/desktop/hostBeacon';
+import { RoomAudio } from './RoomAudio';
 
 /**
  * Shared chrome — atlas sheet 02's frame around whatever the room is doing.
@@ -66,6 +67,7 @@ function RoomShell({
   classTeacher,
   classPupils,
   classVersion,
+  roomAudio,
   children,
 }: {
   subtitle: string;
@@ -81,6 +83,8 @@ function RoomShell({
   classPupils?: Participant[];
   /** Счётчик изменений комнаты — прокидывается до плиток, см. `ClassVideo`. */
   classVersion?: number;
+  /** Звук комнаты — вне сцен, чтобы он переживал переключение вкладок (наряд 38). */
+  roomAudio?: ReactNode;
   children: ReactNode;
 }) {
   const { t } = useTranslation(['room', 'seedum']);
@@ -109,6 +113,7 @@ function RoomShell({
           <PrivacyIndicator />
         </>
       }
+      roomAudio={roomAudio}
       strip={
         <>
           {/*
@@ -545,6 +550,16 @@ function StudentRoom({
   return (
     <RoomShell
       /*
+        ⚠️ УЧЕНИКУ — ТОЛЬКО ПРЕПОДАВАТЕЛЬ, и это не про экран, а про канал (решение владельца
+        Р5.1): урок раздаётся с машины преподавателя, и подписывать ученика на дорожки всех
+        одноклассников значило бы платить его каналом за то, чего он не видит.
+
+        Существующий сторож `videoStrip.p51.test.tsx` поймал меня на первой версии, где сюда
+        уходил полный список: он проверяет исходник, и это тот случай, когда я был неправ,
+        а старая проверка права.
+      */
+      roomAudio={<RoomAudio participants={teacherOnly} version={lk.version} />}
+      /*
         🔴 УЧЕНИКУ ПОКАЗЫВАЛИ ЧУЖОЕ ИМЯ НАД ЕГО ВНИМАНИЕМ (живой урок 18.08, наряд 37 §1.5).
         Заголовок собирался как «Внимание на занятии · {имя преподавателя}» — и получалось,
         что внимание будто бы принадлежит преподавателю. Анализируется при этом внимание
@@ -895,6 +910,8 @@ function TeacherRoom({
 
   return (
     <RoomShell
+      /* Звук комнаты — вне сцен: в «Классе» полосы видео нет, и вместе с ней пропадал звук. */
+      roomAudio={<RoomAudio participants={lk.participants} version={lk.version} />}
       subtitle={t('room.teacherSub')}
       sessionId={sessionId}
       lessonId={lessonId}
