@@ -14,7 +14,7 @@ import strawberry
 from asgiref.sync import sync_to_async
 
 from common.enums import SignalKind
-from common.ws_auth import token_from_connection_params
+from common.ws_auth import token_from_info
 
 from .types import Signal
 
@@ -49,7 +49,7 @@ class SignallingSubscription:
         self, info: strawberry.Info, session_id: strawberry.ID
     ) -> AsyncGenerator[Signal, None]:
         ws = info.context["ws"]
-        token = token_from_connection_params(ws.connection_params if ws else None)
+        token = token_from_info(info)
         peer = await _peer_id(token, session_id)
         if peer is None:
             return

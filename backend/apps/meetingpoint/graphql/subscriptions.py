@@ -11,7 +11,7 @@ from collections.abc import AsyncGenerator
 import strawberry
 from asgiref.sync import sync_to_async
 
-from common.ws_auth import token_from_connection_params
+from common.ws_auth import token_from_info
 
 from .types import HostPresence
 
@@ -46,7 +46,7 @@ class MeetingPointSubscription:
         self, info: strawberry.Info, slug: str
     ) -> AsyncGenerator[HostPresence, None]:
         ws = info.context["ws"]
-        token = token_from_connection_params(ws.connection_params if ws else None)
+        token = token_from_info(info)
         if not await _may_watch(token, slug):
             return
         async with ws.listen_to_channel("host.presence", groups=[f"host_{slug}"]) as messages:

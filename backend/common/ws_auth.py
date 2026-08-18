@@ -30,3 +30,50 @@ def token_from_connection_params(params: dict | None) -> str:
         return ""
     raw = params.get("authToken") or params.get("Authorization") or params.get("token") or ""
     return str(raw).removeprefix("Bearer ").strip()
+
+
+def token_from_info(info) -> str:
+    """Токен подписки из контекста — единственное верное место (найдено RnD 18.08, промпт 33).
+
+    🔴 ВСЕ ПОДПИСКИ ПРОДУКТА ПАДАЛИ НА ПЕРВОЙ СТРОКЕ. Резолверы читали параметры рукопожатия
+    как АТРИБУТ консьюмера:
+
+        token = token_from_connection_params(ws.connection_params if ws else None)
+        → AttributeError: 'GraphQLWSConsumer' object has no attribute 'connection_params'
+
+    Strawberry кладёт их не туда: в `handlers.py` строкой `self.context["connection_params"]
+    = payload`, то есть **ключом в контексте**, а не полем объекта. Исключение уходило в лог
+    сервера, до клиента доезжала ошибка выполнения, и подписка молча не начиналась.
+
+    Симптом на живом уроке: преподаватель пишет на доске — класс не видит НИЧЕГО. Ни задержки,
+    ни ошибки: тишина. Так же молчали чат, присутствие преподавателя, показ слова и проектор.
+
+    ⚠️ Почему это не поймали раньше. Резолвер подписки в тестах зовут напрямую, подсовывая
+    свой контекст, — и он работает. Ошибка живёт ровно на стыке «наш код ↔ библиотека», а его
+    проходит только настоящий веб-сокет. Тот же механизм, что у `hostHeartbeat`, `set_state` и
+    `startPage`: проверено то, что умеет ответить, и не проверено, доходит ли вопрос.
+
+    Берём контекст целиком, а не выковыриваем `ws`: где именно библиотека держит параметры —
+    её дело, и меняться оно может от версии к версии. Наше дело — одно место, где это знание
+    записано.
+
+    ⚠️ СТОРОЖА НА ЭТО МЕСТО ПОСТАВИТЬ НЕ УДАЛОСЬ, и это сказано вслух. Модульный тест на
+    настоящем сокете внутри одного процесса не годится: рассылка идёт через `async_to_sync`,
+    который не работает изнутри крутящегося цикла событий, а из отдельного потока сообщение
+    не находит слой подписчика. Такой тест краснел ОДИНАКОВО и на сломанном, и на починенном
+    коде — то есть мерил стенд, а не продукт, и был бы опаснее отсутствующего.
+    Регрессию ловит замер на двух браузерах (`frontend/e2e/rnd.spec.ts`): преподаватель
+    рисует — у ученика не ноль. Он же и нашёл этот дефект.
+    """
+    context = getattr(info, "context", None)
+    if context is None:
+        return ""
+    params = None
+    if isinstance(context, dict):
+        params = context.get("connection_params")
+        if params is None:
+            ws = context.get("ws")
+            params = getattr(ws, "connection_params", None)
+    else:
+        params = getattr(context, "connection_params", None)
+    return token_from_connection_params(params)
