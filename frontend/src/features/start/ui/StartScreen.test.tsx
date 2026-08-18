@@ -1,7 +1,7 @@
 import { type MockedResponse } from '@apollo/client/testing';
 import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import {
   ChatPolicyDocument,
@@ -14,7 +14,16 @@ import {
   StartPageDocument,
   type StartPageQuery,
 } from '@/entities/graphql/generated';
+import { isDesktop } from '@/features/desktop/bridge';
 import { renderWithProviders } from '@/test/renderWithProviders';
+
+// Оболочки Tauri в jsdom нет; ветку приложения включаем здесь — она и есть предмет проверки.
+vi.mock('@/features/desktop/bridge', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/features/desktop/bridge')>()),
+  isDesktop: vi.fn(() => false),
+}));
+
+afterEach(() => vi.mocked(isDesktop).mockReturnValue(false));
 
 import { StartScreen } from './StartScreen';
 
@@ -124,6 +133,42 @@ const pageMock = (data: StartPageQuery) => ({
 
 const render = (mocks: MockedResponse[]) =>
   renderWithProviders(<StartScreen />, { mocks, route: '/start' });
+
+/**
+ * 🔴 ЗНАК БРЕНДА В ОКНЕ ПРИЛОЖЕНИЯ — ОДИН (лист D1, RnD 18.08 §2.4).
+ *
+ * Заход 18.08 нашёл под строкой рамы ВТОРУЮ полосу с тем же знаком: рама приложения несёт
+ * бренд, а стартовая рисовала свою шапку внутри. Правку тогда же сделали — и проверить
+ * глазами не смогли: пересобранный образ открылся на мастере первого запуска, а не на
+ * стартовой. В отчёте это было сказано вслух: «подтверждено сборкой и кодом, но не снимком».
+ *
+ * Через сквозной прогон это не сторожится: внутри приложения нет входа по паролю (§19.4),
+ * дойти до стартовой можно только через связывание машины. Поэтому сторож здесь — и он
+ * проверяет ровно то, что было сломано, а не то, что удобно проверить.
+ */
+describe('стартовая внутри приложения', () => {
+  it('🔴 не рисует свой знак бренда — его несёт рама окна', async () => {
+    vi.mocked(isDesktop).mockReturnValue(true);
+    render([meMock(), profilesMock(), pageMock(page())]);
+    await screen.findByText(/Привет/);
+    expect(screen.queryByRole('button', { name: 'Flamingo' })).toBeNull();
+  });
+
+  it('в браузере знак остаётся: там рамы нет и бренд нести нечему', async () => {
+    vi.mocked(isDesktop).mockReturnValue(false);
+    render([meMock(), profilesMock(), pageMock(page())]);
+    await screen.findByText(/Привет/);
+    expect(screen.getByRole('button', { name: 'Flamingo' })).toBeTruthy();
+  });
+
+  it('навигацию при этом не прячем: чат, источники, тема, выход остаются', async () => {
+    // ⚠️ Половина правки, которую легко потерять: убран ЗНАК, а не вся полоса.
+    vi.mocked(isDesktop).mockReturnValue(true);
+    render([meMock(), profilesMock(), pageMock(page())]);
+    await screen.findByText(/Привет/);
+    expect(screen.getAllByRole('button', { name: /Чат/ }).length).toBeGreaterThan(0);
+  });
+});
 
 describe('StartScreen — atlas sheet 00', () => {
   it('pupil: greets, shows the lesson about to start and its countdown', async () => {
