@@ -56,6 +56,7 @@ export function VideoRoom({
   nameFor,
   localOverlay,
   focusable = false,
+  onFocusChange,
   attentionFor,
   metricsFor,
   selfInRail = false,
@@ -87,6 +88,8 @@ export function VideoRoom({
   localOverlay?: ReactNode;
   /** F1: click-to-focus on remote tiles (teacher). */
   focusable?: boolean;
+  /** Кому показать урок на втором экране. `null` — вернуть весь класс. */
+  onFocusChange?: (identity: string | null) => void;
   /** F1: latest live attention (0–100) for a participant identity — shown ON every tile. */
   attentionFor?: (identity: string) => number | null;
   /** F1.1 (owner v3): full live sub-metrics for the focused tile's bar (gaze/eyes/head/alert). */
@@ -108,9 +111,26 @@ export function VideoRoom({
 
   // F1 focus: presentation state only — flips data attributes on the stable containers.
   const [focusedSid, setFocusedSid] = useState<string | null>(null);
+  /**
+   * 🔴 ВТОРОЙ ЭКРАН БЫЛ ПОДПИСАН НА ФОКУС, КОТОРЫЙ НИКТО НЕ МОГ ПОСЛАТЬ (наряд 36 §4).
+   *
+   * `projectorFocusChanged` живёт и проверена поведением, `ProjectorScreen` её слушает — а
+   * мутация `setProjectorFocus` не вызывалась ни одной строкой продукта и числилась среди
+   * сирот. Преподаватель выводил урок на второй экран и не мог навести его ни на кого:
+   * планшет как доска (§21) без этого не работает.
+   *
+   * Наводит тот же жест, что и раньше: нажатие на плитку. Локальный фокус остался локальным —
+   * он про раскладку у преподавателя; наружу уходит ТОЛЬКО идентификатор участника, и только
+   * когда экран сам сказал, кому это слать.
+   */
   const toggleFocus = useCallback(
-    (sid: string) => setFocusedSid((cur) => (cur === sid ? null : sid)),
-    [],
+    (sid: string, identity: string) =>
+      setFocusedSid((cur) => {
+        const next = cur === sid ? null : sid;
+        onFocusChange?.(next === null ? null : identity);
+        return next;
+      }),
+    [onFocusChange],
   );
   // Esc collapses the focus (listener only while focused).
   useEffect(() => {
@@ -257,7 +277,7 @@ export function VideoRoom({
           version={version}
           active={activeSpeakers.has(p.sid)}
           displayName={nameFor ? nameFor(p.identity) : p.identity.slice(0, 8)}
-          onClick={focusable ? () => toggleFocus(p.sid) : undefined}
+          onClick={focusable ? () => toggleFocus(p.sid, p.identity) : undefined}
           focused={focusable && p.sid === focusedSid}
           focusBar={focusable && p.sid === focusedSid ? focusBarFor(p) : undefined}
           attention={attentionFor ? attentionFor(p.identity) : undefined}

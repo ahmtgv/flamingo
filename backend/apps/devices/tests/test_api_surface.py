@@ -44,7 +44,10 @@ from apps.api_surface import frontend_operations, orphans, server_operations
 #: не открывались продуктом ни разу: чат урока обновлялся опросом раз в пятнадцать секунд
 #: (в коде при этом стоял комментарий «the socket carries the live case»), а ученик у двери
 #: узнавал о появлении преподавателя тем же опросом. После правки — 61 мс вместо 15 секунд.
-KNOWN_ORPHANS = 42
+#: 42 → 39 (18.08, промпт 36): подключены `myMirror` и `mirroredFileUrl` — экраном «Моя
+#: учёба», которого не было под уже данным обещанием §20.5, — и `setProjectorFocus`: второй
+#: экран слушал фокус, который никто не мог послать, и планшет как доска (§21) не работал.
+KNOWN_ORPHANS = 39
 
 
 def test_orphan_count_never_grows():

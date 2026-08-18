@@ -10,6 +10,7 @@ import {
   useReportAttentionMutation,
   useJoinSessionMutation,
   useSessionAttendeesQuery,
+  useSetProjectorFocusMutation,
   useSessionStatusChangedSubscription,
   useEndSessionMutation,
   useSessionRoomQuery,
@@ -606,6 +607,12 @@ function TeacherRoom({
   // Teacher-only roster → studentId (= user.id, same id attentionUpdates emits and the
   // LiveKit participant identity) → display name. The `attendance` read is owner-scoped
   // server-side (returns [] to non-owners), so this carries names only for the owning teacher.
+  /**
+   * 🔴 МУТАЦИЯ БЫЛА ОПИСАНА И НЕ ВЫЗЫВАЛАСЬ (наряд 36 §4). Второй экран слушал
+   * `projectorFocusChanged`, а послать фокус было некому: `setProjectorFocus` числилась
+   * среди сирот. Планшет как доска (§21) без этого не работает.
+   */
+  const [setProjectorFocus] = useSetProjectorFocusMutation();
   const { data: attendeesData, refetch: refetchAttendees } = useSessionAttendeesQuery({
     variables: { id: sessionId },
   });
@@ -828,6 +835,13 @@ function TeacherRoom({
             onLeave={leave}
             nameFor={nameFor}
             focusable
+            onFocusChange={(identity) => {
+              // Отказ не должен ронять урок: не дошло до второго экрана — преподаватель
+              // продолжает вести, а не смотрит на ошибку посреди занятия.
+              void setProjectorFocus({
+                variables: { sessionId, studentId: identity },
+              }).catch(() => undefined);
+            }}
             attentionFor={attentionFor}
             metricsFor={metricsFor}
             selfInRail
