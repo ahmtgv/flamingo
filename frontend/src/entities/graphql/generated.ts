@@ -1090,6 +1090,10 @@ export type Mutation = {
   reportChannel: ChatReport;
   reportUplink: Device;
   requestPairingCode: PairingRequest;
+  /**
+   * `true` — мы умеем отправить письмо; `false` — восстановление недоступно, и экран говорит
+   * об этом словами. Про существование учётной записи ответ по-прежнему молчит.
+   */
   requestPasswordReset: Scalars['Boolean']['output'];
   requestUpload: UploadTicket;
   requestVerificationDocuments: User;
@@ -1112,6 +1116,12 @@ export type Mutation = {
   setAvatar: User;
   setBoardOpen: Scalars['Boolean']['output'];
   setMeetingAccess: MeetingPoint;
+  /**
+   * Пояс человека (§37 — «все по Москве» отменено). Показ считает браузер, а ГРАНИЦЫ СУТОК
+   * («сегодня», серия занятий, «требует внимания») считает сервер, и ему нужен ответ без
+   * открытого браузера. Экран зовёт молча при входе.
+   */
+  setMyTimezone: Scalars['Boolean']['output'];
   setProjectorFocus: ProjectorFocus;
   setSpeechConsent: Scalars['Boolean']['output'];
   setSummaryIntro: LessonSummary;
@@ -1632,6 +1642,11 @@ export type MutationSetMeetingAccessArgs = {
 };
 
 
+export type MutationSetMyTimezoneArgs = {
+  timezoneName: Scalars['String']['input'];
+};
+
+
 export type MutationSetProjectorFocusArgs = {
   sessionId: Scalars['ID']['input'];
   studentId?: InputMaybe<Scalars['ID']['input']>;
@@ -1986,6 +2001,13 @@ export type Query = {
   uploadPolicy: UploadPolicy;
   verificationDocumentUrl: Scalars['String']['output'];
   verificationQueue: Array<VerificationQueueEntry>;
+  /**
+   * ⚠️ НЕ ПОСТРОЕНО (проверено 18.08, промпт 35-36). Ни резолвера, ни приложения
+   * `certificates`, ни экрана `/verify` — маршрута в роутере нет ни одного, и всё, что туда
+   * приходит, ловит `path="*"`. Два теста на этот адрес годами проходили, потому что смотрели
+   * на страницу переадресации; строка убрана из списка маршрутов до появления экрана.
+   * Обещание в силе (MVP заменяет NFT-сертификаты на PDF + QR) — это форвард-контракт.
+   */
   verifyCertificate: CertificateVerification;
   weekStrip: Array<StartDay>;
 };
@@ -3249,6 +3271,13 @@ export type LogoutMutationVariables = Exact<{ [key: string]: never; }>;
 
 
 export type LogoutMutation = { __typename?: 'Mutation', logout: boolean };
+
+export type SetMyTimezoneMutationVariables = Exact<{
+  timezoneName: Scalars['String']['input'];
+}>;
+
+
+export type SetMyTimezoneMutation = { __typename?: 'Mutation', setMyTimezone: boolean };
 
 export type BoardQueryVariables = Exact<{
   lessonId: Scalars['ID']['input'];
@@ -5569,6 +5598,37 @@ export function useLogoutMutation(baseOptions?: Apollo.MutationHookOptions<Logou
 export type LogoutMutationHookResult = ReturnType<typeof useLogoutMutation>;
 export type LogoutMutationResult = Apollo.MutationResult<LogoutMutation>;
 export type LogoutMutationOptions = Apollo.BaseMutationOptions<LogoutMutation, LogoutMutationVariables>;
+export const SetMyTimezoneDocument = gql`
+    mutation SetMyTimezone($timezoneName: String!) {
+  setMyTimezone(timezoneName: $timezoneName)
+}
+    `;
+export type SetMyTimezoneMutationFn = Apollo.MutationFunction<SetMyTimezoneMutation, SetMyTimezoneMutationVariables>;
+
+/**
+ * __useSetMyTimezoneMutation__
+ *
+ * To run a mutation, you first call `useSetMyTimezoneMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useSetMyTimezoneMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [setMyTimezoneMutation, { data, loading, error }] = useSetMyTimezoneMutation({
+ *   variables: {
+ *      timezoneName: // value for 'timezoneName'
+ *   },
+ * });
+ */
+export function useSetMyTimezoneMutation(baseOptions?: Apollo.MutationHookOptions<SetMyTimezoneMutation, SetMyTimezoneMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<SetMyTimezoneMutation, SetMyTimezoneMutationVariables>(SetMyTimezoneDocument, options);
+      }
+export type SetMyTimezoneMutationHookResult = ReturnType<typeof useSetMyTimezoneMutation>;
+export type SetMyTimezoneMutationResult = Apollo.MutationResult<SetMyTimezoneMutation>;
+export type SetMyTimezoneMutationOptions = Apollo.BaseMutationOptions<SetMyTimezoneMutation, SetMyTimezoneMutationVariables>;
 export const BoardDocument = gql`
     query Board($lessonId: ID!) {
   board(lessonId: $lessonId) {

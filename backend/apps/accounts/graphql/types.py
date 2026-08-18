@@ -153,6 +153,8 @@ class UserType:
     #: галочки там нет — согласие даётся при регистрации, и здесь оно справка, а не поле
     #: (промпт 18 §Б0-кватер). Своя учётка: `me` — единственный запрос, отдающий UserType себе.
     consent_152fz_at: auto
+    #: Пояс человека (§37). Пусто — не сказал; сутки тогда считаются по умолчанию сервера.
+    timezone: auto
 
     @strawberry_django.field
     def email(self, info: strawberry.Info) -> str | None:

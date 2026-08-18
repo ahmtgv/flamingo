@@ -18,8 +18,13 @@ pytestmark = pytest.mark.django_db
 
 def a_user(email="forgot@example.com"):
     return services.register_user(
-        email=email, password="strongpass1!", first_name="Аня", last_name="Коваль",
-        role=Role.TEACHER, specialty="Английский", consent_152fz=True,
+        email=email,
+        password="strongpass1!",
+        first_name="Аня",
+        last_name="Коваль",
+        role=Role.TEACHER,
+        specialty="Английский",
+        consent_152fz=True,
     )
 
 

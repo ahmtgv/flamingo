@@ -462,3 +462,25 @@ def reset_password(token: str, new_password: str) -> None:
     # A-authz-3: a password reset invalidates all existing sessions (bump token_version).
     user.token_version = user.token_version + 1
     user.save(update_fields=["password", "token_version"])
+
+
+def set_my_timezone(user, timezone_name: str) -> bool:
+    """Запомнить пояс человека. Неизвестный — не запоминаем и не падаем.
+
+    ⚠️ Приходит из браузера (`Intl.DateTimeFormat().resolvedOptions().timeZone`), то есть из
+    недоверенного источника. Проверяем, что такая зона существует, прежде чем класть в базу:
+    строка оттуда попадёт в расчёт суток на сервере.
+    """
+    import zoneinfo
+
+    name = (timezone_name or "").strip()[:64]
+    if not name:
+        return False
+    try:
+        zoneinfo.ZoneInfo(name)
+    except (zoneinfo.ZoneInfoNotFoundError, ValueError):
+        return False
+    if user.timezone != name:
+        user.timezone = name
+        user.save(update_fields=["timezone", "updated_at"])
+    return True

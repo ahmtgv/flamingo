@@ -24,6 +24,7 @@ import strawberry
 from django.db import models
 from django.utils import timezone
 
+from common import whenfor
 from common.enums import LearningProfileKind, SessionStatus, SubmissionStatus
 from common.exceptions import PermissionDenied
 
@@ -318,7 +319,8 @@ def _teacher_materials_missing(user, now) -> list[StartEntry]:
     profile = getattr(user, "teacher_profile", None)
     if profile is None:
         return []
-    day_end = timezone.localtime(now).replace(hour=23, minute=59, second=59)
+    # 🔴 Конец суток — в поясе ЧЕЛОВЕКА, а не сервера (§37, наряд 37 §5).
+    day_end = whenfor.day_bounds(user)[1]
     sessions = (
         LessonSession.objects.filter(
             lesson__section__course__owner=profile,
@@ -582,7 +584,7 @@ def _teaching(user, course_ids, sessions) -> list[StartCourse]:
     return result
 
 
-def _week(sessions, attention, today: dt.date) -> list[StartDay]:
+def _week(user, sessions, attention, today: dt.date) -> list[StartDay]:
     """Seven days from today — sessions plus anything with a deadline in that window.
 
     A cadet has no timetable, so their strip simply comes back with empty days: the sheet
@@ -595,7 +597,7 @@ def _week(sessions, attention, today: dt.date) -> list[StartDay]:
     for entry in [*sessions, *attention]:
         if entry.at is None:
             continue
-        day = timezone.localtime(entry.at).date()
+        day = timezone.localtime(entry.at, whenfor.zone_of(user)).date()
         if day in by_day:
             by_day[day].append(entry)
     return [
@@ -621,7 +623,7 @@ def week_strip(user, week_start: dt.date | None = None) -> list[StartDay]:
     profile = active_learning_profile(user)
     if profile is None:
         return []
-    today = timezone.localdate()
+    today = whenfor.local_date(user)
     start = week_start or today
     now = timezone.now()
     course_ids = _scoped_course_ids(user, profile)
@@ -649,7 +651,7 @@ def week_strip(user, week_start: dt.date | None = None) -> list[StartDay]:
     for entry in [*sessions, *attention]:
         if entry.at is None:
             continue
-        day = timezone.localtime(entry.at).date()
+        day = timezone.localtime(entry.at, whenfor.zone_of(user)).date()
         if day in by_day:
             by_day[day].append(entry)
     return [
@@ -669,7 +671,7 @@ def start_page(user) -> StartPage:
         return empty  # an account with no education yet: the client shows the empty state
 
     now = timezone.now()
-    today = timezone.localtime(now).date()
+    today = whenfor.local_date(user, now)
     course_ids = _scoped_course_ids(user, profile)
 
     day_start = timezone.make_aware(
@@ -681,7 +683,7 @@ def start_page(user) -> StartPage:
     today_sessions = [
         _session_entry(session, now=now)
         for session in week_sessions
-        if timezone.localtime(session.start_at).date() == today
+        if whenfor.same_local_day(user, session.start_at, today)
     ]
     week_entries = [_session_entry(session, now=now) for session in week_sessions]
 
@@ -718,7 +720,7 @@ def start_page(user) -> StartPage:
         now=now_entry,
         today=sorted(today_sessions, key=_entry_sort_key),
         attention=attention,
-        week=_week(week_entries, attention, today),
+        week=_week(user, week_entries, attention, today),
         continue_entries=continue_entries,
         progress=progress,
         teaching=teaching,

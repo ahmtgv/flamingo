@@ -110,6 +110,18 @@ class AccountsMutation:
         return True
 
     @strawberry.mutation
+    def set_my_timezone(self, info: strawberry.Info, timezone_name: str) -> bool:
+        """Сказать серверу свой пояс (§37, наряд 37 §5).
+
+        🔴 ЗАЧЕМ ЭТО СЕРВЕРУ, если пояс знает браузер. Показ действительно считает браузер —
+        но ГРАНИЦЫ СУТОК считает сервер: «сегодня», серия занятий, «требует внимания», будущие
+        сводки родителям. Они должны работать без открытого браузера.
+
+        Экран зовёт это молча при входе — человека мы о поясе не спрашиваем.
+        """
+        return services.set_my_timezone(require_user(info), timezone_name)
+
+    @strawberry.mutation
     def request_password_reset(self, email: str) -> bool:
         """Просьба сменить пароль.
 

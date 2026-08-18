@@ -23,6 +23,7 @@ import datetime as dt
 from django.db import transaction
 from django.utils import timezone
 
+from common import whenfor
 from common.enums import AchievementKey, CardState, ReviewRating
 from common.exceptions import NotFound, PermissionDenied, ValidationError
 
@@ -180,7 +181,9 @@ def _sane_due(due_at: dt.datetime, now: dt.datetime) -> dt.datetime:
 def _touch_streak(student, now: dt.datetime) -> StudyStreak:
     """Days in a row. Compared only with the same learner's own best."""
     streak, _ = StudyStreak.objects.get_or_create(student=student)
-    today = timezone.localtime(now).date()
+    # 🔴 Серия — «дни подряд», и день здесь ЧЕЛОВЕКА, а не сервера (§37, наряд 37 §5).
+    # Ученику во Владивостоке иначе засчитывалось бы вчера, и серия рвалась бы на ровном месте.
+    today = whenfor.local_date(student.user, now)
 
     if streak.last_day == today:
         pass  # already counted today; a second review does not make a second day

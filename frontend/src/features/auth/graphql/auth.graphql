@@ -219,3 +219,9 @@ mutation SetActiveLearningProfile($id: ID!) {
 mutation Logout {
   logout
 }
+
+# Пояс человека уходит на сервер молча при входе (§37): показ считает браузер, а границы
+# суток — сервер, и ему нужен ответ без открытого браузера.
+mutation SetMyTimezone($timezoneName: String!) {
+  setMyTimezone(timezoneName: $timezoneName)
+}

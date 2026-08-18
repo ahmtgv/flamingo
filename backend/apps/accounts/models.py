@@ -35,6 +35,13 @@ class User(JurisdictionMixin, AbstractBaseUser, PermissionsMixin):
     # невозможного. Читается только через display_name/full_name ниже.
     middle_name = models.CharField(max_length=120, blank=True, default="")
     locale = models.CharField(max_length=8, default="ru")  # i18n-ready
+    #: 🔴 ПОЯС ЧЕЛОВЕКА (решение владельца §37, наряд 37 §5). «Все по Москве» отменено:
+    #: СНГ тянется на одиннадцать поясов, и ученик во Владивостоке живёт на семь часов
+    #: впереди преподавателя. Для показа хватило бы браузера — но границы суток («сегодня»,
+    #: «завтра», серия занятий, «требует внимания») считает СЕРВЕР, и ему нужен ответ без
+    #: открытого браузера. Пусто — считаем по умолчанию сервера; это не «Москва навсегда»,
+    #: а «человек ещё не сказал».
+    timezone = models.CharField(max_length=64, blank=True, default="")
     # Which learning profile the account is currently working in ("pupil:<uuid>" /
     # "cadet:<uuid>" / "teacher:<uuid>"). The profiles themselves are NOT stored — they are
     # projected from INSTITUTION_MEMBERSHIP and ENROLLMENT (apps/accounts/learning.py); this

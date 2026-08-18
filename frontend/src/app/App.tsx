@@ -2,6 +2,8 @@ import { type ReactNode, useEffect } from 'react';
 
 import { DemoRoleSwitcher } from '@/shared/demo/DemoRoleSwitcher';
 import { primeMachineKey } from '@/features/desktop/machineKey';
+import { useSetMyTimezoneMutation } from '@/entities/graphql/generated';
+import { useSession } from '@/shared/hooks/useSession';
 import { bootstrapSession } from '@/shared/lib/refresh';
 import { ErrorBoundary } from '@/shared/ui';
 
@@ -18,10 +20,29 @@ const IS_PREVIEW = import.meta.env.VITE_PREVIEW === '1';
  * `Authorization: Device`. Читается один раз; в браузере это no-op.
  */
 function Boot({ children }: { children: ReactNode }) {
+  const [tellTimezone] = useSetMyTimezoneMutation();
+  const { status } = useSession();
+
   useEffect(() => {
     void bootstrapSession();
     void primeMachineKey();
   }, []);
+
+  /**
+   * 🔴 ПОЯС ЧЕЛОВЕКА — СЕРВЕРУ, МОЛЧА (§37, наряд 37 §5).
+   *
+   * «Все по Москве» отменено владельцем. Показ времени считает браузер и без нас, но ГРАНИЦЫ
+   * СУТОК — «сегодня», серия занятий, «требует внимания» — считает сервер, и ему нужен ответ,
+   * когда браузер закрыт. Спрашивать человека не о чем: браузер уже знает.
+   *
+   * Отказ ничего не ломает: сервер не запомнил пояс — сутки считаются по его умолчанию.
+   */
+  useEffect(() => {
+    if (status !== 'authenticated') return;
+    const zone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    if (zone) void tellTimezone({ variables: { timezoneName: zone } }).catch(() => undefined);
+  }, [status, tellTimezone]);
+
   return <>{children}</>;
 }
 

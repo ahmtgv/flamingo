@@ -1752,6 +1752,12 @@ type Mutation {
   login(email: String!, password: String!): AuthPayload!
   refreshToken(refreshToken: String!): AuthPayload!
   logout: Boolean!
+  """Пояс человека (§37 — «все по Москве» отменено). Показ считает браузер, а ГРАНИЦЫ СУТОК
+  («сегодня», серия занятий, «требует внимания») считает сервер, и ему нужен ответ без
+  открытого браузера. Экран зовёт молча при входе."""
+  setMyTimezone(timezoneName: String!): Boolean!
+  """`true` — мы умеем отправить письмо; `false` — восстановление недоступно, и экран говорит
+  об этом словами. Про существование учётной записи ответ по-прежнему молчит."""
   requestPasswordReset(email: String!): Boolean!
   resetPassword(token: String!, newPassword: String!): Boolean!
   verifyEmail(token: String!): Boolean!
