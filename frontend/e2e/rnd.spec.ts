@@ -240,6 +240,63 @@ test.describe('§2.1 · урок на двоих по-настоящему', () 
     await pupilCtx.close();
   });
 
+  test('§34 §5 · щипок трекпадом — ЭМУЛЯЦИЯ, а не рука', async ({ browser }) => {
+    /**
+     * ⚠️ ЭТО ЭМУЛЯЦИЯ, И НАЗЫВАТЬ ЕЁ НАДО ТАК.
+     *
+     * Наряд просит проверить щипок трекпадом РУКОЙ. Рукой я проверить не могу; здесь
+     * браузер посылает то же событие, что посылает трекпад macOS при щипке — `wheel` с
+     * `ctrlKey`. Это доказывает, что ОБРАБОТЧИК на месте и считает масштаб, и не доказывает,
+     * что жест удобен под пальцами. Второе остаётся за человеком.
+     */
+    const ctx = await browser.newContext();
+    const page = await ctx.newPage();
+    const t = await registerTestTeacher();
+    const p = await registerTestPupil();
+    const lesson = await aLiveLesson(t.token, p.token);
+    await signIn(page, DEV, t.email, 'T3stPass!2026');
+    await openBoard(page, DEV, lesson.sessionId);
+    await drawStroke(page, { x: 120, y: 100 });
+
+    const surface = page.locator('[class*=surface]').first();
+    const box = await surface.boundingBox();
+    if (!box) throw new Error('холста нет');
+    const width = () => page.evaluate(() => {
+      const path = document.querySelector('[class*=surface] svg path');
+      return path ? Math.round((path as SVGGraphicsElement).getBoundingClientRect().width) : 0;
+    });
+
+    // 🔴 СНАЧАЛА ПРОВЕРЯЕМ ПРИБОР: доехало ли до страницы событие с `ctrlKey`. Если нет,
+    // «масштаб не изменился» — вывод про эмулятор, а не про продукт.
+    await page.evaluate(() => {
+      (window as unknown as { __wheel: string[] }).__wheel = [];
+      window.addEventListener(
+        'wheel',
+        (e) =>
+          (window as unknown as { __wheel: string[] }).__wheel.push(
+            `deltaY=${Math.round(e.deltaY)} ctrl=${e.ctrlKey}`,
+          ),
+        { capture: true },
+      );
+    });
+
+    const before = await width();
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    await page.keyboard.down('Control');
+    await page.mouse.wheel(0, -240);
+    await page.keyboard.up('Control');
+    await page.waitForTimeout(400);
+    const after = await width();
+
+    console.log(
+      '[34 §5 ПРИБОР] события колеса, дошедшие до страницы:',
+      JSON.stringify(await page.evaluate(() => (window as unknown as { __wheel: string[] }).__wheel)),
+    );
+    console.log(`[34 §5 ЭМУЛЯЦИЯ щипка] штрих на экране: было ${before}px, стало ${after}px`);
+    expect(after, 'щипок не изменил масштаб холста').toBeGreaterThan(before);
+    await ctx.close();
+  });
+
   test('обрыв у ПРЕПОДАВАТЕЛЯ: он ведёт урок, и это самое дорогое', async ({ browser }) => {
     const teacherCtx = await browser.newContext();
     const pupilCtx = await browser.newContext();
