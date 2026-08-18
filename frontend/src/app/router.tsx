@@ -35,6 +35,7 @@ import { SourcesScreen } from '@/features/sources';
 import { StartScreen } from '@/features/start';
 import { SubjectScreen } from '@/features/subject';
 import { isDesktop } from '@/features/desktop/bridge';
+import { DemoRoomScreen } from '@/features/demo/ui/DemoRoomScreen';
 import { LandingScreen } from '@/features/landing/ui/LandingScreen';
 import { MyLearningScreen } from '@/features/mylearning/ui/MyLearningScreen';
 import { ConnectionLine } from '@/shared/ui/ConnectionLine/ConnectionLine';
@@ -245,6 +246,15 @@ export function AppRouter() {
             </PublicOnlyRoute>
           }
         />
+        {/*
+          🔴 ДЕМО-КОМНАТА ДЛЯ ГОСТЯ (наряд 36 §3, решение владельца §34.9). Маршрут ПУБЛИЧНЫЙ и
+          намеренно не обёрнут ни в `ProtectedRoute`, ни в `PublicOnlyRoute`: смотреть демо
+          можно и не входя, и уже войдя.
+
+          🔒 Экран не принимает никакого идентификатора — ни в пути, ни в запросе. До
+          настоящего занятия отсюда дотянуться нечем: дотягиваться неоткуда.
+        */}
+        <Route path="/demo" element={<DemoRoomScreen />} />
         {/* Token-based; reachable whether or not signed in (from an email link). */}
         <Route path="/reset-password" element={<ResetConfirmScreen />} />
         <Route
