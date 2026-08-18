@@ -10,6 +10,7 @@ import {
   useReportAttentionMutation,
   useJoinSessionMutation,
   useSessionAttendeesQuery,
+  useSessionStatusChangedSubscription,
   useEndSessionMutation,
   useSessionRoomQuery,
 } from '@/entities/graphql/generated';
@@ -374,6 +375,25 @@ function StudentRoom({
   const lk = useLiveKitRoom({ url: LIVEKIT_URL, token: roomToken, stream, active: joined });
 
   /**
+   * 🔴 КЛАСС НЕ УЗНАВАЛ, ЧТО УРОК КОНЧИЛСЯ (наряд 35 §4).
+   *
+   * Преподаватель нажимает «Завершить занятие» — у него меняется всё, а ученик сидит в
+   * комнате, которая уже не идёт: камера горит, доска на месте, ничего не сказано.
+   * `sessionStatusChanged` была объявлена в SDL с самого начала и три месяца не имела ни
+   * резолвера, ни публикации.
+   *
+   * Показываем словами и не выкидываем человека с экрана: он может дописывать конспект.
+   */
+  const [ended, setEnded] = useState(false);
+  useSessionStatusChangedSubscription({
+    variables: { sessionId },
+    onData: ({ data: payload }) => {
+      if (payload.data?.sessionStatusChanged?.endAt) setEnded(true);
+    },
+  });
+
+
+  /**
    * Р5.1 (owner decision 2026-08-13): **a student sees the teacher and their own preview.**
    *
    * The reason is not taste, it is the teacher's uplink. The lesson is hosted from the
@@ -486,6 +506,13 @@ function StudentRoom({
       classPupils={[{ id: 'self', name: selfName, initials: initialsOf(selfName), isSelf: true }]}
     >
       <div className={styles.card}>
+        {/* Урок закончился — сказано словами, и человека не выкидывает с экрана:
+            он может дописывать конспект (наряд 35 §4). */}
+        {ended && (
+          <p className={styles.note} role="status">
+            {t('lesson:sessionEnded')}
+          </p>
+        )}
         {!joined ? (
           <>
             {!isLive && <p className={styles.note}>{t('lesson:notLive')}</p>}

@@ -2692,6 +2692,10 @@ export type Subscription = {
   hostPresenceChanged: HostPresence;
   notificationReceived: Notification;
   projectorFocusChanged: ProjectorFocus;
+  /**
+   * Занятие началось или закончилось. Резолвер и публикация появились 18.08 (промпт 35 §4);
+   * до того это была строка контракта без кода — класс не узнавал о конце урока ниоткуда.
+   */
   sessionStatusChanged: LessonSession;
   signals: Signal;
   wordShown: WordShown;
@@ -3776,6 +3780,13 @@ export type SessionAttendeesQueryVariables = Exact<{
 
 
 export type SessionAttendeesQuery = { __typename?: 'Query', session?: { __typename?: 'LessonSession', id: string, attendance: Array<{ __typename?: 'Attendance', student: { __typename?: 'StudentProfile', user: { __typename?: 'User', id: string, firstName: string, lastName: string, formalName: string, shortName: string, displayName: string } } }> } | null };
+
+export type SessionStatusChangedSubscriptionVariables = Exact<{
+  sessionId: Scalars['ID']['input'];
+}>;
+
+
+export type SessionStatusChangedSubscription = { __typename?: 'Subscription', sessionStatusChanged: { __typename?: 'LessonSession', id: string, endAt?: string | null } };
 
 export type CreateProjectorCodeMutationVariables = Exact<{
   sessionId: Scalars['ID']['input'];
@@ -9038,6 +9049,37 @@ export type SessionAttendeesQueryHookResult = ReturnType<typeof useSessionAttend
 export type SessionAttendeesLazyQueryHookResult = ReturnType<typeof useSessionAttendeesLazyQuery>;
 export type SessionAttendeesSuspenseQueryHookResult = ReturnType<typeof useSessionAttendeesSuspenseQuery>;
 export type SessionAttendeesQueryResult = Apollo.QueryResult<SessionAttendeesQuery, SessionAttendeesQueryVariables>;
+export const SessionStatusChangedDocument = gql`
+    subscription SessionStatusChanged($sessionId: ID!) {
+  sessionStatusChanged(sessionId: $sessionId) {
+    id
+    endAt
+  }
+}
+    `;
+
+/**
+ * __useSessionStatusChangedSubscription__
+ *
+ * To run a query within a React component, call `useSessionStatusChangedSubscription` and pass it any options that fit your needs.
+ * When your component renders, `useSessionStatusChangedSubscription` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the subscription, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useSessionStatusChangedSubscription({
+ *   variables: {
+ *      sessionId: // value for 'sessionId'
+ *   },
+ * });
+ */
+export function useSessionStatusChangedSubscription(baseOptions: Apollo.SubscriptionHookOptions<SessionStatusChangedSubscription, SessionStatusChangedSubscriptionVariables> & ({ variables: SessionStatusChangedSubscriptionVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useSubscription<SessionStatusChangedSubscription, SessionStatusChangedSubscriptionVariables>(SessionStatusChangedDocument, options);
+      }
+export type SessionStatusChangedSubscriptionHookResult = ReturnType<typeof useSessionStatusChangedSubscription>;
+export type SessionStatusChangedSubscriptionResult = Apollo.SubscriptionResult<SessionStatusChangedSubscription>;
 export const CreateProjectorCodeDocument = gql`
     mutation CreateProjectorCode($sessionId: ID!) {
   createProjectorCode(sessionId: $sessionId) {

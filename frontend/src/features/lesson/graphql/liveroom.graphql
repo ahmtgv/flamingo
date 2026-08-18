@@ -80,3 +80,15 @@ query SessionAttendees($id: ID!) {
     }
   }
 }
+
+# 🔴 УЧЕНИК УЗНАВАЛ О КОНЦЕ УРОКА НИОТКУДА (наряд 35 §4).
+#
+# Преподаватель нажимает «Завершить занятие» — у него меняется всё, а класс остаётся сидеть в
+# комнате, которая уже не идёт. `sessionStatusChanged` была объявлена в SDL с самого начала и
+# не имела ни резолвера, ни публикации: три месяца это была строка в контракте.
+subscription SessionStatusChanged($sessionId: ID!) {
+  sessionStatusChanged(sessionId: $sessionId) {
+    id
+    endAt
+  }
+}

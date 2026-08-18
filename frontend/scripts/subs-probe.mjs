@@ -236,4 +236,17 @@ const { COURSE: groupCourse, LESSON: groupLesson, SESSION: groupSession, SLUG: s
   }
 }
 
+// --- sessionStatusChanged: ученик узнаёт, что урок закончился -------------------------
+try {
+  await probe('sessionStatusChanged', {
+    who: pupil,
+    query: 'subscription($s:ID!){ sessionStatusChanged(sessionId:$s){ id endAt } }',
+    variables: { s: session },
+    fire: () => gql('mutation($s:ID!){ endSession(sessionId:$s){ id } }', { s: session }, teacher),
+  });
+} catch (e) {
+  console.log('🔴 sessionStatusChanged     упёрся: ' + String(e.message).slice(0, 90));
+  results.push({ name: 'sessionStatusChanged', ok: false, seen: String(e.message).slice(0, 70) });
+}
+
 console.log('\nИТОГ: живых ' + results.filter((r) => r.ok).length + ' из ' + results.length);

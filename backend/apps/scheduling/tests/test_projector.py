@@ -208,7 +208,10 @@ def test_the_teacher_points_the_second_screen_and_only_an_id_travels(monkeypatch
 
     scheduling.set_projector_focus(teacher, session.id, pupil.id)
 
-    ((group, payload),) = sent
+    # ⚠️ В комнату теперь уходит ДВА рода сообщений: фокус второго экрана и статус занятия
+    # (`sessionStatusChanged`, промпт 35 §4). Берём своё по типу, а не «первое попавшееся»:
+    # иначе тест ловил бы соседа и краснел на исправном коде.
+    ((group, payload),) = [pair for pair in sent if pair[1]["type"] == "projector.focus"]
     assert group == f"projector_{session.id}"
     assert payload["student_id"] == str(pupil.id)
     # No metric rides this channel — the payload is an id and the session, nothing else.
@@ -227,7 +230,8 @@ def test_clearing_the_focus_sends_the_whole_room_back(monkeypatch):
     _, _, session = live_session(teacher)
 
     assert scheduling.set_projector_focus(teacher, session.id, None) is None
-    assert sent[0]["student_id"] is None
+    focus = [m for m in sent if m["type"] == "projector.focus"]
+    assert focus[0]["student_id"] is None
 
 
 def test_only_the_sessions_teacher_may_move_the_focus():

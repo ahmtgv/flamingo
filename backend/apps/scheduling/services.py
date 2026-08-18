@@ -91,7 +91,35 @@ def start_session(user, session_id) -> LessonSession:
         )
     session.status = SessionStatus.LIVE.value
     session.save(update_fields=["status", "updated_at"])
+    _announce_status(session)
     return session
+
+
+def _announce_status(session) -> None:
+    """Сказать комнате, что занятие началось или закончилось.
+
+    🔴 УЧЕНИК УЗНАВАЛ О КОНЦЕ УРОКА НИОТКУДА (наряд 35 §4). Преподаватель нажимает
+    «Завершить занятие» — на его экране всё меняется, а класс остаётся сидеть в комнате,
+    которая уже не идёт. Ни строки, ни подсказки: тот же молчащий экран, из-за которого
+    заведено правило «отказ должен быть сказан словами».
+
+    `sessionStatusChanged` объявлена в SDL с самого начала и не имела ни резолвера, ни
+    публикации — три месяца это была строка в контракте и больше ничего.
+
+    ⚠️ В канал уходит ТОЛЬКО идентификатор занятия и его статус. Ни имён, ни оценок, ни
+    метрик: подписаны на него все участники урока, и канал обязан быть узким.
+    """
+    layer = get_channel_layer()
+    if layer is None:
+        return
+    async_to_sync(layer.group_send)(
+        f"session_{session.id}",
+        {
+            "type": "session.status",
+            "session_id": str(session.id),
+            "status": session.status,
+        },
+    )
 
 
 def end_session(user, session_id) -> LessonSession:
@@ -99,6 +127,7 @@ def end_session(user, session_id) -> LessonSession:
     session.status = SessionStatus.ENDED.value
     session.end_at = timezone.now()
     session.save(update_fields=["status", "end_at", "updated_at"])
+    _announce_status(session)
     # A second screen must not outlive the lesson it was showing.
     revoke_projector_codes(session)
     mirror_the_diary(session)

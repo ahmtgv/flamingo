@@ -1932,6 +1932,8 @@ type Subscription {
   # the live canvas — optimistic, no locks
   boardChanged(lessonId: ID!): BoardChange!
   # session lifecycle (scheduled -> live -> ended)
+  """Занятие началось или закончилось. Резолвер и публикация появились 18.08 (промпт 35 §4);
+  до того это была строка контракта без кода — класс не узнавал о конце урока ниоткуда."""
   sessionStatusChanged(sessionId: ID!): LessonSession!
   # live lesson chat
   chatMessageReceived(sessionId: ID!): ChatMessage!
