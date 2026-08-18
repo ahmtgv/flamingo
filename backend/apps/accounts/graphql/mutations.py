@@ -111,8 +111,17 @@ class AccountsMutation:
 
     @strawberry.mutation
     def request_password_reset(self, email: str) -> bool:
-        services.request_password_reset(email)
-        return True
+        """Просьба сменить пароль.
+
+        🔴 ВОЗВРАЩАЕМОЕ ЗНАЧЕНИЕ ИЗМЕНИЛО СМЫСЛ (наряд 37 §3): раньше здесь стояло `return
+        True` всегда — то есть экран показывал «письмо отправлено», когда почты в продукте не
+        было вовсе и письмо не уходило никому. Теперь `true` значит «мы умеем отправлять»,
+        а `false` — «восстановление пока недоступно», и экран говорит об этом словами.
+
+        🔒 Ответ по-прежнему НЕ раскрывает, есть ли такая почта: он о нашей настройке, не об
+        учётной записи.
+        """
+        return services.request_password_reset(email)
 
     @strawberry.mutation
     def reset_password(self, token: str, new_password: str) -> bool:

@@ -13,6 +13,7 @@ from django.db import transaction
 from django.db.models import F
 from django.utils import timezone
 
+from common import mailer
 from common.auth import decode_token, issue_tokens
 from common.enums import (
     AgeBand,
@@ -69,9 +70,37 @@ def _send_verification_email(user: User) -> None:
     logger.info("verification email -> %s token=%s", user.email, token)
 
 
-def _send_password_reset_email(user: User) -> None:
+def _send_password_reset_email(user: User) -> bool:
+    """Отправить ссылку на смену пароля. Возвращает, ушло ли письмо.
+
+    🔴 РАНЬШЕ ЭТА ФУНКЦИЯ ТОЛЬКО ПИСАЛА В ЛОГ (наряд 37 §3). Человек, забывший пароль, был
+    заперт навсегда, а кнопка «Забыли пароль?» изображала отправку. Теперь письмо уходит
+    по-настоящему — а когда почта не настроена, об этом честно говорят наверх, и экран
+    показывает человеку, куда написать.
+    """
     token = signing.dumps({"uid": str(user.id)}, salt=_RESET_SALT)
-    logger.info("password-reset email -> %s token=%s", user.email, token)
+    link = f"{_public_origin()}/reset-password?token={token}"
+    sent = mailer.send(
+        to=user.email,
+        subject="Flamingo — смена пароля",
+        body=(
+            f"Здравствуйте, {user.first_name}.\n\n"
+            f"Чтобы задать новый пароль, откройте ссылку:\n{link}\n\n"
+            "Ссылка действует сутки. Если вы не просили смену пароля — просто не открывайте её,"
+            " с вашей учётной записью ничего не произойдёт."
+        ),
+    )
+    # ⚠️ Ссылка остаётся в логе, пока почты нет: это единственный способ вернуть человека,
+    # и владелец им уже пользовался. Когда почта настроена — в лог не пишем ничего.
+    if not sent:
+        logger.info("password-reset link (почта не настроена) -> %s %s", user.email, link)
+    return sent
+
+
+def _public_origin() -> str:
+    from django.conf import settings
+
+    return getattr(settings, "PUBLIC_ORIGIN", "https://flamingo.plus").rstrip("/")
 
 
 def _send_parent_consent_request(parent_email: str, child: User) -> None:
@@ -407,11 +436,17 @@ def verify_email(token: str) -> None:
     User.objects.filter(id=data["uid"]).update(is_email_verified=True)
 
 
-def request_password_reset(email: str) -> None:
-    # Do not reveal whether the email exists.
+def request_password_reset(email: str) -> bool:
+    """Просьба сменить пароль. Возвращает, МОЖЕТ ЛИ продукт вообще отправить письмо.
+
+    🔒 Ответ НЕ говорит, есть ли такая почта — это по-прежнему тайна (иначе список почт
+    продукта собирается перебором). Он говорит о НАШЕЙ настройке: письмо не уйдёт никому, и
+    человеку надо сказать об этом сразу, а не оставить ждать письма, которого не будет.
+    """
     user = User.objects.filter(email=email.lower()).first()
     if user:
         _send_password_reset_email(user)
+    return mailer.is_configured()
 
 
 def reset_password(token: str, new_password: str) -> None:

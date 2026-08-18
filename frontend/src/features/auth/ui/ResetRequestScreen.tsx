@@ -29,7 +29,21 @@ export function ResetRequestScreen() {
     setErrors(found);
     if (Object.keys(found).length > 0) return;
     try {
-      await requestReset({ variables: { email } });
+      /**
+       * 🔴 ОТВЕТ СЕРВЕРА ТЕПЕРЬ ЗНАЧИТ ДЕЛО (наряд 37 §3, найдено 18.08).
+       *
+       * Почтовой отправки в продукте не было вовсе: ссылка писалась в лог сервера. Экран при
+       * этом показывал «Проверьте почту» — то есть человек, забывший пароль, ждал письма,
+       * которого никто не отправлял, и вернуться не мог ничем.
+       *
+       * `false` значит «мы не умеем отправлять», а не «такой почты нет»: про учётную запись
+       * ответ по-прежнему молчит — иначе список почт продукта собирается перебором.
+       */
+      const answer = await requestReset({ variables: { email } });
+      if (answer.data?.requestPasswordReset === false) {
+        setFormError(t('reset.unavailable'));
+        return;
+      }
       setSent(true);
     } catch (error) {
       // 🔴 R-03: «Проверьте почту» показывалось ВСЕГДА, даже когда запрос упал. Человек ждёт

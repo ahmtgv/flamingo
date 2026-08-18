@@ -4,6 +4,8 @@ the Subscription type. Keep `docs/flamingo_schema.graphql` in sync via
 `python manage.py export_schema api.schema`.
 """
 
+import logging
+
 import strawberry
 
 from apps.accounts.graphql.mutations import AccountsMutation
@@ -44,6 +46,7 @@ from apps.signalling.graphql.subscriptions import SignallingSubscription
 from apps.summaries.graphql.mutations import SummariesMutation
 from apps.summaries.graphql.queries import SummariesQuery
 from apps.summaries.graphql.subscriptions import SummariesSubscription
+from common.exceptions import FlamingoError
 
 
 @strawberry.type
@@ -102,4 +105,35 @@ class Subscription(
     pass
 
 
-schema = strawberry.Schema(query=Query, mutation=Mutation, subscription=Subscription)
+logger = logging.getLogger(__name__)
+
+
+class FlamingoSchema(strawberry.Schema):
+    """Схема, которая отличает ожидаемое состояние от поломки.
+
+    🔴 ЛОГ ТОНУЛ В ОЖИДАЕМОМ (наряд 37 §4.2, найдено 18.08). Приложение опрашивает связывание
+    каждые две секунды, и на каждый опрос сервер писал ПОЛНУЮ ТРАССИРОВКУ «This code has not
+    been confirmed yet» — то есть нормальное «код ещё не подтвердили» выглядело как авария.
+
+    Этот шум 18.08 **скрыл настоящую причину поломки входа**: её нашли, только заглушив
+    приложение. Ожидаемое состояние, записанное как ошибка, — это не лишние байты, это
+    выключенный лог: в нём перестают искать.
+
+    Отсюда разделение. `FlamingoError` и его потомки (отказ в правах, «не найдено», «так
+    нельзя») — это ОТВЕТ продукта человеку, они уходят одной строкой уровня INFO. Всё
+    остальное — по-прежнему с трассировкой: неожиданное обязано быть видно.
+    """
+
+    def process_errors(self, errors, execution_context=None) -> None:
+        unexpected = []
+        for error in errors:
+            original = getattr(error, "original_error", None)
+            if isinstance(original, FlamingoError):
+                logger.info("отказ продукта: %s", error.message)
+                continue
+            unexpected.append(error)
+        if unexpected:
+            super().process_errors(unexpected, execution_context)
+
+
+schema = FlamingoSchema(query=Query, mutation=Mutation, subscription=Subscription)

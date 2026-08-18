@@ -266,6 +266,33 @@ TURN = {
 }
 
 # LiveKit (self-hosted video). The API only mints room tokens.
+# --- почта ------------------------------------------------------------------------------
+#
+# 🔴 ПОЧТЫ В ПРОДУКТЕ НЕ БЫЛО ВОВСЕ (наряд 37 §3, найдено 18.08). `_send_password_reset_email`
+# писал ссылку в лог сервера и ничего не отправлял. Человек, забывший пароль, был заперт
+# навсегда: кнопка «Забыли пароль?» делала вид, что письмо ушло. Владельца спасал только
+# доступ к серверу.
+#
+# ⚠️ ПУСТОЙ `EMAIL_HOST` — ЭТО НЕ «ПОЧТА СЛОМАЛАСЬ», А «ПОЧТА НЕ НАСТРОЕНА», и продукт обязан
+# говорить об этом человеку словами, а не изображать отправку. Различает эти два состояния
+# `email_is_configured()` в `common/mailer.py`.
+EMAIL_HOST = os.environ.get("EMAIL_HOST", "")
+EMAIL_PORT = int(os.environ.get("EMAIL_PORT", "587"))
+EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER", "")
+EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", "")
+EMAIL_USE_TLS = os.environ.get("EMAIL_USE_TLS", "1") == "1"
+# ⚠️ БЕЗ УМОЛЧАНИЯ С НАШИМ ДОМЕНОМ — так велит сторож `test_the_turn_config_comes_from_the_
+# environment_and_nothing_is_baked_in`, и он прав: адрес продукта — свойство окружения, а не
+# кода. Он поймал меня на этой же строке 18.08, когда я вписал домен «для удобства».
+DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", "")
+#: Куда писать человеку, если восстановление недоступно. Публичный адрес, не секрет.
+SUPPORT_EMAIL = os.environ.get("SUPPORT_EMAIL", "")
+EMAIL_BACKEND = (
+    "django.core.mail.backends.smtp.EmailBackend"
+    if EMAIL_HOST
+    else "django.core.mail.backends.dummy.EmailBackend"
+)
+
 LIVEKIT = {
     "url": os.environ.get("LIVEKIT_URL", ""),
     "api_key": os.environ.get("LIVEKIT_API_KEY", ""),
