@@ -165,12 +165,34 @@ export function BoardCanvas({ lessonId }: { lessonId: string }) {
     const onVisible = () => {
       if (document.visibilityState === 'visible') void resync('return');
     };
+    /**
+     * 🔴 ГЛАВНЫЙ СИГНАЛ — ВОЗВРАТ СЕТИ, И ЕГО ЗДЕСЬ НЕ БЫЛО (RnD 18.08, промпт 31 §2.1).
+     *
+     * Досинхронизацию я сделал в промпте 28 и проверил её СО СТОРОНЫ СЕРВЕРА: запрос доски
+     * целиком действительно отдаёт всё, что нарисовали без тебя. Чего я не проверил —
+     * дёргает ли клиент этот запрос на настоящем обрыве.
+     *
+     * Двухбраузерный заход показал: НЕ ДЁРГАЕТ. У ученика оборвали сеть, преподаватель
+     * нарисовал три штриха, ученик вернулся — и остался с прежней картиной: 11 фигур против
+     * 24 у преподавателя. Молча. Оба уверены, что смотрят на одну доску.
+     *
+     * Почему прежние сигналы молчат: вкладка не прячется (`visibilitychange` не приходит),
+     * фокус не теряется (`focus` не приходит), а `graphql-ws` переподключается сам и
+     * `onComplete` подписки не зовёт. То есть все три моих крючка мимо ровно того случая,
+     * ради которого писались.
+     *
+     * `online` — событие самого браузера о том, что сеть вернулась. Прямой сигнал вместо
+     * трёх косвенных.
+     */
+    const onBackOnline = () => void resync('reconnect');
     document.addEventListener('visibilitychange', onVisible);
     // Возврат на сцену доски внутри урока — то же самое: пока смотрели тест, доска ушла вперёд.
     window.addEventListener('focus', onVisible);
+    window.addEventListener('online', onBackOnline);
     return () => {
       document.removeEventListener('visibilitychange', onVisible);
       window.removeEventListener('focus', onVisible);
+      window.removeEventListener('online', onBackOnline);
     };
   }, [resync]);
 
