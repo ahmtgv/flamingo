@@ -32,8 +32,26 @@ PROFILE="${NOTARY_PROFILE:-flamingo-notary}"
 # Значение — публичное (это имя сертификата, не секрет), но место ему в настройках машины.
 IDENTITY="${FLAMINGO_SIGN_IDENTITY:-}"
 
+# 🔴 Если на машине ровно ОДИН сертификат Developer ID — берём его сами (наряд 34).
+#
+# Скрипт останавливался с «не задан FLAMINGO_SIGN_IDENTITY» на машине, где нужный сертификат
+# стоит и он единственный. Спрашивать человека о том, что можно узнать за одну команду, —
+# это лишний шаг в цепочке, которую и так проходят перед каждой сдачей.
+#
+# ⚠️ Ослабления здесь нет: берётся только «Developer ID Application» (сертификаты
+# «Apple Development» игнорируются — с ними нотаризацию не пройти), и только когда он ОДИН.
+# Два и больше — выбор за человеком, угадывать чужую команду скрипт не станет.
 if [ -z "$IDENTITY" ]; then
-  echo "✗ Не задан FLAMINGO_SIGN_IDENTITY."
+  FOUND="$(security find-identity -v -p codesigning 2>/dev/null \
+    | sed -n 's/.*"\(Developer ID Application: [^"]*\)".*/\1/p')"
+  if [ "$(printf '%s\n' "$FOUND" | grep -c .)" = "1" ]; then
+    IDENTITY="$FOUND"
+    echo "  сертификат найден на машине (он единственный): $IDENTITY"
+  fi
+fi
+
+if [ -z "$IDENTITY" ]; then
+  echo "✗ Не задан FLAMINGO_SIGN_IDENTITY, и на машине нет ровно одного Developer ID."
   echo
   echo "  Посмотреть, что есть на машине:"
   echo "    security find-identity -v -p codesigning"

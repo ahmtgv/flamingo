@@ -179,6 +179,67 @@ test.describe('§2.1 · урок на двоих по-настоящему', () 
     await pupilCtx.close();
   });
 
+  test('§34 §3.2 · хвосты урока на двоих: свёрнутое окно, фоновая вкладка, закрыл и открыл', async ({ browser }) => {
+    const teacherCtx = await browser.newContext();
+    const pupilCtx = await browser.newContext();
+    const teacher = await teacherCtx.newPage();
+    let pupil = await pupilCtx.newPage();
+
+    const t = await registerTestTeacher();
+    const p = await registerTestPupil();
+    const lesson = await aLiveLesson(t.token, p.token);
+    await signIn(teacher, DEV, t.email, 'T3stPass!2026');
+    await signIn(pupil, DEV, p.email, p.password);
+    await openBoard(teacher, DEV, lesson.sessionId);
+    await openBoard(pupil, DEV, lesson.sessionId);
+    await bothAtTheBoard(teacher, pupil);
+
+    await drawStroke(teacher, { x: 120, y: 100 });
+    await pupil.waitForTimeout(1200);
+    const base = await strokeCount(pupil);
+    console.log(`[34 §3.2] исходно у ученика: ${base}`);
+
+    // ── ВКЛАДКА УШЛА В ФОН ────────────────────────────────────────────────────────
+    // Не «свернул окно» (этого браузером не сделать), а ровно то, что при этом
+    // происходит со страницей: она становится скрытой и её таймеры придушены.
+    await pupil.evaluate(() => {
+      Object.defineProperty(document, 'visibilityState', { value: 'hidden', configurable: true });
+      Object.defineProperty(document, 'hidden', { value: true, configurable: true });
+      document.dispatchEvent(new Event('visibilitychange'));
+    });
+    for (const y of [160, 200]) await drawStroke(teacher, { x: 160, y });
+    await pupil.waitForTimeout(1500);
+    const whileHidden = await strokeCount(pupil);
+    console.log(`[34 §3.2] пока вкладка в фоне: у ученика ${whileHidden} (у преподавателя ${await strokeCount(teacher)})`);
+
+    // ── ВЕРНУЛСЯ НА ВКЛАДКУ ───────────────────────────────────────────────────────
+    await pupil.evaluate(() => {
+      Object.defineProperty(document, 'visibilityState', { value: 'visible', configurable: true });
+      Object.defineProperty(document, 'hidden', { value: false, configurable: true });
+      document.dispatchEvent(new Event('visibilitychange'));
+    });
+    await expect
+      .poll(() => strokeCount(pupil), { timeout: 20_000, message: 'вернувшись на вкладку, ученик не досинхронизировался' })
+      .toBe(await strokeCount(teacher));
+    console.log(`[34 §3.2] вернулся на вкладку: сошлись на ${await strokeCount(pupil)}`);
+
+    // ── ЗАКРЫЛ ВКЛАДКУ И ОТКРЫЛ ЗАНОВО ────────────────────────────────────────────
+    const teacherHad = await strokeCount(teacher);
+    await pupil.close();
+    for (const y of [240, 280]) await drawStroke(teacher, { x: 200, y });
+    pupil = await pupilCtx.newPage();
+    await openBoard(pupil, DEV, lesson.sessionId);
+    await expect
+      .poll(() => strokeCount(pupil), { timeout: 20_000, message: 'открыв вкладку заново, ученик увидел не всё' })
+      .toBe(await strokeCount(teacher));
+    console.log(
+      `[34 §3.2] закрыл и открыл заново: у ученика ${await strokeCount(pupil)} (было ${teacherHad}, преподаватель дорисовал до ${await strokeCount(teacher)})`,
+    );
+
+    await teacherCtx.close();
+    await pupilCtx.close();
+  });
+
   test('обрыв у ПРЕПОДАВАТЕЛЯ: он ведёт урок, и это самое дорогое', async ({ browser }) => {
     const teacherCtx = await browser.newContext();
     const pupilCtx = await browser.newContext();

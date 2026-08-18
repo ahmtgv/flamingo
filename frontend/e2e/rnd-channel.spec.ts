@@ -59,6 +59,80 @@ test.describe('§2.2 · слабый канал', () => {
   test.skip(!process.env.FLAMINGO_RND, 'наблюдательный заход: FLAMINGO_RND=1 + dev-сервер');
   test.setTimeout(600_000);
 
+  test('§34 §3.4 · говорит ли продукт о слабом канале — по ступеням', async () => {
+    /**
+     * 🔴 ВТОРАЯ ПОЛОВИНА ВОРОТ §2.2, КОТОРОЙ НЕ БЫЛО.
+     *
+     * Замер 18.08: продукт открывается даже на 128 Кбит, за 29 секунд, и **на всех четырёх
+     * ступенях экран говорит одно и то же** — ни слова о канале. Человек на плохом 3G десять
+     * секунд смотрит в пустоту и решает, что сломалось.
+     *
+     * Теперь у продукта есть общий механизм (`shared/lib/connection`). Здесь проверяется не
+     * скорость, а РЕЧЬ: на каждой ступени печатается, сколько запросов продукт успел задать,
+     * самый долгий из них и сказал ли он что-нибудь про связь.
+     *
+     * 🔴 ЧТО ЭТОТ ЗАМЕР ПОКАЗАЛ (18.08): продукт молчит на всех четырёх ступенях — и это
+     * ПРАВИЛЬНО. Самый долгий запрос на 128 Кбит — 1885 мс, остальные четырнадцать быстрее;
+     * тонкий канал по маленьким запросам почти не виден. Больно от него загрузке страницы и
+     * видео. Механизм ловит ПОТЕРЮ связи (это проверено отдельно, `rnd.spec.ts` §34 §2.1) и
+     * медленный сервер; тонкий канал во время урока меряет замер канала машины (лист D1).
+     *
+     * ⚠️ Числа времени здесь — про СТЕНД (dev-сервер отдаёт сотни отдельных модулей), и это
+     * уже стоило одного ложного вывода. Про продукт здесь только строка о связи: она
+     * рождается из задержек настоящих запросов, а их ограничивает CDP по-настоящему.
+     */
+    const browser = await chromium.launch();
+    const t = await registerTestTeacher();
+
+    for (const step of STEPS) {
+      const ctx = await browser.newContext();
+      const page = await ctx.newPage();
+      const cdp = await ctx.newCDPSession(page);
+      await cdp.send('Network.enable');
+
+      // Входим на ХОРОШЕМ канале, чтобы мерить речь о связи, а не вход.
+      await signIn(page, t.email, 'T3stPass!2026');
+      // 🔴 СЧЁТЧИК ПРИБОРА. Механизм судит о канале по запросам продукта; если их ноль,
+      // «продукт молчит» — вывод про мой замер. Два предыдущих варианта на этом и погорели.
+      let asked = 0;
+      let slowest = 0;
+      page.on('requestfinished', (r) => {
+        if (!r.url().includes('/graphql')) return;
+        asked += 1;
+        const ms = r.timing().responseEnd - r.timing().requestStart;
+        if (ms > slowest) slowest = Math.round(ms);
+      });
+      await throttle(cdp, step);
+      /**
+       * ⚠️ ДВА ПРЕДЫДУЩИХ ВАРИАНТА ЗАМЕРА НИЧЕГО НЕ МЕРИЛИ, И ОБА ВЫГЛЯДЕЛИ УБЕДИТЕЛЬНО.
+       *
+       * Первый звал `page.goto` — наблюдения о канале обнулялись вместе со страницей: они
+       * живут в памяти вкладки. Второй слал `fetch` руками — а механизм видит запросы через
+       * ссылку Apollo, и до него мои запросы не доходили вовсе.
+       *
+       * Ходим по продукту так, как ходит человек: переходами внутри приложения, которые
+       * поднимают настоящие запросы Apollo.
+       */
+      for (let i = 0; i < 4; i += 1) {
+        await page.getByRole('button', { name: /Источники/ }).first().click().catch(() => undefined);
+        await page.waitForTimeout(1200);
+        await page.goBack().catch(() => undefined);
+        await page.waitForTimeout(1200);
+      }
+      await page.waitForTimeout(2500);
+
+      const said = (await page.locator('[role=status], [role=alert]').allInnerTexts())
+        .join(' | ')
+        .replace(/\s+/g, ' ');
+      const aboutChannel = /связ/i.test(said);
+      console.log(
+        `[34 §3.4 ${step.name}] запросов продукта под ограничением: ${asked}, самый долгий ${slowest}мс · про связь сказано: ${aboutChannel ? 'ДА' : 'нет'}`,
+      );
+      await ctx.close();
+    }
+    await browser.close();
+  });
+
   test('где проходит граница пригодности урока', async () => {
     const browser = await chromium.launch();
     const t = await registerTestTeacher();
