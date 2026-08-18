@@ -149,7 +149,21 @@ codesign --verify --deep --strict --verbose=2 "$APP" 2>&1 | tail -2
 
 echo
 echo "── Нотаризация ──────────────────────────────"
-if ! xcrun notarytool history --keychain-profile "$PROFILE" >/dev/null 2>&1; then
+# 🔴 «Профиль не найден» и «не смог спросить Apple» — РАЗНЫЕ новости (наряд 34).
+# Здесь стояла одна проверка на оба случая, и при отвалившейся сети скрипт советовал бы
+# заводить профиль, который на месте. Смотрим, что именно ответил notarytool.
+NOTARY_CHECK="$(xcrun notarytool history --keychain-profile "$PROFILE" 2>&1 >/dev/null || true)"
+if [ -n "$NOTARY_CHECK" ] && ! printf '%s' "$NOTARY_CHECK" | grep -qi "no keychain password item"; then
+  echo
+  echo "  ⚠️ Нотаризация пропущена: не удалось спросить службу Apple."
+  echo "     Профиль «$PROFILE» при этом на месте — дело не в нём."
+  echo "     Ответ: $(printf '%s' "$NOTARY_CHECK" | head -1)"
+  echo
+  echo "  Приложение подписано. Повторите позже: bash desktop/sign-and-notarize.sh"
+  exit 0
+fi
+
+if [ -n "$NOTARY_CHECK" ]; then
   echo "  ⚠️ Профиль «$PROFILE» в связке не найден — нотаризация пропущена."
   echo "     Создать (владелец, один раз, у себя):"
   echo "       xcrun notarytool store-credentials \"$PROFILE\" \\"
