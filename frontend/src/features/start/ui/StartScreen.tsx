@@ -5,6 +5,7 @@ import { Navigate, useNavigate } from 'react-router-dom';
 
 import { useAppDispatch, useAppSelector } from '@/app/hooks';
 import { VerificationBanner } from '@/features/cabinet/ui/VerificationBanner';
+import { isDesktop } from '@/features/desktop/bridge';
 import { ChatDock, useChatUnread } from '@/features/chat';
 import { toggleTheme } from '@/app/uiSlice';
 import { useLogout } from '@/app/useLogout';
@@ -82,14 +83,24 @@ export function StartScreen() {
   return (
     <div className={styles.shell}>
       <header className={styles.topbar}>
-        <button
-          type="button"
-          className={styles.logoBtn}
-          onClick={() => navigate('/start')}
-          aria-label="Flamingo"
-        >
-          <Logo />
-        </button>
+        {/* 🔴 ВТОРАЯ ПОЛОСА С ЛОГОТИПОМ ВНУТРИ ПРИЛОЖЕНИЯ (RnD 18.08, §2.4 — впервые увидено
+            глазами). Строку заголовка рамы я починил в промпте 26 и спрятал дублирующую шапку
+            в КОМНАТЕ. Стартовая осталась со своей: на снимке окна под строкой рамы стоит
+            вторая полоса с тем же знаком бренда. Лист D1 показывает содержимое сразу под
+            полосой состояния, без своей шапки.
+
+            Убираем ЗНАК, а не всю полосу: в ней живёт настоящая навигация — чат, источники,
+            тема, выход, учётная запись. Их прятать нельзя, а бренд рама уже несёт. */}
+        {!isDesktop() && (
+          <button
+            type="button"
+            className={styles.logoBtn}
+            onClick={() => navigate('/start')}
+            aria-label="Flamingo"
+          >
+            <Logo />
+          </button>
+        )}
         <div className={styles.navSpace}>
           <button
             type="button"

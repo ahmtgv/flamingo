@@ -118,7 +118,6 @@ test.describe('§2.1 · урок на двоих по-настоящему', () 
         `[rnd 2.1 живая подписка] +${ms}мс: у преподавателя ${await strokeCount(teacher)}, у ученика ${await strokeCount(pupil)}`,
       );
     }
-    const pupilBefore = await strokeCount(pupil);
 
     // ⚠️ СНАЧАЛА ПРОВЕРЯЕМ ПРИБОР: доходит ли до страницы сигнал о пропаже сети. Если
     // `setOffline` не дёргает `online`/`offline` и не двигает `navigator.onLine`, то любой
