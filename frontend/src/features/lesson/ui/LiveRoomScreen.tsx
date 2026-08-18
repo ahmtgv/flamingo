@@ -8,6 +8,7 @@ import {
   useAttentionUpdatesSubscription,
   useMeQuery,
   useReportAttentionMutation,
+  useJoinSessionMutation,
   useSessionAttendeesQuery,
   useEndSessionMutation,
   useSessionRoomQuery,
@@ -577,7 +578,27 @@ function TeacherRoom({
   // Teacher-only roster → studentId (= user.id, same id attentionUpdates emits and the
   // LiveKit participant identity) → display name. The `attendance` read is owner-scoped
   // server-side (returns [] to non-owners), so this carries names only for the owning teacher.
-  const { data: attendeesData } = useSessionAttendeesQuery({ variables: { id: sessionId } });
+  const { data: attendeesData, refetch: refetchAttendees } = useSessionAttendeesQuery({
+    variables: { id: sessionId },
+  });
+
+  /**
+   * 🔴 СПИСОК СПРАШИВАЛСЯ ОДИН РАЗ — ДО ТОГО, КАК КТО-ЛИБО ПРИШЁЛ (наряд 35 §1).
+   *
+   * Замер видео 18.08: двое видят и слышат друг друга, но у преподавателя ученик подписан
+   * `8cbb7f0d · нет данных` — шестнадцатеричным огрызком вместо «Аня К». Имена берутся из
+   * списка присутствующих, а список читался при открытии комнаты: преподаватель заходит
+   * первым, и в этот момент в списке пусто. Ученик приходит — список не перечитывается.
+   *
+   * Триггер точный: изменился состав комнаты — значит кто-то пришёл или ушёл, и список имён
+   * устарел. Не таймер: опрос раз в N секунд означал бы, что до N секунд урока преподаватель
+   * смотрит на цифры вместо детей.
+   */
+  const roomSize = lk.participants.length;
+  useEffect(() => {
+    void refetchAttendees().catch(() => undefined);
+  }, [roomSize, refetchAttendees]);
+
   const nameFor = useMemo(() => {
     const byId = new Map<string, string>();
     for (const a of attendeesData?.session?.attendance ?? []) {
@@ -851,7 +872,42 @@ function LiveRoomRealScreen() {
     lessonTitle: session?.lesson?.title ?? null,
     startAt: session?.startAt ?? null,
   };
-  return meData?.me?.role === 'TEACHER' ? <TeacherRoom {...props} /> : <StudentRoom {...props} />;
+  return meData?.me?.role === 'TEACHER' ? (
+    <TeacherRoom {...props} />
+  ) : (
+    <>
+      <MarkPresent sessionId={sessionId} isLive={props.isLive} />
+      <StudentRoom {...props} />
+    </>
+  );
+}
+
+/**
+ * 🔴 КОМНАТА — ПОСЛЕДНЯЯ ДВЕРЬ, И ОТМЕТКИ НА НЕЙ НЕ БЫЛО (наряд 35 §1, замер видео 18.08).
+ *
+ * Промпт 27 научил отмечаться расписание и точку встречи. Но ученик попадает в комнату и
+ * ПРЯМОЙ ссылкой: прислали адрес, перезагрузил вкладку, открыл вторую, вернулся после обрыва.
+ * Тогда `joinSession` не звался никем, и человек оказывался на уроке, не будучи отмеченным.
+ *
+ * Замер видео это и показал: двое видят друг друга, но у преподавателя ученик подписан
+ * **шестнадцатеричным огрызком** `72019060 · нет данных` вместо «Аня К» — имена преподаватель
+ * берёт из списка присутствующих, а ученика в нём не было. В дневник при этом уехало бы
+ * «отсутствовал» про урок, на котором ребёнок был.
+ *
+ * Отметка идемпотентна на сервере (`update_or_create`), поэтому звать её на входе в комнату
+ * безопасно и правильно: кто дошёл до комнаты — тот на уроке, каким бы путём ни дошёл.
+ */
+function MarkPresent({ sessionId, isLive }: { sessionId: string; isLive: boolean }) {
+  const [joinSession] = useJoinSessionMutation();
+  const marked = useRef(false);
+  useEffect(() => {
+    if (!isLive || marked.current) return;
+    marked.current = true;
+    // Отказ не должен мешать уроку: не пустили отметиться — идём в комнату всё равно,
+    // ровно как на экране прибытия (промпт 27).
+    void joinSession({ variables: { sessionId } }).catch(() => undefined);
+  }, [isLive, joinSession, sessionId]);
+  return null;
 }
 
 /** TEMPORARY: preview (VITE_PREVIEW=1) swaps the real LiveKit/CMF room for a camera-free,
