@@ -1,0 +1,451 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>АТЛАС L0 — первая страница сайта: три направления</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f1f1ef;--surface:#fff;--subtle:#e9e9e6;--border:#d9d9d6;--border-s:#c4c4c1;
+  --ink:#1d1d1f;--sec:#6e6e73;--ter:#98989e;
+  --coral:#e14e1f;--coral-t:#c23f14;--coral-soft:#fdeee7;--coral-100:#f9d5c6;
+  --good:#3fa46a;--good-soft:#e9f5ee;--warn:#c9a227;--warn-soft:#fdf6da;
+  --dark-bg:#101012;--dark-surface:#1a1a1c;--dark-ink:#f2f2f0;
+  --ui:-apple-system,'SF Pro Display',Inter,system-ui,sans-serif;
+  --mono:'JetBrains Mono','SF Mono',ui-monospace,monospace;
+  --ease:cubic-bezier(.2,0,0,1);
+  --r-card:14px;--r-ctl:10px;--r-pill:999px;
+}
+[data-theme="dark"]{
+  --bg:#101012;--surface:#1a1a1c;--subtle:#242426;--border:#2e2e31;--border-s:#3f3f43;
+  --ink:#f2f2f0;--sec:#98989e;--ter:#6e6e73;--coral:#ff7040;--coral-t:#ff8a5f;
+  --coral-soft:#33201a;--coral-100:#4a2a1c;--good:#4cb87c;--good-soft:#16281e;
+  --warn:#d9b53c;--warn-soft:#332b12;
+}
+*{box-sizing:border-box;margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--ui);font-size:17px;line-height:1.6;
+  padding:18px 18px 90px;transition:background .32s var(--ease),color .32s var(--ease)}
+h1{font-size:1.25rem;font-weight:600;letter-spacing:-.015em}
+.sub{color:var(--sec);font-size:.875rem;margin:4px 0 14px;max-width:112ch}
+
+/* ── панель ─────────────────────────────────────────── */
+.bar{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:14px;position:sticky;top:6px;
+  z-index:40;background:var(--bg);padding:8px 0}
+.bar .grp{font:500 10px var(--mono);color:var(--ter);letter-spacing:.1em;text-transform:uppercase;margin:0 2px 0 10px}
+.bar .grp:first-child{margin-left:0}
+.bar button{font:500 12px var(--mono);color:var(--sec);background:var(--bg);border:1px solid var(--border);
+  border-radius:var(--r-pill);padding:7px 13px;cursor:pointer;transition:all .18s var(--ease)}
+.bar button[aria-pressed="true"]{color:var(--ink);border-color:var(--border-s);background:var(--surface)}
+.bar button:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(225,78,31,.4)}
+
+/* ── рама браузера ──────────────────────────────────── */
+.frame{background:var(--surface);border:1px solid var(--border-s);border-radius:12px;overflow:hidden;
+  box-shadow:0 18px 50px rgba(0,0,0,.13)}
+[data-theme="dark"] .frame{box-shadow:0 18px 50px rgba(0,0,0,.55)}
+.chrome{background:var(--subtle);border-bottom:1px solid var(--border);display:flex;align-items:center;
+  gap:10px;padding:9px 14px}
+.traffic{display:flex;gap:8px;flex:none}
+.traffic i{width:12px;height:12px;border-radius:50%;display:block}
+.traffic i:nth-child(1){background:#ff5f57}.traffic i:nth-child(2){background:#febc2e}
+.traffic i:nth-child(3){background:#28c840}
+.url{flex:1;display:flex;align-items:center;gap:9px;background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--r-pill);padding:7px 15px;font:400 12px var(--mono);color:var(--sec)}
+.url b{color:var(--ink);font-weight:500}.url .lock{color:var(--good);font-size:10px}
+
+/* ── общая шапка сайта ──────────────────────────────── */
+.site{display:none}
+body[data-v="a"] #v-a,body[data-v="b"] #v-b,body[data-v="c"] #v-c{display:block}
+.top{display:flex;align-items:center;gap:26px;padding:16px 40px;border-bottom:1px solid var(--border);
+  background:var(--surface);position:relative;z-index:5}
+.brand{display:flex;align-items:center;gap:9px;font:600 16px var(--ui);letter-spacing:-.01em}
+.mk{width:1.7em;height:1.5em;flex:none;overflow:visible;vertical-align:-.32em}
+.nav{display:flex;gap:22px;font-size:14px;color:var(--sec)}
+.nav a{color:inherit;text-decoration:none;cursor:pointer}
+.nav a:hover{color:var(--ink)}
+.top .right{margin-inline-start:auto;display:flex;align-items:center;gap:10px}
+.btn{font:500 14px var(--ui);border-radius:var(--r-ctl);padding:9px 18px;cursor:pointer;border:1px solid transparent;
+  white-space:nowrap;transition:all .18s var(--ease)}
+.btn.ghost{color:var(--sec);background:none;border-color:transparent}
+.btn.ghost:hover{color:var(--ink);background:var(--subtle)}
+.btn.line{color:var(--ink);background:none;border-color:var(--border-s)}
+.btn.line:hover{background:var(--subtle)}
+.btn.fill{background:var(--coral-t);color:#fff}
+.btn.fill:hover{filter:brightness(1.08)}
+.btn.big{font-size:16px;padding:13px 26px}
+
+/* ── общее для тела ─────────────────────────────────── */
+.wrap{max-width:1120px;margin:0 auto;padding:0 40px}
+.kick{font:500 12px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--coral-t)}
+.h2{font-size:1.75rem;font-weight:600;letter-spacing:-.02em;margin:8px 0 10px}
+.lead{color:var(--sec);font-size:1.0625rem;max-width:62ch}
+.sect{padding:72px 0;border-top:1px solid var(--border)}
+.cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-top:28px}
+@media(max-width:900px){.cards{grid-template-columns:minmax(0,1fr)}}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-card);padding:22px 24px}
+.card h4{font-size:1.0625rem;font-weight:600;margin-bottom:6px;letter-spacing:-.01em}
+.card p{color:var(--sec);font-size:.9375rem}
+.card .ic{width:36px;height:36px;border-radius:10px;background:var(--coral-soft);display:grid;place-content:center;
+  margin-bottom:14px;color:var(--coral-t)}
+.foot{padding:56px 0 64px;border-top:1px solid var(--border);text-align:center}
+.foot .h2{margin-bottom:14px}
+.legal{font:400 12px var(--mono);color:var(--ter);margin-top:26px}
+
+/* ── А · сдержанный редакционный ────────────────────── */
+.heroA{padding:88px 0 78px;background:var(--surface)}
+.heroA h2{font-size:3.4rem;line-height:1.06;font-weight:600;letter-spacing:-.035em;max-width:17ch}
+.heroA .lead{margin-top:22px;font-size:1.1875rem;max-width:52ch}
+.heroA .row{display:flex;gap:12px;margin-top:32px;flex-wrap:wrap}
+.heroA .grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,420px);gap:56px;align-items:center}
+@media(max-width:980px){.heroA .grid{grid-template-columns:minmax(0,1fr)}.heroA h2{font-size:2.5rem}}
+.panelA{background:var(--bg);border:1px solid var(--border);border-radius:18px;padding:20px;overflow:hidden}
+.panelA .ttl{font:500 10px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--ter);margin-bottom:12px}
+.panelA .note{font-size:.8125rem;color:var(--sec);margin-top:12px;display:flex;gap:8px;align-items:flex-start}
+.dotg{width:7px;height:7px;border-radius:50%;background:var(--good);flex:none;margin-top:7px}
+.stats{display:flex;gap:44px;margin-top:52px;flex-wrap:wrap}
+.stat b{display:block;font-size:1.875rem;font-weight:600;letter-spacing:-.02em}
+.stat span{color:var(--sec);font-size:.875rem}
+
+/* ── Б · тёмная сцена урока ─────────────────────────── */
+.heroB{background:var(--dark-bg);color:var(--dark-ink);padding:76px 0 0;position:relative;overflow:hidden}
+.heroB::after{content:"";position:absolute;inset:auto 0 0;height:190px;
+  background:linear-gradient(to bottom,transparent,var(--bg))}
+.heroB .glow{position:absolute;width:760px;height:760px;border-radius:50%;top:-380px;left:50%;
+  transform:translateX(-50%);background:radial-gradient(circle,rgba(255,112,64,.22),transparent 62%);pointer-events:none}
+.heroB h2{font-size:3.5rem;line-height:1.05;font-weight:600;letter-spacing:-.035em;text-align:center;
+  max-width:20ch;margin:0 auto;position:relative}
+.heroB .lead{color:#a5a5ad;text-align:center;margin:20px auto 0;max-width:56ch;position:relative}
+.heroB .row{display:flex;gap:12px;justify-content:center;margin-top:30px;position:relative}
+.room{margin:52px auto 0;max-width:940px;background:var(--dark-surface);border:1px solid #2e2e31;
+  border-radius:16px 16px 0 0;padding:14px;position:relative;box-shadow:0 -20px 60px rgba(0,0,0,.5)}
+.roomTop{display:flex;align-items:center;gap:10px;margin-bottom:12px;font:400 11px var(--mono);color:#98989e}
+.live{display:inline-flex;align-items:center;gap:6px;color:#ff7040}
+.live i{width:7px;height:7px;border-radius:50%;background:#ff7040;display:block}
+.roomGrid{display:grid;grid-template-columns:minmax(0,1fr) 190px;gap:12px}
+@media(max-width:820px){.roomGrid{grid-template-columns:minmax(0,1fr)}}
+.boardBox{background:#131315;border:1px solid #2e2e31;border-radius:11px;overflow:hidden}
+.tiles{display:grid;gap:10px;align-content:start}
+.tile{background:#131315;border:1px solid #2e2e31;border-radius:10px;height:82px;display:grid;place-content:center;
+  font:400 10px var(--mono);color:#6e6e73;position:relative}
+.tile b{position:absolute;left:8px;bottom:6px;font:500 10px var(--mono);color:#c9c9cf}
+.tile.att{height:auto;padding:10px;place-content:stretch}
+
+/* ── В · витрина предметов ──────────────────────────── */
+.heroC{padding:64px 0 44px;background:var(--surface);text-align:center}
+.heroC h2{font-size:2.9rem;line-height:1.08;font-weight:600;letter-spacing:-.03em;max-width:20ch;margin:0 auto}
+.heroC .lead{margin:18px auto 0;text-align:center}
+.search{max-width:640px;margin:30px auto 0;display:flex;gap:10px}
+.search input{flex:1;font:400 16px var(--ui);padding:15px 20px;border-radius:var(--r-ctl);
+  border:1px solid var(--border-s);background:var(--bg);color:var(--ink)}
+.search input::placeholder{color:var(--ter)}
+.chips{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:18px}
+.chip{font:500 13px var(--ui);padding:8px 16px;border-radius:var(--r-pill);border:1px solid var(--border);
+  background:var(--surface);color:var(--sec);cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.subjects{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-top:36px}
+@media(max-width:980px){.subjects{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.subj{border-radius:var(--r-card);padding:20px;min-height:132px;display:grid;align-content:space-between;
+  cursor:pointer;border:1px solid transparent;transition:transform .18s var(--ease)}
+.subj:hover{transform:translateY(-3px)}
+.subj .n{font-size:1.0625rem;font-weight:600;letter-spacing:-.01em}
+.subj .c{font:400 12px var(--mono);opacity:.72}
+.s1{background:#fdeee7;color:#7d2c10}.s2{background:#e7f0fd;color:#12386f}
+.s3{background:#e9f5ee;color:#1c5637}.s4{background:#fdf6da;color:#6b5810}
+.s5{background:#f0e9fb;color:#3f2470}.s6{background:#fde9f2;color:#75124a}
+.s7{background:#e6f5f7;color:#0e4d57}.s8{background:#eeeeea;color:#3a3a3c}
+[data-theme="dark"] .s1{background:#33201a;color:#ffb494}
+[data-theme="dark"] .s2{background:#16233a;color:#9dc2f5}
+[data-theme="dark"] .s3{background:#16281e;color:#8fd9ae}
+[data-theme="dark"] .s4{background:#332b12;color:#e2c74a}
+[data-theme="dark"] .s5{background:#241a38;color:#c3a9f0}
+[data-theme="dark"] .s6{background:#331624;color:#f2a3c8}
+[data-theme="dark"] .s7{background:#12292d;color:#8fd0da}
+[data-theme="dark"] .s8{background:#242426;color:#c9c9cf}
+
+/* заметки автора — разговор с владельцем, не интерфейс */
+.talk{margin-top:20px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px 22px}
+.talk h3{font:500 11px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--coral-t);margin-bottom:10px}
+.talk ul{margin:0;padding-inline-start:20px;color:var(--sec);font-size:.9375rem}
+.talk li{margin-bottom:6px}
+.talk b{color:var(--ink);font-weight:600}
+</style>
+</head>
+<body data-theme="light" data-v="a">
+
+<h1>АТЛАС L0 — первая страница сайта</h1>
+<p class="sub">Три направления. Сегодня лендинга нет вовсе: корень сайта сразу отправляет гостя на форму входа —
+то есть для постороннего человека flamingo.plus выглядит как окно логина. Вход и регистрация вынесены в верхнюю
+строку во всех трёх, как решил владелец. <b>Это эскизы для выбора, а не контракт</b> — контрактом станет тот,
+который выберешь.</p>
+
+<div class="bar">
+  <span class="grp">направление</span>
+  <button onclick="setV('a')" aria-pressed="true">А · сдержанный</button>
+  <button onclick="setV('b')" aria-pressed="false">Б · сцена урока</button>
+  <button onclick="setV('c')" aria-pressed="false">В · витрина</button>
+  <span class="grp">тема</span>
+  <button onclick="setT('light')" aria-pressed="true">светлая</button>
+  <button onclick="setT('dark')" aria-pressed="false">тёмная</button>
+</div>
+
+<div class="frame">
+  <div class="chrome">
+    <div class="traffic"><i></i><i></i><i></i></div>
+    <div class="url"><span class="lock">🔒</span> <b>flamingo.plus</b></div>
+  </div>
+
+  <!-- ══════════════ А · СДЕРЖАННЫЙ РЕДАКЦИОННЫЙ ══════════════ -->
+  <div class="site" id="v-a">
+    <div class="top">
+      <span class="brand">
+        <svg class="mk" viewBox="0 0 40 34" fill="none"><path d="M7 30c4-1 7-3 9-6 2-3 2-7 1-10-1-4 1-8 5-9 4-1 8 1 9 5" stroke="var(--coral)" stroke-width="2.6" stroke-linecap="round"/><path d="M31 10c1.6 0 2.6-1 2.6-2.4S32.6 5 31 5" stroke="var(--coral)" stroke-width="2.6" stroke-linecap="round"/><circle cx="30.5" cy="8" r="1.1" fill="var(--ink)"/><path d="M7 30h11M4 27l4 3-4 3" stroke="var(--coral)" stroke-width="2.2" stroke-linecap="round"/></svg>
+        flamingo
+      </span>
+      <nav class="nav"><a>Как это работает</a><a>Предметы</a><a>Преподавателям</a><a>Школам</a><a>Цены</a></nav>
+      <span class="right">
+        <button class="btn ghost">Войти</button>
+        <button class="btn fill">Начать бесплатно</button>
+      </span>
+    </div>
+
+    <section class="heroA"><div class="wrap"><div class="grid">
+      <div>
+        <span class="kick">онлайн-школа</span>
+        <h2>Урок, на котором видно каждого</h2>
+        <p class="lead">Живые занятия, доска, домашние работы и разбор — в одном месте.
+          А ещё преподаватель видит, кто в классе потерял нить, и успевает вернуть его в урок.</p>
+        <div class="row">
+          <button class="btn fill big">Попробовать урок</button>
+          <button class="btn line big">Я преподаватель</button>
+        </div>
+        <div class="stats">
+          <span class="stat"><b>1–11</b><span>классы и взрослые</span></span>
+          <span class="stat"><b>45 мин</b><span>живой урок с доской</span></span>
+          <span class="stat"><b>0</b><span>кадров уходит с устройства</span></span>
+        </div>
+      </div>
+
+      <div class="panelA">
+        <div class="ttl">внимание класса · сейчас</div>
+        <svg viewBox="0 0 380 150" style="width:100%;height:auto">
+          <defs><linearGradient id="gA" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="var(--coral)" stop-opacity=".28"/>
+            <stop offset="1" stop-color="var(--coral)" stop-opacity="0"/></linearGradient></defs>
+          <g stroke="var(--border)" stroke-width="1">
+            <line x1="0" y1="30" x2="380" y2="30"/><line x1="0" y1="70" x2="380" y2="70"/>
+            <line x1="0" y1="110" x2="380" y2="110"/></g>
+          <path d="M0 96 C30 88 46 62 72 58 C104 53 118 84 148 80 C178 76 190 40 220 36 C250 32 262 66 292 70 C322 74 344 44 380 38 L380 150 L0 150 Z" fill="url(#gA)"/>
+          <path d="M0 96 C30 88 46 62 72 58 C104 53 118 84 148 80 C178 76 190 40 220 36 C250 32 262 66 292 70 C322 74 344 44 380 38"
+                stroke="var(--coral)" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+          <circle cx="148" cy="80" r="4.5" fill="var(--bg)" stroke="var(--coral)" stroke-width="2.4"/>
+          <text x="152" y="102" font-family="var(--mono)" font-size="10" fill="var(--sec)">класс отвлёкся</text>
+        </svg>
+        <p class="note"><i class="dotg"></i><span><b>Камера не покидает компьютер.</b>
+          Считает браузер, на сервер уходит одно число — насколько класс включён.</span></p>
+      </div>
+    </div></div></section>
+
+    <section class="sect"><div class="wrap">
+      <span class="kick">что внутри</span>
+      <h2 class="h2">Всё, из чего состоит урок</h2>
+      <p class="lead">Ничего не надо докупать и склеивать: доска, видео, задания и разбор живут в одном окне.</p>
+      <div class="cards">
+        <div class="card"><div class="ic">✍︎</div><h4>Бесконечная доска</h4>
+          <p>Пишете от руки, кидаете картинку, показываете на планшете. После урока доска остаётся у ученика.</p></div>
+        <div class="card"><div class="ic">◷</div><h4>Разбор урока</h4>
+          <p>Конспект собирается сам, вместе с перепиской класса. Записи урока мы не храним — ни видео, ни звука.</p></div>
+        <div class="card"><div class="ic">↗</div><h4>Учёба остаётся ученику</h4>
+          <p>Дневник, работы и доски принадлежат ребёнку навсегда и открываются с любого устройства.</p></div>
+      </div>
+    </div></section>
+
+    <div class="foot"><div class="wrap">
+      <h2 class="h2">Первый урок — сегодня</h2>
+      <p class="lead" style="margin:0 auto 24px">Регистрация занимает минуту. Ничего не надо устанавливать, чтобы попробовать.</p>
+      <button class="btn fill big">Начать бесплатно</button>
+      <p class="legal">данные хранятся в России · 152-ФЗ · камера не покидает устройство</p>
+    </div></div>
+  </div>
+
+  <!-- ══════════════ Б · СЦЕНА УРОКА ══════════════ -->
+  <div class="site" id="v-b">
+    <div class="top" style="background:var(--dark-bg);border-color:#2e2e31;color:var(--dark-ink)">
+      <span class="brand" style="color:var(--dark-ink)">
+        <svg class="mk" viewBox="0 0 40 34" fill="none"><path d="M7 30c4-1 7-3 9-6 2-3 2-7 1-10-1-4 1-8 5-9 4-1 8 1 9 5" stroke="#ff7040" stroke-width="2.6" stroke-linecap="round"/><path d="M31 10c1.6 0 2.6-1 2.6-2.4S32.6 5 31 5" stroke="#ff7040" stroke-width="2.6" stroke-linecap="round"/><circle cx="30.5" cy="8" r="1.1" fill="#f2f2f0"/><path d="M7 30h11M4 27l4 3-4 3" stroke="#ff7040" stroke-width="2.2" stroke-linecap="round"/></svg>
+        flamingo
+      </span>
+      <nav class="nav" style="color:#98989e"><a>Урок</a><a>Предметы</a><a>Преподавателям</a><a>Школам</a></nav>
+      <span class="right">
+        <button class="btn ghost" style="color:#c9c9cf">Войти</button>
+        <button class="btn fill">Начать бесплатно</button>
+      </span>
+    </div>
+
+    <section class="heroB">
+      <div class="glow"></div>
+      <div class="wrap">
+        <h2>Посмотрите, как выглядит урок</h2>
+        <p class="lead">Доска, живой класс и внимание каждого — на одном экране. Открывается в браузере,
+          ставить ничего не нужно.</p>
+        <div class="row">
+          <button class="btn fill big">Зайти в демо-урок</button>
+          <button class="btn line big" style="color:#f2f2f0;border-color:#3f3f43">Как это работает</button>
+        </div>
+
+        <div class="room">
+          <div class="roomTop"><span class="live"><i></i>идёт урок</span> · Астрономия · 7 «Б» · 18 из 20 в классе</div>
+          <div class="roomGrid">
+            <div class="boardBox">
+              <svg viewBox="0 0 560 268" style="width:100%;height:auto;display:block">
+                <rect width="560" height="268" fill="#131315"/>
+                <g stroke="#2a2a2e" stroke-width="1">
+                  <path d="M0 44h560M0 88h560M0 132h560M0 176h560M0 220h560"/>
+                  <path d="M56 0v268M112 0v268M168 0v268M224 0v268M280 0v268M336 0v268M392 0v268M448 0v268M504 0v268"/>
+                </g>
+                <circle cx="150" cy="132" r="30" fill="none" stroke="#ff7040" stroke-width="2.6"/>
+                <circle cx="150" cy="132" r="9" fill="#ff7040" opacity=".55"/>
+                <ellipse cx="150" cy="132" rx="74" ry="26" fill="none" stroke="#8fd0da" stroke-width="2" transform="rotate(-16 150 132)"/>
+                <circle cx="221" cy="112" r="6" fill="#8fd0da"/>
+                <path d="M270 96h190M270 122h150M270 148h172" stroke="#4a4a50" stroke-width="3" stroke-linecap="round"/>
+                <path d="M282 190c18-16 38-16 54 0s36 16 54 0" stroke="#e2c74a" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+                <text x="270" y="72" font-family="var(--mono)" font-size="13" fill="#c9c9cf">Орбита и период обращения</text>
+                <g opacity=".9"><circle cx="404" cy="206" r="3.5" fill="#ff7040"/>
+                  <text x="414" y="210" font-family="var(--mono)" font-size="10" fill="#98989e">Марат пишет…</text></g>
+              </svg>
+            </div>
+            <div class="tiles">
+              <div class="tile">камера<b>Вы</b></div>
+              <div class="tile">камера<b>Марат</b></div>
+              <div class="tile att">
+                <div style="font:500 9px var(--mono);color:#6e6e73;letter-spacing:.09em;text-transform:uppercase;margin-bottom:8px">внимание класса</div>
+                <svg viewBox="0 0 170 58" style="width:100%;height:auto">
+                  <path d="M0 44C16 40 24 22 40 20s24 22 40 20 24-30 40-32 30 14 50 10" stroke="#ff7040" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+                  <line x1="0" y1="52" x2="170" y2="52" stroke="#2e2e31"/>
+                </svg>
+                <div style="font:400 10px var(--mono);color:#98989e;margin-top:6px">78% · растёт</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="sect" style="border-top:none;padding-top:40px"><div class="wrap">
+      <span class="kick">почему так</span>
+      <h2 class="h2">Онлайн-урок обычно теряет половину класса</h2>
+      <p class="lead">Преподаватель видит сетку лиц и не понимает, кто ещё с ним. Мы показываем это одной линией —
+        и никакие кадры при этом не покидают компьютер ученика.</p>
+      <div class="cards">
+        <div class="card"><div class="ic">◉</div><h4>Считает браузер</h4>
+          <p>Камера обрабатывается на самом устройстве. На сервер уходит одно число за две секунды, и всё.</p></div>
+        <div class="card"><div class="ic">✍︎</div><h4>Доска как лист бумаги</h4>
+          <p>Открыл — и пишешь. Масштаб щипком, картинка перетаскиванием, планшет вторым экраном.</p></div>
+        <div class="card"><div class="ic">⤓</div><h4>Ничего не пишется на диск</h4>
+          <p>Ни видео урока, ни звука, ни стенограммы. Остаётся конспект, доски и работы.</p></div>
+      </div>
+    </div></section>
+
+    <div class="foot"><div class="wrap">
+      <h2 class="h2">Зайдите и посмотрите сами</h2>
+      <p class="lead" style="margin:0 auto 24px">Демо-урок открыт без регистрации.</p>
+      <button class="btn fill big">Зайти в демо-урок</button>
+      <p class="legal">данные хранятся в России · 152-ФЗ · камера не покидает устройство</p>
+    </div></div>
+  </div>
+
+  <!-- ══════════════ В · ВИТРИНА ══════════════ -->
+  <div class="site" id="v-c">
+    <div class="top">
+      <span class="brand">
+        <svg class="mk" viewBox="0 0 40 34" fill="none"><path d="M7 30c4-1 7-3 9-6 2-3 2-7 1-10-1-4 1-8 5-9 4-1 8 1 9 5" stroke="var(--coral)" stroke-width="2.6" stroke-linecap="round"/><path d="M31 10c1.6 0 2.6-1 2.6-2.4S32.6 5 31 5" stroke="var(--coral)" stroke-width="2.6" stroke-linecap="round"/><circle cx="30.5" cy="8" r="1.1" fill="var(--ink)"/><path d="M7 30h11M4 27l4 3-4 3" stroke="var(--coral)" stroke-width="2.2" stroke-linecap="round"/></svg>
+        flamingo
+      </span>
+      <nav class="nav"><a>Предметы</a><a>Преподаватели</a><a>Как проходит урок</a><a>Школам</a></nav>
+      <span class="right">
+        <button class="btn ghost">Войти</button>
+        <button class="btn line">Стать преподавателем</button>
+        <button class="btn fill">Регистрация</button>
+      </span>
+    </div>
+
+    <section class="heroC"><div class="wrap">
+      <span class="kick">1–11 классы · взрослым · подготовка к экзаменам</span>
+      <h2 class="h2" style="font-size:2.9rem;margin-top:10px">Найдите занятие,<br>с которого захочется начать</h2>
+      <p class="lead">Живые уроки с преподавателем, доска и разбор после каждого занятия.</p>
+      <div class="search">
+        <input placeholder="Физика, ОГЭ, английский для взрослых…">
+        <button class="btn fill big">Найти</button>
+      </div>
+      <div class="chips">
+        <span class="chip" aria-pressed="true">всё</span><span class="chip">1–4 класс</span>
+        <span class="chip">5–9 класс</span><span class="chip">10–11 класс</span>
+        <span class="chip">ОГЭ и ЕГЭ</span><span class="chip">взрослым</span>
+      </div>
+
+      <div class="subjects">
+        <div class="subj s1"><span class="c">12 курсов</span><span class="n">Математика</span></div>
+        <div class="subj s2"><span class="c">9 курсов</span><span class="n">Физика</span></div>
+        <div class="subj s3"><span class="c">14 курсов</span><span class="n">Английский</span></div>
+        <div class="subj s4"><span class="c">7 курсов</span><span class="n">Астрономия</span></div>
+        <div class="subj s5"><span class="c">6 курсов</span><span class="n">Информатика</span></div>
+        <div class="subj s6"><span class="c">8 курсов</span><span class="n">Русский язык</span></div>
+        <div class="subj s7"><span class="c">5 курсов</span><span class="n">Химия</span></div>
+        <div class="subj s8"><span class="c">все предметы</span><span class="n">Ещё 9 →</span></div>
+      </div>
+    </div></section>
+
+    <section class="sect"><div class="wrap">
+      <span class="kick">как проходит занятие</span>
+      <h2 class="h2">Урок, а не запись</h2>
+      <p class="lead">Преподаватель ведёт вживую, пишет на доске и видит, кто потерял нить.
+        После занятия остаётся разбор, доска и домашняя работа.</p>
+      <div class="cards">
+        <div class="card"><div class="ic">◉</div><h4>Видно, кто отвлёкся</h4>
+          <p>Камера считается прямо в браузере и никуда не отправляется. На сервер уходит одно число.</p></div>
+        <div class="card"><div class="ic">✍︎</div><h4>Доска остаётся вам</h4>
+          <p>Всё, что писали на уроке, лежит в вашем кабинете и открывается с любого устройства.</p></div>
+        <div class="card"><div class="ic">✓</div><h4>Проверенные преподаватели</h4>
+          <p>Документы об образовании подтверждены до первого занятия.</p></div>
+      </div>
+    </div></section>
+
+    <div class="foot"><div class="wrap">
+      <h2 class="h2">Выберите предмет и запишитесь</h2>
+      <p class="lead" style="margin:0 auto 24px">Первое занятие — знакомство с преподавателем.</p>
+      <button class="btn fill big">Смотреть предметы</button>
+      <p class="legal">данные хранятся в России · 152-ФЗ · камера не покидает устройство</p>
+    </div></div>
+  </div>
+</div>
+
+<div class="talk">
+  <h3>Вопросы к тебе — на «ты», это разговор, а не интерфейс</h3>
+  <ul>
+    <li><b>А · сдержанный.</b> Говорит с тем, кто выбирает всерьёз: родитель, взрослый ученик, школа.
+      Продукт показан одним графиком внимания. Спокойно, дорого, но не «вау».</li>
+    <li><b>Б · сцена урока.</b> Сразу показывает, как выглядит занятие — доска, класс, линия внимания.
+      Самый сильный по впечатлению, и самый честный: человек видит продукт, а не обещание.
+      Требует, чтобы демо-урок правда открывался.</li>
+    <li><b>В · витрина.</b> Ведёт прямо к предметам и поиску. Лучше всех для «пришёл искать репетитора»
+      и для поисковиков. Но продаёт каталог, а не то, чем мы отличаемся.</li>
+    <li>Мой выбор — <b>Б</b>, с блоком предметов из В ниже по странице. Отличие у нас в самом уроке,
+      и его надо показывать, а не описывать.</li>
+    <li>Чего я не знаю: <b>первый экран — для родителя или для взрослого ученика?</b> От этого зависит
+      весь текст. И <b>нужен ли демо-урок без регистрации</b> — в Б он несущий.</li>
+    <li>Цифры (12 курсов, 18 из 20) — <b>заглушки</b>. Настоящих у нас пока нет, и врать на первой
+      странице нельзя.</li>
+  </ul>
+</div>
+
+<script>
+function setV(v){document.body.dataset.v=v;
+  document.querySelectorAll('.bar button').forEach(b=>{
+    const t=b.getAttribute('onclick');
+    if(t&&t.startsWith('setV'))b.setAttribute('aria-pressed',String(t.includes("'"+v+"'")));});}
+function setT(t){document.body.dataset.theme=t;
+  document.querySelectorAll('.bar button').forEach(b=>{
+    const c=b.getAttribute('onclick');
+    if(c&&c.startsWith('setT'))b.setAttribute('aria-pressed',String(c.includes("'"+t+"'")));});}
+</script>
+</body>
+</html>

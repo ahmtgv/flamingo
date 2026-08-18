@@ -1,0 +1,328 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>АТЛАС L1 — первая страница: один экран, без прокрутки</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f1f1ef;--surface:#fff;--subtle:#e9e9e6;--border:#d9d9d6;--border-s:#c4c4c1;
+  --ink:#1d1d1f;--sec:#6e6e73;--ter:#98989e;
+  --coral:#e14e1f;--coral-t:#c23f14;--coral-soft:#fdeee7;
+  --good:#3fa46a;
+  --d-bg:#0c0c0e;--d-surface:#161618;--d-border:#2a2a2e;--d-ink:#f2f2f0;--d-sec:#98989e;
+  --ui:-apple-system,'SF Pro Display',Inter,system-ui,sans-serif;
+  --mono:'JetBrains Mono','SF Mono',ui-monospace,monospace;
+  --ease:cubic-bezier(.2,0,0,1);
+}
+*{box-sizing:border-box;margin:0}
+body{background:#e7e7e4;color:#1d1d1f;font-family:var(--ui);font-size:16px;line-height:1.6;padding:18px 18px 80px}
+h1{font-size:1.25rem;font-weight:600;letter-spacing:-.015em}
+.sub{color:#6e6e73;font-size:.875rem;margin:4px 0 14px;max-width:112ch}
+.bar{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:14px;position:sticky;top:6px;z-index:40;
+  background:#e7e7e4;padding:8px 0}
+.bar .grp{font:500 10px var(--mono);color:#98989e;letter-spacing:.1em;text-transform:uppercase;margin:0 2px 0 10px}
+.bar .grp:first-child{margin-left:0}
+.bar button{font:500 12px var(--mono);color:#6e6e73;background:#e7e7e4;border:1px solid #d9d9d6;border-radius:999px;
+  padding:7px 13px;cursor:pointer;transition:all .18s var(--ease)}
+.bar button[aria-pressed="true"]{color:#1d1d1f;border-color:#c4c4c1;background:#fff}
+.bar button:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(225,78,31,.4)}
+
+/* рама браузера с фиксированной высотой экрана — «без прокрутки» видно только так */
+.frame{border:1px solid #c4c4c1;border-radius:12px;overflow:hidden;box-shadow:0 18px 50px rgba(0,0,0,.16);background:#fff}
+.chrome{background:#e9e9e6;border-bottom:1px solid #d9d9d6;display:flex;align-items:center;gap:10px;padding:9px 14px}
+.traffic{display:flex;gap:8px}.traffic i{width:12px;height:12px;border-radius:50%;display:block}
+.traffic i:nth-child(1){background:#ff5f57}.traffic i:nth-child(2){background:#febc2e}.traffic i:nth-child(3){background:#28c840}
+.url{flex:1;display:flex;align-items:center;gap:9px;background:#fff;border:1px solid #d9d9d6;border-radius:999px;
+  padding:7px 15px;font:400 12px var(--mono);color:#6e6e73}
+.url b{color:#1d1d1f;font-weight:500}.url .lock{color:var(--good);font-size:10px}
+.screen{height:min(78vh,760px);min-height:600px;display:none;overflow:hidden;position:relative}
+body[data-v="1"] #s1,body[data-v="2"] #s2{display:grid}
+
+/* ── общая верхняя строка ───────────────────────────── */
+.top{display:flex;align-items:center;gap:24px;padding:14px 32px;flex:none}
+.brand{display:flex;align-items:center;gap:9px;font:600 16px var(--ui);letter-spacing:-.01em}
+.mk{width:1.7em;height:1.5em;flex:none;overflow:visible;vertical-align:-.32em}
+.nav{display:flex;gap:20px;font-size:13.5px}
+.nav a{color:inherit;text-decoration:none;opacity:.66;cursor:pointer}
+.nav a:hover{opacity:1}
+.top .right{margin-inline-start:auto;display:flex;align-items:center;gap:9px}
+.btn{font:500 13.5px var(--ui);border-radius:10px;padding:9px 17px;cursor:pointer;border:1px solid transparent;
+  white-space:nowrap;transition:all .18s var(--ease)}
+.btn.fill{background:var(--coral-t);color:#fff}.btn.fill:hover{filter:brightness(1.08)}
+.btn.big{font-size:15px;padding:12px 24px}
+
+/* ── ВАРИАНТ 1 · СВЕТЛАЯ ВИТРИНА ────────────────────── */
+#s1{grid-template-rows:auto minmax(0,1fr) auto;background:var(--bg);color:var(--ink)}
+#s1 .top{background:var(--surface);border-bottom:1px solid var(--border)}
+#s1 .btn.ghost{color:var(--sec);background:none}#s1 .btn.ghost:hover{background:var(--subtle);color:var(--ink)}
+.mid{display:grid;grid-template-columns:minmax(0,380px) minmax(0,1fr);gap:26px;padding:26px 32px;min-height:0}
+@media(max-width:900px){.mid{grid-template-columns:minmax(0,1fr)}}
+.pitch{display:grid;align-content:center;gap:14px;min-width:0}
+.pitch .kick{font:500 11px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--coral-t)}
+.pitch h2{font-size:2.1rem;line-height:1.1;font-weight:600;letter-spacing:-.03em}
+.thes{display:grid;gap:9px;margin-top:2px}
+.the{display:grid;grid-template-columns:20px minmax(0,1fr);gap:10px;font-size:.9375rem;color:var(--sec);align-items:start}
+.the b{color:var(--ink);font-weight:600}
+.the i{width:20px;height:20px;border-radius:6px;background:var(--coral-soft);color:var(--coral-t);display:grid;
+  place-content:center;font:500 11px var(--mono);font-style:normal;margin-top:2px}
+.pitch .row{display:flex;gap:10px;margin-top:8px}
+.stage{border-radius:16px;overflow:hidden;position:relative;background:#0c0c0e;min-height:0;
+  border:1px solid var(--border-s)}
+.stage .play{position:absolute;inset:0;display:grid;place-content:center;cursor:pointer}
+.stage .play span{width:66px;height:66px;border-radius:50%;background:rgba(255,255,255,.94);display:grid;
+  place-content:center;font-size:20px;color:#0c0c0e;box-shadow:0 8px 30px rgba(0,0,0,.4)}
+.stage .cap{position:absolute;left:18px;bottom:16px;right:18px;color:#f2f2f0}
+.stage .cap b{display:block;font-size:1.0625rem;font-weight:600;letter-spacing:-.01em}
+.stage .cap span{font:400 11.5px var(--mono);color:#c9c9cf}
+.stage .badge{position:absolute;left:16px;top:14px;font:500 10px var(--mono);letter-spacing:.09em;text-transform:uppercase;
+  background:rgba(0,0,0,.55);color:#f2f2f0;border-radius:999px;padding:5px 11px;backdrop-filter:blur(6px)}
+
+/* полки */
+.shelves{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;padding:0 32px 22px;flex:none}
+@media(max-width:900px){.shelves{grid-template-columns:minmax(0,1fr)}.shelves>div:last-child{display:none}}
+.shelfTop{display:flex;align-items:baseline;gap:10px;margin-bottom:10px}
+.shelfTop h3{font-size:.9375rem;font-weight:600;letter-spacing:-.005em}
+.shelfTop .all{margin-inline-start:auto;font:400 11.5px var(--mono);color:var(--sec);cursor:pointer}
+.shelfTop .hint{font:400 11.5px var(--mono);color:var(--ter)}
+.rail{display:flex;gap:10px;overflow-x:auto;padding-bottom:4px;scrollbar-width:thin}
+.rail::-webkit-scrollbar{height:6px}
+.rail::-webkit-scrollbar-thumb{background:var(--border-s);border-radius:99px}
+.vid{flex:none;width:150px;border-radius:11px;overflow:hidden;background:#141416;position:relative;cursor:pointer;
+  border:1px solid var(--border);transition:transform .16s var(--ease)}
+.vid:hover{transform:translateY(-3px)}
+.vid.short{width:104px}
+.vid .thumb{aspect-ratio:16/9;display:block}
+.vid.short .thumb{aspect-ratio:9/16}
+.vid .meta{position:absolute;left:0;right:0;bottom:0;padding:22px 9px 8px;color:#f2f2f0;
+  background:linear-gradient(to top,rgba(0,0,0,.86),transparent)}
+.vid .meta b{display:block;font-size:11.5px;font-weight:600;line-height:1.25}
+.vid .meta span{font:400 9.5px var(--mono);color:#b8b8bf}
+.vid .live{position:absolute;left:7px;top:7px;font:500 8.5px var(--mono);letter-spacing:.08em;text-transform:uppercase;
+  background:#c23f14;color:#fff;border-radius:999px;padding:3px 7px}
+
+/* ── ВАРИАНТ 2 · ТЁМНЫЙ ЗАЛ ─────────────────────────── */
+#s2{grid-template-rows:auto minmax(0,1fr) auto;background:var(--d-bg);color:var(--d-ink);position:relative}
+#s2 .top{position:relative;z-index:3}
+#s2 .nav a{color:#c9c9cf}
+#s2 .btn.ghost{color:#c9c9cf;background:none}
+#s2 .btn.ghost:hover{background:rgba(255,255,255,.08);color:#fff}
+.bg{position:absolute;inset:0;z-index:0}
+.bg::after{content:"";position:absolute;inset:0;
+  background:linear-gradient(105deg,rgba(12,12,14,.95) 0 42%,rgba(12,12,14,.35) 68%,rgba(12,12,14,.9) 100%),
+             linear-gradient(to top,rgba(12,12,14,.98) 0 12%,transparent 46%)}
+.hero2{position:relative;z-index:2;display:grid;grid-template-columns:minmax(0,470px);align-content:center;
+  padding:0 46px;min-height:0}
+.hero2 .kick{font:500 11px var(--mono);letter-spacing:.13em;text-transform:uppercase;color:#ff8a5f}
+.hero2 h2{font-size:2.5rem;line-height:1.08;font-weight:600;letter-spacing:-.032em;margin:10px 0 14px}
+.hero2 .thes{gap:8px}
+.hero2 .the{color:#a9a9b1}
+.hero2 .the b{color:#f2f2f0}
+.hero2 .the i{background:rgba(255,112,64,.16);color:#ff8a5f}
+.hero2 .row{display:flex;gap:10px;margin-top:18px}
+.hero2 .btn.line{color:#f2f2f0;border-color:#3f3f43;background:none}
+.hero2 .btn.line:hover{background:rgba(255,255,255,.07)}
+.strip{position:relative;z-index:2;padding:0 46px 20px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px}
+@media(max-width:900px){.strip{grid-template-columns:minmax(0,1fr)}.strip>div:last-child{display:none}}
+#s2 .shelfTop h3{color:#f2f2f0}
+#s2 .shelfTop .all,#s2 .shelfTop .hint{color:#8a8a92}
+#s2 .vid{border-color:var(--d-border)}
+#s2 .rail::-webkit-scrollbar-thumb{background:#3a3a40}
+
+.talk{margin-top:20px;background:#fff;border:1px solid #d9d9d6;border-radius:12px;padding:18px 22px}
+.talk h3{font:500 11px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--coral-t);margin-bottom:10px}
+.talk ul{margin:0;padding-inline-start:20px;color:#6e6e73;font-size:.9375rem}
+.talk li{margin-bottom:7px}
+.talk b{color:#1d1d1f;font-weight:600}
+</style>
+</head>
+<body data-v="1">
+
+<h1>АТЛАС L1 — первая страница: один экран, без прокрутки</h1>
+<p class="sub">По решению владельца (§34.3): тезисы · видео проекта и уроков с превью · <b>страница не прокручивается</b> ·
+самые просматриваемые из «Источников мира» и новый раздел «Познавательная наука». Вход и регистрация — в верхней строке.
+Полки роликов листаются <b>вбок</b>: это перелистывание полки, а не прокрутка страницы.</p>
+
+<div class="bar">
+  <span class="grp">направление</span>
+  <button onclick="setV('1')" aria-pressed="true">1 · светлая витрина</button>
+  <button onclick="setV('2')" aria-pressed="false">2 · тёмный зал</button>
+</div>
+
+<div class="frame">
+  <div class="chrome">
+    <div class="traffic"><i></i><i></i><i></i></div>
+    <div class="url"><span class="lock">🔒</span> <b>flamingo.plus</b></div>
+  </div>
+
+  <!-- ═══════════ 1 · СВЕТЛАЯ ВИТРИНА ═══════════ -->
+  <div class="screen" id="s1">
+    <div class="top">
+      <span class="brand">
+        <svg class="mk" viewBox="0 0 40 34" fill="none"><path d="M7 30c4-1 7-3 9-6 2-3 2-7 1-10-1-4 1-8 5-9 4-1 8 1 9 5" stroke="var(--coral)" stroke-width="2.6" stroke-linecap="round"/><path d="M31 10c1.6 0 2.6-1 2.6-2.4S32.6 5 31 5" stroke="var(--coral)" stroke-width="2.6" stroke-linecap="round"/><circle cx="30.5" cy="8" r="1.1" fill="var(--ink)"/><path d="M7 30h11M4 27l4 3-4 3" stroke="var(--coral)" stroke-width="2.2" stroke-linecap="round"/></svg>
+        flamingo
+      </span>
+      <nav class="nav"><a>Познавательная наука</a><a>Источники мира</a><a>Предметы</a><a>Преподавателям</a></nav>
+      <span class="right">
+        <button class="btn ghost">Войти</button>
+        <button class="btn fill">Регистрация</button>
+      </span>
+    </div>
+
+    <div class="mid">
+      <div class="pitch">
+        <span class="kick">школа, где видно каждого</span>
+        <h2>Наука, на которую хочется смотреть</h2>
+        <div class="thes">
+          <div class="the"><i>1</i><span><b>Живой урок, а не запись.</b> Доска, класс и преподаватель в одном окне.</span></div>
+          <div class="the"><i>2</i><span><b>Видно, кто потерял нить.</b> Камера считается в браузере и никуда не уходит.</span></div>
+          <div class="the"><i>3</i><span><b>Настоящие данные мира.</b> Телескопы, NASA, живые трансляции — прямо в уроке.</span></div>
+          <div class="the"><i>4</i><span><b>Учёба остаётся ученику.</b> Навсегда и с любого устройства.</span></div>
+        </div>
+        <div class="row">
+          <button class="btn fill big">Смотреть урок</button>
+          <button class="btn big" style="border-color:var(--border-s);background:none;color:var(--ink)">Предметы</button>
+        </div>
+      </div>
+
+      <div class="stage">
+        <svg class="thumb" viewBox="0 0 800 450" style="width:100%;height:100%;display:block" preserveAspectRatio="xMidYMid slice">
+          <defs><radialGradient id="sky" cx="62%" cy="34%" r="72%">
+            <stop offset="0" stop-color="#243247"/><stop offset="1" stop-color="#0a0a0d"/></radialGradient></defs>
+          <rect width="800" height="450" fill="url(#sky)"/>
+          <g fill="#fff"><circle cx="120" cy="70" r="1.4" opacity=".8"/><circle cx="220" cy="130" r="1" opacity=".55"/>
+            <circle cx="330" cy="60" r="1.7" opacity=".9"/><circle cx="470" cy="110" r="1.1" opacity=".6"/>
+            <circle cx="610" cy="66" r="1.5" opacity=".75"/><circle cx="700" cy="160" r="1" opacity=".5"/>
+            <circle cx="90" cy="230" r="1.2" opacity=".6"/><circle cx="760" cy="300" r="1.3" opacity=".55"/></g>
+          <circle cx="516" cy="212" r="96" fill="#c96a3c"/>
+          <ellipse cx="516" cy="212" rx="164" ry="42" fill="none" stroke="#e6c79b" stroke-width="7" opacity=".85" transform="rotate(-19 516 212)"/>
+          <ellipse cx="516" cy="212" rx="186" ry="48" fill="none" stroke="#b9946a" stroke-width="3" opacity=".55" transform="rotate(-19 516 212)"/>
+          <circle cx="516" cy="212" r="96" fill="none" stroke="#f0d0a8" stroke-width="1.5" opacity=".35"/>
+        </svg>
+        <span class="badge">видео о проекте · 2 мин</span>
+        <div class="play"><span>▶</span></div>
+        <div class="cap"><b>Как проходит урок в Flamingo</b><span>доска · класс · внимание · разбор</span></div>
+      </div>
+    </div>
+
+    <div class="shelves">
+      <div>
+        <div class="shelfTop"><h3>Источники мира</h3><span class="hint">самое просматриваемое</span><span class="all">все →</span></div>
+        <div class="rail">
+          <div class="vid"><svg class="thumb" viewBox="0 0 160 90"><rect width="160" height="90" fill="#0e1420"/><circle cx="112" cy="34" r="26" fill="#1c3f6e"/><circle cx="112" cy="34" r="26" fill="none" stroke="#5b9bd5" stroke-width="1"/><path d="M0 74h160" stroke="#22304a" stroke-width="8"/></svg><span class="live">эфир</span><div class="meta"><b>NASA Live</b><span>МКС, вид на Землю</span></div></div>
+          <div class="vid"><svg class="thumb" viewBox="0 0 160 90"><rect width="160" height="90" fill="#0b0b10"/><rect x="26" y="30" width="58" height="26" rx="4" fill="#2b3550"/><rect x="92" y="36" width="42" height="16" rx="3" fill="#3d4a6b"/><path d="M84 43h8" stroke="#8fd0da" stroke-width="2"/></svg><div class="meta"><b>Стыковка с МКС</b><span>1,2 млн просмотров</span></div></div>
+          <div class="vid"><svg class="thumb" viewBox="0 0 160 90"><rect width="160" height="90" fill="#101018"/><path d="M10 62 Q40 20 70 52 T130 34" stroke="#e2c74a" stroke-width="2.4" fill="none"/><circle cx="70" cy="52" r="3" fill="#e2c74a"/></svg><div class="meta"><b>Как «качается» звезда</b><span>экзопланета по кривой блеска</span></div></div>
+          <div class="vid"><svg class="thumb" viewBox="0 0 160 90"><rect width="160" height="90" fill="#0d1512"/><circle cx="80" cy="45" r="20" fill="none" stroke="#8fd9ae" stroke-width="2"/><path d="M80 25v40M60 45h40" stroke="#8fd9ae" stroke-width="1"/></svg><div class="meta"><b>MicroObservatory</b><span>закажите наблюдение</span></div></div>
+        </div>
+      </div>
+
+      <div>
+        <div class="shelfTop"><h3>Познавательная наука</h3><span class="hint">преподаватели · шортсы</span><span class="all">все →</span></div>
+        <div class="rail">
+          <div class="vid short"><svg class="thumb" viewBox="0 0 90 160"><rect width="90" height="160" fill="#160f0a"/><path d="M45 118c-16 0-26-12-26-26 0-14 12-22 12-34 0 0 16 8 16 22 0 8-6 10-6 16s5 10 10 6c6-5 4-16 4-16s16 10 16 26-10 26-26 26z" fill="#e14e1f" opacity=".92"/><circle cx="45" cy="104" r="7" fill="#ffd08a"/></svg><div class="meta"><b>Огонь без спичек</b><span>химия · безопасность</span></div></div>
+          <div class="vid short"><svg class="thumb" viewBox="0 0 90 160"><rect width="90" height="160" fill="#0b1220"/><circle cx="45" cy="80" r="30" fill="none" stroke="#5b9bd5" stroke-width="1.6"/><path d="M15 80h60" stroke="#2b3550" stroke-width="1.4"/><path d="M15 80c8-24 22-24 30 0s22 24 30 0" stroke="#8fd0da" stroke-width="2.4" fill="none"/><circle cx="60" cy="65" r="3" fill="#ff7040"/></svg><div class="meta"><b>Откуда синус</b><span>математика</span></div></div>
+          <div class="vid short"><svg class="thumb" viewBox="0 0 90 160"><rect width="90" height="160" fill="#1a1410"/><rect x="18" y="42" width="54" height="72" fill="#3a2b1f" stroke="#8a6a48" stroke-width="2"/><circle cx="38" cy="70" r="9" fill="#c9a27a"/><path d="M26 106c6-16 26-16 34 0" fill="#7d5b3c"/></svg><div class="meta"><b>Что спрятал художник</b><span>искусство</span></div></div>
+          <div class="vid short"><svg class="thumb" viewBox="0 0 90 160"><rect width="90" height="160" fill="#0a0d18"/><g fill="#fff"><circle cx="24" cy="42" r="1.3"/><circle cx="66" cy="34" r="1"/><circle cx="40" cy="112" r="1.2"/><circle cx="70" cy="124" r="1"/></g><path d="M10 80q20-26 40 0t30-10" stroke="#8fd0da" stroke-width="2" fill="none"/><circle cx="45" cy="80" r="16" fill="#2b3550"/></svg><div class="meta"><b>Звуки вселенной</b><span>астрономия</span></div></div>
+          <div class="vid short"><svg class="thumb" viewBox="0 0 90 160"><rect width="90" height="160" fill="#150e18"/><path d="M34 46v56a10 10 0 1 1-6-9V56l26-8v46a10 10 0 1 1-6-9V44z" fill="#c3a9f0"/></svg><div class="meta"><b>Почему мурашки</b><span>музыка</span></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════ 2 · ТЁМНЫЙ ЗАЛ ═══════════ -->
+  <div class="screen" id="s2">
+    <div class="bg">
+      <svg viewBox="0 0 1200 700" style="width:100%;height:100%;display:block" preserveAspectRatio="xMidYMid slice">
+        <defs><radialGradient id="sky2" cx="66%" cy="30%" r="76%">
+          <stop offset="0" stop-color="#2a3a52"/><stop offset="1" stop-color="#08080b"/></radialGradient></defs>
+        <rect width="1200" height="700" fill="url(#sky2)"/>
+        <g fill="#fff"><circle cx="180" cy="90" r="1.6" opacity=".8"/><circle cx="340" cy="180" r="1.1" opacity=".5"/>
+          <circle cx="520" cy="70" r="1.9" opacity=".9"/><circle cx="700" cy="150" r="1.2" opacity=".6"/>
+          <circle cx="900" cy="90" r="1.6" opacity=".75"/><circle cx="1080" cy="220" r="1.1" opacity=".5"/>
+          <circle cx="260" cy="420" r="1.3" opacity=".55"/><circle cx="1120" cy="480" r="1.4" opacity=".6"/></g>
+        <circle cx="800" cy="300" r="150" fill="#c96a3c"/>
+        <ellipse cx="800" cy="300" rx="256" ry="64" fill="none" stroke="#e6c79b" stroke-width="10" opacity=".85" transform="rotate(-18 800 300)"/>
+        <ellipse cx="800" cy="300" rx="292" ry="74" fill="none" stroke="#b9946a" stroke-width="4" opacity=".5" transform="rotate(-18 800 300)"/>
+      </svg>
+    </div>
+
+    <div class="top">
+      <span class="brand" style="color:#f2f2f0">
+        <svg class="mk" viewBox="0 0 40 34" fill="none"><path d="M7 30c4-1 7-3 9-6 2-3 2-7 1-10-1-4 1-8 5-9 4-1 8 1 9 5" stroke="#ff7040" stroke-width="2.6" stroke-linecap="round"/><path d="M31 10c1.6 0 2.6-1 2.6-2.4S32.6 5 31 5" stroke="#ff7040" stroke-width="2.6" stroke-linecap="round"/><circle cx="30.5" cy="8" r="1.1" fill="#f2f2f0"/><path d="M7 30h11M4 27l4 3-4 3" stroke="#ff7040" stroke-width="2.2" stroke-linecap="round"/></svg>
+        flamingo
+      </span>
+      <nav class="nav"><a>Познавательная наука</a><a>Источники мира</a><a>Предметы</a><a>Преподавателям</a></nav>
+      <span class="right">
+        <button class="btn ghost">Войти</button>
+        <button class="btn fill">Регистрация</button>
+      </span>
+    </div>
+
+    <div class="hero2">
+      <span class="kick">школа, где видно каждого</span>
+      <h2>Наука, на которую хочется смотреть</h2>
+      <div class="thes">
+        <div class="the"><i>1</i><span><b>Живой урок, а не запись.</b> Доска, класс и преподаватель в одном окне.</span></div>
+        <div class="the"><i>2</i><span><b>Видно, кто потерял нить.</b> Камера считается в браузере и никуда не уходит.</span></div>
+        <div class="the"><i>3</i><span><b>Данные настоящего мира.</b> Телескопы, NASA, живые трансляции — прямо в уроке.</span></div>
+      </div>
+      <div class="row">
+        <button class="btn fill big">▶ Смотреть видео о проекте</button>
+        <button class="btn line big">Предметы</button>
+      </div>
+    </div>
+
+    <div class="strip">
+      <div>
+        <div class="shelfTop"><h3>Источники мира</h3><span class="hint">самое просматриваемое</span><span class="all">все →</span></div>
+        <div class="rail">
+          <div class="vid"><svg class="thumb" viewBox="0 0 160 90"><rect width="160" height="90" fill="#0e1420"/><circle cx="112" cy="34" r="26" fill="#1c3f6e"/><path d="M0 74h160" stroke="#22304a" stroke-width="8"/></svg><span class="live">эфир</span><div class="meta"><b>NASA Live</b><span>МКС, вид на Землю</span></div></div>
+          <div class="vid"><svg class="thumb" viewBox="0 0 160 90"><rect width="160" height="90" fill="#0b0b10"/><rect x="26" y="30" width="58" height="26" rx="4" fill="#2b3550"/><rect x="92" y="36" width="42" height="16" rx="3" fill="#3d4a6b"/></svg><div class="meta"><b>Стыковка с МКС</b><span>1,2 млн просмотров</span></div></div>
+          <div class="vid"><svg class="thumb" viewBox="0 0 160 90"><rect width="160" height="90" fill="#101018"/><path d="M10 62 Q40 20 70 52 T130 34" stroke="#e2c74a" stroke-width="2.4" fill="none"/></svg><div class="meta"><b>Как «качается» звезда</b><span>кривая блеска</span></div></div>
+        </div>
+      </div>
+      <div>
+        <div class="shelfTop"><h3>Познавательная наука</h3><span class="hint">преподаватели · шортсы</span><span class="all">все →</span></div>
+        <div class="rail">
+          <div class="vid short"><svg class="thumb" viewBox="0 0 90 160"><rect width="90" height="160" fill="#160f0a"/><path d="M45 118c-16 0-26-12-26-26 0-14 12-22 12-34 0 0 16 8 16 22 0 8-6 10-6 16s5 10 10 6c6-5 4-16 4-16s16 10 16 26-10 26-26 26z" fill="#e14e1f" opacity=".92"/><circle cx="45" cy="104" r="7" fill="#ffd08a"/></svg><div class="meta"><b>Огонь без спичек</b><span>химия</span></div></div>
+          <div class="vid short"><svg class="thumb" viewBox="0 0 90 160"><rect width="90" height="160" fill="#0b1220"/><circle cx="45" cy="80" r="30" fill="none" stroke="#5b9bd5" stroke-width="1.6"/><path d="M15 80c8-24 22-24 30 0s22 24 30 0" stroke="#8fd0da" stroke-width="2.4" fill="none"/></svg><div class="meta"><b>Откуда синус</b><span>математика</span></div></div>
+          <div class="vid short"><svg class="thumb" viewBox="0 0 90 160"><rect width="90" height="160" fill="#1a1410"/><rect x="18" y="42" width="54" height="72" fill="#3a2b1f" stroke="#8a6a48" stroke-width="2"/><circle cx="38" cy="70" r="9" fill="#c9a27a"/></svg><div class="meta"><b>Что спрятал художник</b><span>искусство</span></div></div>
+          <div class="vid short"><svg class="thumb" viewBox="0 0 90 160"><rect width="90" height="160" fill="#0a0d18"/><path d="M10 80q20-26 40 0t30-10" stroke="#8fd0da" stroke-width="2" fill="none"/><circle cx="45" cy="80" r="16" fill="#2b3550"/></svg><div class="meta"><b>Звуки вселенной</b><span>астрономия</span></div></div>
+          <div class="vid short"><svg class="thumb" viewBox="0 0 90 160"><rect width="90" height="160" fill="#150e18"/><path d="M34 46v56a10 10 0 1 1-6-9V56l26-8v46a10 10 0 1 1-6-9V44z" fill="#c3a9f0"/></svg><div class="meta"><b>Почему мурашки</b><span>музыка</span></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="talk">
+  <h3>Вопросы к тебе — на «ты», это разговор, а не интерфейс</h3>
+  <ul>
+    <li><b>Что различается.</b> В светлой витрине видео о проекте — отдельное окно справа, тезисы читаются
+      как список. В тёмном зале видео на весь экран, тезисы лежат поверх — сильнее по впечатлению,
+      но текста помещается меньше.</li>
+    <li><b>Полки листаются вбок.</b> Страница не прокручивается, а полка перелистывается — иначе четыре
+      источника и пять шортсов на один экран не встанут. Если и это считать прокруткой, скажи:
+      тогда придётся резать до трёх карточек в каждой полке.</li>
+    <li><b>Шортсы вертикальные</b>, как привык человек. Это и опознаётся мгновенно, и честно:
+      снимать их будут с телефона.</li>
+    <li><b>Чего не хватает для правды.</b> Своих преподавателей с роликами у нас нет ни одного.
+      Первые пять шортсов придётся снять самим — или начать с одних «Источников мира»,
+      а «Познавательную науку» открыть, когда наберётся хотя бы десяток.</li>
+    <li><b>Граница, которую я записал в §34.2:</b> шортс нельзя сделать из урока. Никакой кнопки
+      «сохранить кусок занятия» — только намеренная загрузка автором. Иначе запрет на запись урока
+      протечёт через новый раздел, и мы этого не заметим.</li>
+    <li><b>Открытые вопросы прежние:</b> первый экран для родителя или для взрослого ученика,
+      и нужен ли демо-урок без регистрации.</li>
+  </ul>
+</div>
+
+<script>
+function setV(v){document.body.dataset.v=v;
+  document.querySelectorAll('.bar button').forEach(b=>{
+    const t=b.getAttribute('onclick');
+    if(t&&t.startsWith('setV'))b.setAttribute('aria-pressed',String(t.includes("'"+v+"'")));});}
+</script>
+</body>
+</html>
