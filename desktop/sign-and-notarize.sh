@@ -122,10 +122,29 @@ if [ -d "$SIDECAR" ]; then
 
   # Фреймворки подписываются как БУНДЛЫ и после своего содержимого: подпись бундла фиксирует
   # хеши того, что внутри, поэтому сначала внутренности, потом сам фреймворк.
+  # 🔴 ОШИБКИ ЗДЕСЬ ГЛУШИЛИСЬ, И СКРИПТ УМИРАЛ МОЛЧА (наряд 35, найдено 18.08).
+  #
+  # `2>/dev/null` вместе с `set -e` давало худшее сочетание: один отказ `codesign` из
+  # шестидесяти семи — и скрипт обрывался на середине, не дойдя ни до подписи приложения, ни
+  # до собственной проверки в конце. На диске оставался ПОЛУПОДПИСАННЫЙ образ, и `codesign
+  # --verify` на нём отвечал «code has no resources but signature indicates they must be
+  # present». Ровно тот случай, ради которого заведено правило про молчаливый отказ.
+  #
+  # Теперь отказ называется вслух вместе с файлом, а цикл доводится до конца: остальные
+  # шестьдесят шесть подписать надо в любом случае.
+  failed=0
   while IFS= read -r f; do
-    codesign --force --timestamp --options runtime --sign "$IDENTITY" "$f" 2>/dev/null
+    if ! codesign --force --timestamp --options runtime --sign "$IDENTITY" "$f" 2>/tmp/flamingo-sign-err; then
+      failed=$((failed + 1))
+      echo "  ✗ не подписался: ${f#"$APP"/} — $(head -1 /tmp/flamingo-sign-err)"
+    fi
   done < "$MACHO"
-  rm -f "$MACHO"
+  rm -f "$MACHO" /tmp/flamingo-sign-err
+  if [ "$failed" -gt 0 ]; then
+    echo
+    echo "  ✗ не подписалось файлов: $failed. Образ раздавать нельзя."
+    exit 1
+  fi
 
   # ⚠️ Фреймворки как БУНДЛЫ здесь не подписываются, и это не упущение.
   # `Python.framework` от PyInstaller — неполный каркас: `codesign` на нём отвечает
