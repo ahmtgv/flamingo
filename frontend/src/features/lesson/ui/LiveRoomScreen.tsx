@@ -402,6 +402,7 @@ function StudentRoom({
   teacherName,
   teacherId,
   selfName,
+  lessonTitle,
 }: RoomProps) {
   const { t } = useTranslation(['seedum', 'lesson']);
   const [reportAttention] = useReportAttentionMutation();
@@ -543,10 +544,24 @@ function StudentRoom({
 
   return (
     <RoomShell
-      subtitle={t('room.studentSub')}
+      /*
+        🔴 УЧЕНИКУ ПОКАЗЫВАЛИ ЧУЖОЕ ИМЯ НАД ЕГО ВНИМАНИЕМ (живой урок 18.08, наряд 37 §1.5).
+        Заголовок собирался как «Внимание на занятии · {имя преподавателя}» — и получалось,
+        что внимание будто бы принадлежит преподавателю. Анализируется при этом внимание
+        САМОГО УЧЕНИКА и на его устройстве; подпись путала ровно там, где человеку важнее
+        всего понимать, что происходит с его камерой.
+
+        Комната — это занятие, а не экран внимания: в заголовке стоит урок, преподаватель
+        назван преподавателем, а строка про внимание осталась там, где ей место.
+      */
+      subtitle={
+        teacherName
+          ? `${t('lesson:withTeacher', { name: teacherName })} · ${t('room.studentSub')}`
+          : t('room.studentSub')
+      }
       sessionId={sessionId}
       lessonId={lessonId}
-      title={teacherName ? `${t('room.title')} · ${teacherName}` : null}
+      title={lessonTitle ?? t('lesson:lessonWord')}
       isLive={isLive}
       classTeacher={
         teacherName
@@ -852,10 +867,24 @@ function TeacherRoom({
       {t('lesson:endLesson')}
     </Button>
   );
+  /**
+   * 🔴 ПРИЛОЖЕНИЕ СПОРИЛО САМО С СОБОЙ (живой урок 18.08, наряд 37 §1.2).
+   *
+   * Верхняя строка окна говорила «урок не идёт», а прямо под ней стоял значок «идёт» и живая
+   * комната с доской и чатом. Два утверждения об одном на одном экране, одно ложное.
+   *
+   * Место названо: рама узнавала об уроке только когда преподаватель **вошёл в эфир**
+   * (`joined`), а комната считает урок идущим, как только **занятие живое** (`isLive`). Два
+   * разных факта назывались одним словом. А преподаватель может вести с доски, не включая
+   * камеру, — урок при этом идёт, и рама обязана говорить то же, что комната.
+   *
+   * `joined` никуда не делся: он по-прежнему едет отдельным полем `joined` — «я в эфире» и
+   * «урок идёт» это разные вещи, и рама показывает их по отдельности.
+   */
   usePublishHostLesson(
-    joined && isLive && startAt
+    isLive && startAt
       ? {
-          lessonName: lessonTitle ?? t('seedum:room.title'),
+          lessonName: lessonTitle ?? t('lesson:lessonWord'),
           participantCount: expected,
           joined: inRoom,
           startedAt: new Date(startAt).getTime(),

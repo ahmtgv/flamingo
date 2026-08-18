@@ -253,10 +253,29 @@ export function BoardCanvas({ lessonId }: { lessonId: string }) {
     setFullscreen(true);
   }, []);
 
+  /**
+   * 🔴 ESC НЕ ВЫХОДИЛ ИЗ ПОЛНОГО ЭКРАНА (живой урок 18.08, наряд 37 §1.4).
+   *
+   * Владелец: «в приложении зависла доска на развёрнутом экране». Замер разобрал режим по
+   * частям и оправдал четыре из пяти подозрений: холст растёт (771×360 → 1280×729), панель
+   * видна, перо рисует, штрих доходит второму, щипок меняет масштаб (100 → 223 пикселя).
+   * Не работало ровно одно — выход.
+   *
+   * Место названо: обработчик срабатывал ТОЛЬКО при `!document.fullscreenElement`, то есть
+   * когда браузер уже вышел сам. В браузере Esc обрабатывает сам браузер, и до нас доходит
+   * лишь уборка состояния. **Внутри приложения браузерной обёртки нет**: WKWebView Esc не
+   * перехватывает, `document.fullscreenElement` остаётся, условие не выполняется — и доска
+   * стоит развёрнутой без единого способа её свернуть с клавиатуры.
+   *
+   * Теперь Esc выходит АКТИВНО: зовём `exitFullscreen`, если браузер ещё в нём, и в любом
+   * случае снимаем свой режим. В браузере это ничего не ломает — выход уже случился.
+   */
   useEffect(() => {
     if (!fullscreen) return undefined;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && !document.fullscreenElement) setFullscreen(false);
+      if (e.key !== 'Escape') return;
+      if (document.fullscreenElement) void document.exitFullscreen().catch(() => undefined);
+      setFullscreen(false);
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
