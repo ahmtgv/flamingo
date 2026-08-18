@@ -104,3 +104,29 @@ mutation GradeSubmission($input: GradeInput!) {
     comment
   }
 }
+
+# Журнал предмета — первая половина (наряд 36 §5). Кнопка «Открыть журнал» с листа 01 вела в
+# очередь проверки СТАРОЙ рамы: новый экран и архивный кабинет были склеены переходом.
+query CourseJournal($courseId: ID!) {
+  courseJournal(courseId: $courseId) {
+    courseId
+    title
+    students {
+      studentId
+      name
+      markless
+    }
+    sessions {
+      sessionId
+      title
+      startAt
+      status
+    }
+    cells {
+      studentId
+      sessionId
+      attendance
+      score
+    }
+  }
+}

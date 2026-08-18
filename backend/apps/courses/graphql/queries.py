@@ -2,7 +2,7 @@
 
 import strawberry
 
-from apps.courses import models, services, subject, tasks_progress
+from apps.courses import journal, models, services, subject, tasks_progress
 from apps.courses.access import can_access_course
 from common.auth import get_current_user, require_user
 from common.enums import CourseFormat, CourseLevel, CourseStatus
@@ -11,6 +11,7 @@ from common.pagination import paginate
 from .types import (
     Course,
     CourseConnection,
+    CourseJournal,
     Lesson,
     PageInfo,
     SubjectCabinet,
@@ -136,3 +137,16 @@ class CoursesQuery:
         return SubjectProgress.of(
             tasks_progress.subject_progress(get_current_user(info), course_id)
         )
+
+    @strawberry.field
+    def course_journal(self, info: strawberry.Info, course_id: strawberry.ID) -> CourseJournal:
+        """Журнал предмета — первая половина (наряд 36 §5).
+
+        🔴 Кнопка «Открыть журнал» с листа 01 вела в очередь проверки СТАРОЙ рамы: новый экран
+        и архивный кабинет были склеены переходом. Лист — контракт, кнопку переименовывать
+        нельзя, старый экран расширять нельзя; значит нужен свой журнал.
+
+        Чего здесь ещё нет и что остаётся следующей фазе: правка оценки прямо в клетке,
+        выгрузка, свод по четверти, переход из клетки в работу.
+        """
+        return CourseJournal.of(journal.course_journal(require_user(info), course_id))

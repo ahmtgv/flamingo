@@ -417,6 +417,15 @@ export type CourseInput = {
   title: Scalars['String']['input'];
 };
 
+export type CourseJournal = {
+  __typename?: 'CourseJournal';
+  cells: Array<JournalCell>;
+  courseId: Scalars['ID']['output'];
+  sessions: Array<JournalSession>;
+  students: Array<JournalStudent>;
+  title: Scalars['String']['output'];
+};
+
 export type CourseLevel =
   | 'ADULT'
   | 'COLLEGE'
@@ -755,6 +764,29 @@ export type JoinDecision =
   | 'KNOCK_REQUIRED'
   | 'LINK_REPLACED'
   | 'NOT_IN_GROUP';
+
+export type JournalCell = {
+  __typename?: 'JournalCell';
+  attendance: Scalars['String']['output'];
+  score?: Maybe<Scalars['Int']['output']>;
+  sessionId: Scalars['ID']['output'];
+  studentId: Scalars['ID']['output'];
+};
+
+export type JournalSession = {
+  __typename?: 'JournalSession';
+  sessionId: Scalars['ID']['output'];
+  startAt?: Maybe<Scalars['DateTime']['output']>;
+  status: Scalars['String']['output'];
+  title: Scalars['String']['output'];
+};
+
+export type JournalStudent = {
+  __typename?: 'JournalStudent';
+  markless: Scalars['Boolean']['output'];
+  name: Scalars['String']['output'];
+  studentId: Scalars['ID']['output'];
+};
 
 export type LearningProfile = {
   __typename?: 'LearningProfile';
@@ -1888,6 +1920,11 @@ export type Query = {
   chatUnread: Scalars['Int']['output'];
   course?: Maybe<Course>;
   courseBoards: Array<BoardSnapshot>;
+  /**
+   * Журнал предмета — первая половина (промпт 36 §5): занятия, присутствие, оценки по группе.
+   * Чего ещё нет: правка оценки в клетке, выгрузка, свод по четверти, переход из клетки в работу.
+   */
+  courseJournal: CourseJournal;
   exerciseLivePicture: Array<ExerciseLiveRow>;
   externalDictionaries: Array<ExternalDictionary>;
   group?: Maybe<Group>;
@@ -2001,6 +2038,11 @@ export type QueryCourseArgs = {
 
 
 export type QueryCourseBoardsArgs = {
+  courseId: Scalars['ID']['input'];
+};
+
+
+export type QueryCourseJournalArgs = {
   courseId: Scalars['ID']['input'];
 };
 
@@ -3746,6 +3788,13 @@ export type GradeSubmissionMutationVariables = Exact<{
 
 
 export type GradeSubmissionMutation = { __typename?: 'Mutation', gradeSubmission: { __typename?: 'Submission', id: string, status: SubmissionStatus, score?: number | null, markless: boolean, comment?: string | null } };
+
+export type CourseJournalQueryVariables = Exact<{
+  courseId: Scalars['ID']['input'];
+}>;
+
+
+export type CourseJournalQuery = { __typename?: 'Query', courseJournal: { __typename?: 'CourseJournal', courseId: string, title: string, students: Array<{ __typename?: 'JournalStudent', studentId: string, name: string, markless: boolean }>, sessions: Array<{ __typename?: 'JournalSession', sessionId: string, title: string, startAt?: string | null, status: string }>, cells: Array<{ __typename?: 'JournalCell', studentId: string, sessionId: string, attendance: string, score?: number | null }> } };
 
 export type ReportAttentionMutationVariables = Exact<{
   input: AttentionInput;
@@ -8830,6 +8879,67 @@ export function useGradeSubmissionMutation(baseOptions?: Apollo.MutationHookOpti
 export type GradeSubmissionMutationHookResult = ReturnType<typeof useGradeSubmissionMutation>;
 export type GradeSubmissionMutationResult = Apollo.MutationResult<GradeSubmissionMutation>;
 export type GradeSubmissionMutationOptions = Apollo.BaseMutationOptions<GradeSubmissionMutation, GradeSubmissionMutationVariables>;
+export const CourseJournalDocument = gql`
+    query CourseJournal($courseId: ID!) {
+  courseJournal(courseId: $courseId) {
+    courseId
+    title
+    students {
+      studentId
+      name
+      markless
+    }
+    sessions {
+      sessionId
+      title
+      startAt
+      status
+    }
+    cells {
+      studentId
+      sessionId
+      attendance
+      score
+    }
+  }
+}
+    `;
+
+/**
+ * __useCourseJournalQuery__
+ *
+ * To run a query within a React component, call `useCourseJournalQuery` and pass it any options that fit your needs.
+ * When your component renders, `useCourseJournalQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useCourseJournalQuery({
+ *   variables: {
+ *      courseId: // value for 'courseId'
+ *   },
+ * });
+ */
+export function useCourseJournalQuery(baseOptions: Apollo.QueryHookOptions<CourseJournalQuery, CourseJournalQueryVariables> & ({ variables: CourseJournalQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<CourseJournalQuery, CourseJournalQueryVariables>(CourseJournalDocument, options);
+      }
+export function useCourseJournalLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<CourseJournalQuery, CourseJournalQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<CourseJournalQuery, CourseJournalQueryVariables>(CourseJournalDocument, options);
+        }
+// @ts-ignore
+export function useCourseJournalSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<CourseJournalQuery, CourseJournalQueryVariables>): Apollo.UseSuspenseQueryResult<CourseJournalQuery, CourseJournalQueryVariables>;
+export function useCourseJournalSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<CourseJournalQuery, CourseJournalQueryVariables>): Apollo.UseSuspenseQueryResult<CourseJournalQuery | undefined, CourseJournalQueryVariables>;
+export function useCourseJournalSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<CourseJournalQuery, CourseJournalQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<CourseJournalQuery, CourseJournalQueryVariables>(CourseJournalDocument, options);
+        }
+export type CourseJournalQueryHookResult = ReturnType<typeof useCourseJournalQuery>;
+export type CourseJournalLazyQueryHookResult = ReturnType<typeof useCourseJournalLazyQuery>;
+export type CourseJournalSuspenseQueryHookResult = ReturnType<typeof useCourseJournalSuspenseQuery>;
+export type CourseJournalQueryResult = Apollo.QueryResult<CourseJournalQuery, CourseJournalQueryVariables>;
 export const ReportAttentionDocument = gql`
     mutation ReportAttention($input: AttentionInput!) {
   reportAttention(input: $input)

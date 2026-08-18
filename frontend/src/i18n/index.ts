@@ -8,6 +8,7 @@ import cabinetRu from './locales/ru/cabinet.json';
 import commonRu from './locales/ru/common.json';
 import coursesRu from './locales/ru/courses.json';
 import homeworkRu from './locales/ru/homework.json';
+import journalRu from './locales/ru/journal.json';
 import landingRu from './locales/ru/landing.json';
 import lessonRu from './locales/ru/lesson.json';
 import scheduleRu from './locales/ru/schedule.json';
@@ -56,6 +57,7 @@ export const resources = {
     start: startRu,
     subject: subjectRu,
     demo: demoRu,
+    journal: journalRu,
     landing: landingRu,
     mylearning: mylearningRu,
     lesson: lessonRu,

@@ -498,3 +498,74 @@ class SubjectProgress:
             previous_overall_pct=x.previous_overall_pct,
             weak_below_pct=x.weak_below_pct,
         )
+
+
+@strawberry.type
+class JournalStudent:
+    student_id: strawberry.ID
+    name: str
+    #: Дошкольник или первый класс — отметок не ставят (ФГОС НОО, ФЗ-273).
+    markless: bool
+
+
+@strawberry.type
+class JournalSession:
+    session_id: strawberry.ID
+    title: str
+    start_at: dt.datetime | None
+    status: str
+
+
+@strawberry.type
+class JournalCell:
+    student_id: strawberry.ID
+    session_id: strawberry.ID
+    #: «был» / «не был» / «опоздал», пусто — не отмечался.
+    attendance: str
+    score: int | None
+
+
+@strawberry.type
+class CourseJournal:
+    """Журнал одного предмета — первая половина (наряд 36 §5).
+
+    Клетки отдаются ПЛОСКИМ списком, а не матрицей: матрица в GraphQL — это либо JSON, который
+    нечем типизировать, либо список списков, у которого порядок держится на честном слове.
+    """
+
+    course_id: strawberry.ID
+    title: str
+    students: list[JournalStudent]
+    sessions: list[JournalSession]
+    cells: list[JournalCell]
+
+    @classmethod
+    def of(cls, data) -> CourseJournal:
+        return cls(
+            course_id=strawberry.ID(data.course_id),
+            title=data.title,
+            students=[
+                JournalStudent(
+                    student_id=strawberry.ID(s.student_id), name=s.name, markless=s.markless
+                )
+                for s in data.students
+            ],
+            sessions=[
+                JournalSession(
+                    session_id=strawberry.ID(s.session_id),
+                    title=s.title,
+                    start_at=s.start_at,
+                    status=s.status,
+                )
+                for s in data.sessions
+            ],
+            cells=[
+                JournalCell(
+                    student_id=strawberry.ID(c.student_id),
+                    session_id=strawberry.ID(c.session_id),
+                    attendance=c.attendance,
+                    score=c.score,
+                )
+                for c in data.cells
+            ],
+        )

@@ -285,7 +285,8 @@ export function SubjectScreen() {
                     else navigate(`/lessons/${lesson.id}/homework`);
                   }}
                 />
-                <Who cab={cab} isTeacher={isTeacher} onJournal={() => navigate('/grading')} />
+                <Who cab={cab} isTeacher={isTeacher} // Лист 01 обещает журнал — теперь он и открывается (наряд 36 §5).
+                  onJournal={() => navigate(`/journal/${courseId}`)} />
                 <Sources
                   sources={cab.sources}
                   onKeep={(s, note, later) => void keepSource(s, note, later)}

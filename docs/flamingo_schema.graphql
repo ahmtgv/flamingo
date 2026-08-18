@@ -1026,6 +1026,19 @@ enum MirrorKind {
   SAVED         # то, что ученик сохранил себе сам — из урока или из хаба источников
 }
 
+type JournalStudent { studentId: ID!  name: String!  markless: Boolean! }
+type JournalSession { sessionId: ID!  title: String!  startAt: DateTime  status: String! }
+type JournalCell { studentId: ID!  sessionId: ID!  attendance: String!  score: Int }
+type CourseJournal {
+  courseId: ID!
+  title: String!
+  students: [JournalStudent!]!
+  sessions: [JournalSession!]!
+  # Клетки ПЛОСКИМ списком: матрица в GraphQL — это либо нетипизируемый JSON, либо список
+  # списков, у которого порядок держится на честном слове.
+  cells: [JournalCell!]!
+}
+
 type MirroredRecord {
   id: ID!
   kind: MirrorKind!
@@ -1583,6 +1596,9 @@ input SaveItemInput {
 # Query
 # =============================================================================
 type Query {
+  """Журнал предмета — первая половина (промпт 36 §5): занятия, присутствие, оценки по группе.
+  Чего ещё нет: правка оценки в клетке, выгрузка, свод по четверти, переход из клетки в работу."""
+  courseJournal(courseId: ID!): CourseJournal!
   # identity
   me: User
   learningProfiles: [LearningProfile!]!                    # caller's own educations

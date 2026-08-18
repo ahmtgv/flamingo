@@ -36,6 +36,7 @@ import { StartScreen } from '@/features/start';
 import { SubjectScreen } from '@/features/subject';
 import { isDesktop } from '@/features/desktop/bridge';
 import { DemoRoomScreen } from '@/features/demo/ui/DemoRoomScreen';
+import { JournalScreen } from '@/features/journal/ui/JournalScreen';
 import { LandingScreen } from '@/features/landing/ui/LandingScreen';
 import { MyLearningScreen } from '@/features/mylearning/ui/MyLearningScreen';
 import { ConnectionLine } from '@/shared/ui/ConnectionLine/ConnectionLine';
@@ -400,6 +401,18 @@ export function AppRouter() {
           element={
             <ProtectedRoute>
               <StudentHomeworkScreen />
+            </ProtectedRoute>
+          }
+        />
+        {/*
+          🔴 СВОЙ ЖУРНАЛ ВМЕСТО ОЧЕРЕДИ ПРОВЕРКИ В СТАРОЙ РАМЕ (наряд 36 §5). Кнопка «Открыть
+          журнал» с листа 01 вела на `/grading` — экран прежнего кабинета со своей шапкой.
+        */}
+        <Route
+          path="/journal/:courseId"
+          element={
+            <ProtectedRoute>
+              <JournalScreen />
             </ProtectedRoute>
           }
         />
