@@ -1,0 +1,767 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>АТЛАС D2 — Первый запуск приложения преподавателя</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f1f1ef;--surface:#fff;--subtle:#e9e9e6;--border:#d9d9d6;--border-s:#c4c4c1;
+  --ink:#1d1d1f;--sec:#6e6e73;--ter:#98989e;
+  --coral:#e14e1f;--coral-t:#c23f14;--coral-soft:#fdeee7;
+  --good:#3fa46a;--good-soft:#e9f5ee;--warn:#c9a227;--warn-soft:#fdf6da;--warn-ink:#8a7413;
+  --ui:-apple-system,'SF Pro Display',Inter,system-ui,sans-serif;
+  --mono:'JetBrains Mono','SF Mono',ui-monospace,monospace;
+  --ease:cubic-bezier(.2,0,0,1);
+  --fs-body:1.0625rem;--fs-small:.875rem;--fs-cap:.8125rem;--fs-micro:.75rem;
+}
+[data-theme="dark"]{
+  --bg:#101012;--surface:#1a1a1c;--subtle:#242426;--border:#2e2e31;--border-s:#3f3f43;
+  --ink:#f2f2f0;--sec:#98989e;--ter:#6e6e73;--coral:#ff7040;--coral-t:#ff8a5f;--coral-soft:#33201a;
+  --good:#4cb87c;--good-soft:#16281e;--warn:#d9b53c;--warn-soft:#332b12;--warn-ink:#e2c74a;
+}
+*{box-sizing:border-box;margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--ui);font-size:var(--fs-body);
+  line-height:1.6;padding:18px 18px 90px;transition:background .32s var(--ease),color .32s var(--ease)}
+h1{font-size:1.25rem;font-weight:600;letter-spacing:-.015em}
+.sub{color:var(--sec);font-size:var(--fs-small);margin:4px 0 14px;max-width:110ch}
+.bar{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:14px;position:sticky;top:6px;z-index:20;
+  background:var(--bg);padding:8px 0}
+.bar .grp{font:500 10px var(--mono);color:var(--ter);letter-spacing:.1em;text-transform:uppercase;margin:0 2px 0 10px}
+.bar .grp:first-child{margin-left:0}
+.bar button{font:500 12px var(--mono);color:var(--sec);background:var(--bg);border:1px solid var(--border);
+  border-radius:999px;padding:7px 13px;cursor:pointer;transition:all .18s var(--ease)}
+.bar button[aria-pressed="true"]{color:var(--ink);border-color:var(--border-s);background:var(--surface)}
+.bar button:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(225,78,31,.4)}
+
+/* ═══ ОКНО ПРИЛОЖЕНИЯ ═══ */
+.app{background:var(--surface);border:1px solid var(--border-s);border-radius:12px;overflow:hidden;
+  box-shadow:0 18px 50px rgba(0,0,0,.13);display:grid;grid-template-rows:44px 1fr}
+[data-theme="dark"] .app{box-shadow:0 18px 50px rgba(0,0,0,.55)}
+.titlebar{display:flex;align-items:center;gap:12px;padding:0 14px;background:var(--subtle);
+  border-bottom:1px solid var(--border);user-select:none}
+.traffic{display:flex;gap:8px;flex:none}
+.traffic i{width:12px;height:12px;border-radius:50%;display:block}
+.traffic i:nth-child(1){background:#ff5f57}
+.traffic i:nth-child(2){background:#febc2e}
+.traffic i:nth-child(3){background:#28c840}
+.appName{display:flex;align-items:center;gap:7px;font:500 var(--fs-cap) var(--ui);flex:none}
+.appName .dot{width:7px;height:7px;border-radius:50%;background:var(--coral)}
+.appName .ver{font:400 9px var(--mono);color:var(--ter)}
+.tbNote{margin:0 auto;font:500 10px var(--mono);color:var(--sec);border:1px solid var(--border);
+  border-radius:999px;padding:4px 13px;background:var(--surface);white-space:nowrap}
+.titleRight{flex:none;display:flex;align-items:center;gap:6px}
+.iconBtn{width:28px;height:28px;border-radius:7px;border:1px solid transparent;background:none;cursor:pointer;
+  color:var(--sec);display:grid;place-content:center;font:500 11px var(--mono)}
+.iconBtn:hover{background:var(--surface);color:var(--ink);border-color:var(--border)}
+.iconBtn:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(225,78,31,.4)}
+
+/* ═══ ТЕЛО: слева шаги, справа экран ═══ */
+.body{display:grid;grid-template-columns:268px minmax(0,1fr);min-height:660px;background:var(--bg)}
+@media (max-width:1020px){.body{grid-template-columns:minmax(0,1fr)}.rail{display:none}}
+.rail{border-inline-end:1px solid var(--border);background:var(--surface);padding:24px 20px;display:grid;
+  align-content:start;gap:2px}
+.railTitle{font:500 var(--fs-micro) var(--mono);color:var(--ter);letter-spacing:.09em;text-transform:uppercase;
+  margin-bottom:12px}
+.step{display:grid;grid-template-columns:22px 1fr;gap:11px;align-items:start;padding:9px 8px;border-radius:9px;
+  border:1px solid transparent;background:none;cursor:pointer;text-align:start;width:100%}
+.step:hover{background:var(--subtle)}
+.step:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(225,78,31,.4)}
+.stepN{width:22px;height:22px;border-radius:50%;border:1px solid var(--border-s);display:grid;place-content:center;
+  font:500 10px var(--mono);color:var(--sec);margin-top:1px}
+.stepT{font-size:var(--fs-cap);font-weight:500;line-height:1.35}
+.stepS{font:400 10px var(--mono);color:var(--ter);display:block;margin-top:2px}
+.step[data-done] .stepN{background:var(--good-soft);border-color:var(--good);color:var(--good)}
+.step[aria-current="true"]{background:var(--coral-soft);border-color:var(--coral)}
+.step[aria-current="true"] .stepN{background:var(--coral);border-color:var(--coral);color:#fff}
+.step[aria-current="true"] .stepT{color:var(--coral-t)}
+.railFoot{margin-top:18px;padding-top:14px;border-top:1px solid var(--border);font:400 10px var(--mono);
+  color:var(--ter);line-height:1.7}
+
+.pane{padding:34px 40px 30px;overflow:auto;display:none;min-width:0}
+.body[data-step="1"] .p1,.body[data-step="2"] .p2,.body[data-step="3"] .p3,
+.body[data-step="4"] .p4,.body[data-step="5"] .p5,.body[data-step="6"] .p6{display:block}
+.pTop{max-width:78ch;margin-bottom:22px}
+.pKick{font:500 var(--fs-micro) var(--mono);color:var(--coral-t);letter-spacing:.1em;text-transform:uppercase}
+.pH{font-size:1.5rem;font-weight:600;letter-spacing:-.02em;margin:6px 0 8px}
+.pS{color:var(--sec);font-size:var(--fs-small)}
+
+.card{background:var(--surface);border:1px solid var(--border);border-radius:13px;padding:18px 20px}
+.card + .card{margin-top:12px}
+.cardT{font:500 var(--fs-micro) var(--mono);color:var(--ter);letter-spacing:.09em;text-transform:uppercase;
+  margin-bottom:12px;display:flex;align-items:center;gap:10px}
+.cardT .tag{margin-inline-start:auto;font:500 9px var(--mono);border-radius:5px;padding:2px 8px;letter-spacing:.06em}
+.tag.ok{color:var(--good);background:var(--good-soft)}
+.tag.warn{color:var(--warn-ink);background:var(--warn-soft)}
+.tag.acc{color:var(--coral-t);background:var(--coral-soft)}
+
+.cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;align-items:start}
+.cols3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;align-items:start}
+@media (max-width:1240px){.cols3{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}}
+@media (max-width:900px){.cols,.cols3{grid-template-columns:minmax(0,1fr)}}
+
+/* поля */
+.field{display:grid;gap:5px;margin-bottom:12px}
+.lab{font:500 var(--fs-micro) var(--mono);color:var(--ter);letter-spacing:.07em;text-transform:uppercase}
+.inp{border:1px solid var(--border-s);border-radius:9px;padding:11px 13px;background:var(--surface);
+  font:400 var(--fs-cap) var(--ui);color:var(--ink)}
+.inp[data-ph]{color:var(--ter)}
+.inp:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(225,78,31,.4);border-color:var(--coral)}
+.hint{font:400 10px var(--mono);color:var(--ter);line-height:1.6}
+
+.btn{font:500 var(--fs-cap) var(--ui);border-radius:10px;padding:11px 20px;cursor:pointer;border:1px solid var(--border-s);
+  background:var(--surface);color:var(--ink)}
+.btn:hover{border-color:var(--ter)}
+.btn.primary{background:var(--coral);border-color:var(--coral);color:#fff}
+.btn.primary:hover{background:var(--coral-t)}
+.btn.ghost{border-color:transparent;color:var(--sec);background:none}
+.btn:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(225,78,31,.4)}
+.foot{display:flex;align-items:center;gap:10px;margin-top:18px;flex-wrap:wrap}
+.footNote{font:400 10px var(--mono);color:var(--ter);max-width:46ch;line-height:1.6}
+.footNote.push{margin-inline-start:auto;text-align:end}
+
+/* код связывания машины */
+.pair{display:flex;align-items:center;gap:12px;font:500 2rem var(--mono);letter-spacing:.22em;
+  background:var(--subtle);border:1px solid var(--border-s);border-radius:11px;padding:16px 20px;
+  justify-content:center;font-variant-numeric:tabular-nums}
+.pairSep{color:var(--ter);letter-spacing:0}
+.pairWait{display:flex;align-items:center;gap:9px;font:400 10px var(--mono);color:var(--ter);margin-top:10px}
+.pairDot{width:6px;height:6px;border-radius:50%;background:var(--coral);flex:none}
+@media (prefers-reduced-motion:no-preference){.pairDot{animation:pulse 2.4s ease-in-out infinite}}
+@keyframes pulse{50%{opacity:.25}}
+
+/* путь к папке */
+.path{display:flex;align-items:center;gap:10px;border:1px solid var(--border-s);border-radius:9px;
+  padding:10px 12px;background:var(--subtle);font:500 var(--fs-cap) var(--mono);overflow:hidden}
+.path span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.path .why{margin-inline-start:auto;flex:none}
+
+/* список фактов */
+.facts{display:grid;gap:9px}
+.f{display:grid;grid-template-columns:16px 1fr;gap:10px;align-items:start;font-size:var(--fs-cap);color:var(--sec)}
+.f b{color:var(--ink);font-weight:500}
+.f i{width:16px;height:16px;border-radius:50%;display:grid;place-content:center;font:500 9px var(--mono);
+  font-style:normal;margin-top:2px}
+.f[data-yes] i{background:var(--good-soft);color:var(--good)}
+.f[data-no] i{background:var(--coral-soft);color:var(--coral-t)}
+.f[data-i] i{background:var(--subtle);color:var(--sec)}
+
+/* согласия */
+.cons{display:grid;grid-template-columns:20px 1fr;gap:12px;align-items:start;padding:13px 0;
+  border-bottom:1px solid var(--border)}
+.cons:last-child{border-bottom:none}
+.box{width:20px;height:20px;border-radius:6px;border:1px solid var(--border-s);background:var(--surface);
+  display:grid;place-content:center;font:500 11px var(--mono);color:transparent;cursor:pointer;margin-top:2px}
+.box[data-on]{background:var(--coral);border-color:var(--coral);color:#fff}
+.box:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(225,78,31,.4)}
+.consT{font-size:var(--fs-cap);font-weight:500}
+.consS{font-size:var(--fs-cap);color:var(--sec);margin-top:3px}
+.consS a{color:var(--coral-t)}
+.req{font:500 8px var(--mono);color:var(--coral-t);background:var(--coral-soft);border-radius:4px;padding:2px 6px;
+  letter-spacing:.08em;text-transform:uppercase;margin-inline-start:7px;vertical-align:1px}
+.opt{font:500 8px var(--mono);color:var(--sec);background:var(--subtle);border-radius:4px;padding:2px 6px;
+  letter-spacing:.08em;text-transform:uppercase;margin-inline-start:7px;vertical-align:1px}
+
+/* проверка железа */
+.checkGrid{display:grid;grid-template-columns:minmax(0,320px) minmax(0,1fr);gap:12px;align-items:start}
+@media (max-width:1000px){.checkGrid{grid-template-columns:minmax(0,1fr)}}
+.preview{position:relative;border-radius:11px;background:#17171a;aspect-ratio:4/3;display:grid;place-content:center;
+  border:1px solid rgba(255,255,255,.08);overflow:hidden}
+.preview .ini{font:500 46px var(--mono);color:rgba(255,255,255,.32)}
+.preview .badge{position:absolute;left:10px;bottom:10px;font:500 9px var(--mono);color:#fff;
+  background:rgba(0,0,0,.55);border-radius:5px;padding:3px 9px}
+.body[data-cam="off"] .preview .ini{display:none}
+.camOff{display:none;text-align:center;padding:0 22px;color:rgba(255,255,255,.65);font-size:var(--fs-cap)}
+.body[data-cam="off"] .camOff{display:block}
+.lvl{display:flex;gap:3px;align-items:flex-end;height:16px;margin-top:10px}
+.lvl i{width:5px;border-radius:2px;background:var(--border-s);display:block;height:6px}
+.lvl i:nth-child(-n+7){background:var(--good)}
+.lvl i:nth-child(2){height:11px}.lvl i:nth-child(3){height:15px}.lvl i:nth-child(4){height:9px}
+.lvl i:nth-child(5){height:14px}.lvl i:nth-child(6){height:8px}.lvl i:nth-child(7){height:12px}
+.lvl i:nth-child(8){height:7px}.lvl i:nth-child(9){height:10px}.lvl i:nth-child(10){height:6px}
+
+.verdict{border:1px solid var(--good);background:var(--good-soft);border-radius:12px;padding:16px 18px;display:grid;gap:6px}
+.body[data-up="weak"] .verdict{border-color:var(--warn);background:var(--warn-soft)}
+.body[data-up="bad"] .verdict{border-color:var(--coral);background:var(--coral-soft)}
+.vT{font-size:1.0625rem;font-weight:600}
+.body[data-up="good"] .vT{color:var(--good)}
+.body[data-up="weak"] .vT{color:var(--warn-ink)}
+.body[data-up="bad"] .vT{color:var(--coral-t)}
+.vS{font-size:var(--fs-cap);color:var(--sec)}
+.nums{display:flex;gap:22px;flex-wrap:wrap;margin-top:12px;padding-top:12px;border-top:1px solid var(--border)}
+.n{display:grid;gap:1px}
+.nK{font:500 9px var(--mono);color:var(--ter);letter-spacing:.08em;text-transform:uppercase}
+.nV{font:500 var(--fs-cap) var(--mono);font-variant-numeric:tabular-nums}
+.capacity{display:grid;gap:7px;margin-top:12px}
+.cap{display:grid;grid-template-columns:120px 1fr auto;gap:12px;align-items:center;font-size:var(--fs-cap)}
+.capBar{height:6px;border-radius:3px;background:var(--subtle);overflow:hidden}
+.capBar i{display:block;height:100%;border-radius:3px;background:var(--good)}
+.cap[data-over] .capBar i{background:var(--coral)}
+.capV{font:500 10px var(--mono);color:var(--sec);white-space:nowrap}
+
+/* готово */
+.done{display:grid;gap:14px;max-width:74ch}
+.doneRow{display:flex;gap:10px;flex-wrap:wrap}
+.tile{border:1px solid var(--border);border-radius:12px;padding:14px 16px;background:var(--surface);display:grid;gap:3px;
+  min-width:210px;cursor:pointer;text-align:start}
+.tile:hover{border-color:var(--border-s)}
+.tileT{font-size:var(--fs-cap);font-weight:500}
+.tileS{font:400 10px var(--mono);color:var(--ter)}
+
+/* настройки */
+.setGrid{display:grid;grid-template-columns:190px minmax(0,1fr);gap:14px;align-items:start}
+@media (max-width:900px){.setGrid{grid-template-columns:minmax(0,1fr)}}
+.setNav{display:grid;gap:2px;align-content:start}
+.sn{font:500 var(--fs-cap) var(--ui);color:var(--sec);background:none;border:none;border-radius:9px;padding:9px 12px;
+  text-align:start;cursor:pointer}
+.sn:hover{background:var(--subtle);color:var(--ink)}
+.sn[aria-selected="true"]{background:var(--subtle);color:var(--ink);font-weight:500}
+.sn:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(225,78,31,.4)}
+.setRow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:14px;align-items:center;padding:12px 0;
+  border-bottom:1px solid var(--border)}
+.setRow:last-child{border-bottom:none}
+.setK{font-size:var(--fs-cap);font-weight:500}
+.setS{font:400 10px var(--mono);color:var(--ter);margin-top:2px;line-height:1.6}
+.setV{font:500 var(--fs-cap) var(--mono);color:var(--sec);font-variant-numeric:tabular-nums;white-space:nowrap}
+.mini{font:500 10px var(--mono);color:var(--sec);background:none;border:1px solid var(--border);border-radius:8px;
+  padding:6px 11px;cursor:pointer;white-space:nowrap}
+.mini:hover{border-color:var(--border-s);color:var(--ink)}
+.mini:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(225,78,31,.4)}
+
+/* заметки */
+.notes{margin-top:24px;padding-top:20px;border-top:1px solid var(--border);max-width:104ch}
+.notes h2{font-size:1.0625rem;font-weight:600;margin-bottom:8px}
+.notes h3{font-size:var(--fs-small);font-weight:600;margin:16px 0 5px}
+.notes p,.notes li{font-size:var(--fs-small);color:var(--sec);line-height:1.75}
+.notes b{color:var(--ink);font-weight:500}
+.notes ul{padding-inline-start:19px;display:grid;gap:4px}
+.q{border-inline-start:2px solid var(--coral);padding:2px 0 2px 13px;margin:9px 0}
+.q p{color:var(--ink)}
+
+/* знак бренда в шапке — намеренно грубый рисунок, см. docs/brand/flamingo-brandbook.html §01 */
+.mk{width:1.55em;height:1.4em;flex:none;overflow:visible;vertical-align:-.3em}
+[data-theme="dark"] .mk{--mk-c:#ff7040;--mk-ink:#f2f2f0;--mk-eye:#1a1a1c}
+</style>
+</head>
+<body>
+
+  <h1>АТЛАС D2 — Первый запуск</h1>
+  <p class="sub">Что видит преподаватель после установки приложения: вход, где будут лежать данные, согласия,
+  проверка камеры, микрофона и канала. Здесь же — экран настроек, куда по решению владельца ушли числа связи.</p>
+
+  <div class="bar">
+    <span class="grp">Шаг</span>
+    <button data-step="1" aria-pressed="true">1 · вход</button>
+    <button data-step="2">2 · данные</button>
+    <button data-step="3">3 · согласия</button>
+    <button data-step="4">4 · проверка</button>
+    <button data-step="5">5 · готово</button>
+    <span class="grp">Потом</span>
+    <button data-step="6">настройки</button>
+    <span class="grp">Канал</span>
+    <button data-up="good" aria-pressed="true">хороший</button>
+    <button data-up="weak">слабый</button>
+    <button data-up="bad">не годится</button>
+    <span class="grp">Камера</span>
+    <button data-cam="on" aria-pressed="true">есть</button>
+    <button data-cam="off">не найдена</button>
+    <span class="grp">Тема</span>
+    <button id="thm">тёмная</button>
+  </div>
+
+  <div class="app">
+    <div class="titlebar">
+      <span class="traffic"><i></i><i></i><i></i></span>
+      <span class="appName"><svg class="mk" viewBox="0 0 120 110" aria-hidden="true"><g fill="none" stroke="var(--mk-c,#e14e1f)" stroke-linecap="round"><path d="M28 55 L7 44" stroke-width="5.4"/><path d="M26 61 L3 59" stroke-width="7"/><path d="M28 66 L10 74" stroke-width="5.8"/><path d="M44 80 L39 92 L36 103" stroke-width="5.6"/><path d="M57 78 L59 90 L56 102" stroke-width="5"/></g><path d="M58 52 C70 44 60 28 74 16" fill="none" stroke="var(--mk-c,#e14e1f)" stroke-width="10" stroke-linecap="round"/><ellipse cx="48" cy="63" rx="26" ry="21" fill="var(--mk-c,#e14e1f)" transform="rotate(-6 48 63)"/><circle cx="78" cy="13" r="8.5" fill="var(--mk-c,#e14e1f)"/><path d="M85 7 L108 14 L86 19 Z" fill="var(--mk-ink,#1d1d1f)"/><circle cx="77" cy="8" r="2.2" fill="var(--mk-eye,#fff)"/></svg>Flamingo<span class="ver">1.0.0</span></span>
+      <span class="tbNote" id="tbNote">первый запуск · настройка</span>
+      <span class="titleRight">
+        <button class="iconBtn" title="Свернуть" aria-label="Свернуть">▾</button>
+        <button class="iconBtn" title="Настройки" aria-label="Настройки">⚙</button>
+      </span>
+    </div>
+
+    <div class="body" id="body" data-step="1" data-up="good" data-cam="on">
+
+      <!-- ═══ рельс шагов ═══ -->
+      <div class="rail">
+        <div class="railTitle">Настройка · 5 шагов</div>
+        <button class="step" data-step="1" aria-current="true">
+          <span class="stepN">1</span>
+          <span><span class="stepT">Вход<span class="stepS">учётка преподавателя</span></span></span></button>
+        <button class="step" data-step="2">
+          <span class="stepN">2</span>
+          <span><span class="stepT">Где будут лежать данные<span class="stepS">папка кабинета и копия</span></span></span></button>
+        <button class="step" data-step="3">
+          <span class="stepN">3</span>
+          <span><span class="stepT">Согласия<span class="stepS">что уходит и что не уходит</span></span></span></button>
+        <button class="step" data-step="4">
+          <span class="stepN">4</span>
+          <span><span class="stepT">Камера, микрофон, канал<span class="stepS">до первого урока, не во время</span></span></span></button>
+        <button class="step" data-step="5">
+          <span class="stepN">5</span>
+          <span><span class="stepT">Готово<span class="stepS">первый урок и приглашение</span></span></span></button>
+        <div class="railFoot">Настройку можно прервать: сделанное сохраняется,
+          приложение вернёт на тот же шаг.<br>Ничего не отправляется, пока шаг 3 не пройден.</div>
+      </div>
+
+      <!-- ═══ ШАГ 1 · ВХОД ═══ -->
+      <div class="pane p1">
+        <div class="pTop">
+          <div class="pKick">Шаг 1 из 5</div>
+          <div class="pH">Войдите в свою учётку</div>
+          <div class="pS">Это та же учётка, что и в браузере: расписание, ученики, материалы уже в ней.
+            Приложение не заводит вторую жизнь — оно даёт этой машине право вести урок.
+            <b>Пароль здесь не спрашивают</b>: вы подтверждаете машину в браузере, где привычно и видно адрес сайта.</div>
+        </div>
+
+        <div class="cols">
+          <div class="card">
+            <div class="cardT">Подключение этой машины<span class="tag acc">без пароля</span></div>
+            <p class="hint" style="margin-bottom:14px">Откройте в браузере <b>flamingo.plus/связать</b> —
+              войдите как обычно и введите этот код. Он живёт десять минут и годится один раз.</p>
+            <div class="pair"><span>K7M</span><span class="pairSep">·</span><span>4Q2</span></div>
+            <div class="pairWait"><span class="pairDot"></span>Ждём подтверждения в браузере · осталось 9:41</div>
+            <div class="foot">
+              <button class="btn primary">Открыть страницу в браузере</button>
+              <button class="btn">Новый код</button>
+            </div>
+            <p class="hint" style="margin-top:14px">Учётки ещё нет — на той же странице <b>«Создать»</b>:
+              регистрация, согласия и подтверждение почты проходят в браузере, а сюда вернётся уже готовый вход.</p>
+          </div>
+
+          <div class="card">
+            <div class="cardT">Что даёт вход именно с этой машины<span class="tag acc">важно</span></div>
+            <div class="facts">
+              <div class="f" data-yes><i>✓</i><span><b>Эта машина становится ведущей.</b>
+                Урок раздаётся с неё, поэтому она должна быть включена во время занятия.</span></div>
+              <div class="f" data-yes><i>✓</i><span><b>Кабинет ученикам виден через вас.</b>
+                Пока приложение не запущено, ученики видят «преподаватель не в сети» — экран честный, не пустой.</span></div>
+              <div class="f" data-i><i>i</i><span><b>Вход с другого устройства</b> появится позже:
+                отдельная синхронизация кабинета, чтобы можно было открыть свои материалы в отпуске.
+                Тот же код свяжет и вторую машину.</span></div>
+              <div class="f" data-yes><i>✓</i><span><b>Пароль не хранится в приложении.</b> После подтверждения
+                машина держит ключ доступа в связке ключей системы; отозвать его можно из кабинета в браузере —
+                например, если ноутбук потерян.</span></div>
+            </div>
+            <div class="foot"><button class="btn ghost">Войти по почте и паролю</button>
+              <span class="footNote">Запасной путь, если браузер под рукой не открывается.</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ ШАГ 2 · ДАННЫЕ ═══ -->
+      <div class="pane p2">
+        <div class="pTop">
+          <div class="pKick">Шаг 2 из 5</div>
+          <div class="pH">Где будут лежать данные</div>
+          <div class="pS">Работы учеников, оценки, доски и саммари хранятся <b>на этом компьютере</b>.
+            Так задумано: данные детей не разъезжаются по чужим серверам. Из этого следует одно —
+            копия обязательна, и её мы настраиваем прямо сейчас.</div>
+        </div>
+
+        <div class="cols">
+          <div class="card">
+            <div class="cardT">Папка кабинета</div>
+            <div class="path"><span>~/Flamingo/Кабинет — Люция Валерьевна</span>
+              <button class="mini why">Изменить</button></div>
+            <p class="hint" style="margin-top:10px">Внутри: программы курсов, доски и майндмапы, домашние
+              и лабораторные работы, ответы на тесты, оценки, саммари занятий.
+              Видео и аудио занятий нет — они не записываются нигде и никогда.</p>
+            <div class="facts" style="margin-top:14px">
+              <div class="f" data-i><i>i</i><span>Занимает примерно <b>2–4 ГБ в год</b> на группу:
+                тексты, картинки и доски, без тяжёлого медиа.</span></div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="cardT">Копия кабинета<span class="tag acc">обязательна</span></div>
+            <p class="hint" style="margin-bottom:12px">Ноутбук — единственное место, где живут работы и оценки
+              ваших учеников. Сломается, потеряется, зальют кофе — восстанавливать будет нечего.
+              Поэтому копию мы не предлагаем, а настраиваем.</p>
+            <div class="cons">
+              <button class="box" data-on aria-label="Копия на внешний диск">✓</button>
+              <span><span class="consT">На внешний диск или в вашу папку облака</span>
+                <span class="consS">Раз в день и всегда после занятия. Один файл, из которого кабинет
+                  восстанавливается целиком.</span></span>
+            </div>
+            <div class="cons">
+              <button class="box" aria-label="Копия на сервер Flamingo">&nbsp;</button>
+              <span><span class="consT">Копия у нас <span class="opt">по желанию</span></span>
+                <span class="consS">Файл <b>шифруется на вашем компьютере</b>. На сервере лежит непрозрачный
+                  блок: мы не можем его прочитать — только вернуть вам.</span></span>
+            </div>
+            <div class="foot">
+              <button class="btn primary">Дальше</button>
+              <span class="footNote">Ключ шифрования остаётся у вас. Потеряете ключ — копию не восстановит никто,
+                включая нас. Это честная цена за то, что данные детей не читает посторонний.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ ШАГ 3 · СОГЛАСИЯ ═══ -->
+      <div class="pane p3">
+        <div class="pTop">
+          <div class="pKick">Шаг 3 из 5</div>
+          <div class="pH">Что уходит с этой машины, а что не уходит никогда</div>
+          <div class="pS">Мы показываем это списком до первого урока, а не прячем в соглашение из сорока страниц.
+            Преподаватель должен уметь ответить родителю на вопрос «а что вы там записываете» одной фразой.</div>
+        </div>
+
+        <div class="cols">
+          <div class="card">
+            <div class="cardT">Не уходит никогда<span class="tag ok">гарантия продукта</span></div>
+            <div class="facts">
+              <div class="f" data-no><i>✕</i><span><b>Видео занятия</b> — не записывается и не хранится нигде.</span></div>
+              <div class="f" data-no><i>✕</i><span><b>Аудио занятия</b> — то же самое.</span></div>
+              <div class="f" data-no><i>✕</i><span><b>Дословная расшифровка речи.</b> Речь обрабатывается на лету,
+                только чтобы собрать саммари; буфер очищается сразу после.</span></div>
+              <div class="f" data-no><i>✕</i><span><b>Кадры с камеры и черты лица.</b> Анализ внимания идёт
+                внутри устройства; наружу выходит только усреднённое число за интервал.</span></div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="cardT">Согласия</div>
+            <div class="cons">
+              <button class="box" data-on aria-label="Обработка персональных данных">✓</button>
+              <span><span class="consT">Обработка персональных данных <span class="req">обязательно</span></span>
+                <span class="consS">По 152-ФЗ. Данные учеников хранятся на серверах в России, а в этом режиме —
+                  ещё и у вас на компьютере. <a href="#">Текст</a></span></span>
+            </div>
+            <div class="cons">
+              <button class="box" data-on aria-label="Саммари занятий">✓</button>
+              <span><span class="consT">Саммари занятий <span class="req">обязательно</span></span>
+                <span class="consS">Конспект занятия собирается на наших серверах и возвращается вам и ученикам.
+                  Исходная речь при этом не сохраняется. <a href="#">Как это устроено</a></span></span>
+            </div>
+            <div class="cons">
+              <button class="box" aria-label="Анализ внимания">&nbsp;</button>
+              <span><span class="consT">Анализ внимания на занятии <span class="opt">по желанию</span></span>
+                <span class="consS">Включается отдельно и учителем, и учеником. Наружу уходит одно усреднённое
+                  число за интервал — ни кадров, ни эмоций, ни выводов о личности.</span></span>
+            </div>
+            <div class="foot">
+              <button class="btn primary">Принять и продолжить</button>
+              <span class="footNote">Согласие родителей ученика собирается при регистрации ученика,
+                а не здесь — вам не нужно ничего подписывать за них.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ ШАГ 4 · ПРОВЕРКА ═══ -->
+      <div class="pane p4">
+        <div class="pTop">
+          <div class="pKick">Шаг 4 из 5</div>
+          <div class="pH">Камера, микрофон и канал</div>
+          <div class="pS">Проверяем сейчас, а не за минуту до урока. Слабый канал — не приговор:
+            он просто ограничивает размер группы, и лучше узнать об этом до того, как в комнате восемь детей.</div>
+        </div>
+
+        <div class="checkGrid">
+          <div class="card">
+            <div class="cardT">Камера и звук</div>
+            <div class="preview">
+              <span class="ini">ЛВ</span>
+              <span class="camOff">Камера не найдена.<br>Урок вести можно — ученики услышат вас
+                и увидят доску, но не увидят лица.</span>
+              <span class="badge">FaceTime HD · 1280×720</span>
+            </div>
+            <div class="setRow" style="border-bottom:none;padding-bottom:4px">
+              <span><span class="setK">Микрофон</span><span class="setS">MacBook Pro · встроенный</span></span>
+              <span class="lvl"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+            </div>
+            <div class="foot"><button class="mini">Выбрать другое устройство</button>
+              <button class="mini">Проверить звук</button></div>
+          </div>
+
+          <div>
+            <div class="card">
+              <div class="cardT">Канал вверх — от него зависит всё<span class="tag ok" id="upTag">хороший</span></div>
+              <div class="verdict">
+                <span class="vT" id="vT">Канал хороший — группа до восьми учеников</span>
+                <span class="vS" id="vS">Ваш компьютер раздаёт урок сам, поэтому важен именно исходящий канал.
+                  Замер занял двенадцать секунд и повторится сам перед каждым занятием.</span>
+              </div>
+              <div class="nums">
+                <span class="n"><span class="nK">Вверх</span><span class="nV" id="nUp">18,4 Мбит/с</span></span>
+                <span class="n"><span class="nK">Вниз</span><span class="nV" id="nDown">72,1 Мбит/с</span></span>
+                <span class="n"><span class="nK">Задержка</span><span class="nV" id="nPing">24 мс</span></span>
+                <span class="n"><span class="nK">Потери</span><span class="nV" id="nLoss">0,1 %</span></span>
+                <span class="n"><span class="nK">Соединение</span><span class="nV" id="nConn">прямое</span></span>
+              </div>
+              <div class="capacity">
+                <div class="cap"><span>Вдвоём</span><span class="capBar"><i style="width:14%"></i></span>
+                  <span class="capV">нужно 1,1 Мбит/с</span></div>
+                <div class="cap"><span>Группа 4</span><span class="capBar"><i style="width:32%"></i></span>
+                  <span class="capV">нужно 2,4 Мбит/с</span></div>
+                <div class="cap" id="cap8"><span>Группа 8</span><span class="capBar"><i style="width:58%"></i></span>
+                  <span class="capV">нужно 4,3 Мбит/с</span></div>
+              </div>
+              <div class="foot">
+                <button class="btn primary">Дальше</button>
+                <button class="btn">Замерить ещё раз</button>
+                <span class="footNote push" id="upNote">Числа дальше живут в настройках: во время урока
+                  вы видите слово, а не телеметрию.</span>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="cardT">Почему исходящий канал важнее всего остального</div>
+              <p class="hint">Урок идёт не через наш сервер, а с вашего компьютера: он отправляет своё видео
+                каждому ученику. Восемь учеников — восемь исходящих дорожек. Поэтому «интернет быстрый»
+                и «канал вверх достаточный» — разные вещи: у домашних тарифов вход обычно в разы шире выхода.
+                Проводное подключение вместо Wi-Fi часто решает вопрос само.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ ШАГ 5 · ГОТОВО ═══ -->
+      <div class="pane p5">
+        <div class="pTop">
+          <div class="pKick">Готово</div>
+          <div class="pH">Приложение настроено</div>
+          <div class="pS">Дальше всё то же, что в браузере, плюс одно отличие: урок ведётся отсюда.</div>
+        </div>
+
+        <div class="done">
+          <div class="card">
+            <div class="cardT">Что сделано</div>
+            <div class="facts">
+              <div class="f" data-yes><i>✓</i><span>Вход выполнен — <b>Люция Валерьевна</b>, преподаватель английского.</span></div>
+              <div class="f" data-yes><i>✓</i><span>Кабинет лежит в <b>~/Flamingo/Кабинет</b>, копия — раз в день и после каждого занятия.</span></div>
+              <div class="f" data-yes><i>✓</i><span>Согласия приняты; анализ внимания <b>включён</b> — выключить можно в любой момент.</span></div>
+              <div class="f" data-yes><i>✓</i><span>Камера, микрофон и канал проверены: <b>группа до восьми учеников</b>.</span></div>
+            </div>
+          </div>
+
+          <div class="doneRow">
+            <button class="tile"><span class="tileT">Создать первое занятие</span>
+              <span class="tileS">курс · дата · участники</span></button>
+            <button class="tile"><span class="tileT">Пригласить учеников</span>
+              <span class="tileS">ссылка · вход в браузере</span></button>
+            <button class="tile"><span class="tileT">Открыть кабинет</span>
+              <span class="tileS">стартовая страница</span></button>
+          </div>
+
+          <p class="hint">Приложение можно закрывать: пока урока нет, оно ничего не делает.
+            За пять минут до занятия оно напомнит о себе и прогреет связь.</p>
+        </div>
+      </div>
+
+      <!-- ═══ НАСТРОЙКИ ═══ -->
+      <div class="pane p6">
+        <div class="pTop">
+          <div class="pKick">Потом · шестерёнка в заголовке</div>
+          <div class="pH">Настройки</div>
+          <div class="pS">Сюда по решению владельца уехали все числа связи. Во время урока преподаватель
+            видит слово — «связь хорошая»; здесь лежит то, что за этим словом стоит.</div>
+        </div>
+
+        <div class="setGrid">
+          <div class="setNav">
+            <button class="sn">Учётка</button>
+            <button class="sn">Устройства</button>
+            <button class="sn" aria-selected="true">Связь</button>
+            <button class="sn">Данные и копия</button>
+            <button class="sn">Урок</button>
+            <button class="sn">Обновления</button>
+            <button class="sn">О программе</button>
+          </div>
+
+          <div>
+            <div class="card">
+              <div class="cardT">Связь · последний замер сегодня в 09:12</div>
+              <div class="setRow"><span><span class="setK">Канал вверх</span>
+                <span class="setS">Определяет, сколько учеников можно вести без потери качества</span></span>
+                <span class="setV">18,4 Мбит/с</span></div>
+              <div class="setRow"><span><span class="setK">Канал вниз</span>
+                <span class="setS">На урок влияет мало: вы больше отдаёте, чем принимаете</span></span>
+                <span class="setV">72,1 Мбит/с</span></div>
+              <div class="setRow"><span><span class="setK">Задержка · потери</span>
+                <span class="setS">Рывки в звуке начинаются с 2 % потерь</span></span>
+                <span class="setV">24 мс · 0,1 %</span></div>
+              <div class="setRow"><span><span class="setK">Тип соединения с учениками</span>
+                <span class="setS">Прямое — быстрее и дешевле; через ретранслятор — когда сеть не пропускает прямое</span></span>
+                <span class="setV">прямое · 6 из 8</span></div>
+              <div class="setRow"><span><span class="setK">Битрейт видео на ученика</span>
+                <span class="setS">Приложение снижает его само, когда канал проседает</span></span>
+                <span class="setV">авто · 500 кбит/с</span></div>
+              <div class="setRow"><span><span class="setK">Замерять перед каждым занятием</span>
+                <span class="setS">Двенадцать секунд, за пять минут до начала</span></span>
+                <button class="mini">включено</button></div>
+            </div>
+
+            <div class="card">
+              <div class="cardT">Данные и копия</div>
+              <div class="setRow"><span><span class="setK">Папка кабинета</span>
+                <span class="setS">~/Flamingo/Кабинет — Люция Валерьевна · 1,8 ГБ</span></span>
+                <button class="mini">Показать в Finder</button></div>
+              <div class="setRow"><span><span class="setK">Последняя копия</span>
+                <span class="setS">Сегодня в 09:05 · внешний диск</span></span>
+                <button class="mini">Сделать сейчас</button></div>
+              <div class="setRow"><span><span class="setK">Выгрузить кабинет одним файлом</span>
+                <span class="setS">Тот же файл — и резерв, и переезд на другой компьютер</span></span>
+                <button class="mini">Выгрузить</button></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="notes">
+    <h2>Что здесь решено и что решаешь ты</h2>
+
+    <h3>Почему первый запуск — отдельный лист</h3>
+    <p>Это единственный экран, который преподаватель видит <b>до</b> того, как ему начинают доверять.
+    Если здесь спросить лишнее или напугать — второго шанса не будет. Поэтому шагов пять, каждый отвечает
+    ровно на один вопрос, и ни один не спрашивает того, что можно узнать самим.</p>
+
+    <h3>Шаг 2 — самый честный разговор продукта</h3>
+    <p>Мы говорим прямо: <b>работы и оценки детей лежат на этом ноутбуке</b>. Это следствие архитектуры,
+    которую выбрал владелец: дёшево, данные у людей, никакого чужого облака. Но у такой архитектуры есть
+    ровно одно слабое место — единственная копия. Поэтому копия не предлагается галочкой «если хотите»,
+    а настраивается в момент установки, до первого урока.</p>
+    <p>Облачная копия — <b>шифруется на машине преподавателя</b>. На сервере лежит блок, который мы не умеем
+    прочитать. Это тот же принцип, что уже действует для биологического паспорта: сервер хранит, но не знает.</p>
+
+    <h3>Шаг 3 — список «не уходит никогда» стоит выше согласий</h3>
+    <p>Сначала показываем, чего мы <b>не</b> делаем, и только потом просим согласия. Причина простая:
+    первый вопрос родителя — «вы что, записываете детей?». Преподаватель должен уметь ответить не своими
+    словами, а нашим экраном. Видео, аудио, дословная расшифровка и кадры с камеры — четыре строки,
+    которые он запомнит.</p>
+    <p>Анализ внимания <b>по умолчанию включён</b> — решение владельца 15.08.2026, отменяет прежнюю
+    редакцию этого абзаца. Прежде здесь стояло «выключен по умолчанию» с доводом про осознанное действие;
+    довод был <b>ревьюерской осторожностью, а не решением владельца</b>, и отменён вместе с ним.
+    SEduM — то, ради чего продукт существует, и приходить в выключенном виде он не должен.
+    Выключить его можно в любой момент: и преподавателем, и учеником, здесь и в кабинете.</p>
+    <p>⚠️ Отдельные функции получат другое умолчание позднее и <b>по территориям</b> — через
+    юрисдикционную матрицу (§21), а не догадками разработчика.</p>
+
+    <h3>Шаг 4 — проверка канала до урока, а не во время</h3>
+    <p>В десктопном режиме урок раздаётся с машины преподавателя, поэтому <b>исходящий канал —
+    главный ограничитель</b>. Мы не показываем «интернет хороший», мы показываем <b>размер группы</b>:
+    вдвоём, четверо, восемь. Это то, чем преподаватель распоряжается, — расписание он менять умеет,
+    а битрейт нет.</p>
+    <ul>
+      <li><b>Хороший</b> — восемь учеников, без оговорок.</li>
+      <li><b>Слабый</b> — до четырёх; предлагаем провод вместо Wi-Fi и делим группу, а не роняем урок.</li>
+      <li><b>Не годится</b> — вести можно только вдвоём; честно говорим об этом до расписания, а не после жалоб.</li>
+      <li>Замер повторяется сам за пять минут до занятия: канал вечером и канал утром — разные каналы.</li>
+    </ul>
+
+    <h3>Настройки — куда уехали числа (решение владельца 14.08)</h3>
+    <p>Во время урока преподаватель видит слово: «связь хорошая». Числа не исчезли — они лежат здесь,
+    сгруппированные так, чтобы по ним можно было поговорить с провайдером или с нашей поддержкой.
+    Каждое число подписано <b>тем, на что оно влияет</b>, а не тем, как называется в протоколе.</p>
+
+    <h3>Решения владельца 14.08 — закреплены</h3>
+    <ul>
+      <li><b>1. Копия обязательна.</b> Галочка «на диск» стоит, шаг пропустить нельзя. Это единственное место
+      во всём продукте, где мы заставляем — и оно того стоит: ноутбук держит работы и оценки живых детей.</li>
+      <li><b>2. Подпись установщика — позже.</b> Пока приложение скачивается с сайта как есть.
+      Значит, при первом запуске система скажет «неизвестный разработчик» — и об этом нужно предупредить
+      на странице загрузки заранее, коротко и без извинений, иначе половина людей решит, что скачала вирус.
+      Пункт живёт в D6 (обновления и установка).</li>
+      <li><b>3. При слабом канале — предупреждаем, но не запрещаем.</b> Приложение говорит, на какую группу
+      канала хватает, и оставляет решение преподавателю. Он лучше знает, что за урок и что за дети.</li>
+      <li><b>4. Вход — подтверждением в браузере, пароль в приложении не спрашивается.</b> Развёрнуто ниже.</li>
+    </ul>
+
+    <h3>Почему вход без пароля — правильнее, надёжнее и удобнее (рекомендация ревьюера, принята 14.08)</h3>
+    <p>Приложение показывает шестизначный код; преподаватель открывает <b>flamingo.plus/связать</b>,
+    входит там как обычно и вводит код. Приложение получает ключ доступа и кладёт его в связку ключей системы.
+    Пароль не набирается в приложении ни разу и нигде в нём не хранится.</p>
+    <ul>
+      <li><b>Правильнее.</b> Регистрация — это согласия, подтверждение почты, восстановление пароля.
+      Всё это уже живёт в вебе и обязано работать с любого устройства. Второй экземпляр этих форм в приложении
+      означал бы два кода для самой юридически чувствительной части продукта — и однажды они разойдутся.</li>
+      <li><b>Надёжнее.</b> Установщик пока без подписи (решение 2), и система честно назовёт нас «неизвестным
+      разработчиком». Просить в этот самый момент ввести пароль от учётки — худшее, что можно придумать
+      для доверия. В браузере человек видит адрес сайта и замок — там ввод пароля уместен, здесь нет.
+      Плюс украденный ноутбук не отдаёт пароль: доступ этой машины отзывается из кабинета одной кнопкой.</li>
+      <li><b>Удобнее.</b> Шесть знаков вводятся быстрее пароля с большой буквой и цифрой, а на второй машине
+      и при будущей синхронизации кабинета работает ровно тот же механизм — учить нечего.</li>
+      <li><b>Запасной путь остаётся.</b> «Войти по почте и паролю» — если браузер под рукой не открывается.
+      Не главный путь, но и не отнятый.</li>
+    </ul>
+    <p>Обратимо: если на живом тесте окажется, что преподаватели спотыкаются о код, вход по паролю
+    делается главным за один экран.</p>
+
+    <h3>Открытые вопросы владельцу</h3>
+    <div class="q"><p><b>Пока нет.</b> Все четыре вопроса закрыты. Следующая развилка появится в D3 —
+    как ученик попадает на урок и что он видит, когда преподаватель не в сети.</p></div>
+  </div>
+
+<script>
+const body=document.getElementById('body'), tb=document.getElementById('tbNote');
+const UP={
+  good:{tag:'хороший',cls:'ok',t:'Канал хороший — группа до восьми учеников',
+    s:'Ваш компьютер раздаёт урок сам, поэтому важен именно исходящий канал. Замер занял двенадцать секунд и повторится сам перед каждым занятием.',
+    up:'18,4 Мбит/с',dn:'72,1 Мбит/с',p:'24 мс',l:'0,1 %',c:'прямое',w:'58%',over:0,
+    note:'Числа дальше живут в настройках: во время урока вы видите слово, а не телеметрию.'},
+  weak:{tag:'слабый',cls:'warn',t:'Канал слабый — уверенно ведём группу до четырёх',
+    s:'Восьмерых этот канал не вытянет: видео начнёт рассыпаться на середине занятия. Провод вместо Wi-Fi обычно решает вопрос за минуту — попробуйте и замерьте ещё раз.',
+    up:'3,1 Мбит/с',dn:'48,0 Мбит/с',p:'46 мс',l:'1,4 %',c:'через ретранслятор',w:'100%',over:1,
+    note:'Мы не запрещаем большую группу — предупреждаем. Решение за вами.'},
+  bad:{tag:'не годится',cls:'warn',t:'Канала не хватает даже на двоих',
+    s:'Скорее всего дело не в тарифе, а в Wi-Fi или в загруженной сети. Проверьте провод, выключите загрузки и замерьте снова. Если не изменится — занятие лучше провести из другого места.',
+    up:'0,6 Мбит/с',dn:'11,2 Мбит/с',p:'128 мс',l:'6,2 %',c:'через ретранслятор',w:'100%',over:1,
+    note:'Приложение не откажет в уроке — но и не сделает вид, что всё в порядке.'},
+};
+function setUp(k){
+  const u=UP[k]; body.dataset.up=k;
+  const tag=document.getElementById('upTag'); tag.textContent=u.tag; tag.className='tag '+u.cls;
+  document.getElementById('vT').textContent=u.t;
+  document.getElementById('vS').textContent=u.s;
+  document.getElementById('nUp').textContent=u.up;
+  document.getElementById('nDown').textContent=u.dn;
+  document.getElementById('nPing').textContent=u.p;
+  document.getElementById('nLoss').textContent=u.l;
+  document.getElementById('nConn').textContent=u.c;
+  const c8=document.getElementById('cap8');
+  c8.querySelector('i').style.width=u.w; c8.toggleAttribute('data-over',!!u.over);
+  document.getElementById('upNote').textContent=u.note;
+}
+function setStep(n){
+  body.dataset.step=n;
+  document.querySelectorAll('.rail .step').forEach(s=>
+    s.setAttribute('aria-current', s.dataset.step===n ? 'true':'false'));
+  document.querySelectorAll('.rail .step').forEach(s=>
+    s.toggleAttribute('data-done', Number(s.dataset.step) < Number(n)));
+  document.querySelectorAll('.bar button[data-step]').forEach(b=>
+    b.setAttribute('aria-pressed', b.dataset.step===n ? 'true':'false'));
+  tb.textContent = n==='6' ? 'настройки' : (n==='5' ? 'настройка завершена' : 'первый запуск · настройка');
+}
+document.querySelectorAll('.bar button[data-step], .rail .step').forEach(b=>
+  b.addEventListener('click',()=>setStep(b.dataset.step)));
+document.querySelectorAll('.bar button[data-up]').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('.bar button[data-up]').forEach(x=>x.setAttribute('aria-pressed','false'));
+  b.setAttribute('aria-pressed','true'); setUp(b.dataset.up);
+}));
+document.querySelectorAll('.bar button[data-cam]').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('.bar button[data-cam]').forEach(x=>x.setAttribute('aria-pressed','false'));
+  b.setAttribute('aria-pressed','true'); body.dataset.cam=b.dataset.cam;
+}));
+document.querySelectorAll('.box').forEach(b=>b.addEventListener('click',()=>{
+  const on=b.hasAttribute('data-on'); b.toggleAttribute('data-on',!on);
+  b.innerHTML = on ? '&nbsp;' : '✓';
+}));
+document.querySelectorAll('.setNav .sn').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('.setNav .sn').forEach(x=>x.setAttribute('aria-selected','false'));
+  b.setAttribute('aria-selected','true');
+}));
+document.getElementById('thm').addEventListener('click',e=>{
+  const d=document.documentElement.dataset.theme==='dark';
+  document.documentElement.dataset.theme=d?'':'dark';
+  e.target.textContent=d?'тёмная':'светлая';
+});
+setStep('1'); setUp('good');
+</script>
+</body>
+</html>

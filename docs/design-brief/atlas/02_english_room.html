@@ -1,0 +1,730 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>АТЛАС 02 — Живая аудитория: английский</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f1f1ef;--surface:#fff;--subtle:#e9e9e6;--border:#d9d9d6;--border-s:#c4c4c1;
+  --ink:#1d1d1f;--sec:#6e6e73;--ter:#98989e;
+  --coral:#e14e1f;--coral-t:#c23f14;--coral-soft:#fdeee7;
+  --ui:-apple-system,'SF Pro Display',Inter,system-ui,sans-serif;
+  --mono:'JetBrains Mono','SF Mono',ui-monospace,monospace;
+  --ease:cubic-bezier(.2,0,0,1);
+  --fs-body:1.0625rem;--fs-small:.875rem;--fs-cap:.8125rem;--fs-micro:.75rem;
+}
+[data-theme="dark"]{
+  --bg:#101012;--surface:#1a1a1c;--subtle:#242426;--border:#2e2e31;--border-s:#3f3f43;
+  --ink:#f2f2f0;--sec:#98989e;--ter:#6e6e73;--coral:#ff7040;--coral-t:#ff8a5f;--coral-soft:#33201a;
+}
+*{box-sizing:border-box;margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--ui);font-size:var(--fs-body);
+  line-height:1.6;padding:32px 24px 120px;transition:background .32s var(--ease),color .32s var(--ease)}
+.wrap{max-width:1240px;margin:0 auto}
+h1{font-size:1.4rem;font-weight:600;letter-spacing:-.015em}
+.sub{color:var(--sec);font-size:var(--fs-small);margin:6px 0 20px;max-width:84ch}
+.bar{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:20px;position:sticky;top:8px;z-index:5;
+  background:var(--bg);padding:8px 0}
+.bar .grp{font:500 10px var(--mono);color:var(--ter);letter-spacing:.1em;text-transform:uppercase;margin:0 2px 0 10px}
+.bar .grp:first-child{margin-left:0}
+.bar button{font:500 12px var(--mono);color:var(--sec);background:var(--bg);border:1px solid var(--border);
+  border-radius:999px;padding:7px 13px;cursor:pointer;transition:all .18s var(--ease)}
+.bar button[aria-pressed="true"]{color:var(--ink);border-color:var(--border-s);background:var(--surface)}
+.bar button:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(225,78,31,.4)}
+
+.screen{background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow:hidden;position:relative}
+
+/* ——— шапка урока ——— */
+.roomTop{display:flex;align-items:center;gap:12px;padding:11px 18px;border-bottom:1px solid var(--border);flex-wrap:wrap}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--coral)}
+.roomName{font-size:14px;font-weight:500;letter-spacing:-.01em}
+.roomMeta{font:400 10px var(--mono);color:var(--ter)}
+.liveTag{display:inline-flex;align-items:center;gap:5px;font:500 9px var(--mono);color:var(--coral-t);
+  border:1px solid var(--coral);border-radius:5px;padding:2px 7px;letter-spacing:.12em;text-transform:uppercase}
+.liveTag i{width:4px;height:4px;border-radius:50%;background:var(--coral);display:block}
+@media (prefers-reduced-motion:no-preference){.liveTag i{animation:pulse 2.4s ease-in-out infinite}}
+@keyframes pulse{50%{opacity:.3}}
+.topActs{margin-left:auto;display:flex;gap:7px;align-items:center;flex-wrap:wrap}
+/* переключатель окон урока — доступен обеим ролям */
+.winSwitch{display:flex;gap:2px;background:var(--subtle);border-radius:9px;padding:3px;flex-wrap:wrap}
+.win{font:500 10px var(--mono);color:var(--sec);background:none;border:none;border-radius:7px;padding:6px 11px;
+  cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:6px}
+.win:hover{color:var(--ink)}
+.win[aria-selected="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.05)}
+.win:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(225,78,31,.4)}
+.win .pop{font-size:9px;color:var(--ter)}
+.win[aria-selected="true"] .pop:hover{color:var(--coral-t)}
+.switchRow{display:flex;align-items:center;gap:10px;padding:9px 18px;border-bottom:1px solid var(--border);flex-wrap:wrap}
+.switchNote{font:400 9px var(--mono);color:var(--ter);margin-inline-start:auto;max-width:34ch;line-height:1.5}
+.mini{font:500 10px var(--mono);color:var(--sec);background:none;border:1px solid var(--border);border-radius:8px;
+  padding:6px 10px;cursor:pointer;white-space:nowrap}
+.mini:hover{border-color:var(--border-s);color:var(--ink)}
+.mini[data-on]{color:var(--ink);border-color:var(--border-s);background:var(--subtle)}
+.mini.danger{color:var(--coral-t);border-color:var(--coral)}
+.mini:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(225,78,31,.4)}
+
+/* ——— тело комнаты ——— */
+.room{display:grid;grid-template-columns:minmax(0,1fr) 306px;min-height:640px}
+@media (max-width:980px){.room{grid-template-columns:minmax(0,1fr)}}
+.stage{border-inline-end:1px solid var(--border);display:grid;grid-template-rows:auto 1fr;min-width:0}
+
+/* видео-полоса */
+.vidStrip{display:flex;gap:8px;padding:12px 16px;border-bottom:1px solid var(--border);overflow-x:auto;align-items:flex-start}
+.vid{position:relative;border-radius:9px;background:#17171a;overflow:hidden;flex:none;width:148px;aspect-ratio:16/10;
+  border:1px solid rgba(255,255,255,.08);display:grid;place-content:center}
+[data-theme="dark"] .vid{background:#0b0b0d}
+.vid.main{width:232px}
+.vid .who{position:absolute;left:6px;bottom:5px;font:500 9px var(--mono);color:#fff;background:rgba(0,0,0,.55);
+  border-radius:4px;padding:2px 6px;letter-spacing:.04em}
+.vid .mic{position:absolute;right:6px;bottom:5px;font:500 9px var(--mono);color:#fff;opacity:.8}
+.vid[data-speaking]{border-color:var(--coral)}
+.vid .ini{font:500 15px var(--mono);color:rgba(255,255,255,.55)}
+.vid.share{background:var(--subtle);border:1px dashed var(--border-s);display:grid;place-content:center}
+.vid.share .ini{color:var(--ter);font-size:10px;text-align:center;padding:0 10px}
+.vid[data-r],.stripNote[data-r]{--d:grid}
+.stripNote{font:400 9px var(--mono);color:var(--ter);align-self:center;margin-inline-start:4px;max-width:15ch;line-height:1.5}
+
+/* сцена */
+.sceneWrap{position:relative;min-width:0;display:grid}
+.scene{display:none;min-width:0}
+.screen[data-scene="board"] .s-board,.screen[data-scene="test"] .s-test,
+.screen[data-scene="material"] .s-material,.screen[data-scene="summary"] .s-summary{display:grid}
+
+/* ——— ДОСКА ——— */
+.s-board{grid-template-columns:auto 1fr;min-width:0}
+.tools{border-inline-end:1px solid var(--border);padding:12px 10px;display:grid;gap:6px;align-content:start;
+  background:var(--surface)}
+.tool{width:34px;height:34px;border-radius:9px;border:1px solid transparent;background:none;cursor:pointer;
+  display:grid;place-content:center;color:var(--sec);font:500 12px var(--mono)}
+.tool:hover{background:var(--subtle);color:var(--ink)}
+.tool[data-on]{background:var(--coral-soft);color:var(--coral-t);border-color:var(--coral)}
+.tool:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(225,78,31,.4)}
+.toolSep{height:1px;background:var(--border);margin:4px 3px}
+
+.canvasWrap{position:relative;overflow:hidden;background:
+  radial-gradient(circle, var(--border) 1px, transparent 1px) 0 0/22px 22px;min-height:520px}
+[data-theme="dark"] .canvasWrap{background:radial-gradient(circle,#2a2a2d 1px,transparent 1px) 0 0/22px 22px}
+.canvas{position:absolute;inset:0}
+.nd{position:absolute;background:var(--surface);border:1px solid var(--border-s);border-radius:10px;padding:9px 12px;
+  font-size:var(--fs-cap);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.04);cursor:grab;max-width:210px}
+.nd b{font-weight:600}
+.nd small{display:block;font:400 10px var(--mono);color:var(--ter);margin-top:2px}
+.nd[data-core]{background:var(--coral-soft);border-color:var(--coral);color:var(--coral-t);font-weight:600}
+.nd[data-note]{background:#fdf6da;border-color:#e8dca6;color:#4a4326;transform:rotate(-1.2deg);border-radius:4px}
+[data-theme="dark"] .nd[data-note]{background:#3a3520;border-color:#5a5230;color:#e8dfc0}
+.nd[data-pic]{padding:0;overflow:hidden;border-radius:9px}
+.nd[data-pic] .pic{width:186px;height:108px;background:linear-gradient(135deg,#2a3440,#4a5a68);display:grid;place-content:center;
+  color:rgba(255,255,255,.5);font:500 9px var(--mono);letter-spacing:.1em}
+.nd[data-pic] .cap{padding:6px 10px;font:400 10px var(--mono);color:var(--ter)}
+.nd[data-sel]{border-color:var(--coral);box-shadow:0 0 0 3px rgba(225,78,31,.16)}
+.handle{position:absolute;width:7px;height:7px;background:var(--surface);border:1.5px solid var(--coral);border-radius:2px}
+.ink{fill:none;stroke:var(--ink);stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.link{fill:none;stroke:var(--border-s);stroke-width:1.6}
+.who2{position:absolute;font:500 9px var(--mono);color:var(--coral-t);background:var(--coral-soft);
+  border-radius:4px;padding:1px 6px;letter-spacing:.04em}
+.boardBar{position:absolute;left:14px;bottom:14px;display:flex;gap:6px;align-items:center;background:var(--surface);
+  border:1px solid var(--border);border-radius:10px;padding:5px 7px}
+.zoomV{font:500 10px var(--mono);color:var(--sec);font-variant-numeric:tabular-nums;padding:0 4px}
+.boardSave{position:absolute;right:14px;bottom:14px;display:flex;gap:7px;align-items:center}
+.pasteHint{position:absolute;right:14px;top:14px;font:400 9px var(--mono);color:var(--ter);background:var(--surface);
+  border:1px solid var(--border);border-radius:8px;padding:6px 9px;max-width:22ch;line-height:1.5}
+
+/* ——— МЕТОДИЧКА / ТЕСТ / САММАРИ ——— */
+.paper{padding:26px 32px;overflow:auto;min-width:0}
+.paperHead{display:flex;align-items:baseline;gap:12px;margin-bottom:16px;flex-wrap:wrap}
+.paperTitle{font-size:1.15rem;font-weight:600;letter-spacing:-.015em}
+.paperMeta{font:400 10px var(--mono);color:var(--ter)}
+.paper h4{font:500 var(--fs-micro) var(--mono);color:var(--ter);letter-spacing:.09em;text-transform:uppercase;margin:22px 0 8px}
+.paper p{font-size:var(--fs-small);color:var(--sec);max-width:74ch;margin-bottom:8px}
+.paper b{color:var(--ink);font-weight:500}
+.qs{border:1px solid var(--border);border-radius:11px;padding:16px 18px;margin-bottom:10px}
+.qNum{font:500 10px var(--mono);color:var(--ter);letter-spacing:.08em}
+.qText{font-size:.9375rem;font-weight:500;margin:4px 0 12px}
+.opts{display:grid;gap:6px}
+.opt{display:flex;align-items:center;gap:10px;border:1px solid var(--border);border-radius:9px;padding:9px 12px;
+  font-size:var(--fs-cap);cursor:pointer;background:none;color:var(--ink);text-align:start}
+.opt:hover{border-color:var(--border-s)}
+.opt[data-pick]{border-color:var(--coral);background:var(--coral-soft);color:var(--coral-t)}
+.opt .k{font:500 9px var(--mono);color:var(--ter);border:1px solid var(--border);border-radius:5px;padding:1px 6px}
+.opt[data-pick] .k{color:var(--coral-t);border-color:var(--coral)}
+.qLive{font:400 10px var(--mono);color:var(--ter);margin-top:10px}
+.sumItem{display:grid;grid-template-columns:70px 1fr;gap:14px;padding:11px 0;border-bottom:1px solid var(--border)}
+.sumItem:last-child{border-bottom:none}
+.sumT{font:500 var(--fs-micro) var(--mono);color:var(--ter);font-variant-numeric:tabular-nums}
+.sumTxt{font-size:var(--fs-cap);color:var(--ink)}
+.sumSub{font:400 10px var(--mono);color:var(--ter);margin-top:2px}
+.draft{display:inline-flex;align-items:center;gap:6px;font:500 9px var(--mono);color:var(--coral-t);
+  background:var(--coral-soft);border-radius:5px;padding:3px 8px;letter-spacing:.08em;text-transform:uppercase}
+
+/* ——— ПРАВАЯ ПАНЕЛЬ ——— */
+.side{display:grid;grid-template-rows:auto 1fr;min-width:0}
+.sideTabs{display:flex;gap:1px;border-bottom:1px solid var(--border);padding:6px 8px 0;overflow-x:auto}
+.sTab{font:500 9px var(--mono);color:var(--sec);background:none;border:none;border-bottom:2px solid transparent;
+  padding:7px 8px 9px;cursor:pointer;white-space:nowrap;letter-spacing:.07em;text-transform:uppercase}
+.sTab[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--coral)}
+.sTab:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(225,78,31,.4)}
+.sideBody{padding:14px 16px;overflow:auto}
+.pane{display:none}
+.screen[data-pane="people"] .p-people,.screen[data-pane="dict"] .p-dict,
+.screen[data-pane="mats"] .p-mats,.screen[data-pane="chat"] .p-chat{display:block}
+
+.per{display:grid;grid-template-columns:26px 1fr auto;gap:10px;align-items:center;padding:8px 0;
+  border-bottom:1px solid var(--border)}
+.per:last-child{border-bottom:none}
+.pAv{width:26px;height:26px;border-radius:50%;background:var(--subtle);display:grid;place-content:center;
+  font:500 9px var(--mono);color:var(--sec)}
+.pName{font-size:var(--fs-cap);font-weight:500}
+.pRole{font:400 9px var(--mono);color:var(--ter)}
+.pSt{font:500 9px var(--mono);color:var(--ter);white-space:nowrap}
+.pSt[data-up]{color:var(--coral-t)}
+
+.word{border:1px solid var(--border);border-radius:11px;padding:14px 15px}
+.wTop{display:flex;align-items:baseline;gap:9px}
+.wW{font-size:1.05rem;font-weight:600}
+.wTr{font:400 var(--fs-cap) var(--mono);color:var(--ter)}
+.wSay{margin-left:auto;background:none;border:1px solid var(--border);border-radius:7px;width:26px;height:24px;
+  color:var(--sec);cursor:pointer;font:500 10px var(--mono)}
+.wSay:hover{border-color:var(--border-s);color:var(--ink)}
+.wPos{font:400 9px var(--mono);color:var(--ter);margin-top:8px;letter-spacing:.06em;text-transform:uppercase}
+.wDef{font-size:var(--fs-cap);color:var(--ink);margin-top:3px}
+.wEx{font-size:var(--fs-cap);color:var(--sec);margin-top:5px;padding-inline-start:10px;border-inline-start:2px solid var(--border)}
+.wSrc{font:400 9px var(--mono);color:var(--ter);margin-top:11px;padding-top:9px;border-top:1px solid var(--border);line-height:1.6}
+.wActs{display:flex;gap:6px;margin-top:11px;flex-wrap:wrap}
+
+.mt{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:start;padding:10px 0;border-bottom:1px solid var(--border)}
+.mt:last-child{border-bottom:none}
+.mtName{font-size:var(--fs-cap);font-weight:500}
+.mtSub{font:400 9px var(--mono);color:var(--ter);margin-top:1px}
+.mtGo{font:500 9px var(--mono);color:var(--coral-t);background:none;border:none;cursor:pointer;white-space:nowrap}
+
+.msg{padding:8px 0;border-bottom:1px solid var(--border)}
+.msg:last-child{border-bottom:none}
+.mWho{font:500 9px var(--mono);color:var(--ter)}
+.mTxt{font-size:var(--fs-cap);color:var(--ink);margin-top:2px}
+.chatIn{display:flex;gap:7px;margin-top:12px}
+.chatIn input{flex:1;height:32px;border:1px solid var(--border);border-radius:8px;background:var(--surface);
+  color:var(--ink);font:400 var(--fs-cap) var(--ui);padding:0 11px}
+.chatIn input:focus-visible{outline:none;border-color:var(--coral);box-shadow:0 0 0 3px rgba(225,78,31,.25)}
+.chatIn button{background:var(--coral);border:none;border-radius:8px;color:#fff;width:32px;cursor:pointer;font:500 12px var(--mono)}
+
+/* приватность */
+.privacy{display:flex;align-items:center;gap:7px;padding:9px 16px;border-top:1px solid var(--border);
+  font:400 9px var(--mono);color:var(--ter);line-height:1.5}
+.privacy .sh{width:6px;height:6px;border-radius:50%;background:#3fa46a;flex:none}
+
+/* показ по ролям */
+[data-r]{display:none}
+.screen[data-role="pupil"] [data-r~="pupil"],
+.screen[data-role="teacher"] [data-r~="teacher"]{display:var(--d,block)}
+.mini[data-r],.liveTag[data-r]{--d:inline-flex}
+.vid[data-r]{--d:grid}
+
+/* заметки */
+.notes{margin-top:28px;border:1px solid var(--border);border-radius:13px;padding:22px 26px;background:var(--surface)}
+.notes h2{font-size:1rem;font-weight:600;margin-bottom:12px}
+.notes h3{font:500 var(--fs-micro) var(--mono);color:var(--ter);letter-spacing:.09em;text-transform:uppercase;margin:18px 0 8px}
+.notes p,.notes li{font-size:var(--fs-small);color:var(--sec);max-width:88ch}
+.notes ul{padding-inline-start:20px;display:grid;gap:5px}
+.notes b{color:var(--ink);font-weight:500}
+.q{border-inline-start:2px solid var(--coral);padding-inline-start:12px;margin-top:8px}
+.warn{border-inline-start:2px solid #c9a227;padding-inline-start:12px;margin-top:8px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Атлас 02 — Живая аудитория: английский</h1>
+  <p class="sub">Урок с преподавателем: доска, трансляция, словарь, тест, методички и саммари занятия.
+  Переключай роль и сцену — каркас комнаты не меняется, меняются права и содержимое.</p>
+
+  <div class="bar">
+    <span class="grp">Роль</span>
+    <button data-role="pupil" aria-pressed="true">ученик</button>
+    <button data-role="teacher">учитель</button>
+    <span class="grp">Сцена</span>
+    <button data-scene="board" aria-pressed="true">доска</button>
+    <button data-scene="material">методичка</button>
+    <button data-scene="test">тест</button>
+    <button data-scene="summary">саммари</button>
+    <span class="grp">Панель</span>
+    <button data-pane="people" aria-pressed="true">участники</button>
+    <button data-pane="dict">словарь</button>
+    <button data-pane="mats">материалы</button>
+    <button data-pane="chat">чат</button>
+    <span class="grp">Тема</span>
+    <button id="thm">тёмная</button>
+  </div>
+
+  <div class="screen" id="scr" data-role="pupil" data-scene="board" data-pane="people">
+
+    <!-- ——— ШАПКА ——— -->
+    <div class="roomTop">
+      <svg class="mk" viewBox="0 0 120 110" aria-hidden="true" style="width:1.55em;height:1.4em;flex:none;overflow:visible;vertical-align:-.3em"><g fill="none" stroke="#e14e1f" stroke-linecap="round"><path d="M28 55 L7 44" stroke-width="5.4"/><path d="M26 61 L3 59" stroke-width="7"/><path d="M28 66 L10 74" stroke-width="5.8"/><path d="M44 80 L39 92 L36 103" stroke-width="5.6"/><path d="M57 78 L59 90 L56 102" stroke-width="5"/></g><path d="M58 52 C70 44 60 28 74 16" fill="none" stroke="#e14e1f" stroke-width="10" stroke-linecap="round"/><ellipse cx="48" cy="63" rx="26" ry="21" fill="#e14e1f" transform="rotate(-6 48 63)"/><circle cx="78" cy="13" r="8.5" fill="#e14e1f"/><path d="M85 7 L108 14 L86 19 Z" fill="#1d1d1f"/><circle cx="77" cy="8" r="2.2" fill="#fff"/></svg>
+      <span><span class="roomName">English A2 · Unit 4 — Travel</span>
+        <span class="roomMeta"> · урок 4 · Люция Валерьевна · 6 участников</span></span>
+      <span class="liveTag"><i></i>идёт · 24:16</span>
+      <span class="topActs">
+        <button class="mini">Видео в новой вкладке ↗</button>
+        <button class="mini" data-r="teacher">Показать экран</button>
+        <button class="mini" data-r="teacher">Трансляция с камеры кабинета</button>
+        <button class="mini" data-r="teacher" data-on>Саммари занятия · включено</button>
+        <button class="mini" data-r="pupil">Поднять руку</button>
+        <button class="mini danger" data-r="pupil">Выйти</button>
+        <button class="mini danger" data-r="teacher">Завершить урок</button>
+      </span>
+    </div>
+
+    <!-- ——— ПЕРЕКЛЮЧАТЕЛЬ ОКОН УРОКА ——— -->
+    <div class="switchRow">
+      <div class="winSwitch">
+        <button class="win" data-scene="board" aria-selected="true">Доска<span class="pop" title="Открыть отдельным окном">↗</span></button>
+        <button class="win" data-scene="material">Методичка<span class="pop" title="Открыть отдельным окном">↗</span></button>
+        <button class="win" data-scene="test">Тест<span class="pop" title="Открыть отдельным окном">↗</span></button>
+        <button class="win" data-scene="summary">Саммари<span class="pop" title="Открыть отдельным окном">↗</span></button>
+      </div>
+      <span class="switchNote">любое окно открывается отдельной вкладкой или уходит на второй экран · инструменты переключаются, урок не прерывается</span>
+    </div>
+
+    <div class="room">
+      <!-- ————— СЦЕНА ————— -->
+      <div class="stage">
+
+        <!-- видео-полоса · режим Р5.1: учитель видит группу, ученик — учителя и себя -->
+        <div class="vidStrip">
+          <div class="vid main" data-speaking><span class="ini">ИС</span><span class="who">Ирина · ведёт</span><span class="mic">🎙</span></div>
+
+          <!-- у преподавателя: вся группа -->
+          <div class="vid" data-r="teacher"><span class="ini">АК</span><span class="who">Аня</span></div>
+          <div class="vid" data-r="teacher"><span class="ini">ПК</span><span class="who">Петя</span><span class="mic">без звука</span></div>
+          <div class="vid" data-r="teacher"><span class="ini">ЛМ</span><span class="who">Лена</span></div>
+          <div class="vid share" data-r="teacher"><span class="ini">камера кабинета<br>не подключена</span></div>
+
+          <!-- у ученика: только он сам -->
+          <div class="vid" data-r="pupil"><span class="ini">АК</span><span class="who">вы</span></div>
+          <div class="vid" data-r="pupil" style="--d:grid;opacity:.5"><span class="ini" style="font-size:10px;text-align:center;padding:0 8px">Петя<br>поднял руку</span></div>
+
+          <span class="stripNote" data-r="teacher">видео можно вынести во вторую вкладку или на второй экран</span>
+          <span class="stripNote" data-r="pupil">одноклассников не видно — так урок не рвётся на слабом канале</span>
+        </div>
+
+        <div class="sceneWrap">
+
+          <!-- ——————— ДОСКА ——————— -->
+          <div class="scene s-board">
+            <div class="tools">
+              <button class="tool" title="Выбрать" data-on>↖</button>
+              <button class="tool" title="Перо">✎</button>
+              <button class="tool" title="Текст">T</button>
+              <button class="tool" title="Стикер">▭</button>
+              <button class="tool" title="Фигура">◇</button>
+              <button class="tool" title="Связь">↗</button>
+              <button class="tool" title="Картинка">▣</button>
+              <div class="toolSep"></div>
+              <button class="tool" title="Ластик">⌫</button>
+              <button class="tool" title="Отменить">↺</button>
+            </div>
+
+            <div class="canvasWrap">
+              <svg class="canvas" viewBox="0 0 900 560" preserveAspectRatio="none" aria-hidden="true">
+                <!-- связи майндмапа -->
+                <path class="link" d="M300 150 C 250 150 230 110 186 104"/>
+                <path class="link" d="M300 168 C 250 180 240 226 196 236"/>
+                <path class="link" d="M410 158 C 470 158 500 120 556 112"/>
+                <path class="link" d="M410 176 C 470 190 490 250 548 262"/>
+                <path class="link" d="M356 200 C 356 260 330 300 300 330"/>
+                <!-- рукописная линия учителя -->
+                <path class="ink" d="M604 372 c 18 -22 40 -18 44 2 c 4 20 -22 30 -34 18 c -12 -12 6 -30 30 -26 c 24 4 36 26 60 18"/>
+                <path class="ink" d="M700 420 l 52 0"/>
+              </svg>
+
+              <!-- узлы -->
+              <div class="nd" data-core style="left:300px;top:140px">Asking for directions<small>тема урока</small></div>
+              <div class="nd" style="left:60px;top:84px">Excuse me, how do I get to…?<small>вежливо, к незнакомому</small></div>
+              <div class="nd" style="left:56px;top:216px">Is it far from here?<small>уточняем расстояние</small></div>
+              <div class="nd" data-sel style="left:560px;top:92px">turn left / right<small>Петя добавил</small>
+                <span class="handle" style="left:-4px;top:-4px"></span><span class="handle" style="right:-4px;top:-4px"></span>
+                <span class="handle" style="left:-4px;bottom:-4px"></span><span class="handle" style="right:-4px;bottom:-4px"></span></div>
+              <span class="who2" style="left:560px;top:72px">Петя</span>
+              <div class="nd" data-note style="left:552px;top:246px">go straight ahead<br>≠ go straight <b>on</b><small>частая ошибка</small></div>
+              <div class="nd" data-pic style="left:222px;top:326px">
+                <span class="pic">ВСТАВЛЕНО ИЗ БУФЕРА</span>
+                <span class="cap">карта станции · ctrl+V прямо на доску</span></div>
+              <div class="nd" data-note style="left:452px;top:392px">домашнее: описать дорогу<br>от дома до школы</div>
+
+              <span class="pasteHint">картинку можно просто вставить из буфера · холст бесконечный</span>
+
+              <div class="boardBar">
+                <button class="tool" title="Отдалить">−</button><span class="zoomV">72%</span>
+                <button class="tool" title="Приблизить">+</button>
+                <button class="tool" title="Вписать">⤢</button>
+              </div>
+
+              <div class="boardSave">
+                <button class="mini" data-r="teacher">Очистить</button>
+                <button class="mini" data-r="teacher" data-on id="boardAccess">Доска открыта для учеников</button>
+                <span class="mini" data-r="pupil" data-on>преподаватель открыл доску — можно писать</span>
+                <button class="mini">Сохранить доску ↓</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- ——————— МЕТОДИЧКА ——————— -->
+          <div class="scene s-material">
+            <div class="paper">
+              <div class="paperHead">
+                <span class="paperTitle">Unit 4 · Asking for directions</span>
+                <span class="paperMeta">методичка курса · стр. 3 из 9</span>
+                <span class="topActs"><button class="mini" data-r="teacher">Показать всем</button>
+                  <button class="mini">Открыть отдельно ↗</button></span>
+              </div>
+
+              <h4>Цель занятия</h4>
+              <p>Научиться спрашивать дорогу и понимать ответ на слух. К концу урока ученик <b>задаёт три типа вопроса</b>
+              и <b>пересказывает маршрут</b> из четырёх шагов.</p>
+
+              <h4>Ход занятия</h4>
+              <p><b>1. Разогрев (5 мин).</b> Вопрос-разгон: «когда ты последний раз терялся?» — по кругу, одно предложение.</p>
+              <p><b>2. Ввод конструкций (10 мин).</b> На доске — три вопроса, три ответа. Ученики достраивают ветки сами.</p>
+              <p><b>3. Слушаем (10 мин).</b> Аудио «at the station», два прослушивания, второе — с паузами.</p>
+              <p><b>4. Пары (12 мин).</b> Один описывает маршрут по карте, второй рисует его на доске, не видя карты.</p>
+              <p><b>5. Разбор ошибок (8 мин).</b> Собрать на доске стикерами то, что не получилось.</p>
+
+              <h4>На что смотреть</h4>
+              <p>Частая ошибка — <b>go straight on</b> вместо <b>go straight ahead</b>. Второе — путают
+              <b>next to</b> и <b>near</b>. Обе вынесены на доску как заметки.</p>
+
+              <h4>Домашняя работа</h4>
+              <p>Описать письменно дорогу от дома до школы, 5–7 предложений, использовать минимум три конструкции урока.</p>
+            </div>
+          </div>
+
+          <!-- ——————— ТЕСТ ——————— -->
+          <div class="scene s-test">
+            <div class="paper">
+              <div class="paperHead">
+                <span class="paperTitle">Быстрый тест · directions</span>
+                <span class="paperMeta" data-r="pupil">6 вопросов · без оценки, для себя</span>
+                <span class="paperMeta" data-r="teacher">6 вопросов · отвечают 5 из 6 учеников</span>
+                <span class="topActs"><button class="mini" data-r="teacher">Остановить</button>
+                  <button class="mini" data-r="teacher">Показать ответы</button></span>
+              </div>
+
+              <div class="qs">
+                <div class="qNum">ВОПРОС 1 · 6</div>
+                <div class="qText">Choose the natural phrase: “Excuse me, how do I ___ to the station?”</div>
+                <div class="opts">
+                  <button class="opt"><span class="k">A</span>come</button>
+                  <button class="opt" data-pick><span class="k">B</span>get</button>
+                  <button class="opt"><span class="k">C</span>arrive</button>
+                  <button class="opt"><span class="k">D</span>reach out</button>
+                </div>
+                <div class="qLive" data-r="teacher">ответили 5 из 6 · верно 4 · один выбрал «come»</div>
+                <div class="qLive" data-r="pupil">ответ можно поменять до конца теста</div>
+              </div>
+
+              <div class="qs">
+                <div class="qNum">ВОПРОС 2 · 6</div>
+                <div class="qText">Послушайте и выберите маршрут, который описал говорящий.</div>
+                <div class="opts">
+                  <button class="opt"><span class="k">A</span>налево, потом прямо два квартала</button>
+                  <button class="opt"><span class="k">B</span>прямо, потом второй поворот направо</button>
+                  <button class="opt"><span class="k">C</span>направо, потом мимо парка</button>
+                </div>
+                <div class="qLive">аудио проигрывается на устройстве · запись голоса не ведётся</div>
+              </div>
+
+              <div class="qs">
+                <div class="qNum">ВОПРОС 3 · 6</div>
+                <div class="qText">Скажи вслух: “Is it far from here?” — проверим произношение.</div>
+                <div class="qLive">разбор идёт в браузере · звук никуда не отправляется, уходит только результат «совпало / нет»</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ——————— САММАРИ ——————— -->
+          <div class="scene s-summary">
+            <div class="paper">
+              <div class="paperHead">
+                <span class="paperTitle">Саммари занятия</span>
+                <span class="draft">черновик · собрано автоматически</span>
+                <span class="paperMeta">речь обрабатывается на лету · аудио и видео не записываются · само саммари сохраняется и у преподавателя, и у участников</span>
+                <span class="topActs">
+                  <button class="mini" data-r="teacher">Править</button>
+                  <button class="mini" data-r="teacher">Отправить группе</button>
+                  <button class="mini" data-r="pupil">В мои материалы</button></span>
+              </div>
+              <p data-r="teacher">Собрано из доски, теста, чата и хода занятия. Проверьте и отправьте — саммари останется в материалах урока у вас и у учеников.</p>
+              <p data-r="pupil">Прислала Ирина после занятия. Лежит в материалах предмета — можно вернуться в любой момент и дописать своими словами.</p>
+
+              <h4>О чём был урок</h4>
+              <div class="sumItem"><span class="sumT">00:00</span>
+                <span><span class="sumTxt">Разогрев: «когда ты последний раз терялся»</span>
+                  <span class="sumSub">из плана занятия</span></span></div>
+              <div class="sumItem"><span class="sumT">06:20</span>
+                <span><span class="sumTxt">Три конструкции вопроса о дороге, разобраны на доске</span>
+                  <span class="sumSub">с доски · 4 узла, добавил Петя</span></span></div>
+              <div class="sumItem"><span class="sumT">11:05</span>
+                <span><span class="sumTxt">Ирина: «на экзамене пишите ahead, on — разговорный вариант»</span>
+                  <span class="sumSub">из речи занятия · разобрано на лету, запись не велась</span></span></div>
+              <div class="sumItem"><span class="sumT">18:40</span>
+                <span><span class="sumTxt">Аудирование «at the station», два прослушивания</span>
+                  <span class="sumSub">из материалов урока</span></span></div>
+              <div class="sumItem"><span class="sumT">24:10</span>
+                <span><span class="sumTxt">Быстрый тест: 4 из 6 верно по группе</span>
+                  <span class="sumSub">из результатов теста</span></span></div>
+
+              <h4>Новые слова</h4>
+              <div class="sumItem"><span class="sumT">6 слов</span>
+                <span><span class="sumTxt">get to · turn left / right · go straight ahead · next to · far from · crossroads</span>
+                  <span class="sumSub">уйдут в повторение по интервалам</span></span></div>
+
+              <h4>На что обратить внимание</h4>
+              <div class="sumItem"><span class="sumT">ошибка</span>
+                <span><span class="sumTxt">go straight <b>on</b> → go straight <b>ahead</b></span>
+                  <span class="sumSub">заметка с доски</span></span></div>
+
+              <h4>Чат занятия</h4>
+              <div class="sumItem"><span class="sumT">12:09</span>
+                <span><span class="sumTxt">Петя: «а go straight on тоже правильно?»</span>
+                  <span class="sumSub">Ирина: в британском встречается, на экзамене — ahead</span></span></div>
+              <div class="sumItem"><span class="sumT">12:16</span>
+                <span><span class="sumTxt">Аня: просила ссылку на аудио — отправлена</span>
+                  <span class="sumSub">переписка занятия сохраняется здесь, отдельным разделом</span></span></div>
+
+              <h4>Задано</h4>
+              <div class="sumItem"><span class="sumT">до чт</span>
+                <span><span class="sumTxt">Описать дорогу от дома до школы, 5–7 предложений</span>
+                  <span class="sumSub">из методички · попадёт в «Задания»</span></span></div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ————— ПРАВАЯ ПАНЕЛЬ ————— -->
+      <div class="side">
+        <div class="sideTabs">
+          <button class="sTab" data-pane="people" aria-selected="true">участники</button>
+          <button class="sTab" data-pane="dict">словарь</button>
+          <button class="sTab" data-pane="mats">материалы</button>
+          <button class="sTab" data-pane="chat">чат</button>
+        </div>
+
+        <div class="sideBody">
+          <!-- участники -->
+          <div class="pane p-people">
+            <div class="per"><span class="pAv">ИС</span>
+              <span><span class="pName">Люция Валерьевна</span><span class="pRole">преподаватель</span></span>
+              <span class="pSt">говорит</span></div>
+            <div class="per"><span class="pAv">АК</span>
+              <span><span class="pName">Аня Коваль</span><span class="pRole">ученик</span></span>
+              <span class="pSt" data-up>рука ↑</span></div>
+            <div class="per"><span class="pAv">ПК</span>
+              <span><span class="pName">Петя Ковалёв</span><span class="pRole">пишет на доске</span></span>
+              <span class="pSt">без звука</span></div>
+            <div class="per"><span class="pAv">ЛМ</span>
+              <span><span class="pName">Лена Морозова</span><span class="pRole">ученик</span></span>
+              <span class="pSt">в тесте</span></div>
+            <div class="per"><span class="pAv">ДС</span>
+              <span><span class="pName">Дима Соколов</span><span class="pRole">ученик</span></span>
+              <span class="pSt">нет связи</span></div>
+
+            <div data-r="teacher" style="margin-top:14px;display:grid;gap:6px">
+              <button class="mini">Разделить на пары</button>
+              <button class="mini">Выключить всем микрофоны</button>
+              <button class="mini">Пригласить по ссылке</button>
+            </div>
+          </div>
+
+          <!-- словарь -->
+          <div class="pane p-dict">
+            <div class="word">
+              <div class="wTop"><span class="wW">crossroads</span><span class="wTr">/ˈkrɒs.rəʊdz/</span>
+                <button class="wSay" aria-label="Произнести">▶</button></div>
+              <div class="wPos">существительное</div>
+              <div class="wDef">место, где пересекаются две дороги; перекрёсток</div>
+              <div class="wEx">Turn right at the crossroads and go straight ahead.</div>
+              <div class="wPos" style="margin-top:12px">переносное значение</div>
+              <div class="wDef">момент, когда нужно принять важное решение</div>
+              <div class="wEx">She was at a crossroads in her career.</div>
+
+              <div class="wActs">
+                <button class="mini">В мои слова</button>
+                <button class="mini">На доску</button>
+                <button class="mini" data-r="teacher">Показать всем</button>
+              </div>
+
+              <div class="wSrc">встроенная карточка — только открытые базы: Open English WordNet, Tatoeba, Common Voice.
+              <b>Закрытые словари (Cambridge и другие) не втягиваются внутрь, а открываются ссылкой в новой вкладке</b> — решение владельца 12.08</div>
+            </div>
+
+            <div class="mt" style="margin-top:14px"><span><span class="mtName">Слова этого урока</span>
+              <span class="mtSub">6 новых · уйдут в повторение</span></span><button class="mtGo">открыть</button></div>
+            <div class="mt"><span><span class="mtName">Cambridge Dictionary</span>
+              <span class="mtSub">внешний словарь · откроется в новой вкладке</span></span><button class="mtGo">↗</button></div>
+            <div class="mt"><span><span class="mtName">Искать в «Источниках мира»</span>
+              <span class="mtSub">хаб · словари, примеры, аудио</span></span><button class="mtGo">→</button></div>
+          </div>
+
+          <!-- материалы -->
+          <div class="pane p-mats">
+            <div class="mt"><span><span class="mtName">Методичка урока</span>
+              <span class="mtSub">Unit 4 · 9 страниц</span></span><button class="mtGo">открыть</button></div>
+            <div class="mt"><span><span class="mtName">Аудио «at the station»</span>
+              <span class="mtSub">2:14 · открытая лицензия</span></span><button class="mtGo">играть</button></div>
+            <div class="mt"><span><span class="mtName">Карта станции</span>
+              <span class="mtSub">вставлена на доску Ириной</span></span><button class="mtGo">на доске</button></div>
+            <div class="mt"><span><span class="mtName">Быстрый тест · directions</span>
+              <span class="mtSub">6 вопросов · идёт сейчас</span></span><button class="mtGo">открыть</button></div>
+            <div class="mt"><span><span class="mtName">Доска прошлого урока</span>
+              <span class="mtSub">сохранена преподавателем 5 августа</span></span><button class="mtGo">открыть</button></div>
+
+            <div data-r="teacher" style="margin-top:14px;display:grid;gap:6px">
+              <button class="mini">Прикрепить материал</button>
+              <button class="mini">Создать тест</button>
+              <button class="mini">Собрать саммари сейчас</button>
+            </div>
+          </div>
+
+          <!-- чат -->
+          <div class="pane p-chat">
+            <div class="msg"><div class="mWho">Ирина · 12:04</div>
+              <div class="mTxt">Открывайте методичку, страница 3</div></div>
+            <div class="msg"><div class="mWho">Петя · 12:09</div>
+              <div class="mTxt">а «go straight on» тоже правильно?</div></div>
+            <div class="msg"><div class="mWho">Ирина · 12:10</div>
+              <div class="mTxt">В британском встречается, но на экзамене пишите ahead. Вынесла на доску</div></div>
+            <div class="msg"><div class="mWho">Аня · 12:16</div>
+              <div class="mTxt">можно ссылку на аудио ещё раз?</div></div>
+            <div class="chatIn"><input placeholder="Написать в чат урока"><button aria-label="Отправить">↑</button></div>
+            <p class="mtSub" style="margin-top:10px">чат урока живёт только во время занятия · всё важное уходит в саммари</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="privacy"><span class="sh"></span>
+      камера и микрофон обрабатываются на твоём устройстве · наружу уходят только обезличенные показатели внимания ·
+      <span data-r="pupil" style="--d:inline">видео и звук <b>не записываются</b> · сохраняются саммари, доска, чат, ваши работы и оценки</span>
+      <span data-r="teacher" style="--d:inline">видео и звук <b>не записываются</b> · сохраняются саммари, ваши доски и материалы, чат занятия, работы и оценки учеников</span>
+    </div>
+  </div>
+
+  <!-- ——— ЗАМЕТКИ ——— -->
+  <div class="notes">
+    <h2>Что здесь решено, что проверить и где риск</h2>
+
+    <h3>Каркас комнаты</h3>
+    <p>Шапка (что за урок, идёт ли, действия) → видео-полоса → <b>сцена</b> → правая панель. Сцена одна и та же для всех:
+    что показывает преподаватель, то и видят ученики. Панель справа — личная: каждый может открыть словарь, пока на сцене доска.</p>
+    <ul>
+      <li><b>Видео</b> выносится в отдельную вкладку или на второй экран — это и есть многоэкранность.</li>
+      <li>Источники трансляции: <b>камера · экран компьютера · камера кабинета</b> — все три в шапке у преподавателя.</li>
+      <li>Роли различаются <b>правами, а не другим интерфейсом</b>: у преподавателя те же экраны плюс управление.</li>
+    </ul>
+
+    <h3>Доска</h3>
+    <ul>
+      <li>Бесконечный холст: писать, рисовать, текст, стикеры, фигуры, связи — то есть майндмап собирается прямо на ней.</li>
+      <li><b>Картинка вставляется из буфера</b> (ctrl+V) прямо на холст, дальше её можно двигать и растягивать за уголки.</li>
+      <li>Видно, <b>кто что добавил</b> — подпись у объекта. Преподаватель может закрыть ученикам запись одной кнопкой.</li>
+      <li><b>Сохранение доски</b>: уходит в материалы урока и доступна в следующий раз («доска прошлого урока»).</li>
+    </ul>
+
+    <h3>Саммари занятия</h3>
+    <ul>
+      <li>Собирается <b>из доски, теста, чата и материалов</b> — у каждого пункта видно, откуда он взят.</li>
+      <li>Всегда сначала <b>черновик преподавателя</b>: он правит и отправляет. Ученики видят только отправленное.</li>
+      <li>Домашнее задание из саммари автоматически попадает в «Задания» предмета.</li>
+    </ul>
+
+    <h3>Решение владельца 13.08 — режим видео (Р5.1)</h3>
+    <p><b>Ученик видит преподавателя и своё превью. Преподаватель видит всю группу.</b>
+    Причина инженерная, не вкусовая: урок раздаётся с машины преподавателя, и «все видят всех» требует от него
+    30 Мбит/с исходящего канала — домашний интернет ляжет и связь будет рваться. При текущем режиме нужно 4,3 Мбит/с.</p>
+    <ul>
+      <li>Поднявший руку может временно показаться всем — это <b>одна</b> дополнительная дорожка, а не восемь.</li>
+      <li>Ученику честно сказано, почему он не видит класс: «так урок не рвётся на слабом канале».</li>
+      <li>Панель «Участники» остаётся у всех — знать, кто в комнате, важнее, чем видеть восемь лиц.</li>
+    </ul>
+
+    <h3>Решения владельца 12.08 — закреплены</h3>
+    <ul>
+      <li><b>Доступ к доске</b> открывает и закрывает преподаватель. Ученик видит текущее состояние.</li>
+      <li><b>Словари:</b> внутри — только открытые базы (Open English WordNet · Tatoeba · Common Voice).
+      Закрытые словари, включая Cambridge, открываются ссылкой в новой вкладке.</li>
+      <li><b>Переключение окон</b> — полоса под шапкой: доска · методичка · тест · саммари; любое выносится отдельной вкладкой.</li>
+      <li><b>Записи занятия нет</b> — ни видео, ни аудио. Речь разбирается на лету, ради саммари.</li>
+      <li><b>Саммари сохраняется</b> и у преподавателя, и у учеников — в материалах предмета.</li>
+      <li><b>Чат занятия живёт внутри саммари</b> отдельным разделом. Отдельной вечной ленты у урока нет — переписка едет вместе с итогом.</li>
+      <li>Преподаватель работает со <b>своими</b> досками, майндмапами и материалами.</li>
+    </ul>
+
+    <h3>Что хранится, а что нет</h3>
+    <p>Правило владельца: <b>ничего не храним, кроме оговорённого и неконфликтного.</b> Оговорённое — это учебная жизнь платформы:</p>
+    <ul>
+      <li><b>Саммари занятий</b> — у преподавателя и у участников, включая раздел с чатом занятия.</li>
+      <li><b>Доски и майндмапы</b>, методички, прикреплённые материалы, тесты.</li>
+      <li><b>Чаты</b> — предмета, личные с преподавателем, между одноклассниками.</li>
+      <li><b>Работы учеников</b> — домашние задания, лабораторные, ответы на тесты, попытки и пересдачи.</li>
+      <li><b>Оценки, показатели, прогресс и достижения</b> — они и есть ядро учётной записи.</li>
+      <li><b>SEduM</b> — обезличенный показатель внимания по интервалам, как и раньше.</li>
+    </ul>
+    <p><b>Не хранится только сырьё занятия:</b> видео, аудио и дословная расшифровка речи. Речь обрабатывается потоком
+    ради саммари и не оседает ни в файле, ни в базе.</p>
+
+    <h3>О чём помнить при реализации</h3>
+    <ul>
+      <li>Расшифровка идёт <b>потоком в памяти</b>, без файла на диске; после сборки саммари буфер очищается.
+      Заложить сразу — иначе «временные файлы» незаметно станут архивом записей.</li>
+      <li>Разделять два потока: <b>камера/биометрия</b> (полностью на устройстве, 8 агрегатов) и <b>речь</b>
+      (обрабатывается на сервере ради саммари). Смешивать их в одном пайплайне нельзя.</li>
+      <li>Согласие при регистрации: «речь занятий обрабатывается для саммари, видео и аудио не записываются».
+      Честная формулировка, которую легко объяснить родителю.</li>
+      <li>Пересмотреть занятие нельзя — записи нет. Спор «кто что сказал» разбирается по саммари и чату занятия, не по видео.</li>
+    </ul>
+
+    <h3>Вопросы к тебе</h3>
+    <div class="q"><p>1. ✅ Словарь — открытые базы, закрытые открываются ссылкой.</p></div>
+    <div class="q"><p>2. ✅ Саммари — без записи занятия, но само саммари сохраняется у всех участников.</p></div>
+    <div class="q"><p>3. ✅ Доску открывает преподаватель.</p></div>
+    <div class="q"><p>4. ✅ Чат урока сохраняется <b>внутри саммари</b> отдельным разделом.</p></div>
+
+    </div>
+</div>
+
+<script>
+const scr=document.getElementById('scr');
+function press(sel,key,val){document.querySelectorAll(sel).forEach(x=>x.setAttribute('aria-pressed',String(x.dataset[key]===val)));}
+document.querySelectorAll('.bar button[data-role]').forEach(b=>b.addEventListener('click',()=>{
+  scr.dataset.role=b.dataset.role;press('.bar button[data-role]','role',b.dataset.role);}));
+function setScene(v){
+  scr.dataset.scene=v;press('.bar button[data-scene]','scene',v);
+  document.querySelectorAll('.win').forEach(x=>x.setAttribute('aria-selected',String(x.dataset.scene===v)));
+}
+document.querySelectorAll('.bar button[data-scene]').forEach(b=>b.addEventListener('click',()=>setScene(b.dataset.scene)));
+document.querySelectorAll('.win').forEach(b=>b.addEventListener('click',()=>setScene(b.dataset.scene)));
+const ba=document.getElementById('boardAccess');
+if(ba)ba.addEventListener('click',()=>{
+  const on=ba.hasAttribute('data-on');
+  ba.toggleAttribute('data-on');
+  ba.textContent=on?'Доска закрыта для учеников':'Доска открыта для учеников';});
+function setPane(p){
+  scr.dataset.pane=p;press('.bar button[data-pane]','pane',p);
+  document.querySelectorAll('.sTab').forEach(x=>x.setAttribute('aria-selected',String(x.dataset.pane===p)));
+}
+document.querySelectorAll('.bar button[data-pane]').forEach(b=>b.addEventListener('click',()=>setPane(b.dataset.pane)));
+document.querySelectorAll('.sTab').forEach(b=>b.addEventListener('click',()=>setPane(b.dataset.pane)));
+document.querySelectorAll('.tools .tool').forEach(t=>t.addEventListener('click',()=>{
+  document.querySelectorAll('.tools .tool').forEach(x=>x.removeAttribute('data-on'));t.setAttribute('data-on','');}));
+document.querySelectorAll('.opt').forEach(o=>o.addEventListener('click',()=>{
+  o.parentElement.querySelectorAll('.opt').forEach(x=>x.removeAttribute('data-pick'));o.setAttribute('data-pick','');}));
+document.getElementById('thm').addEventListener('click',e=>{
+  const d=document.documentElement.dataset.theme==='dark';
+  document.documentElement.dataset.theme=d?'':'dark';
+  e.target.textContent=d?'тёмная':'светлая';
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,737 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>АТЛАС D1 — Рама приложения преподавателя</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f1f1ef;--surface:#fff;--subtle:#e9e9e6;--border:#d9d9d6;--border-s:#c4c4c1;
+  --ink:#1d1d1f;--sec:#6e6e73;--ter:#98989e;
+  --coral:#e14e1f;--coral-t:#c23f14;--coral-soft:#fdeee7;
+  --good:#3fa46a;--warn:#c9a227;--warn-soft:#fdf6da;--warn-ink:#8a7413;
+  --ui:-apple-system,'SF Pro Display',Inter,system-ui,sans-serif;
+  --mono:'JetBrains Mono','SF Mono',ui-monospace,monospace;
+  --ease:cubic-bezier(.2,0,0,1);
+  --fs-body:1.0625rem;--fs-small:.875rem;--fs-cap:.8125rem;--fs-micro:.75rem;
+}
+[data-theme="dark"]{
+  --bg:#101012;--surface:#1a1a1c;--subtle:#242426;--border:#2e2e31;--border-s:#3f3f43;
+  --ink:#f2f2f0;--sec:#98989e;--ter:#6e6e73;--coral:#ff7040;--coral-t:#ff8a5f;--coral-soft:#33201a;
+  --good:#4cb87c;--warn:#d9b53c;--warn-soft:#332b12;--warn-ink:#e2c74a;
+}
+*{box-sizing:border-box;margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--ui);font-size:var(--fs-body);
+  line-height:1.6;padding:18px 18px 90px;transition:background .32s var(--ease),color .32s var(--ease)}
+.wrap{max-width:none;margin:0}
+h1{font-size:1.25rem;font-weight:600;letter-spacing:-.015em}
+.sub{color:var(--sec);font-size:var(--fs-small);margin:4px 0 14px;max-width:110ch}
+.bar{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:14px;position:sticky;top:6px;z-index:20;
+  background:var(--bg);padding:8px 0}
+.bar .grp{font:500 10px var(--mono);color:var(--ter);letter-spacing:.1em;text-transform:uppercase;margin:0 2px 0 10px}
+.bar .grp:first-child{margin-left:0}
+.bar button{font:500 12px var(--mono);color:var(--sec);background:var(--bg);border:1px solid var(--border);
+  border-radius:999px;padding:7px 13px;cursor:pointer;transition:all .18s var(--ease)}
+.bar button[aria-pressed="true"]{color:var(--ink);border-color:var(--border-s);background:var(--surface)}
+.bar button:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(225,78,31,.4)}
+
+/* ═══ ОКНО ПРИЛОЖЕНИЯ ═══ */
+.app{background:var(--surface);border:1px solid var(--border-s);border-radius:12px;overflow:hidden;
+  box-shadow:0 18px 50px rgba(0,0,0,.13);display:grid;grid-template-rows:44px auto 1fr}
+[data-theme="dark"] .app{box-shadow:0 18px 50px rgba(0,0,0,.55)}
+
+/* ——— строка заголовка ——— */
+.titlebar{display:flex;align-items:center;gap:12px;padding:0 14px;background:var(--subtle);
+  border-bottom:1px solid var(--border);user-select:none}
+.traffic{display:flex;gap:8px;flex:none}
+.traffic i{width:12px;height:12px;border-radius:50%;display:block}
+.traffic i:nth-child(1){background:#ff5f57}
+.traffic i:nth-child(2){background:#febc2e}
+.traffic i:nth-child(3){background:#28c840}
+.appName{display:flex;align-items:center;gap:7px;font:500 var(--fs-cap) var(--ui);flex:none}
+.appName .dot{width:7px;height:7px;border-radius:50%;background:var(--coral)}
+.appName .ver{font:400 9px var(--mono);color:var(--ter)}
+/* опознание урока живёт в заголовке окна — рабочая площадь важнее */
+.lessonTag{display:none;align-items:baseline;gap:8px;min-width:0}
+.app[data-state="live"] .lessonTag,.app[data-state="weak"] .lessonTag{display:flex}
+.sepv{width:1px;height:13px;background:var(--border-s);flex:none;align-self:center}
+.lessonName{font:500 var(--fs-cap) var(--ui);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.lessonMeta{font:400 9px var(--mono);color:var(--ter);white-space:nowrap;flex:none}
+@media (max-width:1100px){.lessonMeta{display:none}}
+.hostState{margin:0 auto;display:flex;align-items:center;gap:9px;font:500 10px var(--mono);
+  border:1px solid var(--border);border-radius:999px;padding:4px 13px;background:var(--surface);white-space:nowrap}
+.hostState .lamp{width:6px;height:6px;border-radius:50%;background:var(--ter);flex:none}
+.hostState[data-state="idle"]{color:var(--sec)}
+.hostState[data-state="live"]{color:var(--coral-t);border-color:var(--coral);background:var(--coral-soft)}
+.hostState[data-state="live"] .lamp{background:var(--coral)}
+@media (prefers-reduced-motion:no-preference){
+  .hostState[data-state="live"] .lamp,.tray .lamp{animation:pulse 2.4s ease-in-out infinite}}
+@keyframes pulse{50%{opacity:.25}}
+.hostState[data-state="weak"]{color:var(--warn-ink);border-color:var(--warn);background:var(--warn-soft)}
+.hostState[data-state="weak"] .lamp{background:var(--warn)}
+.hostState[data-state="offline"]{color:var(--ter);border-style:dashed}
+.titleRight{flex:none;display:flex;align-items:center;gap:6px}
+.iconBtn{width:28px;height:28px;border-radius:7px;border:1px solid transparent;background:none;cursor:pointer;
+  color:var(--sec);display:grid;place-content:center;font:500 11px var(--mono)}
+.iconBtn:hover{background:var(--surface);color:var(--ink);border-color:var(--border)}
+.iconBtn:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(225,78,31,.4)}
+
+/* ——— полоса состояния хоста ——— */
+.hostBar{display:none;align-items:center;gap:16px;padding:7px 14px;border-bottom:1px solid var(--border);flex-wrap:wrap}
+.app[data-state="live"] .hostBar,.app[data-state="weak"] .hostBar,.app[data-state="offline"] .hostBar{display:flex}
+.app[data-state="weak"] .hostBar{background:var(--warn-soft)}
+.fact{display:grid;gap:1px}
+.factK{font:500 9px var(--mono);color:var(--ter);letter-spacing:.08em;text-transform:uppercase}
+.factV{font:500 var(--fs-cap) var(--mono);color:var(--ink);font-variant-numeric:tabular-nums}
+.factV[data-warn]{color:var(--warn-ink)}
+.factV[data-good]{color:var(--good)}
+.meter{display:flex;gap:2px;align-items:flex-end;height:14px}
+.meter i{width:4px;border-radius:1px;background:var(--border-s);display:block}
+.meter i:nth-child(1){height:5px}.meter i:nth-child(2){height:8px}
+.meter i:nth-child(3){height:11px}.meter i:nth-child(4){height:14px}
+.meter[data-level="4"] i{background:var(--good)}
+.meter[data-level="2"] i:nth-child(-n+2){background:var(--warn)}
+.meter[data-level="0"] i{background:var(--border-s)}
+.hostWhy{font:400 var(--fs-cap) var(--ui);color:var(--warn-ink);max-width:52ch}
+.hostActs{margin-left:auto;display:flex;gap:7px;flex-wrap:wrap}
+.mini{font:500 10px var(--mono);color:var(--sec);background:none;border:1px solid var(--border);border-radius:8px;
+  padding:6px 11px;cursor:pointer;white-space:nowrap}
+.mini:hover{border-color:var(--border-s);color:var(--ink)}
+.mini.primary{background:var(--coral);border-color:var(--coral);color:#fff}
+.mini.primary:hover{background:var(--coral-t)}
+.mini:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(225,78,31,.4)}
+
+/* ═══ СОДЕРЖИМОЕ ОКНА ═══ */
+.viewport{background:var(--bg);min-height:640px;position:relative;overflow:hidden}
+.scene{display:none;height:100%}
+.app[data-state="idle"] .s-start,.app[data-state="weak"] .s-room,
+.app[data-state="live"] .s-room,.app[data-state="offline"] .s-off{display:block}
+
+/* ——— СТАРТОВАЯ (лист 00, встроен как есть) ——— */
+.page{padding:26px 30px 34px}
+.hi{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:18px}
+.hiName{font-size:1.375rem;font-weight:600;letter-spacing:-.02em}
+.hiDate{font:500 var(--fs-cap) var(--mono);color:var(--ter);font-variant-numeric:tabular-nums}
+.grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) 268px;gap:14px;align-items:start}
+.slot{background:var(--surface);border:1px solid var(--border);border-radius:13px;padding:16px 18px}
+.slot.plain{border:none;padding:0;background:none}
+.sNow{grid-column:1/3;grid-row:1}
+.sWeek{grid-column:3;grid-row:1/4}
+.sToday{grid-column:1;grid-row:2}
+.sAttn{grid-column:2;grid-row:2}
+.sCont{grid-column:1;grid-row:3}
+.sProg{grid-column:2;grid-row:3}
+.sQuick{grid-column:1/-1;grid-row:4}
+.slotTitle{font:500 var(--fs-micro) var(--mono);color:var(--ter);letter-spacing:.09em;text-transform:uppercase;
+  display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.slotTitle .more{margin-left:auto;font:500 var(--fs-micro) var(--mono);color:var(--ter);background:none;border:none;cursor:pointer}
+.now{border:1px solid var(--border-s);border-radius:13px;padding:16px 20px 18px;background:var(--surface);
+  position:relative;overflow:hidden}
+.now::before{content:'';position:absolute;inset-inline-start:0;top:0;bottom:0;width:3px;background:var(--coral)}
+.nowKind{font:500 10px var(--mono);color:var(--coral-t);letter-spacing:.12em;text-transform:uppercase;
+  display:inline-flex;align-items:center;gap:6px}
+.nowKind i{width:5px;height:5px;border-radius:50%;background:var(--coral);display:block}
+.nowTitle{font-size:1.2rem;font-weight:600;letter-spacing:-.015em;margin:6px 0 2px}
+.nowMeta{font-size:var(--fs-cap);color:var(--sec)}
+.nowRow{display:flex;align-items:center;gap:14px;margin-top:12px;flex-wrap:wrap}
+.btn{background:var(--coral);color:#fff;border:none;border-radius:9px;padding:10px 18px;font:500 var(--fs-small) var(--ui);
+  cursor:pointer}
+.btn:hover{background:var(--coral-t)}
+.btn.ghost{background:none;color:var(--ink);border:1px solid var(--border-s)}
+.btn:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(225,78,31,.4)}
+.nowNote{font:400 var(--fs-cap) var(--ui);color:var(--ter)}
+.row{display:grid;grid-template-columns:56px 1fr auto;gap:12px;align-items:baseline;padding:9px 0;
+  border-bottom:1px solid var(--border)}
+.row:last-child{border-bottom:none}
+.row.noTime{grid-template-columns:1fr auto}
+.rTime{font:500 var(--fs-cap) var(--mono);color:var(--ter);font-variant-numeric:tabular-nums}
+.rName{font-size:.9375rem;font-weight:500}
+.rSub{font-size:var(--fs-cap);color:var(--sec)}
+.rTag{font:500 10px var(--mono);color:var(--ter);white-space:nowrap}
+.rTag[data-warn]{color:var(--coral-t)}
+.rDot{width:6px;height:6px;border-radius:50%;background:var(--coral);display:inline-block;margin-inline-end:6px}
+.days{display:grid;grid-template-columns:minmax(0,1fr);gap:5px}
+.day{border:1px solid var(--border);border-radius:10px;padding:7px 9px 8px;display:grid;align-content:start;gap:4px}
+.day[data-today]{border-color:var(--coral);background:var(--coral-soft)}
+.day[data-past]{opacity:.55}
+.dHead{display:flex;align-items:baseline;gap:5px}
+.dDow{font:500 10px var(--mono);color:var(--ter);letter-spacing:.08em;text-transform:uppercase}
+.dNum{font:500 var(--fs-cap) var(--mono);color:var(--ink);margin-left:auto;font-variant-numeric:tabular-nums}
+.day[data-today] .dDow,.day[data-today] .dNum{color:var(--coral-t)}
+.ev{font:400 10px var(--ui);color:var(--sec);display:flex;gap:5px;align-items:flex-start;overflow:hidden;
+  text-overflow:ellipsis;white-space:nowrap}
+.ev::before{content:'';width:4px;height:4px;border-radius:50%;background:var(--ter);flex:none;margin-top:5px}
+.ev[data-live]::before{background:var(--coral)}
+.ev[data-due]{color:var(--coral-t)}.ev[data-due]::before{background:var(--coral)}
+.pLine{display:grid;grid-template-columns:1fr 46px;gap:10px;align-items:center}
+.pName{font-size:var(--fs-cap);color:var(--sec)}
+.pVal{font:500 var(--fs-cap) var(--mono);text-align:end;font-variant-numeric:tabular-nums}
+.pBarWrap{height:4px;border-radius:2px;background:var(--subtle);overflow:hidden;margin:-6px 0 10px}
+.pBar{height:100%;background:var(--coral);border-radius:2px}
+.pSelf{font:400 10px var(--mono);color:var(--ter)}
+.quick{display:flex;gap:8px;flex-wrap:wrap}
+.qi{border:1px solid var(--border);border-radius:10px;padding:10px 14px;background:var(--surface);cursor:pointer;
+  display:grid;gap:2px;text-align:start;min-width:132px}
+.qi:hover{border-color:var(--border-s)}
+.qiName{font-size:var(--fs-cap);font-weight:500}
+.qiSub{font:400 10px var(--mono);color:var(--ter)}
+
+/* ——— КОМНАТА УРОКА (лист 02, встроен как есть) ——— */
+.room{display:grid;grid-template-columns:minmax(0,1fr) 292px;height:100%;min-height:640px;background:var(--surface)}
+.stage{border-inline-end:1px solid var(--border);display:grid;grid-template-rows:auto minmax(0,1fr);min-width:0}
+/* отдельной строки окон урока больше нет: переключатели переехали в полосу состояния */
+.winSwitch{display:flex;gap:2px;background:var(--subtle);border-radius:9px;padding:3px}
+#modeSwitch{margin-inline-start:-4px}
+#winSwitch{margin-inline-start:auto}
+.app[data-state="offline"] #winSwitch,.app[data-state="offline"] #modeSwitch{display:none}
+[data-theme="dark"] .winSwitch{background:#232326}
+.win{font:500 10px var(--mono);color:var(--sec);background:none;border:none;border-radius:7px;padding:6px 11px;cursor:pointer}
+.win[aria-selected="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.05)}
+.mode{font:500 10px var(--mono);color:var(--sec);background:none;border:none;border-radius:7px;padding:6px 11px;cursor:pointer}
+.mode[aria-selected="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.05)}
+.vidStrip{display:flex;gap:8px;padding:10px 16px;border-bottom:1px solid var(--border);overflow-x:auto;align-items:center}
+.vid{position:relative;border-radius:9px;background:#17171a;overflow:hidden;flex:none;width:132px;aspect-ratio:16/10;
+  border:1px solid rgba(255,255,255,.08);display:grid;place-content:center}
+.vid.main{width:196px}
+.vid .ini{font:500 14px var(--mono);color:rgba(255,255,255,.55)}
+.vid .who{position:absolute;left:6px;bottom:5px;font:500 9px var(--mono);color:#fff;background:rgba(0,0,0,.55);
+  border-radius:4px;padding:2px 6px}
+.vid[data-speaking]{border-color:var(--coral)}
+.vid[data-degraded]::after{content:'качество снижено';position:absolute;inset:auto 0 0 0;text-align:center;
+  font:500 8px var(--mono);color:#fff;background:rgba(201,162,39,.85);padding:2px 0;letter-spacing:.06em}
+.canvasWrap{position:relative;overflow:hidden;
+  background:radial-gradient(circle,var(--border) 1px,transparent 1px) 0 0/22px 22px}
+[data-theme="dark"] .canvasWrap{background:radial-gradient(circle,#2a2a2d 1px,transparent 1px) 0 0/22px 22px}
+.nd{position:absolute;background:var(--surface);border:1px solid var(--border-s);border-radius:10px;padding:8px 11px;
+  font-size:var(--fs-cap);box-shadow:0 1px 3px rgba(0,0,0,.04);max-width:190px}
+.nd small{display:block;font:400 10px var(--mono);color:var(--ter);margin-top:2px}
+.nd[data-core]{background:var(--coral-soft);border-color:var(--coral);color:var(--coral-t);font-weight:600}
+.nd[data-note]{background:#fdf6da;border-color:#e8dca6;color:#4a4326;transform:rotate(-1.2deg);border-radius:4px}
+[data-theme="dark"] .nd[data-note]{background:#3a3520;border-color:#5a5230;color:#e8dfc0}
+.link{fill:none;stroke:var(--border-s);stroke-width:1.6}
+
+/* ——— РЕЖИМ «ЛЮДИ»: никакого материала, экран отдан говорящим ——— */
+.faces{display:none;background:#141416;position:relative;min-height:0}
+[data-theme="dark"] .faces{background:#0b0b0d}
+.app[data-scene="faces"] .canvasWrap{display:none}
+.app[data-scene="faces"] .faces{display:grid}
+.app[data-scene="faces"] .vidStrip{display:none}          /* полоса не дублирует лица */
+/* раскладка класса: преподаватель виден ВСЕГДА, остальное подстраивается */
+.facesStage{display:grid;gap:10px;padding:12px 16px 0;min-height:0}
+.faces[data-mode="pair"] .facesStage{grid-template-columns:1fr 1fr}
+.faces[data-mode="group"] .facesStage{grid-template-columns:1.35fr .65fr}
+.faces[data-mode="pinned"] .facesStage{grid-template-columns:1fr 1fr}
+.facesMain{position:relative;display:grid;place-items:center;overflow:hidden;border-radius:12px;background:#1d1d20;
+  min-height:260px}
+.facesMain[data-teacher]{outline:2px solid var(--coral);outline-offset:-2px}
+.facesSide{display:grid;gap:10px;min-height:0}
+.faces[data-mode="group"] .facesSide{grid-template-columns:1fr 1fr;grid-auto-rows:minmax(0,1fr)}
+.faces[data-mode="pair"] .facesSide,.faces[data-mode="pinned"] .facesSide{grid-template-columns:1fr}
+.faces[data-mode="pair"] .facesRow,.faces[data-mode="pinned"] .facesRow{display:none}
+.facesSide .faceTile{width:auto;aspect-ratio:16/10;min-height:0}
+.pinBtn{position:absolute;right:8px;top:8px;font:500 9px var(--mono);color:#fff;background:rgba(0,0,0,.5);
+  border:1px solid rgba(255,255,255,.25);border-radius:7px;padding:4px 9px;cursor:pointer;opacity:0}
+.faceTile:hover .pinBtn,.pinBtn:focus-visible{opacity:1}
+.roleTag{position:absolute;left:8px;top:8px;font:500 8px var(--mono);color:#fff;background:var(--coral);
+  border-radius:4px;padding:2px 7px;letter-spacing:.08em;text-transform:uppercase}
+.facesMain .ini{font:500 64px var(--mono);color:rgba(255,255,255,.35)}
+.facesMain .who{position:absolute;left:16px;bottom:14px;display:flex;align-items:center;gap:8px;
+  font:500 var(--fs-cap) var(--ui);color:#fff;background:rgba(0,0,0,.5);border-radius:999px;padding:6px 14px}
+.facesMain .who i{width:6px;height:6px;border-radius:50%;background:var(--coral);display:block}
+.facesRow{display:flex;gap:10px;padding:12px 16px;overflow-x:auto;align-items:center;
+  border-top:1px solid rgba(255,255,255,.09)}
+.faceTile{position:relative;border-radius:10px;background:#1d1d20;flex:none;width:150px;aspect-ratio:16/10;
+  display:grid;place-content:center;border:1px solid rgba(255,255,255,.08);overflow:hidden}
+.faceTile .ini{font:500 15px var(--mono);color:rgba(255,255,255,.5)}
+.faceTile .who{position:absolute;left:7px;bottom:6px;font:500 9px var(--mono);color:#fff;
+  background:rgba(0,0,0,.55);border-radius:4px;padding:2px 7px}
+.faceTile[data-speaking]{border-color:var(--coral)}
+.faceTile[data-up]::after{content:'рука ↑';position:absolute;right:7px;top:6px;font:500 8px var(--mono);
+  color:#fff;background:var(--coral);border-radius:4px;padding:2px 6px}
+.faceTile[data-self]{border-style:dashed}
+.facesHint{margin-inline-start:auto;font:400 9px var(--mono);color:rgba(255,255,255,.45);
+  max-width:26ch;line-height:1.5;padding-inline-end:4px}
+.side{display:grid;grid-template-rows:auto 1fr;min-width:0}
+.sideTabs{display:flex;gap:1px;border-bottom:1px solid var(--border);padding:6px 8px 0}
+.sTab{font:500 9px var(--mono);color:var(--sec);background:none;border:none;border-bottom:2px solid transparent;
+  padding:7px 8px 9px;cursor:pointer;letter-spacing:.07em;text-transform:uppercase}
+.sTab[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--coral)}
+.sideBody{padding:12px 14px;overflow:auto}
+.per{display:grid;grid-template-columns:26px 1fr auto;gap:10px;align-items:center;padding:8px 0;
+  border-bottom:1px solid var(--border)}
+.per:last-child{border-bottom:none}
+.pAv{width:26px;height:26px;border-radius:50%;background:var(--subtle);display:grid;place-content:center;
+  font:500 9px var(--mono);color:var(--sec)}
+.pName{font-size:var(--fs-cap);font-weight:500}
+.pRole{font:400 9px var(--mono);color:var(--ter)}
+.pSt{font:500 9px var(--mono);color:var(--ter);white-space:nowrap}
+.pSt[data-up]{color:var(--coral-t)}
+.pSt[data-off]{color:var(--warn-ink)}
+
+/* ——— НЕТ СЕТИ ——— */
+.s-off{display:none;place-items:center;padding:60px 24px;height:100%}
+.app[data-state="offline"] .s-off{display:grid}
+.offCard{max-width:560px;text-align:center;display:grid;gap:10px;background:var(--surface);border:1px solid var(--border-s);
+  border-radius:14px;padding:30px 34px}
+.offT{font-size:1.2rem;font-weight:600}
+.offS{font-size:var(--fs-small);color:var(--sec)}
+.offSafe{display:inline-flex;align-items:center;gap:8px;justify-self:center;margin-top:4px;
+  font:500 var(--fs-cap) var(--ui);color:var(--good);background:var(--subtle);border-radius:999px;padding:7px 15px}
+.offRow{display:flex;gap:8px;justify-content:center;margin-top:8px;flex-wrap:wrap}
+
+/* ——— трей ——— */
+.trayRow{margin-top:16px;display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+.tray{display:inline-flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--border-s);
+  border-radius:10px;padding:8px 14px;font:500 var(--fs-micro) var(--ui)}
+.tray .lamp{width:7px;height:7px;border-radius:50%;background:var(--coral)}
+.tray .m{font:400 10px var(--mono);color:var(--ter)}
+.trayCap{font:400 10px var(--mono);color:var(--ter);max-width:70ch}
+
+/* ——— заметки ——— */
+.notes{margin-top:22px;border:1px solid var(--border);border-radius:13px;padding:22px 26px;background:var(--surface)}
+.notes h2{font-size:1rem;font-weight:600;margin-bottom:12px}
+.notes h3{font:500 var(--fs-micro) var(--mono);color:var(--ter);letter-spacing:.09em;text-transform:uppercase;margin:18px 0 8px}
+.notes p,.notes li{font-size:var(--fs-small);color:var(--sec);max-width:100ch}
+.notes ul{padding-inline-start:20px;display:grid;gap:5px}
+.notes b{color:var(--ink);font-weight:500}
+.q{border-inline-start:2px solid var(--coral);padding-inline-start:12px;margin-top:8px}
+@media (max-width:1100px){
+  .grid{grid-template-columns:minmax(0,1fr)}
+  .sNow,.sWeek,.sToday,.sAttn,.sCont,.sProg,.sQuick{grid-column:1;grid-row:auto}
+  .room{grid-template-columns:minmax(0,1fr)}
+}
+
+/* знак бренда в шапке — намеренно грубый рисунок, см. docs/brand/flamingo-brandbook.html §01 */
+.mk{width:1.55em;height:1.4em;flex:none;overflow:visible;vertical-align:-.3em}
+[data-theme="dark"] .mk{--mk-c:#ff7040;--mk-ink:#f2f2f0;--mk-eye:#1a1a1c}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Атлас D1 — Рама приложения преподавателя</h1>
+  <p class="sub">Окно приложения целиком. Внутри — <b>настоящие</b> утверждённые экраны: стартовая (лист 00), когда урока нет,
+  и живая аудитория (лист 02), когда урок идёт. Переключай состояние: <b>меняется только рама</b> — заголовок, полоса состояния,
+  поведение при сбоях. Содержимое остаётся тем же самым, что уже реализовано и работает в браузере.</p>
+
+  <div class="bar">
+    <span class="grp">Состояние</span>
+    <button data-state="idle" aria-pressed="true">урока нет</button>
+    <button data-state="live">урок идёт</button>
+    <button data-state="weak">канал просел</button>
+    <button data-state="offline">нет сети</button>
+    <span class="grp">Тема</span>
+    <button id="thm">тёмная</button>
+  </div>
+
+  <div class="app" id="app" data-state="idle" data-scene="board">
+
+    <!-- ═══ строка заголовка ═══ -->
+    <div class="titlebar">
+      <span class="traffic"><i></i><i></i><i></i></span>
+      <span class="appName"><svg class="mk" viewBox="0 0 120 110" aria-hidden="true"><g fill="none" stroke="var(--mk-c,#e14e1f)" stroke-linecap="round"><path d="M28 55 L7 44" stroke-width="5.4"/><path d="M26 61 L3 59" stroke-width="7"/><path d="M28 66 L10 74" stroke-width="5.8"/><path d="M44 80 L39 92 L36 103" stroke-width="5.6"/><path d="M57 78 L59 90 L56 102" stroke-width="5"/></g><path d="M58 52 C70 44 60 28 74 16" fill="none" stroke="var(--mk-c,#e14e1f)" stroke-width="10" stroke-linecap="round"/><ellipse cx="48" cy="63" rx="26" ry="21" fill="var(--mk-c,#e14e1f)" transform="rotate(-6 48 63)"/><circle cx="78" cy="13" r="8.5" fill="var(--mk-c,#e14e1f)"/><path d="M85 7 L108 14 L86 19 Z" fill="var(--mk-ink,#1d1d1f)"/><circle cx="77" cy="8" r="2.2" fill="var(--mk-eye,#fff)"/></svg>Flamingo<span class="ver">1.0.0</span></span>
+      <span class="lessonTag"><span class="sepv"></span>
+        <span class="lessonName">English A2 · Unit 4 — Travel</span>
+        <span class="lessonMeta">урок 4 · 8 участников</span></span>
+      <span class="hostState" data-state="idle" id="hostState">
+        <span class="lamp"></span><span id="hostText">урок не идёт</span>
+      </span>
+      <span class="titleRight">
+        <button class="iconBtn" title="Свернуть в трей" aria-label="Свернуть в трей">▾</button>
+        <button class="iconBtn" title="Настройки" aria-label="Настройки">⚙</button>
+      </span>
+    </div>
+
+    <!-- ═══ полоса состояния хоста ═══ -->
+    <div class="hostBar" id="hostBar">
+      <span class="fact"><span class="factK">Связь</span><span class="factV" id="upV" data-good>хорошая</span></span>
+      <span class="meter" data-level="4" id="meter" aria-label="уровень канала"><i></i><i></i><i></i><i></i></span>
+      <span class="fact"><span class="factK">Подключено</span><span class="factV" id="peers">6 из 8</span></span>
+      <span class="fact"><span class="factK">Идёт</span><span class="factV" id="elapsed">24:16</span></span>
+      <span class="hostWhy" id="hostWhy" hidden></span>
+      <!-- переключатели урока живут здесь же: отдельной строки над сценой больше нет -->
+      <span class="winSwitch" id="modeSwitch" hidden>
+        <button class="mode" data-mode="pair" aria-selected="false">вдвоём</button>
+        <button class="mode" data-mode="group" aria-selected="true">группа</button>
+        <button class="mode" data-mode="pinned" aria-selected="false">ученик рядом</button>
+      </span>
+      <span class="winSwitch" id="winSwitch">
+        <button class="win" data-scene="faces">Класс</button>
+        <button class="win" data-scene="board" aria-selected="true">Доска</button>
+        <button class="win" data-scene="material">Методичка</button>
+        <button class="win" data-scene="test">Тест</button>
+        <button class="win" data-scene="summary">Саммари</button>
+      </span>
+      <span class="hostActs" id="hostActs"></span>
+    </div>
+
+    <!-- ═══ СОДЕРЖИМОЕ ═══ -->
+    <div class="viewport">
+
+      <!-- ——— стартовая страница, лист 00 ——— -->
+      <div class="scene s-start">
+        <div class="page">
+          <div class="hi"><span class="hiName">Люция Валерьевна</span>
+            <span class="hiDate">четверг, 14 августа · 09:41</span></div>
+
+          <div class="grid">
+            <div class="slot plain sNow">
+              <div class="now">
+                <span class="nowKind"><i></i>ведёте сегодня</span>
+                <div class="nowTitle">English A2 · Unit 4 — Travel</div>
+                <div class="nowMeta">10:15 · 8 учеников · 3 занятия сегодня · 11 работ ждут проверки</div>
+                <div class="nowRow"><button class="btn">Начать урок</button>
+                  <button class="btn ghost">Открыть материалы</button>
+                  <span class="nowNote">через 34 минуты · ученики получат ссылку автоматически</span></div>
+              </div>
+            </div>
+
+            <div class="slot sToday">
+              <div class="slotTitle">Сегодня<button class="more">всё расписание →</button></div>
+              <div class="row"><span class="rTime">10:15</span>
+                <span><span class="rName">English A2 · Unit 4</span><div class="rSub">8 учеников · аудитория</div></span>
+                <span class="rTag" data-warn>скоро</span></div>
+              <div class="row"><span class="rTime">12:00</span>
+                <span><span class="rName">English A1 · Unit 2</span><div class="rSub">6 учеников</div></span>
+                <span class="rTag">лекция</span></div>
+              <div class="row"><span class="rTime">15:00</span>
+                <span><span class="rName">Разговорный клуб A2</span><div class="rSub">запись открыта · 4 из 6</div></span>
+                <span class="rTag">клуб</span></div>
+            </div>
+
+            <div class="slot sAttn">
+              <div class="slotTitle">Требует внимания</div>
+              <div class="row noTime"><span><span class="rName"><span class="rDot"></span>11 работ на проверке</span>
+                <div class="rSub">7 из них ждут дольше двух дней</div></span><span class="rTag" data-warn>очередь</span></div>
+              <div class="row noTime"><span><span class="rName">3 вопроса от учеников</span>
+                <div class="rSub">в чате A2 по Unit 4</div></span><span class="rTag">чат</span></div>
+              <div class="row noTime"><span><span class="rName">Материалы к 15:00 не прикреплены</span>
+                <div class="rSub">Разговорный клуб</div></span><span class="rTag">урок</span></div>
+            </div>
+
+            <div class="slot sWeek">
+              <div class="slotTitle">Неделя<span style="margin-left:auto;font:500 var(--fs-cap) var(--mono);color:var(--ter)">10 — 16 авг</span></div>
+              <div class="days">
+                <div class="day" data-past><div class="dHead"><span class="dDow">пн</span><span class="dNum">11</span></div>
+                  <span class="ev">A2 · Unit 3</span></div>
+                <div class="day" data-past><div class="dHead"><span class="dDow">вт</span><span class="dNum">12</span></div>
+                  <span class="ev">A1 · Unit 2</span><span class="ev">Клуб A2</span></div>
+                <div class="day" data-past><div class="dHead"><span class="dDow">ср</span><span class="dNum">13</span></div>
+                  <span class="ev">A2 · Unit 4</span></div>
+                <div class="day" data-today><div class="dHead"><span class="dDow">чт</span><span class="dNum">14</span></div>
+                  <span class="ev" data-live>A2 · 10:15</span><span class="ev">A1 · 12:00</span><span class="ev">Клуб · 15:00</span></div>
+                <div class="day"><div class="dHead"><span class="dDow">пт</span><span class="dNum">15</span></div>
+                  <span class="ev" data-due>Проверить 11 работ</span><span class="ev">A2 · Unit 4</span></div>
+                <div class="day"><div class="dHead"><span class="dDow">сб</span><span class="dNum">16</span></div>
+                  <span class="ev">Разбор работ · 11:00</span></div>
+                <div class="day"><div class="dHead"><span class="dDow">вс</span><span class="dNum">17</span></div>
+                  <span class="ev" style="color:var(--ter)">свободно</span></div>
+              </div>
+            </div>
+
+            <div class="slot sCont">
+              <div class="slotTitle">Продолжить</div>
+              <div class="row noTime"><span><span class="rName">Саммари занятия 13 августа</span>
+                <div class="rSub">черновик · осталось отправить группе</div></span><span class="rTag" data-warn>черновик</span></div>
+              <div class="row noTime"><span><span class="rName">Unit 4 · тест «directions»</span>
+                <div class="rSub">6 вопросов · не опубликован</div></span><span class="rTag">черновик</span></div>
+            </div>
+
+            <div class="slot sProg">
+              <div class="slotTitle">Усвоение группы</div>
+              <div class="pLine"><span class="pName">A2 · Asking for directions</span><span class="pVal">84%</span></div>
+              <div class="pBarWrap"><div class="pBar" style="width:84%"></div></div>
+              <div class="pLine"><span class="pName">A2 · Past simple</span><span class="pVal">57%</span></div>
+              <div class="pBarWrap"><div class="pBar" style="width:57%;background:var(--ter)"></div></div>
+              <div class="pSelf">9 ученикам тема даётся тяжело · персональных профилей здесь нет</div>
+            </div>
+
+            <div class="slot plain sQuick">
+              <div class="quick">
+                <button class="qi"><span class="qiName">Мои группы</span><span class="qiSub">3 группы</span></button>
+                <button class="qi"><span class="qiName">Очередь проверки</span><span class="qiSub">11 работ</span></button>
+                <button class="qi"><span class="qiName">Источники мира</span><span class="qiSub">библиотеки · эфир</span></button>
+                <button class="qi"><span class="qiName">Чат</span><span class="qiSub">3 непрочитанных</span></button>
+                <button class="qi"><span class="qiName">Данные и бэкап</span><span class="qiSub">копия 3 дня назад</span></button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ——— живая аудитория, лист 02 ——— -->
+      <div class="scene s-room">
+        <div class="room">
+          <div class="stage">
+            <div class="vidStrip" id="strip">
+              <div class="vid main" data-speaking><span class="ini">ЛВ</span><span class="who">вы · ведёте</span></div>
+              <div class="vid"><span class="ini">АК</span><span class="who">Аня</span></div>
+              <div class="vid"><span class="ini">ПК</span><span class="who">Петя</span></div>
+              <div class="vid"><span class="ini">ЛМ</span><span class="who">Лена</span></div>
+              <div class="vid"><span class="ini">ДС</span><span class="who">Дима</span></div>
+              <div class="vid"><span class="ini">ИВ</span><span class="who">Ира</span></div>
+            </div>
+
+            <!-- ——— сцена «Люди»: материала нет, экран отдан участникам ——— -->
+            <div class="faces" id="faces" data-mode="group" style="grid-template-rows:minmax(0,1fr) auto">
+              <div class="facesStage">
+                <div class="facesMain" data-teacher>
+                  <span class="roleTag">преподаватель</span>
+                  <span class="ini">ЛВ</span>
+                  <span class="who"><i></i>Люция Валерьевна</span>
+                </div>
+                <div class="facesSide" id="facesSide">
+                  <div class="faceTile" data-up><span class="ini">АК</span><span class="who">Аня</span>
+                    <button class="pinBtn">На большой экран</button></div>
+                  <div class="faceTile"><span class="ini">ПК</span><span class="who">Петя</span>
+                    <button class="pinBtn">На большой экран</button></div>
+                  <div class="faceTile"><span class="ini">ЛМ</span><span class="who">Лена</span>
+                    <button class="pinBtn">На большой экран</button></div>
+                  <div class="faceTile"><span class="ini">ДС</span><span class="who">Дима</span>
+                    <button class="pinBtn">На большой экран</button></div>
+                </div>
+              </div>
+              <div class="facesRow">
+                <div class="faceTile" data-self><span class="ini">ЛВ</span><span class="who">вы</span></div>
+                <div class="faceTile"><span class="ini">ИВ</span><span class="who">Ира</span>
+                  <button class="pinBtn">На большой экран</button></div>
+                <div class="faceTile"><span class="ini">СТ</span><span class="who">Саша</span>
+                  <button class="pinBtn">На большой экран</button></div>
+                <span class="facesHint" id="facesHint">преподаватель виден всегда · остальные делят вторую половину</span>
+              </div>
+            </div>
+
+            <div class="canvasWrap">
+              <svg style="position:absolute;inset:0" viewBox="0 0 900 460" preserveAspectRatio="none" aria-hidden="true">
+                <path class="link" d="M330 120 C 270 120 250 96 200 92"/>
+                <path class="link" d="M330 140 C 270 156 250 196 196 206"/>
+                <path class="link" d="M470 128 C 530 128 560 100 610 96"/>
+                <path class="link" d="M470 148 C 530 164 550 214 604 224"/>
+              </svg>
+              <div class="nd" data-core style="left:330px;top:112px">Asking for directions<small>тема урока</small></div>
+              <div class="nd" style="left:56px;top:74px">Excuse me, how do I get to…?<small>вежливо</small></div>
+              <div class="nd" style="left:52px;top:188px">Is it far from here?<small>про расстояние</small></div>
+              <div class="nd" style="left:612px;top:78px">turn left / right<small>автор · Петя</small></div>
+              <div class="nd" data-note style="left:606px;top:206px">go straight <b>ahead</b><br>не «on»<small>частая ошибка</small></div>
+            </div>
+          </div>
+
+          <div class="side">
+            <div class="sideTabs">
+              <button class="sTab" aria-selected="true">участники</button>
+              <button class="sTab">словарь</button>
+              <button class="sTab">материалы</button>
+              <button class="sTab">чат</button>
+            </div>
+            <div class="sideBody" id="sideBody">
+              <div class="per"><span class="pAv">ЛВ</span>
+                <span><span class="pName">Вы</span><span class="pRole">ведёте занятие</span></span>
+                <span class="pSt">говорит</span></div>
+              <div class="per"><span class="pAv">АК</span>
+                <span><span class="pName">Аня Коваль</span><span class="pRole">ученик</span></span>
+                <span class="pSt" data-up>рука ↑</span></div>
+              <div class="per"><span class="pAv">ПК</span>
+                <span><span class="pName">Петя Ковалёв</span><span class="pRole">пишет на доске</span></span>
+                <span class="pSt">без звука</span></div>
+              <div class="per"><span class="pAv">ЛМ</span>
+                <span><span class="pName">Лена Морозова</span><span class="pRole">ученик</span></span>
+                <span class="pSt">в тесте</span></div>
+              <div class="per"><span class="pAv">ДС</span>
+                <span><span class="pName">Дима Соколов</span><span class="pRole">ученик</span></span>
+                <span class="pSt">на связи</span></div>
+              <div class="per"><span class="pAv">ИВ</span>
+                <span><span class="pName">Ира Волкова</span><span class="pRole">ученик</span></span>
+                <span class="pSt">на связи</span></div>
+              <div class="per" id="lostRow" hidden><span class="pAv">СТ</span>
+                <span><span class="pName">Саша Титов</span><span class="pRole">ученик</span></span>
+                <span class="pSt" data-off>не дошёл</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ——— нет сети ——— -->
+      <div class="scene s-off">
+        <div class="offCard">
+          <span class="offT">Нет соединения с интернетом</span>
+          <span class="offS">Занятие сейчас не начать: ученики не смогут подключиться к вашему компьютеру.
+          Как только сеть вернётся, всё продолжится с того же места.</span>
+          <span class="offSafe">● Работы, оценки и материалы на этом компьютере — в целости</span>
+          <span class="offS" style="font-size:var(--fs-cap)">Можно продолжать проверять работы и готовить материалы —
+          для этого сеть не нужна.</span>
+          <span class="offRow">
+            <button class="btn">Проверить соединение</button>
+            <button class="btn ghost">Проверять работы офлайн</button>
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="trayRow">
+    <span class="tray"><span class="lamp"></span>Flamingo · урок идёт · 24:16 <span class="m">6 из 8</span></span>
+    <span class="trayCap">свёрнутое окно: занятие продолжается, значок в трее повторяет заголовок.
+    Сюда же приложение уходит при закрытии крышки — подробности в листе D5.</span>
+  </div>
+
+  <!-- ═══ ЗАМЕТКИ ═══ -->
+  <div class="notes">
+    <h2>Что здесь решено и что решаешь ты</h2>
+
+    <h3>Что описывает этот лист, а что нет</h3>
+    <p>Приложение отличается от вкладки браузера тремя вещами: <b>своя строка заголовка</b> вместо адресной,
+    <b>урок раздаётся с этой машины</b>, и его можно <b>свернуть, не выключив занятие</b>. Лист описывает только их.
+    Содержимое внутри — уже утверждённые листы 00 и 02, они показаны настоящими, чтобы было видно,
+    как рама с ними уживается: полоса состояния не должна съедать воздух у экрана, и не съедает.</p>
+
+    <h3>Строка заголовка — она же строка урока (правка владельца 14.08)</h3>
+    <p>Опознание урока переехало наверх: <b>«English A2 · Unit 4 — Travel · урок 4 · 8 участников» живёт
+    в заголовке окна</b>, а не отдельной строкой над сценой. Освободившаяся строка была чистой потерей высоты:
+    она повторяла то, что человек и так знает, и отнимала пиксели у доски. Теперь под заголовком остаются
+    только переключатели окон.</p>
+    <ul>
+      <li>Слева имя и версия. Версия на виду: первый вопрос при поддержке — всегда «какая у вас версия».</li>
+      <li>Рядом, через разделитель, — <b>какой это урок</b>. Появляется только когда занятие идёт; вне урока
+      строка не носит пустое название.</li>
+      <li>По центру — <b>одно состояние машины</b>. От него зависит, можно ли закрывать крышку, и человек должен
+      понимать это, просто взглянув на окно.</li>
+      <li>Справа только «свернуть» и «настройки». Строка заголовка — не место для функций.</li>
+      <li>На узком окне число участников уходит первым: название урока важнее счётчика.</li>
+    </ul>
+
+    <h3>Полоса состояния — она же строка управления уроком (правка владельца 14.08)</h3>
+    <p>Когда урока нет — её нет вовсе: пустая строка с прочерками это шум. Она возникает на время занятия,
+    при просевшем канале и при потере сети. <b>Переключатели окон и раскладки класса подняты в неё</b> —
+    отдельной строки над сценой больше не существует. Вместе с перенесённым в заголовок названием урока
+    это вернуло сцене около семидесяти пикселей высоты: на доске это целый ряд карточек.</p>
+    <ul>
+      <li>Слева — состояние машины, справа — <b>чем занят экран</b>. Одна строка отвечает на оба вопроса,
+      и глаз не бегает между тремя полосами.</li>
+      <li>Раскладка класса («вдвоём · группа · ученик рядом») появляется рядом только в окне «Класс» —
+      в остальных окнах ей нечего переключать.</li>
+      <li>При потере сети переключатели скрываются: переключать нечего, урока нет.</li>
+      <li><b>Канал вверх</b> — единственное число, которое определяет, будет ли рваться урок; рядом шкала, чтобы не читать цифру.</li>
+      <li><b>Подключено 6 из 8</b> — двое не дошли, и это видно раньше, чем они напишут в чат. В панели участников
+      такой ученик помечен «не дошёл», а не пропадает молча.</li>
+      <li><b>Скопировать ссылку</b> лежит здесь же — самое частое действие первых минут.</li>
+    </ul>
+
+    <h3>Окно «Класс» — когда материала нет (решения владельца 14.08)</h3>
+    <p>Первое окно в переключателе. Доска, методичка и тест — это материал; но половина языкового занятия —
+    просто разговор, и тогда экран нужно отдать <b>людям, а не пустой доске</b>.</p>
+    <ul>
+      <li><b>Преподаватель виден всегда.</b> Это не «активный говорящий», который прыгает по кадру, а постоянная опора урока.</li>
+      <li><b>Вдвоём</b> — преподаватель и ученик делят экран поровну.</li>
+      <li><b>Группа</b> (трое и больше) — преподаватель занимает бо́льшую половину, остальные распределяются по второй.</li>
+      <li><b>Ученик рядом</b> — преподаватель может вывести любого на большой экран рядом с собой: отвечает у доски,
+      читает вслух, показывает работу. Кнопка появляется на плитке при наведении, остальные уходят в ленту внизу.</li>
+      <li>Верхняя полоса участников в этом окне <b>скрыта</b> — она дублировала бы кадры и отъедала высоту у главного.</li>
+      <li>Переключение между «Классом» и доской <b>не рвёт соединение</b>: меняется только раскладка окна.</li>
+    </ul>
+
+    <h3>Канал просел</h3>
+    <p>Мы не пишем «плохое соединение» — это не помогает. Мы говорим, <b>что уже сделали</b>: снизили качество видео,
+    чтобы занятие продолжалось. На плитках видно, где качество снижено. Решение принимает приложение,
+    преподаватель узнаёт о нём — он не должен выбирать из вариантов посреди объяснения темы.</p>
+
+    <h3>Сети нет</h3>
+    <p>Главное сообщение — не «ошибка», а <b>«ваши данные в целости»</b>. Ноутбук преподавателя — единственная копия
+    работ и оценок, и в момент отказа человек имеет право узнать сначала именно это. Второе по важности — что
+    проверять работы можно и без сети.</p>
+
+    <h3>Трей</h3>
+    <p>Свёрнутое окно <b>не заканчивает урок</b>: в трее то же, что в заголовке — идёт занятие, сколько времени,
+    сколько человек.</p>
+
+    <h3>Решения владельца 14.08 — закреплены</h3>
+    <ul>
+      <li><b>Окно называется «Класс»</b>, не «Люди».</li>
+      <li><b>Преподаватель на экране всегда</b>; вдвоём — поровну, втроём и больше — остальные делят вторую половину;
+      любого ученика можно вывести рядом с собой.</li>
+      <li><b>Связь показываем словами</b> — «хорошая / слабая / нет». Мегабиты, потери и прочие числа уходят в настройки:
+      преподавателю нужно решение, а не телеметрия.</li>
+      <li><b>Версия остаётся в заголовке</b> — экономит полразговора при поддержке.</li>
+      <li><b>Заголовок ужат, опознание урока перенесено в него.</b> Рабочая площадь важнее подписей:
+      строка над сценой убрана целиком, приветствие на стартовой уменьшено и оставлено именем без «Здравствуйте».</li>
+      <li><b>Преподаватель английского — Люция Валерьевна.</b> Листы 00 · 01 (астрономия) пока держат
+      прежнее имя, лист 02 — «Ирина Соколова»: если персона одна, имена нужно свести — жду решения.</li>
+      <li><b>«Завершить» остаётся в раме</b>: преподаватель часто сворачивает окно и забывает, что комната открыта.</li>
+    </ul>
+
+    <h3>Что осталось на потом</h3>
+    <p>Числа канала (скорость, потери, битрейт) живут в настройках приложения — это отдельный экран,
+    он появится в листе <b>D2</b> вместе с проверкой связи при первом запуске.</p>
+  </div>
+</div>
+
+<script>
+const app=document.getElementById('app');
+const st=document.getElementById('hostState'), txt=document.getElementById('hostText');
+const upV=document.getElementById('upV'), meter=document.getElementById('meter');
+const peers=document.getElementById('peers'), elapsed=document.getElementById('elapsed');
+const acts=document.getElementById('hostActs'), why=document.getElementById('hostWhy');
+const strip=document.getElementById('strip'), lost=document.getElementById('lostRow');
+
+const S={
+  idle:{t:'урок не идёт',up:'хорошая',lvl:'4',good:1,p:'—',e:'—',why:'',
+    acts:'<button class="mini">Скопировать ссылку</button><button class="mini primary">Начать урок</button>'},
+  live:{t:'урок идёт с этой машины',up:'хорошая',lvl:'4',good:1,p:'6 из 8',e:'24:16',why:'',
+    acts:'<button class="mini">Скопировать ссылку</button><button class="mini primary">Завершить</button>'},
+  weak:{t:'связь слабая',up:'слабая',lvl:'2',good:0,p:'6 из 8',e:'31:04',
+    why:'Снизили качество видео, чтобы урок не прерывался. Звук и доска не пострадали. Подробности — в настройках.',
+    acts:'<button class="mini">Что это значит</button><button class="mini primary">Завершить</button>'},
+  offline:{t:'нет соединения',up:'нет',lvl:'0',good:0,p:'0 из 8',e:'—',
+    why:'Ученики не могут подключиться. Данные на этом компьютере в целости.',
+    acts:'<button class="mini primary">Проверить снова</button>'},
+};
+
+function apply(k){
+  const s=S[k];
+  app.dataset.state=k; st.dataset.state=k; txt.textContent=s.t;
+  upV.textContent=s.up; meter.dataset.level=s.lvl;
+  upV.toggleAttribute('data-good',!!s.good); upV.toggleAttribute('data-warn',!s.good);
+  peers.textContent=s.p; elapsed.textContent=s.e; acts.innerHTML=s.acts;
+  why.hidden=!s.why; why.textContent=s.why;
+  strip.querySelectorAll('.vid').forEach((v,i)=>v.toggleAttribute('data-degraded', k==='weak' && i>2));
+  lost.hidden = !(k==='live'||k==='weak');
+}
+document.querySelectorAll('.bar button[data-state]').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('.bar button[data-state]').forEach(x=>x.setAttribute('aria-pressed','false'));
+  b.setAttribute('aria-pressed','true'); apply(b.dataset.state);
+}));
+document.querySelectorAll('.winSwitch .win, .sideTabs .sTab').forEach(t=>t.addEventListener('click',()=>{
+  t.parentElement.querySelectorAll('button').forEach(x=>x.setAttribute('aria-selected','false'));
+  t.setAttribute('aria-selected','true');
+  if(t.dataset.scene){app.dataset.scene=t.dataset.scene; syncMode();}
+}));
+
+/* раскладка окна «Класс»: преподаватель виден всегда */
+const faces=document.getElementById('faces'), modeSwitch=document.getElementById('modeSwitch');
+const hint=document.getElementById('facesHint'), side=document.getElementById('facesSide');
+const HINT={
+  pair:'вдвоём: преподаватель и ученик поровну',
+  group:'преподаватель виден всегда · остальные делят вторую половину',
+  pinned:'ученик выведен рядом с преподавателем · остальные ждут в ленте',
+};
+function syncMode(){ modeSwitch.hidden = app.dataset.scene!=='faces'; }
+document.querySelectorAll('.mode').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('.mode').forEach(x=>x.setAttribute('aria-selected','false'));
+  b.setAttribute('aria-selected','true');
+  const m=b.dataset.mode; faces.dataset.mode=m; hint.textContent=HINT[m];
+  const tiles=[...side.querySelectorAll('.faceTile')];
+  tiles.forEach((t,i)=>t.hidden = (m!=='group' && i>0));
+  tiles[0].querySelector('.who').textContent = m==='pinned' ? 'Аня · на большом экране' : 'Аня';
+}));
+document.querySelectorAll('.pinBtn').forEach(b=>b.addEventListener('click',e=>{
+  e.stopPropagation();
+  document.querySelector('.mode[data-mode="pinned"]').click();
+}));
+document.getElementById('thm').addEventListener('click',e=>{
+  const d=document.documentElement.dataset.theme==='dark';
+  document.documentElement.dataset.theme=d?'':'dark';
+  e.target.textContent=d?'тёмная':'светлая';
+});
+apply('idle'); syncMode();
+</script>
+</body>
+</html>

@@ -1,0 +1,379 @@
+/* ============================================================
+   FLAMINGO — DESIGN TOKENS v2 «FLAMINGO AIR»
+   Architecture: primitives -> semantic aliases.
+   Components MUST consume semantic tokens only (never primitives,
+   never raw values). Theme via [data-theme], age via [data-mode].
+   v2 (owner-approved 2026-07-03, docs/Flamingo_Redesign_Prompt_v2.md):
+   cold-neutral canvas, ink, hairlines, ONE coral accent, mono machine
+   voice. All v1 token NAMES are preserved — only values changed.
+   NOTE: --fl-warm-* primitive names are retained for compatibility but
+   now hold the cool-neutral ramp; rename to --fl-n-* in a follow-up.
+   ============================================================ */
+
+/* ------------------------------------------------------------
+   1. PRIMITIVES  (raw scales — do not use directly in components)
+   ------------------------------------------------------------ */
+:root {
+  --fl-white: #ffffff;
+
+  /* Cool neutral ramp (was: warm) */
+  --fl-warm-50:  #f7f7f5;
+  --fl-warm-100: #f1f1ef;
+  --fl-warm-150: #e9e9e6;
+  --fl-warm-200: #d9d9d6;
+  --fl-warm-300: #c4c4c1;
+  --fl-warm-400: #a8a8ad;
+  --fl-warm-500: #98989e;
+  --fl-warm-600: #6e6e73;
+  --fl-warm-700: #3a3a3d;
+  --fl-warm-800: #28282b;
+  --fl-warm-900: #1d1d1f;
+
+  /* Brand coral ramp (sharpened for neutral ground) */
+  --fl-coral-50:  #fdeee7;
+  --fl-coral-100: #fad9c9;
+  --fl-coral-200: #f6bda1;
+  --fl-coral-300: #ff8a5f;
+  --fl-coral-400: #ff7040;
+  --fl-coral-500: #e14e1f;
+  --fl-coral-600: #c23f14;
+  --fl-coral-700: #a83610;
+  --fl-coral-800: #8c2c0d;
+
+  /* Semantic sources (forms/system only — never attention metrics) */
+  --fl-success-500: #2f8a56;  --fl-success-700: #226741;  --fl-success-50: #e7f2ea;
+  --fl-warning-500: #b57f16;  --fl-warning-700: #7d570c;  --fl-warning-50: #f6eed9;
+  --fl-error-500:   #d33a2c;  --fl-error-700:   #a82a1f;  --fl-error-50:   #fae5e2;
+  --fl-info-500:    #2f6fa8;  --fl-info-700:    #1f5480;  --fl-info-50:    #e3edf5;
+  /* 🔴 V-07 (волна 2 аудита, найдено axe). Тёмная тема переопределяла у статусов только ФОН
+     и никогда — текст: `--color-*-text` оставался «700», то есть ТЁМНЫМ, и ложился на тёмную
+     подложку. Замер axe: 1,83 при пороге 4,5. Хардкода цвета в теме действительно нет — но
+     пара была собрана неверно, и это не видно грепом. Ступени 300 существуют для этого. */
+  --fl-success-300: #7fd3a3;
+  --fl-warning-300: #e3c463;
+  --fl-error-300:   #ff9c8f;
+  --fl-info-300:    #8fc2eb;
+
+  /* Dark surfaces (near-black, cool) */
+  --fl-dark-bg:        #101012;
+  --fl-dark-surface:   #1a1a1c;
+  --fl-dark-surface-2: #242426;
+  --fl-dark-border:    #2e2e31;
+  --fl-dark-text:      #f2f2f0;
+  --fl-dark-text-2:    #98989e;
+
+  /* Neutral shadow (was warm-tinted) */
+  --fl-shadow-rgb: 0, 0, 0;
+}
+
+/* ------------------------------------------------------------
+   2. SEMANTIC ALIASES — light theme (default)
+   ------------------------------------------------------------ */
+:root {
+  /* Surfaces & text */
+  --color-bg:              var(--fl-warm-100);
+  --color-surface:         var(--fl-white);
+  --color-surface-subtle:  var(--fl-warm-150);
+  --color-surface-hover:   var(--fl-warm-150);
+  --color-border:          var(--fl-warm-200);
+  --color-border-strong:   var(--fl-warm-300);
+
+  --color-text:            var(--fl-warm-900);
+  /* 🔴 V-12 (PROMPT_16, замер axe при приёмке Б1). `--fl-warm-600` #6e6e73 на фоне #f1f1ef —
+     4,48 при пороге AA 4,5. Промах на две сотых, но им набраны пояснения под заголовками,
+     подписи полей и невыбранные сегменты — то есть текст, который читают, когда не поняли
+     с первого раза. Своя ступень вместо warm-600: роль вторичного сохранена. */
+  --color-text-secondary:  #646469;
+  /* 🔴 V-13 (замер axe при приёмке Б1). `--fl-warm-500` #98989e на белой карточке — 2,87
+     при пороге 4,5. Этим цветом набраны ПЛЕЙСХОЛДЕРЫ полей, то есть подсказка о том, что
+     в поле писать, — она нужна ровно тому, кто не понял, и ему же была не видна.
+     #6b6b75: 5,27 на белом, 4,66 на фоне, 4,33 на приглушённой поверхности. */
+  --color-text-tertiary:   #6b6b75;  /* placeholder, muted */
+  --color-text-disabled:   var(--fl-warm-400);
+  --color-text-inverse:    var(--fl-dark-text);
+  /* Б1: старое имя — псевдоним новой пары. Все его потребители рисуют текст на
+     акцентной заливке, то есть хотят именно того цвета, который теперь считается
+     по теме. Отдельного значения у него больше нет. */
+  --color-text-on-accent:  var(--color-on-accent);
+
+  /* 🔴 Б1 (PROMPT_16, решение владельца по V-10). Заливка того, что несёт ТЕКСТ, и цвет
+     этого текста — отдельная пара, потому что яркий коралл AA с текстом не проходит:
+     белый на #e14e1f — 3,95 при пороге 4,5. Числа посчитаны владельцем:
+
+       белый на #e14e1f (было)      3,95 ✗
+       тёмный #1d1d1f на #e14e1f    4,26 ✗
+       белый на #c23f14 (coral-600) 5,23 ✅   ← светлая тема
+       белый на #ff7040 (было)      2,75 ✗
+       тёмный #1d1d1f на #ff7040    6,13 ✅   ← тёмная тема
+
+     Яркий #e14e1f остаётся акцентом для НЕтекстовых элементов — точка логотипа, рамки,
+     индикаторы, графики: там порог 3,0 и он проходит. Кнопка потребляет эту пару, а не
+     расставляет цвета у себя. */
+  /* Б2 (PROMPT_16): пара для видеостены. Обход семантики через примитивы `--fl-dark-*` был
+     намеренным, но безымянным: компонент знал, что «тут тёмная поверхность», а система — нет.
+     Пара одинакова в обеих темах и это не упущение: экран, на который смотрит класс, тёмный
+     всегда — светлая видеостена слепит комнату. */
+  --color-surface-video:   var(--fl-dark-bg);
+  --color-text-on-video:   var(--fl-dark-text);
+
+  --color-accent-solid:    var(--fl-coral-600);
+  /* Наведение сдвигается относительно НОВОЙ заливки: иначе hover совпал бы с ней и кнопка
+     перестала бы отзываться. Белый на coral-700 — 6,56. */
+  --color-accent-solid-hover: var(--fl-coral-700);
+  --color-on-accent:       var(--fl-white);
+
+  /* Brand / action */
+  --color-accent:          var(--fl-coral-500);  /* logo dot, graphics (>=3:1) */
+  /* 🔴 ПОДПИСЬ ВРАЛА (обход экранов 19.08, наряд 38 §2): белый на `coral-500` даёт 3.95:1
+     при 14px — это НЕ AA. Пара «заливка + белый текст», которая проходит порог, одна:
+     `--color-accent-solid`. Этот токен остаётся для графики и крупного текста. */
+  --color-accent-strong:   var(--fl-coral-500);  /* графика; для текста — accent-solid */
+  --color-accent-hover:    var(--fl-coral-600);
+  --color-accent-pressed:  var(--fl-coral-700);
+  /* 🔴 V-14 (там же). Коралловый ТЕКСТ и коралловая ЗАЛИВКА — разные задачи и разные
+     пороги. coral-600 хорош как заливка под белым текстом (5,23), но как текст на
+     приглушённой поверхности даёт 4,3. Ссылки и акцентный текст уходят на ступень ниже:
+     coral-700 — 5,39 на приглушённой, 6,56 на белой. */
+  --color-accent-text:     var(--fl-coral-700);  /* coral text/links on light */
+  --color-accent-subtle:   var(--fl-coral-50);
+  --color-accent-subtle-border: var(--fl-coral-100);
+  --color-link:            var(--fl-coral-700);
+
+  /* Status */
+  --color-success: var(--fl-success-500); --color-success-text: var(--fl-success-700); --color-success-bg: var(--fl-success-50);
+  --color-warning: var(--fl-warning-500); --color-warning-text: var(--fl-warning-700); --color-warning-bg: var(--fl-warning-50);
+  --color-error:   var(--fl-error-500);   --color-error-text:   var(--fl-error-700);   --color-error-bg:   var(--fl-error-50);
+  --color-info:    var(--fl-info-500);    --color-info-text:    var(--fl-info-700);    --color-info-bg:    var(--fl-info-50);
+
+  /* Overlay / scrim */
+  --color-overlay: rgba(var(--fl-shadow-rgb), 0.4);
+
+  /* NEW (v2): translucent nav material — the ONE sanctioned UI glass */
+  --nav-material: rgba(241, 241, 239, 0.78);
+  --nav-blur: 20px;
+  /* B-1: the SECOND sanctioned glass — frosted overlays over live video (focus bar). */
+  --blur-frosted: 16px;
+
+  /* B-1: icon scale (lucide) — one stroke, three sizes; kids mode may bump these. */
+  --icon-size-sm: 16px;
+  --icon-size-md: 20px;
+  --icon-size-lg: 24px;
+  --icon-stroke: 1.75;
+
+  /* B-1: content column widths (replace scattered 640/760/920/1000px max-widths). */
+  --content-max-narrow: 640px;
+  --content-max-base: 920px;
+  --content-max-wide: 1120px;
+
+  /* ---------- Typography: two voices ---------- */
+  /* UI voice — SF on Apple devices, Inter elsewhere (SIL OFL) */
+  --font-heading: -apple-system, 'SF Pro Display', 'Inter', system-ui, sans-serif;
+  --font-body:    -apple-system, 'SF Pro Text', 'Inter', system-ui, sans-serif;
+  /* Machine voice — numbers, time, kickers, statuses, counters, meta */
+  --font-mono:    'JetBrains Mono', 'SF Mono', 'IBM Plex Mono', ui-monospace, monospace;
+
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 600;  /* v2: 700 retired — 600 is the ceiling in Air */
+
+  --text-display:  3.5rem;    /* 56 (v2: was 44) */
+  --text-metric:   4rem;      /* 64 — NEW (v2): hero live numbers, mono */
+  --text-h1:       2rem;      /* 32 */
+  --text-h2:       1.5rem;    /* 24 (v2: was 26) */
+  --text-h3:       1.1875rem; /* 19 (v2: was 20) */
+  --text-lead:     1.1875rem; /* 19 */
+  --text-body:     1.0625rem; /* 17 — base (v2: was 16; long-reading on neutral canvas) */
+  --text-small:    0.875rem;  /* 14 */
+  --text-caption:  0.8125rem; /* 13 */
+  --text-overline: 0.75rem;   /* 12 */
+
+  --leading-tight:   1.05;
+  --leading-heading: 1.2;
+  --leading-snug:    1.4;
+  --leading-body:    1.6;
+  --leading-relaxed: 1.75;
+
+  --tracking-tight:  -0.025em;
+  --tracking-snug:   -0.01em;
+  --tracking-normal: 0;
+  --tracking-wide:   0.06em;  /* latin-only; never on Cyrillic micro-labels */
+
+  /* ---------- Spacing (4px grid) ---------- */
+  --space-1: 4px;   --space-2: 8px;   --space-3: 12px;  --space-4: 16px;
+  --space-5: 20px;  --space-6: 24px;  --space-7: 32px;  --space-8: 40px;
+  --space-9: 48px;  --space-10: 64px; --space-11: 80px; --space-12: 96px;
+  --space-13: 128px; /* NEW (v2): editorial section breaks */
+
+  /* ---------- Radius ---------- */
+  --radius-xs: 4px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-pill: 999px;
+  --radius-control: 10px;  /* buttons, inputs */
+  --radius-card: 14px;     /* v2: was 16 */
+
+  /* ---------- Elevation (v2: near-flat; depth only for floating) ---------- */
+  --shadow-xs: 0 1px 2px rgba(var(--fl-shadow-rgb), 0.03);
+  --shadow-sm: 0 1px 2px rgba(var(--fl-shadow-rgb), 0.03), 0 2px 6px rgba(var(--fl-shadow-rgb), 0.04);
+  --shadow-md: 0 1px 2px rgba(var(--fl-shadow-rgb), 0.03), 0 8px 24px rgba(var(--fl-shadow-rgb), 0.05);
+  --shadow-lg: 0 2px 8px rgba(var(--fl-shadow-rgb), 0.06), 0 16px 40px rgba(var(--fl-shadow-rgb), 0.10);
+
+  /* ---------- Motion ---------- */
+  --duration-fast: 120ms;
+  --duration-base: 200ms;
+  --duration-slow: 320ms;
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --ease-out:      cubic-bezier(0, 0, 0, 1);
+  --ease-in:       cubic-bezier(0.4, 0, 1, 1);
+
+  /* ---------- Controls / sizing ---------- */
+  --control-height-sm: 34px;
+  --control-height-md: 42px;
+  --control-height-lg: 50px;
+  --tap-min: 44px;
+
+  /* ---------- Focus ring (two-layer, brand) ---------- */
+  --focus-ring-width: 3px;
+  --focus-ring-color: rgba(225, 78, 31, 0.4);
+  --focus-ring: 0 0 0 var(--focus-ring-width) var(--focus-ring-color);
+  --focus-ring-inset: 0 0 0 2px var(--color-surface), 0 0 0 5px var(--focus-ring-color);
+
+  /* ---------- Z-index ---------- */
+  --z-base: 1;
+  --z-dropdown: 1000;
+  --z-sticky: 1100;
+  --z-overlay: 1200;
+  --z-modal: 1300;
+  --z-toast: 1400;
+  --z-tooltip: 1500;
+}
+
+/* ------------------------------------------------------------
+   3. DARK THEME  — reassign semantic aliases only
+   ------------------------------------------------------------ */
+[data-theme="dark"] {
+  --color-bg:             var(--fl-dark-bg);
+  --color-surface:        var(--fl-dark-surface);
+  --color-surface-subtle: var(--fl-dark-surface-2);
+  --color-surface-hover:  var(--fl-dark-surface-2);
+  --color-border:         var(--fl-dark-border);
+  --color-border-strong:  #3f3f43;
+
+  --color-text:           var(--fl-dark-text);
+  --color-text-secondary: var(--fl-dark-text-2);
+  /* 🔴 V-08 (волна 2, axe). Было #6e6e73 — 3,43 на #1a1a1c при пороге AA 4,5. Этим цветом
+     набраны подсказки и пояснения по всему продукту, то есть ровно те строки, которые человек
+     читает, когда уже не понял с первого раза. #8a8a90 даёт 5,06 и остаётся третичным:
+     роль та же, читаемость появилась. */
+  /* V-08 + приёмка Б1: #8a8a90 давало 4,49 на приглушённом акценте (плашка «сегодня» в
+     недельной ленте) — на сотую под порогом. #92929a проходит на ВСЕХ четырёх фонах, где
+     третичный встречается: 6,15 / 5,63 / 5,02 / 4,99. Считать надо по худшему фону, а не
+     по основному, иначе порог держится ровно до первой цветной подложки. */
+  --color-text-tertiary:  #92929a;
+  --color-text-disabled:  #4a4a4e;
+  --color-text-inverse:   var(--fl-warm-900);
+
+  --color-accent:         var(--fl-coral-400);
+  --color-accent-strong:  var(--fl-coral-500);
+  /* Б1: в тёмной теме заливка светлее, поэтому текст на ней — тёмный. 6,13. */
+  --color-surface-video:  var(--fl-dark-bg);
+  --color-text-on-video:  var(--fl-dark-text);
+
+  --color-accent-solid:   var(--fl-coral-400);
+  --color-accent-solid-hover: var(--fl-coral-300);
+  --color-on-accent:      #1d1d1f;
+  --color-accent-hover:   var(--fl-coral-300);
+  --color-accent-pressed: var(--fl-coral-300);
+  --color-accent-text:    var(--fl-coral-300);  /* AA on near-black */
+  --color-accent-subtle:  #33201a;
+  --color-accent-subtle-border: #4d2b1c;
+  --color-link:           var(--fl-coral-300);
+
+  --color-success-bg: #1c2f24; --color-warning-bg: #2e2712; --color-error-bg: #351d19; --color-info-bg: #1a2a3a;
+  /* V-07: текст статусов в тёмной теме — светлые ступени. Без этой строки каждое сообщение
+     об успехе, предупреждении, ошибке и подсказке было тёмным на тёмном. */
+  --color-success-text: var(--fl-success-300);
+  --color-warning-text: var(--fl-warning-300);
+  --color-error-text:   var(--fl-error-300);
+  --color-info-text:    var(--fl-info-300);
+
+  --color-overlay: rgba(0, 0, 0, 0.6);
+  --nav-material: rgba(16, 16, 18, 0.72);
+
+  --shadow-xs: 0 1px 2px rgba(0,0,0,0.4);
+  --shadow-sm: 0 2px 6px rgba(0,0,0,0.45);
+  --shadow-md: 0 8px 24px rgba(0,0,0,0.45);
+  --shadow-lg: 0 16px 40px rgba(0,0,0,0.55);
+
+  --focus-ring-color: rgba(255, 112, 64, 0.45);
+}
+
+/* ------------------------------------------------------------
+   4. KIDS MODE (7–11) — larger, more spacious
+   Apply [data-mode="kids"] alongside any theme.
+   ------------------------------------------------------------ */
+[data-mode="kids"] {
+  --text-body:    1.1875rem; /* 19 */
+  --text-small:   1rem;      /* 16 */
+  --text-caption: 0.9375rem; /* 15 */
+  --text-h3:      1.375rem;  /* 22 */
+  --text-h2:      1.75rem;   /* 28 */
+
+  --leading-body: 1.75;
+
+  --control-height-sm: 40px;
+  --control-height-md: 50px;
+  --control-height-lg: 58px;
+  --tap-min: 48px;
+
+  --radius-control: 14px;
+  --radius-card: 20px;
+}
+
+/* ------------------------------------------------------------
+   5. Reduced motion
+   ------------------------------------------------------------ */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duration-fast: 0ms;
+    --duration-base: 0ms;
+    --duration-slow: 0ms;
+  }
+}
+
+/* ------------------------------------------------------------
+   6. Breakpoints (reference — use in media queries / JS)
+   xs 320  ·  sm 480  ·  md 768  ·  lg 1024  ·  xl 1280  ·  2xl 1536
+   ------------------------------------------------------------ */
+
+/* ------------------------------------------------------------
+   7. Глобальные правила — ровно два, и оба про то, что иначе наследуется от браузера.
+
+   🔴 V-01 (аудит 14.08). `border-box` глобально. Без него контрол с `width:100%`, паддингом
+   и рамкой шире своего контейнера: колонка формы 460px → карточка с `--space-6` → внутри
+   410px → инпут 410+32+2 = 444px, то есть на 34px за правым краем. Это и есть «рамка
+   обрезает содержимое» на скриншоте владельца.
+
+   Команда лечила это девять раз локально (start · chat · subject×2 · test · dictionary ·
+   roomframe×2 · summary) — формы заплатку не получили и получить не должны были: правило
+   одно и оно здесь. Локальные `box-sizing` сняты вместе с этой правкой.
+   ------------------------------------------------------------ */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* Голос интерфейса (аудит B-7): без него элемент, который CSS-модуль не стилизует явно,
+   наследует браузерный Times. Каскадирует от body; mono/heading остаются opt-in. */
+body {
+  font-family: var(--font-body);
+  color: var(--color-text);
+  background: var(--color-bg);
+  /* Браузерные 8px полей давали прокрутку ровно на эти 8px там, где содержимое считается от
+     высоты окна (рама приложения, лист D1). Каждый экран задаёт свои отступы сам. */
+  margin: 0;
+}
