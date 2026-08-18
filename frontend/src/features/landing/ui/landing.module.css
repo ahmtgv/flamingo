@@ -1,0 +1,247 @@
+/*
+ * Первая страница. Только семантические токены (§2 дизайн-системы).
+ * Страница НЕ прокручивается — требование листа L2, а не приём вёрстки.
+ */
+.page {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  block-size: 100dvh;
+  overflow: hidden;
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+.top {
+  display: flex;
+  align-items: center;
+  gap: var(--space-5);
+  padding: var(--space-4) var(--space-6);
+  border-block-end: 1px solid var(--color-border);
+}
+
+.brand {
+  display: inline-flex;
+  text-decoration: none;
+}
+
+.nav {
+  display: flex;
+  gap: var(--space-5);
+}
+
+.nav a {
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  font-size: var(--text-small);
+}
+
+.nav a:hover {
+  color: var(--color-text);
+}
+
+.enter {
+  margin-inline-start: auto;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.linkBtn,
+.primaryBtn {
+  text-decoration: none;
+  font-size: var(--text-small);
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-control);
+}
+
+.linkBtn {
+  color: var(--color-text);
+}
+
+/*
+ * Единственный акцент на странице — то, ради чего человек сюда пришёл (§1).
+ *
+ * ⚠️ Заливка берётся из `--color-accent-solid`, а НЕ из `--color-accent`. Разница не
+ * косметическая: белый на `--color-accent` даёт 3.95:1 при 14px — ниже порога AA, и axe это
+ * поймал (прогон 18.08, WebKit). Система уже решила это за нас парой «заливка + текст на
+ * ней»; я взял не ту половину.
+ */
+.primaryBtn {
+  background: var(--color-accent-solid);
+  color: var(--color-on-accent);
+}
+
+.linkBtn:focus-visible,
+.primaryBtn:focus-visible,
+.nav a:focus-visible,
+.all:focus-visible,
+.tile a:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+/* Мозаика: тезисы занимают крупную клетку, разделы — рядом. Всё видно с одного взгляда. */
+.mosaic {
+  display: grid;
+  grid-template-columns: 1.35fr 1fr;
+  /* Оба раздела правой колонки жмутся к верху; левая клетка тянется — так афиша читается
+     сверху вниз, а не растекается пустотой по экрану. */
+  grid-template-rows: auto auto 1fr;
+  gap: var(--space-5) var(--space-6);
+  padding: var(--space-6) var(--space-7);
+  min-block-size: 0;
+  overflow: hidden;
+}
+
+.claim {
+  grid-row: span 3;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--space-4);
+  min-block-size: 0;
+}
+
+/* Машинный голос — кикеры, счётчики, метки (§1 «две речи»). */
+.kicker,
+.count,
+.tileKind {
+  font-family: var(--font-mono);
+  font-size: var(--text-overline);
+  color: var(--color-text-secondary);
+}
+
+.title {
+  margin: 0;
+  font-size: var(--text-display);
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+}
+
+.theses {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: var(--space-3);
+  max-inline-size: 46ch;
+}
+
+.theses li {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--space-3);
+  color: var(--color-text-secondary);
+  font-size: var(--text-body);
+}
+
+.thesisNo {
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  color: var(--color-text-tertiary);
+  padding-block-start: 0.35em;
+}
+
+.theses b {
+  color: var(--color-text);
+  font-weight: 600;
+}
+
+.sources,
+.shorts {
+  align-self: start;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-block-size: 0;
+}
+
+.sectionHead {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+  margin: 0;
+}
+
+.sectionName {
+  font-size: var(--text-h3);
+}
+
+.all {
+  margin-inline-start: auto;
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  font-size: var(--text-small);
+}
+
+.all:hover {
+  color: var(--color-text);
+}
+
+.tiles {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-3);
+  min-block-size: 0;
+  overflow: hidden;
+}
+
+/* Поверхность — только у того, что нажимается (§1 «плоскости вместо коробок»). */
+.tile a {
+  display: grid;
+  gap: var(--space-1);
+  padding: var(--space-4);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  text-decoration: none;
+  color: inherit;
+  transition: border-color var(--duration-base) var(--ease-standard);
+}
+
+.tile a:hover {
+  border-color: var(--color-border-strong);
+}
+
+.tileOrg {
+  font-size: var(--text-h3);
+}
+
+.tileLine {
+  color: var(--color-text-secondary);
+  font-size: var(--text-small);
+}
+
+.credit {
+  color: var(--color-text-tertiary);
+  font-size: var(--text-overline);
+  font-family: var(--font-mono);
+}
+
+.empty {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: var(--text-small);
+}
+
+/* Узкий экран: мозаика становится одной колонкой и получает право прокрутиться —
+   «не прокручивается» относится к афише на настольном экране, а не к телефону. */
+@media (max-width: 900px) {
+  .page {
+    block-size: auto;
+    overflow: auto;
+  }
+
+  .mosaic {
+    grid-template-columns: 1fr;
+    grid-template-rows: none;
+    overflow: visible;
+  }
+
+  .claim {
+    grid-row: auto;
+  }
+}

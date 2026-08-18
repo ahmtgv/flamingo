@@ -35,6 +35,7 @@ import { SourcesScreen } from '@/features/sources';
 import { StartScreen } from '@/features/start';
 import { SubjectScreen } from '@/features/subject';
 import { isDesktop } from '@/features/desktop/bridge';
+import { LandingScreen } from '@/features/landing/ui/LandingScreen';
 import { ConnectionLine } from '@/shared/ui/ConnectionLine/ConnectionLine';
 import { DesktopShell } from '@/features/desktop/DesktopShell';
 import { withReturnTo } from '@/shared/lib/returnTo';
@@ -172,7 +173,19 @@ function RootRedirect() {
   });
 
   if (status === 'unknown') return <FullScreenLoader />;
-  if (status !== 'authenticated') return <Navigate to={entryRoute()} replace />;
+  /**
+   * 🔴 КОРЕНЬ ПОКАЗЫВАЕТ СТРАНИЦУ, А НЕ ФОРМУ ВХОДА (наряд 35 §3.1).
+   *
+   * Здесь стоял общий `entryRoute()`, и для постороннего человека flamingo.plus выглядел
+   * как окно логина: он приходил посмотреть, что это, а его просили представиться.
+   *
+   * ⚠️ `entryRoute()` НЕ ТРОНУТ и трогать его нельзя: он отвечает на другой вопрос — «куда
+   * отправить того, кто ломится в закрытую дверь», и там ответ по-прежнему форма входа
+   * (а в приложении — мастер, §19.4). Изменился только корень.
+   */
+  if (status !== 'authenticated') {
+    return isDesktop() ? <Navigate to={entryRoute()} replace /> : <LandingScreen />;
+  }
 
   // В браузере машины нет и мастера нет — сразу в кабинет.
   if (!isDesktop()) return <Navigate to="/start" replace />;
