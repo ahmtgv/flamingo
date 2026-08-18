@@ -292,6 +292,7 @@ function me(): MeQuery {
         role: 'STUDENT',
         studentProfile: {
           __typename: 'StudentProfile',
+          markless: false,
           ageBand: 'TEEN',
           gradeLevel: '7 класс',
           points: 1240,
@@ -2342,6 +2343,7 @@ function mySubmissions(): MySubmissionsQuery {
       {
         __typename: 'Submission',
         id: 'sub-present',
+        markless: false,
         status: 'SUBMITTED',
         score: null,
         comment: null,
@@ -2356,6 +2358,7 @@ function mySubmissions(): MySubmissionsQuery {
       {
         __typename: 'Submission',
         id: 'sub-motion',
+        markless: false,
         status: 'GRADED',
         score: 5,
         comment: 'Отлично, все шаги решения на месте.',
@@ -2366,6 +2369,7 @@ function mySubmissions(): MySubmissionsQuery {
       {
         __typename: 'Submission',
         id: 'sub-essay',
+        markless: false,
         status: 'LATE',
         score: null,
         comment: null,
@@ -2419,6 +2423,7 @@ function homeworkSubmissions(): HomeworkSubmissionsQuery {
     comment: null,
     contentText: text,
     submittedAt: times.yesterdayPast,
+    markless: false,
     student: {
       __typename: 'StudentProfile' as const,
       user: { __typename: 'User' as const, id: u.id, firstName: u.firstName, lastName: u.lastName, displayName: u.firstName, formalName: u.firstName, shortName: u.firstName, fullName: `${u.lastName} ${u.firstName}` },
@@ -3558,6 +3563,7 @@ export function resolveDemoOperation(
         gradeSubmission: {
           __typename: 'Submission',
           id: String(input(variables).submissionId ?? 'grd-timur'),
+          markless: false,
           status: 'GRADED',
           score: Number(input(variables).score ?? 5),
           comment: (input(variables).comment as string | null) ?? null,

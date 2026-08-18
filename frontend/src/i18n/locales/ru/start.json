@@ -90,7 +90,8 @@
     "repetition_one": "{{count}} карточка ждёт повторения",
     "repetition_few": "{{count}} карточки ждут повторения",
     "repetition_many": "{{count}} карточек ждут повторения",
-    "openRepetition": "Повторить"
+    "openRepetition": "Повторить",
+    "repetition_zero": "Сегодня повторять нечего — можно пройтись по словам заранее"
   },
   "empty": {
     "today": "Сегодня занятий нет",

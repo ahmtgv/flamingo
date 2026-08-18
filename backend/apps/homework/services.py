@@ -34,6 +34,7 @@ from apps.files import services as files
 from common import storage
 from common.enums import Role, SubmissionStatus, UploadPurpose
 from common.exceptions import NotFound, PermissionDenied, ValidationError
+from common.marking import is_markless
 
 from .models import Homework, Submission, SubmissionFile
 
@@ -238,11 +239,20 @@ def submission_file_url(user, submission_file: SubmissionFile) -> str:
 # --- grading (teacher) ------------------------------------------------------
 @transaction.atomic
 def grade_submission(
-    user, *, submission_id, score: int, comment: str = "", allow_redo=None
+    user, *, submission_id, score: int | None, comment: str = "", allow_redo=None
 ) -> Submission:
+    """Проверено — с отметкой или словами.
+
+    🔴 БЕЗ ОТМЕТОК ДЛЯ ДОШКОЛЬНИКОВ И ПЕРВОГО КЛАССА (наряд §34.4). Основание внешнее — ФГОС
+    НОО (приказ 373 от 06.10.2009, ред. 286 от 31.05.2021) и ФЗ-273, — а не наша осторожность.
+
+    Правило стоит ЗДЕСЬ, в сервисе, а не на экране: экран можно обойти, запрос — нельзя.
+    `GradingScale.MARKLESS` был заведён в перечислении ещё в промпте 28 и до сегодня не значил
+    ничего: ни одна строка его не проверяла. Слово в перечислении — не правило.
+    """
     submission = (
         Submission.objects.filter(id=submission_id)
-        .select_related("homework__course", "homework__lesson__section__course")
+        .select_related("student", "homework__course", "homework__lesson__section__course")
         .first()
     )
     if submission is None:
@@ -250,6 +260,18 @@ def grade_submission(
     homework = submission.homework
     _teacher_profile(user)
     _ensure_owner(user, _homework_course(homework))
+
+    # ⚠️ `Submission.student` — это УЖЕ профиль ученика, а не пользователь. Первая версия
+    # спрашивала `student.student_profile`, получала None и молча пропускала отметку
+    # первокласснику. Поймано тестом; без него правило существовало бы только на бумаге.
+    if is_markless(submission.student):
+        if score is not None:
+            raise ValidationError(
+                "Дошкольники и первый класс учатся без отметок — оцените словами. "
+                "Значки и баллы вместо цифр тоже не подходят: это та же отметка."
+            )
+        if not (comment or "").strip():
+            raise ValidationError("Безотметочная проверка — это словесная оценка, напишите её")
 
     submission.score = score
     submission.comment = comment or ""

@@ -36,7 +36,7 @@ class SubmitHomeworkInput:
 @strawberry.input
 class GradeInput:
     submission_id: strawberry.ID
-    score: int
+    score: int | None = None
     comment: str | None = None
     allow_redo: bool | None = None
 

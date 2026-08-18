@@ -17,6 +17,7 @@ from apps.homework import models, services
 from apps.institutions.graphql.types import Group as GroupType
 from common.auth import get_current_user, require_user
 from common.enums import HomeworkType, SubmissionStatus
+from common.marking import is_markless
 
 
 @strawberry.type
@@ -51,6 +52,17 @@ class Submission:
     @strawberry_django.field
     def status(self) -> SubmissionStatus:
         return SubmissionStatus(self.status)
+
+    @strawberry_django.field
+    def markless(self) -> bool:
+        """Этому ученику отметок не ставят — дошкольник или первый класс.
+
+        🔴 Поле нужно ЭКРАНУ, а правило живёт в сервисе (`common/marking.py`). Экран, который
+        решает это сам, разойдётся с сервером на первом же изменении; экран, который не знает,
+        покажет преподавателю поле «оценка» и получит отказ уже после нажатия — то есть
+        сообщит человеку о запрете самым дорогим способом.
+        """
+        return is_markless(self.student)
 
     @strawberry_django.field
     def homework(self) -> Homework:

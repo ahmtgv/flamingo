@@ -18,6 +18,7 @@ import { CmfDebugHud, type CmfHudFeed } from '@/seedum/ui/CmfDebugHud';
 import { loadUbp } from '@/seedum/ubp';
 import { LIVEKIT_URL } from '@/shared/lib/env';
 import { Button } from '@/shared/ui';
+import { ConnectionLine } from '@/shared/ui/ConnectionLine/ConnectionLine';
 
 import { classAverage, freshValue, heldValue, summaryStats } from '../attentionView';
 import { type CameraErrorKind, classifyMediaError } from '../mediaError';
@@ -101,7 +102,18 @@ function RoomShell({
           <PrivacyIndicator />
         </>
       }
-      strip={children}
+      strip={
+        <>
+          {/*
+            🔴 ГРОМКО — И ТОЛЬКО ЗДЕСЬ (наряд 34 §2.2, решение владельца §32.3).
+            Механизм связи один на весь продукт; урок — единственное место, где молчать
+            нельзя: преподаватель ведёт занятие и должен узнать, что класс перестал его
+            видеть, а не догадаться об этом через двадцать минут.
+          */}
+          <ConnectionLine tone="loud" />
+          {children}
+        </>
+      }
       layoutSwitch={
         scene === 'class' ? (
           <ClassLayoutSwitch layout={activeLayout} onLayout={setLayout} />

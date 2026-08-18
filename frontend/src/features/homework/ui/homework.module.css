@@ -259,3 +259,11 @@
 .scoreInput {
   max-width: 96px;
 }
+
+/* «Без отметки» — это объяснение на месте поля оценки, а не украшение. */
+.marklessNote {
+  margin: 0;
+  align-self: center;
+  color: var(--color-text-secondary);
+  font-size: var(--text-small);
+}

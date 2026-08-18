@@ -1,0 +1,54 @@
+/* Строка о связи. Только семантические токены — литералов нет (§7 CLAUDE.md). */
+.line {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  font-size: var(--text-small);
+}
+
+.dot {
+  inline-size: var(--space-2);
+  block-size: var(--space-2);
+  border-radius: var(--radius-pill);
+  background: currentColor;
+  flex: none;
+}
+
+/* Тихо: обычные экраны. Цветом не кричим — это статус, а не авария. */
+.quiet {
+  color: var(--color-text-secondary);
+  padding-block: var(--space-1);
+}
+
+/* Заметно: урок. Здесь строка имеет право занять место и взять цвет состояния. */
+.loud {
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-body);
+}
+
+.loud.none {
+  color: var(--color-error-text);
+  background: var(--color-error-bg);
+}
+
+.loud.weak {
+  color: var(--color-warning-text);
+  background: var(--color-warning-bg);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .loud {
+    animation: appear var(--duration-fast) var(--ease-standard);
+  }
+}
+
+@keyframes appear {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}

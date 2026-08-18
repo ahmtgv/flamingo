@@ -23,6 +23,7 @@ mutation Login($email: String!, $password: String!) {
         ageBand
         gradeLevel
         points
+        markless
       }
       teacherProfile {
         verificationStatus
@@ -48,6 +49,7 @@ mutation RegisterUser($input: RegisterUserInput!) {
         ageBand
         gradeLevel
         points
+        markless
       }
       teacherProfile {
         verificationStatus
@@ -73,6 +75,7 @@ mutation RefreshToken($refreshToken: String!) {
         ageBand
         gradeLevel
         points
+        markless
       }
       teacherProfile {
         verificationStatus
@@ -138,6 +141,7 @@ query Me {
       ageBand
       gradeLevel
       points
+      markless
     }
     teacherProfile {
       verificationStatus

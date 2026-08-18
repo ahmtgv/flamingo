@@ -11,6 +11,7 @@ import {
   useSaveBoardMutation,
   useSetBoardOpenMutation,
 } from '@/entities/graphql/generated';
+import { failureKind } from '@/shared/lib/requestFailure';
 import { useUpload } from '@/shared/lib/useUpload';
 import { Button } from '@/shared/ui';
 
@@ -81,6 +82,24 @@ export function BoardCanvas({ lessonId }: { lessonId: string }) {
   const [stroke, setStroke] = useState<number[] | null>(null);
   const [saved, setSaved] = useState(false);
   const [failed, setFailed] = useState(false);
+  /**
+   * 🔴 НАПИСАННОЕ ВО ВРЕМЯ ПРОВАЛА СВЯЗИ (RnD 18.08 §2.1-б, наряд 34 §2.1).
+   *
+   * Замер: преподаватель рисует штрих, пока связь на секунду пропала. Штрих не появлялся
+   * даже у него самого, не уходил никому и не возвращался после связи — и **ему не говорили
+   * ни слова**. Он продолжал вести урок, уверенный, что класс видит написанное.
+   *
+   * Причина была в одной строке `catch`: любой отказ считался отказом ДОСКИ («закрыли посреди
+   * правки») и лечился перезапросом с сервера, то есть затиранием только что нарисованного.
+   * Отказ доски и «запрос не дошёл» — разные события, и различать их продукт уже умеет
+   * (`requestFailure.ts`), просто здесь не различал.
+   *
+   * Теперь не дошедшее ждёт в очереди и уходит, когда связь вернулась. Это не «оптимистичный
+   * интерфейс»: человек ВИДИТ, что часть написанного ещё не ушла, — обещание молчанием было
+   * бы хуже потери.
+   */
+  const pending = useRef<{ localId: string; element: Element }[]>([]);
+  const [unsent, setUnsent] = useState(0);
   const drag = useRef<{ id: string; corner?: Corner; dx: number; dy: number } | null>(null);
   const panning = useRef<{ x: number; y: number } | null>(null);
 
@@ -161,41 +180,6 @@ export function BoardCanvas({ lessonId }: { lessonId: string }) {
     },
   });
 
-  useEffect(() => {
-    const onVisible = () => {
-      if (document.visibilityState === 'visible') void resync('return');
-    };
-    /**
-     * 🔴 ГЛАВНЫЙ СИГНАЛ — ВОЗВРАТ СЕТИ, И ЕГО ЗДЕСЬ НЕ БЫЛО (RnD 18.08, промпт 31 §2.1).
-     *
-     * Досинхронизацию я сделал в промпте 28 и проверил её СО СТОРОНЫ СЕРВЕРА: запрос доски
-     * целиком действительно отдаёт всё, что нарисовали без тебя. Чего я не проверил —
-     * дёргает ли клиент этот запрос на настоящем обрыве.
-     *
-     * Двухбраузерный заход показал: НЕ ДЁРГАЕТ. У ученика оборвали сеть, преподаватель
-     * нарисовал три штриха, ученик вернулся — и остался с прежней картиной: 11 фигур против
-     * 24 у преподавателя. Молча. Оба уверены, что смотрят на одну доску.
-     *
-     * Почему прежние сигналы молчат: вкладка не прячется (`visibilitychange` не приходит),
-     * фокус не теряется (`focus` не приходит), а `graphql-ws` переподключается сам и
-     * `onComplete` подписки не зовёт. То есть все три моих крючка мимо ровно того случая,
-     * ради которого писались.
-     *
-     * `online` — событие самого браузера о том, что сеть вернулась. Прямой сигнал вместо
-     * трёх косвенных.
-     */
-    const onBackOnline = () => void resync('reconnect');
-    document.addEventListener('visibilitychange', onVisible);
-    // Возврат на сцену доски внутри урока — то же самое: пока смотрели тест, доска ушла вперёд.
-    window.addEventListener('focus', onVisible);
-    window.addEventListener('online', onBackOnline);
-    return () => {
-      document.removeEventListener('visibilitychange', onVisible);
-      window.removeEventListener('focus', onVisible);
-      window.removeEventListener('online', onBackOnline);
-    };
-  }, [resync]);
-
   /**
    * 🔴 КОЛЕСО И ЩИПОК (§28.2 п.2). `zoomAt` был написан и покрыт тестами — и не подключён
    * ни к одному событию: масштаб меняли только две кнопки ±20%, и те к ЦЕНТРУ ЭКРАНА.
@@ -270,24 +254,27 @@ export function BoardCanvas({ lessonId }: { lessonId: string }) {
     [view],
   );
 
+  /** Один и тот же вход мутации — и на первую отправку, и на повтор из очереди. */
+  const inputOf = useCallback(
+    (element: Partial<Element> & { kind: BoardElementKind }, id: string | null) => ({
+      id,
+      kind: element.kind,
+      x: element.x ?? 0,
+      y: element.y ?? 0,
+      width: element.width ?? 0,
+      height: element.height ?? 0,
+      data: element.data ?? {},
+    }),
+    [],
+  );
+
   /** Write through: optimistic locally, then persisted; the server broadcasts to everyone. */
   const commit = useCallback(
     async (element: Partial<Element> & { kind: BoardElementKind }, id?: string) => {
       setFailed(false);
       try {
         const { data: written } = await put({
-          variables: {
-            lessonId,
-            input: {
-              id: id ?? null,
-              kind: element.kind,
-              x: element.x ?? 0,
-              y: element.y ?? 0,
-              width: element.width ?? 0,
-              height: element.height ?? 0,
-              data: element.data ?? {},
-            },
-          },
+          variables: { lessonId, input: inputOf(element, id ?? null) },
         });
         // Apply our own write at once. Waiting for the broadcast to come back would make the
         // canvas lag behind the hand holding the pen — and in a one-person room nothing ever
@@ -296,14 +283,97 @@ export function BoardCanvas({ lessonId }: { lessonId: string }) {
         if (saved) {
           setLocal((prev) => [...prev.filter((e) => e.id !== saved.id), saved]);
         }
-      } catch {
-        // The board refused us (closed mid-edit) — put the server's truth back.
-        setFailed(true);
-        await refetch();
+      } catch (e) {
+        if (failureKind(e) !== 'unreachable') {
+          // Доска ОТКАЗАЛА (закрыли посреди правки) — вернуть правду сервера.
+          setFailed(true);
+          await refetch();
+          return;
+        }
+        // 🔴 Запрос НЕ ДОШЁЛ. Написанное остаётся у автора на глазах и ждёт связи.
+        // Затирать его перезапросом (как было) значит стереть работу человека молча.
+        const localId = id ?? `unsent:${crypto.randomUUID()}`;
+        const kept = { ...inputOf(element, localId), id: localId } as unknown as Element;
+        setLocal((prev) => [...prev.filter((x) => x.id !== localId), kept]);
+        pending.current = [...pending.current.filter((x) => x.localId !== localId), { localId, element: kept }];
+        setUnsent(pending.current.length);
       }
     },
-    [lessonId, put, refetch],
+    [inputOf, lessonId, put, refetch],
   );
+
+  /**
+   * Досылка. Зовётся при возврате связи — и ДО перезапроса доски: перезапрос заменяет картину
+   * серверной, а в ней неотправленного по определению нет.
+   *
+   * ⚠️ Останавливаемся на первом же не дошедшем: если связь ещё не вернулась, перебирать
+   * остальные незачем, а терять их — тем более. Порядок сохраняется: доска — это то, что
+   * писали по очереди.
+   */
+  const flushPending = useCallback(async () => {
+    const queue = pending.current;
+    if (queue.length === 0) return;
+    for (let i = 0; i < queue.length; i += 1) {
+      const item = queue[i];
+      try {
+        const { data: written } = await put({
+          variables: { lessonId, input: inputOf(item.element, null) },
+        });
+        const saved = written?.putBoardElement;
+        setLocal((prev) => [
+          ...prev.filter((e) => e.id !== item.localId && e.id !== saved?.id),
+          ...(saved ? [saved] : []),
+        ]);
+      } catch (e) {
+        // Снова не дошло — оставляем этот и все следующие в очереди.
+        pending.current = failureKind(e) === 'unreachable' ? queue.slice(i) : queue.slice(i + 1);
+        setUnsent(pending.current.length);
+        return;
+      }
+    }
+    pending.current = [];
+    setUnsent(0);
+  }, [inputOf, lessonId, put]);
+
+  useEffect(() => {
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') void resync('return');
+    };
+    /**
+     * 🔴 ГЛАВНЫЙ СИГНАЛ — ВОЗВРАТ СЕТИ, И ЕГО ЗДЕСЬ НЕ БЫЛО (RnD 18.08, промпт 31 §2.1).
+     *
+     * Досинхронизацию я сделал в промпте 28 и проверил её СО СТОРОНЫ СЕРВЕРА: запрос доски
+     * целиком действительно отдаёт всё, что нарисовали без тебя. Чего я не проверил —
+     * дёргает ли клиент этот запрос на настоящем обрыве.
+     *
+     * Двухбраузерный заход показал: НЕ ДЁРГАЕТ. У ученика оборвали сеть, преподаватель
+     * нарисовал три штриха, ученик вернулся — и остался с прежней картиной: 11 фигур против
+     * 24 у преподавателя. Молча. Оба уверены, что смотрят на одну доску.
+     *
+     * Почему прежние сигналы молчат: вкладка не прячется (`visibilitychange` не приходит),
+     * фокус не теряется (`focus` не приходит), а `graphql-ws` переподключается сам и
+     * `onComplete` подписки не зовёт. То есть все три моих крючка мимо ровно того случая,
+     * ради которого писались.
+     *
+     * `online` — событие самого браузера о том, что сеть вернулась. Прямой сигнал вместо
+     * трёх косвенных.
+     */
+    /**
+     * ⚠️ ПОРЯДОК ЗДЕСЬ — ЧАСТЬ ПОЧИНКИ, А НЕ ОФОРМЛЕНИЕ. Сначала досылаем СВОЁ, потом
+     * забираем чужое: `resync` заменяет холст серверной картиной, и всё, что человек написал
+     * без связи, пропало бы ровно в тот момент, когда связь вернулась.
+     */
+    const onBackOnline = () => void flushPending().then(() => resync('reconnect'));
+    document.addEventListener('visibilitychange', onVisible);
+    // Возврат на сцену доски внутри урока — то же самое: пока смотрели тест, доска ушла вперёд.
+    window.addEventListener('focus', onVisible);
+    window.addEventListener('online', onBackOnline);
+    return () => {
+      document.removeEventListener('visibilitychange', onVisible);
+      window.removeEventListener('focus', onVisible);
+      window.removeEventListener('online', onBackOnline);
+    };
+  }, [flushPending, resync]);
 
   /**
    * 🔴 ЩИПОК ДВУМЯ ПАЛЬЦАМИ НА ПЛАНШЕТЕ (§28.2 п.2).
@@ -748,6 +818,15 @@ export function BoardCanvas({ lessonId }: { lessonId: string }) {
       {failed && (
         <p className={styles.failed} role="alert">
           {t('saveFailed')}
+        </p>
+      )}
+      {/*
+        🔴 Не молчать о том, что написанное ещё не ушло (наряд 34 §2.1).
+        Формулировка отвечает на вопрос, который у преподавателя ровно один: видит ли это класс.
+      */}
+      {unsent > 0 && (
+        <p className={styles.failed} role="status">
+          {t('unsent', { count: unsent })}
         </p>
       )}
       <p className={styles.hint}>{t('pasteHint')}</p>

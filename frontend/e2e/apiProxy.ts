@@ -93,3 +93,46 @@ export async function proxyLiveApi(
     });
   });
 }
+
+/**
+ * 🔴 СОКЕТ ТОЖЕ ВШИТ — И ИМЕННО ПОЭТОМУ ЖИВОЙ СЛОЙ ТРИ МЕСЯЦА НИКТО НЕ ПРОВЕРЯЛ (промпт 34 §1.1).
+ *
+ * Запрос перехватчик выше уводит на контур, а подписка уходила по `wss://api.flamingo.plus` —
+ * на боевой сервер, где урока из этого прогона нет вовсе. Поэтому единственный сценарий на
+ * живую подписку жил отдельно, против dev-сервера, под флагом `FLAMINGO_RND` — то есть в
+ * обычном прогоне НЕ УЧАСТВОВАЛ. Пока его там не было, все восемь подписок умерли разом и
+ * прогон остался 15/15 зелёным.
+ *
+ * `routeWebSocket` умеет перехватить, но НЕ умеет переподключить на другой адрес:
+ * `connectToServer()` идёт по исходному URL, менять его нечем. Поэтому здесь свой мост —
+ * сокет до контура в Node и переливание кадров в обе стороны, как это делает vite-прокси на
+ * dev-сервере. Тот же приём, что и с запросом выше, и по той же причине: адрес приложения
+ * менять нельзя, а прогон должен ходить к себе.
+ *
+ * ⚠️ Кадры до открытия моста КОПЯТСЯ, а не теряются: `graphql-ws` шлёт `connection_init`
+ * первым же тактом, задолго до того, как встречный сокет успеет открыться. Потерянный
+ * `connection_init` = «подписка не отвечает» на исправном продукте.
+ */
+export async function proxyLiveSocket(
+  page: Page,
+  api = process.env.FLAMINGO_API ?? BAKED_IN_API,
+) {
+  const target = api.replace(/^http/, 'ws');
+  await page.routeWebSocket(BAKED_IN_API.replace(/^https/, 'wss'), (route) => {
+    const upstream = new WebSocket(target, 'graphql-transport-ws');
+    const pending: (string | Buffer)[] = [];
+
+    upstream.addEventListener('open', () => {
+      for (const frame of pending.splice(0)) upstream.send(frame);
+    });
+    upstream.addEventListener('message', (event) => route.send(String(event.data)));
+    upstream.addEventListener('close', () => route.close());
+
+    route.onMessage((frame) => {
+      const text = typeof frame === 'string' ? frame : frame.toString();
+      if (upstream.readyState === WebSocket.OPEN) upstream.send(text);
+      else pending.push(text);
+    });
+    route.onClose(() => upstream.close());
+  });
+}

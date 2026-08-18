@@ -511,6 +511,8 @@ function AttentionRow({
         <span>
           <span className={styles.rName}>
             <span className={styles.rDot} aria-hidden="true" />
+            {/* Ноль — отдельная фраза, а не «0 карточек ждут»: дверь в повторение теперь
+                есть всегда, пока у ученика есть слова (наряд 34 §5). */}
             {t('entry.repetition', { count: entry.count ?? 0 })}
           </span>
         </span>

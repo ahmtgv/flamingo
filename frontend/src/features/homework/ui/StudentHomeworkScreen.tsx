@@ -42,7 +42,11 @@ export function StudentHomeworkScreen() {
               <div className={styles.cardHead}>
                 <span className={styles.cardTitle}>{s.homework.title}</span>
                 <Badge tone={STATUS_TONE[s.status]}>{t(`status.${s.status}`)}</Badge>
-                {s.score != null && <Badge tone="neutral">{t('my.score', { n: s.score })}</Badge>}
+                {/* Безотметочному ученику отметки не показывают — ФГОС НОО и ФЗ-273 (наряд §34.4).
+                    Значок вместо цифры тоже не подходит: это та же отметка. */}
+                {s.score != null && !s.markless && (
+                  <Badge tone="neutral">{t('my.score', { n: s.score })}</Badge>
+                )}
               </div>
               {s.comment && <p className={styles.submissionBody}>{s.comment}</p>}
             </div>

@@ -37,6 +37,7 @@ from common.enums import (
     SubmissionStatus,
 )
 from common.exceptions import NotFound, PermissionDenied
+from common.marking import scale_for
 
 from .access import can_access_course
 from .models import Course, Enrollment, Material, SavedItem
@@ -337,7 +338,10 @@ def subject_cabinet(user, course_id) -> SubjectCabinet:
         lesson_count=total,
         student_count=group_size if is_teacher else None,
         progress_pct=progress_pct,
-        grading_scale=course.scale,
+        # 🔴 Шкала ЭТОГО ученика, а не курса (наряд §34.4): первоклассник учится без отметок
+        # и на курсе, где остальные в девятом. Правило внешнее — ФГОС НОО и ФЗ-273; считается
+        # в `common/marking.py`, здесь только берётся. Преподаватель видит шкалу курса.
+        grading_scale=course.scale if is_teacher else scale_for(student_profile, course),
         sections=sections,
         materials=materials,
         saved_materials=saved,

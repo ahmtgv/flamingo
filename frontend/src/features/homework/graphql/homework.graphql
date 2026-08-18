@@ -20,6 +20,7 @@ query LessonHomework($lessonId: ID!) {
       id
       status
       score
+      markless
       comment
       attempt
     }
@@ -32,6 +33,7 @@ query HomeworkSubmissions($homeworkId: ID!) {
     attempt
     status
     score
+    markless
     comment
     contentText
     submittedAt
@@ -55,6 +57,7 @@ query MySubmissions($courseId: ID) {
     id
     status
     score
+    markless
     comment
     attempt
     submittedAt
@@ -97,6 +100,7 @@ mutation GradeSubmission($input: GradeInput!) {
     id
     status
     score
+    markless
     comment
   }
 }

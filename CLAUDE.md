@@ -68,13 +68,22 @@ Models map 1:1 to `docs/flamingo_erd.md`. The API mirrors `docs/flamingo_schema.
 - GraphQL resolvers stay **thin**: validate input, check permissions, delegate to a service function (`apps/<x>/services.py`). Business logic and DB writes live in services, not resolvers.
 - **Authorization is server-side and per-resolver/field.** Never trust a client-provided role or id for access decisions. A student can only read their own metrics/submissions; a parent only their linked children (via `GUARDIANSHIP`); a teacher only their courses/groups; an admin only their institution.
 - Celery tasks (**DEFERRED — not built**): recording post-processing, weekly parent digests, recommendation batch, certificate PDF generation. Email/reset currently run inline (stubs). Redis is the Channels layer only (no Celery broker until async lands).
-- Subscriptions run over Channels; `attentionUpdates` payloads are aggregates only. **Live today
-  (8):** `attentionUpdates`, `chatMessageReceived`, `channelMessageReceived`, `boardChanged`,
-  `projectorFocusChanged`, `wordShown`, `hostPresenceChanged`, `signals`.
-  ⚠️ `sessionStatusChanged` and `notificationReceived` stood here as working — they are **SDL
-  only, no resolver** (checked 16.08 against `schema.as_str()`). The first is not missed in
-  practice: `hostPresenceChanged` answers «машина преподавателя в сети», and the arrival screen
-  polls the meeting point. The second waits for the notifications app, which is not built.
+- Subscriptions run over Channels; `attentionUpdates` payloads are aggregates only. **Live —
+  verified behaviourally, 18.08 (8/8):** `attentionUpdates`, `chatMessageReceived`,
+  `channelMessageReceived`, `boardChanged`, `projectorFocusChanged`, `wordShown`,
+  `hostPresenceChanged`, `signals`.
+  🔴 **"Live" here means one thing only: a SECOND person received a frame.** This line
+  previously said "live (8)" on the strength of a resolver existing and the SDL naming it —
+  and on 16.08 all eight were dead at once (`token_from_info`, see `common/ws_auth.py`): every
+  one raised `AttributeError` on the first tick while the test run stayed 15/15 green, because
+  nothing ever opened a subscription as a second party. Never re-derive this list from the SDL
+  or from `schema.as_str()`. The only admissible evidence is a frame arriving at someone else:
+  `e2e/live.spec.ts` (standard run, not flagged) holds it for `boardChanged`; the other seven
+  were measured on a real socket, second-party, one at a time.
+  ⚠️ `sessionStatusChanged` and `notificationReceived` are **SDL only, no resolver**. The first
+  is not missed in practice: `hostPresenceChanged` answers «машина преподавателя в сети», and
+  the arrival screen polls the meeting point. The second waits for the notifications app,
+  which is not built.
 
 ## 6. Frontend conventions
 - Server state via Apollo (cache-first); **local/UI state** (toggles, wizard steps, theme/age mode) via Redux Toolkit. Don't duplicate server data into Redux.

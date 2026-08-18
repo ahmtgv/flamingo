@@ -22,7 +22,7 @@ const me = {
     children: [
       {
         __typename: 'StudentProfile',
-        ageBand: 'TEEN',
+        markless: false, ageBand: 'TEEN',
         gradeLevel: '7',
         user: {
           __typename: 'User',

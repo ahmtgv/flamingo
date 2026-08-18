@@ -28,7 +28,7 @@ const meMock = {
         avatarUrl: null,
         studentProfile: {
           __typename: 'StudentProfile',
-          ageBand: 'TEEN',
+          markless: false, ageBand: 'TEEN',
           gradeLevel: '7',
           points: 0,
         },

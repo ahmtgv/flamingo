@@ -29,7 +29,7 @@ export function TasksPanel({
   isTeacher: boolean;
   teacherName: string | null;
   /** The course's own scale — display only (owner decision 2026-08-13). */
-  scale?: 'FIVE_POINT' | 'PERCENT';
+  scale?: 'FIVE_POINT' | 'PERCENT' | 'PASS_FAIL' | 'MARKLESS';
 }) {
   const { t } = useTranslation('subject');
   const navigate = useNavigate();
@@ -75,7 +75,7 @@ function LearnerRow({
   task: Task;
   now: Date;
   teacherName: string | null;
-  scale: 'FIVE_POINT' | 'PERCENT';
+  scale: 'FIVE_POINT' | 'PERCENT' | 'PASS_FAIL' | 'MARKLESS';
   onOpen: () => void;
 }) {
   const { t } = useTranslation('subject');
@@ -118,7 +118,12 @@ function LearnerRow({
         )}
       </div>
       <div className={styles.taskRight}>
-        {graded && task.score != null && (
+        {/*
+          🔴 БЕЗОТМЕТОЧНОМУ УЧЕНИКУ ОТМЕТКИ НЕ ПОКАЗЫВАЮТ (наряд §34.4, ФГОС НОО + ФЗ-273).
+          И не заменяют значком: звёздочка вместо цифры — та же отметка. Остаются слова
+          преподавателя, они выше, рядом с работой, — это и есть словесная оценка.
+        */}
+        {graded && task.score != null && scale !== 'MARKLESS' && (
           <span className={styles.taskScore}>
             {t(scale === 'PERCENT' ? 'tasks.scorePercent' : 'tasks.scoreFive', {
               value: task.score,

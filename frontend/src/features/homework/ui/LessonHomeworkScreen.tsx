@@ -268,13 +268,31 @@ function GradeRow({ submission, onGraded }: { submission: SubmissionRow; onGrade
 
   const who = submission.student.user.formalName;
 
+  /**
+   * 🔴 БЕЗ ОТМЕТОК — ДОШКОЛЬНИКИ И ПЕРВЫЙ КЛАСС (наряд §34.4).
+   *
+   * Основание внешнее: ФГОС НОО (приказ 373 от 06.10.2009, ред. 286 от 31.05.2021) и ФЗ-273.
+   * Решает СЕРВЕР (`common/marking.py`) — здесь только показ. Экран, который решал бы сам,
+   * разошёлся бы с сервером на первом изменении правила.
+   *
+   * ⚠️ Значки вместо цифр — тоже отметка, и они запрещены той же строкой закона. Поэтому
+   * здесь не «звёздочки вместо поля», а СЛОВА: единственное, что разрешено.
+   */
+  const markless = submission.markless;
+
   async function submit(e: FormEvent) {
     e.preventDefault();
-    if (score === '') return;
+    if (markless ? comment.trim() === '' : score === '') return;
     setFailed(null);
     try {
       await gradeSubmission({
-        variables: { input: { submissionId: submission.id, score: Number(score), comment } },
+        variables: {
+          input: {
+            submissionId: submission.id,
+            score: markless ? null : Number(score),
+            comment,
+          },
+        },
       });
       onGraded();
     } catch (err) {
@@ -290,21 +308,25 @@ function GradeRow({ submission, onGraded }: { submission: SubmissionRow; onGrade
       </div>
       {submission.contentText && <p className={styles.submissionBody}>{submission.contentText}</p>}
       <div className={styles.formRow}>
-        <div className={styles.scoreInput}>
-          <Input
-            type="number"
-            min={0}
-            max={100}
-            placeholder={t('grade.scorePh')}
-            aria-label={t('grade.score')}
-            value={score}
-            onChange={(e) => setScore(e.target.value)}
-          />
-        </div>
+        {markless ? (
+          <p className={styles.marklessNote}>{t('grade.markless')}</p>
+        ) : (
+          <div className={styles.scoreInput}>
+            <Input
+              type="number"
+              min={0}
+              max={100}
+              placeholder={t('grade.scorePh')}
+              aria-label={t('grade.score')}
+              value={score}
+              onChange={(e) => setScore(e.target.value)}
+            />
+          </div>
+        )}
         <div>
           <Input
-            placeholder={t('grade.commentPh')}
-            aria-label={t('grade.comment')}
+            placeholder={t(markless ? 'grade.wordsPh' : 'grade.commentPh')}
+            aria-label={t(markless ? 'grade.words' : 'grade.comment')}
             value={comment}
             onChange={(e) => setComment(e.target.value)}
           />
@@ -336,7 +358,9 @@ function StudentHomeworkCard({ hw, onDone }: { hw: HomeworkRow; onDone: () => vo
         ) : (
           <Badge tone="neutral">{t('notSubmitted')}</Badge>
         )}
-        {sub?.score != null && <Badge tone="neutral">{t('my.score', { n: sub.score })}</Badge>}
+        {sub?.score != null && !sub.markless && (
+          <Badge tone="neutral">{t('my.score', { n: sub.score })}</Badge>
+        )}
       </div>
       {hw.description && <p className={styles.submissionBody}>{hw.description}</p>}
       {hw.dueAt && <p className={styles.muted}>{t('due', { date: formatDate(hw.dueAt) })}</p>}

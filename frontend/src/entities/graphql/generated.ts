@@ -582,12 +582,14 @@ export type ExternalDictionary = {
 export type GradeInput = {
   allowRedo?: InputMaybe<Scalars['Boolean']['input']>;
   comment?: InputMaybe<Scalars['String']['input']>;
-  score: Scalars['Int']['input'];
+  score?: InputMaybe<Scalars['Int']['input']>;
   submissionId: Scalars['ID']['input'];
 };
 
 export type GradingScale =
   | 'FIVE_POINT'
+  | 'MARKLESS'
+  | 'PASS_FAIL'
   | 'PERCENT';
 
 export type Group = {
@@ -2495,6 +2497,11 @@ export type StudentProfile = {
   birthDate?: Maybe<Scalars['DateTime']['output']>;
   gradeLevel?: Maybe<Scalars['String']['output']>;
   institution?: Maybe<Institution>;
+  /**
+   * Учится без отметок — дошкольник или первый класс (ФГОС НОО, ФЗ-273). Считается на
+   * сервере (`common/marking.py`): экраны спрашивают, а не выводят сами.
+   */
+  markless: Scalars['Boolean']['output'];
   points: Scalars['Int']['output'];
   user: User;
 };
@@ -2639,6 +2646,11 @@ export type Submission = {
   gradedBy?: Maybe<User>;
   homework: Homework;
   id: Scalars['ID']['output'];
+  /**
+   * Этому ученику отметок не ставят: дошкольник или первый класс (ФГОС НОО, ФЗ-273).
+   * Правило считается на сервере (`common/marking.py`); экран только показывает.
+   */
+  markless: Scalars['Boolean']['output'];
   score?: Maybe<Scalars['Int']['output']>;
   status: SubmissionStatus;
   student: StudentProfile;
@@ -3117,21 +3129,21 @@ export type LoginMutationVariables = Exact<{
 }>;
 
 
-export type LoginMutation = { __typename?: 'Mutation', login: { __typename?: 'AuthPayload', token: string, refreshToken: string, user: { __typename?: 'User', id: string, email: string, firstName: string, lastName: string, displayName: string, shortName: string, role: Role, locale: string, studentProfile?: { __typename?: 'StudentProfile', ageBand: AgeBand, gradeLevel?: string | null, points: number } | null, teacherProfile?: { __typename?: 'TeacherProfile', verificationStatus: VerificationStatus } | null } } };
+export type LoginMutation = { __typename?: 'Mutation', login: { __typename?: 'AuthPayload', token: string, refreshToken: string, user: { __typename?: 'User', id: string, email: string, firstName: string, lastName: string, displayName: string, shortName: string, role: Role, locale: string, studentProfile?: { __typename?: 'StudentProfile', ageBand: AgeBand, gradeLevel?: string | null, points: number, markless: boolean } | null, teacherProfile?: { __typename?: 'TeacherProfile', verificationStatus: VerificationStatus } | null } } };
 
 export type RegisterUserMutationVariables = Exact<{
   input: RegisterUserInput;
 }>;
 
 
-export type RegisterUserMutation = { __typename?: 'Mutation', registerUser: { __typename?: 'AuthPayload', token: string, refreshToken: string, user: { __typename?: 'User', id: string, email: string, firstName: string, lastName: string, displayName: string, shortName: string, role: Role, locale: string, studentProfile?: { __typename?: 'StudentProfile', ageBand: AgeBand, gradeLevel?: string | null, points: number } | null, teacherProfile?: { __typename?: 'TeacherProfile', verificationStatus: VerificationStatus } | null } } };
+export type RegisterUserMutation = { __typename?: 'Mutation', registerUser: { __typename?: 'AuthPayload', token: string, refreshToken: string, user: { __typename?: 'User', id: string, email: string, firstName: string, lastName: string, displayName: string, shortName: string, role: Role, locale: string, studentProfile?: { __typename?: 'StudentProfile', ageBand: AgeBand, gradeLevel?: string | null, points: number, markless: boolean } | null, teacherProfile?: { __typename?: 'TeacherProfile', verificationStatus: VerificationStatus } | null } } };
 
 export type RefreshTokenMutationVariables = Exact<{
   refreshToken: Scalars['String']['input'];
 }>;
 
 
-export type RefreshTokenMutation = { __typename?: 'Mutation', refreshToken: { __typename?: 'AuthPayload', token: string, refreshToken: string, user: { __typename?: 'User', id: string, email: string, firstName: string, lastName: string, displayName: string, shortName: string, role: Role, locale: string, studentProfile?: { __typename?: 'StudentProfile', ageBand: AgeBand, gradeLevel?: string | null, points: number } | null, teacherProfile?: { __typename?: 'TeacherProfile', verificationStatus: VerificationStatus } | null } } };
+export type RefreshTokenMutation = { __typename?: 'Mutation', refreshToken: { __typename?: 'AuthPayload', token: string, refreshToken: string, user: { __typename?: 'User', id: string, email: string, firstName: string, lastName: string, displayName: string, shortName: string, role: Role, locale: string, studentProfile?: { __typename?: 'StudentProfile', ageBand: AgeBand, gradeLevel?: string | null, points: number, markless: boolean } | null, teacherProfile?: { __typename?: 'TeacherProfile', verificationStatus: VerificationStatus } | null } } };
 
 export type RequestPasswordResetMutationVariables = Exact<{
   email: Scalars['String']['input'];
@@ -3165,7 +3177,7 @@ export type SubmitVerificationDocumentMutation = { __typename?: 'Mutation', subm
 export type MeQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type MeQuery = { __typename?: 'Query', me?: { __typename?: 'User', id: string, email: string, firstName: string, lastName: string, displayName: string, shortName: string, role: Role, locale: string, avatarUrl?: string | null, consentSpeech: boolean, consentAttention: boolean, consent152fzAt?: string | null, studentProfile?: { __typename?: 'StudentProfile', ageBand: AgeBand, gradeLevel?: string | null, points: number } | null, teacherProfile?: { __typename?: 'TeacherProfile', verificationStatus: VerificationStatus, specialty?: string | null, verificationDocuments: Array<{ __typename?: 'VerificationDocument', id: string, filename: string, sizeBytes?: number | null, status: VerificationStatus, reason: string, createdAt: string }> } | null, parentProfile?: { __typename?: 'ParentProfile', children: Array<{ __typename?: 'StudentProfile', ageBand: AgeBand, gradeLevel?: string | null, user: { __typename?: 'User', id: string, firstName: string, lastName: string, displayName: string, shortName: string } }> } | null } | null };
+export type MeQuery = { __typename?: 'Query', me?: { __typename?: 'User', id: string, email: string, firstName: string, lastName: string, displayName: string, shortName: string, role: Role, locale: string, avatarUrl?: string | null, consentSpeech: boolean, consentAttention: boolean, consent152fzAt?: string | null, studentProfile?: { __typename?: 'StudentProfile', ageBand: AgeBand, gradeLevel?: string | null, points: number, markless: boolean } | null, teacherProfile?: { __typename?: 'TeacherProfile', verificationStatus: VerificationStatus, specialty?: string | null, verificationDocuments: Array<{ __typename?: 'VerificationDocument', id: string, filename: string, sizeBytes?: number | null, status: VerificationStatus, reason: string, createdAt: string }> } | null, parentProfile?: { __typename?: 'ParentProfile', children: Array<{ __typename?: 'StudentProfile', ageBand: AgeBand, gradeLevel?: string | null, user: { __typename?: 'User', id: string, firstName: string, lastName: string, displayName: string, shortName: string } }> } | null } | null };
 
 export type SetAvatarMutationVariables = Exact<{
   fileKey: Scalars['String']['input'];
@@ -3679,21 +3691,21 @@ export type LessonHomeworkQueryVariables = Exact<{
 }>;
 
 
-export type LessonHomeworkQuery = { __typename?: 'Query', lessonHomework: Array<{ __typename?: 'Homework', id: string, title: string, description?: string | null, type: HomeworkType, dueAt?: string | null, allowRedo: boolean, publishedAt?: string | null, submissionStats: { __typename?: 'SubmissionStats', total: number, submitted: number, graded: number, late: number }, viewerSubmission?: { __typename?: 'Submission', id: string, status: SubmissionStatus, score?: number | null, comment?: string | null, attempt: number } | null }> };
+export type LessonHomeworkQuery = { __typename?: 'Query', lessonHomework: Array<{ __typename?: 'Homework', id: string, title: string, description?: string | null, type: HomeworkType, dueAt?: string | null, allowRedo: boolean, publishedAt?: string | null, submissionStats: { __typename?: 'SubmissionStats', total: number, submitted: number, graded: number, late: number }, viewerSubmission?: { __typename?: 'Submission', id: string, status: SubmissionStatus, score?: number | null, markless: boolean, comment?: string | null, attempt: number } | null }> };
 
 export type HomeworkSubmissionsQueryVariables = Exact<{
   homeworkId: Scalars['ID']['input'];
 }>;
 
 
-export type HomeworkSubmissionsQuery = { __typename?: 'Query', homeworkSubmissions: Array<{ __typename?: 'Submission', id: string, attempt: number, status: SubmissionStatus, score?: number | null, comment?: string | null, contentText?: string | null, submittedAt?: string | null, student: { __typename?: 'StudentProfile', user: { __typename?: 'User', id: string, firstName: string, lastName: string, formalName: string, shortName: string, displayName: string } } }> };
+export type HomeworkSubmissionsQuery = { __typename?: 'Query', homeworkSubmissions: Array<{ __typename?: 'Submission', id: string, attempt: number, status: SubmissionStatus, score?: number | null, markless: boolean, comment?: string | null, contentText?: string | null, submittedAt?: string | null, student: { __typename?: 'StudentProfile', user: { __typename?: 'User', id: string, firstName: string, lastName: string, formalName: string, shortName: string, displayName: string } } }> };
 
 export type MySubmissionsQueryVariables = Exact<{
   courseId?: InputMaybe<Scalars['ID']['input']>;
 }>;
 
 
-export type MySubmissionsQuery = { __typename?: 'Query', mySubmissions: Array<{ __typename?: 'Submission', id: string, status: SubmissionStatus, score?: number | null, comment?: string | null, attempt: number, submittedAt?: string | null, homework: { __typename?: 'Homework', id: string, title: string } }> };
+export type MySubmissionsQuery = { __typename?: 'Query', mySubmissions: Array<{ __typename?: 'Submission', id: string, status: SubmissionStatus, score?: number | null, markless: boolean, comment?: string | null, attempt: number, submittedAt?: string | null, homework: { __typename?: 'Homework', id: string, title: string } }> };
 
 export type CreateHomeworkMutationVariables = Exact<{
   input: HomeworkInput;
@@ -3728,7 +3740,7 @@ export type GradeSubmissionMutationVariables = Exact<{
 }>;
 
 
-export type GradeSubmissionMutation = { __typename?: 'Mutation', gradeSubmission: { __typename?: 'Submission', id: string, status: SubmissionStatus, score?: number | null, comment?: string | null } };
+export type GradeSubmissionMutation = { __typename?: 'Mutation', gradeSubmission: { __typename?: 'Submission', id: string, status: SubmissionStatus, score?: number | null, markless: boolean, comment?: string | null } };
 
 export type ReportAttentionMutationVariables = Exact<{
   input: AttentionInput;
@@ -3844,6 +3856,13 @@ export type MyMirrorQueryVariables = Exact<{
 
 
 export type MyMirrorQuery = { __typename?: 'Query', myMirror: Array<{ __typename?: 'MirroredRecord', id: string, kind: MirrorKind, sourceId: string, occurredAt: string, payload: Record<string, unknown> }> };
+
+export type HostPresenceChangedSubscriptionVariables = Exact<{
+  slug: Scalars['String']['input'];
+}>;
+
+
+export type HostPresenceChangedSubscription = { __typename?: 'Subscription', hostPresenceChanged: { __typename?: 'HostPresence', slug: string, online: boolean } };
 
 export type MyRepetitionQueueQueryVariables = Exact<{
   limit?: InputMaybe<Scalars['Int']['input']>;
@@ -4964,6 +4983,7 @@ export const LoginDocument = gql`
         ageBand
         gradeLevel
         points
+        markless
       }
       teacherProfile {
         verificationStatus
@@ -5017,6 +5037,7 @@ export const RegisterUserDocument = gql`
         ageBand
         gradeLevel
         points
+        markless
       }
       teacherProfile {
         verificationStatus
@@ -5069,6 +5090,7 @@ export const RefreshTokenDocument = gql`
         ageBand
         gradeLevel
         points
+        markless
       }
       teacherProfile {
         verificationStatus
@@ -5264,6 +5286,7 @@ export const MeDocument = gql`
       ageBand
       gradeLevel
       points
+      markless
     }
     teacherProfile {
       verificationStatus
@@ -8457,6 +8480,7 @@ export const LessonHomeworkDocument = gql`
       id
       status
       score
+      markless
       comment
       attempt
     }
@@ -8506,6 +8530,7 @@ export const HomeworkSubmissionsDocument = gql`
     attempt
     status
     score
+    markless
     comment
     contentText
     submittedAt
@@ -8566,6 +8591,7 @@ export const MySubmissionsDocument = gql`
     id
     status
     score
+    markless
     comment
     attempt
     submittedAt
@@ -8753,6 +8779,7 @@ export const GradeSubmissionDocument = gql`
     id
     status
     score
+    markless
     comment
   }
 }
@@ -9503,6 +9530,37 @@ export type MyMirrorQueryHookResult = ReturnType<typeof useMyMirrorQuery>;
 export type MyMirrorLazyQueryHookResult = ReturnType<typeof useMyMirrorLazyQuery>;
 export type MyMirrorSuspenseQueryHookResult = ReturnType<typeof useMyMirrorSuspenseQuery>;
 export type MyMirrorQueryResult = Apollo.QueryResult<MyMirrorQuery, MyMirrorQueryVariables>;
+export const HostPresenceChangedDocument = gql`
+    subscription HostPresenceChanged($slug: String!) {
+  hostPresenceChanged(slug: $slug) {
+    slug
+    online
+  }
+}
+    `;
+
+/**
+ * __useHostPresenceChangedSubscription__
+ *
+ * To run a query within a React component, call `useHostPresenceChangedSubscription` and pass it any options that fit your needs.
+ * When your component renders, `useHostPresenceChangedSubscription` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the subscription, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useHostPresenceChangedSubscription({
+ *   variables: {
+ *      slug: // value for 'slug'
+ *   },
+ * });
+ */
+export function useHostPresenceChangedSubscription(baseOptions: Apollo.SubscriptionHookOptions<HostPresenceChangedSubscription, HostPresenceChangedSubscriptionVariables> & ({ variables: HostPresenceChangedSubscriptionVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useSubscription<HostPresenceChangedSubscription, HostPresenceChangedSubscriptionVariables>(HostPresenceChangedDocument, options);
+      }
+export type HostPresenceChangedSubscriptionHookResult = ReturnType<typeof useHostPresenceChangedSubscription>;
+export type HostPresenceChangedSubscriptionResult = Apollo.SubscriptionResult<HostPresenceChangedSubscription>;
 export const MyRepetitionQueueDocument = gql`
     query MyRepetitionQueue($limit: Int) {
   myRepetitionQueue(limit: $limit) {

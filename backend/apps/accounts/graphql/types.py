@@ -20,6 +20,7 @@ from common.enums import (
     Role,
     VerificationStatus,
 )
+from common.marking import is_markless
 
 if TYPE_CHECKING:
     # Lazily referenced to avoid the accounts <-> institutions graphql import cycle.
@@ -39,6 +40,20 @@ class StudentProfileType:
     @strawberry_django.field
     def points(self) -> int:
         return self.points_cached
+
+    @strawberry_django.field
+    def markless(self) -> bool:
+        """Этот ученик учится без отметок — дошкольник или первый класс.
+
+        🔴 ОДИН ОТВЕТ НА ВЕСЬ ПРОДУКТ (наряд §34.4). Правило внешнее (ФГОС НОО, приказ 373 от
+        06.10.2009 в ред. 286 от 31.05.2021; ФЗ-273) и считается в `common/marking.py`. Экраны
+        СПРАШИВАЮТ, а не выводят сами: три экрана, каждый со своим «а первый ли это класс»,
+        разойдутся на первом же изменении — этот механизм в репозитории уже подводил.
+
+        ⚠️ Запрещены не только цифры: значки, баллы, полоски, «уровни» и рейтинги — это та же
+        отметка другим шрифтом. Поэтому поле называется markless, а не noDigits.
+        """
+        return is_markless(self)
 
 
 @strawberry_django.type(models.TeacherProfile)

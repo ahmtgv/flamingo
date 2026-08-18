@@ -46,15 +46,23 @@ export function StudentCabinet({ me }: { me: Me }) {
         </div>
 
         <div className={styles.grid}>
-          <div className={styles.card}>
-            <div className={styles.cardHead}>
-              <span className={styles.cardHeadIcon}>
-                <Sparkles />
-              </span>
-              <span className={styles.cardTitle}>{t('student.points')}</span>
+          {/*
+            🔴 БАЛЛЫ — ЭТО ОТМЕТКА (наряд §34.4). Дошкольникам и первому классу их не
+            показывают: ФГОС НОО (приказ 373 от 06.10.2009, ред. 286 от 31.05.2021) и ФЗ-273
+            запрещают не только цифру в журнале, но и значки, баллы, полоски и «уровни» —
+            это та же пятибалльная шкала другим шрифтом.
+          */}
+          {!sp?.markless && (
+            <div className={styles.card}>
+              <div className={styles.cardHead}>
+                <span className={styles.cardHeadIcon}>
+                  <Sparkles />
+                </span>
+                <span className={styles.cardTitle}>{t('student.points')}</span>
+              </div>
+              <div className={styles.statNum}>{sp?.points ?? 0}</div>
             </div>
-            <div className={styles.statNum}>{sp?.points ?? 0}</div>
-          </div>
+          )}
 
           <div className={styles.card}>
             <div className={styles.cardHead}>

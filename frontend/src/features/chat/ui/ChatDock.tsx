@@ -5,6 +5,8 @@ import { useTranslation } from 'react-i18next';
 import {
   type ChannelMessagesQuery,
   type MyChannelsQuery,
+  ChannelMessagesDocument,
+  useChannelMessageReceivedSubscription,
   useChannelMessagesQuery,
   useChatPolicyQuery,
   useMarkChannelReadMutation,
@@ -199,7 +201,36 @@ function Conversation({
   const { data, loading, refetch } = useChannelMessagesQuery({
     variables: { channelId: channel.id },
     fetchPolicy: 'cache-and-network',
-    pollInterval: 15_000, // the socket carries the live case; this is the safety net
+    // Опрос — подстраховка под сокетом: вкладка спала, сокет молча отвалился. Реже, чем
+    // раньше, потому что живой случай теперь несёт подписка, а не этот таймер.
+    pollInterval: 30_000,
+  });
+
+  /**
+   * 🔴 ПОДПИСКА БЫЛА ОПИСАНА И НЕ ПОДКЛЮЧЕНА (наряд 34 §1, §5).
+   *
+   * Здесь стояло `pollInterval: 15_000` с комментарием «the socket carries the live case» —
+   * а сокета не было: документ `ChannelMessageReceived` существовал, хук по нему
+   * генерировался, и его не звал никто. То есть сообщение в чате урока доходило до
+   * собеседника **за пятнадцать секунд**, и комментарий в коде утверждал обратное.
+   *
+   * Тот же механизм, что и с `hostHeartbeat`, и с восемью мёртвыми подписками: код, который
+   * умеет ответить, проверен; доходит ли до него вопрос — нет.
+   */
+  useChannelMessageReceivedSubscription({
+    variables: { channelId: channel.id },
+    onData: ({ client, data: payload }) => {
+      const incoming = payload.data?.channelMessageReceived;
+      if (!incoming) return;
+      client.cache.updateQuery(
+        { query: ChannelMessagesDocument, variables: { channelId: channel.id } },
+        (prev) => {
+          const known = prev?.channelMessages ?? [];
+          if (known.some((m: { id: string }) => m.id === incoming.id)) return prev;
+          return { ...prev, channelMessages: [...known, incoming] };
+        },
+      );
+    },
   });
   const [send, { loading: sending }] = useSendChannelMessageMutation();
   const [report] = useReportChannelMutation();

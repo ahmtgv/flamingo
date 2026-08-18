@@ -99,7 +99,7 @@ const meMock = (role: Role, consentAttention = true) => ({
         consent152fzAt: null,
         studentProfile:
           role === 'STUDENT'
-            ? { __typename: 'StudentProfile', ageBand: 'TEEN', gradeLevel: '7', points: 0 }
+            ? { __typename: 'StudentProfile', markless: false, ageBand: 'TEEN', gradeLevel: '7', points: 0 }
             : null,
         teacherProfile:
           role === 'TEACHER'

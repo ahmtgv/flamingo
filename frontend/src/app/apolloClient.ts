@@ -13,6 +13,7 @@ import { getMainDefinition } from '@apollo/client/utilities';
 import { createClient } from 'graphql-ws';
 
 import { demoLink } from '@/shared/demo/demoLink';
+import { connectionLink } from '@/shared/lib/connection/connectionLink';
 import { GRAPHQL_HTTP_URL, GRAPHQL_WS_URL } from '@/shared/lib/env';
 import { refreshAccessToken } from '@/shared/lib/refresh';
 import { forgetMachineKey } from '@/features/desktop/machineKey';
@@ -114,7 +115,9 @@ const errorLink = onError(({ graphQLErrors, operation, forward }) => {
   });
 });
 
-const httpChain = ApolloLink.from([errorLink, authLink, httpLink]);
+// `connectionLink` стоит ПЕРВЫМ: он должен видеть и те запросы, которые errorLink повторит
+// после обновления токена, и время целиком, а не остаток после повтора.
+const httpChain = ApolloLink.from([connectionLink, errorLink, authLink, httpLink]);
 
 // Subscriptions go over WebSocket (graphql-ws); the JWT travels in connectionParams
 // (the seedum subscription resolver reads `authToken`). `lazy` defers the socket until

@@ -1,7 +1,8 @@
 import { expect, test } from '@playwright/test';
-import type { BrowserContext, Page } from '@playwright/test';
+import type { BrowserContext } from '@playwright/test';
 
 import { aLiveLesson, registerTestPupil, registerTestTeacher } from './liveApi';
+import { bothAtTheBoard, drawStroke, openBoard, seen, signIn, strokeCount } from './twoPeople';
 
 /**
  * 🔴 ЗАМЕР ИДЁТ ПРОТИВ DEV-СЕРВЕРА, И ЭТО НЕ УДОБСТВО, А УСЛОВИЕ ИЗМЕРИМОСТИ.
@@ -28,52 +29,6 @@ const DEV = 'http://127.0.0.1:5173';
  * что оба ДОШЛИ до урока; без неё всё остальное бессмысленно.
  */
 
-/** Войти формой, как человек: набрать почту и пароль и нажать кнопку. */
-async function signIn(page: Page, email: string, password: string): Promise<void> {
-  await page.goto(`${DEV}/login`);
-  await page.getByPlaceholder('you@example.com').fill(email);
-  await page.locator('input[type=password]').fill(password);
-  await page.getByRole('button', { name: 'Войти' }).click();
-  await page.waitForURL((url) => !url.pathname.startsWith('/login'), { timeout: 20_000 });
-}
-
-/** Что человек видит прямо сейчас — коротко, для журнала наблюдений. */
-async function seen(page: Page, limit = 160): Promise<string> {
-  return (await page.evaluate(() => document.body.innerText)).replace(/\s+/g, ' ').slice(0, limit);
-}
-
-async function openBoard(page: Page, sessionId: string): Promise<void> {
-  await page.goto(`${DEV}/sessions/${sessionId}/room`);
-  await page.getByRole('tab', { name: 'Доска' }).click();
-  await page.waitForSelector('[role=toolbar]', { timeout: 20_000 });
-}
-
-/** Нарисовать штрих пером — тем же путём, что рука преподавателя. */
-async function drawStroke(page: Page, from: { x: number; y: number }): Promise<void> {
-  const surface = page.locator('[class*=surface]').first();
-  const box = await surface.boundingBox();
-  if (!box) throw new Error('холста нет');
-  await page.mouse.move(box.x + from.x, box.y + from.y);
-  await page.mouse.down();
-  await page.mouse.move(box.x + from.x + 40, box.y + from.y + 30, { steps: 6 });
-  await page.mouse.up();
-  await page.waitForTimeout(400);
-}
-
-/**
- * Сколько ШТРИХОВ на доске. Только `<path>` внутри холста.
- *
- * ⚠️ Первый вариант считал `svg path, svg rect, svg image` по всей странице — и в счёт
- * попадали значки интерфейса и МАРКЕРЫ ВЫДЕЛЕНИЯ у того, кто рисовал последним. Из-за них
- * у преподавателя выходило 24 против 15 у ученика, и я чуть не записал в дефекты
- * несошедшиеся доски, хотя расходились приборы, а не картины.
- */
-async function strokeCount(page: Page): Promise<number> {
-  return page.evaluate(
-    () => document.querySelectorAll('[class*=surface] svg path').length,
-  );
-}
-
 /**
  * ⚠️ ЭТОТ НАБОР НЕ ВХОДИТ В ОБЫЧНЫЙ ПРОГОН. Ему нужен dev-сервер на 5173 (единственный, где
  * сокет идёт туда же, куда запросы) и бэкенд на 8000. Сквозной прогон обязан оставаться
@@ -99,15 +54,14 @@ test.describe('§2.1 · урок на двоих по-настоящему', () 
     const p = await registerTestPupil();
     const lesson = await aLiveLesson(t.token, p.token);
 
-    await signIn(teacher, t.email, 'T3stPass!2026');
-    await signIn(pupil, p.email, p.password);
+    await signIn(teacher, DEV, t.email, 'T3stPass!2026');
+    await signIn(pupil, DEV, p.email, p.password);
     console.log('[rnd 2.1] оба вошли');
 
-    await openBoard(teacher, lesson.sessionId);
-    await openBoard(pupil, lesson.sessionId);
+    await openBoard(teacher, DEV, lesson.sessionId);
+    await openBoard(pupil, DEV, lesson.sessionId);
     // 🔴 Без этой проверки весь сценарий может пройти зелёным, ничего не измерив.
-    expect(await teacher.locator('[role=toolbar]').count()).toBeGreaterThan(0);
-    expect(await pupil.locator('[role=toolbar]').count()).toBeGreaterThan(0);
+    await bothAtTheBoard(teacher, pupil);
 
     // 🔴 ЖИВАЯ ПОДПИСКА: доходит ли штрих до ученика, пока оба на связи. Ждём ДОЛГО и
     // печатаем ход — «не дошло за секунду» и «не дошло вовсе» это разные новости.
@@ -177,6 +131,54 @@ test.describe('§2.1 · урок на двоих по-настоящему', () 
     await pupilCtx.close();
   });
 
+  test('§34 §2.1 · штрих во время провала связи: сказано ли, и доходит ли потом', async ({ browser }) => {
+    const teacherCtx = await browser.newContext();
+    const pupilCtx = await browser.newContext();
+    const teacher = await teacherCtx.newPage();
+    const pupil = await pupilCtx.newPage();
+
+    const t = await registerTestTeacher();
+    const p = await registerTestPupil();
+    const lesson = await aLiveLesson(t.token, p.token);
+    await signIn(teacher, DEV, t.email, 'T3stPass!2026');
+    await signIn(pupil, DEV, p.email, p.password);
+    await openBoard(teacher, DEV, lesson.sessionId);
+    await openBoard(pupil, DEV, lesson.sessionId);
+    await bothAtTheBoard(teacher, pupil);
+
+    await drawStroke(teacher, { x: 120, y: 120 });
+    await teacher.waitForTimeout(800);
+    const beforeT = await strokeCount(teacher);
+    const beforeP = await strokeCount(pupil);
+
+    // ── ПРОВАЛ СВЯЗИ, И ПРЕПОДАВАТЕЛЬ ОБ ЭТОМ НЕ ЗНАЕТ ──────────────────────────
+    await teacherCtx.setOffline(true);
+    await drawStroke(teacher, { x: 200, y: 200 });
+    await teacher.waitForTimeout(1200);
+
+    const drawnOffline = (await strokeCount(teacher)) - beforeT;
+    const said = await teacher
+      .locator('[role=alert], [role=status]')
+      .allInnerTexts()
+      .then((all) => all.join(' | ').replace(/\s+/g, ' ').slice(0, 200));
+    console.log(`[34 §2.1] нарисовано без связи, видит у себя: +${drawnOffline}`);
+    console.log(`[34 §2.1] сказано ли ему про связь: ${JSON.stringify(said)}`);
+
+    // ⚠️ Ворота: работа не пропала у автора, и молчания нет.
+    expect(drawnOffline, 'штрих исчез у самого преподавателя').toBeGreaterThan(0);
+    expect(said, 'о пропавшей связи не сказано ни слова').toMatch(/связ/i);
+
+    // ── СВЯЗЬ ВЕРНУЛАСЬ ────────────────────────────────────────────────────────
+    await teacherCtx.setOffline(false);
+    await expect
+      .poll(() => strokeCount(pupil), { timeout: 25_000, message: 'написанное без связи так и не дошло классу' })
+      .toBeGreaterThan(beforeP);
+    console.log(`[34 §2.1] после возврата: у ученика ${await strokeCount(pupil)} (было ${beforeP})`);
+
+    await teacherCtx.close();
+    await pupilCtx.close();
+  });
+
   test('обрыв у ПРЕПОДАВАТЕЛЯ: он ведёт урок, и это самое дорогое', async ({ browser }) => {
     const teacherCtx = await browser.newContext();
     const pupilCtx = await browser.newContext();
@@ -186,10 +188,10 @@ test.describe('§2.1 · урок на двоих по-настоящему', () 
     const t = await registerTestTeacher();
     const p = await registerTestPupil();
     const lesson = await aLiveLesson(t.token, p.token);
-    await signIn(teacher, t.email, 'T3stPass!2026');
-    await signIn(pupil, p.email, p.password);
-    await openBoard(teacher, lesson.sessionId);
-    await openBoard(pupil, lesson.sessionId);
+    await signIn(teacher, DEV, t.email, 'T3stPass!2026');
+    await signIn(pupil, DEV, p.email, p.password);
+    await openBoard(teacher, DEV, lesson.sessionId);
+    await openBoard(pupil, DEV, lesson.sessionId);
 
     await drawStroke(teacher, { x: 120, y: 120 });
     await teacher.waitForTimeout(800);
@@ -228,10 +230,10 @@ test.describe('§2.1 · урок на двоих по-настоящему', () 
     const t = await registerTestTeacher();
     const p = await registerTestPupil();
     const lesson = await aLiveLesson(t.token, p.token);
-    await signIn(teacher, t.email, 'T3stPass!2026');
-    await signIn(pupil, p.email, p.password);
-    await openBoard(teacher, lesson.sessionId);
-    await openBoard(pupil, lesson.sessionId);
+    await signIn(teacher, DEV, t.email, 'T3stPass!2026');
+    await signIn(pupil, DEV, p.email, p.password);
+    await openBoard(teacher, DEV, lesson.sessionId);
+    await openBoard(pupil, DEV, lesson.sessionId);
 
     await drawStroke(teacher, { x: 140, y: 140 });
     await pupil.waitForTimeout(1200);

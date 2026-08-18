@@ -35,6 +35,7 @@ import { SourcesScreen } from '@/features/sources';
 import { StartScreen } from '@/features/start';
 import { SubjectScreen } from '@/features/subject';
 import { isDesktop } from '@/features/desktop/bridge';
+import { ConnectionLine } from '@/shared/ui/ConnectionLine/ConnectionLine';
 import { DesktopShell } from '@/features/desktop/DesktopShell';
 import { withReturnTo } from '@/shared/lib/returnTo';
 import { useThisDeviceQuery } from '@/entities/graphql/generated';
@@ -190,6 +191,12 @@ export function AppRouter() {
           роутера обращение к навигации падает и уносит с собой всё приложение. В браузере
           DesktopShell отдаёт детей как есть. */}
       <DesktopShell>
+      {/*
+        🔴 ОДНА СТРОКА ПРО СВЯЗЬ НА ВЕСЬ ПРОДУКТ (решение владельца §32.3, наряд 34 §2.2).
+        Стоит здесь, а не на экранах: экранов десятки, и «не забыть добавить» на каждом —
+        это гарантия, что на половине забудут. Тихо; урок берёт разговор себе и говорит громко.
+      */}
+      <ConnectionLine />
       <Routes>
         <Route path="/" element={<RootRedirect />} />
         <Route

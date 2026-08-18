@@ -357,13 +357,23 @@ def _pupil_repetition(user) -> list[StartEntry]:
     ⚠️ Число берётся у самого механизма (`due_cards`), а не считается здесь заново: свой
     расчёт «что созрело» разошёлся бы с тем, что ученик увидит, открыв повторение.
     """
+    from apps.exercises.models import SrsCard
     from apps.exercises.repetition import due_cards
 
     try:
         cards = due_cards(user)
     except PermissionDenied:
         return []  # не ученик — повторения у него и нет
-    if not cards:
+
+    # 🔴 ДВЕРИ В ПОВТОРЕНИЕ У УЧЕНИКА НЕ БЫЛО (наряд 34 §5, находка ролевого аудита).
+    #
+    # Строка появлялась ТОЛЬКО когда что-то созрело. У ребёнка, который набрал слова на уроке
+    # и открыл продукт до срока, ссылки на `/repetition` не было нигде — ни на стартовой, ни
+    # в словаре. Экран построен, маршрут заведён, попасть на него нельзя.
+    #
+    # Условие теперь — есть ли у него слова ВООБЩЕ. Число созревших остаётся числом созревших:
+    # ноль значит «сегодня не горит», а не «повторения у тебя нет».
+    if not cards and not SrsCard.objects.filter(student=user.student_profile).exists():
         return []
     return [
         StartEntry(

@@ -2,7 +2,11 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
 
-import { useJoinSessionMutation, useMeetingPointQuery } from '@/entities/graphql/generated';
+import {
+  useHostPresenceChangedSubscription,
+  useJoinSessionMutation,
+  useMeetingPointQuery,
+} from '@/entities/graphql/generated';
 import { ErrorState } from '@/shared/ui';
 
 import { arrivalState, availableWithoutHost, minutesUntil } from '../arrival';
@@ -31,8 +35,29 @@ export function ArrivalScreen() {
   const { data, loading, error, refetch } = useMeetingPointQuery({
     variables: { slug },
     skip: !slug,
-    // Преподаватель откроет комнату — страница откроет её сама, без «обновите».
-    pollInterval: 15_000,
+    // Подстраховка под подпиской: вкладка спала, сокет отвалился молча. Живой случай
+    // несёт `hostPresenceChanged` — см. ниже.
+    pollInterval: 30_000,
+  });
+
+  /**
+   * 🔴 ПОДПИСКА ЖИЛА НА СЕРВЕРЕ И НЕ ОТКРЫВАЛАСЬ ПРОДУКТОМ (наряд 34 §1, §5).
+   *
+   * Ученик у двери узнавал о появлении преподавателя опросом — то есть в среднем через
+   * семь секунд, в худшем через пятнадцать. При этом `hostPresenceChanged` работал:
+   * замер 18.08 показал, что второй человек получает кадр в ту же секунду. Не было
+   * только одного — чтобы кто-нибудь спросил.
+   *
+   * Тот же механизм, что и с восемью мёртвыми подписками, и с `hostHeartbeat` до них.
+   */
+  useHostPresenceChangedSubscription({
+    variables: { slug },
+    skip: !slug,
+    onData: () => {
+      // Присутствие меняет не только флаг: вместе с машиной появляется и открытая комната.
+      // Поэтому спрашиваем точку встречи целиком, а не подменяем одно поле в кэше.
+      void refetch();
+    },
   });
   const [joinSession] = useJoinSessionMutation();
   const [entering, setEntering] = useState(false);
