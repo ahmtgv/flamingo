@@ -177,4 +177,76 @@ test.describe('§2.1 · урок на двоих по-настоящему', () 
     await teacherCtx.close();
     await pupilCtx.close();
   });
+
+  test('обрыв у ПРЕПОДАВАТЕЛЯ: он ведёт урок, и это самое дорогое', async ({ browser }) => {
+    const teacherCtx = await browser.newContext();
+    const pupilCtx = await browser.newContext();
+    const teacher = await teacherCtx.newPage();
+    const pupil = await pupilCtx.newPage();
+
+    const t = await registerTestTeacher();
+    const p = await registerTestPupil();
+    const lesson = await aLiveLesson(t.token, p.token);
+    await signIn(teacher, t.email, 'T3stPass!2026');
+    await signIn(pupil, p.email, p.password);
+    await openBoard(teacher, lesson.sessionId);
+    await openBoard(pupil, lesson.sessionId);
+
+    await drawStroke(teacher, { x: 120, y: 120 });
+    await teacher.waitForTimeout(800);
+
+    // ── ОБРЫВ У ТОГО, КТО ВЕДЁТ ─────────────────────────────────────────────────
+    await teacherCtx.setOffline(true);
+    console.log('[rnd 2.1-б] преподаватель офлайн, экран:', JSON.stringify(await seen(teacher, 130)));
+
+    // Рисует, не зная, что связи нет. Что он видит — и что из этого правда?
+    await drawStroke(teacher, { x: 200, y: 200 });
+    await teacher.waitForTimeout(1200);
+    console.log(`[rnd 2.1-б] нарисовал без связи, у себя видит: ${await strokeCount(teacher)}`);
+    console.log('[rnd 2.1-б] сказано ли ему про связь:', JSON.stringify(await seen(teacher, 220)));
+
+    await teacherCtx.setOffline(false);
+    await teacher.waitForTimeout(4000);
+    console.log(`[rnd 2.1-б] связь вернулась, у преподавателя: ${await strokeCount(teacher)}`);
+
+    // Доехало ли нарисованное в офлайне до сервера — спрашиваем ученика начисто.
+    await pupil.reload();
+    await pupil.waitForTimeout(2500);
+    await pupil.getByRole('tab', { name: 'Доска' }).click();
+    await pupil.waitForTimeout(2500);
+    console.log(`[rnd 2.1-б] у ученика после всего: ${await strokeCount(pupil)}`);
+
+    await teacherCtx.close();
+    await pupilCtx.close();
+  });
+
+  test('ученик открыл ВТОРУЮ вкладку — две картины одного человека', async ({ browser }) => {
+    const teacherCtx = await browser.newContext();
+    const pupilCtx = await browser.newContext();
+    const teacher = await teacherCtx.newPage();
+    const pupil = await pupilCtx.newPage();
+
+    const t = await registerTestTeacher();
+    const p = await registerTestPupil();
+    const lesson = await aLiveLesson(t.token, p.token);
+    await signIn(teacher, t.email, 'T3stPass!2026');
+    await signIn(pupil, p.email, p.password);
+    await openBoard(teacher, lesson.sessionId);
+    await openBoard(pupil, lesson.sessionId);
+
+    await drawStroke(teacher, { x: 140, y: 140 });
+    await pupil.waitForTimeout(1200);
+
+    // Вторая вкладка ТОГО ЖЕ ученика: одна сессия, два окна.
+    const second = await pupilCtx.newPage();
+    await second.goto(`${DEV}/sessions/${lesson.sessionId}/room`);
+    await second.getByRole('tab', { name: 'Доска' }).click();
+    await second.waitForTimeout(3000);
+    console.log(
+      `[rnd 2.1-в] первая вкладка: ${await strokeCount(pupil)}, вторая: ${await strokeCount(second)}`,
+    );
+
+    await teacherCtx.close();
+    await pupilCtx.close();
+  });
 });
