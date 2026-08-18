@@ -1,11 +1,13 @@
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 
 import {
   MirrorKind,
   useMirroredFileUrlLazyQuery,
   useMyMirrorQuery,
 } from '@/entities/graphql/generated';
+import { HOME_ROUTE } from '@/shared/lib/homeRoute';
 import { ErrorState } from '@/shared/ui';
 
 import styles from './mylearning.module.css';
@@ -56,6 +58,7 @@ function list(payload: Payload, key: string): Payload[] {
 
 export function MyLearningScreen() {
   const { t } = useTranslation(['mylearning', 'common']);
+  const navigate = useNavigate();
   const [kind, setKind] = useState<MirrorKind>('DIARY');
   const { data, loading, error, refetch } = useMyMirrorQuery({
     variables: { kind, limit: 200 },
@@ -75,6 +78,17 @@ export function MyLearningScreen() {
 
   return (
     <div className={styles.page}>
+      {/*
+        🔴 ЭКРАН БЫЛ ТУПИКОМ (находка ревьюера Р-2, 18.08): ни логотипа, ни чата, ни дороги
+        назад — выйти можно было только кнопкой браузера. Экран, из которого нельзя уйти
+        средствами продукта, заставляет пользоваться браузером вместо продукта.
+      */}
+      <nav className={styles.top}>
+        <button type="button" className={styles.back} onClick={() => navigate(HOME_ROUTE)}>
+          ← {t('common:actions.toCabinet')}
+        </button>
+      </nav>
+
       <header className={styles.head}>
         <h1 className={styles.title}>{t('mylearning:title')}</h1>
         <p className={styles.sub}>{t('mylearning:sub')}</p>

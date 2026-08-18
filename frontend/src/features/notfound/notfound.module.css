@@ -1,0 +1,43 @@
+/* «Такой страницы нет». Только семантические токены. */
+.page {
+  max-inline-size: 44rem;
+  margin: 0 auto;
+  padding: var(--space-10) var(--space-6);
+  display: grid;
+  gap: var(--space-3);
+}
+
+.kicker {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--text-overline);
+  color: var(--color-text-secondary);
+}
+
+.title {
+  margin: 0;
+  font-size: var(--text-h1);
+}
+
+.what,
+.why {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: var(--text-body);
+}
+
+/* Адрес — машинным голосом: это данные, а не речь. */
+.path {
+  font-family: var(--font-mono);
+  font-size: var(--text-small);
+  background: var(--color-surface-subtle);
+  border-radius: var(--radius-xs);
+  padding: 0 var(--space-2);
+  overflow-wrap: anywhere;
+}
+
+.acts {
+  display: flex;
+  gap: var(--space-3);
+  margin-block-start: var(--space-3);
+}

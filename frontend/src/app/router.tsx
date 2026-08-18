@@ -38,6 +38,7 @@ import { isDesktop } from '@/features/desktop/bridge';
 import { DemoRoomScreen } from '@/features/demo/ui/DemoRoomScreen';
 import { JournalScreen } from '@/features/journal/ui/JournalScreen';
 import { LandingScreen } from '@/features/landing/ui/LandingScreen';
+import { NotFoundScreen } from '@/features/notfound/NotFoundScreen';
 import { MyLearningScreen } from '@/features/mylearning/ui/MyLearningScreen';
 import { ConnectionLine } from '@/shared/ui/ConnectionLine/ConnectionLine';
 import { DesktopShell } from '@/features/desktop/DesktopShell';
@@ -477,7 +478,12 @@ export function AppRouter() {
             </ProtectedRoute>
           }
         />
-        <Route path="*" element={<Navigate to="/" replace />} />
+        {/*
+          🔴 НЕИЗВЕСТНЫЙ АДРЕС МОЛЧА УВОДИЛ НА КОРЕНЬ (находка ревьюера Р-5, 18.08).
+          `/mylearning` вместо `/my-learning` — и человек на стартовой, не зная, что промахнулся.
+          Он решит, что «ссылка не работает», хотя не работала опечатка.
+        */}
+        <Route path="*" element={<NotFoundScreen />} />
       </Routes>
       </DesktopShell>
     </BrowserRouter>

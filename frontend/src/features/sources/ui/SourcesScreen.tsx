@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 
 import { useMySavedItemsQuery, useSaveItemMutation } from '@/entities/graphql/generated';
 import { isDesktop } from '@/features/desktop/bridge';
+import { HOME_ROUTE } from '@/shared/lib/homeRoute';
 import { Logo } from '@/shared/ui';
 
 import {
@@ -71,11 +72,24 @@ export function SourcesScreen() {
             type="button"
             className={styles.logoBtn}
             onClick={() => navigate('/start')}
-            aria-label="Flamingo"
+            aria-label={t('common:actions.toCabinet')}
           >
             <Logo />
           </button>
           <span className={styles.hubMark}>HUB</span>
+          {/*
+            🔴 ИЗ ХАБА НЕ БЫЛО ДОРОГИ НАЗАД (находка ревьюера Р-4, 18.08). Формально логотип
+            уводил в кабинет, но об этом нельзя было догадаться: он подписан «Flamingo», а не
+            тем, что делает. Человек уходил кнопкой браузера — то есть продукт заставлял
+            пользоваться браузером вместо себя.
+          */}
+          <button
+            type="button"
+            className={styles.backBtn}
+            onClick={() => navigate(HOME_ROUTE)}
+          >
+            {t('common:actions.toCabinet')}
+          </button>
         </header>
       )}
 

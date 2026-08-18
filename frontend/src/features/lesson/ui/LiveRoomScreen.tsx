@@ -399,6 +399,13 @@ type RoomProps = {
  * (the call — the teacher sees it) AND analysed on-device by the CMF pipeline, which
  * emits ONLY ~10s aggregates (reportAttention). CMF frames never leave the device.
  */
+/**
+ * Сколько молчать, прежде чем сказать ученику «преподавателя нет в комнате».
+ * Полминуты: эфир поднимается даже на плохом канале за десять секунд (замер §3.4), а пугать
+ * человека в первую секунду после входа нельзя.
+ */
+const TEACHER_GONE_AFTER_MS = 30_000;
+
 function StudentRoom({
   sessionId,
   lessonId,
@@ -469,6 +476,29 @@ function StudentRoom({
     [lk.participants, teacherId],
   );
   const classmatesHidden = lk.participants.length - teacherOnly.length;
+
+  /**
+   * 🔴 В КОМНАТЕ НЕ БЫЛО НИ СЛОВА О ТОМ, ЧТО ПРЕПОДАВАТЕЛЯ НЕТ (находка ревьюера Р-1, 18.08).
+   *
+   * Занятие числилось идущим четвёртый час после ухода преподавателя, и ученик сидел в
+   * комнате, где всё выглядело исправным: доска на месте, камера горит, «идёт». Присутствие
+   * в продукте построено — молчал именно экран.
+   *
+   * ⚠️ СРОК ЗДЕСЬ ОБЯЗАТЕЛЕН, и вот почему. В первую секунду после входа преподавателя в
+   * комнате ещё нет — сказать «преподаватель вышел» сразу значит пугать человека на ровном
+   * месте каждый раз. Ждём полминуты: за это время эфир поднимается даже на плохом канале
+   * (замер §3.4: 9.7 с на 3G плохом).
+   */
+  const teacherHere = teacherOnly.length > 0;
+  const [teacherGone, setTeacherGone] = useState(false);
+  useEffect(() => {
+    if (!joined || teacherHere) {
+      setTeacherGone(false);
+      return undefined;
+    }
+    const id = window.setTimeout(() => setTeacherGone(true), TEACHER_GONE_AFTER_MS);
+    return () => window.clearTimeout(id);
+  }, [joined, teacherHere]);
 
   // With the strip filtered to one person, the teacher's tile can finally be named for
   // certain — the old «only when there is exactly one remote» guess is retired.
@@ -623,6 +653,12 @@ function StudentRoom({
         {ended && (
           <p className={styles.note} role="status">
             {t('lesson:sessionEnded')}
+          </p>
+        )}
+        {/* Преподавателя нет в комнате — сказано словами, и сказано, что делать (Р-1). */}
+        {!ended && teacherGone && (
+          <p className={styles.note} role="status">
+            {t('lesson:teacherAway')}
           </p>
         )}
         {!joined ? (

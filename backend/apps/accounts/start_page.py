@@ -662,6 +662,18 @@ def week_strip(user, week_start: dt.date | None = None) -> list[StartDay]:
 
 def start_page(user) -> StartPage:
     """Assemble the start page for the caller's ACTIVE learning profile."""
+    # 🔴 СТАРТОВАЯ ЗВАЛА «ВОЙТИ В УРОК» В БРОШЕННУЮ КОМНАТУ (находка ревьюера Р-1, 18.08).
+    #
+    # Автозакрытие брошенных занятий звалось лениво — со страницы ожидания у точки встречи.
+    # Но ученик видит приглашение ЗДЕСЬ, на стартовой, и сюда проверка не доходила: занятие
+    # «Большой взрыв» числилось идущим четвёртый час, и продукт звал в него войти.
+    #
+    # ⚠️ Планировщика по-прежнему нет (Celery отложен, CLAUDE.md §5), поэтому проверка
+    # остаётся ленивой — но теперь она стоит у обеих дверей, а не у одной.
+    from apps.meetingpoint.services import close_abandoned_sessions
+
+    close_abandoned_sessions()
+
     empty = StartPage(None, None, [], [], [], [], [], [])
     if user is None or not getattr(user, "is_authenticated", False):
         return empty

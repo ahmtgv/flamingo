@@ -141,3 +141,27 @@
   font-size: var(--text-small);
   overflow-wrap: anywhere;
 }
+
+/* Дорога назад — первое, что должно быть на любом внутреннем экране. */
+.top {
+  display: flex;
+}
+
+.back {
+  border: 0;
+  background: none;
+  padding: var(--space-1) 0;
+  color: var(--color-text-secondary);
+  font-size: var(--text-small);
+  cursor: pointer;
+}
+
+.back:hover {
+  color: var(--color-text);
+}
+
+.back:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+  border-radius: var(--radius-xs);
+}
