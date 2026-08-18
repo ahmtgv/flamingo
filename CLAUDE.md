@@ -17,7 +17,7 @@ The differentiator is **SEduM** — on-device attention analysis (CMF) that pers
 7. **Design tokens, not literals.** No hardcoded colors/sizes/fonts in UI — consume semantic tokens from `tokens.css` (see design system).
 
 ## 3. Stack
-**Backend** — Python 3.12, Django 5, **Strawberry GraphQL** (`strawberry-django`), PostgreSQL 16, Redis (Django Channels channel layer) for GraphQL subscriptions over WebSocket (`graphql-ws`). ASGI (uvicorn). LiveKit (self-hosted) for video; the API only issues room tokens. **Celery is DEFERRED** — no async tasks/worker are built yet (Redis is used only as the Channels layer, not a Celery broker).
+**Backend** — Python 3.12, Django 5, **Strawberry GraphQL** (`strawberry-django`), PostgreSQL 16, Redis (Django Channels channel layer) for GraphQL subscriptions over WebSocket (`graphql-ws`). ASGI (uvicorn). **Video: LiveKit — and read this before touching it.** The API only issues room tokens; media never passes through it. 🔴 This line used to say «self-hosted», and that is NOT what runs: `frontend/.env` points at `wss://flamingo-atvyww1r.livekit.cloud` — LiveKit **Cloud**, and a two-person measurement on 18.08 confirmed the media of both participants goes through Frankfurt («region: Germany 2»). Meanwhile `infra/prod/docker-compose.prod.yml` says the opposite («livekit — медиа идёт с машины преподавателя, серверу здесь делать нечего») and provisions coturn instead: that is a SECOND path, built server-side (`apps/signalling`, `common/turn.py`) with **no client code at all**, so coturn currently relays nothing. Which path ships is an **owner decision** (open as of 2026-08-18) — do not switch it on your own. ⚠️ `LIVEKIT_API_KEY`/`LIVEKIT_API_SECRET` are absent from `infra/prod/.env.production.example`: until they are set, production signs tokens with the dev fallback and the cloud rejects them. **Celery is DEFERRED** — no async tasks/worker are built yet (Redis is used only as the Channels layer, not a Celery broker).
 **Frontend** — **TypeScript**, React 18, Vite, **Apollo Client** (server cache/state), **Redux Toolkit** (local/UI state only), GraphQL Code Generator (typed operations), CSS Modules + `tokens.css` (no utility-CSS framework — the brand is custom). On-device ML: MediaPipe Tasks Vision (`FaceLandmarker`) in a Web Worker.
 **Infra** — Docker + docker-compose (dev); Kubernetes later; Yandex Cloud; S3-compatible object storage (Yandex Object Storage; MinIO locally).
 
@@ -69,7 +69,7 @@ Models map 1:1 to `docs/flamingo_erd.md`. The API mirrors `docs/flamingo_schema.
 - **Authorization is server-side and per-resolver/field.** Never trust a client-provided role or id for access decisions. A student can only read their own metrics/submissions; a parent only their linked children (via `GUARDIANSHIP`); a teacher only their courses/groups; an admin only their institution.
 - Celery tasks (**DEFERRED — not built**): recording post-processing, weekly parent digests, recommendation batch, certificate PDF generation. Email/reset currently run inline (stubs). Redis is the Channels layer only (no Celery broker until async lands).
 - Subscriptions run over Channels; `attentionUpdates` payloads are aggregates only. **Live —
-  verified behaviourally, 18.08 (8/8):** `attentionUpdates`, `chatMessageReceived`,
+  verified behaviourally, 18.08 (9/9):** `sessionStatusChanged`, `attentionUpdates`, `chatMessageReceived`,
   `channelMessageReceived`, `boardChanged`, `projectorFocusChanged`, `wordShown`,
   `hostPresenceChanged`, `signals`.
   🔴 **"Live" here means one thing only: a SECOND person received a frame.** This line
@@ -80,10 +80,11 @@ Models map 1:1 to `docs/flamingo_erd.md`. The API mirrors `docs/flamingo_schema.
   or from `schema.as_str()`. The only admissible evidence is a frame arriving at someone else:
   `e2e/live.spec.ts` (standard run, not flagged) holds it for `boardChanged`; the other seven
   were measured on a real socket, second-party, one at a time.
-  ⚠️ `sessionStatusChanged` and `notificationReceived` are **SDL only, no resolver**. The first
-  is not missed in practice: `hostPresenceChanged` answers «машина преподавателя в сети», and
-  the arrival screen polls the meeting point. The second waits for the notifications app,
-  which is not built.
+  ⚠️ `notificationReceived` is **SDL only, no resolver** — it waits for the notifications app,
+  which is not built. `sessionStatusChanged` was in that state for three months (a contract line
+  with no code: the teacher ended the lesson and the class went on sitting in a room that was
+  over) and was **built on 18.08** — resolver, publisher on start/end, and the pupil's room
+  subscribes to it.
 
 ## 6. Frontend conventions
 - Server state via Apollo (cache-first); **local/UI state** (toggles, wizard steps, theme/age mode) via Redux Toolkit. Don't duplicate server data into Redux.
