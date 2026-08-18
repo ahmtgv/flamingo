@@ -17,7 +17,7 @@ vi.mock('livekit-client', () => ({
 // reconnecting banner in role queries — the lifecycle UI is independent of the camera flag.
 function renderRoom(
   connectionState: RoomConnectionState,
-  { cameraEnabled = false, liveBadgeLabel = 'Камера в эфире' } = {},
+  { cameraEnabled = false, liveBadgeLabel = 'Камера в эфире', error = null as string | null } = {},
 ) {
   const onRejoin = vi.fn();
   const utils = renderWithProviders(
@@ -26,6 +26,7 @@ function renderRoom(
       liveBadgeLabel={liveBadgeLabel}
       connecting={false}
       connectionState={connectionState}
+      error={error}
       roomFull={false}
       micEnabled
       cameraEnabled={cameraEnabled}
@@ -43,6 +44,34 @@ function renderRoom(
   );
   return { ...utils, onRejoin };
 }
+
+/**
+ * 🔴 ПОДПИСЬ ГОВОРИТ ПРО ЭФИР, А НЕ ПРО КАМЕРУ (наряд 35 §1.4).
+ *
+ * Замер 18.08: медиасервер не отвечает — а на экране «Ваша камера в эфире», ровно как при
+ * исправном эфире. Преподаватель ведёт урок, уверенный, что класс его видит. Камера включена
+ * и эфир поднят — разные факты.
+ */
+describe('подпись «в эфире» не врёт', () => {
+  it('пока эфир не поднялся, обещания «в эфире» нет', () => {
+    renderRoom('connecting', { cameraEnabled: true, liveBadgeLabel: 'Ваша камера в эфире' });
+    expect(screen.queryByText('Ваша камера в эфире')).toBeNull();
+    expect(screen.getByText('Подключаем эфир…')).toBeTruthy();
+  });
+
+  it('поднялся — говорим про эфир', () => {
+    renderRoom('connected', { cameraEnabled: true, liveBadgeLabel: 'Ваша камера в эфире' });
+    expect(screen.getByText('Ваша камера в эфире')).toBeTruthy();
+  });
+
+  it('не поднялся совсем — называем причину, а не «что-то пошло не так»', () => {
+    renderRoom('failed', {
+      cameraEnabled: true,
+      error: 'ConnectionError: could not establish signal connection',
+    });
+    expect(screen.getByText(/Сервер видео не отвечает/)).toBeTruthy();
+  });
+});
 
 describe('VideoRoom connection lifecycle UI', () => {
   it('connected: live region empty, no overlay; the local <video> and tiles are mounted', () => {

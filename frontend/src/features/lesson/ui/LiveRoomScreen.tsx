@@ -512,6 +512,7 @@ function StudentRoom({
               liveBadgeLabel={t('lesson:liveBadge')}
               connecting={lk.connecting}
               connectionState={lk.connectionState}
+              error={lk.error}
               roomFull={lk.roomFull}
               micEnabled={lk.micEnabled}
               cameraEnabled={lk.cameraEnabled}
@@ -784,6 +785,7 @@ function TeacherRoom({
             liveBadgeLabel={t('lesson:liveBadgeTeacher')}
             connecting={lk.connecting}
             connectionState={lk.connectionState}
+            error={lk.error}
             roomFull={lk.roomFull}
             micEnabled={lk.micEnabled}
             cameraEnabled={lk.cameraEnabled}

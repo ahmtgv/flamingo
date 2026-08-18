@@ -45,6 +45,27 @@ export type RoomConnectionState =
  * anything fault-like (server/signal/media/timeout, or unknown) reads as 'failed'. Both
  * states offer Rejoin — the split only changes the copy shown.
  */
+/** Сколько ждём поднятия эфира, прежде чем сказать человеку, что не вышло. */
+export const CONNECT_DEADLINE_MS = 20_000;
+
+/**
+ * Почему эфир не поднялся — словами, а не кодом ошибки (наряд 35 §1.4).
+ *
+ * ⚠️ Разбор по тексту исключения — не красиво, но честно: livekit-client не отдаёт код, а
+ * человеку разница видна невооружённым глазом. «Сервер не отвечает» лечится одним действием,
+ * «комната закрыта» — другим, а общее «не удалось» не лечится ничем.
+ */
+export type FailureReason = 'unreachable' | 'rejected' | 'unknown';
+
+export function classifyFailure(error: string | null): FailureReason {
+  if (!error) return 'unknown';
+  if (/signal connection|timed out|websocket|network|ConnectionError/i.test(error)) {
+    return 'unreachable';
+  }
+  if (/permission|unauthorized|token|denied/i.test(error)) return 'rejected';
+  return 'unknown';
+}
+
 export function classifyDisconnect(reason?: DisconnectReason): 'disconnected' | 'failed' {
   switch (reason) {
     case DisconnectReason.CLIENT_INITIATED:
@@ -193,6 +214,28 @@ export function useLiveKitRoom({ url, token, stream, active }: UseLiveKitRoomArg
     setConnecting(true);
     setConnectionState('connecting');
     setError(null);
+
+    /**
+     * 🔴 БЕЗ ЭТОГО СРОКА ЧЕЛОВЕКУ НЕ ГОВОРЯТ НИЧЕГО (наряд 35 §1.4, замер 18.08).
+     *
+     * Порвал сокет до медиасервера и посмотрел, что видит преподаватель. Экран оказался
+     * НЕОТЛИЧИМ от исправного: «Ваша камера в эфире», никакого сообщения, хотя в консоли
+     * `could not establish signal connection`. Он ведёт урок, уверенный, что его видят.
+     *
+     * Причина: `room.connect()` перебирает попытки сам и отклоняется поздно, а к тому моменту
+     * эффект успевает пересобраться (`cancelled`), и отказ проглатывается. Состояние навсегда
+     * остаётся `connecting` — то есть «ещё чуть-чуть», без конца.
+     *
+     * Срок кладёт этому предел со стороны ПРОДУКТА, а не библиотеки: не поднялись за
+     * `CONNECT_DEADLINE_MS` — говорим словами. Двадцать секунд — это дольше, чем собственные
+     * попытки livekit, и короче, чем терпение человека перед классом.
+     */
+    const deadline = setTimeout(() => {
+      if (cancelled) return;
+      setConnectionState((state) => (state === 'connecting' ? 'failed' : state));
+      setConnecting((was) => (was ? false : was));
+      setError((prev) => prev ?? 'signal connection timed out');
+    }, CONNECT_DEADLINE_MS);
     const connecting = (async () => {
       try {
         await room.connect(url, token);
@@ -213,11 +256,13 @@ export function useLiveKitRoom({ url, token, stream, active }: UseLiveKitRoomArg
         if (cancelled) return;
         setMicEnabled(audio?.enabled ?? false);
         setCameraEnabled(video?.enabled ?? false);
+        clearTimeout(deadline);
         setConnected(true);
         setConnecting(false);
         setConnectionState('connected');
         sync();
       } catch (e) {
+        clearTimeout(deadline);
         if (!cancelled) {
           setError(String(e));
           setConnecting(false);
@@ -228,6 +273,7 @@ export function useLiveKitRoom({ url, token, stream, active }: UseLiveKitRoomArg
 
     return () => {
       cancelled = true;
+      clearTimeout(deadline);
       // Disconnect only AFTER the in-flight connect settles — otherwise a React
       // StrictMode unmount (dev) aborts mid-connect → connect→leave→reconnect churn.
       // Prod (no double-invoke) connects once, so this just makes dev clean.

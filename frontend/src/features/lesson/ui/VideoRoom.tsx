@@ -9,7 +9,11 @@ import { CMF } from '@/seedum/cmf/cmfConfig';
 import { Meter } from '@/seedum/ui/Meter';
 import { Button } from '@/shared/ui';
 
-import { type RoomConnectionState, type ScreenShare } from '../livekit/useLiveKitRoom';
+import {
+  classifyFailure,
+  type RoomConnectionState,
+  type ScreenShare,
+} from '../livekit/useLiveKitRoom';
 import { RoomControls } from './RoomControls';
 import { TrackVideo, VideoTile } from './VideoTile';
 import styles from './videoroom.module.css';
@@ -35,6 +39,7 @@ export function VideoRoom({
   liveBadgeLabel,
   connecting,
   connectionState,
+  error,
   roomFull,
   micEnabled,
   cameraEnabled,
@@ -61,6 +66,8 @@ export function VideoRoom({
   liveBadgeLabel: string;
   connecting: boolean;
   connectionState: RoomConnectionState;
+  /** Текст исключения от livekit — нужен, чтобы назвать ПРИЧИНУ, а не «что-то пошло не так». */
+  error?: string | null;
   roomFull: boolean;
   micEnabled: boolean;
   cameraEnabled: boolean;
@@ -275,9 +282,16 @@ export function VideoRoom({
         {liveAnnouncement}
       </p>
 
+      {/*
+        🔴 ЗНАЧОК ГОВОРИЛ «В ЭФИРЕ» ПРО КАМЕРУ, А НЕ ПРО ЭФИР (наряд 35 §1.4).
+        Замер 18.08: медиасервер не отвечает — экран НЕОТЛИЧИМ от исправного, «Ваша камера в
+        эфире», и преподаватель ведёт урок, уверенный, что его видят. Камера включена и эфир
+        поднят — разные факты, и подпись обязана говорить про второй.
+      */}
       {cameraEnabled && (
-        <p className={styles.liveBadge} role="status">
-          <Radio size={13} aria-hidden="true" /> {liveBadgeLabel}
+        <p className={styles.liveBadge} role="status" data-state={connectionState}>
+          <Radio size={13} aria-hidden="true" />{' '}
+          {connectionState === 'connected' ? liveBadgeLabel : t('connectingAir')}
         </p>
       )}
 
@@ -327,7 +341,11 @@ export function VideoRoom({
           <div className={styles.disconnectedCard} role="alert">
             <WifiOff size={ICON_LG} aria-hidden="true" />
             <p className={styles.disconnectedText}>
-              {connectionState === 'failed' ? t('connectionFailed') : t('connectionLost')}
+              {/* Причина, а не «что-то пошло не так»: «не отвечает сервер» лечится одним
+                  действием, «не пускает» — другим, общая фраза не лечится ничем. */}
+              {connectionState === 'failed'
+                ? t(`failure.${classifyFailure(error ?? null)}`)
+                : t('connectionLost')}
             </p>
             <Button
               ref={rejoinRef}
