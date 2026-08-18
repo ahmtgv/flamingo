@@ -36,6 +36,7 @@ import { StartScreen } from '@/features/start';
 import { SubjectScreen } from '@/features/subject';
 import { isDesktop } from '@/features/desktop/bridge';
 import { LandingScreen } from '@/features/landing/ui/LandingScreen';
+import { MyLearningScreen } from '@/features/mylearning/ui/MyLearningScreen';
 import { ConnectionLine } from '@/shared/ui/ConnectionLine/ConnectionLine';
 import { DesktopShell } from '@/features/desktop/DesktopShell';
 import { withReturnTo } from '@/shared/lib/returnTo';
@@ -259,6 +260,20 @@ export function AppRouter() {
           element={
             <ProtectedRoute>
               <StartScreen />
+            </ProtectedRoute>
+          }
+        />
+        {/*
+          🔴 ЭКРАН ПОД УЖЕ ДАННЫМ ОБЕЩАНИЕМ (наряд 36 §2). `OWNER_SCOPE §20.5`: учёба
+          принадлежит ученику навсегда, открывается с любого устройства и переживает уход
+          преподавателя. Зеркало наполнялось с промпта 29, `myMirror` числился среди сирот —
+          ни один экран его не читал, и обещание жило только в тестах.
+        */}
+        <Route
+          path="/my-learning"
+          element={
+            <ProtectedRoute>
+              <MyLearningScreen />
             </ProtectedRoute>
           }
         />

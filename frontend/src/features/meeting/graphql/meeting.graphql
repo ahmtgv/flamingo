@@ -144,3 +144,10 @@ subscription HostPresenceChanged($slug: String!) {
     online
   }
 }
+
+# Файл, приложенный учеником к своей работе, открывается ВСЕГДА (§20.4.1) — право проверяется
+# по зеркалу, а не по работе: работа может уйти вместе с учёткой преподавателя, и именно тогда
+# это и должно сработать.
+query MirroredFileUrl($recordId: ID!, $objectKey: String!) {
+  mirroredFileUrl(recordId: $recordId, objectKey: $objectKey)
+}

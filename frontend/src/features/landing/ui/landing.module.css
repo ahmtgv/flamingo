@@ -245,3 +245,11 @@
     grid-row: auto;
   }
 }
+
+/* Две кнопки под тезисами: «Смотреть урок» — то, ради чего человек пришёл. */
+.actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin: var(--space-2) 0 0;
+}

@@ -970,6 +970,7 @@ export type MirrorKind =
   | 'CHAT'
   | 'DIARY'
   | 'MATERIAL'
+  | 'SAVED'
   | 'SUMMARY'
   | 'WORK';
 
@@ -3874,6 +3875,14 @@ export type HostPresenceChangedSubscriptionVariables = Exact<{
 
 
 export type HostPresenceChangedSubscription = { __typename?: 'Subscription', hostPresenceChanged: { __typename?: 'HostPresence', slug: string, online: boolean } };
+
+export type MirroredFileUrlQueryVariables = Exact<{
+  recordId: Scalars['ID']['input'];
+  objectKey: Scalars['String']['input'];
+}>;
+
+
+export type MirroredFileUrlQuery = { __typename?: 'Query', mirroredFileUrl: string };
 
 export type MyRepetitionQueueQueryVariables = Exact<{
   limit?: InputMaybe<Scalars['Int']['input']>;
@@ -9603,6 +9612,48 @@ export function useHostPresenceChangedSubscription(baseOptions: Apollo.Subscript
       }
 export type HostPresenceChangedSubscriptionHookResult = ReturnType<typeof useHostPresenceChangedSubscription>;
 export type HostPresenceChangedSubscriptionResult = Apollo.SubscriptionResult<HostPresenceChangedSubscription>;
+export const MirroredFileUrlDocument = gql`
+    query MirroredFileUrl($recordId: ID!, $objectKey: String!) {
+  mirroredFileUrl(recordId: $recordId, objectKey: $objectKey)
+}
+    `;
+
+/**
+ * __useMirroredFileUrlQuery__
+ *
+ * To run a query within a React component, call `useMirroredFileUrlQuery` and pass it any options that fit your needs.
+ * When your component renders, `useMirroredFileUrlQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useMirroredFileUrlQuery({
+ *   variables: {
+ *      recordId: // value for 'recordId'
+ *      objectKey: // value for 'objectKey'
+ *   },
+ * });
+ */
+export function useMirroredFileUrlQuery(baseOptions: Apollo.QueryHookOptions<MirroredFileUrlQuery, MirroredFileUrlQueryVariables> & ({ variables: MirroredFileUrlQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<MirroredFileUrlQuery, MirroredFileUrlQueryVariables>(MirroredFileUrlDocument, options);
+      }
+export function useMirroredFileUrlLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<MirroredFileUrlQuery, MirroredFileUrlQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<MirroredFileUrlQuery, MirroredFileUrlQueryVariables>(MirroredFileUrlDocument, options);
+        }
+// @ts-ignore
+export function useMirroredFileUrlSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<MirroredFileUrlQuery, MirroredFileUrlQueryVariables>): Apollo.UseSuspenseQueryResult<MirroredFileUrlQuery, MirroredFileUrlQueryVariables>;
+export function useMirroredFileUrlSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<MirroredFileUrlQuery, MirroredFileUrlQueryVariables>): Apollo.UseSuspenseQueryResult<MirroredFileUrlQuery | undefined, MirroredFileUrlQueryVariables>;
+export function useMirroredFileUrlSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<MirroredFileUrlQuery, MirroredFileUrlQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<MirroredFileUrlQuery, MirroredFileUrlQueryVariables>(MirroredFileUrlDocument, options);
+        }
+export type MirroredFileUrlQueryHookResult = ReturnType<typeof useMirroredFileUrlQuery>;
+export type MirroredFileUrlLazyQueryHookResult = ReturnType<typeof useMirroredFileUrlLazyQuery>;
+export type MirroredFileUrlSuspenseQueryHookResult = ReturnType<typeof useMirroredFileUrlSuspenseQuery>;
+export type MirroredFileUrlQueryResult = Apollo.QueryResult<MirroredFileUrlQuery, MirroredFileUrlQueryVariables>;
 export const MyRepetitionQueueDocument = gql`
     query MyRepetitionQueue($limit: Int) {
   myRepetitionQueue(limit: $limit) {

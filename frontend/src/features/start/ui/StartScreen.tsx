@@ -62,6 +62,8 @@ export function StartScreen() {
   const [setActiveProfile, { loading: switching }] = useSetActiveLearningProfileMutation();
 
   const me = meData?.me;
+  // Своё зеркало есть только у ученика — см. дверь «Моя учёба» ниже.
+  const isPupil = me?.role === 'STUDENT';
   const profiles = profileData?.learningProfiles ?? [];
   const page = data?.startPage;
 
@@ -120,6 +122,23 @@ export function StartScreen() {
           >
             {t('nav.sources')}
           </button>
+          {/*
+            🔴 ДВЕРЬ В СВОЮ УЧЁБУ (наряд 36 §2). Зеркало наполнялось с промпта 29, и попасть
+            на него было неоткуда: `myMirror` числился среди сирот. Обещание §20.5 — «учёба
+            принадлежит ученику навсегда» — существовало только в тестах.
+
+            Дверь только у ученика: у преподавателя своего зеркала нет, и пустой экран с
+            обещанием «всё ваше останется у вас» в его меню читался бы как насмешка.
+          */}
+          {isPupil && (
+            <button
+              type="button"
+              className={styles.navBtn}
+              onClick={() => navigate('/my-learning')}
+            >
+              {t('nav.myLearning')}
+            </button>
+          )}
           <button
             type="button"
             className={styles.navBtn}

@@ -19,6 +19,7 @@ import summaryRu from './locales/ru/summary.json';
 import desktopRu from './locales/ru/desktop.json';
 import dictionaryRu from './locales/ru/dictionary.json';
 import meetingRu from './locales/ru/meeting.json';
+import mylearningRu from './locales/ru/mylearning.json';
 import repetitionRu from './locales/ru/repetition.json';
 import roomRu from './locales/ru/room.json';
 import sourcesRu from './locales/ru/sources.json';
@@ -54,6 +55,7 @@ export const resources = {
     start: startRu,
     subject: subjectRu,
     landing: landingRu,
+    mylearning: mylearningRu,
     lesson: lessonRu,
     upload: uploadRu,
   },

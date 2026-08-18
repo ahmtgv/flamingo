@@ -67,11 +67,11 @@ export function LandingScreen() {
 
       <main className={styles.mosaic}>
         {/*
-          🔴 ТЕЗИСЫ — РЫБА, ЖДЁМ ТЕКСТ РЕВЬЮЕРА (наряд 35 §3.3).
-          Нынешние написаны для родителя и для школы: «видно, кто потерял нить» — выгода
-          преподавателя, «учёба остаётся ученику» — довод родителя. А первый экран говорит со
-          старшеклассником, студентом и взрослым, выбирающим себе (§34.10). Сочинять замену я
-          не должен: текст даст ревьюер. Пока стоят слова владельца с листа, и это видно.
+          Тезисы — текст ревьюера (наряд 36 §1), аудитория по §34.10: старшеклассник, студент,
+          взрослый, выбирающий СЕБЕ. Поэтому разговор о нём, а не о классе и не о родителе.
+
+          ⚠️ Слова «класс» здесь НЕТ намеренно: взрослого оно возвращает за парту, а он пришёл
+          не за этим. Не возвращать — это указание, а не стилистика.
         */}
         <section className={styles.claim} aria-labelledby="claim-title">
           <p className={styles.kicker}>{t('claim.kicker')}</p>
@@ -79,7 +79,7 @@ export function LandingScreen() {
             {t('claim.title')}
           </h1>
           <ol className={styles.theses}>
-            {['live', 'attention', 'world'].map((key, i) => (
+            {['live', 'attention', 'sources', 'yours'].map((key, i) => (
               <li key={key}>
                 <span className={styles.thesisNo} aria-hidden="true">
                   {i + 1}
@@ -90,6 +90,14 @@ export function LandingScreen() {
               </li>
             ))}
           </ol>
+          <p className={styles.actions}>
+            <Link to="/demo" className={styles.primaryBtn}>
+              {t('actions.watch')}
+            </Link>
+            <Link to="/courses" className={styles.linkBtn}>
+              {t('actions.subjects')}
+            </Link>
+          </p>
         </section>
 
         <section className={styles.sources} aria-labelledby="sources-title">
