@@ -471,3 +471,29 @@
   color: var(--color-text-tertiary);
   line-height: var(--leading-snug);
 }
+
+/* Список участников: кто в комнате и с камерой ли. */
+.paneList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: var(--space-2);
+}
+
+.paneRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.paneWho {
+  font-size: var(--text-small);
+}
+
+.paneState {
+  font-family: var(--font-mono);
+  font-size: var(--text-overline);
+  color: var(--color-text-secondary);
+}

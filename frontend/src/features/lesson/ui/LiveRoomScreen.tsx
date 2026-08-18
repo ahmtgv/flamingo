@@ -1,4 +1,5 @@
 import { ICON_SM } from '@/shared/ui/iconSizes';
+import { type RemoteParticipant, Track } from 'livekit-client';
 import { BarChart3, RefreshCw, ShieldCheck, Video } from 'lucide-react';
 import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -64,6 +65,7 @@ function RoomShell({
   panel,
   classTeacher,
   classPupils,
+  classVersion,
   children,
 }: {
   subtitle: string;
@@ -77,6 +79,8 @@ function RoomShell({
   /** Кто ведёт — плитка, которую окно «Класс» не умеет потерять. */
   classTeacher?: Participant;
   classPupils?: Participant[];
+  /** Счётчик изменений комнаты — прокидывается до плиток, см. `ClassVideo`. */
+  classVersion?: number;
   children: ReactNode;
 }) {
   const { t } = useTranslation(['room', 'seedum']);
@@ -124,7 +128,14 @@ function RoomShell({
       }
       panel={
         panel ?? (
-          <RoomPane pane={pane} sessionId={sessionId} lessonId={lessonId} isTeacher={isTeacher} />
+          <RoomPane
+            pane={pane}
+            sessionId={sessionId}
+            lessonId={lessonId}
+            isTeacher={isTeacher}
+            classTeacher={classTeacher}
+            classPupils={pupils}
+          />
         )
       }
     >
@@ -132,6 +143,7 @@ function RoomShell({
         <ClassWindow
           teacher={classTeacher}
           pupils={pupils}
+          version={classVersion}
           layout={activeLayout}
           pinnedId={pinnedId}
           onPin={(id) => {
@@ -155,7 +167,7 @@ function RoomShell({
  * is a tile that is blank exactly when it matters.
  */
 function toClassTiles(
-  identities: readonly { identity: string; isSpeaking?: boolean }[],
+  identities: readonly RemoteParticipant[],
   nameFor: (id: string) => string,
   selfId?: string,
 ): Participant[] {
@@ -167,6 +179,8 @@ function toClassTiles(
       initials: initialsOf(name),
       speaking: p.isSpeaking,
       isSelf: p.identity === selfId,
+      // 🔴 Дорожки здесь не было, и окно «Класс» показывало одни инициалы (наряд 37 §1.3).
+      track: p.getTrackPublication(Track.Source.Camera)?.track ?? undefined,
     };
   });
 }
@@ -211,11 +225,15 @@ function RoomPane({
   sessionId,
   lessonId,
   isTeacher,
+  classTeacher,
+  classPupils,
 }: {
   pane: Pane;
   sessionId: string;
   lessonId?: string | null;
   isTeacher?: boolean;
+  classTeacher?: Participant;
+  classPupils?: Participant[];
 }) {
   const { t } = useTranslation('room');
   if (pane === 'dict') {
@@ -230,10 +248,43 @@ function RoomPane({
       </>
     );
   }
+  /**
+   * 🔴 «ПОКА НИКОГО» ПРИ ЖИВОМ ЗАНЯТИИ (живой урок 18.08, наряд 37 §1.1).
+   *
+   * Преподаватель в комнате, рисует на доске, пишет в чат — и у ОБОИХ во вкладке «Участники»
+   * написано «Пока никого». Список врал каждому: преподаватель по нему понимает, кто пришёл,
+   * ученик — что он не один.
+   *
+   * ⚠️ ГИПОТЕЗА РЕВЬЮЕРА НЕ ПОДТВЕРДИЛАСЬ. Он предполагал ту же природу, что у починенного
+   * присутствия: «отметка ставится не везде». Дело оказалось проще и хуже: **списка не
+   * существовало**. Здесь стояли две строки статического текста — заглушка, которую нечем
+   * было наполнить, потому что её никто ничем и не наполнял.
+   *
+   * Список берётся оттуда же, откуда плитки окна «Класс», — из живой комнаты. Один источник
+   * на два места: два разных ответа на «кто здесь» разошлись бы ровно посреди урока.
+   */
+  const people = [...(classTeacher ? [classTeacher] : []), ...(classPupils ?? [])];
   return (
     <>
       <p className={frame.paneTitle}>{t('people.title')}</p>
-      <p className={frame.paneEmpty}>{t('people.empty')}</p>
+      {people.length === 0 ? (
+        <p className={frame.paneEmpty}>{t('people.empty')}</p>
+      ) : (
+        <ul className={frame.paneList}>
+          {people.map((person) => (
+            <li key={person.id} className={frame.paneRow}>
+              <span className={frame.paneWho}>
+                {person.isSelf ? t('people.you', { name: person.name }) : person.name}
+              </span>
+              <span className={frame.paneState}>
+                {person.track || person.selfStream
+                  ? t('people.onAir')
+                  : t('people.noCamera')}
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
     </>
   );
 }
@@ -499,12 +550,42 @@ function StudentRoom({
       isLive={isLive}
       classTeacher={
         teacherName
-          ? { id: teacherId ?? 'teacher', name: teacherName, initials: initialsOf(teacherName) }
+          ? {
+              id: teacherId ?? 'teacher',
+              name: teacherName,
+              initials: initialsOf(teacherName),
+              // Дорожка преподавателя — из эфира, по его идентификатору.
+              track: lk.participants
+                .find((p) => p.identity === teacherId)
+                ?.getTrackPublication(Track.Source.Camera)?.track,
+            }
           : undefined
       }
-      /* Р5.1: ученику присылают преподавателя и его собственное превью — больше в комнате
-         никого нет, и окно «Класс» показывает ровно то, что есть на самом деле. */
-      classPupils={[{ id: 'self', name: selfName, initials: initialsOf(selfName), isSelf: true }]}
+      /*
+        🔴 ЗДЕСЬ СТОЯЛ СПИСОК ИЗ ОДНОГО СЕБЯ, И ЭТО ВТОРАЯ ПОЛОВИНА ПОЛОМКИ §1.3.
+        Комментарий утверждал «больше в комнате никого нет» — но в комнате есть преподаватель,
+        и его дорожка приходит ученику (замер 18.08: «Ирина П», video, 640×480, играет).
+        Окно «Класс» об этом просто не спрашивали: ему передавали выдуманный список.
+      */
+      /*
+        ⚠️ Преподаватель ИСКЛЮЧЁН из этого списка: он уже стоит отдельной плиткой и в списке
+        участников. Первый замер показал его дважды — «Ирина П без камеры» и «Ирина П камера
+        в эфире» в одном списке, то есть один человек двумя строками с разными состояниями.
+      */
+      classPupils={[
+        {
+          id: 'self',
+          name: selfName,
+          initials: initialsOf(selfName),
+          isSelf: true,
+          selfStream: stream,
+        },
+        ...toClassTiles(
+          lk.participants.filter((p) => p.identity !== teacherId),
+          (id) => id,
+        ),
+      ]}
+      classVersion={lk.version}
     >
       <div className={styles.card}>
         {/* Урок закончился — сказано словами, и человека не выкидывает с экрана:
@@ -790,8 +871,15 @@ function TeacherRoom({
       lessonId={lessonId}
       isLive={isLive}
       isTeacher
-      classTeacher={{ id: 'self', name: selfName, initials: initialsOf(selfName) }}
+      classTeacher={{
+        id: 'self',
+        name: selfName,
+        initials: initialsOf(selfName),
+        // Свой поток LiveKit не отдаёт — себя видно локально, из общей камеры.
+        selfStream: stream,
+      }}
       classPupils={toClassTiles(lk.participants, nameFor)}
+      classVersion={lk.version}
     >
       <div className={styles.card}>
         {!joined ? (

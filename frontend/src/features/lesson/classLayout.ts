@@ -15,11 +15,28 @@
 export const CLASS_LAYOUTS = ['pair', 'group', 'pinned'] as const;
 export type ClassLayout = (typeof CLASS_LAYOUTS)[number];
 
+import type { RemoteTrack } from 'livekit-client';
+
 export interface Participant {
   id: string;
   name: string;
   /** Initials for the tile before video arrives — the sheet draws these, not avatars. */
   initials: string;
+  /**
+   * 🔴 ЭТОГО ПОЛЯ НЕ БЫЛО, И ПОЭТОМУ ОКНО «КЛАСС» НЕ ПОКАЗЫВАЛО ВИДЕО НИКОГДА
+   * (найдено на живом уроке 18.08, наряд 37 §1.3).
+   *
+   * Владелец: «в приложении и в браузере моя камера во вкладке Класс не работает». То, что
+   * в ОБОИХ, и было главной уликой: дело не в приложении и не в правах macOS. `ClassWindow`
+   * рисовал только инициалы — макет по листу, который так и не соединили с эфиром. Комментарий
+   * рядом («Initials for the tile BEFORE video arrives») обещал видео, которому неоткуда было
+   * взяться: дорожки в плитку не приходило вовсе.
+   *
+   * `track` — камера удалённого участника, `selfStream` — свой поток (его LiveKit не отдаёт:
+   * себя видно локально). Обоих может не быть — тогда инициалы, как и задумано.
+   */
+  track?: RemoteTrack;
+  selfStream?: MediaStream | null;
   /** True for the person at this machine, drawn with a dashed border as «вы». */
   isSelf?: boolean;
   speaking?: boolean;

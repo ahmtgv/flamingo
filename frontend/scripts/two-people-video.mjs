@@ -151,6 +151,21 @@ for (const who of [t1, p1]) {
   console.log(`[${who.name}] элементов video: ${videos.length} → ${JSON.stringify(videos)}`);
   console.log(`[${who.name}] сокеты: ${JSON.stringify(who.sockets)}`);
   console.log(`[${who.name}] консоль: ${JSON.stringify([...new Set(who.errors)].slice(0, 8), null, 1)}`);
+  // §37 §1.1 и §1.3: список участников и окно «Класс» — что видно ГЛАЗАМИ у каждого.
+  await who.page.getByRole('tab', { name: /Класс/i }).click().catch(() => undefined);
+  await who.page.waitForTimeout(1200);
+  const classTiles = await who.page.evaluate(() =>
+    [...document.querySelectorAll('[class*=Tile], [class*=tile]')]
+      .map((el) => ({
+        подпись: (el.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 24),
+        видео: !!el.querySelector('video')?.srcObject,
+      }))
+      .filter((t) => t.подпись),
+  );
+  console.log(`[${who.name}] окно «Класс»: ${JSON.stringify(classTiles)}`);
+  const pane = (await who.page.evaluate(() => document.body.innerText)).replace(/\s+/g, ' ');
+  const i = pane.indexOf('Участники');
+  console.log(`[${who.name}] вкладка «Участники»: ${JSON.stringify(pane.slice(i, i + 120))}`);
   const audio = await who.page.evaluate(() =>
     [...document.querySelectorAll('audio')].map((a) => ({
       поток: !!a.srcObject,
