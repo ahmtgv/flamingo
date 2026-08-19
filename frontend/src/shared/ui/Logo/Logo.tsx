@@ -18,9 +18,16 @@ import styles from './Logo.module.css';
 export function Logo({
   as: Tag = 'span',
   mark = true,
+  word = true,
 }: {
   as?: 'span' | 'h1';
   mark?: boolean;
+  /**
+   * `word={false}` — одна птица, без слова. Для мест, где на подпись нет ширины: плавающий
+   * пульт комнаты (лист «Комната урока») ставит знак 20 × 20 вплотную к «выйти из урока», и
+   * слово наезжало на кнопку.
+   */
+  word?: boolean;
 }) {
   /**
    * 🔴 В ПРИЛОЖЕНИИ ЗНАК ОДИН РАЗ — В ЗАГОЛОВКЕ ОКНА (владелец 16.08, промпт 21 §2.4).
@@ -58,10 +65,12 @@ export function Logo({
           <circle cx="77" cy="8" r="2.2" fill="var(--color-surface)" />
         </svg>
       )}
-      <span className={styles.word}>
-        flamingo
-        <span className={styles.dot} aria-hidden="true" />
-      </span>
+      {word && (
+        <span className={styles.word}>
+          flamingo
+          <span className={styles.dot} aria-hidden="true" />
+        </span>
+      )}
     </Tag>
   );
 }

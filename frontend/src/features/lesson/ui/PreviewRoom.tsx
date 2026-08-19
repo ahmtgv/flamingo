@@ -28,9 +28,8 @@ import { LessonChatPane, SummaryScene } from '@/features/summary';
 import frame from './roomframe.module.css';
 import styles from './liveroom.module.css';
 import { ProjectorCast } from './ProjectorCast';
-import { type ClassLayout, type Participant, suggestedLayout } from '../classLayout';
-import { ClassLayoutSwitch } from './ClassLayoutSwitch';
-import { ClassWindow } from './ClassWindow';
+import { type Participant } from '../classLayout';
+import { ClassPane } from './ClassPane';
 import { type Pane, RoomFrame, type Scene } from './RoomFrame';
 import vr from './videoroom.module.css';
 
@@ -56,64 +55,55 @@ const DEMO_PUPILS: Participant[] = [
 function Shell({ subtitle, children }: { subtitle: string; children: React.ReactNode }) {
   const { t } = useTranslation(['room', 'seedum']);
   const [scene, setScene] = useState<Scene>('board');
-  const [pane, setPane] = useState<Pane>('people');
-  const [layout, setLayout] = useState<ClassLayout | null>(null);
-  const [pinnedId, setPinnedId] = useState<string | undefined>();
+  const [pane, setPane] = useState<Pane | null>(null);
   const isTeacher = demoRole() === 'teacher';
   // Демо-проекция окна «Класс» (лист D1): роль решает, кого показывают. Преподаватель видит
   // группу; ученик по решению Р5.1 видит преподавателя и своё превью — и больше никого.
   const pupils = isTeacher ? DEMO_PUPILS : [DEMO_SELF];
-  const activeLayout = layout ?? suggestedLayout(pupils.length);
 
   return (
     <RoomFrame
       title="English A2 · Unit 4 — Travel"
       meta={subtitle}
       isLive
+      stateTag={t('room:live.now')}
       scene={scene}
       onScene={setScene}
       pane={pane}
       onPane={setPane}
       sessionId="ses-algebra-live"
-      actions={
+      leaveLabel={isTeacher ? t('room:leaveTeacher') : t('room:leave')}
+      controls={
         <>
           {isTeacher && <SourceSwitcher />}
           {isTeacher && <ProjectorCast sessionId="ses-algebra-live" />}
           <PrivacyIndicator />
         </>
       }
-      strip={children}
-      layoutSwitch={
-        scene === 'class' ? (
-          <ClassLayoutSwitch layout={activeLayout} onLayout={setLayout} />
-        ) : undefined
-      }
-      panel={<PreviewPane pane={pane} />}
-    >
-      {scene === 'class' ? (
-        <ClassWindow
+      classPane={() => (
+        <ClassPane
           teacher={DEMO_TEACHER}
           pupils={pupils}
-          layout={activeLayout}
-          pinnedId={pinnedId}
-          onPin={
-            isTeacher
-              ? (id) => {
-                  setPinnedId(id);
-                  setLayout('pinned');
-                }
-              : undefined
-          }
+          isTeacher={isTeacher}
+          ratio={22}
+          attention={null}
+          spark={[]}
         />
-      ) : scene === 'board' ? (
+      )}
+      panel={<PreviewPane pane={pane ?? 'people'} />}
+      sceneBody={
+        scene === 'board' ? (
         <BoardCanvas lessonId="les-1-12" />
       ) : scene === 'test' ? (
         <TestScene lessonId="les-1-12" isTeacher={isTeacher} />
       ) : scene === 'summary' ? (
         <SummaryScene sessionId="ses-algebra-live" isTeacher={isTeacher} />
-      ) : (
-        <p className={frame.sceneSoon}>{t(`room:scene.${scene}Soon`)}</p>
-      )}
+        ) : (
+          <p className={frame.sceneSoon}>{t(`room:scene.${scene}Soon`)}</p>
+        )
+      }
+    >
+      {children}
     </RoomFrame>
   );
 }

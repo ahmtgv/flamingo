@@ -9,12 +9,13 @@ import { type Pane, RoomFrame, type Scene } from './RoomFrame';
 
 function Harness({ onScene }: { onScene?: (s: Scene) => void } = {}) {
   const [scene, setScene] = useState<Scene>('board');
-  const [pane, setPane] = useState<Pane>('people');
+  const [pane, setPane] = useState<Pane | null>(null);
   return (
     <RoomFrame
       title="English A2 · Unit 4"
-      meta="урок 4 · Ирина Соколова"
+      meta="урок 4 · 20 участников"
       isLive
+      stateTag="идёт 24 из 45 минут"
       scene={scene}
       onScene={(s) => {
         setScene(s);
@@ -23,7 +24,7 @@ function Harness({ onScene }: { onScene?: (s: Scene) => void } = {}) {
       pane={pane}
       onPane={setPane}
       sessionId="s1"
-      strip={<div>видео-полоса</div>}
+      classPane={(ratio) => <div>лица: {ratio}%</div>}
       panel={<p>панель: {pane}</p>}
     >
       <p>сцена: {scene}</p>
@@ -33,60 +34,79 @@ function Harness({ onScene }: { onScene?: (s: Scene) => void } = {}) {
 
 const render = () => renderWithProviders(<Harness />, { route: '/sessions/s1/room' });
 
-describe('RoomFrame — atlas sheet 02', () => {
-  it('names the lesson, marks it running, and shows the video strip', () => {
+describe('RoomFrame — лист «Комната урока»', () => {
+  it('называет урок, говорит словом о состоянии и держит класс на экране', () => {
     render();
     expect(screen.getByText('English A2 · Unit 4')).toBeInTheDocument();
-    expect(screen.getByText('урок 4 · Ирина Соколова')).toBeInTheDocument();
-    expect(screen.getByText('идёт')).toBeInTheDocument();
-    expect(screen.getByText('видео-полоса')).toBeInTheDocument();
+    expect(screen.getByText('урок 4 · 20 участников')).toBeInTheDocument();
+    expect(screen.getByText('идёт 24 из 45 минут')).toBeInTheDocument();
+    expect(screen.getByText('лица: 22%')).toBeInTheDocument();
   });
 
-  it('offers the windows of the sheet and switches the scene', async () => {
+  it('окон четыре, и «Класса» среди них нет — класс больше не окно', async () => {
     render();
     const bar = screen.getByRole('tablist', { name: 'Окна урока' });
-    // «Класс» is first as of sheet D1 (owner, 14.08): board, guide and test are all material,
-    // and half of a language lesson has none of it.
     expect(
       within(bar)
         .getAllByRole('tab')
         .map((b) => b.textContent),
-    ).toEqual(['Класс', 'Доска', 'Методичка', 'Тест', 'Саммари']);
+    ).toEqual(['Доска', 'Методичка', 'Тест', 'Конспект']);
 
     expect(screen.getByText('сцена: board')).toBeInTheDocument();
     await userEvent.click(within(bar).getByRole('tab', { name: 'Методичка' }));
     expect(screen.getByText('сцена: material')).toBeInTheDocument();
   });
 
-  it('any window can leave for its own tab — that is the multi-screen half', async () => {
+  it('🔴 класс виден в ЛЮБОМ окне: за людьми больше не нужно переключаться', async () => {
+    render();
+    for (const win of ['Методичка', 'Тест', 'Конспект']) {
+      await userEvent.click(screen.getByRole('tab', { name: win }));
+      // Ровно та поломка, которую убирает лист: раньше «Класс» ЗАМЕНЯЛ материал собой.
+      expect(screen.getByText('лица: 22%')).toBeInTheDocument();
+    }
+  });
+
+  it('панель закрыта по умолчанию, открывается кнопкой и той же кнопкой закрывается', async () => {
+    render();
+    // Занятие важнее инструмента: панель не занимает четверть кадра, пока её не позвали.
+    expect(screen.queryByText(/^панель:/)).not.toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole('button', { name: 'Словарь' }));
+    expect(screen.getByText('панель: dict')).toBeInTheDocument();
+    // Панель личная — общая сцена от неё не двигается.
+    expect(screen.getByText('сцена: board')).toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole('button', { name: 'Словарь' }));
+    expect(screen.queryByText(/^панель:/)).not.toBeInTheDocument();
+  });
+
+  it('текущее окно уходит отдельной вкладкой — вторая половина многоэкранности', async () => {
     const open = vi.spyOn(window, 'open').mockReturnValue(null);
     render();
-
-    await userEvent.click(
-      screen.getByRole('button', { name: 'Открыть «Тест» отдельной вкладкой' }),
-    );
+    await userEvent.click(screen.getByRole('tab', { name: 'Тест' }));
+    await userEvent.click(screen.getByRole('button', { name: 'отдельным окном ↗' }));
     expect(open).toHaveBeenCalledWith('/sessions/s1/window/test', '_blank', 'noopener');
     open.mockRestore();
   });
 
-  it('the panel is personal: changing it leaves the shared scene where it was', async () => {
+  it('сцена — настоящая tabpanel, панель названа словами', async () => {
     render();
-    await userEvent.click(screen.getByRole('tab', { name: 'Словарь' }));
-
-    expect(screen.getByText('панель: dict')).toBeInTheDocument();
-    // The scene is what everyone sees — a personal tool must not move it.
-    expect(screen.getByText('сцена: board')).toBeInTheDocument();
+    expect(screen.getByRole('tabpanel', { name: 'Доска' })).toHaveTextContent('сцена: board');
+    await userEvent.click(screen.getByRole('button', { name: 'Участники' }));
+    expect(screen.getByRole('region', { name: 'Участники' })).toHaveTextContent('панель: people');
   });
 
-  it('scene and panel are wired as real tabpanels for assistive tech', () => {
+  it('границу доски и лиц можно двигать с клавиатуры, не только мышью', async () => {
     render();
-    const scenePanel = screen.getByRole('tabpanel', { name: 'Доска' });
-    expect(scenePanel).toHaveTextContent('сцена: board');
-    const panePanel = screen.getByRole('tabpanel', { name: 'Участники' });
-    expect(panePanel).toHaveTextContent('панель: people');
+    const divider = screen.getByRole('separator', { name: 'Соотношение доски и лиц' });
+    expect(divider).toHaveAttribute('aria-valuenow', '22');
+
+    divider.focus();
+    await userEvent.keyboard('{ArrowLeft}');
+    expect(screen.getByText('лица: 26%')).toBeInTheDocument();
   });
 
-  it('a lesson that is not running does not claim to be', () => {
+  it('урок, который не идёт, не заявляет, что идёт', () => {
     renderWithProviders(
       <RoomFrame
         title="English A2"
@@ -94,7 +114,7 @@ describe('RoomFrame — atlas sheet 02', () => {
         isLive={false}
         scene="board"
         onScene={() => {}}
-        pane="people"
+        pane={null}
         onPane={() => {}}
         sessionId="s1"
         panel={<p>панель</p>}
@@ -103,6 +123,6 @@ describe('RoomFrame — atlas sheet 02', () => {
       </RoomFrame>,
       { route: '/sessions/s1/room' },
     );
-    expect(screen.queryByText('идёт')).not.toBeInTheDocument();
+    expect(screen.queryByText(/идёт/)).not.toBeInTheDocument();
   });
 });

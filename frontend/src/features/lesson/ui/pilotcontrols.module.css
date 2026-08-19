@@ -1,0 +1,28 @@
+/* Кнопка нижнего пульта: слово в пилюле. Заливки нет — акцент на этом экране один. */
+.pill {
+  flex: none;
+  min-block-size: var(--control-height-sm);
+  padding-inline: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  background: none;
+  font-family: var(--font-body);
+  font-size: var(--text-small);
+  color: var(--color-text);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.pill:hover {
+  border-color: var(--color-border-strong);
+}
+
+/* Выключенное состояние — не цветом: зачёркнутая рамка и своё слово в подписи. */
+.pill[data-off] {
+  border-style: dashed;
+  color: var(--color-text-secondary);
+}
+
+.pill[data-on] {
+  background: var(--color-surface-subtle);
+}

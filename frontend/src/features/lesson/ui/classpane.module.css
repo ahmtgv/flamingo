@@ -1,0 +1,238 @@
+/*
+ * КОЛОНКА КЛАССА — правая часть кадра комнаты (лист «Комната урока»).
+ * Тёмная всегда, в обеих темах: лица читаются на тёмном, а светлый прямоугольник рядом с
+ * доской спорил бы с ней за внимание.
+ */
+
+.att {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: 0 var(--space-4) var(--space-3);
+  border-block-end: 1px solid rgb(255 255 255 / 8%);
+}
+
+.attLabel {
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  color: rgb(255 255 255 / 50%);
+  white-space: nowrap;
+}
+
+.attValue {
+  font-family: var(--font-mono);
+  font-size: var(--text-small);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  /* Ширина под «100» зарезервирована: иначе метка «внимание класса» ездит каждые две секунды. */
+  min-inline-size: 3ch;
+  color: var(--color-text-on-video);
+}
+
+.spark {
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  gap: 2px;
+  block-size: 18px;
+  min-inline-size: 0;
+  margin-inline-start: auto;
+  overflow: hidden;
+}
+
+.spark i {
+  inline-size: 3px;
+  border-radius: 1px;
+  background: rgb(255 255 255 / 35%);
+  transition: block-size var(--duration-base) var(--ease-standard);
+}
+
+/*
+ * Лица. До 45 % ширины — колонка в один ряд, шире — решётка (правило листа 03).
+ * Единственная прокручиваемая область колонки, и включается только когда лиц больше 25:
+ * тридцать человек не влезают в кадр никакой раскладкой, а прятать треть класса нельзя.
+ */
+.tiles {
+  flex: 1 1 auto;
+  display: grid;
+  grid-auto-rows: 1fr;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  min-block-size: 0;
+  overflow: hidden;
+}
+
+.tiles[data-grid] {
+  grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
+}
+
+.tile {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-inline-size: 0;
+  min-block-size: 0;
+  overflow: hidden;
+  border: 1px solid rgb(255 255 255 / 8%);
+  border-radius: var(--radius-md);
+  background: rgb(255 255 255 / 4%);
+}
+
+/* Говорящего обводит акцент — но только линией: заливка на этом экране одна, у руки. */
+.tile[data-speaking]::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border: 1.5px solid var(--color-accent);
+  border-radius: var(--radius-md);
+  pointer-events: none;
+}
+
+.ini {
+  font-family: var(--font-mono);
+  font-size: var(--text-small);
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: rgb(255 255 255 / 38%);
+}
+
+.name {
+  position: absolute;
+  inset-inline-start: var(--space-2);
+  inset-block-end: 7px;
+  max-inline-size: calc(100% - 2 * var(--space-2));
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  color: rgb(255 255 255 / 62%);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.hand {
+  position: absolute;
+  inset-inline-end: var(--space-2);
+  inset-block-start: var(--space-2);
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-xs);
+  background: var(--color-accent-solid);
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  font-weight: 500;
+  color: var(--color-on-accent);
+}
+
+.degraded {
+  position: absolute;
+  inset-inline-start: var(--space-2);
+  inset-block-start: var(--space-2);
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-xs);
+  background: rgb(0 0 0 / 45%);
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  color: rgb(255 255 255 / 70%);
+}
+
+/* «На большой экран» — появляется по наведению, но с клавиатуры доступна всегда. */
+.pin {
+  position: absolute;
+  inset-block-start: var(--space-2);
+  inset-inline-end: var(--space-2);
+  min-block-size: var(--control-height-sm);
+  padding-inline: var(--space-2);
+  border: 1px solid rgb(255 255 255 / 24%);
+  border-radius: var(--radius-pill);
+  background: rgb(0 0 0 / 45%);
+  font-family: var(--font-body);
+  font-size: var(--text-caption);
+  color: var(--color-text-on-video);
+  opacity: 0;
+  cursor: pointer;
+  transition: opacity var(--duration-fast) var(--ease-standard);
+}
+
+.tile:hover .pin,
+.pin:focus-visible {
+  opacity: 1;
+}
+
+.tile[data-hand] .pin {
+  /* Плашка руки уже занимает угол — кнопка уступает ей место. */
+  inset-block-start: calc(var(--space-2) + var(--space-5));
+}
+
+.attBar {
+  position: absolute;
+  inset-inline: 0;
+  inset-block-end: 0;
+  block-size: 2px;
+  background: rgb(255 255 255 / 10%);
+}
+
+.attBar i {
+  display: block;
+  block-size: 2px;
+  background: rgb(255 255 255 / 40%);
+  transition: inline-size var(--duration-slow) var(--ease-standard);
+}
+
+/* ── Своя камера ─────────────────────────────────────────────────────────────── */
+
+.self {
+  flex: 0 0 auto;
+  display: grid;
+  grid-template-columns: 150px minmax(0, 1fr);
+  gap: var(--space-3);
+  align-items: center;
+  padding: var(--space-3);
+  border-block-start: 1px solid rgb(255 255 255 / 8%);
+}
+
+.selfTile {
+  position: relative;
+  display: grid;
+  place-items: center;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  border: 1px solid rgb(255 255 255 / 10%);
+  border-radius: var(--radius-md);
+  background: rgb(255 255 255 / 5%);
+}
+
+.selfLabel {
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  color: rgb(255 255 255 / 45%);
+}
+
+/* Одно место, где сказано про камеру на устройстве — постоянной строки-предупреждения нет. */
+.note {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  line-height: var(--leading-snug);
+  color: var(--color-text-on-video);
+  opacity: 0.72;
+}
+
+/* На узкой колонке подпись не помещается рядом — она уходит под камеру. */
+@container (max-width: 260px) {
+  .self {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* Пустая решётка говорит словами и не притворяется плиткой: ни рамки, ни фона. */
+.empty {
+  grid-column: 1 / -1;
+  align-self: center;
+  margin: 0;
+  padding-inline: var(--space-3);
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  line-height: var(--leading-snug);
+  color: rgb(255 255 255 / 55%);
+  text-align: center;
+}

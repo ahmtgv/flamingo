@@ -1,0 +1,8 @@
+/* Картинка в плитке лица. Одна на два места: колонка класса и старое окно «Класс». */
+.video {
+  position: absolute;
+  inset: 0;
+  inline-size: 100%;
+  block-size: 100%;
+  object-fit: cover;
+}

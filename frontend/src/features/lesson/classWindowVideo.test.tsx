@@ -27,7 +27,8 @@ async function source(file: string): Promise<string> {
 
 describe('прибор', () => {
   it('читает те файлы, о которых говорит', async () => {
-    expect((await source('src/features/lesson/ui/ClassWindow.tsx')).length).toBeGreaterThan(500);
+    expect((await source('src/features/lesson/ui/ClassVideo.tsx')).length).toBeGreaterThan(500);
+    expect((await source('src/features/lesson/ui/ClassPane.tsx')).length).toBeGreaterThan(500);
     expect((await source('src/features/lesson/classLayout.ts')).length).toBeGreaterThan(500);
   });
 });
@@ -40,16 +41,20 @@ describe('окно «Класс» показывает людей, а не ин�
   });
 
   it('🔴 картинка есть в ОБЕИХ плитках: и в общей, и в отдельной преподавательской', async () => {
-    // Преподаватель рисуется своим блоком вне ветвлений раскладки («виден всегда»), и первая
-    // правка дала видео всем, кроме него: добавили в общую плитку, а сюда забыли.
-    const text = await source('src/features/lesson/ui/ClassWindow.tsx');
+    // Преподаватель рисуется своим блоком вне общей ветки («виден всегда»), и первая правка
+    // §1.3 дала видео всем, кроме него: добавили в общую плитку, а сюда забыли.
+    //
+    // ⚠️ Адрес сменился: колонка класса (наряд 41) пришла на место окна «Класс». Правило то
+    // же — две ветки, два места, где надо не забыть; проверяется теперь по новому файлу.
+    const text = await source('src/features/lesson/ui/ClassPane.tsx');
     expect(text.match(/<ClassVideo/g)?.length ?? 0).toBeGreaterThanOrEqual(2);
     expect(text).toMatch(/data-teacher="true"[\s\S]{0,200}<ClassVideo/);
   });
 
   it('🔴 дорожка перепривязывается по `version` — чужая приезжает ПОЗЖЕ первого рендера', async () => {
     // Привязка одним callback-ref давала ровно половину: своя картинка есть, чужой нет.
-    const text = await source('src/features/lesson/ui/ClassWindow.tsx');
+    // Живёт в `ClassVideo` — одном месте на все плитки, а не по копии в каждой раскладке.
+    const text = await source('src/features/lesson/ui/ClassVideo.tsx');
     expect(text).toMatch(/useEffect\([\s\S]{0,600}participant\.track[\s\S]{0,120}version\]/);
   });
 });

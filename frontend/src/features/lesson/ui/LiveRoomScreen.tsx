@@ -38,9 +38,9 @@ import { DictionaryPane } from '@/features/dictionary';
 import { LessonChatPane, SummaryScene } from '@/features/summary';
 
 import { ProjectorCast } from './ProjectorCast';
-import { type ClassLayout, type Participant, suggestedLayout } from '../classLayout';
-import { ClassLayoutSwitch } from './ClassLayoutSwitch';
-import { ClassWindow } from './ClassWindow';
+import { type Participant } from '../classLayout';
+import { ClassPane } from './ClassPane';
+import { PilotControls } from './PilotControls';
 import { type Pane, RoomFrame, type Scene } from './RoomFrame';
 import { PreviewRoom } from './PreviewRoom';
 import { VideoRoom } from './VideoRoom';
@@ -63,10 +63,18 @@ function RoomShell({
   isLive,
   isTeacher,
   actions,
+  controls,
   panel,
   classTeacher,
   classPupils,
   classVersion,
+  classAvg,
+  spark,
+  attentionFor,
+  stateTag,
+  onLeave,
+  selfStream,
+  onFocus,
   roomAudio,
   children,
 }: {
@@ -77,64 +85,98 @@ function RoomShell({
   isLive: boolean;
   isTeacher?: boolean;
   actions?: ReactNode;
+  /** Кнопки верхнего пульта: всё про «где показываем» — второй экран, отдельное окно. */
+  topActions?: ReactNode;
+  /** Кнопки нижнего пульта: микрофон, камера, экран. Своё у каждой роли. */
+  controls?: ReactNode;
   panel?: ReactNode;
   /** Кто ведёт — плитка, которую окно «Класс» не умеет потерять. */
   classTeacher?: Participant;
   classPupils?: Participant[];
   /** Счётчик изменений комнаты — прокидывается до плиток, см. `ClassVideo`. */
   classVersion?: number;
+  /** Среднее внимание класса или `null`, пока не пришло ни одного ведра. */
+  classAvg?: number | null;
+  /** Последние средние — для искры в шапке колонки. */
+  spark?: number[];
+  attentionFor?: (id: string) => number | null;
+  /** Слово о состоянии комнаты в верхнем пульте: «идёт», «подключаемся», «без эфира». */
+  stateTag?: string;
+  onLeave?: () => void;
+  /** Свой поток для плитки «ваша камера» в подвале колонки. */
+  selfStream?: MediaStream | null;
+  /** «На большой экран»: плитка ученика уходит на проектор — тем же путём, что из полосы. */
+  onFocus?: (id: string) => void;
   /** Звук комнаты — вне сцен, чтобы он переживал переключение вкладок (наряд 38). */
   roomAudio?: ReactNode;
   children: ReactNode;
 }) {
   const { t } = useTranslation(['room', 'seedum']);
   const [scene, setScene] = useState<Scene>('board');
-  const [pane, setPane] = useState<Pane>('people');
+  // 🔴 Панель ЗАКРЫТА по умолчанию: занятие важнее инструмента. Прежде она была постоянной
+  //    колонкой и забирала четверть кадра всегда — даже когда в неё никто не смотрел.
+  const [pane, setPane] = useState<Pane | null>(null);
   const pupils = classPupils ?? [];
-  // Раскладка — предложение по составу, и её можно сменить в любой момент (§2.2-бис).
-  const [layout, setLayout] = useState<ClassLayout | null>(null);
-  const [pinnedId, setPinnedId] = useState<string | undefined>();
-  const activeLayout = layout ?? suggestedLayout(pupils.length);
 
   return (
     <RoomFrame
       title={title || t('seedum:room.title')}
       meta={subtitle}
       isLive={isLive}
+      stateTag={stateTag}
       scene={scene}
       onScene={setScene}
       pane={pane}
       onPane={setPane}
       sessionId={sessionId}
-      actions={
+      leaveLabel={isTeacher ? t('room:leaveTeacher') : t('room:leave')}
+      onLeave={onLeave}
+      controls={controls}
+      privacy={<PrivacyIndicator />}
+      /*
+        🔴 ПУЛЬТ РАЗВАЛИЛСЯ НА ДВЕ СТРОКИ — прибор дизайнера, `rowWrap`: семь детей, из них
+        два с длинными подписями. Причина не в вёрстке, а в составе: в пульт действий попали
+        две вещи, которые действиями не являются.
+
+        «Вывести на второй экран» — про то, ГДЕ показывают, и уезжает в верхний пульт, к
+        «отдельным окном»: оба про экраны, а не про урок.
+
+        Постоянная строка про кадры на устройстве убрана совсем — ПРАВИЛА 8.2: где есть
+        камера, сказано ОДИН раз. Это место — карточка входа в эфир, где человек и решает,
+        включать ли камеру; вечная плашка в пульте не сообщает ничего, а место занимает.
+      */
+      topActions={
         <>
           {actions}
           {isTeacher && <ProjectorCast sessionId={sessionId} />}
-          <PrivacyIndicator />
         </>
       }
       roomAudio={roomAudio}
-      strip={
-        <>
-          {/*
-            🔴 ГРОМКО — И ТОЛЬКО ЗДЕСЬ (наряд 34 §2.2, решение владельца §32.3).
-            Механизм связи один на весь продукт; урок — единственное место, где молчать
-            нельзя: преподаватель ведёт занятие и должен узнать, что класс перестал его
-            видеть, а не догадаться об этом через двадцать минут.
-          */}
-          <ConnectionLine tone="loud" />
-          {children}
-        </>
+      classPane={
+        classTeacher
+          ? (ratio) => (
+          <ClassPane
+            teacher={classTeacher}
+            pupils={pupils}
+            version={classVersion}
+            isTeacher={Boolean(isTeacher)}
+            ratio={ratio}
+            attention={classAvg ?? null}
+            spark={spark ?? []}
+            attentionFor={attentionFor}
+            selfStream={selfStream}
+            onPin={onFocus}
+          />
+            )
+          : undefined
       }
-      layoutSwitch={
-        scene === 'class' ? (
-          <ClassLayoutSwitch layout={activeLayout} onLayout={setLayout} />
-        ) : undefined
+      sceneBody={
+        <SceneBody scene={scene} lessonId={lessonId} sessionId={sessionId} isTeacher={isTeacher} />
       }
       panel={
         panel ?? (
           <RoomPane
-            pane={pane}
+            pane={pane ?? 'people'}
             sessionId={sessionId}
             lessonId={lessonId}
             isTeacher={isTeacher}
@@ -144,21 +186,13 @@ function RoomShell({
         )
       }
     >
-      {scene === 'class' && classTeacher ? (
-        <ClassWindow
-          teacher={classTeacher}
-          pupils={pupils}
-          version={classVersion}
-          layout={activeLayout}
-          pinnedId={pinnedId}
-          onPin={(id) => {
-            setPinnedId(id);
-            setLayout('pinned');
-          }}
-        />
-      ) : (
-        <SceneBody scene={scene} lessonId={lessonId} sessionId={sessionId} isTeacher={isTeacher} />
-      )}
+      {/*
+        🔴 ГРОМКО — И ТОЛЬКО ЗДЕСЬ (наряд 34 §2.2, решение владельца §32.3). Механизм связи
+        один на весь продукт; урок — единственное место, где молчать нельзя: преподаватель
+        должен узнать, что класс перестал его видеть, а не догадаться через двадцать минут.
+      */}
+      <ConnectionLine tone="loud" />
+      {children}
     </RoomFrame>
   );
 }
@@ -646,6 +680,7 @@ function StudentRoom({
         ),
       ]}
       classVersion={lk.version}
+      selfStream={stream}
     >
       <div className={styles.card}>
         {/* Урок закончился — сказано словами, и человека не выкидывает с экрана:
@@ -699,6 +734,7 @@ function StudentRoom({
               onToggleMic={lk.toggleMic}
               onToggleCamera={lk.toggleCamera}
               onToggleScreenShare={lk.toggleScreenShare}
+              chromeless
               onRejoin={lk.rejoin}
               onLeave={leave}
               nameFor={studentNameFor}
@@ -948,7 +984,11 @@ function TeacherRoom({
     <RoomShell
       /* Звук комнаты — вне сцен: в «Классе» полосы видео нет, и вместе с ней пропадал звук. */
       roomAudio={<RoomAudio participants={lk.participants} version={lk.version} />}
-      subtitle={t('room.teacherSub')}
+      subtitle={
+        lk.participants.length
+          ? t('room:meta.teacher', { count: lk.participants.length + 1 })
+          : t('room:meta.teacherAlone')
+      }
       sessionId={sessionId}
       lessonId={lessonId}
       isLive={isLive}
@@ -962,6 +1002,46 @@ function TeacherRoom({
       }}
       classPupils={toClassTiles(lk.participants, nameFor)}
       classVersion={lk.version}
+      controls={
+        joined ? (
+          <PilotControls
+            micEnabled={lk.micEnabled}
+            cameraEnabled={lk.cameraEnabled}
+            screenSharing={lk.screenSharing}
+            canShareScreen
+            onToggleMic={lk.toggleMic}
+            onToggleCamera={lk.toggleCamera}
+            onToggleScreenShare={lk.toggleScreenShare}
+          />
+        ) : undefined
+      }
+      /*
+        Состояние комнаты словом — по правилу листа: пока эфир поднимается, человек читает
+        «подключаемся», а не гадает по крутящемуся кружку; когда медиасервер молчит — «без
+        эфира», и это ЧАСТИЧНЫЙ отказ: доска, тест и чат в этот момент работают.
+      */
+      stateTag={
+        lk.connecting
+          ? t('room:state.connecting')
+          : lk.error
+            ? t('room:state.noAir')
+            : joined && isLive
+              ? t('room:live.now')
+              : !isLive
+                ? t('room:state.open')
+                : undefined
+      }
+      selfStream={stream}
+      classAvg={receivedRef.current.length ? classAvg : null}
+      spark={receivedRef.current.slice(-24)}
+      attentionFor={attentionFor}
+      onLeave={joined ? leave : undefined}
+      onFocus={(identity) => {
+        // Отказ не должен ронять урок: не дошло до второго экрана — преподаватель ведёт дальше.
+        void setProjectorFocus({ variables: { sessionId, studentId: identity } }).catch(
+          () => undefined,
+        );
+      }}
     >
       <div className={styles.card}>
         {!joined ? (
@@ -1003,6 +1083,7 @@ function TeacherRoom({
             onToggleScreenShare={lk.toggleScreenShare}
             onRejoin={lk.rejoin}
             onLeave={leave}
+            chromeless
             nameFor={nameFor}
             focusable
             onFocusChange={(identity) => {

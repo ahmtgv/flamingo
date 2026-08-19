@@ -60,6 +60,7 @@ export function VideoRoom({
   attentionFor,
   metricsFor,
   selfInRail = false,
+  chromeless = false,
   rail,
 }: {
   localStream: MediaStream | null;
@@ -102,6 +103,19 @@ export function VideoRoom({
   } | null;
   /** F1: render the local self-view in the side rail (teacher) instead of inside the grid. */
   selfInRail?: boolean;
+  /**
+   * 🔴 ЛИЦА ЖИВУТ НЕ ЗДЕСЬ (наряд 41, лист «Комната урока»).
+   *
+   * В новой комнате решётку участников рисует колонка класса, а кнопки — нижний пульт.
+   * `VideoRoom` при этом остаётся смонтированным: он держит соединение, локальную дорожку и
+   * состояния связи. Гасим только его собственный вид, иначе на экране две решётки одних и
+   * тех же людей.
+   *
+   * ⚠️ Не «не монтировать вовсе»: размонтирование убивает `<video>` с локальным потоком —
+   * это та самая опасность потери камеры, из-за которой отказ рисуется НАКЛАДКОЙ, а не
+   * ранним возвратом.
+   */
+  chromeless?: boolean;
   /** F1: extra rail content under the self tile (e.g. «что видит ученик» preview). */
   rail?: ReactNode;
 }) {
@@ -329,7 +343,7 @@ export function VideoRoom({
         </p>
       )}
 
-      {selfInRail ? (
+      {chromeless ? null : selfInRail ? (
         /* Final design v2: stage column + permanent side rail — nothing overlays the stage. */
         <div className={styles.roomGrid}>
           <div className={styles.stageArea}>
@@ -350,7 +364,7 @@ export function VideoRoom({
       )}
 
       {connecting && <p className={styles.connecting}>{t('connecting')}</p>}
-      {controls}
+      {chromeless ? null : controls}
 
       {/* Terminal state: an overlay layered OVER the still-mounted tiles (never an early
           return that unmounts them — that was the 7686a9c camera-loss hazard). The camera

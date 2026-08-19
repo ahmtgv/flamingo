@@ -1,555 +1,474 @@
-/* The live room's frame — atlas sheet 02. Header → video strip → scene → right panel.
-   The grid is the sheet's: minmax(0,1fr) 306px, one column under 900px. */
-
 /*
- * 🔴 КОМНАТА — РАБОЧЕЕ МЕСТО, А НЕ ДОКУМЕНТ (наряд 38 §1.1, требование владельца).
+ * КОМНАТА УРОКА — собрано заново по листу «Комната урока» (наряд 41 §1, шаг 1).
  *
- * Дословно: «Экраны с видео учеников и учителя должны быть настолько большими, насколько
- * позволяет экран! Использовать экран полностью! Скролов не должно быть».
+ * Старые стили снесены целиком, а не подправлены: лист меняет саму раскладку — вместо
+ * «полоса сверху · сцена · колонка справа» стало «сцена во весь кадр · колонка класса ·
+ * два плавающих пульта». Правка поверх старого дала бы смесь двух раскладок.
  *
- * Замер до правки: видео занимало **14 % экрана** на 1440×900 и **9 %** на 1920×1080, а
- * плитки держали 362×258 при любом размере окна — то есть комната не росла вовсе.
- *
- * Причина была в трёх строках, и все три — «сколько угодно, но не меньше»:
- *   `.shell { min-height: 100vh }` — оболочка тянулась вниз, а не занимала экран;
- *   `.room { min-height: 560px }` — сетка брала свои 560 и на этом останавливалась;
- *   `.scene { overflow: auto }`   — сцена прокручивалась внутри вместо того, чтобы вместиться.
- *
- * Стало: высота экрана, и она раздаётся вниз до плиток. `dvh` вместо `vh` — на ноутбуке с
- * панелью браузера разница в те самые сорок пикселей, из-за которых появляется прокрутка.
+ * Значения — только из tokens.css. Голых px здесь три вида, и все названы в ПРАВИЛАХ как
+ * допустимые: волосяная граница 1px, полоска внимания 2px и рамка говорящего 1.5px.
  */
+
 .shell {
-  height: 100dvh;
+  position: relative;
+  block-size: 100dvh;
   overflow: hidden;
-  display: flex;
-  flex-direction: column;
   background: var(--color-bg);
   color: var(--color-text);
 }
-.topbar {
+
+/* Сцена и класс делят кадр без остатка. Ни одна из полос сверху не отъедает высоту. */
+.panes {
+  position: absolute;
+  inset: 0;
   display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  padding: var(--space-4) var(--space-6);
-  border-bottom: 1px solid var(--color-border);
-  background: var(--nav-material);
+  min-inline-size: 0;
 }
-.logoBtn {
-  background: none;
-  border: 0;
-  cursor: pointer;
-  padding: 0;
-  border-radius: var(--radius-xs);
-}
-.logoBtn:focus-visible {
-  outline: none;
-  box-shadow: var(--focus-ring);
+
+.board {
+  flex: 1 1 auto;
+  min-inline-size: 0;
+  position: relative;
+  overflow: hidden;
+  background: var(--color-surface);
 }
 
 /*
- * 🔴 КОМНАТА ЛЕЖАЛА В КАРТОЧКЕ БЕЗ ВЫСОТЫ — ВОТ ГДЕ ТЕРЯЛСЯ ЭКРАН (наряд 38 §1.1).
+ * Сцена во весь кадр по ширине — но НЕ под пультами.
  *
- * `.screen` — карточка с полями и скруглением, шириной по `--content-max-wide` и **без
- * высоты вовсе**: она росла по содержимому. Оболочка снаружи занимала весь экран, плитки
- * внутри просили 260 пикселей — и между ними стояла карточка, которая раздавала ровно
- * столько, сколько попросили. Отсюда 14 % экрана под видео на 1440×900 и 9 % на 1920×1080.
+ * 🔴 Прибор дизайнера насчитал 19 текстов под слоем: панель доски, «Сохранить доску», доступ
+ * учеников и масштаб оказались ровно под верхним пультом. Это та же поломка, что с кнопкой
+ * «Войти в эфир», только тихая: нажать можно, а прочитать — нет.
  *
- * ⚠️ ОГРАНИЧЕНИЕ ШИРИНЫ СНЯТО ТОЛЬКО ЗДЕСЬ, в комнате урока, и по прямому требованию
- * владельца: «Экраны с видео учеников и учителя должны быть настолько большими, насколько
- * позволяет экран». На остальных экранах `--content-max-wide` остаётся: там колонка текста,
- * и растягивать её на 27 дюймов — вредить чтению.
+ * По ПРАВИЛАМ 3.6 место под плавающий пульт резервирует СОСЕД, а не сам пульт. Здесь сосед —
+ * сцена. Цена — около ста десяти пикселей высоты холста; она честная: рисовать под
+ * непрозрачной плашкой всё равно нельзя.
  */
-.screen {
-  width: 100%;
-  margin: 0;
-  flex: 1 1 auto;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-  background: var(--color-surface);
-  border: 0;
-  border-radius: 0;
+.scene {
+  position: absolute;
+  inset: 0;
+  padding-block: calc(var(--space-4) + var(--control-height-sm) + var(--space-7))
+    calc(var(--control-height-md) + 2 * var(--space-5));
+  padding-inline: var(--space-5);
   overflow: hidden;
 }
 
-/* --- header ------------------------------------------------------------------------- */
-.roomTop {
-  display: flex;
-  align-items: center;
-  gap: var(--space-4);
-  padding: 11px var(--space-6);
-  border-bottom: 1px solid var(--color-border);
-  flex-wrap: wrap;
-}
-.roomWho {
-  display: grid;
-  gap: 1px;
-  min-width: 0;
-}
-.roomName {
-  font-size: var(--text-small);
-  font-weight: var(--weight-medium);
-  letter-spacing: var(--tracking-snug);
-}
-.roomMeta {
-  font-family: var(--font-mono);
-  font-size: var(--text-overline);
-  color: var(--color-text-tertiary);
-}
-/* The one accent of a running lesson: it is running. */
-.liveTag {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  font-family: var(--font-mono);
-  font-size: var(--text-overline);
-  color: var(--color-accent-text);
-  border: 1px solid var(--color-accent);
-  border-radius: var(--radius-xs);
-  padding: 2px 7px;
-  letter-spacing: var(--tracking-wide);
-}
-.liveTag i {
-  width: 4px;
-  height: 4px;
-  border-radius: 50%;
-  background: var(--color-accent);
-  display: block;
-  animation: pulse 2.4s ease-in-out infinite;
-}
-@keyframes pulse {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.35;
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .liveTag i {
-    animation: none;
-  }
-}
-.roomActs {
-  margin-left: auto;
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  flex-wrap: wrap;
+/* Дети сцены занимают её целиком: холст доски рассчитывает высоту от родителя. */
+.scene > * {
+  block-size: 100%;
 }
 
-/* --- two columns --------------------------------------------------------------------- */
-.room {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 306px;
-  /* Забирает всю оставшуюся высоту; `min-height: 0` обязателен, иначе потомки грида не
-     умеют сжиматься и высота снова определяется содержимым. */
-  flex: 1 1 auto;
-  min-height: 0;
-}
-@media (max-width: 900px) {
-  .room {
-    grid-template-columns: minmax(0, 1fr);
-  }
-  .side {
-    border-inline-start: 0;
-    border-top: 1px solid var(--color-border);
-  }
-}
 /*
- * 🔴 СЦЕНА ПОПАДАЛА В СТРОКУ «ПО СОДЕРЖИМОМУ», КОГДА ПОЛОСА СКРЫТА (наряд 38 §1.1).
+ * 🔴 СЛОЙ СОСТОЯНИЙ БЫЛ РАСТЯНУТ НА ВСЮ ДОСКУ — и накрывал её панель инструментов
+ * (прибор дизайнера, `textUnderLayer`: 15 подписей, каждая целиком).
  *
- * Здесь стояло `grid-template-rows: auto auto 1fr`, и растягивалась ТРЕТЬЯ строка. Но полоса
- * видео в сцене «Класс» не рисуется вовсе (`scene !== 'class'`), детей остаётся двое — и
- * сцена садится в первую строку, `auto`, то есть ровно по содержимому. Отсюда 312 пикселей
- * сцены внутри колонки высотой 768: место было выдано и не роздано.
+ * Нажатия он пропускал, поэтому глазами поломка не видна: доска работала. Но прозрачный
+ * слой во весь кадр — ровно тот случай, который прибор и ищет: сегодня он пустой, завтра
+ * ему поставят фон, и половина экрана перестанет отвечать. Слой теперь ровно по содержимому:
+ * колонка посередине, высота по карточке.
  *
- * Поток вместо сетки: он не зависит от того, сколько детей отрисовалось сегодня. Именно эта
- * зависимость от числа детей и была дефектом — она возвращалась бы при каждом новом
- * необязательном элементе.
+ * Отступы сверху и снизу — под пульты (ПРАВИЛА 3.6: место резервирует сосед, не сам пульт).
+ * `data-overlay-ok` — это ОСОЗНАННАЯ накладка: карточки «пусто», «подключаемся» и «отказ» на
+ * листе стоят поверх доски. Лица она при этом не трогает — они в другой колонке.
  */
-.stage {
-  border-inline-end: 1px solid var(--color-border);
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-  min-height: 0;
-}
-.strip {
-  flex: 0 0 auto;
-  display: flex;
-  gap: var(--space-3);
-  align-items: center;
-  padding: var(--space-3) var(--space-5);
-  border-bottom: 1px solid var(--color-border);
-  overflow-x: auto;
-}
-/* A tile grid handed to the strip has no width of its own to lay out in — without this it
-   collapses to a few pixels and the class silently disappears from the band. */
-.strip > * {
-  min-width: 0;
-}
-.stripGrow {
-  flex: 1 1 auto;
-}
-
-/* --- window bar ----------------------------------------------------------------------- */
-.wins {
-  display: flex;
-  align-items: center;
-  gap: 2px;
-  padding: var(--space-2) var(--space-4);
-  border-bottom: 1px solid var(--color-border);
-  overflow-x: auto;
-}
-.winWrap {
-  display: inline-flex;
-  align-items: center;
-  border-radius: var(--radius-sm);
-}
-.win {
-  font-family: var(--font-mono);
-  font-size: var(--text-overline);
-  font-weight: var(--weight-medium);
-  color: var(--color-text-secondary);
-  background: none;
-  border: none;
-  border-radius: var(--radius-sm);
-  padding: 6px 11px;
-  min-height: var(--tap-min);
-  cursor: pointer;
-  white-space: nowrap;
-}
-.win:hover {
-  color: var(--color-text);
-}
-.win[aria-selected='true'] {
-  background: var(--color-surface-subtle);
-  color: var(--color-text);
-}
-.win:focus-visible,
-.pop:focus-visible {
-  outline: none;
-  box-shadow: var(--focus-ring);
-}
-.pop {
-  border: 0;
-  background: none;
-  cursor: pointer;
-  color: var(--color-text-tertiary);
-  font-size: var(--text-overline);
-  padding: 6px 6px;
-  min-height: var(--tap-min);
-  border-radius: var(--radius-sm);
-}
-.pop:hover {
-  color: var(--color-accent-text);
-}
-/* Раскладка класса живёт рядом с окнами и только в окне «Класс» (лист D1). Отдельный класс,
-   а не переиспользованный .wins: у того есть своя нижняя граница и отступы строки. */
-.layoutSwitch {
-  display: inline-flex;
-  align-items: center;
-  gap: 2px;
-  flex: none;
-  margin-inline-start: var(--space-4);
-  padding-inline-start: var(--space-4);
-  border-inline-start: 1px solid var(--color-border);
-}
-.winsNote {
-  margin-left: auto;
-  flex: none;
-  font-family: var(--font-mono);
-  font-size: var(--text-overline);
-  color: var(--color-text-tertiary);
-  max-width: 34ch;
-  line-height: var(--leading-snug);
-}
-@media (max-width: 900px) {
-  .winsNote {
-    display: none;
-  }
-}
-
-.scene {
-  min-width: 0;
-  min-height: 0;
-  flex: 1 1 auto;
-  padding: var(--space-5);
-  /* ⚠️ Прокрутка ВНУТРИ сцены законна (длинная методичка, список работ) — незаконна
-     прокрутка страницы. Поэтому `auto` остаётся, но теперь ей есть во что вмещаться. */
-  overflow: auto;
-}
-
-/* --- right panel ------------------------------------------------------------------------ */
-.side {
-  display: grid;
-  grid-template-rows: auto 1fr;
-  min-width: 0;
-  min-height: 0;
-}
-.sideTabs {
-  display: flex;
-  gap: 1px;
-  border-bottom: 1px solid var(--color-border);
-  padding: 6px 8px 0;
-  overflow-x: auto;
-}
-.sTab {
-  font-family: var(--font-mono);
-  font-size: var(--text-overline);
-  font-weight: var(--weight-medium);
-  color: var(--color-text-secondary);
-  background: none;
-  border: none;
-  border-bottom: 2px solid transparent;
-  padding: 7px 8px 9px;
-  min-height: var(--tap-min);
-  cursor: pointer;
-  white-space: nowrap;
-  letter-spacing: var(--tracking-wide);
-}
-.sTab[aria-selected='true'] {
-  color: var(--color-text);
-  border-bottom-color: var(--color-accent);
-}
-.sTab:focus-visible {
-  outline: none;
-  box-shadow: var(--focus-ring);
-}
-.sideBody {
-  padding: var(--space-4) var(--space-5);
-  overflow: auto;
-}
-
-/* --- cast panel (second screen) --------------------------------------------------------- */
-.castPanel {
-  position: fixed;
-  right: var(--space-6);
-  top: calc(var(--tap-min) + var(--space-8));
-  width: min(320px, calc(100vw - var(--space-8)));
-  display: grid;
-  gap: var(--space-2);
-  justify-items: start;
-  padding: var(--space-5);
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-card);
-  box-shadow: var(--shadow-lg, var(--shadow-md));
-  z-index: var(--z-dropdown);
-}
-.castHead {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-}
-.castTitle {
-  font-family: var(--font-mono);
-  font-size: var(--text-caption);
-  color: var(--color-text-tertiary);
-}
-.castClose {
-  border: 0;
-  background: none;
-  cursor: pointer;
-  color: var(--color-text-secondary);
-  border-radius: var(--radius-sm);
-  padding: 2px;
-}
-.castClose:focus-visible {
-  outline: none;
-  box-shadow: var(--focus-ring);
-}
-.castBody {
-  font-size: var(--text-caption);
-  color: var(--color-text-secondary);
-  line-height: var(--leading-snug);
-}
-.castCode {
-  font-family: var(--font-mono);
-  font-size: var(--text-h2);
-  font-weight: var(--weight-medium);
-  letter-spacing: var(--tracking-wide);
-  color: var(--color-accent-text);
-}
-.castMeta,
-.castHint {
-  font-family: var(--font-mono);
-  font-size: var(--text-overline);
-  color: var(--color-text-tertiary);
-  line-height: var(--leading-snug);
-}
-
-/* --- the second screen itself ------------------------------------------------------------ */
-.projectorJoin {
-  min-height: 100vh;
+.states {
+  position: absolute;
+  z-index: 2;
+  inset-block: calc(var(--space-4) + var(--control-height-sm) + var(--space-7))
+    calc(var(--control-height-md) + 2 * var(--space-5));
+  inset-inline: 0;
+  inline-size: min(520px, calc(100% - 2 * var(--space-5)));
+  block-size: max-content;
+  max-block-size: calc(
+    100% - var(--space-4) - var(--control-height-sm) - var(--space-7) - var(--control-height-md) -
+      2 * var(--space-5)
+  );
+  margin: auto;
   display: grid;
   align-content: center;
   justify-items: center;
   gap: var(--space-4);
-  padding: var(--space-8);
-  background: var(--color-bg);
-  color: var(--color-text);
-  text-align: center;
-}
-.projectorTitle {
-  font-family: var(--font-heading);
-  font-size: var(--text-h2);
-  font-weight: var(--weight-semibold);
-}
-.projectorForm {
-  display: flex;
-  gap: var(--space-2);
-}
-.projectorInput {
-  min-height: var(--control-height-lg);
-  width: 180px;
-  padding: 0 var(--space-4);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
-  background: var(--color-surface);
-  color: var(--color-text);
-  font-family: var(--font-mono);
-  font-size: var(--text-lead);
-  letter-spacing: var(--tracking-wide);
-  text-align: center;
-}
-.projectorInput:focus-visible {
-  outline: none;
-  box-shadow: var(--focus-ring);
-}
-.projectorStage {
-  min-height: 100vh;
-  /* A video wall is dark in both themes — that is the surface, not the theme. The pair
-     below is the semantic one for "dark surface, light type on it". */
-  background: var(--color-surface-video);
-  display: grid;
-  grid-template-rows: auto 1fr;
-  gap: var(--space-3);
-  padding: var(--space-4);
-}
-.projectorCaption {
-  font-family: var(--font-mono);
-  font-size: var(--text-caption);
-  color: var(--color-text-on-video);
-  opacity: 0.7;
-}
-.projectorGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: var(--space-3);
-  align-content: start;
-}
-.projectorFocus {
-  display: grid;
-  place-items: center;
+  overflow: auto;
+  pointer-events: none;
 }
 
-/* --- source switcher --------------------------------------------------------------------- */
-.sources {
-  display: inline-flex;
-  gap: 2px;
-  padding: 2px;
+/* Нажатия проходят только по самим карточкам: слой между ними доску не перехватывает. */
+.states > * {
+  inline-size: 100%;
+  pointer-events: auto;
+}
+
+/*
+ * 🔴 КОЛОНКА КЛАССА — 22 % КАДРА И НЕ ТЯНЕТСЯ.
+ * Лист: лица стоят всегда. Отступы сверху и снизу РЕЗЕРВИРУЮТСЯ ЗДЕСЬ, а не в пультах
+ * (ПРАВИЛА 3.6): иначе в kids-режиме пульт садится на имя ученика.
+ */
+/* Граница тянется. Ширина 10 px — палец мимо не промахнётся, а глаз её не замечает. */
+.divider {
+  flex: 0 0 auto;
+  inline-size: 10px;
+  cursor: col-resize;
+  background: var(--color-surface-video);
+  touch-action: none;
+}
+
+.classPane {
+  flex: 0 0 auto;
+  min-inline-size: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--color-surface-video);
+  color: var(--color-text-on-video);
+  padding-block-start: calc(var(--space-4) + var(--control-height-sm) + var(--space-7));
+  padding-block-end: calc(var(--control-height-md) + 2 * var(--space-5));
+}
+
+/* Подвал колонки: тихая строка про камеру, ниже своей камеры и подписи. */
+.paneFoot {
+  flex: 0 0 auto;
+  padding: 0 var(--space-3) var(--space-3);
+}
+
+/* ── Пульты ──────────────────────────────────────────────────────────────────── */
+
+.hud {
+  position: absolute;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-pill);
+  background: color-mix(in oklab, var(--color-surface) 84%, transparent);
+  backdrop-filter: blur(var(--nav-blur));
+  transition:
+    opacity var(--duration-base) var(--ease-standard),
+    transform var(--duration-base) var(--ease-standard);
 }
-.sourceBtn {
-  min-height: 30px;
-  padding: 0 var(--space-3);
-  border: 0;
-  border-radius: var(--radius-pill);
+
+/* Уснувший пульт не перехватывает нажатия: невидимая кнопка, которая ловит клик, — ловушка. */
+.hud[data-awake='false'] {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(calc(-1 * var(--space-2)));
+}
+
+.hudBottom[data-awake='false'] {
+  transform: translateY(var(--space-2));
+}
+
+/* Пока фокус внутри — пульт виден, чем бы ни занимался указатель. */
+.hud:focus-within {
+  opacity: 1;
+  pointer-events: auto;
+  transform: none;
+}
+
+.hudTop {
+  inset-block-start: var(--space-4);
+  inset-inline-start: var(--space-4);
+  max-inline-size: calc(100% - 2 * var(--space-4));
+  box-shadow: var(--shadow-sm);
+}
+
+.hudBottom {
+  inset-block-end: var(--space-5);
+  inset-inline: var(--space-5);
+  inline-size: max-content;
+  max-inline-size: calc(100% - 2 * var(--space-5));
+  margin-inline: auto;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-2);
+  box-shadow: var(--shadow-md);
+}
+
+.hudSep {
+  inline-size: 1px;
+  block-size: 20px;
+  flex: none;
+  background: var(--color-border);
+}
+
+.logoBtn {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  inline-size: var(--control-height-sm);
+  block-size: var(--control-height-sm);
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-control);
   background: none;
-  color: var(--color-text-secondary);
-  font-family: var(--font-mono);
-  font-size: var(--text-overline);
+  color: var(--color-accent);
   cursor: pointer;
+}
+
+.logoBtn svg {
+  inline-size: 20px;
+  block-size: 20px;
+}
+
+.exit {
+  display: inline-flex;
+  align-items: center;
+  flex: none;
+  gap: var(--space-2);
+  min-block-size: var(--control-height-sm);
+  padding-inline: var(--space-2);
+  border: none;
+  border-radius: var(--radius-control);
+  background: none;
+  font-family: var(--font-body);
+  font-size: var(--text-small);
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.exit:hover {
+  color: var(--color-text);
+}
+
+.who {
+  display: grid;
+  gap: 1px;
+  min-inline-size: 0;
+}
+
+.whoName {
+  font-size: var(--text-small);
+  font-weight: 500;
+  letter-spacing: var(--tracking-snug);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.whoMeta {
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  color: var(--color-text-tertiary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/*
+ * Состояние комнаты — словом. Коралловый здесь заслужен: «идёт сейчас» из списка горящего
+ * (ПРАВИЛА 5.8). Точка пульсирует только пока эфир жив.
+ */
+.stateTag {
+  display: inline-flex;
+  align-items: center;
+  flex: none;
+  gap: var(--space-2);
+  padding: 3px var(--space-2);
+  border: 1px solid var(--color-accent);
+  border-radius: var(--radius-xs);
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  font-weight: 500;
+  color: var(--color-accent-text);
   white-space: nowrap;
 }
-.sourceBtn[aria-pressed='true'] {
+
+.stateTag i {
+  inline-size: 5px;
+  block-size: 5px;
+  border-radius: 50%;
+  background: var(--color-accent);
+}
+
+.stateTag[data-live='true'] i {
+  animation: roomPulse 2.4s var(--ease-standard) infinite;
+}
+
+@keyframes roomPulse {
+  50% {
+    opacity: 0.3;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stateTag[data-live='true'] i {
+    animation: none;
+  }
+}
+
+/* ── Окна ────────────────────────────────────────────────────────────────────── */
+
+.wins {
+  display: flex;
+  flex: none;
+  gap: 2px;
+  margin-inline-start: auto;
+  padding: 3px;
+  border-radius: var(--radius-control);
+  background: var(--color-surface-subtle);
+}
+
+.winWrap {
+  display: contents;
+}
+
+.win {
+  min-block-size: var(--control-height-sm);
+  padding-inline: var(--space-3);
+  border: none;
+  border-radius: var(--radius-sm);
+  background: none;
+  font-family: var(--font-body);
+  font-size: var(--text-caption);
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.win:hover {
+  color: var(--color-text);
+}
+
+.win[aria-selected='true'] {
+  background: var(--color-surface);
+  color: var(--color-text);
+  box-shadow: var(--shadow-sm);
+}
+
+.popOut {
+  flex: none;
+  min-block-size: var(--control-height-sm);
+  padding-inline: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  background: none;
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  color: var(--color-text-tertiary);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.popOut:hover {
+  color: var(--color-text);
+  border-color: var(--color-border-strong);
+}
+
+/* ── Нижний пульт ────────────────────────────────────────────────────────────── */
+
+/* Панель — личный инструмент, поэтому её кнопки без рамки: они не действия, а закладки. */
+.paneBtn {
+  flex: none;
+  min-block-size: var(--control-height-sm);
+  padding-inline: var(--space-3);
+  border: none;
+  border-radius: var(--radius-pill);
+  background: none;
+  font-family: var(--font-body);
+  font-size: var(--text-small);
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.paneBtn:hover {
+  color: var(--color-text);
+}
+
+.paneBtn[aria-pressed='true'] {
   background: var(--color-surface-subtle);
   color: var(--color-text);
 }
-.sourceBtn:disabled {
-  color: var(--color-text-disabled);
-  cursor: default;
+
+/*
+ * Выход коралловый — он из списка горящего (ПРАВИЛА 5.8), и это единственная акцентная
+ * рамка на нижнем пульте. Заливки акцентом здесь нет вовсе: заливка принадлежит поднятой
+ * руке в колонке класса.
+ */
+.leave {
+  flex: none;
+  min-block-size: var(--control-height-sm);
+  padding-inline: var(--space-4);
+  border: 1px solid var(--color-accent);
+  border-radius: var(--radius-pill);
+  background: none;
+  font-family: var(--font-body);
+  font-size: var(--text-small);
+  color: var(--color-accent-text);
+  white-space: nowrap;
+  cursor: pointer;
 }
-.sourceBtn:focus-visible {
+
+/* ── Накладная панель ────────────────────────────────────────────────────────── */
+
+/*
+ * Панель НАКЛАДНАЯ и по умолчанию закрыта. Прежде она была постоянной колонкой и забирала
+ * четверть кадра всегда — даже когда никто в неё не смотрел.
+ */
+.panel {
+  position: absolute;
+  z-index: 4;
+  inset-block: 76px 84px;
+  inset-inline-end: var(--space-4);
+  inline-size: 25%;
+  min-inline-size: 320px;
+  max-inline-size: 420px;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: color-mix(in oklab, var(--color-surface) 88%, transparent);
+  backdrop-filter: blur(var(--blur-frosted));
+  box-shadow: var(--shadow-lg);
+}
+
+.panelHead {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-5);
+  border-block-end: 1px solid var(--color-border);
+}
+
+.panelTitle {
+  font-family: var(--font-heading);
+  font-size: var(--text-h3);
+  font-weight: 500;
+  letter-spacing: var(--tracking-snug);
+}
+
+/* Была 28 px — ниже минимума для вторичного контрола, стала 34 (ИЗМЕНЕНИЯ-СМЫСЛА §10). */
+.panelClose {
+  margin-inline-start: auto;
+  inline-size: var(--control-height-sm);
+  block-size: var(--control-height-sm);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  background: none;
+  font-family: var(--font-mono);
+  font-size: var(--text-small);
+  color: var(--color-text-tertiary);
+  cursor: pointer;
+}
+
+.panelClose:hover {
+  color: var(--color-text);
+}
+
+/* Одна из двух прокручиваемых областей кадра (ПРАВИЛА 8.6). Вторая — решётка лиц. */
+.panelBody {
+  overflow: auto;
+  min-block-size: 0;
+  padding: var(--space-4) var(--space-5);
+}
+
+/* ── Клавиатура ──────────────────────────────────────────────────────────────── */
+
+.shell :focus-visible {
   outline: none;
   box-shadow: var(--focus-ring);
-}
-.sourceNote {
-  font-family: var(--font-mono);
-  font-size: var(--text-overline);
-  color: var(--color-text-tertiary);
-}
-
-/* --- scene placeholders (content arrives in its own phase) -------------------------------- */
-.sceneSoon {
-  display: grid;
-  place-content: center;
-  min-height: 240px;
-  padding: var(--space-6);
-  text-align: center;
-  font-size: var(--text-small);
-  color: var(--color-text-tertiary);
-  line-height: var(--leading-body);
-  max-width: 60ch;
-  margin: 0 auto;
-}
-.paneTitle {
-  font-family: var(--font-mono);
-  font-size: var(--text-overline);
-  color: var(--color-text-tertiary);
-  margin-bottom: var(--space-3);
-}
-.paneRow {
-  display: grid;
-  gap: 1px;
-  padding: var(--space-2) 0;
-  border-bottom: 1px solid var(--color-border);
-}
-.paneRow:last-child {
-  border-bottom: none;
-}
-.paneName {
-  font-size: var(--text-small);
-  font-weight: var(--weight-medium);
-}
-.paneMeta {
-  font-family: var(--font-mono);
-  font-size: var(--text-overline);
-  color: var(--color-text-tertiary);
-}
-.paneEmpty {
-  font-size: var(--text-caption);
-  color: var(--color-text-tertiary);
-  line-height: var(--leading-snug);
-}
-
-/* Список участников: кто в комнате и с камерой ли. */
-.paneList {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  display: grid;
-  gap: var(--space-2);
-}
-
-.paneRow {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: var(--space-3);
-}
-
-.paneWho {
-  font-size: var(--text-small);
-}
-
-.paneState {
-  font-family: var(--font-mono);
-  font-size: var(--text-overline);
-  color: var(--color-text-secondary);
+  border-radius: var(--radius-control);
 }
