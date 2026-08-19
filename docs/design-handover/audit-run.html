@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Прогон проверок</title>
+<style>
+  body { margin: 0; font: 13px/1.5 ui-monospace, monospace; background: #fff; color: #1d1d1f; }
+  h1 { font-size: 15px; margin: 16px; font-weight: 600; }
+  p.note { margin: 0 16px 16px; font-size: 12px; color: #6e6e73; max-width: 90ch; }
+  table { border-collapse: collapse; margin: 0 16px 24px; }
+  th, td { border: 1px solid #e5e5e7; padding: 5px 8px; text-align: left; white-space: nowrap; font-size: 12px; }
+  th { background: #f5f5f7; font-weight: 500; }
+  td.bad { background: #ffe9e6; color: #a3271a; }
+  td.ok { color: #2a7d4f; }
+  #stage { position: fixed; left: -4000px; top: 0; }
+  iframe { width: 1400px; height: 950px; border: 0; }
+  pre { margin: 0 16px 24px; font-size: 12px; white-space: pre-wrap; }
+</style>
+</head>
+<body>
+<h1>Прогон проверок — 15 приборов по всем листам пула</h1>
+<p class="note">В прогон идёт только пул экранов. «Первая страница» и черновики в него не входят: необъяснённый файл в корне — ровно тот мусор, который проверки и ищут.</p>
+<div id="out">считаю…</div>
+<pre id="self"></pre>
+<div id="stage"></div>
+<script>
+const click = (d, sel) => { const el = d.querySelector(sel); if (el) el.click(); return !!el; };
+const SHEETS = [
+  { file: 'Комната урока.dc.html', extra: [
+    { label: 'пульты скрыты', wait: 6500, run: () => {} },
+    { label: 'панель открыта', wait: 900, run: (d) => click(d, '[data-sw="panel"][data-val="people"]') },
+    { label: '30 участников', wait: 900, run: (d) => { click(d, '[data-sw="panel"][data-val="people"]'); click(d, '[data-sw="count"][data-val="30"]'); } },
+    { label: 'частичный отказ', wait: 900, run: (d) => { click(d, '[data-sw="count"][data-val="20"]'); click(d, '[data-sw="st"][data-val="partial"]'); } },
+    { label: 'правила', wait: 900, run: (d) => { click(d, '[data-sw="st"][data-val="filled"]'); click(d, '[data-sw="view"][data-val="rules"]'); } },
+  ] },
+  { file: 'Кабинет и учёба.dc.html', extra: [
+    { label: 'частичный отказ', wait: 1000, run: (d) => click(d, '[data-sw="st"][data-val="partial"]') },
+    { label: 'частичный · ученик', wait: 1000, run: (d) => click(d, '[data-sw="screen"][data-val="pupil"]') },
+    { label: 'частичный · моя учёба', wait: 1000, run: (d) => click(d, '[data-sw="screen"][data-val="learning"]') },
+    { label: 'частичный · расписание', wait: 1000, run: (d) => click(d, '[data-sw="screen"][data-val="schedule"]') },
+  ] },
+  { file: 'Каталог и курс.dc.html' },
+  { file: 'Вход и регистрация.dc.html' },
+  { file: 'Задания и конспект.dc.html', extra: [
+    { label: 'частичный отказ', wait: 1000, run: (d) => click(d, '[data-sw="st"][data-val="partial"]') },
+  ] },
+  { file: 'Кабинет предмета.dc.html', extra: [
+    { label: 'частичный отказ', wait: 1000, run: (d) => click(d, '[data-sw="st"][data-val="partial"]') },
+    { label: 'частичный · ученик', wait: 1000, run: (d) => click(d, '[data-sw="role"][data-val="pupil"]') },
+  ] },
+  { file: 'Вокруг урока.dc.html' },
+  { file: 'Приложение и надзор.dc.html' },
+];
+const KEYS = ['pageScroll','overlaps','absOverlaps','textUnderLayer','frameBleed','clipped','rowTops','gaps','rawValues','tapTargets','contrast','wrapped','rowWrap','accents','accentsGo','jump'];
+const DETAIL = ['textUnderLayer','frameBleed','overlaps','absOverlaps','rowWrap','clipped','tapTargets','contrast','wrapped','rawValues','rowTops'];
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+async function runSheet(sheet, wantSelfTest) {
+  const fr = document.createElement('iframe');
+  fr.src = encodeURI(sheet.file);
+  document.getElementById('stage').append(fr);
+  await new Promise((res) => { fr.onload = res; setTimeout(res, 12000); });
+  const w = fr.contentWindow, d = fr.contentDocument;
+  for (let i = 0; i < 60 && !d.querySelector('[data-audit-scope]'); i++) await sleep(200);
+  await sleep(1200);
+  const s = d.createElement('script');
+  s.src = './audit.js';
+  d.body.append(s);
+  for (let i = 0; i < 40 && !w.flAudit; i++) await sleep(100);
+  const name = sheet.file.replace('.dc.html', '');
+  if (!w.flAudit) { fr.remove(); return [{ label: name, verdict: null }]; }
+
+  // прибор 15: карка́с в «загружается» против «наполнено» — макет не имеет права прыгать
+  let jump = null;
+  if (click(d, '[data-sw="st"][data-val="loading"]')) {
+    await sleep(1100);
+    const gLoading = w.flAuditGeometry();
+    click(d, '[data-sw="st"][data-val="filled"]');
+    await sleep(1100);
+    const gFilled = w.flAuditGeometry();
+    jump = w.flAuditJump(gLoading, gFilled);
+  }
+
+  const take = (label) => {
+    const rep = w.flAudit({ label: label });
+    const detail = {};
+    DETAIL.forEach((k) => { if (rep[k] && rep[k].length) detail[k] = rep[k]; });
+    return { label: label, verdict: rep.verdict, detail: detail, gaps: rep.gaps };
+  };
+  const rows = [take(name)];
+  if (jump) {
+    rows[0].verdict.jump = jump.length ? 'ДЕФЕКТ · прыгает ' + jump.length : 'ok';
+    if (jump.length) rows[0].detail.jump = jump;
+  } else {
+    rows[0].verdict.jump = 'нет состояния';
+  }
+  let self = wantSelfTest ? w.flAuditSelfTest() : null;
+  for (const e of (sheet.extra || [])) {
+    e.run(d);
+    await sleep(e.wait);
+    rows.push(take(name + ' · ' + e.label));
+  }
+  if (self) rows[0].self = self;
+  fr.remove();
+  return rows;
+}
+
+(async () => {
+  const rows = [];
+  let self = null;
+  for (let i = 0; i < SHEETS.length; i++) {
+    const rs = await runSheet(SHEETS[i], i === 0);
+    rs.forEach((r) => { if (r.self) self = r.self; rows.push(r); });
+  }
+  const th = ['лист / состояние', ...KEYS].map((k) => '<th>' + k + '</th>').join('');
+  const body = rows.map((r) => {
+    const cells = KEYS.map((k) => {
+      const v = r.verdict ? (r.verdict[k] === undefined ? '—' : r.verdict[k]) : 'не загрузился';
+      const bad = String(v).indexOf('ДЕФЕКТ') === 0 || String(v).indexOf('вне сетки') === 0 || v === 'не загрузился';
+      return '<td class="' + (bad ? 'bad' : 'ok') + '">' + v + '</td>';
+    }).join('');
+    return '<tr><td>' + r.label + '</td>' + cells + '</tr>';
+  }).join('');
+  document.getElementById('out').innerHTML = '<table><tr>' + th + '</tr>' + body + '</table>';
+  const defects = rows.flatMap((r) => Object.entries(r.detail || {}).map(([k, v]) => r.label + ' · ' + k + ' · ' + JSON.stringify(v).slice(0, 700)));
+  const hist = rows.filter((r) => r.gaps).map((r) => r.label + ' → ' + JSON.stringify(r.gaps.hist) + ' волоски ' + JSON.stringify(r.gaps.hairlines));
+  document.getElementById('self').textContent =
+    'самопроверка приборов: ' + JSON.stringify(self, null, 1) +
+    '\n\nгистограмма отступов:\n' + hist.join('\n') +
+    '\n\nдефекты:\n' + (defects.join('\n') || 'нет');
+  window.__auditRows = rows;
+  window.__auditSelf = self;
+})();
+</script>
+</body>
+</html>

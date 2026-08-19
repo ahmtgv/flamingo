@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="tokens.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  html, body { height: 100%; overflow: hidden; }
+  a { color: var(--color-link); text-decoration: none; }
+  a:hover { color: var(--color-accent-text); }
+</style>
+</helmet>
+<div ref="{{ setRoot }}" data-theme="{{ theme }}" data-mode="{{ mode }}" style="height: 100vh; display: grid; grid-template-rows: auto minmax(0, 1fr); background: var(--color-bg); color: var(--color-text); font-family: var(--font-body); overflow: hidden;">
+
+  <div style="display: flex; align-items: center; gap: var(--space-2); padding: var(--space-3) var(--space-4); border-bottom: 1px solid var(--color-border); flex-wrap: wrap;">
+    <span style="font: 500 11px var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .08em; text-transform: uppercase;">экран</span>
+    <button data-sw="screen" data-val="login" onClick="{{ onSw }}" style="font: 500 12px var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">вход</button>
+    <button data-sw="screen" data-val="recover" onClick="{{ onSw }}" style="font: 500 12px var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">забыли пароль</button>
+    <button data-sw="screen" data-val="role" onClick="{{ onSw }}" style="font: 500 12px var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">кто вы</button>
+    <button data-sw="screen" data-val="form" onClick="{{ onSw }}" style="font: 500 12px var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">форма</button>
+
+    <span style="font: 500 11px var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .08em; text-transform: uppercase; margin-left: var(--space-4);">ветка</span>
+    <button data-sw="branch" data-val="kid" onClick="{{ onSw }}" style="font: 500 12px var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">7–11</button>
+    <button data-sw="branch" data-val="teen" onClick="{{ onSw }}" style="font: 500 12px var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">12–17</button>
+    <button data-sw="branch" data-val="adult" onClick="{{ onSw }}" style="font: 500 12px var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">18+</button>
+    <button data-sw="branch" data-val="teacher" onClick="{{ onSw }}" style="font: 500 12px var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">преподаватель</button>
+
+    <span style="font: 500 11px var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .08em; text-transform: uppercase; margin-left: var(--space-4);">состояние</span>
+    <button data-sw="st" data-val="empty" onClick="{{ onSw }}" style="font: 500 12px var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">пусто</button>
+    <button data-sw="st" data-val="filled" onClick="{{ onSw }}" style="font: 500 12px var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">заполнено</button>
+    <button data-sw="st" data-val="loading" onClick="{{ onSw }}" style="font: 500 12px var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">отправляется</button>
+    <button data-sw="st" data-val="failed" onClick="{{ onSw }}" style="font: 500 12px var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">отказ</button>
+
+    <span style="font: 500 11px var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .08em; text-transform: uppercase; margin-left: var(--space-4);">кадр</span>
+    <button data-sw="w" data-val="1280" onClick="{{ onSw }}" style="font: 500 12px var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">1280×800</button>
+    <button data-sw="w" data-val="1512" onClick="{{ onSw }}" style="font: 500 12px var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">1512×944</button>
+
+    <span style="margin-left: auto; display: flex; gap: var(--space-2); align-items: center;">
+      <span data-scroll-probe style="font: 400 11px var(--font-mono); color: var(--color-text-tertiary);">прокрутка страницы: 0 px</span>
+      <button data-sw="theme" data-val="toggle" onClick="{{ onSw }}" style="font: 500 12px var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">тема</button>
+      <button data-sw="kids" data-val="toggle" onClick="{{ onSw }}" style="font: 500 12px var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">kids</button>
+    </span>
+  </div>
+
+  <div ref="{{ setHost }}" style="display: grid; place-items: center; overflow: hidden; min-height: 0;">
+    <div data-audit-scope ref="{{ setFrame }}" style="width: 1280px; height: 800px; transform-origin: center center; position: relative; border-radius: var(--radius-card); overflow: hidden; background: var(--color-bg); box-shadow: var(--shadow-lg); border: 1px solid var(--color-border); display: grid; grid-template-columns: 468px minmax(0, 1fr);">
+
+      <div style="background: var(--color-surface); border-inline-end: 1px solid var(--color-border); padding: var(--space-8); display: grid; grid-template-rows: auto minmax(0, 1fr) auto; gap: var(--space-6);">
+        <span style="display: flex; align-items: center; gap: var(--space-3);">
+          <img src="design-assets/flamingo-bird.svg" alt="Flamingo" style="width: 26px; height: 26px;">
+          <span style="font-size: var(--text-body); font-weight: 600; letter-spacing: var(--tracking-snug);">Flamingo</span>
+        </span>
+        <div style="display: grid; gap: var(--space-5); align-content: center;">
+          <span style="font-family: var(--font-heading); font-size: var(--text-h1); font-weight: 600; letter-spacing: var(--tracking-tight); line-height: var(--leading-heading);">Живой урок, а не запись</span>
+          <span style="font-size: var(--text-body); color: var(--color-text-secondary); line-height: var(--leading-body); text-wrap: pretty;">Можно перебить, переспросить, попросить объяснить иначе. Всё, что вы прошли, остаётся вашим: конспекты, доски, работы и оценки открываются с любого устройства.</span>
+          <div style="display: grid; gap: var(--space-3); border-top: 1px solid var(--color-border); padding-top: var(--space-5);">
+            <sc-for list="{{ promises }}" as="p" hint-placeholder-count="3">
+              <span style="display: grid; grid-template-columns: 20px minmax(0, 1fr); gap: var(--space-3);">
+                <span style="font: 500 11px var(--font-mono); color: var(--color-accent-text);">{{ p.n }}</span>
+                <span style="font-size: var(--text-caption); color: var(--color-text-secondary); line-height: var(--leading-snug);">{{ p.text }}</span>
+              </span>
+            </sc-for>
+          </div>
+        </div>
+        <span style="font: 400 11px var(--font-mono); color: var(--color-text-tertiary); line-height: var(--leading-snug);">данные хранятся в России · записи занятий не существует · камеру и микрофон включаете вы сами</span>
+      </div>
+
+      <div style="display: grid; grid-template-rows: auto minmax(0, 1fr); min-height: 0;">
+        <div style="display: flex; align-items: center; gap: var(--space-3); padding: var(--space-5) var(--space-8) 0;">
+          <button onClick="{{ noop }}" style="min-height: var(--control-height-sm); font-size: var(--text-small); font-family: var(--font-body); color: var(--color-text-secondary); background: none; border: none; cursor: pointer; padding: var(--space-2) 0;" style-hover="color: var(--color-text);">{{ backLabel }}</button>
+          <span style="margin-left: auto; font: 400 12px var(--font-mono); color: var(--color-text-tertiary);">{{ stepMeta }}</span>
+        </div>
+
+        <div data-geo="тело формы" style="overflow: auto; min-height: 0; padding: var(--space-4) var(--space-8) var(--space-6);">
+          <div data-geo="колонка формы" style="max-width: 560px; display: grid; gap: var(--space-4);">
+            <div style="display: grid; gap: var(--space-2);">
+              <span style="font-family: var(--font-heading); font-size: var(--text-h2); font-weight: 600; letter-spacing: var(--tracking-snug); line-height: var(--leading-heading);">{{ title }}</span>
+              <span style="font-size: var(--text-small); color: var(--color-text-secondary); line-height: var(--leading-snug); text-wrap: pretty;">{{ lead }}</span>
+            </div>
+
+            <sc-if value="{{ showBanner }}" hint-placeholder-val="{{ false }}">
+              <div style="display: grid; gap: var(--space-2); padding: var(--space-4); border: 1px solid {{ bannerBorder }}; border-radius: var(--radius-control); background: {{ bannerBg }};">
+                <span style="font: 500 11px var(--font-mono); color: {{ bannerColor }}; letter-spacing: .08em; text-transform: uppercase;">{{ bannerKicker }}</span>
+                <span style="font-size: var(--text-caption); color: var(--color-text); line-height: var(--leading-snug);">{{ bannerText }}</span>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ isRolePick }}" hint-placeholder-val="{{ false }}">
+              <div style="display: grid; gap: var(--space-3);">
+                <sc-for list="{{ roles }}" as="r" hint-placeholder-count="4">
+                  <button data-role-card="{{ r.id }}" onClick="{{ onRole }}" style="display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--space-4); align-items: center; text-align: start; border: 1px solid var(--color-border); border-radius: var(--radius-card); background: var(--color-surface); padding: var(--space-4) var(--space-5); cursor: pointer; min-height: 72px; font-family: var(--font-body);" style-hover="border-color: var(--color-border-strong);">
+                    <span style="display: grid; gap: 3px;">
+                      <span style="font-size: var(--text-body); font-weight: 500; color: var(--color-text);">{{ r.name }}</span>
+                      <span style="font-size: var(--text-caption); color: var(--color-text-secondary); line-height: var(--leading-snug);">{{ r.sub }}</span>
+                    </span>
+                    <span style="font: 400 12px var(--font-mono); color: var(--color-text-tertiary);">{{ r.meta }}</span>
+                  </button>
+                </sc-for>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ isFields }}" hint-placeholder-val="{{ true }}">
+              <div data-fields data-geo="поля" style="display: grid; gap: var(--space-4);">
+                <sc-for list="{{ fields }}" as="f" hint-placeholder-count="4">
+                  <span style="display: grid; gap: var(--space-2);">
+                    <span style="display: flex; align-items: baseline; gap: var(--space-2);">
+                      <span style="font-size: var(--text-caption); font-weight: 500;">{{ f.label }}</span>
+                      <span style="font: 400 11px var(--font-mono); color: var(--color-text-tertiary);">{{ f.hint }}</span>
+                    </span>
+                    <input placeholder="{{ f.placeholder }}" value="{{ f.value }}" style="height: var(--control-height-lg); border: 1px solid {{ f.border }}; border-radius: var(--radius-control); background: var(--color-surface); color: var(--color-text); font-family: var(--font-body); font-size: var(--text-body); padding: 0 var(--space-4);">
+                    <sc-if value="{{ f.error }}" hint-placeholder-val="{{ false }}">
+                      <span style="display: grid; gap: 3px;">
+                        <span style="font-size: var(--text-caption); color: var(--color-error-text); line-height: var(--leading-snug);">{{ f.error }}</span>
+                        <span style="font: 400 11px var(--font-mono); color: var(--color-text-tertiary); line-height: var(--leading-snug);">{{ f.fix }}</span>
+                      </span>
+                    </sc-if>
+                  </span>
+                </sc-for>
+
+                <sc-if value="{{ hasConsent }}" hint-placeholder-val="{{ false }}">
+                  <div style="display: grid; gap: var(--space-3); padding: var(--space-4) var(--space-5); border: 1px solid var(--color-border); border-radius: var(--radius-card); background: var(--color-surface-subtle);">
+                    <span style="font-size: var(--text-caption); font-weight: 500;">{{ consentTitle }}</span>
+                    <span style="font-size: var(--text-caption); color: var(--color-text-secondary); line-height: var(--leading-snug);">{{ consentBody }}</span>
+                    <span style="font: 400 11px var(--font-mono); color: var(--color-text-secondary); line-height: var(--leading-snug);">{{ consentNote }}</span>
+                  </div>
+                </sc-if>
+
+                <div style="display: grid; gap: var(--space-3); border-top: 1px solid var(--color-border); padding-top: var(--space-4);">
+                  <button onClick="{{ noop }}" style="min-height: var(--control-height-lg); font-size: var(--text-small); font-family: var(--font-body); color: var(--color-on-accent); background: {{ submitBg }}; border: none; border-radius: var(--radius-control); padding: 0 var(--space-6); cursor: pointer; justify-self: start;" style-hover="background: var(--color-accent-solid-hover);">{{ submitLabel }}</button>
+                  <span style="font: 400 11px var(--font-mono); color: var(--color-text-tertiary); line-height: var(--leading-snug);">{{ submitNote }}</span>
+                </div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ isRecover }}" hint-placeholder-val="{{ false }}">
+              <div style="display: grid; gap: var(--space-4);">
+                <div style="display: grid; gap: var(--space-3); padding: var(--space-5); border: 1px solid var(--color-border); border-radius: var(--radius-card); background: var(--color-surface);">
+                  <span style="font-size: var(--text-body); font-weight: 500;">Восстановления пароля пока нет — и мы не будем делать вид, что оно есть</span>
+                  <span style="font-size: var(--text-small); color: var(--color-text-secondary); line-height: var(--leading-body);">Письма со ссылкой на сброс мы ещё не сделали. Пока пароль меняет человек: напишите нам с той почты, на которую записаны, и мы вернём доступ в течение рабочего дня.</span>
+                  <span style="display: flex; gap: var(--space-2); flex-wrap: wrap; margin-top: var(--space-1);">
+                    <button onClick="{{ noop }}" style="min-height: var(--control-height-md); font-size: var(--text-small); font-family: var(--font-body); color: var(--color-on-accent); background: var(--color-accent-solid); border: none; border-radius: var(--radius-control); padding: 0 var(--space-5); cursor: pointer;" style-hover="background: var(--color-accent-solid-hover);">Написать нам</button>
+                    <button onClick="{{ noop }}" style="min-height: var(--control-height-md); font-size: var(--text-small); font-family: var(--font-body); color: var(--color-text); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-control); padding: 0 var(--space-5); cursor: pointer;" style-hover="border-color: var(--color-border-strong);">Вернуться к входу</button>
+                  </span>
+                </div>
+                <span style="font: 400 11px var(--font-mono); color: var(--color-text-tertiary); line-height: var(--leading-snug);">если вы ученик младше 18 — доступ вернём через родителя, который давал согласие</span>
+              </div>
+            </sc-if>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;: {&quot;width&quot;: 1400, &quot;height&quot;: 900}}">
+class Component extends DCLogic {
+  state = { screen: 'login', branch: 'teen', st: 'empty', w: 1280, theme: 'light', kids: false };
+
+  componentDidMount() {
+    this.onResize = () => this.fit();
+    window.addEventListener('resize', this.onResize);
+    this.settle();
+    this.probe = setInterval(() => {
+      const el = this.root && this.root.querySelector('[data-scroll-probe]');
+      if (el) el.textContent = 'прокрутка страницы: ' + Math.max(0, document.documentElement.scrollHeight - window.innerHeight) + ' px';
+    }, 1000);
+  }
+  componentDidUpdate() { this.settle(); }
+  componentWillUnmount() { window.removeEventListener('resize', this.onResize); clearInterval(this.probe); }
+
+  settle() { this.fit(); this.applyChrome(); requestAnimationFrame(() => this.fit()); }
+
+  fit() {
+    const host = this.host, f = this.frame;
+    if (!host || !f) return;
+    const W = this.state.w, H = this.state.w === 1280 ? 800 : 944;
+    const s = Math.min(1, (host.clientWidth - 40) / W, (host.clientHeight - 40) / H);
+    host.style.position = 'relative';
+    f.style.position = 'absolute';
+    f.style.left = '50%'; f.style.top = '50%';
+    f.style.width = W + 'px'; f.style.height = H + 'px';
+    f.style.transform = 'translate(-50%, -50%) scale(' + s.toFixed(4) + ')';
+  }
+
+  applyChrome() {
+    const root = this.root; if (!root) return;
+    const cur = { screen: this.state.screen, branch: this.state.branch, st: this.state.st, w: String(this.state.w) };
+    root.querySelectorAll('[data-sw]').forEach((b) => {
+      const k = b.dataset.sw, v = b.dataset.val;
+      if (!(k in cur)) return;
+      const on = cur[k] === v;
+      b.style.color = on ? 'var(--color-text)' : 'var(--color-text-secondary)';
+      b.style.borderColor = on ? 'var(--color-border-strong)' : 'var(--color-border)';
+      b.style.background = on ? 'var(--color-surface)' : 'none';
+      if (k === 'branch') b.style.opacity = this.state.screen === 'form' ? '1' : '.45';
+    });
+    // четыре поля с ошибками не влезают в столбик — раскладываем в две колонки, форма остаётся целиком видна
+    const fw = root.querySelector('[data-fields]');
+    if (fw) {
+      const inputs = fw.querySelectorAll('input').length;
+      const two = inputs >= 4;
+      fw.style.gridTemplateColumns = two ? 'repeat(2, minmax(0, 1fr))' : 'minmax(0, 1fr)';
+      fw.style.columnGap = 'var(--space-5)';
+      Array.from(fw.children).forEach((ch) => {
+        if (!ch.querySelector || ch.querySelector('input')) return;
+        ch.style.gridColumn = two ? '1 / -1' : 'auto';
+      });
+    }
+  }
+
+  onSw = (e) => {
+    const { sw, val } = e.currentTarget.dataset;
+    if (sw === 'theme') return this.setState((s) => ({ theme: s.theme === 'dark' ? 'light' : 'dark' }));
+    if (sw === 'kids') return this.setState((s) => ({ kids: !s.kids }));
+    if (sw === 'w') return this.setState({ w: Number(val) });
+    this.setState({ [sw]: val });
+  };
+  onRole = (e) => {
+    const id = e.currentTarget.dataset.roleCard;
+    this.setState({ screen: 'form', branch: id === 'teacher' ? 'teacher' : id });
+  };
+
+  renderVals() {
+    const s = this.state;
+    const failed = s.st === 'failed', loading = s.st === 'loading', full = s.st === 'filled';
+    const f = (label, hint, placeholder, value, error, fix) => ({
+      label, hint, placeholder, value: full || failed || loading ? value : '',
+      error: failed ? error : '', fix: failed ? fix : '',
+      border: failed && error ? 'var(--color-error)' : 'var(--color-border)',
+    });
+
+    let title = '', lead = '', fields = [], submitLabel = '', submitNote = '', stepMeta = '', backLabel = '← на первую страницу';
+    let hasConsent = false, consentTitle = '', consentBody = '', consentNote = '';
+
+    if (s.screen === 'login') {
+      title = 'Вход';
+      lead = 'Той почтой и паролем, которые вы указали при регистрации. Если вы ученик и вас записывал преподаватель — войдите по коду, он в приглашении.';
+      fields = [
+        f('Почта', 'та, на которую записаны', 'anna@example.ru', 'anna@example.ru', 'Такой почты у нас нет', 'проверьте раскладку и точку в адресе — или зарегистрируйтесь, это две минуты'),
+        f('Пароль', '', '••••••••', '••••••••', 'Пароль не подошёл', 'осталось 3 попытки, потом вход закроется на 15 минут'),
+      ];
+      submitLabel = loading ? 'Проверяем…' : 'Войти';
+      submitNote = 'ещё можно войти по коду приглашения · «забыли пароль» честно скажет, что восстановление пока делает человек';
+      stepMeta = 'вход';
+    } else if (s.screen === 'recover') {
+      title = 'Забыли пароль';
+      lead = 'Скажем прямо, как есть.';
+      stepMeta = 'восстановление';
+      backLabel = '← к входу';
+    } else if (s.screen === 'role') {
+      title = 'Кто вы';
+      lead = 'От этого зависит, что спросим дальше: у младших школьников — согласие родителя, у преподавателя — предмет и диплом. Ничего лишнего.';
+      stepMeta = 'шаг 1 из 2';
+    } else {
+      const branch = {
+        kid: {
+          title: 'Ученик 7–11 лет',
+          lead: 'Эту форму заполняет родитель. Ребёнок войдёт по имени и коду — без почты и пароля, чтобы не терять их.',
+          stepMeta: 'шаг 2 из 2 · 7–11 лет',
+          fields: [
+            f('Имя ребёнка', 'как обращаться на занятии', 'Аня', 'Аня', '', ''),
+            f('Класс', 'можно поменять потом', '2 класс', '2 класс', '', ''),
+            f('Почта родителя', 'сюда придут доступ и отчёты', 'parent@example.ru', 'parent@example.ru', 'На эту почту уже есть учётная запись', 'войдите под ней и добавьте ребёнка — второй раз регистрироваться не нужно'),
+          ],
+          consentTitle: 'Согласие родителя — обязательно до 18 лет',
+          consentBody: 'Вы разрешаете обучение и обработку данных ребёнка в России. Речь занятий обрабатывается ради конспекта; видео и звук не записываются, кадры камеры не покидают устройство ребёнка.',
+          consentNote: 'согласие можно отозвать в личном кабинете — учёба остановится, данные удалим по вашей просьбе',
+          submit: 'Создать доступ ребёнку',
+          submitNote: 'после этого дадим имя и код для входа — их удобно записать на листке у компьютера',
+        },
+        teen: {
+          title: 'Ученик 12–17 лет',
+          lead: 'Регистрируетесь вы сами, но согласие даёт родитель — так требует закон. Мы отправим ему одно письмо, ждать ответа можно с уже собранным профилем.',
+          stepMeta: 'шаг 2 из 2 · 12–17 лет',
+          fields: [
+            f('Имя и фамилия', '', 'Аня Коваль', 'Аня Коваль', '', ''),
+            f('Ваша почта', 'вход и уведомления', 'anna@example.ru', 'anna@example.ru', 'Эта почта уже занята', 'если это вы — войдите; если нет — укажите другую'),
+            f('Пароль', 'от восьми знаков, буквы и цифры', 'придумайте пароль', 'anna2013', 'Слишком простой: это имя и год', 'добавьте два слова, не связанных между собой — так надёжнее длинных наборов символов'),
+            f('Почта родителя', 'придёт согласие', 'parent@example.ru', 'parent.ru', 'Адрес не похож на почту', 'не хватает знака @ — например parent@example.ru'),
+          ],
+          consentTitle: 'Согласие родителя',
+          consentBody: 'Пока родитель не подтвердит, вы можете смотреть каталог и готовиться, но не попадёте на занятие. Письмо уходит сразу, напомним через день.',
+          consentNote: 'данные хранятся в России · записи занятий не существует',
+          submit: 'Зарегистрироваться и отправить письмо',
+          submitNote: 'если родитель не получил письмо — покажем, как отправить снова или дать согласие с его телефона',
+        },
+        adult: {
+          title: 'Взрослый ученик',
+          lead: 'Три поля — и вы внутри. Предметы и уровень выберете в каталоге, менять их можно когда угодно.',
+          stepMeta: 'шаг 2 из 2 · 18+',
+          fields: [
+            f('Имя', 'как обращаться на занятии', 'Сергей', 'Сергей', '', ''),
+            f('Почта', 'вход и уведомления', 'sergey@example.ru', 'sergey@example.ru', 'Эта почта уже занята', 'войдите под ней или восстановите доступ'),
+            f('Пароль', 'от восьми знаков', 'придумайте пароль', 'qwerty12', 'Слишком простой: такой пароль пробуют первым', 'два несвязанных слова надёжнее — «весло-январь» помнится и не подбирается'),
+          ],
+          submit: 'Зарегистрироваться',
+          submitNote: 'нажимая, вы соглашаетесь с обработкой данных в России · отозвать согласие можно в личном кабинете',
+        },
+        teacher: {
+          title: 'Преподаватель',
+          lead: 'Занятия можно вести сразу после регистрации. Диплом проверим позже: это добавляет отметку в профиле и ничего не запрещает.',
+          stepMeta: 'шаг 2 из 2 · преподаватель',
+          fields: [
+            f('Имя и фамилия', 'ученики увидят это при записи', 'Люция Орлова', 'Люция Орлова', '', ''),
+            f('Предмет', 'можно несколько', 'английский', 'английский', '', ''),
+            f('Почта', 'вход и уведомления', 'orlova@example.ru', 'orlova@example.ru', 'Эта почта уже занята', 'войдите под ней — второй профиль преподавателю не нужен'),
+            f('Пароль', 'от восьми знаков', 'придумайте пароль', 'english2026', 'Слишком простой: слово и год', 'добавьте ещё одно слово или знак в середине'),
+          ],
+          consentTitle: 'Диплом — просьба, а не пропуск',
+          consentBody: 'Загрузите его когда удобно. Пока диплома нет, курсы работают, ученики записываются; в профиле просто не будет отметки о проверке.',
+          consentNote: 'проверка занимает до двух рабочих дней',
+          submit: 'Зарегистрироваться',
+          submitNote: 'дальше поможем создать первый курс — это пять шагов и один вечер',
+        },
+      }[s.branch];
+      title = branch.title; lead = branch.lead; fields = branch.fields; stepMeta = branch.stepMeta;
+      submitLabel = loading ? 'Отправляем…' : branch.submit;
+      submitNote = branch.submitNote;
+      hasConsent = !!branch.consentTitle;
+      consentTitle = branch.consentTitle || ''; consentBody = branch.consentBody || ''; consentNote = branch.consentNote || '';
+      backLabel = '← выбрать другую роль';
+    }
+
+    // «Отправляем» больше не встаёт полосой над формой: вставка блока сдвигала поля и кнопку
+    // на 197 px ровно в тот момент, когда человек по ней целится. Сообщение живёт в строке под
+    // кнопкой, которая есть всегда, — макет не двигается (ПРАВИЛА 6.6)
+    const banner = failed
+      ? { kicker: 'проверьте отмеченные поля', text: 'Мы ничего не отправили и не потеряли: исправьте отмеченное, остальное сохранилось.', color: 'var(--color-error-text)', bg: 'var(--color-error-bg)', border: 'var(--color-error)' }
+      : null;
+    if (loading) submitNote = 'отправляем — пара секунд. Не обновляйте страницу: если связь пропадёт, скажем словами и предложим повторить.';
+
+    return {
+      setRoot: (el) => { this.root = el; },
+      setHost: (el) => { this.host = el; },
+      setFrame: (el) => { this.frame = el; },
+      theme: s.theme === 'dark' ? 'dark' : 'light',
+      mode: s.kids ? 'kids' : 'default',
+      title, lead, stepMeta, backLabel,
+      isRolePick: s.screen === 'role',
+      isRecover: s.screen === 'recover',
+      isFields: s.screen === 'login' || s.screen === 'form',
+      fields,
+      hasConsent, consentTitle, consentBody, consentNote,
+      submitLabel, submitNote,
+      submitBg: loading ? 'var(--color-text-disabled)' : 'var(--color-accent-solid)',
+      showBanner: !!banner,
+      bannerKicker: banner ? banner.kicker : '',
+      bannerText: banner ? banner.text : '',
+      bannerColor: banner ? banner.color : 'var(--color-text)',
+      bannerBg: banner ? banner.bg : 'var(--color-surface)',
+      bannerBorder: banner ? banner.border : 'var(--color-border)',
+      roles: [
+        { id: 'kid', name: 'Ученик 7–11 лет', sub: 'форму заполняет родитель, ребёнок входит по имени и коду', meta: 'крупнее шрифт' },
+        { id: 'teen', name: 'Ученик 12–17 лет', sub: 'регистрируетесь сами, согласие даёт родитель', meta: 'нужно письмо' },
+        { id: 'adult', name: 'Взрослый ученик', sub: 'выбираете курсы себе, три поля', meta: '2 минуты' },
+        { id: 'teacher', name: 'Преподаватель', sub: 'вести занятия можно сразу, диплом проверим позже', meta: 'без пропуска' },
+      ],
+      promises: [
+        { n: '01', text: 'Видно, кто потерял нить: камера разбирается на устройстве ученика, наружу уходит одно число раз в две секунды.' },
+        { n: '02', text: 'Настоящие источники прямо в уроке: NASA, телескопы, музеи, архивы, живые трансляции.' },
+        { n: '03', text: 'Учёба остаётся ученику навсегда и не зависит от преподавателя.' },
+      ],
+      onSw: this.onSw,
+      onRole: this.onRole,
+      noop: () => {},
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="tokens.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  html, body { height: 100%; overflow: hidden; }
+  a { color: var(--color-link); text-decoration: none; }
+  a:hover { color: var(--color-accent-text); }
+</style>
+</helmet>
+<div ref="{{ setRoot }}" data-theme="{{ theme }}" style="height: 100vh; display: grid; grid-template-rows: auto minmax(0, 1fr); background: var(--color-bg); color: var(--color-text); font-family: var(--font-body); overflow: hidden;">
+
+  <div style="display: flex; align-items: center; gap: var(--space-2); padding: var(--space-3) var(--space-4); border-bottom: 1px solid var(--color-border); flex-wrap: wrap;">
+    <span style="font: 500 11px var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .08em; text-transform: uppercase;">обложки курсов · система без картинок</span>
+    <span style="margin-left: auto; display: flex; gap: var(--space-2); align-items: center;">
+      <button data-sw="mode" onClick="{{ onSw }}" style="font: 500 12px var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">{{ modeLabel }}</button>
+      <button data-sw="motif" onClick="{{ onSw }}" style="font: 500 12px var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">{{ motifLabel }}</button>
+      <button data-sw="theme" onClick="{{ onSw }}" style="font: 500 12px var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">тема</button>
+    </span>
+  </div>
+
+  <div ref="{{ setHost }}" style="display: grid; place-items: center; overflow: hidden; min-height: 0;">
+    <div data-audit-scope ref="{{ setFrame }}" style="width: 1400px; height: 940px; position: relative; border-radius: var(--radius-card); overflow: hidden; background: var(--color-bg); box-shadow: var(--shadow-lg); border: 1px solid var(--color-border); display: grid; grid-template-rows: auto minmax(0, 1fr) auto; gap: var(--space-5); padding: var(--space-7);">
+
+      <div style="display: grid; gap: var(--space-2);">
+        <span style="font-family: var(--font-heading); font-size: var(--text-h2); font-weight: 600; letter-spacing: var(--tracking-snug);">Обложка собирается из названия, а не из фотографии</span>
+        <span style="font-size: var(--text-small); color: var(--color-text-secondary); line-height: var(--leading-body); max-width: 108ch; text-wrap: pretty;">Мотив берётся из имени курса: сумма букв выбирает один из шести геометрических рисунков. Любой новый курс выглядит опрятно сразу, до того как преподаватель что-то приложил, и два курса одного предмета не выглядят близнецами. Своя картинка заменяет мотив целиком и ничего не ломает.</span>
+        <span style="font-size: var(--text-small); color: var(--color-text-secondary); line-height: var(--leading-body); max-width: 108ch; text-wrap: pretty;">{{ lead }}</span>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); grid-template-rows: repeat(4, minmax(0, 1fr)); gap: var(--space-4); min-height: 0;">
+        <sc-for list="{{ covers }}" as="c" hint-placeholder-count="16">
+          <span style="position: relative; border-radius: var(--radius-card); overflow: hidden; border: 1px solid var(--color-border); background-color: {{ c.tint }}; background-image: {{ c.motif }}; background-size: {{ c.size }}; background-position: {{ c.pos }}; display: grid; align-content: end; gap: 3px; padding: var(--space-4); min-width: 0;">
+            <span style="font: 500 11px var(--font-mono); color: {{ c.inkSoft }}; letter-spacing: .08em; text-transform: uppercase;">{{ c.subject }}</span>
+            <span style="font-family: var(--font-heading); font-size: var(--text-body); font-weight: 600; color: {{ c.ink }}; letter-spacing: var(--tracking-snug); line-height: var(--leading-heading);">{{ c.name }}</span>
+            <span style="font: 400 11px var(--font-mono); color: {{ c.inkSoft }};">{{ c.meta }}</span>
+          </span>
+        </sc-for>
+      </div>
+
+      <div style="display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: var(--space-7); border-top: 1px solid var(--color-border); padding-top: var(--space-5);">
+        <div style="display: grid; gap: var(--space-3); align-content: start;">
+          <span style="font: 500 11px var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .08em; text-transform: uppercase;">шесть мотивов · один и тот же курс в каждом</span>
+          <span style="display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: var(--space-3);">
+            <sc-for list="{{ motifs }}" as="m" hint-placeholder-count="6">
+              <span style="display: grid; gap: var(--space-2); justify-items: start; min-width: 0;">
+                <span style="width: 100%; height: 62px; border-radius: var(--radius-md); border: 1px solid var(--color-border); background-color: {{ m.tint }}; background-image: {{ m.motif }}; background-size: {{ m.size }}; background-position: {{ m.pos }};"></span>
+                <span style="font: 400 10px var(--font-mono); color: var(--color-text-secondary);">{{ m.label }}</span>
+              </span>
+            </sc-for>
+          </span>
+          <span style="font: 400 11px var(--font-mono); color: var(--color-text-secondary); line-height: var(--leading-snug);">мотив назначает не человек: он вычисляется из названия и не меняется при перезагрузке. Один курс — всегда одна обложка.</span>
+        </div>
+
+        <div style="display: grid; gap: var(--space-2); align-content: start;">
+          <span style="font: 500 11px var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .08em; text-transform: uppercase;">правила обложки</span>
+          <sc-for list="{{ rules }}" as="r" hint-placeholder-count="5">
+            <span style="display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: var(--space-3); padding-bottom: var(--space-2); border-bottom: 1px solid var(--color-border);">
+              <span style="font: 500 11px var(--font-mono); color: var(--color-text-tertiary);">{{ r.n }}</span>
+              <span style="font-size: var(--text-caption); color: var(--color-text-secondary); line-height: var(--leading-snug); text-wrap: pretty;">{{ r.text }}</span>
+            </span>
+          </sc-for>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;: {&quot;width&quot;: 1440, &quot;height&quot;: 1000}}">
+class Component extends DCLogic {
+  state = { theme: 'light', motif: 'auto', mode: 'main' };
+
+  componentDidMount() {
+    this._r = () => this.fit();
+    window.addEventListener('resize', this._r);
+    [0, 60, 240, 600].forEach((t) => setTimeout(this._r, t));
+    if (window.ResizeObserver && this.host) { this._ro = new ResizeObserver(this._r); this._ro.observe(this.host); }
+  }
+  componentWillUnmount() { window.removeEventListener('resize', this._r); if (this._ro) this._ro.disconnect(); }
+
+  fit() {
+    const host = this.host, f = this.frame;
+    if (!host || !f) return;
+    const W = 1400, H = 940;
+    const s = Math.min(1, (host.clientWidth - 24) / W, (host.clientHeight - 24) / H);
+    host.style.position = 'relative';
+    f.style.position = 'absolute';
+    f.style.left = '50%'; f.style.top = '50%';
+    f.style.width = W + 'px'; f.style.height = H + 'px';
+    f.style.transformOrigin = 'center center';
+    f.style.transform = 'translate(-50%, -50%) scale(' + s.toFixed(4) + ')';
+  }
+
+  onSw = (e) => {
+    const k = e.currentTarget.dataset.sw;
+    if (k === 'theme') this.setState((s) => ({ theme: s.theme === 'dark' ? 'light' : 'dark' }));
+    else if (k === 'mode') this.setState((s) => ({ mode: s.mode === 'main' ? 'kids' : 'main' }));
+    else this.setState((s) => ({ motif: s.motif === 'auto' ? 'off' : 'auto' }));
+  };
+
+  // Сумма букв названия — единственный источник выбора. Ни случайности, ни ручной правки:
+  // один курс всегда получает одну и ту же обложку, и это можно проверить пальцем.
+  hash(str) {
+    let h = 0;
+    for (let i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) % 100000;
+    return h;
+  }
+
+  // Шесть рисунков. Все — CSS-градиенты в цвете предмета: ни одной картинки, ничего не грузится.
+  motifOf(kind, ink, dark, loud) {
+    // В основной версии рисунок тише: это волосяная линия на бумаге, а не заливка цветом
+    const a = loud ? (dark ? 0.30 : 0.20) : (dark ? 0.14 : 0.10);
+    const b = loud ? (dark ? 0.16 : 0.10) : (dark ? 0.09 : 0.06);
+    const c1 = this.mix(ink, a), c2 = this.mix(ink, b);
+    return {
+      dots: { motif: 'radial-gradient(' + c1 + ' 1.6px, transparent 1.7px)', size: '18px 18px', pos: '0 0' },
+      stripes: { motif: 'repeating-linear-gradient(58deg, ' + c2 + ' 0 10px, transparent 10px 26px)', size: 'auto', pos: '0 0' },
+      rings: { motif: 'repeating-radial-gradient(circle at 88% 12%, ' + c2 + ' 0 1.5px, transparent 1.5px 22px)', size: 'auto', pos: '0 0' },
+      grid: { motif: 'linear-gradient(' + c2 + ' 1px, transparent 1px), linear-gradient(90deg, ' + c2 + ' 1px, transparent 1px)', size: '26px 26px, 26px 26px', pos: '0 0, 0 0' },
+      arc: { motif: 'radial-gradient(circle at 96% 8%, ' + c1 + ' 0 34%, transparent 34.5%)', size: 'auto', pos: '0 0' },
+      wedge: { motif: 'linear-gradient(122deg, transparent 0 62%, ' + c1 + ' 62% 100%)', size: 'auto', pos: '0 0' },
+    }[kind];
+  }
+
+  lum(rgb) {
+    const p = rgb.map((c) => c / 255).map((c) => (c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4)));
+    return 0.2126 * p[0] + 0.7152 * p[1] + 0.0722 * p[2];
+  }
+  rgbOf(hex) {
+    const v = hex.replace('#', '');
+    return [0, 2, 4].map((i) => parseInt(v.slice(i, i + 2), 16));
+  }
+  ratio(a, b) {
+    const l1 = this.lum(a), l2 = this.lum(b);
+    return (Math.max(l1, l2) + 0.05) / (Math.min(l1, l2) + 0.05);
+  }
+  // Вторичная подпись делается не прозрачностью, а ГОТОВЫМ цветом: прозрачность съедает
+  // контраст незаметно для глаза и незаметно для прибора (33 провала в детской версии).
+  // Цвет чернил подмешивается к плитке ровно настолько, чтобы отношение осталось ≥ 4,6.
+  softInk(inkHex, tintHex) {
+    const ink = this.rgbOf(inkHex), tint = this.rgbOf(tintHex);
+    for (let a = 1; a >= 0.6; a -= 0.05) {
+      const mixed = ink.map((v, i) => Math.round(v * a + tint[i] * (1 - a)));
+      if (this.ratio(mixed, tint) >= 4.6) return 'rgb(' + mixed.join(', ') + ')';
+    }
+    return inkHex;
+  }
+
+  mix(hex, alpha) {
+    const v = hex.replace('#', '');
+    const p = [0, 2, 4].map((i) => parseInt(v.slice(i, i + 2), 16));
+    return 'rgba(' + p.join(', ') + ', ' + alpha + ')';
+  }
+
+  renderVals() {
+    const dark = this.state.theme === 'dark';
+    const plain = this.state.motif === 'off';
+    const kinds = ['dots', 'stripes', 'rings', 'grid', 'arc', 'wedge'];
+    const labels = { dots: 'точки', stripes: 'полосы', rings: 'кольца', grid: 'сетка', arc: 'дуга', wedge: 'клин' };
+
+    // Цвет предмета — отдельная семья, и живёт она только на обложке. Состояние она не значит
+    // никогда: зелёный «дальше» и коралловый «горит» здесь не участвуют (ПРАВИЛА 5.8)
+    const subjects = [
+      ['Английский', '#3b4f9e', '#e8eaf6', '#1c2452'],
+      ['Математика', '#2f5b8a', '#e4edf5', '#173047'],
+      ['Физика', '#3a6b7d', '#e3eff2', '#1b333c'],
+      ['Химия', '#8e3a5d', '#f7e6ee', '#45182c'],
+      ['Биология', '#3f6b4a', '#e6f0e8', '#1d3222'],
+      ['География', '#8a6a1f', '#f5eeda', '#42320e'],
+      ['История', '#7a5230', '#f2e9df', '#3a2716'],
+      ['Литература', '#6b3f7a', '#efe6f4', '#331d3a'],
+      ['Русский язык', '#8f2f3f', '#f7e4e6', '#45161d'],
+      ['Информатика', '#1f6b7a', '#e0eff1', '#0e333a'],
+      ['Астрономия', '#2b3a75', '#e5e8f5', '#141b39'],
+      ['Искусство', '#8a2f6b', '#f6e4ef', '#421433'],
+      ['Музыка', '#5a3f8a', '#eae4f5', '#2a1d42'],
+      ['Обществознание', '#4a5a6b', '#e9edf1', '#232b33'],
+      ['Экономика', '#6b6a1f', '#f2f1dc', '#33320e'],
+      ['Немецкий', '#3f6b5a', '#e4f0ea', '#1d322a'],
+    ];
+
+    const names = [
+      ['English A2 для подростков', '17 уроков · дважды в неделю'],
+      ['Алгебра 8 · с нуля до задач ОГЭ', '24 урока · по субботам'],
+      ['Физика 9 · механика на опытах', '18 уроков · среда, пятница'],
+      ['Химия 8 · вещества и реакции', '16 уроков · вторник'],
+      ['Биология 7 · клетка под микроскопом', '14 уроков · четверг'],
+      ['География 7 · карта и климат', '20 уроков · понедельник'],
+      ['История 8 · Россия и мир', '22 урока · среда'],
+      ['Литература 9 · золотой век', '18 уроков · пятница'],
+      ['Русский 8 · орфография без правил', '20 уроков · вторник, четверг'],
+      ['Информатика 9 · Python с нуля', '24 урока · суббота'],
+      ['Астрономия · от Луны до экзопланет', '12 уроков · воскресенье'],
+      ['Искусство · как смотреть картину', '10 уроков · воскресенье'],
+      ['Музыка · слушать и слышать', '10 уроков · среда'],
+      ['Обществознание 9 · право и выбор', '16 уроков · пятница'],
+      ['Экономика · деньги и решения', '12 уроков · понедельник'],
+      ['Deutsch A1 · первый год', '20 уроков · вторник, четверг'],
+    ];
+
+    // ОСНОВНАЯ версия строже: холст остаётся тёплым нейтральным, цвет предмета в обложку не
+    // попадает вовсе. Предметы различаются мотивом и ступенью бумаги — структурой, а не цветом.
+    // Цветной набор целиком уходит в детский режим (7–11), где узнавание идёт через цвет.
+    const kids = this.state.mode === 'kids';
+    const paperL = ['#f4f3f0', '#efeeea', '#eae9e4'];
+    const paperD = ['#1c1c1e', '#202022', '#252527'];
+
+    const covers = subjects.map((s, i) => {
+      const [subject, strong, tintL, tintD] = s;
+      const [name, meta] = names[i];
+      const h = this.hash(name + subject);
+      const kind = kinds[h % kinds.length];
+      const ink = kids ? (dark ? '#f5f5f7' : strong) : (dark ? '#f5f5f7' : '#1d1d1f');
+      const tint = kids ? (dark ? tintD : tintL) : (dark ? paperD[h % 3] : paperL[h % 3]);
+      const m = plain ? { motif: 'none', size: 'auto', pos: '0 0' } : this.motifOf(kind, kids ? strong : (dark ? '#f5f5f7' : '#1d1d1f'), dark, kids);
+      return { subject, name, meta, tint, ink, inkSoft: this.softInk(ink, tint), motif: m.motif, size: m.size, pos: m.pos };
+    });
+
+    const demo = subjects[0];
+    const motifs = kinds.map((k) => {
+      const m = this.motifOf(k, kids ? demo[1] : (dark ? '#f5f5f7' : '#1d1d1f'), dark, kids);
+      return {
+        label: labels[k],
+        tint: kids ? (dark ? demo[3] : demo[2]) : (dark ? paperD[0] : paperL[0]),
+        motif: m.motif, size: m.size, pos: m.pos,
+      };
+    });
+
+    return {
+      setRoot: (el) => { this.root = el; },
+      setHost: (el) => { this.host = el; },
+      setFrame: (el) => { this.frame = el; },
+      onSw: this.onSw,
+      theme: dark ? 'dark' : 'light',
+      motifLabel: plain ? 'мотив выключен' : 'мотив включён',
+      modeLabel: kids ? 'детская версия · 7–11' : 'основная версия',
+      lead: kids
+        ? 'Детская версия: цвет предмета работает узнаванием — семилетний находит английский по цвету раньше, чем читает название. Мотив тот же и вычисляется так же, только звонче.'
+        : 'Основная версия строже: холст остаётся тёплым нейтральным, цвет предмета в обложку не попадает. Предметы различаются мотивом из названия и ступенью бумаги — структурой, а не цветом. Цветной набор целиком уходит в детский режим.',
+      covers, motifs,
+      rules: [
+        { n: '01', text: kids
+          ? 'Цвет берёт предмет, не курс: все курсы английского узнаются как английский, даже у разных преподавателей.'
+          : 'Цвета предмета в основной версии нет: холст, чернила, волосяная линия. Предмет узнаётся мотивом и подписью.' },
+        { n: '02', text: 'Мотив вычисляется из названия — сумма букв выбирает рисунок из шести. Ни случайности, ни ручного выбора.' },
+        { n: '03', text: 'Обложка не несёт состояния: коралловый «горит» и зелёный «дальше» на ней не появляются никогда.' },
+        { n: '04', text: kids
+          ? 'Название читается поверх мотива: рисунок держится на 10–20 % прозрачности, текст — цветом предмета.'
+          : 'Название читается поверх мотива: волосяная линия держится на 6–10 % прозрачности, текст — чернилами.' },
+        { n: '05', text: 'Своя картинка преподавателя заменяет мотив целиком и ничего не ломает: рамка, размер и подписи те же.' },
+      ],
+    };
+  }
+}
+
+</script>
+</body>
+</html>
