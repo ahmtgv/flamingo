@@ -7,7 +7,8 @@
     "loading": "Загрузка…",
     "signOut": "Выйти",
     "retry": "Повторить",
-    "toCabinet": "В кабинет"
+    "toCabinet": "В кабинет",
+    "toLanding": "На главную"
   },
   "theme": {
     "toLight": "Светлая тема",

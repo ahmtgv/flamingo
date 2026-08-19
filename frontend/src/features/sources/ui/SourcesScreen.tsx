@@ -1,5 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+
+import { useSession } from '@/shared/hooks/useSession';
 import { useNavigate } from 'react-router-dom';
 
 import { useMySavedItemsQuery, useSaveItemMutation } from '@/entities/graphql/generated';
@@ -46,6 +48,9 @@ const CATALOGUE_FROM = 20;
  */
 export function SourcesScreen() {
   const { t } = useTranslation(['sources', 'common']);
+  // Хаб открыт постороннему (наряд 40-бис §4): у гостя кабинета нет, дверь ведёт на афишу.
+  const isGuest = useSession().status === 'unauthenticated';
+  const home = isGuest ? '/' : HOME_ROUTE;
   const navigate = useNavigate();
   const [tab, setTab] = useState<Tab>('world');
   const [topic, setTopic] = useState<Topic | 'all'>('all');
@@ -71,8 +76,8 @@ export function SourcesScreen() {
           <button
             type="button"
             className={styles.logoBtn}
-            onClick={() => navigate('/start')}
-            aria-label={t('common:actions.toCabinet')}
+            onClick={() => navigate(home)}
+            aria-label={isGuest ? t('common:actions.toLanding') : t('common:actions.toCabinet')}
           >
             <Logo />
           </button>
@@ -86,9 +91,9 @@ export function SourcesScreen() {
           <button
             type="button"
             className={styles.backBtn}
-            onClick={() => navigate(HOME_ROUTE)}
+            onClick={() => navigate(home)}
           >
-            {t('common:actions.toCabinet')}
+            {isGuest ? t('common:actions.toLanding') : t('common:actions.toCabinet')}
           </button>
         </header>
       )}

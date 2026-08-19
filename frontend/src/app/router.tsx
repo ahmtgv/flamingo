@@ -299,11 +299,7 @@ export function AppRouter() {
         />
         <Route
           path="/courses"
-          element={
-            <ProtectedRoute>
-              <CatalogScreen />
-            </ProtectedRoute>
-          }
+          element={<CatalogScreen />}
         />
         <Route
           path="/courses/new"
@@ -359,19 +355,19 @@ export function AppRouter() {
             «получаем кабинет преподавателя, курсы» из письма владельца. */}
         <Route
           path="/источники"
-          element={
-            <ProtectedRoute>
-              <SourcesScreen />
-            </ProtectedRoute>
-          }
+          element={<SourcesScreen />}
         />
+        {/*
+          🔴 АФИША ОБЕЩАЛА ГОСТЮ ТО, КУДА ЕГО НЕ ПУСКАЛИ (найдено на пустой базе, наряд 40-бис §4).
+          «Источники мира» и «Предметы» стоят в верхней строке афиши — и обе вели на форму
+          входа: посторонний приходил посмотреть и упирался в «представьтесь».
+          Сервер их приватными не считал: `catalog` — публичный запрос без пользователя, хаб
+          источников вообще ничего не спрашивает. Стеной был только роутер.
+          ⚠️ Права не ослаблены: что именно видно, решают резолверы, а не эта строка.
+        */}
         <Route
           path="/sources"
-          element={
-            <ProtectedRoute>
-              <SourcesScreen />
-            </ProtectedRoute>
-          }
+          element={<SourcesScreen />}
         />
         <Route
           path="/кабинет"

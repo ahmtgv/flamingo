@@ -2,6 +2,8 @@ import { ICON_SM } from '@/shared/ui/iconSizes';
 import { ArrowLeft } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+
+import { useSession } from '@/shared/hooks/useSession';
 import { useNavigate } from 'react-router-dom';
 
 import { type CourseFilter, useCatalogQuery } from '@/entities/graphql/generated';
@@ -52,6 +54,9 @@ export function CatalogScreen() {
   const isZero = !loading && !error && !hasFilter && totalCount === 0;
   const isNoResults = !loading && !error && hasFilter && nodes.length === 0;
 
+  const isGuest = useSession().status === 'unauthenticated';
+  const home = isGuest ? '/' : HOME_ROUTE;
+
   function reset() {
     setSearch('');
     setChip('all');
@@ -60,8 +65,11 @@ export function CatalogScreen() {
   return (
     <CoursesLayout>
       <div className={styles.content}>
-        <button type="button" className={styles.back} onClick={() => navigate(HOME_ROUTE)}>
-          <ArrowLeft size={ICON_SM} /> {t('courses:back')}
+        {/* 🔴 Дверь ведёт туда, откуда человек пришёл: гостя — на афишу, вошедшего — в кабинет.
+            Каталог открыт постороннему (наряд 40-бис §4), а кабинета у него нет: «В кабинет»
+            отправило бы его на форму входа — то есть в ту самую стену, которую мы убрали. */}
+        <button type="button" className={styles.back} onClick={() => navigate(home)}>
+          <ArrowLeft size={ICON_SM} /> {isGuest ? t('common:actions.toLanding') : t('courses:back')}
         </button>
 
         <div className={styles.catHead}>
