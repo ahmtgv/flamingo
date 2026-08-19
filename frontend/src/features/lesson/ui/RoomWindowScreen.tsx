@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom';
 
 import { useSessionRoomQuery } from '@/entities/graphql/generated';
 
-import styles from './roomframe.module.css';
+import styles from './roomwindow.module.css';
 import { SCENES, type Scene } from './RoomFrame';
 
 /**

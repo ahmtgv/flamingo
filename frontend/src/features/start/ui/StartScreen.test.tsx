@@ -150,14 +150,14 @@ describe('стартовая внутри приложения', () => {
   it('🔴 не рисует свой знак бренда — его несёт рама окна', async () => {
     vi.mocked(isDesktop).mockReturnValue(true);
     render([meMock(), profilesMock(), pageMock(page())]);
-    await screen.findByText(/Привет/);
+    await screen.findByRole('region', { name: 'Сейчас' });
     expect(screen.queryByRole('button', { name: 'Flamingo' })).toBeNull();
   });
 
   it('в браузере знак остаётся: там рамы нет и бренд нести нечему', async () => {
     vi.mocked(isDesktop).mockReturnValue(false);
     render([meMock(), profilesMock(), pageMock(page())]);
-    await screen.findByText(/Привет/);
+    await screen.findByRole('region', { name: 'Сейчас' });
     expect(screen.getByRole('button', { name: 'Flamingo' })).toBeTruthy();
   });
 
@@ -165,7 +165,7 @@ describe('стартовая внутри приложения', () => {
     // ⚠️ Половина правки, которую легко потерять: убран ЗНАК, а не вся полоса.
     vi.mocked(isDesktop).mockReturnValue(true);
     render([meMock(), profilesMock(), pageMock(page())]);
-    await screen.findByText(/Привет/);
+    await screen.findByRole('region', { name: 'Сейчас' });
     expect(screen.getAllByRole('button', { name: /Чат/ }).length).toBeGreaterThan(0);
   });
 });
@@ -174,28 +174,33 @@ describe('StartScreen — atlas sheet 00', () => {
   it('pupil: greets, shows the lesson about to start and its countdown', async () => {
     render([meMock(), profilesMock(), pageMock(page())]);
 
-    expect(await screen.findByText('Привет, Аня')).toBeInTheDocument();
+    expect(await screen.findByRole('region', { name: 'Сейчас' })).toBeInTheDocument();
     expect(screen.getByText('урок начинается')).toBeInTheDocument();
     expect(screen.getAllByText('Экзопланеты').length).toBeGreaterThan(0);
     expect(screen.getByRole('button', { name: 'Войти в урок' })).toBeInTheDocument();
     expect(screen.getByText(/через 17 минут/)).toBeInTheDocument();
   });
 
-  it('keeps the sheet-00 slot order: сейчас → сегодня → внимание → неделя → продолжить → прогресс', async () => {
+  it('три колонки листа: слева что от меня ждут, в середине что и когда, справа как идёт', async () => {
     render([meMock(), profilesMock(), pageMock(page())]);
-    await screen.findByText('Привет, Аня');
+    await screen.findByRole('region', { name: 'Сейчас' });
 
+    // 🔴 Проверка ВИДА, а не поведения: она переписана вместе с экраном (наряд 42 §4).
+    // Прежде тут была одна лента сверху вниз — «Сейчас · Сегодня · Внимание · Неделя ·
+    // Продолжить · Прогресс · Быстрые входы». Слота «Сегодня» больше нет: его работу делает
+    // недельная полоса, где сегодняшний день отмечен, и держать оба значило показывать
+    // одно дважды.
     const labels = screen
       .getAllByRole('region')
       .map((section) => section.getAttribute('aria-label'));
     expect(labels).toEqual([
       'Сейчас',
-      'Сегодня',
       'Требует внимания',
-      'Неделя',
       'Продолжить',
+      'Неделя',
       'Прогресс',
       'Быстрые входы',
+      'Моя учёба',
     ]);
   });
 
@@ -266,10 +271,11 @@ describe('StartScreen — atlas sheet 00', () => {
       ),
     ]);
 
-    // 🔴 Решение владельца 14.08 (лист D1): «приветствие на стартовой уменьшено и оставлено
-    // ИМЕНЕМ БЕЗ "Здравствуйте"» — рабочая площадь важнее подписей. Правка сделана 17.08,
-    // до неё стартовая противоречила листу, а тест держал это противоречие зелёным.
-    expect(await screen.findByText('Аня')).toBeInTheDocument();
+    // 🔴 Решение владельца 14.08: «приветствие уменьшено и оставлено ИМЕНЕМ БЕЗ
+    // "Здравствуйте"» — рабочая площадь важнее подписей. Лист «Кабинет и учёба» довёл это
+    // до конца: приветствия нет вовсе, имя человека живёт в учётке справа в шапке.
+    // Смысл проверки тот же — экран называет человека по имени и не здоровается.
+    expect(await screen.findByText('Аня Коваль')).toBeInTheDocument();
     expect(screen.queryByText(/Здравствуйте/)).not.toBeInTheDocument();
     expect(screen.getByText('11 работ на проверке')).toBeInTheDocument();
     expect(screen.getByText('старшей 2 дня')).toBeInTheDocument();
@@ -298,10 +304,11 @@ describe('StartScreen — atlas sheet 00', () => {
       pageMock(page({ profile: activeCadet, now: null, today: [], week: week() })),
     ]);
 
-    expect(
-      await screen.findByText('Расписания нет — занимайтесь когда удобно'),
-    ).toBeInTheDocument();
-    expect(screen.getByText(/Жёсткого расписания нет/)).toBeInTheDocument();
+    // ⚠️ Прежде это говорилось ДВАЖДЫ: в слоте «Сегодня» и в недельной полосе. Слота
+    // «Сегодня» на листе нет, и вторая фраза ушла вместе с ним. Смысл цел: полоса по-прежнему
+    // объясняет курсанту, что расписания нет, — а не показывает ему пустую неделю молча.
+    expect(await screen.findByText(/Жёсткого расписания нет/)).toBeInTheDocument();
+    expect(screen.getByRole('region', { name: 'Неделя' })).toBeInTheDocument();
   });
 
   it('the account menu lists both educations and switching refetches the page', async () => {
@@ -333,7 +340,7 @@ describe('StartScreen — atlas sheet 00', () => {
       profilesMock([{ ...PUPIL, isActive: false }, switched]),
     ]);
 
-    await screen.findByText('Привет, Аня');
+    await screen.findByRole('region', { name: 'Сейчас' });
     await user.click(screen.getByRole('button', { name: 'Меню учётной записи' }));
 
     const menu = screen.getByRole('menu');
@@ -396,7 +403,7 @@ describe('StartScreen — atlas sheet 00', () => {
         },
       },
     ]);
-    await screen.findByText('Привет, Аня');
+    await screen.findByRole('region', { name: 'Сейчас' });
 
     // The count reaches the header, per the sheet. (The bubble carries it too, hence exact.)
     const header = screen.getByRole('button', { name: 'Чат 3' });
@@ -404,8 +411,8 @@ describe('StartScreen — atlas sheet 00', () => {
 
     await user.click(header);
     expect(screen.getByRole('region', { name: 'Сообщения' })).toBeInTheDocument();
-    // Still a window: the page underneath is not replaced.
-    expect(screen.getByText('Привет, Аня')).toBeInTheDocument();
+    // Окно, а не экран: страница под ним осталась на месте.
+    expect(screen.getByRole('region', { name: 'Сейчас' })).toBeInTheDocument();
   });
 
   it('progress is announced to assistive tech, not just drawn', async () => {

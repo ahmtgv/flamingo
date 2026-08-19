@@ -25,7 +25,7 @@ import { TestScene } from '@/features/exercises';
 import { DictionaryPane } from '@/features/dictionary';
 import { LessonChatPane, SummaryScene } from '@/features/summary';
 
-import frame from './roomframe.module.css';
+import frame from './roomwindow.module.css';
 import styles from './liveroom.module.css';
 import { ProjectorCast } from './ProjectorCast';
 import { type Participant } from '../classLayout';

@@ -371,3 +371,11 @@
   font-weight: var(--weight-medium);
   line-height: var(--leading-snug);
 }
+
+/* Комната заполнена и подобные сообщения комнаты. Тоже было без стилей — см. `formError`. */
+.note {
+  margin: 0;
+  font-size: var(--text-small);
+  line-height: var(--leading-snug);
+  color: var(--color-text-secondary);
+}

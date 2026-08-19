@@ -1,0 +1,164 @@
+/*
+ * ПРОЕКТОР И ВЫВОД НА ВТОРОЙ ЭКРАН.
+ *
+ * 🔴 Эти стили жили в `roomframe.module.css` и уехали вместе с ним при пересборке комнаты
+ * (наряд 41). Экран проектора и панель вывода остались без единого правила — и никто этого
+ * не заметил, потому что класс, которого нет в модуле, приходит в разметку как `undefined`
+ * молча. Поймал новый караул `cssModules.test.ts`.
+ *
+ * ПРАВИЛА 8.8: смотрят издалека — значит крупно и без мелочей.
+ */
+
+.castPanel {
+  position: absolute;
+  z-index: 5;
+  inset-block-start: calc(var(--space-4) + var(--control-height-sm) + var(--space-5));
+  inset-inline-end: var(--space-4);
+  inline-size: min(320px, calc(100vw - 2 * var(--space-4)));
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-5);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-lg);
+}
+
+.castHead {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.castTitle {
+  font-family: var(--font-heading);
+  font-size: var(--text-h3);
+  font-weight: 500;
+  letter-spacing: var(--tracking-snug);
+}
+
+.castClose {
+  margin-inline-start: auto;
+  inline-size: var(--control-height-sm);
+  block-size: var(--control-height-sm);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  background: none;
+  font-family: var(--font-mono);
+  color: var(--color-text-tertiary);
+  cursor: pointer;
+}
+
+.castClose:hover {
+  color: var(--color-text);
+}
+
+.castBody {
+  display: grid;
+  gap: var(--space-3);
+  font-size: var(--text-small);
+  line-height: var(--leading-snug);
+  color: var(--color-text-secondary);
+}
+
+/* Код набирают глазами с чужого экрана — поэтому крупно, моноширинно и вразрядку. */
+.castCode {
+  font-family: var(--font-mono);
+  font-size: var(--text-h2);
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text);
+}
+
+.castMeta,
+.castHint {
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  line-height: var(--leading-snug);
+  color: var(--color-text-tertiary);
+}
+
+/* ── Экран проектора ─────────────────────────────────────────────────────────── */
+
+.projectorJoin {
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: var(--space-5);
+  min-block-size: 100dvh;
+  padding: var(--space-6);
+  background: var(--color-bg);
+}
+
+.projectorTitle {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: var(--text-h1);
+  font-weight: 600;
+  letter-spacing: var(--tracking-snug);
+}
+
+.projectorForm {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  justify-content: center;
+}
+
+.projectorInput {
+  min-block-size: var(--control-height-lg);
+  padding-inline: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  background: var(--color-surface);
+  font-family: var(--font-mono);
+  font-size: var(--text-h3);
+  letter-spacing: 0.12em;
+  text-align: center;
+  color: var(--color-text);
+}
+
+.projectorInput:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+/* Сцена второго экрана — во весь экран и тёмная: на неё смотрят с другого конца комнаты. */
+.projectorStage {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-block-size: 100dvh;
+  background: var(--color-surface-video);
+  color: var(--color-text-on-video);
+  overflow: hidden;
+}
+
+/* Подпись под источником: у чужого рядом сказано право словами — её видит класс (8.9). */
+.projectorCaption {
+  position: absolute;
+  inset-block-end: var(--space-5);
+  inset-inline: var(--space-5);
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: var(--text-body);
+  line-height: var(--leading-snug);
+  color: var(--color-text-on-video);
+  opacity: 0.8;
+}
+
+.projectorFocus {
+  inline-size: 100%;
+  block-size: 100%;
+  object-fit: contain;
+}
+
+.projectorGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: var(--space-4);
+  inline-size: 100%;
+  block-size: 100%;
+  padding: var(--space-5);
+}

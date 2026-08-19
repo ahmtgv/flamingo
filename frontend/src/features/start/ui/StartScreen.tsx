@@ -84,7 +84,7 @@ export function StartScreen() {
 
   return (
     <div className={styles.shell}>
-      <header className={styles.topbar}>
+      <header className={styles.top}>
         {/* 🔴 ВТОРАЯ ПОЛОСА С ЛОГОТИПОМ ВНУТРИ ПРИЛОЖЕНИЯ (RnD 18.08, §2.4 — впервые увидено
             глазами). Строку заголовка рамы я починил в промпте 26 и спрятал дублирующую шапку
             в КОМНАТЕ. Стартовая осталась со своей: на снимке окна под строкой рамы стоит
@@ -155,6 +155,7 @@ export function StartScreen() {
           >
             <LogOut size={ICON_MD} />
           </button>
+          <span className={styles.stamp}>{headerStamp(now)}</span>
           {me && profiles.length > 0 && (
             <AccountMenu
               name={{ first: me.firstName, last: me.lastName }}
@@ -169,23 +170,16 @@ export function StartScreen() {
       {/* 🔴 V-09 (волна 2, axe): <main> — точка, в которую скринридер прыгает, минуя шапку.
           Без неё человек каждый раз слушает навигацию заново, а всё содержимое страницы
           axe считает «вне ориентиров». */}
-      <main className={styles.page}>
-        <div className={styles.hi}>
-          <h1 className={styles.hiName}>
-            {/* §24: «Здравствуйте, Люция Валерьевна». Форму собирает сервер — к преподавателю
-                имя-отчество, к ученику имя, и без отчества хвоста не остаётся.
+      <main className={styles.main}>
+        {/*
+          🔴 ПРИВЕТСТВИЯ ВО ВСЮ ШИРИНУ БОЛЬШЕ НЕТ (лист «Кабинет и учёба», наряд 42).
+          Оно занимало 120 px первого экрана и сообщало ровно одно — что человек вошёл, о чём
+          он и так знает. Имя переехало в учётку справа в шапке, дата и время — туда же.
 
-                🔴 Имени может не быть — и тогда приветствие БЕЗ запятой (найдено сквозным
-                прогоном 17.08). Здесь стояло `me?.displayName ?? ''`, и при неотвеченном
-                `me` заголовок читался «Привет,» — висящая запятая на месте человека.
-                Ровно та же подмена, что дала «Вход выполнен — .» на «Готово»: умолчание,
-                неотличимое от настоящего значения (промпт 24 §Б1). */}
-            {me?.displayName
-              ? t(isTeacher ? 'greetingTeacher' : 'greeting', { name: me.displayName })
-              : t(isTeacher ? 'greetingTeacherNoName' : 'greetingNoName')}
-          </h1>
-          <span className={styles.hiDate}>{headerStamp(now)}</span>
-        </div>
+          ⚠️ Заголовок странице всё-таки нужен: без него читалка объявляет страницу без имени.
+          Он есть, но невидим — зрячему его роль играет отмеченный раздел «Кабинет» в шапке.
+        */}
+        <h1 className={styles.srOnly}>{t('nav.cabinet')}</h1>
 
         {/* 🔴 БАННЕР ВЕРИФИКАЦИИ ЖИЛ ТОЛЬКО В ПРЕЖНЕМ КАБИНЕТЕ (аудит продукта 17.08).
             Он стоял в `TeacherCabinet`, то есть на `/app`, а преподаватель после мастера
@@ -202,185 +196,189 @@ export function StartScreen() {
         ) : !page?.profile ? (
           <NoProfile />
         ) : (
-          <div className={`${styles.grid} ${isTeacher ? styles.noContinue : ''}`}>
-            <NowSlot page={page} isTeacher={isTeacher} isCadet={isCadet} now={now} />
+          <div className={styles.page}>
+            {/*
+              🔴 ТРИ КОЛОНКИ ЛИСТА, У КАЖДОЙ СВОЙ ВОПРОС (ПРАВИЛА 3.4: 1.05 / 1.2 / 0.85).
+              Слева «что от меня ждут», в середине «что и когда», справа «как идёт».
+              Прежде это была одна лента слотов сверху вниз: чтобы увидеть свой прогресс,
+              преподаватель прокручивал мимо всего остального.
 
-            <section className={`${styles.slot} ${styles.sToday}`} aria-label={t('slots.today')}>
-              <div className={styles.slotHead}>
-                <span className={styles.slotTitle}>{t('slots.today')}</span>
-                <button type="button" className={styles.more} onClick={() => navigate('/schedule')}>
-                  {t('slots.allSchedule')}
-                </button>
-              </div>
-              {page.today.length === 0 ? (
-                <p className={styles.empty}>{t(isCadet ? 'empty.todayCadet' : 'empty.today')}</p>
-              ) : (
-                page.today.map((entry) => (
-                  <div className={styles.row} key={entry.id}>
-                    <span className={styles.rTime}>{entry.at ? clock(entry.at) : ''}</span>
-                    <span>
-                      <span className={styles.rName}>
-                        {entry.isLive && <span className={styles.rDot} aria-hidden="true" />}
-                        {entry.title}
-                      </span>
-                      <span className={styles.rSub}>
-                        {[entry.courseTitle, entry.teacherName].filter(Boolean).join(' · ')}
-                      </span>
-                    </span>
-                    <span className={`${styles.rTag} ${entry.isLive ? styles.rTagWarn : ''}`}>
-                      {entry.isLive ? t('entry.live') : t('entry.lesson')}
-                    </span>
-                  </div>
-                ))
-              )}
-            </section>
+              ⚠️ Слота «Сегодня» на листе НЕТ — его работу делает недельная полоса, где
+              сегодняшний день отмечен. Держать оба значило показывать одно дважды.
+            */}
+            <div className={styles.col}>
+              <NowSlot page={page} isTeacher={isTeacher} isCadet={isCadet} now={now} />
 
-            <section className={`${styles.slot} ${styles.sAttn}`} aria-label={t('slots.attention')}>
-              <div className={styles.slotHead}>
-                <span className={styles.slotTitle}>{t('slots.attention')}</span>
-              </div>
-              {page.attention.length === 0 ? (
-                <p className={styles.empty}>{t('empty.attention')}</p>
-              ) : (
-                page.attention.map((entry) => (
-                  <AttentionRow
-                    key={entry.id}
-                    entry={entry}
-                    now={now}
-                    navigate={navigate}
-                    onOpenChat={() => setChatOpen(true)}
-                  />
-                ))
-              )}
-            </section>
-
-            <WeekStrip week={page.week} isCadet={isCadet} />
-
-            {!isTeacher && (
-              <section
-                className={`${styles.slot} ${styles.sContinue}`}
-                aria-label={t('slots.continue')}
-              >
+              <section className={styles.slot} aria-label={t('slots.attention')}>
                 <div className={styles.slotHead}>
-                  <span className={styles.slotTitle}>{t('slots.continue')}</span>
+                  <span className={styles.slotTitle}>{t('slots.attention')}</span>
+                  {page.attention.length > 0 && (
+                    <span className={styles.slotCount}>
+                      {t('slots.attentionCount', { count: page.attention.length })}
+                    </span>
+                  )}
                 </div>
-                {page.continueEntries.length === 0 ? (
-                  <p className={styles.empty}>{t('empty.continue')}</p>
+                {page.attention.length === 0 ? (
+                  <p className={styles.empty}>{t('empty.attention')}</p>
                 ) : (
-                  page.continueEntries.map((entry) => (
-                    <div className={`${styles.row} ${styles.rowNoTime}`} key={entry.id}>
-                      <span>
-                        <span className={styles.rName}>{entry.title}</span>
-                        <span className={styles.rSub}>{entry.courseTitle}</span>
-                      </span>
-                      <Button
-                        variant="secondary"
-                        size="sm"
-                        onClick={() =>
-                          entry.lessonId && navigate(`/lessons/${entry.lessonId}/homework`)
-                        }
-                      >
-                        {t('now.resume')}
-                      </Button>
-                    </div>
+                  page.attention.map((entry) => (
+                    <AttentionRow
+                      key={entry.id}
+                      entry={entry}
+                      now={now}
+                      navigate={navigate}
+                      onOpenChat={() => setChatOpen(true)}
+                    />
                   ))
                 )}
               </section>
-            )}
 
-            {/* 🔴 Находка владельца 15.08, п.2: интерфейс был построен так, будто курс один.
-                Слот прогресса у преподавателя всегда пуст — прогресс считается по записи
-                ученика, которой у него нет. Здесь стоят ЕГО КУРСЫ: «что я веду» отвечается на
-                первом же экране, без клика, и отсюда же переключаются между курсами. */}
-            {/* 🔴 §27.5 п.3: «Усвоение группы» листа 00 — блок, вместо которого стояли «Мои
-                курсы». Это разные вещи, и лист просит обе: одна отвечает «что я веду», другая
-                — «как это зашло классу». Порядок с листа: усвоение выше. */}
-            {isTeacher ? (
-              <>
+              {/* Ученику лист даёт «Сдать» на месте учительских дел: то же по смыслу — что
+                  ждёт именно вас — но с ближним сроком в подписи. */}
+              {!isTeacher && (
+                <section className={styles.slot} aria-label={t('slots.continue')}>
+                  <div className={styles.slotHead}>
+                    <span className={styles.slotTitle}>{t('slots.continue')}</span>
+                  </div>
+                  {page.continueEntries.length === 0 ? (
+                    <p className={styles.empty}>{t('empty.continue')}</p>
+                  ) : (
+                    page.continueEntries.map((entry) => (
+                      <div className={`${styles.row} ${styles.rowNoTime}`} key={entry.id}>
+                        <span>
+                          <span className={styles.rName}>{entry.title}</span>
+                          <span className={styles.rSub}>{entry.courseTitle}</span>
+                        </span>
+                        <button
+                          type="button"
+                          className={styles.rAct}
+                          onClick={() =>
+                            entry.lessonId && navigate(`/lessons/${entry.lessonId}/homework`)
+                          }
+                        >
+                          {t('now.resume')}
+                        </button>
+                      </div>
+                    ))
+                  )}
+                </section>
+              )}
+            </div>
+
+            <div className={styles.col}>
+              <WeekStrip week={page.week} isCadet={isCadet} />
+              {isTeacher && <TeachingSlot rows={page.teaching} />}
+            </div>
+
+            <div className={styles.col}>
+              {/* §27.5 п.3: «что я веду» и «как это зашло классу» — разные вопросы, лист
+                  просит оба. Усвоение стоит выше: оно про класс, а не про меня. */}
+              {isTeacher ? (
                 <MasterySlot rows={page.mastery} />
-                <TeachingSlot rows={page.teaching} />
-              </>
-            ) : (
-            <section
-              className={`${styles.slot} ${styles.sProgress}`}
-              aria-label={t('slots.progress')}
-            >
-              <div className={styles.slotHead}>
-                <span className={styles.slotTitle}>{t('slots.progress')}</span>
-              </div>
-              {page.progress.length === 0 ? (
-                <p className={styles.empty}>{t('empty.progress')}</p>
               ) : (
-                page.progress.map((row) => (
-                  // This is where «мои предметы» leads (atlas sheet 01): the subject cabinet.
+                <section className={styles.slot} aria-label={t('slots.progress')}>
+                  <div className={styles.slotHead}>
+                    <span className={styles.slotTitle}>{t('slots.progress')}</span>
+                  </div>
+                  {page.progress.length === 0 ? (
+                    <p className={styles.empty}>{t('empty.progress')}</p>
+                  ) : (
+                    page.progress.map((row) => (
+                      // Отсюда дорога в кабинет предмета (лист «Кабинет предмета»).
+                      <button
+                        type="button"
+                        className={styles.progRow}
+                        key={row.courseId}
+                        onClick={() => navigate(`/subjects/${row.courseId}`)}
+                      >
+                        <div className={styles.progName}>{row.courseTitle}</div>
+                        <div className={styles.progMeta}>
+                          <span>
+                            {t('progress.lessons', {
+                              done: row.doneLessons,
+                              total: row.totalLessons,
+                            })}
+                          </span>
+                          <span>{row.progressPct}%</span>
+                        </div>
+                        <div
+                          className={styles.progressLine}
+                          role="progressbar"
+                          aria-valuenow={row.progressPct}
+                          aria-valuemin={0}
+                          aria-valuemax={100}
+                          aria-label={row.courseTitle}
+                        >
+                          <i style={{ inlineSize: `${row.progressPct}%` }} />
+                        </div>
+                      </button>
+                    ))
+                  )}
+                </section>
+              )}
+
+              <section className={styles.slot} aria-label={t('slots.quick')}>
+                <div className={styles.slotHead}>
+                  <span className={styles.slotTitle}>{t('slots.quick')}</span>
+                </div>
+                <div className={styles.quick}>
                   <button
                     type="button"
-                    className={styles.progRow}
-                    key={row.courseId}
-                    onClick={() => navigate(`/subjects/${row.courseId}`)}
+                    className={styles.quickBtn}
+                    onClick={() => navigate('/courses')}
                   >
-                    <div className={styles.progName}>{row.courseTitle}</div>
-                    <div className={styles.progMeta}>
-                      <span>
-                        {t('progress.lessons', { done: row.doneLessons, total: row.totalLessons })}
-                      </span>
-                      <span>{row.progressPct}%</span>
-                    </div>
-                    <div
-                      className={styles.progressLine}
-                      role="progressbar"
-                      aria-valuenow={row.progressPct}
-                      aria-valuemin={0}
-                      aria-valuemax={100}
-                      aria-label={row.courseTitle}
-                    >
-                      <i style={{ width: `${row.progressPct}%` }} />
-                    </div>
+                    {t('quick.courses')}
                   </button>
-                ))
-              )}
-            </section>
-            )}
+                  <button
+                    type="button"
+                    className={styles.quickBtn}
+                    onClick={() => navigate('/schedule')}
+                  >
+                    {t('quick.schedule')}
+                  </button>
+                  <button
+                    type="button"
+                    className={styles.quickBtn}
+                    onClick={() => navigate(isTeacher ? '/grading' : '/homework')}
+                  >
+                    {t('quick.homework')}
+                  </button>
+                  {/* Пятый быстрый вход листа. Плитки «Кабинет», уводившей на `/app`, здесь
+                      нет: этот экран САМ и есть кабинет. */}
+                  <button
+                    type="button"
+                    className={styles.quickBtn}
+                    onClick={() => navigate('/источники')}
+                  >
+                    {t('quick.sources')}
+                  </button>
+                </div>
+              </section>
 
-            <section className={`${styles.slot} ${styles.sQuick}`} aria-label={t('slots.quick')}>
-              <div className={styles.slotHead}>
-                <span className={styles.slotTitle}>{t('slots.quick')}</span>
-              </div>
-              <div className={styles.quick}>
-                <button
-                  type="button"
-                  className={styles.quickBtn}
-                  onClick={() => navigate('/courses')}
-                >
-                  {t('quick.courses')}
-                </button>
-                <button
-                  type="button"
-                  className={styles.quickBtn}
-                  onClick={() => navigate('/schedule')}
-                >
-                  {t('quick.schedule')}
-                </button>
-                <button
-                  type="button"
-                  className={styles.quickBtn}
-                  onClick={() => navigate(isTeacher ? '/grading' : '/homework')}
-                >
-                  {t('quick.homework')}
-                </button>
-                {/* 🔴 Плитка «Кабинет», уводившая на `/app`. Смеси хуже неё в продукте не
-                    было: лист 00 САМ и есть кабинет, такой плитки на нём нет, а нажатие
-                    уносило человека в прежнюю сборку без дороги назад. Заменена на пятый
-                    быстрый вход листа — «Источники мира». */}
-                <button
-                  type="button"
-                  className={styles.quickBtn}
-                  onClick={() => navigate('/источники')}
-                >
-                  {t('quick.sources')}
-                </button>
-              </div>
-            </section>
+              {/* Приглашение в зеркало — только ученику: у преподавателя своего зеркала нет. */}
+              {isPupil && (
+                <section className={`${styles.slot} ${styles.mirror}`} aria-label={t('nav.myLearning')}>
+                  <h2 className={styles.mirrorTitle}>{t('nav.myLearning')}</h2>
+                  <p className={styles.mirrorBody}>{t('mirror.body')}</p>
+                  {/*
+                    🔴 БЫЛА ЗАЛИВКОЙ — И СТАЛА ТРЕТЬИМ АКЦЕНТОМ НА ЭКРАНЕ (прибор: заливок 3
+                    при пределе 2). Главный шаг вперёд в кабинете ученика один — войти в
+                    идущий урок; зеркало ждёт и никуда не денется. Плюс прибор нашёл, что
+                    подпись кнопки ложилась поверх текста карточки: `justify-self` вернул её
+                    в поток, а не поверх него.
+                  */}
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    className={styles.mirrorBtn}
+                    onClick={() => navigate('/my-learning')}
+                  >
+                    {t('mirror.open')}
+                  </Button>
+                  <p className={styles.mirrorNote}>{t('mirror.note')}</p>
+                </section>
+              )}
+            </div>
           </div>
         )}
       </main>
@@ -410,7 +408,7 @@ function NowSlot({
 
   if (!entry) {
     return (
-      <section className={`${styles.slot} ${styles.sNow}`} aria-label={t('slots.now')}>
+      <section className={styles.slot} aria-label={t('slots.now')}>
         <p className={styles.empty}>
           {t(isTeacher ? 'now.emptyTeacher' : isCadet ? 'now.emptyCadet' : 'now.empty')}
         </p>
@@ -430,7 +428,7 @@ function NowSlot({
 
   return (
     <section
-      className={`${styles.slot} ${styles.sNow} ${styles.now} ${entry.isLive ? styles.nowLive : ''}`}
+      className={`${styles.slot} ${styles.now} ${entry.isLive ? styles.nowLive : ''}`}
       aria-label={t('slots.now')}
     >
       <span className={styles.nowKind}>
@@ -616,7 +614,7 @@ function MasterySlot({ rows }: { rows: Page['mastery'] }) {
   const { t } = useTranslation('start');
   const navigate = useNavigate();
   return (
-    <section className={`${styles.slot} ${styles.sMastery}`} aria-label={t('slots.mastery')}>
+    <section className={styles.slot} aria-label={t('slots.mastery')}>
       <div className={styles.slotHead}>
         <span className={styles.slotTitle}>{t('slots.mastery')}</span>
       </div>
@@ -650,7 +648,7 @@ function TeachingSlot({ rows }: { rows: Page['teaching'] }) {
   const navigate = useNavigate();
 
   return (
-    <section className={`${styles.slot} ${styles.sProgress}`} aria-label={t('slots.teaching')}>
+    <section className={styles.slot} aria-label={t('slots.teaching')}>
       <div className={styles.slotHead}>
         <span className={styles.slotTitle}>{t('slots.teaching')}</span>
         <button type="button" className={styles.more} onClick={() => navigate('/courses')}>
@@ -746,7 +744,7 @@ function WeekStrip({ week, isCadet }: { week: Page['week']; isCadet: boolean }) 
   const hasAnything = shown.some((day) => day.entries.length > 0);
 
   return (
-    <section className={`${styles.slot} ${styles.sWeek}`} aria-label={t('slots.week')}>
+    <section className={styles.slot} aria-label={t('slots.week')}>
       <div className={styles.weekHead}>
         <span className={styles.slotTitle}>{t('slots.week')}</span>
         <span className={styles.weekNav}>
@@ -795,8 +793,8 @@ function WeekStrip({ week, isCadet }: { week: Page['week']; isCadet: boolean }) 
                 key={entry.id}
                 title={entry.title}
               >
-                {entry.title}
-                {entry.at ? ` · ${clock(entry.at)}` : ''}
+                {entry.at && <span className={styles.evTime}>{clock(entry.at)}</span>}
+                <span className={styles.evName}>{entry.title}</span>
               </span>
             ))}
             {day.entries.length > 3 && (
@@ -815,13 +813,13 @@ function WeekStrip({ week, isCadet }: { week: Page['week']; isCadet: boolean }) 
 // --- states -----------------------------------------------------------------------------------
 function Skeleton() {
   return (
-    <div className={styles.grid} data-testid="start-skeleton" aria-busy="true">
-      <span className={`${styles.skel} ${styles.sNow}`} style={{ height: 132 }} />
-      <span className={`${styles.skel} ${styles.sWeek}`} style={{ height: 420 }} />
-      <span className={`${styles.skel} ${styles.sToday}`} style={{ height: 160 }} />
-      <span className={`${styles.skel} ${styles.sAttn}`} style={{ height: 160 }} />
-      <span className={`${styles.skel} ${styles.sContinue}`} style={{ height: 120 }} />
-      <span className={`${styles.skel} ${styles.sProgress}`} style={{ height: 120 }} />
+    <div className={styles.skel} data-testid="start-skeleton" aria-busy="true">
+      <span className={`${styles.skel}`} style={{ height: 132 }} />
+      <span className={`${styles.skel}`} style={{ height: 420 }} />
+      <span className={`${styles.skel}`} style={{ height: 160 }} />
+      <span className={`${styles.skel}`} style={{ height: 160 }} />
+      <span className={`${styles.skel}`} style={{ height: 120 }} />
+      <span className={`${styles.skel}`} style={{ height: 120 }} />
     </div>
   );
 }

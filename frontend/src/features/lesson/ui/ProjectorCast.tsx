@@ -6,7 +6,7 @@ import { useCreateProjectorCodeMutation } from '@/entities/graphql/generated';
 import { Button } from '@/shared/ui';
 import { ICON_SM } from '@/shared/ui/iconSizes';
 
-import styles from './roomframe.module.css';
+import styles from './projector.module.css';
 
 /**
  * «Вывести на второй экран» — the teacher's side of the cast (masterplan F3).

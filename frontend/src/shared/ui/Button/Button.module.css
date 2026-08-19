@@ -120,3 +120,25 @@
 .loading {
   opacity: 0.72;
 }
+
+/* Занятая кнопка: точка вместо кружка — она не крутится и не обещает прогресса, которого нет. */
+.spinner {
+  inline-size: 6px;
+  block-size: 6px;
+  flex: none;
+  border-radius: 50%;
+  background: currentcolor;
+  animation: btnBlink 1.2s var(--ease-standard) infinite;
+}
+
+@keyframes btnBlink {
+  50% {
+    opacity: 0.25;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation: none;
+  }
+}

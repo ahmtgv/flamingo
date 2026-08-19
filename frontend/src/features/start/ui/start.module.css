@@ -1,799 +1,1214 @@
-/* Start page — atlas sheet 00 ("вариант C", approved 2026-08-12).
-   The grid is the contract: «сейчас» spans two columns, the week diary is a vertical strip
-   in the third column running the full height of the top block, and «Продолжить» sits
-   beside «Прогресс» because both answer "where did I stop and where am I going". */
+/*
+ * КАБИНЕТ — собран заново с листа «Кабинет и учёба» (наряд 42). Старый файл (799 строк) снесён
+ * целиком: лист меняет строение экрана, а не его вид. Было — одна колонка слотов с
+ * приветствием во всю ширину; стало — шапка в одну строку и три колонки, каждая со своим
+ * вопросом: слева «что от меня ждут», в середине «что и когда», справа «как идёт».
+ *
+ * Значения — только из tokens.css. Голых px два: волосяная граница 1 и полоска состояния 2.
+ */
 
+/*
+ * Кадр — ровно экран: шапка своей высоты, работа во всё остальное. Считать высоту работы
+ * вычитанием («100dvh минус предполагаемая шапка») нельзя: стоит шапке перенестись на
+ * вторую строку, и страница поедет. Пусть меряет сетка.
+ */
 .shell {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
+  block-size: 100dvh;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  overflow: hidden;
   background: var(--color-bg);
   color: var(--color-text);
 }
 
-/* --- top nav ------------------------------------------------------------- */
-.topbar {
+@media (max-width: 1100px) {
+  .shell {
+    block-size: auto;
+    min-block-size: 100dvh;
+    overflow: visible;
+  }
+}
+
+/* ── Шапка ───────────────────────────────────────────────────────────────────── */
+
+/*
+ * Одна строка: знак · разделы · дата и время · учётка. Прежде шапка была двухэтажной —
+ * навигация сверху, приветствие во всю ширину под ней, — и отъедала у работы 120 px.
+ */
+.top {
   display: flex;
   align-items: center;
   gap: var(--space-3);
-  padding: var(--space-4) var(--space-6);
-  border-bottom: 1px solid var(--color-border);
-  background: var(--nav-material);
-  backdrop-filter: blur(var(--nav-blur));
-  -webkit-backdrop-filter: blur(var(--nav-blur));
-  position: sticky;
-  top: 0;
-  z-index: var(--z-sticky);
+  padding: var(--space-3) var(--space-5);
+  border-block-end: 1px solid var(--color-border);
+  background: var(--color-surface);
 }
-/* Знак бренда — тоже кнопка (ведёт на стартовую), и норма нажатия к нему относится. */
+
+/*
+ * 🔴 ЗНАК НАЕЗЖАЛ НА НАВИГАЦИЮ: я задал кнопке ширину 44 px, а внутри неё стоит связка
+ * «птица + слово flamingo» — она шире, и слово ложилось поверх «Источники мира». Та же
+ * ошибка, что в пульте комнаты, и лечится тем же: ширину задаёт содержимое, 44 держит только
+ * высоту (это цель нажатия, а не размер рисунка).
+ */
 .logoBtn {
-  background: none;
-  border: 0;
-  cursor: pointer;
-  padding: 0;
-  border-radius: var(--radius-xs);
-  min-block-size: var(--tap-min);
   display: inline-flex;
   align-items: center;
+  flex: none;
+  min-block-size: var(--tap-min);
+  padding-inline: var(--space-2);
+  border: none;
+  border-radius: var(--radius-control);
+  background: none;
+  color: var(--color-accent);
+  cursor: pointer;
 }
-.logoBtn:focus-visible {
-  outline: none;
-  box-shadow: var(--focus-ring);
-}
-.navSpace {
-  margin-left: auto;
+
+.nav {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
+  gap: 2px;
+  min-inline-size: 0;
+  overflow: hidden;
 }
+
+/* Раздел — обычный текст. Текущий поднят поверхностью, а не цветом: акцент занят делом. */
 .navBtn {
-  position: relative;
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
-  min-height: var(--tap-min);
-  padding: 0 var(--space-3);
-  border: 0;
-  background: none;
+  flex: none;
+  min-block-size: var(--control-height-sm);
+  padding-inline: var(--space-3);
+  border: none;
   border-radius: var(--radius-control);
+  background: none;
   font-family: var(--font-body);
   font-size: var(--text-small);
   color: var(--color-text-secondary);
+  white-space: nowrap;
   cursor: pointer;
 }
+
 .navBtn:hover {
-  background: var(--color-surface-hover);
   color: var(--color-text);
 }
+
+.navBtn[aria-current='page'] {
+  background: var(--color-surface-subtle);
+  color: var(--color-text);
+}
+
 .navBtn:focus-visible {
   outline: none;
   box-shadow: var(--focus-ring);
 }
-.badge {
-  min-width: 18px;
-  height: 18px;
-  padding: 0 5px;
-  border-radius: var(--radius-pill);
-  background: var(--color-accent-strong);
-  color: var(--color-text-on-accent);
-  font-family: var(--font-mono);
-  font-size: 0.625rem;
-  display: inline-grid;
-  place-content: center;
-}
 
-/* --- account menu --------------------------------------------------------- */
-.acc {
-  position: relative;
-}
-.accBtn {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-3);
-  min-height: var(--tap-min);
-  padding: var(--space-1) var(--space-3);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-pill);
-  background: var(--color-surface);
-  cursor: pointer;
-  font-family: var(--font-body);
-  color: var(--color-text);
-}
-.accBtn:hover {
-  border-color: var(--color-border-strong);
-}
-.accBtn:focus-visible {
-  outline: none;
-  box-shadow: var(--focus-ring);
-}
-.avatar {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  background: var(--color-surface-subtle);
-  color: var(--color-text-secondary);
-  font-family: var(--font-mono);
-  font-size: 0.625rem;
-  display: grid;
-  place-content: center;
+/* Дата и время — машинным голосом, и рядом сказано, чей это пояс (ПРАВИЛА 8.5). */
+.stamp {
+  margin-inline-start: auto;
   flex: none;
-}
-.accWho {
-  display: grid;
-  text-align: left;
-  gap: 1px;
-}
-.accName {
-  font-size: var(--text-small);
-  font-weight: var(--weight-medium);
-  line-height: 1.2;
-}
-.accCtx {
   font-family: var(--font-mono);
   font-size: var(--text-caption);
+  font-variant-numeric: tabular-nums;
   color: var(--color-text-tertiary);
-  line-height: 1.2;
-}
-@media (max-width: 720px) {
-  .accWho {
-    display: none;
-  }
-}
-.accMenu {
-  position: absolute;
-  top: calc(100% + var(--space-2));
-  right: 0;
-  width: 320px;
-  max-width: calc(100vw - var(--space-6));
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-card);
-  box-shadow: var(--shadow-lg, var(--shadow-md));
-  padding: var(--space-2);
-  z-index: var(--z-dropdown);
-}
-.accHead {
-  font-family: var(--font-mono);
-  font-size: var(--text-caption);
-  color: var(--color-text-tertiary);
-  padding: var(--space-2) var(--space-3);
-}
-.accItem {
-  display: grid;
-  grid-template-columns: 28px 1fr auto;
-  align-items: center;
-  gap: var(--space-3);
-  width: 100%;
-  min-height: var(--tap-min);
-  padding: var(--space-2) var(--space-3);
-  border: 0;
-  border-radius: var(--radius-sm);
-  background: none;
-  text-align: left;
-  cursor: pointer;
-  color: var(--color-text);
-  font-family: var(--font-body);
-}
-.accItem:hover:not(:disabled) {
-  background: var(--color-surface-hover);
-}
-.accItem:focus-visible {
-  outline: none;
-  box-shadow: var(--focus-ring);
-}
-.accItem:disabled {
-  cursor: default;
-  color: var(--color-text-disabled);
-}
-.accIc {
-  width: 28px;
-  height: 28px;
-  border-radius: var(--radius-xs);
-  background: var(--color-surface-subtle);
-  color: var(--color-text-secondary);
-  display: grid;
-  place-content: center;
-  font-family: var(--font-mono);
-  font-size: var(--text-caption);
-}
-.accT {
-  display: block;
-  font-size: var(--text-small);
-  font-weight: var(--weight-medium);
-}
-.accS {
-  display: block;
-  font-size: var(--text-caption);
-  color: var(--color-text-secondary);
-}
-.accMark {
-  font-family: var(--font-mono);
-  font-size: var(--text-caption);
-  color: var(--color-accent-text);
-}
-.accSep {
-  height: 1px;
-  background: var(--color-border);
-  margin: var(--space-2) var(--space-1);
-}
-.accFoot {
-  font-size: var(--text-caption);
-  color: var(--color-text-tertiary);
-  line-height: var(--leading-snug);
-  padding: var(--space-2) var(--space-3) var(--space-1);
+  white-space: nowrap;
 }
 
-/* --- page ----------------------------------------------------------------- */
+/* ── Три колонки ─────────────────────────────────────────────────────────────── */
+
+/*
+ * 1.05 / 1.2 / 0.85 (ПРАВИЛА 3.4): работа слева, календарь в середине, показатели справа.
+ * Середина шире всех — в ней недельная полоса, которая по-другому не читается.
+ */
+/*
+ * 🔴 `<main>` И СЕТКА КОЛОНОК — РАЗНЫЕ ЭЛЕМЕНТЫ, И ОДИН КЛАСС НА ОБОИХ ДАЛ ГРИД ВНУТРИ ГРИДА.
+ *
+ * Я повесил `.page` и на ориентир `<main>`, и на внутреннюю сетку. Внешняя сетка отдала
+ * внутренней свою первую колонку — 409 px, — та поделила её ещё на три, и недельная полоса
+ * получила 89 px: семь дней по 5.8 px при ширине кнопки 18. Прибор показал семь пересечений.
+ *
+ * Две попытки лечения мимо (`box-sizing`, `min-width` детей, `minmax(0, fr)`) стоили того,
+ * что я чинил следствие. Нашлось печатью цепочки родителей: `div._page` внутри `main._page`.
+ */
+.main {
+  min-block-size: 0;
+  overflow: hidden;
+}
+
+@media (max-width: 1100px) {
+  .main {
+    overflow: visible;
+  }
+}
+
+/*
+ * ПРАВИЛА 8.6: страница не прокручивается никогда. Кадр — ровно экран минус шапка; длинные
+ * списки прокручиваются ВНУТРИ своей колонки, и таких областей на экране не больше двух.
+ */
 .page {
-  /* Without this the horizontal padding is added OUTSIDE the 100% width and the sheet
-     scrolls sideways on a 375px screen. */
-  width: 100%;
-  max-width: var(--content-max-wide);
-  margin: 0 auto;
-  padding: var(--space-7) var(--space-6) var(--space-12);
-  flex: 1;
-}
-.hi {
-  display: flex;
-  align-items: baseline;
+  display: grid;
+  /*
+   * 🔴 `minmax(0, …)`, А НЕ ПРОСТО `fr` — И ЭТО НЕ ПРИДИРКА.
+   *
+   * У `1fr` минимум `auto`: колонка не может стать уже своего самого длинного неразрывного
+   * содержимого. Левый список дел с длинными заголовками распирал первую колонку, и
+   * НЕДЕЛЬНАЯ ПОЛОСА СЖИМАЛАСЬ ДО 89 px — семь дней по 5.8 px в колонке при ширине кнопки
+   * 18 px, то есть каждый день заезжал на следующий. Прибор дизайнера показывал семь
+   * пересечений, а глазами это читалось как «слиплось».
+   *
+   * Замер: `grid-template-columns: 5.78px 5.78px 5.79px…` при ширине сетки 89. Три попытки
+   * до этого я потратил на догадки о `box-sizing` и `min-width` детей — не то.
+   */
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 1.2fr) minmax(0, 0.85fr);
+  align-items: stretch;
   gap: var(--space-4);
-  flex-wrap: wrap;
-  margin-bottom: var(--space-6);
-}
-.hiName {
-  font-family: var(--font-heading);
-  font-size: var(--text-h1);
-  font-weight: var(--weight-semibold);
-  letter-spacing: var(--tracking-snug);
-}
-.hiDate {
-  font-family: var(--font-mono);
-  font-size: var(--text-caption);
-  color: var(--color-text-tertiary);
+  padding: var(--space-5);
+  min-block-size: 0;
+  overflow: hidden;
 }
 
-/* The sheet-00 grid, verbatim: 1fr 1fr 268px. */
-.grid {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 268px;
-  gap: var(--space-4);
-  align-items: start;
-}
-.sNow {
-  grid-column: 1 / 3;
-  grid-row: 1;
-}
-.sWeek {
-  grid-column: 3;
-  grid-row: 1 / 4;
-  align-content: start;
-}
-.sToday {
-  grid-column: 1;
-  grid-row: 2;
-}
-.sAttn {
-  grid-column: 2;
-  grid-row: 2;
-}
-.sContinue {
-  grid-column: 1;
-  grid-row: 3;
-}
-.sProgress {
-  grid-column: 2;
-  grid-row: 3;
-}
-/* Преподаватель: «Продолжить» у него нет, а в слоте прогресса стоят ЕГО КУРСЫ — список,
-   которому нужна ширина строки, а не колонка в 1/3 экрана (находка владельца 15.08, п.2). */
-.noContinue .sProgress {
-  grid-column: 1 / 3;
+@media (min-width: 1440px) {
+  .page {
+    gap: var(--space-5);
+    padding: var(--space-6);
+  }
 }
 
-/* --- мои курсы (преподаватель) -------------------------------------------- */
-.courses {
-  display: grid;
-  /* Ширина карточки задаётся содержимым, а не числом колонок: у одного преподавателя курс
-     один, у другого десять, и обе раскладки должны быть спокойными. */
-  grid-template-columns: repeat(auto-fill, minmax(min(240px, 100%), 1fr));
-  gap: var(--space-2);
-}
-.courseCard {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
-  padding: var(--space-3);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  background: var(--color-surface-subtle);
-  text-align: left;
-  cursor: pointer;
-  transition: border-color var(--duration-fast) var(--ease-standard);
-}
-.courseCard:hover {
-  border-color: var(--color-border-strong);
-}
-.courseCard:focus-visible {
-  outline: none;
-  box-shadow: var(--focus-ring);
-}
-.courseName {
-  font-size: var(--text-small);
-  font-weight: var(--weight-medium);
-  color: var(--color-text);
-}
-.courseSub {
-  font-size: var(--text-caption);
-  color: var(--color-text-secondary);
-}
-/* 🔴 `--color-text-tertiary` — «decoration-grade only» по дизайн-системе (§1), и на подложке
-   `--color-surface-subtle` он даёт 4.33:1: ниже AA. Здесь стоит НЕ украшение, а «когда
-   следующее занятие» — то, ради чего на карточку и смотрят. */
-.courseNext {
-  font-size: var(--text-caption);
-  color: var(--color-text-secondary);
-}
-.courseTags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-1);
-  margin-top: var(--space-1);
-}
-.tagDraft {
-  font-size: var(--text-caption);
-  padding: 0 var(--space-2);
-  border-radius: var(--radius-pill);
-  background: var(--color-warning-bg);
-  color: var(--color-warning-text);
-}
-.sQuick {
-  grid-column: 1 / -1;
-  grid-row: 4;
-}
-@media (max-width: 900px) {
-  .grid {
+/* Узкий экран: колонки становятся одна под другой, порядок остаётся смысловым. */
+/*
+ * Узкий экран — единственное место, где прокрутка страницы разрешена (ИЗМЕНЕНИЯ-СМЫСЛА §3:
+ * правило разделено на десктопное и мобильное). Колонки становятся одна под другой, и
+ * держать их в высоту экрана значило бы прятать две трети кабинета.
+ */
+@media (max-width: 1100px) {
+  .page {
     grid-template-columns: minmax(0, 1fr);
+    block-size: auto;
+    overflow: visible;
   }
-  .sNow,
-  .sWeek,
-  .sToday,
-  .sAttn,
-  .sContinue,
-  .sProgress,
-  .sQuick,
-  .noContinue .sProgress {
-    grid-column: 1;
-    grid-row: auto;
+
+  .col {
+    overflow: visible;
   }
 }
 
-/* --- slots ---------------------------------------------------------------- */
+.col {
+  display: grid;
+  align-content: start;
+  gap: var(--space-4);
+  min-inline-size: 0;
+  min-block-size: 0;
+  /* Названная прокручиваемая область: колонка, а не страница. */
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+/* Заголовок страницы несёт шапка («Кабинет» отмечен как текущий раздел); зрячий заголовок
+   лист не рисует, но экрану он нужен для читалки — иначе страница без имени. */
+.srOnly {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* ── Карточка раздела ────────────────────────────────────────────────────────── */
+
 .slot {
-  background: var(--color-surface);
+  display: grid;
+  align-content: start;
+  gap: var(--space-3);
+  padding: var(--space-5);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-card);
-  padding: var(--space-5);
+  background: var(--color-surface);
+  min-inline-size: 0;
 }
+
 .slotHead {
   display: flex;
   align-items: baseline;
-  justify-content: space-between;
   gap: var(--space-3);
-  margin-bottom: var(--space-3);
+  min-inline-size: 0;
 }
+
+/* Заголовок карточки — НЕ второй титул (ПРАВИЛА 4.2): моно, вразрядку, прописными, тихий. */
 .slotTitle {
   font-family: var(--font-mono);
   font-size: var(--text-caption);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
   color: var(--color-text-tertiary);
+  white-space: nowrap;
 }
-/*
- * 🔴 «все →» — 25 пикселей при норме 44 (прибор `tapTargets`, наряд 40 §0).
- * Область нажатия доводится до нормы вертикальным полем; надпись остаётся той же —
- * подпись раздела не должна вырасти в кнопку.
- */
-.more {
-  border: 0;
-  background: none;
-  cursor: pointer;
+
+/* Счётчик рядом с заголовком: «7 дел», «4 курса · 63 ученика». */
+.slotCount {
   font-family: var(--font-mono);
   font-size: var(--text-caption);
-  color: var(--color-text-secondary);
-  padding: var(--space-1);
-  border-radius: var(--radius-xs);
-  min-block-size: var(--tap-min);
-  display: inline-flex;
-  align-items: center;
+  color: var(--color-text-tertiary);
+  min-inline-size: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
+
+.more {
+  margin-inline-start: auto;
+  flex: none;
+  min-block-size: var(--control-height-sm);
+  padding-inline: var(--space-2);
+  border: none;
+  background: none;
+  font-family: var(--font-body);
+  font-size: var(--text-caption);
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
 .more:hover {
   color: var(--color-text);
 }
-.more:focus-visible {
-  outline: none;
-  box-shadow: var(--focus-ring);
+
+.empty {
+  margin: 0;
+  font-size: var(--text-small);
+  line-height: var(--leading-snug);
+  color: var(--color-text-secondary);
 }
 
-/* «Сейчас» — the one card that may carry the coral accent. */
-.now {
-  border-left: 3px solid var(--color-accent-strong);
+/* ── «Сейчас» ────────────────────────────────────────────────────────────────── */
+
+/*
+ * Идущий урок — единственная карточка с полосой (ПРАВИЛА 5.2) и единственная акцентная
+ * заливка на экране: кнопка «Вернуться в урок». Всё остальное здесь чернильное.
+ */
+.sNow {
+  border-inline-start: 2px solid var(--color-accent);
+  gap: var(--space-4);
 }
-.nowKind {
+
+.nowKicker {
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
   font-family: var(--font-mono);
   font-size: var(--text-caption);
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
   color: var(--color-accent-text);
 }
-.nowDot {
-  width: 6px;
-  height: 6px;
+
+.nowKicker i {
+  inline-size: 5px;
+  block-size: 5px;
   border-radius: 50%;
-  background: var(--color-accent-strong);
-}
-@media (prefers-reduced-motion: no-preference) {
-  .nowLive .nowDot {
-    animation: startPulse 2.4s ease-in-out infinite;
-  }
-}
-@keyframes startPulse {
-  50% {
-    opacity: 0.35;
-  }
-}
-.nowTitle {
-  font-family: var(--font-heading);
-  font-size: var(--text-h3);
-  font-weight: var(--weight-semibold);
-  margin: var(--space-2) 0 2px;
-}
-.nowMeta {
-  font-size: var(--text-caption);
-  color: var(--color-text-secondary);
-}
-.nowRow {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  flex-wrap: wrap;
-  margin-top: var(--space-4);
-}
-.nowNote {
-  font-family: var(--font-mono);
-  font-size: var(--text-caption);
-  color: var(--color-text-tertiary);
+  background: var(--color-accent);
+  animation: startPulse 2.4s var(--ease-standard) infinite;
 }
 
-/* rows inside «сегодня» / «требует внимания» / «продолжить» */
-.row {
-  display: grid;
-  grid-template-columns: 56px 1fr auto;
-  gap: var(--space-3);
-  align-items: center;
-  padding: var(--space-3) 0;
-  border-bottom: 1px solid var(--color-border);
+@keyframes startPulse {
+  50% {
+    opacity: 0.3;
+  }
 }
-.row:last-child {
-  border-bottom: 0;
+
+@media (prefers-reduced-motion: reduce) {
+  .nowKicker i {
+    animation: none;
+  }
 }
-.rowNoTime {
-  grid-template-columns: 1fr auto;
+
+.nowTitle {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: var(--text-h3);
+  font-weight: 600;
+  line-height: var(--leading-heading);
+  letter-spacing: var(--tracking-snug);
 }
-.rTime {
-  font-family: var(--font-mono);
-  font-variant-numeric: tabular-nums;
-  font-size: var(--text-caption);
+
+.nowSub {
+  margin: 0;
+  font-size: var(--text-small);
+  line-height: var(--leading-snug);
   color: var(--color-text-secondary);
 }
+
+.nowActs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+/* ── Строка списка ───────────────────────────────────────────────────────────── */
+
+/*
+ * Одно действие в строке — цель нажатия ВСЯ СТРОКА, высота 44 (ПРАВИЛА 7.1а). Двенадцать
+ * строк × 44 = 528 px — это правильная цена, а не конфликт с плотностью.
+ */
+.row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-3);
+  min-block-size: var(--tap-min);
+  padding-block: var(--space-2);
+  border-block-start: 1px solid var(--color-border);
+  min-inline-size: 0;
+}
+
+.slot > .row:first-of-type {
+  border-block-start: none;
+}
+
+.rowNoTime {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.rTime,
+.rWhen {
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-tertiary);
+  white-space: nowrap;
+}
+
 .rName {
   display: flex;
   align-items: center;
   gap: var(--space-2);
   font-size: var(--text-small);
-  font-weight: var(--weight-medium);
+  color: var(--color-text);
+  min-inline-size: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
+
 .rSub {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  color: var(--color-text-tertiary);
+  min-inline-size: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rDot {
+  inline-size: 5px;
+  block-size: 5px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--color-accent);
+}
+
+/* Действие в строке — словом с приглушённым подчёркиванием, не коралловым (ПРАВИЛА 5.3). */
+.rAct {
+  flex: none;
+  min-block-size: var(--control-height-sm);
+  padding-inline: var(--space-2);
+  border: none;
+  background: none;
+  font-family: var(--font-body);
   font-size: var(--text-caption);
   color: var(--color-text-secondary);
-  margin-top: 1px;
+  text-decoration: underline;
+  text-decoration-color: var(--color-border-strong);
+  text-underline-offset: 3px;
+  white-space: nowrap;
+  cursor: pointer;
 }
-.rDot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--color-accent-strong);
-  flex: none;
+
+.rAct:hover {
+  color: var(--color-text);
 }
+
 .rTag {
   font-family: var(--font-mono);
   font-size: var(--text-caption);
   color: var(--color-text-tertiary);
   white-space: nowrap;
 }
+
 .rTagWarn {
   color: var(--color-accent-text);
 }
-.rowBtn {
-  border: 0;
-  background: none;
-  padding: 0;
-  font: inherit;
-  color: inherit;
-  text-align: left;
-  cursor: pointer;
-  width: 100%;
-  display: contents;
-}
-.rowLink {
+
+/* ── Недельная полоса ────────────────────────────────────────────────────────── */
+
+.week {
   display: grid;
-  grid-template-columns: subgrid;
-  border-radius: var(--radius-xs);
-}
-.empty {
-  font-size: var(--text-caption);
-  color: var(--color-text-secondary);
-  padding: var(--space-3) 0;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: var(--space-2);
 }
 
-/* --- week strip ------------------------------------------------------------ */
-.weekHead {
-  display: flex;
-  align-items: baseline;
+.day {
+  display: grid;
+  align-content: start;
   gap: var(--space-2);
-  flex-wrap: wrap;
-  margin-bottom: var(--space-3);
+  min-inline-size: 0;
 }
-.weekRange {
+
+.dayName {
   font-family: var(--font-mono);
   font-size: var(--text-caption);
   color: var(--color-text-tertiary);
+  white-space: nowrap;
 }
-.days {
+
+.dayToday .dayName {
+  color: var(--color-text);
+  font-weight: 500;
+}
+
+/* Плашка занятия: не ниже 52 px, название в одну строку с многоточием (ПРАВИЛА 3.8). */
+.chip {
   display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: 5px;
-}
-.day {
+  align-content: center;
+  gap: 2px;
+  min-block-size: 52px;
+  padding: var(--space-2);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
-  padding: 7px 9px 8px;
   background: var(--color-surface);
+  font-family: var(--font-body);
+  text-align: start;
+  cursor: pointer;
+  min-inline-size: 0;
 }
-.dayToday {
-  border-color: var(--color-accent-subtle-border);
+
+.chip:hover {
+  border-color: var(--color-border-strong);
+}
+
+.chip:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+/* Сегодняшнее занятие подсвечено подложкой, а не заливкой акцентом. */
+.dayToday .chip {
   background: var(--color-accent-subtle);
+  border-color: var(--color-accent-subtle);
 }
-.dHead {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
+
+.chipTime {
   font-family: var(--font-mono);
   font-size: var(--text-caption);
+  font-variant-numeric: tabular-nums;
   color: var(--color-text-tertiary);
 }
-.dNum {
-  font-variant-numeric: tabular-nums;
-  color: var(--color-text-secondary);
-}
-.ev {
-  display: block;
+
+.chipName {
   font-size: var(--text-caption);
-  color: var(--color-text-secondary);
-  margin-top: 3px;
+  color: var(--color-text);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.evLive {
-  color: var(--color-accent-text);
+
+.weekNav {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-inline-start: auto;
 }
-.dMore {
-  display: block;
+
+.weekArrow {
+  display: inline-grid;
+  place-items: center;
+  inline-size: var(--control-height-sm);
+  min-block-size: var(--tap-min);
+  border: none;
+  background: none;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+}
+
+.weekArrow:hover {
+  color: var(--color-text);
+}
+
+/* ── Крупный показатель ──────────────────────────────────────────────────────── */
+
+/* Число всегда с подписью, что это за число (ПРАВИЛА 4.5), и никогда акцентом (5.4). */
+.metric {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+  min-inline-size: 0;
+}
+
+.metricValue {
+  font-family: var(--font-mono);
+  font-size: var(--text-metric);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  line-height: var(--leading-tight);
+}
+
+.metricOf {
   font-family: var(--font-mono);
   font-size: var(--text-caption);
   color: var(--color-text-tertiary);
-  margin-top: 3px;
+  min-inline-size: 0;
 }
 
-/* --- progress -------------------------------------------------------------- */
+/* Столбики — серые: длина уже несёт значение, двадцать коралловых полос съедают акцент. */
+.bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  block-size: 34px;
+}
+
+.bars i {
+  flex: 1 1 0;
+  min-inline-size: 0;
+  border-radius: 1px;
+  background: var(--color-border-strong);
+}
+
+/* ── Полоса пути ─────────────────────────────────────────────────────────────── */
+
+/* Однородный столбец: все полосы зелёные и одинаковые (ПРАВИЛА 5.10, 5.10а — полоса тоньше
+   6 px это графика, а не заливка, и в лимит акцентов не идёт). */
 .progRow {
-  display: block;
-  width: 100%;
-  padding: var(--space-2);
-  margin-inline: calc(var(--space-2) * -1);
-  border: 0;
-  border-radius: var(--radius-sm);
+  display: grid;
+  gap: var(--space-2);
+  min-block-size: var(--tap-min);
+  padding-block: var(--space-2);
+  border: none;
+  border-block-start: 1px solid var(--color-border);
   background: none;
+  font: inherit;
   color: inherit;
-  font-family: var(--font-body);
-  text-align: left;
+  text-align: start;
   cursor: pointer;
 }
-.progRow:hover {
-  background: var(--color-surface-subtle);
+
+.slot > .progRow:first-of-type {
+  border-block-start: none;
 }
+
 .progRow:focus-visible {
   outline: none;
   box-shadow: var(--focus-ring);
 }
-.progRow + .progRow {
-  margin-top: var(--space-1);
-}
+
 .progName {
   font-size: var(--text-small);
-  font-weight: var(--weight-medium);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
+
 .progMeta {
   display: flex;
   justify-content: space-between;
+  gap: var(--space-3);
   font-family: var(--font-mono);
   font-size: var(--text-caption);
   color: var(--color-text-tertiary);
-  margin: 3px 0 5px;
-}
-.progressLine {
-  height: 4px;
-  background: var(--color-surface-subtle);
-  border-radius: var(--radius-pill);
-  overflow: hidden;
-}
-.progressLine i {
-  display: block;
-  height: 100%;
-  background: var(--color-text-secondary);
 }
 
-/* --- quick entries --------------------------------------------------------- */
-.quick {
-  display: flex;
-  gap: var(--space-2);
-  flex-wrap: wrap;
+.progressLine {
+  block-size: 3px;
+  border-radius: 2px;
+  background: var(--color-surface-subtle);
+  overflow: hidden;
 }
+
+.progressLine i {
+  display: block;
+  block-size: 3px;
+  background: var(--color-go-line);
+}
+
+/* ── Быстрые входы ───────────────────────────────────────────────────────────── */
+
+/* Правая колонка листа: три обычных кнопки подряд, без заливки — заливка на экране одна. */
+.quick {
+  display: grid;
+  gap: var(--space-2);
+}
+
 .quickBtn {
-  min-height: var(--tap-min);
-  padding: 0 var(--space-4);
-  border: 1px solid var(--color-border-strong);
+  min-block-size: var(--control-height-md);
+  padding-inline: var(--space-4);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-control);
-  background: none;
-  color: var(--color-text);
+  background: var(--color-surface);
   font-family: var(--font-body);
   font-size: var(--text-small);
+  color: var(--color-text);
+  text-align: start;
   cursor: pointer;
 }
+
 .quickBtn:hover {
-  background: var(--color-surface-hover);
+  border-color: var(--color-border-strong);
 }
+
 .quickBtn:focus-visible {
   outline: none;
   box-shadow: var(--focus-ring);
 }
 
-/* --- chat bubble + stub ----------------------------------------------------- */
-.fab {
-  position: fixed;
-  right: var(--space-6);
-  bottom: var(--space-6);
-  width: 52px;
-  height: 52px;
-  border-radius: 50%;
-  border: 0;
-  background: var(--color-accent-strong);
-  color: var(--color-text-on-accent);
-  display: grid;
-  place-content: center;
-  cursor: pointer;
-  box-shadow: var(--shadow-md);
-  z-index: var(--z-sticky);
+/* Карточка-приглашение в зеркало: подложка вместо рамки — она не список, а разговор. */
+.mirror {
+  background: var(--color-surface-subtle);
+  gap: var(--space-4);
 }
-.fab:focus-visible {
+
+.mirrorTitle {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: var(--text-h3);
+  font-weight: 500;
+  letter-spacing: var(--tracking-snug);
+}
+
+.mirrorBody {
+  margin: 0;
+  font-size: var(--text-small);
+  line-height: var(--leading-body);
+  color: var(--color-text-secondary);
+}
+
+/*
+ * 🔴 4.33:1 ПРИ НОРМЕ 4.5 (прибор дизайнера). Третичная краска — украшательная, и на
+ * подложке `surface-subtle` она перестаёт читаться. А это не украшение: строка объясняет,
+ * чего в продукте НЕ существует — записей занятий. Второстепенная краска проходит.
+ */
+.mirrorNote {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  line-height: var(--leading-snug);
+  color: var(--color-text-secondary);
+}
+
+/* ── «Сейчас» — состав из разметки ───────────────────────────────────────────── */
+
+/*
+ * Карточка «сейчас» одна на две роли и три случая: идёт урок · урок начинается · продолжить.
+ * Полоса слева только когда ГОРИТ — идёт или вот-вот; «продолжить» не горит, оно ждёт.
+ */
+.now {
+  gap: var(--space-4);
+}
+
+.nowLive {
+  border-inline-start: 2px solid var(--color-accent);
+}
+
+.nowKind {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+}
+
+.nowLive .nowKind {
+  color: var(--color-accent-text);
+}
+
+.nowDot {
+  inline-size: 5px;
+  block-size: 5px;
+  flex: none;
+  border-radius: 50%;
+  background: currentcolor;
+}
+
+.nowLive .nowDot {
+  animation: startPulse 2.4s var(--ease-standard) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nowLive .nowDot {
+    animation: none;
+  }
+}
+
+/* Заголовок карточки «сейчас» — единственный крупный текст первого экрана. */
+.nowTitle {
+  font-family: var(--font-heading);
+  font-size: var(--text-h3);
+  font-weight: 600;
+  line-height: var(--leading-heading);
+  letter-spacing: var(--tracking-snug);
+}
+
+.nowMeta {
+  font-size: var(--text-small);
+  line-height: var(--leading-snug);
+  color: var(--color-text-secondary);
+}
+
+.nowRow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+/* «через 17 минут» — машинным голосом рядом с кнопкой, а не вместо неё. */
+.nowNote {
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  color: var(--color-text-tertiary);
+}
+
+/* ── Недельная полоса — состав из разметки ───────────────────────────────────── */
+
+.weekHead {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-inline-size: 0;
+}
+
+.weekRange {
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-tertiary);
+  white-space: nowrap;
+}
+
+.days {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: var(--space-2);
+}
+
+/* День — цель нажатия целиком (ПРАВИЛА 7.1а): открывает дневник этого дня. */
+.day {
+  display: grid;
+  align-content: start;
+  gap: var(--space-2);
+  min-block-size: 52px;
+  padding: var(--space-2);
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: none;
+  font: inherit;
+  color: inherit;
+  text-align: start;
+  cursor: pointer;
+  min-inline-size: 0;
+}
+
+.day:hover {
+  border-color: var(--color-border);
+}
+
+.day:focus-visible {
   outline: none;
   box-shadow: var(--focus-ring);
 }
-.chatStub {
-  position: fixed;
-  right: var(--space-6);
-  bottom: calc(var(--space-6) + 64px);
-  width: 320px;
-  max-width: calc(100vw - var(--space-6) * 2);
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-card);
-  box-shadow: var(--shadow-md);
-  padding: var(--space-5);
-  z-index: var(--z-sticky);
-}
-.chatStubTitle {
-  font-family: var(--font-heading);
-  font-size: var(--text-body);
-  font-weight: var(--weight-semibold);
-  margin-bottom: var(--space-2);
-}
-.chatStubBody {
-  font-size: var(--text-caption);
-  color: var(--color-text-secondary);
-  line-height: var(--leading-snug);
-  margin-bottom: var(--space-4);
+
+.dayToday {
+  background: var(--color-accent-subtle);
 }
 
-/* --- skeleton --------------------------------------------------------------- */
-.skel {
-  display: block;
-  background: var(--color-surface-subtle);
-  border-radius: var(--radius-sm);
-}
-@media (prefers-reduced-motion: no-preference) {
-  .skel {
-    animation: startShimmer 1.4s ease-in-out infinite;
-  }
-}
-@keyframes startShimmer {
-  50% {
-    opacity: 0.55;
-  }
+/*
+ * 🔴 ДНИ НЕДЕЛИ НАЛЕЗАЛИ ДРУГ НА ДРУГА (прибор дизайнера: 7 пересечений на кабинете ученика).
+ *
+ * Причина не в сетке: колонки честные, `minmax(0, 1fr)`. Дети дня — грид-элементы, а у них
+ * по умолчанию `min-width: auto`, то есть ширина самого длинного НЕРАЗРЫВНОГО слова. Название
+ * «Present Perfect» распирало день шире его колонки, и он заезжал на соседний.
+ *
+ * `min-inline-size: 0` на детях возвращает им право сжиматься — многоточие уже настроено.
+ */
+.day > * {
+  min-inline-size: 0;
 }
 
-/* --- no-profile state -------------------------------------------------------- */
-.blank {
-  text-align: center;
-  padding: var(--space-9) 0;
-}
-.blank h2 {
-  font-family: var(--font-heading);
-  font-size: var(--text-h2);
-  font-weight: var(--weight-semibold);
-}
-.blank p {
-  color: var(--color-text-secondary);
-  max-width: 46ch;
-  margin: var(--space-3) auto var(--space-5);
-}
-
-/* --- полоса недели: стрелки и нажимаемый день (лист 00, §27.5 п.2) ------------------ */
-.weekNav {
+.dHead {
   display: flex;
-  align-items: center;
+  align-items: baseline;
+  gap: var(--space-2);
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  color: var(--color-text-tertiary);
+}
+
+.dayToday .dHead {
+  color: var(--color-text);
+}
+
+.dNum {
+  font-variant-numeric: tabular-nums;
+}
+
+/*
+ * 🔴 ЗАНЯТИЕ В ДНЕ БЫЛО ОДНОЙ СТРОКОЙ «название · время» — и в колонке 54 px от него
+ * оставалось «A…». Плашка не сообщала ничего.
+ *
+ * Лист ставит время СВЕРХУ, название под ним: время короткое и всегда влезает, а название
+ * получает всю ширину плашки. Минимум 52 px по высоте — правило 3.8.
+ */
+.ev {
+  display: grid;
+  gap: 1px;
+  min-block-size: 52px;
+  align-content: center;
+  padding: var(--space-2);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-subtle);
+  min-inline-size: 0;
+}
+
+.evTime {
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-tertiary);
+}
+
+.evName {
+  font-size: var(--text-caption);
+  color: var(--color-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.evLive {
+  background: var(--color-accent-subtle);
+}
+
+.evLive .evTime,
+.evLive .evName {
+  color: var(--color-accent-text);
+}
+
+.dMore {
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  color: var(--color-text-tertiary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ── Мои курсы ───────────────────────────────────────────────────────────────── */
+
+.courses {
+  display: grid;
   gap: var(--space-2);
 }
 
 /*
- * 🔴 ЦЕЛЬ В 19 ПИКСЕЛЕЙ ПРИ НОРМЕ 44 (прибор дизайнера `tapTargets`, наряд 40 §0).
- *
- * Стрелки недели были 19 пикселей высотой — в них трудно попасть даже мышью, а на планшете
- * (лист §21, «планшет как доска») пальцем почти нельзя. Норма `--tap-min` в системе есть с
- * самого начала; здесь её просто не применяли.
- *
- * ⚠️ Область НАЖАТИЯ растёт, размер РИСУНКА — нет: кнопка остаётся такой же маленькой на
- * вид, иначе шапка недели поедет. Отсюда прозрачная рамка вместо увеличенного шрифта.
+ * 🔴 КАРТОЧКА КУРСА БЫЛА ГРИДОМ БЕЗ ПОТОКА — и три подписи налезали друг на друга (прибор
+ * дизайнера: три пересечения по 1100 px² на «Мои курсы»). Здесь явная сетка строк: каждая
+ * подпись занимает свою, и ни одна не имеет права разорваться.
  */
-.weekArrow {
-  background: none;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
-  color: var(--color-text-secondary);
-  cursor: pointer;
-  line-height: 1;
-  padding: 2px var(--space-2);
+.courseCard {
+  display: grid;
+  gap: var(--space-2);
   min-block-size: var(--tap-min);
-  min-inline-size: var(--tap-min);
+  padding: var(--space-3) 0;
+  border: none;
+  border-block-start: 1px solid var(--color-border);
+  background: none;
+  font: inherit;
+  color: inherit;
+  text-align: start;
+  cursor: pointer;
+  min-inline-size: 0;
+}
+
+.courses > .courseCard:first-child {
+  border-block-start: none;
+}
+
+.courseCard:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.courseName {
+  font-size: var(--text-small);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.courseSub,
+.courseNext {
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  color: var(--color-text-tertiary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.courseTags {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-inline-size: 0;
+}
+
+/* Черновик — состояние, а не тревога: серая плашка, слово читается само. */
+.tagDraft {
+  flex: none;
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-xs);
+  background: var(--color-surface-subtle);
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  color: var(--color-text-secondary);
+}
+
+/* ── Усвоение ────────────────────────────────────────────────────────────────── */
+
+/* Процент — моноширинный и с зарезервированной шириной: он меняется, строка не должна ездить. */
+.masteryPct {
+  flex: none;
+  font-family: var(--font-mono);
+  font-size: var(--text-small);
+  font-variant-numeric: tabular-nums;
+  min-inline-size: 4ch;
+  text-align: end;
+  color: var(--color-text-secondary);
+}
+
+/* ── Заглушка загрузки ───────────────────────────────────────────────────────── */
+
+/* ПРАВИЛА 6.6: заглушка занимает РОВНО то же место, что содержимое, и не мигает пустотой. */
+.skel {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 1.2fr) minmax(0, 0.85fr);
+  align-items: start;
+  gap: var(--space-4);
+  padding: var(--space-5);
+}
+
+.blank {
+  block-size: 168px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+}
+
+@media (max-width: 1100px) {
+  .skel {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* Разделы слева, служебные кнопки справа: между ними пусто, чтобы они не читались одним рядом. */
+.navSpace {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex: none;
+}
+
+/* Счётчик непрочитанного — число на кнопке чата. Коралловый заслужен: это ждёт ответа. */
+.badge {
+  display: inline-grid;
+  place-items: center;
+  min-inline-size: 18px;
+  block-size: 18px;
+  padding-inline: 5px;
+  border-radius: var(--radius-pill);
+  background: var(--color-accent-solid);
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  font-variant-numeric: tabular-nums;
+  color: var(--color-on-accent);
+}
+
+/* ── Учётка в шапке ──────────────────────────────────────────────────────────── */
+
+/*
+ * Лист: справа в шапке стоят инициалы и имя. Прежде приветствие называло человека слева
+ * во всю ширину, а учётка дублировала его справа — одно и то же дважды на одном экране.
+ */
+.acc {
+  position: relative;
+  flex: none;
+}
+
+/* Была 25 px — прибор дизайнера назвал её мелкой целью. Стала 44 (ПРАВИЛА 7.1). */
+.accBtn {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-}
-.weekArrow:hover { color: var(--color-text); border-color: var(--color-border-strong); }
-.weekArrow:focus-visible { outline: var(--focus-ring); outline-offset: 2px; }
-
-/* День стал кнопкой — снимаем кнопочные умолчания, вид остаётся прежним. */
-.day {
-  font: inherit;
-  text-align: left;
-  cursor: pointer;
-  width: 100%;
-}
-.day:focus-visible { outline: var(--focus-ring); outline-offset: 2px; }
-
-/* «Усвоение группы» — лист 00. Процент справа, как в остальных строках слотов. */
-.sMastery { grid-column: span 1; }
-.masteryPct {
-  font-family: var(--font-mono);
+  gap: var(--space-2);
+  min-block-size: var(--tap-min);
+  padding-inline: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface);
+  font-family: var(--font-body);
+  font-size: var(--text-small);
   color: var(--color-text);
-  font-size: var(--text-body);
+  cursor: pointer;
+}
+
+.accBtn:hover {
+  border-color: var(--color-border-strong);
+}
+
+.accBtn:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.avatar {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  inline-size: var(--control-height-sm);
+  block-size: var(--control-height-sm);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-subtle);
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  font-weight: 500;
+  color: var(--color-text-secondary);
+}
+
+.accWho {
+  display: grid;
+  gap: 1px;
+  text-align: start;
+  min-inline-size: 0;
+}
+
+.accName {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Кем человек сейчас является — машинным голосом: это состояние, а не имя. */
+.accCtx {
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  color: var(--color-text-tertiary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.accMenu {
+  position: absolute;
+  z-index: 10;
+  inset-block-start: calc(100% + var(--space-2));
+  inset-inline-end: 0;
+  inline-size: 320px;
+  max-inline-size: calc(100vw - 2 * var(--space-4));
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-lg);
+}
+
+.accHead {
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+}
+
+/* Строка обучения — цель нажатия вся строка (ПРАВИЛА 7.1а). */
+.accItem {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-3);
+  min-block-size: var(--tap-min);
+  padding-inline: var(--space-2);
+  border: none;
+  border-radius: var(--radius-control);
+  background: none;
+  font: inherit;
+  color: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.accItem:hover {
+  background: var(--color-surface-hover);
+}
+
+.accItem:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.accIc {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  color: var(--color-text-tertiary);
+}
+
+.accT {
+  font-size: var(--text-small);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.accS {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  color: var(--color-text-tertiary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Текущее обучение отмечено словом-галочкой, а не только цветом строки. */
+.accMark {
+  flex: none;
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  color: var(--color-go-text);
+}
+
+.accSep {
+  block-size: 1px;
+  background: var(--color-border);
+}
+
+.accFoot {
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  line-height: var(--leading-snug);
+  color: var(--color-text-tertiary);
+}
+
+/* Кнопка карточки-приглашения стоит в потоке слева, а не растягивается на всю ширину. */
+.mirrorBtn {
+  justify-self: start;
 }

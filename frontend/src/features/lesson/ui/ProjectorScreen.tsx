@@ -10,7 +10,7 @@ import { Button } from '@/shared/ui';
 
 import { useLiveKitRoom } from '../livekit/useLiveKitRoom';
 
-import styles from './roomframe.module.css';
+import styles from './projector.module.css';
 import { VideoTile } from './VideoTile';
 
 /**

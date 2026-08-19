@@ -116,11 +116,12 @@ for (const [route, who] of SCREENS) {
       const defects = Object.entries(report.verdict).filter(([, v]) => String(v).startsWith('ДЕФЕКТ'));
       // Подробности — только для первого вида: они одинаковы во всех, а печатать вчетверо
       // значит утопить находку в повторах (той же болезнью страдал лог сервера, §37 §4.2).
-      const details = view === VIEWS[0]
+      const details = view === VIEWS[0] || (process.env.DETAILS_ALL && defects.length)
         ? {
             overlaps: (report.overlaps ?? []).slice(0, 3),
             tapTargets: (report.tapTargets ?? []).slice(0, 6),
             clipped: (report.clipped ?? []).slice(0, 3),
+            contrast: (report.contrast ?? []).slice(0, 4),
             // Кто именно накрыл текст: без имени слоя находка неисправима.
             textUnderLayer: (report.textUnderLayer ?? []).slice(0, 6),
             rowWrap: (report.rowWrap ?? []).slice(0, 3),
@@ -156,4 +157,5 @@ for (const r of rows) {
   for (const x of d.clipped) console.log('    обрезано:', JSON.stringify(x).slice(0, 150));
   for (const x of d.textUnderLayer ?? []) console.log('    текст под слоем:', JSON.stringify(x).slice(0, 190));
   for (const x of d.rowWrap ?? []) console.log('    ряд развалился:', JSON.stringify(x).slice(0, 190));
+  for (const x of d.contrast ?? []) console.log('    контраст:', JSON.stringify(x).slice(0, 190));
 }
