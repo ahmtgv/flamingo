@@ -1,6 +1,8 @@
 export { Avatar } from './Avatar/Avatar';
 export type { AvatarProps } from './Avatar/Avatar';
 export { Badge } from './Badge/Badge';
+export { StateCard } from './StateCard/StateCard';
+export type { StateKind } from './StateCard/StateCard';
 export type { BadgeProps, BadgeTone } from './Badge/Badge';
 export { Button } from './Button/Button';
 export type { ButtonProps, ButtonSize, ButtonVariant } from './Button/Button';

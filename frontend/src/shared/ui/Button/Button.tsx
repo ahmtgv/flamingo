@@ -17,7 +17,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
   { variant = 'primary', size = 'md', block, loading, icon, disabled, children, className, type, ...rest },
   ref,
 ) {
-  const cls = [styles.btn, styles[variant], styles[size], block ? styles.block : '', className ?? '']
+  const cls = [styles.btn, styles[variant], styles[size], block ? styles.block : '', loading ? styles.loading : '', className ?? '']
     .filter(Boolean)
     .join(' ');
   return (

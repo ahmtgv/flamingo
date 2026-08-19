@@ -1,115 +1,122 @@
+/*
+ * КНОПКА — собрана с листов передачи (наряд 42 §3.3). Старый файл снесён целиком.
+ *
+ * Три голоса и ровно один смысл у каждого:
+ *   primary   — главный шаг вперёд. Заливка акцентом; на экране она одна (ПРАВИЛА 5.1).
+ *   secondary — обычное действие. Волосяная рамка, фона нет.
+ *   ghost     — действие внутри списка. Ни рамки, ни фона: вес несёт типографика, не цвет.
+ *   danger    — потеря: удалить, отменить, выйти. Рамка акцентом, БЕЗ заливки — заливка уже
+ *               занята главным шагом, а два акцентных пятна на экране спорят (ПРАВИЛА 5.11).
+ *
+ * Высота: sm 34 · md 40 · lg 48. Ниже 34 вторичных контролов в продукте нет (ПРАВИЛА 7.2),
+ * а главная кнопка на экране — не ниже 44 (7.1), поэтому у неё по умолчанию md.
+ */
+
 .btn {
-  font-family: var(--font-heading);
-  font-weight: var(--weight-semibold);
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: var(--space-2);
   border: 1px solid transparent;
   border-radius: var(--radius-control);
-  cursor: pointer;
-  white-space: nowrap;
-  user-select: none;
-  line-height: 1;
-  transition:
-    transform var(--duration-fast) var(--ease-standard),
-    background var(--duration-fast) var(--ease-standard),
-    box-shadow var(--duration-fast) var(--ease-standard),
-    border-color var(--duration-fast) var(--ease-standard);
-}
-.btn svg {
-  width: 1.15em;
-  height: 1.15em;
-}
-
-.sm {
-  /* V-06: маленькая кнопка остаётся маленькой на вид, но её область нажатия не меньше
-     `--tap-min`. Высота задаёт вид, min-height — попадание. */
-  height: var(--control-height-sm);
-  min-height: var(--tap-min);
-  padding: 0 var(--space-3);
+  font-family: var(--font-body);
   font-size: var(--text-small);
-}
-.md {
-  height: var(--control-height-md);
-  padding: 0 var(--space-5);
-  font-size: var(--text-body);
-}
-.lg {
-  height: var(--control-height-lg);
-  padding: 0 var(--space-6);
-  font-size: var(--text-lead);
-}
-
-.block {
-  width: 100%;
-}
-
-.primary {
-  /* Б1: пара «заливка + текст на ней» приходит из токенов, чтобы контраст был
-     свойством системы, а не привычкой конкретного компонента. */
-  background: var(--color-accent-solid);
-  color: var(--color-on-accent);
-}
-.primary:hover {
-  background: var(--color-accent-solid-hover);
-}
-.primary:active {
-  background: var(--color-accent-solid-hover);
-  transform: translateY(1px);
-}
-
-.secondary {
-  background: var(--color-surface);
-  color: var(--color-text);
-  border-color: var(--color-border-strong);
-}
-.secondary:hover {
-  background: var(--color-surface-hover);
-}
-.secondary:active {
-  transform: translateY(1px);
-}
-
-.ghost {
-  background: transparent;
-  color: var(--color-accent-text);
-}
-.ghost:hover {
-  background: var(--color-accent-subtle);
-}
-
-.danger {
-  background: var(--color-error);
-  color: var(--color-on-accent);
-}
-.danger:hover {
-  background: var(--color-error-text);
+  font-weight: 500;
+  letter-spacing: var(--tracking-snug);
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background-color var(--duration-fast) var(--ease-standard),
+    border-color var(--duration-fast) var(--ease-standard),
+    color var(--duration-fast) var(--ease-standard);
 }
 
 .btn:focus-visible {
   outline: none;
   box-shadow: var(--focus-ring);
 }
+
 .btn:disabled {
-  background: var(--color-surface-subtle);
-  color: var(--color-text-disabled);
-  border-color: var(--color-border);
-  cursor: not-allowed;
-  transform: none;
-  box-shadow: none;
+  cursor: default;
 }
 
-.spinner {
-  width: 1.05em;
-  height: 1.05em;
-  border: 2px solid currentColor;
-  border-right-color: transparent;
-  border-radius: 50%;
-  animation: spin var(--duration-slow) linear infinite;
+/* ── Размеры ─────────────────────────────────────────────────────────────────── */
+
+.sm {
+  min-block-size: var(--control-height-sm);
+  padding-inline: var(--space-4);
 }
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
+
+.md {
+  min-block-size: var(--control-height-md);
+  padding-inline: var(--space-5);
+}
+
+.lg {
+  min-block-size: var(--control-height-lg);
+  padding-inline: var(--space-6);
+  font-size: var(--text-body);
+}
+
+/* ── Голоса ──────────────────────────────────────────────────────────────────── */
+
+.primary {
+  background: var(--color-accent-solid);
+  color: var(--color-on-accent);
+}
+
+.primary:hover:not(:disabled) {
+  background: var(--color-accent-solid-hover);
+}
+
+/* Занятая кнопка — приглушённая, а не пропавшая: место и ширина остаются теми же. */
+.primary:disabled {
+  background: var(--color-text-disabled);
+}
+
+.secondary {
+  background: var(--color-surface);
+  border-color: var(--color-border);
+  color: var(--color-text);
+}
+
+.secondary:hover:not(:disabled) {
+  border-color: var(--color-border-strong);
+}
+
+.secondary:disabled {
+  color: var(--color-text-disabled);
+}
+
+.ghost {
+  background: none;
+  color: var(--color-text-secondary);
+}
+
+.ghost:hover:not(:disabled) {
+  color: var(--color-text);
+}
+
+.ghost:disabled {
+  color: var(--color-text-disabled);
+}
+
+.danger {
+  background: none;
+  border-color: var(--color-accent);
+  color: var(--color-accent-text);
+}
+
+.danger:hover:not(:disabled) {
+  background: var(--color-accent-subtle);
+}
+
+.block {
+  display: flex;
+  inline-size: 100%;
+}
+
+/* Занято — говорим словом в подписи, не крутящимся кружком: кружок не сообщает, чем занято. */
+.loading {
+  opacity: 0.72;
 }

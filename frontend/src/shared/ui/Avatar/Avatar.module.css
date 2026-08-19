@@ -1,27 +1,42 @@
+/*
+ * ЛИЦО — с листов передачи. Картинок нет: инициалы моноширинным на приглушённой подложке.
+ * Просить фотографию до первого урока значит гарантировать пустые кружки (тот же довод, что
+ * у обложек курсов: система вместо файлов).
+ */
+
 .avatar {
-  border-radius: 50%;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-family: var(--font-heading);
-  font-weight: var(--weight-semibold);
-  background: var(--color-accent-subtle);
-  color: var(--color-accent-text);
-  flex-shrink: 0;
-  object-fit: cover; /* when rendered as <img src> (no effect on the initials span) */
-}
-.sm {
-  width: 32px;
-  height: 32px;
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  inline-size: var(--control-height-md);
+  block-size: var(--control-height-md);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-subtle);
+  font-family: var(--font-mono);
   font-size: var(--text-caption);
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: var(--color-text-secondary);
+  overflow: hidden;
 }
+
 .md {
-  width: 40px;
-  height: 40px;
+  /* размер по умолчанию — задан в .avatar; класс существует, чтобы не было `undefined` */
+}
+
+.sm {
+  inline-size: var(--control-height-sm);
+  block-size: var(--control-height-sm);
+}
+
+.lg {
+  inline-size: var(--control-height-lg);
+  block-size: var(--control-height-lg);
   font-size: var(--text-small);
 }
-.lg {
-  width: 56px;
-  height: 56px;
-  font-size: var(--text-h3);
+
+.image {
+  inline-size: 100%;
+  block-size: 100%;
+  object-fit: cover;
 }

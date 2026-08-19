@@ -11,9 +11,9 @@ import styles from './homework.module.css';
 import { HOME_ROUTE } from '@/shared/lib/homeRoute';
 
 const STATUS_TONE: Record<SubmissionStatus, BadgeTone> = {
-  SUBMITTED: 'info',
-  LATE: 'warning',
-  GRADED: 'success',
+  SUBMITTED: 'neutral',
+  LATE: 'now',
+  GRADED: 'done',
 };
 
 export function StudentHomeworkScreen() {

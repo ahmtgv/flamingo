@@ -18,7 +18,7 @@ The differentiator is **SEduM** — on-device attention analysis (CMF) that pers
 
 ## 3. Stack
 **Backend** — Python 3.12, Django 5, **Strawberry GraphQL** (`strawberry-django`), PostgreSQL 16, Redis (Django Channels channel layer) for GraphQL subscriptions over WebSocket (`graphql-ws`). ASGI (uvicorn). **Video: LiveKit — and read this before touching it.** The API only issues room tokens; media never passes through it. 🔴 This line used to say «self-hosted», and that is NOT what runs: `frontend/.env` points at `wss://flamingo-atvyww1r.livekit.cloud` — LiveKit **Cloud**, and a two-person measurement on 18.08 confirmed the media of both participants goes through Frankfurt («region: Germany 2»). Meanwhile `infra/prod/docker-compose.prod.yml` says the opposite («livekit — медиа идёт с машины преподавателя, серверу здесь делать нечего») and provisions coturn instead: that is a SECOND path, built server-side (`apps/signalling`, `common/turn.py`) with **no client code at all**, so coturn currently relays nothing. Which path ships is an **owner decision** (open as of 2026-08-18) — do not switch it on your own. ⚠️ `LIVEKIT_API_KEY`/`LIVEKIT_API_SECRET` are absent from `infra/prod/.env.production.example`: until they are set, production signs tokens with the dev fallback and the cloud rejects them. **Celery is DEFERRED** — no async tasks/worker are built yet (Redis is used only as the Channels layer, not a Celery broker).
-**Frontend** — **TypeScript**, React 18, Vite, **Apollo Client** (server cache/state), **Redux Toolkit** (local/UI state only), GraphQL Code Generator (typed operations), CSS Modules + `tokens.css` (no utility-CSS framework — the brand is custom). On-device ML: MediaPipe Tasks Vision (`FaceLandmarker`) in a Web Worker.
+**Frontend** — **TypeScript**, React 18, Vite, **Apollo Client** (server cache/state), **Redux Toolkit** (local/UI state only), GraphQL Code Generator (typed operations), CSS Modules + `tokens.css` (no utility-CSS framework — the brand is custom). 🔴 **The old styling layer is being demolished, not migrated** (owner decision 2026-08-19, наряд 42): screens are rebuilt one at a time from `docs/design-handover/*.dc.html`. Between screens the product may look broken — that is accepted. **Behaviour tests must stay green throughout**; a red behaviour test means damaged logic, not a damaged look, and work stops until it is understood. On-device ML: MediaPipe Tasks Vision (`FaceLandmarker`) in a Web Worker.
 **Infra** — Docker + docker-compose (dev); Kubernetes later; Yandex Cloud; S3-compatible object storage (Yandex Object Storage; MinIO locally).
 
 > Two decisions taken at this stage (brief left them open): **Strawberry** over Graphene (native async + subscriptions, type-hint-first, pairs with our typed schema) and **TypeScript** on the frontend (GraphQL codegen, safer refactors). Switchable, but the repo is written for these.
@@ -99,7 +99,21 @@ Models map 1:1 to `docs/flamingo_erd.md`. The API mirrors `docs/flamingo_schema.
 - Aggregate to ~2.5-second buckets (tunable in `seedum/cmfConfig.ts`) and emit `reportAttention({ sessionId, bucketStart, avgAttention, gazeOnScreen, eyeOpenness, headYaw, headPitch, alertness })` (or the subscription channel) — **per-bucket aggregate scalars only**. The sub-metrics are live-only (broadcast, not persisted); only `avgAttention` is stored. **Never** post frames, landmarks, or per-frame features anywhere.
 - UBP is persisted in IndexedDB. Cloud backup (`backupUbp`) encrypts client-side (WebCrypto) before upload; the server keeps an opaque blob + `keyHint`.
 - The live student chart is fed from the local pipeline. The teacher's class view is fed by students' aggregates via `attentionUpdates`.
-- Always show the on-device privacy indicator in any camera-using screen.
+- Always show the on-device privacy indicator in any camera-using screen. This outranks any design sheet: наряд 41 removed it from the room's pilot on the sheet's «say it once» rule and the guard caught it the same minute.
+
+## 7-бис. The live room — two composition decisions (owner, 2026-08-19, наряд 42)
+
+The handover sheet «Комната урока» changes the composition of atlas sheet 02 in two places.
+Both are **owner-accepted**. Recorded here so nobody «fixes» them back:
+
+1. **There is no «Класс» window.** Faces live in a permanent right-hand column, visible under
+   every window. This is not a loss but the cure: precisely because faces lived in a tab, the
+   room audio disappeared when the teacher switched to the board (наряд 38).
+2. **There is no layout switch** («вдвоём · группа · ученик рядом»). The column decides by its
+   own width — a strip below 45 %, a grid above it — and the width is dragged by the user.
+   «Ученик рядом» survives as «На большой экран» on a tile and goes to the projector.
+
+The windows are therefore four: **Доска · Методичка · Тест · Конспект**.
 
 ## 8. Commands
 ```bash
@@ -140,7 +154,7 @@ A module is done when: models + migrations, services, GraphQL types/queries/muta
 ## 11. Do NOT
 - Store lesson video, lesson audio, or a verbatim speech transcript — see §2.2. Speech is stream-processed for the summary only.
 - Add any persisted entity outside the §2.2 storage whitelist without an explicit owner decision.
-- Redesign approved screens: atlas sheets **00** (start page), **01** (subject cabinet), **02** (english live room), **12** (sources) are the **design contract** — implement them, do not reinvent them.
+- Redesign approved screens: atlas sheets **00** (start page), **01** (subject cabinet), **02** (english live room), **12** (sources) are the **design contract** — implement them, do not reinvent them. ⚠️ **Superseded for the room by the design handover of 2026-08-19** (`docs/design-handover/*.dc.html`, owner decision, наряд 42): where a handover sheet and an atlas sheet disagree, **the handover sheet wins**.
 - Treat anything under `docs/design-previews/_archive/` as a design contract. It is the **previous interface**, archived by owner decision 2026-08-12 when the UI/UX rebuild started. Reference material only; the four sheets above are the contract. Legacy screens (`/app`, the old cabinets) keep working until new screens cover their scenarios — do not delete them, do not extend them either.
 - Add any server path that receives raw video/audio/biometric frames.
 - Store PII outside the RF region, or add non-approved data stores for PII.

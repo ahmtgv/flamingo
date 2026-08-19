@@ -36,7 +36,9 @@ import { HOME_ROUTE } from '@/shared/lib/homeRoute';
 // the accent; the rest are muted neutral (no green/red traffic-light, per approved sheet 05).
 const STATUS_TONE: Record<SessionStatus, BadgeTone> = {
   SCHEDULED: 'neutral',
-  LIVE: 'accent',
+  // Идёт сейчас — единственное горящее в расписании.
+  LIVE: 'now',
+  // Прошедшее и отменённое не красятся: серое не значит «плохо», оно значит «не требует вас».
   ENDED: 'neutral',
   CANCELED: 'neutral',
 };

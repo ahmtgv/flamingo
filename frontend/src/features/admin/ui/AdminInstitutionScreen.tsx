@@ -30,8 +30,10 @@ import styles from './admin.module.css';
 import { HOME_ROUTE } from '@/shared/lib/homeRoute';
 
 const STATUS_TONE: Record<string, BadgeTone> = {
-  ACTIVE: 'success',
-  PENDING: 'warning',
+  // Принят в учреждение — решено, можно дальше.
+  ACTIVE: 'done',
+  // Ждёт решения — горит: пока не нажмут, человек не в учреждении.
+  PENDING: 'now',
   INACTIVE: 'neutral',
 };
 
@@ -241,7 +243,7 @@ function MembersSection({
               {m.user.fullName}{' '}
               <span className={styles.rowSub}>· {m.user.email}</span>
             </span>
-            <Badge tone="info">{t(`role.${m.role}`)}</Badge>
+            <Badge tone="neutral">{t(`role.${m.role}`)}</Badge>
             <Badge tone={STATUS_TONE[m.status]}>{t(`status.${m.status}`)}</Badge>
             <div className={styles.actionsRow}>
               {m.status === 'PENDING' && (

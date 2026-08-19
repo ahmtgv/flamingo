@@ -1,0 +1,86 @@
+/* Карточка состояния — строение с листов передачи (наряд 42 §3.3). */
+
+.card {
+  display: grid;
+  gap: var(--space-4);
+  justify-items: start;
+  padding: var(--space-6) var(--space-7);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-lg);
+  max-inline-size: 520px;
+}
+
+/* Надзаголовок — служебная подпись: моно, вразрядку, прописными, приглушённая (ПРАВИЛА 4.2). */
+.where {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+}
+
+/* Отказ называет себя цветом ОДИН раз — в надзаголовке; заголовок остаётся чернильным. */
+.card[data-kind='failed'] .where,
+.card[data-kind='partial'] .where {
+  color: var(--color-accent-text);
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: var(--text-h2);
+  font-weight: 600;
+  line-height: var(--leading-heading);
+  letter-spacing: var(--tracking-snug);
+}
+
+.body {
+  margin: 0;
+  font-size: var(--text-body);
+  line-height: var(--leading-body);
+  color: var(--color-text-secondary);
+}
+
+.body :first-child {
+  margin-block-start: 0;
+}
+
+.body :last-child {
+  margin-block-end: 0;
+}
+
+/* Что работает и что нет — двумя строками у волосяной линии, моно: это опись, а не проза. */
+.split {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding-inline-start: var(--space-4);
+  border-inline-start: 1px solid var(--color-border);
+}
+
+.splitRow dt,
+.splitRow dd {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  line-height: var(--leading-snug);
+  color: var(--color-text-secondary);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+/* Сноска — что будет, если не починится. Не пугает, а говорит следующий шаг. */
+.note {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  line-height: var(--leading-snug);
+  color: var(--color-text-tertiary);
+}

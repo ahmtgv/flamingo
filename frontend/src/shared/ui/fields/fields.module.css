@@ -1,190 +1,130 @@
-/* Shared styles for form controls (Input, TextField, Select, Checkbox). */
+/*
+ * ПОЛЯ ФОРМЫ — с листа «Вход и регистрация» (наряд 42 §3.3). Старый файл снесён целиком.
+ *
+ * Поле высотой 48 (`--control-height-lg`): в форму человек попадает редко и печатает руками,
+ * экономить здесь не на чем. Радиус — контрольный (10), не карточный: поле не карточка.
+ *
+ * 🔴 ОШИБКА ГОВОРИТ ПРИЧИНУ И НЕ ДВИГАЕТ ФОРМУ (ПРАВИЛА 6.6). Строка под полем существует
+ * всегда — пустая, когда всё хорошо. Иначе первая же ошибка сдвигает кнопку ровно в тот
+ * момент, когда человек по ней целится.
+ */
 
 .field {
-  display: flex;
-  flex-direction: column;
-  margin-bottom: var(--space-4);
+  display: grid;
+  gap: var(--space-2);
+  min-inline-size: 0;
 }
 
 .label {
-  font-family: var(--font-heading);
   font-size: var(--text-small);
-  font-weight: var(--weight-medium);
   color: var(--color-text-secondary);
-  margin-bottom: var(--space-2);
 }
 
-.required {
-  color: var(--color-accent-text);
-}
-
-.hint {
-  font-size: var(--text-caption);
+/* Обязательное помечено словом в подписи, а не одной звёздочкой цвета тревоги. */
+.required::after {
+  content: ' *';
   color: var(--color-text-tertiary);
-  margin-top: var(--space-2);
-  line-height: var(--leading-snug);
 }
 
-.error {
-  font-size: var(--text-caption);
-  color: var(--color-error-text);
-  margin-top: var(--space-2);
-  line-height: var(--leading-snug);
-}
-
-/* 🔴 V-02 + V-03 одной строкой.
-   V-02: `1fr` — это `minmax(auto, 1fr)`, у колонки есть пол по min-content, и при нехватке
-   места колонки садятся на РАЗНЫЕ ширины. Отсюда «Имя» и «Фамилия» разного размера.
-   V-03: брейкпойнт был 460px при колонке формы 460px — то есть не срабатывал НИ ПРИ КАКОЙ
-   ширине. Брейкпойнт вообще не нужен: `auto-fit` сам кладёт поля в одну колонку, как только
-   двум по 180px перестаёт хватать места, и делает это по ширине СТРОКИ, а не окна. */
-.row {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(180px, 100%), 1fr));
-  gap: var(--space-3);
-}
-
-
-/* Input / Select shared control surface */
 .input,
+.textarea,
 .select {
+  inline-size: 100%;
+  min-block-size: var(--control-height-lg);
+  padding: 0 var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  background: var(--color-surface);
+  color: var(--color-text);
   font-family: var(--font-body);
   font-size: var(--text-body);
-  color: var(--color-text);
-  background: var(--color-surface);
-  border: 1px solid var(--color-border-strong);
-  border-radius: var(--radius-control);
-  height: var(--control-height-md);
-  padding: 0 var(--space-4);
-  width: 100%;
-  transition:
-    box-shadow var(--duration-fast) var(--ease-standard),
-    border-color var(--duration-fast) var(--ease-standard);
-}
-.input::placeholder {
-  color: var(--color-text-tertiary);
-}
-.input:focus,
-.select:focus {
-  outline: none;
-  border-color: var(--color-accent);
-  box-shadow: var(--focus-ring);
-}
-.input:disabled,
-.select:disabled {
-  background: var(--color-surface-subtle);
-  color: var(--color-text-disabled);
-  cursor: not-allowed;
-}
-.invalid {
-  border-color: var(--color-error);
-}
-.invalid:focus {
-  box-shadow: 0 0 0 var(--focus-ring-width) var(--color-error-bg);
+  transition: border-color var(--duration-fast) var(--ease-standard);
 }
 
-/* Multiline control surface (TextArea) — mirrors .input but free-height */
 .textarea {
-  font-family: var(--font-body);
-  font-size: var(--text-body);
-  color: var(--color-text);
-  background: var(--color-surface);
-  border: 1px solid var(--color-border-strong);
-  border-radius: var(--radius-control);
+  min-block-size: calc(3 * var(--control-height-lg));
   padding: var(--space-3) var(--space-4);
-  width: 100%;
-  min-height: 96px;
+  line-height: var(--leading-body);
   resize: vertical;
-  line-height: var(--leading-snug);
-  transition:
-    box-shadow var(--duration-fast) var(--ease-standard),
-    border-color var(--duration-fast) var(--ease-standard);
 }
+
+.input::placeholder,
 .textarea::placeholder {
   color: var(--color-text-tertiary);
 }
-.textarea:focus {
+
+.input:hover,
+.textarea:hover,
+.select:hover {
+  border-color: var(--color-border-strong);
+}
+
+.input:focus-visible,
+.textarea:focus-visible,
+.select:focus-visible {
   outline: none;
-  border-color: var(--color-accent);
+  border-color: var(--color-border-strong);
   box-shadow: var(--focus-ring);
 }
 
-/* Select chevron */
-.selectWrap {
-  position: relative;
-  display: flex;
-}
-.select {
-  appearance: none;
-  -webkit-appearance: none;
-  padding-right: var(--space-8);
-}
-.selectIcon {
-  position: absolute;
-  right: var(--space-3);
-  top: 50%;
-  transform: translateY(-50%);
-  color: var(--color-text-secondary);
-  pointer-events: none;
-  width: 18px;
-  height: 18px;
-}
-
-/* Checkbox */
-.check {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--space-3);
-  cursor: pointer;
-  user-select: none;
-}
-.checkInput {
-  position: absolute;
-  opacity: 0;
-  width: 1px;
-  height: 1px;
-}
-.box {
-  width: 22px;
-  height: 22px;
-  border: 1.5px solid var(--color-border-strong);
-  border-radius: var(--radius-xs);
-  background: var(--color-surface);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  margin-top: 1px;
-  transition: all var(--duration-fast) var(--ease-standard);
-}
-.tick {
-  width: 14px;
-  height: 14px;
-  color: var(--color-text-on-accent);
-  opacity: 0;
-}
-.checkInput:checked + .box {
-  background: var(--color-accent-strong);
-  border-color: var(--color-accent-strong);
-}
-.checkInput:checked + .box .tick {
-  opacity: 1;
-}
-.checkInput:focus-visible + .box {
-  box-shadow: var(--focus-ring);
-}
-.checkText {
-  font-size: var(--text-small);
-  color: var(--color-text-secondary);
-  line-height: var(--leading-snug);
-}
-.checkBoxed {
-  padding: var(--space-3);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
+.input:disabled,
+.textarea:disabled,
+.select:disabled {
+  color: var(--color-text-disabled);
   background: var(--color-surface-subtle);
 }
-.checkInvalid {
+
+.input[aria-invalid='true'],
+.textarea[aria-invalid='true'],
+.select[aria-invalid='true'] {
   border-color: var(--color-error);
-  background: var(--color-error-bg);
+}
+
+/*
+ * Место под ошибку занято всегда — макет не прыгает. Высота одной строки подписи; когда
+ * ошибки нет, строка пустая и невидимая, но своё место держит.
+ */
+.hint,
+.error {
+  min-block-size: var(--text-caption);
+  font-size: var(--text-caption);
+  line-height: var(--leading-snug);
+}
+
+.hint {
+  color: var(--color-text-tertiary);
+}
+
+.error {
+  color: var(--color-error-text);
+}
+
+/* Ряд полей: два в строку на просторе, одно — на узком. */
+.row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: var(--space-4);
+}
+
+.checkboxRow {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  gap: var(--space-3);
+  /* Цель нажатия — вся строка, а не квадратик 16 px (ПРАВИЛА 7.1а). */
+  min-block-size: var(--tap-min);
+  align-content: center;
+}
+
+.checkbox {
+  inline-size: 20px;
+  block-size: 20px;
+  margin: 0;
+  accent-color: var(--color-accent-solid);
+}
+
+.checkboxLabel {
+  font-size: var(--text-small);
+  line-height: var(--leading-snug);
+  color: var(--color-text);
 }

@@ -26,9 +26,12 @@ import styles from './homework.module.css';
 import { HOME_ROUTE } from '@/shared/lib/homeRoute';
 
 const STATUS_TONE: Record<SubmissionStatus, BadgeTone> = {
-  SUBMITTED: 'info',
-  LATE: 'warning',
-  GRADED: 'success',
+  // Сдано — ещё не решено: работа ждёт преподавателя, требования к ученику нет.
+  SUBMITTED: 'neutral',
+  // Опоздание горит: это то, что ученику надо знать про себя.
+  LATE: 'now',
+  // Оценена — решено, можно дальше.
+  GRADED: 'done',
 };
 
 function formatDate(iso: string): string {
@@ -177,7 +180,7 @@ function TeacherHomeworkCard({ hw, onDone }: { hw: HomeworkRow; onDone: () => vo
     <div className={styles.card}>
       <div className={styles.cardHead}>
         <span className={styles.cardTitle}>{hw.title}</span>
-        <Badge tone={hw.publishedAt ? 'success' : 'neutral'}>
+        <Badge tone={hw.publishedAt ? 'done' : 'neutral'}>
           {hw.publishedAt ? t('published') : t('draft')}
         </Badge>
       </div>

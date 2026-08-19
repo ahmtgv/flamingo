@@ -1,42 +1,71 @@
+/*
+ * МЕТКА — с листов передачи (наряд 42 §3.3).
+ *
+ * 🔴 СМЫСЛ НИКОГДА НЕ ЦВЕТОМ ОДНИМ. Метка — это всегда слово; тон только усиливает то, что
+ * уже написано. Поэтому здесь нет ни одного варианта без текста.
+ *
+ * Два цвета, два смысла, без перекрытия (ПРАВИЛА 5.8): коралловый — то, что горит (срок,
+ * отмена, «идёт сейчас», поднятая рука); зелёный — решено и можно дальше (принято, сдано,
+ * пройдено). Всё остальное — серое: номера, счётчики и служебные подписи не красятся.
+ */
+
 .badge {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-1);
+  gap: var(--space-2);
+  padding: 2px var(--space-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xs);
+  background: none;
   font-family: var(--font-mono);
   font-size: var(--text-caption);
-  font-weight: var(--weight-medium);
-  font-variant-numeric: tabular-nums;
-  padding: var(--space-1) var(--space-2);
-  border-radius: var(--radius-pill);
-  line-height: 1.45;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
 }
-.dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: currentColor;
-}
-.success {
-  background: var(--color-success-bg);
-  color: var(--color-success-text);
-}
-.warning {
-  background: var(--color-warning-bg);
-  color: var(--color-warning-text);
-}
-.error {
-  background: var(--color-error-bg);
-  color: var(--color-error-text);
-}
-.info {
-  background: var(--color-info-bg);
-  color: var(--color-info-text);
-}
-.accent {
-  background: var(--color-accent-subtle);
+
+/* Горит: срок, отмена, «идёт сейчас». */
+.now {
+  border-color: var(--color-accent);
   color: var(--color-accent-text);
 }
-.neutral {
-  background: var(--color-surface-subtle);
-  color: var(--color-text-secondary);
+
+/* Решено: принято, сдано, пройдено. */
+.done {
+  border-color: var(--color-go-border);
+  color: var(--color-go-text);
+}
+
+/*
+ * Заливка — только там, где метка САМА является главным на экране: поднятая рука в комнате.
+ * Больше нигде: одна акцентная заливка на экран (ПРАВИЛА 5.1).
+ */
+.loud {
+  border-color: transparent;
+  background: var(--color-accent-solid);
+  color: var(--color-on-accent);
+}
+
+/* Точка живого состояния. Пульсирует, пока идёт; в покое просто стоит. */
+.dot {
+  inline-size: 5px;
+  block-size: 5px;
+  border-radius: 50%;
+  background: currentcolor;
+}
+
+.badge[data-live='true'] .dot {
+  animation: badgePulse 2.4s var(--ease-standard) infinite;
+}
+
+@keyframes badgePulse {
+  50% {
+    opacity: 0.3;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .badge[data-live='true'] .dot {
+    animation: none;
+  }
 }
