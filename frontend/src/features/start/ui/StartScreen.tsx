@@ -385,7 +385,9 @@ export function StartScreen() {
 
       {/* The chat is a window over the page, never a screen (sheet 00). The header button
           and the bubble open the same one. */}
-      <ChatDock open={chatOpen} onOpenChange={setChatOpen} />
+      {/* Пузыря здесь нет: чат вызывается кнопкой в шапке, и второе приглашение на том
+          же экране только занимало место — стоя при этом на тексте правой колонки. */}
+      <ChatDock open={chatOpen} onOpenChange={setChatOpen} bubble={false} />
     </div>
   );
 }

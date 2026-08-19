@@ -39,11 +39,23 @@ export function ChatDock({
   courseId,
   open: openProp,
   onOpenChange,
+  bubble = true,
 }: {
   courseId?: string;
   /** Optional controlled state, so a header button can open the same window. */
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
+  /**
+   * 🔴 ПЛАВАЮЩИЙ ПУЗЫРЬ СТОЯЛ НА ТЕКСТЕ ПРАВОЙ КОЛОНКИ КАБИНЕТА (прибор дизайнера, детский
+   * режим). Замер: единственный слой на экране — этот пузырь, 98 × 48, `position: fixed`,
+   * z-index 1000, непрозрачный; текст карточки зеркала уходил под него на 81 × 48.
+   *
+   * Отступом снизу это не лечится: колонка ПРОКРУЧИВАЕТСЯ, и под пузырь уезжает любой её
+   * кусок, а не только последний. Лечится составом: там, где чат уже вызывается кнопкой в
+   * шапке, пузырь — второе такое же приглашение на том же экране. Лист кабинета его не
+   * рисует вовсе.
+   */
+  bubble?: boolean;
 }) {
   const { t } = useTranslation(['chat', 'common']);
   const [openSelf, setOpenSelf] = useState(false);
@@ -81,6 +93,7 @@ export function ChatDock({
 
   return (
     <>
+      {bubble && (
       <button
         type="button"
         className={styles.fab}
@@ -94,6 +107,7 @@ export function ChatDock({
         {courseId ? t('chat:openSubject') : t('chat:open')}
         {unread > 0 && <span className={styles.fabCount}>{unread}</span>}
       </button>
+      )}
 
       {open && (
         <section className={styles.dock} aria-label={t('chat:title')}>
