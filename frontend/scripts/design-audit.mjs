@@ -47,6 +47,22 @@ const lesson = (await gql('mutation($s:ID!,$t:String!){ createLesson(sectionId:$
 await gql('mutation($l:ID!){ publishLesson(id:$l){ id } }', { l: lesson }, teacher);
 await gql('mutation($c:ID!){ publishCourse(id:$c){ id } }', { c: course }, teacher);
 await gql('mutation($c:ID!){ enroll(courseId:$c){ id } }', { c: course }, pupil);
+/*
+ * 🔴 ЗАДАНИЯ В ЗАСЕВЕ — БЕЗ НИХ ПРИБОР МЕРИЛ ПУСТОЙ ЭКРАН И ПЕЧАТАЛ «ЧИСТО».
+ * Я чуть не отчитался пересобранным экраном «Задания», который ни разу не показали с
+ * данными: у ученика прибора не было ни одной работы, и он всё время видел состояние
+ * «пусто». Нарочная поломка вёрстки при этом тоже не ловилась — ломать было нечего.
+ */
+const dueSoon = new Date(Date.now() + 2 * 864e5).toISOString();
+const dueLater = new Date(Date.now() + 9 * 864e5).toISOString();
+for (const [title, due, desc] of [
+  ['Описать дорогу от дома до школы', dueSoon, '5–7 предложений, минимум три конструкции урока'],
+  ['Тест · предлоги места', dueLater, '8 вопросов · попытки не ограничены до срока'],
+  ['Задачи 14–18', null, 'фото решения от руки — этого достаточно'],
+]) {
+  const hw = (await gql('mutation($i: HomeworkInput!){ createHomework(input:$i){ id } }', { i: { lessonId: lesson, title, type: 'TEXT', description: desc, ...(due ? { dueAt: due } : {}) } }, teacher)).createHomework.id;
+  await gql('mutation($h:ID!){ publishHomework(id:$h){ id } }', { h: hw }, teacher);
+}
 const session = (await gql('mutation($i: ScheduleSessionInput!){ scheduleSession(input:$i){ id } }', { i: { lessonId: lesson, startAt: new Date().toISOString() } }, teacher)).scheduleSession.id;
 await gql('mutation($s:ID!){ startSession(sessionId:$s){ id } }', { s: session }, teacher);
 
@@ -54,6 +70,10 @@ const DEFAULT_SCREENS = [
   ['/start', 'teacher'],
   ['/start', 'pupil'],
   ['/my-learning', 'pupil'],
+  ['/homework', 'pupil'],
+  // Преподаватель на ученическом экране: `myHomework` отдаёт ему пусто — проверяем, что
+  // экран при этом говорит словами, а не показывает поломку.
+  ['/homework', 'teacher'],
   [`/subjects/${course}`, 'teacher'],
   [`/sessions/${session}/room`, 'teacher'],
   ['/', null],
@@ -87,6 +107,8 @@ const browser = await chromium.launch({
 }
 
 const rows = [];
+// Сколько раз отсеяны фигуры рисунка — печатается в конце, чтобы отсев не был молчаливым.
+let skippedArt = 0;
 for (const [route, who] of SCREENS) {
   for (const view of VIEWS) {
     const ctx = await browser.newContext({
@@ -111,8 +133,45 @@ for (const [route, who] of SCREENS) {
         await page.evaluate(() => document.documentElement.setAttribute('data-mode', 'kids'));
         await page.waitForTimeout(600);
       }
+      /*
+       * 🔴 «ЧИСТО» НА СЛОМАННОМ ЭКРАНЕ — ЭТО НЕ ЧИСТО.
+       *
+       * Прибор напечатал «чисто» четыре раза подряд для экрана «Задания», который в этот
+       * момент показывал ОТКАЗ: бэкенд был поднят до появления запроса. Геометрия карточки
+       * отказа действительно безупречна — и это ровно тот случай, когда счётчик успокаивает
+       * вместо того, чтобы предупредить. До этого он так же мерил ПУСТОЙ экран: у ученика
+       * прибора не было ни одного задания.
+       *
+       * Теперь состояние экрана печатается рядом с вердиктом. Молчать о том, ЧТО измерено,
+       * прибор больше не имеет права.
+       */
+      const state = await page.evaluate(() => {
+        const card = document.querySelector('[data-kind]');
+        if (card) return card.getAttribute('data-kind');
+        return document.body.innerText.trim().length < 120 ? 'почти пусто' : null;
+      });
+      if (process.env.DUMP_TEXT && view === VIEWS[0]) {
+        console.log('ТЕКСТ', route, '→', (await page.evaluate(() => document.body.innerText)).replace(/\s+/g, ' ').slice(0, 260));
+      }
       await page.addScriptTag({ content: AUDIT });
       const report = await page.evaluate((label) => window.flAudit({ label }), `${route} · ${who ?? 'гость'}`);
+      /*
+       * 🔴 ФИГУРЫ ВНУТРИ РИСУНКА — НЕ НАЛОЖЕНИЕ. Прибор обходит все элементы подряд, включая
+       * внутренности `<svg>`, и два соседних контура знака бренда (крыло поверх тела)
+       * считает дефектом. Знак стоит в шапке КАЖДОГО экрана, поэтому счётчик наложений
+       * никогда не доходил до нуля.
+       *
+       * Постоянный ложный дефект хуже дефекта: к нему привыкают и перестают смотреть на
+       * счётчик, а за ним прячется настоящий. Отсекаем ровно этот случай — обе стороны
+       * являются фигурами внутри рисунка, — и ничего больше: наложение любых двух узлов
+       * разметки по-прежнему считается.
+       */
+      const SVG_SHAPES = new Set(['g', 'ellipse', 'circle', 'path', 'rect', 'polygon', 'line', 'polyline']);
+      const isArt = (o) => SVG_SHAPES.has(String(o.a).split('[')[0]) && SVG_SHAPES.has(String(o.b).split('[')[0]);
+      const artCount = (report.overlaps ?? []).filter(isArt).length;
+      report.overlaps = (report.overlaps ?? []).filter((o) => !isArt(o));
+      report.verdict.overlaps = report.overlaps.length ? `ДЕФЕКТ ${report.overlaps.length}` : 'ok';
+      if (artCount) skippedArt += artCount;
       const defects = Object.entries(report.verdict).filter(([, v]) => String(v).startsWith('ДЕФЕКТ'));
       // Подробности — только для первого вида: они одинаковы во всех, а печатать вчетверо
       // значит утопить находку в повторах (той же болезнью страдал лог сервера, §37 §4.2).
@@ -127,7 +186,7 @@ for (const [route, who] of SCREENS) {
             rowWrap: (report.rowWrap ?? []).slice(0, 3),
           }
         : null;
-      rows.push({ route, who: who ?? 'гость', view: view.name, defects: defects.map(([k, v]) => `${k}: ${v}`), details });
+      rows.push({ route, who: who ?? 'гость', view: view.name, state, defects: defects.map(([k, v]) => `${k}: ${v}`), details });
     } catch (e) {
       rows.push({ route, who: who ?? 'гость', view: view.name, error: String(e).split('\n')[0].slice(0, 100) });
     }
@@ -141,9 +200,15 @@ let total = 0;
 for (const r of rows) {
   if (r.error) { console.log(`  ${r.route} · ${r.who} · ${r.view}: не открылся — ${r.error}`); continue; }
   total += r.defects.length;
-  console.log(`  ${r.route} · ${r.who} · ${r.view}: ${r.defects.length ? r.defects.join(' | ') : 'чисто'}`);
+  const shown = r.defects.length ? r.defects.join(' | ') : 'чисто';
+  // Состояние — впереди вердикта: «чисто» на отказе читается иначе, чем «чисто» на данных.
+  console.log(`  ${r.route} · ${r.who} · ${r.view}: ${r.state ? `[${r.state}] ` : ''}${shown}`);
 }
 console.log(`\nвсего дефектов геометрии: ${total}`);
+if (skippedArt) {
+  // Молчаливый отсев — это то же враньё, что молчаливое ограничение выборки.
+  console.log(`  (не считались фигуры внутри рисунков: ${skippedArt} — это знак бренда, не наложение)`);
+}
 
 console.log('\n=== ПОДРОБНО (первый вид каждого экрана) ===');
 for (const r of rows) {

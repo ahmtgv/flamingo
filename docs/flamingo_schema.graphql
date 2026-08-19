@@ -338,6 +338,9 @@ type Homework {
   type: HomeworkType!
   dueAt: DateTime
   allowRedo: Boolean!
+  # Название курса одной строкой: у задания НА УРОК поле `course` пустое, и курс достаётся
+  # через lesson.section.course — путь, которого у клиента нет (тип Lesson секции не отдаёт).
+  courseTitle: String
   course: Course
   lesson: Lesson
   group: Group
@@ -1709,6 +1712,7 @@ type Query {
 
   # homework / grading
   homework(id: ID!): Homework
+  myHomework: [Homework!]!                                # student: every published homework on their courses
   lessonHomework(lessonId: ID!): [Homework!]!             # published for students, all for the owning teacher
   homeworkSubmissions(homeworkId: ID!): [Submission!]!     # teacher grading list
   mySubmissions(courseId: ID): [Submission!]!              # student

@@ -48,6 +48,13 @@ def published_course_with_lesson(teacher):
     return course, lesson
 
 
+def make_hw_named(teacher, lesson, title, **kw):
+    """Тот же помощник, но с названием: список заданий читается по названиям."""
+    return services.create_homework(
+        teacher, title=title, type=HomeworkType.TEXT, lesson_id=lesson.id, **kw
+    )
+
+
 def make_homework(teacher, lesson, **kw):
     return services.create_homework(
         teacher, title="Домашка 1", type=HomeworkType.TEXT, lesson_id=lesson.id, **kw
@@ -282,3 +289,65 @@ def test_cannot_bind_another_students_upload_key(monkeypatch):
         services.submit_homework(
             student, homework_id=hw.id, file_keys=[f"submission/{other.id}/x/hw.pdf"]
         )
+
+
+# --- «Задания» ученика: список того, что задано (наряд 42) -------------------
+def test_my_homework_lists_published_work_of_enrolled_courses():
+    """
+    🔴 Этого запроса не было, и главную колонку экрана «Задания» строить было не из чего:
+    единственный ученический запрос `mySubmissions` по определению возвращает СДАННОЕ.
+    Экран на нём показал бы «Проверено» и пустое «Сдать».
+    """
+    teacher = make_teacher("mh.t@example.com")
+    student = make_student("mh.s@example.com")
+    course, lesson = published_course_with_lesson(teacher)
+
+    shown = make_hw_named(teacher, lesson, title="Сдать")
+    services.publish_homework(teacher, shown.id)
+    make_hw_named(teacher, lesson, title="Черновик")  # не опубликовано — ученику не видно
+    courses.enroll(student, course.id)
+
+    assert [h.title for h in services.my_homework(student)] == ["Сдать"]
+
+
+def test_my_homework_needs_enrollment_not_just_a_student_account():
+    """Право на задание даёт зачисление. Посторонний ученик не видит ничего."""
+    teacher = make_teacher("mh.t2@example.com")
+    stranger = make_student("mh.stranger@example.com")
+    _course, lesson = published_course_with_lesson(teacher)
+    hw = make_hw_named(teacher, lesson, title="Чужое")
+    services.publish_homework(teacher, hw.id)
+
+    assert services.my_homework(stranger) == []
+
+
+def test_my_homework_is_a_pupil_query_and_gives_a_teacher_nothing():
+    """Не «всё подряд преподавателю», а пусто: запрос ученический по смыслу."""
+    teacher = make_teacher("mh.t3@example.com")
+    _course, lesson = published_course_with_lesson(teacher)
+    hw = make_hw_named(teacher, lesson, title="Своё")
+    services.publish_homework(teacher, hw.id)
+
+    assert services.my_homework(teacher) == []
+
+
+def test_my_homework_orders_by_nearest_deadline_and_puts_undated_last():
+    """Порядок — читательский: ближний срок сверху, бессрочное внизу.
+
+    Бессрочное наверху было бы враньём про важность: у него срока нет, значит оно не горит.
+    """
+    teacher = make_teacher("mh.t4@example.com")
+    student = make_student("mh.s4@example.com")
+    course, lesson = published_course_with_lesson(teacher)
+    now = timezone.now()
+
+    for title, due in [
+        ("потом", now + timedelta(days=9)),
+        ("без срока", None),
+        ("скоро", now + timedelta(days=1)),
+    ]:
+        hw = make_hw_named(teacher, lesson, title=title, due_at=due)
+        services.publish_homework(teacher, hw.id)
+    courses.enroll(student, course.id)
+
+    assert [h.title for h in services.my_homework(student)] == ["скоро", "потом", "без срока"]

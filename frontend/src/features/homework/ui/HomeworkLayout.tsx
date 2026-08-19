@@ -9,10 +9,28 @@ import { toggleTheme } from '@/app/uiSlice';
 import { useLogout } from '@/app/useLogout';
 import { Logo } from '@/shared/ui';
 
-import styles from './homework.module.css';
+import styles from './homeworkLayout.module.css';
 import { HOME_ROUTE } from '@/shared/lib/homeRoute';
 
-export function HomeworkLayout({ children }: { children: ReactNode }) {
+/**
+ * Шапка экранов заданий и проверки — лист «Задания и конспект».
+ *
+ * Одна строка: знак · дорога назад · название экрана · чем он сейчас занят · учётка. Прежде
+ * шапка несла только знак и две иконки, а название экрана жило заголовком ниже — и человек,
+ * попавший сюда из письма, не понимал, где он, пока не прокрутит.
+ */
+export function HomeworkLayout({
+  children,
+  back,
+  title,
+  meta,
+}: {
+  children: ReactNode;
+  /** Дорога назад — левый верхний угол, во всех состояниях (ПРАВИЛА 1.4). */
+  back?: { label: string; to: string };
+  title?: string;
+  meta?: string;
+}) {
   const { t } = useTranslation(['common', 'cabinet']);
   const navigate = useNavigate();
   const theme = useAppSelector((s) => s.ui.theme);
@@ -31,6 +49,13 @@ export function HomeworkLayout({ children }: { children: ReactNode }) {
         >
           <Logo />
         </button>
+        {back && (
+          <button type="button" className={styles.back} onClick={() => navigate(back.to)}>
+            {back.label}
+          </button>
+        )}
+        {title && <span className={styles.headTitle}>{title}</span>}
+        {meta && <span className={styles.headMeta}>{meta}</span>}
         <div className={styles.topActions}>
           <button
             type="button"

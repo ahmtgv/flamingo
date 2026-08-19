@@ -17,11 +17,11 @@ Authorization is split in two, on purpose:
 from __future__ import annotations
 
 from django.db import IntegrityError, transaction
-from django.db.models import Max, Q
+from django.db.models import F, Max, Q
 from django.utils import timezone
 
 from apps.courses.access import can_access_course
-from apps.courses.models import Course, Lesson
+from apps.courses.models import Course, Enrollment, Lesson
 from apps.courses.services import (
     _ensure_owner,
     _owned_course,
@@ -370,6 +370,36 @@ def my_submissions(user, course_id=None) -> list[Submission]:
         qs = qs.filter(
             Q(homework__course_id=course_id) | Q(homework__lesson__section__course_id=course_id)
         )
+    return list(qs)
+
+
+def my_homework(user) -> list[Homework]:
+    """
+    Every published homework on the student's enrolled courses — what the «Задания» screen is
+    a list of.
+
+    🔴 This did NOT exist, and the sheet's main column could not be built without it: the only
+    pupil-facing query was `mySubmissions`, which by definition returns work already handed in.
+    A screen built on it would show «Проверено» and an empty «Сдать» — the half that matters
+    least. The cabinet computed the same thing inside `start_page`, capped at five and only for
+    homework WITH a deadline; that cap is right for a cabinet slot and wrong for the full list.
+
+    Ordering is the pupil's own reading order: nearest deadline first, undated last (they are
+    not urgent, and putting them on top would be a lie about priority).
+    """
+    if getattr(user, "role", None) != Role.STUDENT.value:
+        return []
+    course_ids = list(
+        Enrollment.objects.filter(student__user=user).values_list("course_id", flat=True)
+    )
+    if not course_ids:
+        return []
+    qs = (
+        Homework.objects.filter(published_at__isnull=False)
+        .filter(Q(course_id__in=course_ids) | Q(lesson__section__course_id__in=course_ids))
+        .select_related("course", "lesson__section__course")
+        .order_by(F("due_at").asc(nulls_last=True), "title")
+    )
     return list(qs)
 
 

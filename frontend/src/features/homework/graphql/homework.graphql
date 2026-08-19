@@ -68,6 +68,37 @@ query MySubmissions($courseId: ID) {
   }
 }
 
+# Экран «Задания» ученика: что задано, с чем сдано и что сказал преподаватель.
+# Без фрагментов и целыми полями — расхождение SDL и живой схемы это требует.
+query MyHomework {
+  myHomework {
+    id
+    title
+    description
+    type
+    dueAt
+    allowRedo
+    courseTitle
+    course {
+      id
+      title
+    }
+    lesson {
+      id
+      title
+    }
+    viewerSubmission {
+      id
+      status
+      score
+      markless
+      comment
+      attempt
+      submittedAt
+    }
+  }
+}
+
 mutation CreateHomework($input: HomeworkInput!) {
   createHomework(input: $input) {
     id

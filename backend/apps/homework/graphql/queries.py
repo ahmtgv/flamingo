@@ -56,6 +56,11 @@ class HomeworkQuery:
         return services.my_submissions(require_user(info), course_id)
 
     @strawberry.field
+    def my_homework(self, info: strawberry.Info) -> list[Homework]:
+        """Every published homework on the student's enrolled courses — the «Задания» screen."""
+        return services.my_homework(require_user(info))
+
+    @strawberry.field
     def lesson_homework(self, info: strawberry.Info, lesson_id: strawberry.ID) -> list[Homework]:
         """Homework on a lesson: published for students, all for the owning teacher."""
         return services.lesson_homework(get_current_user(info), lesson_id)

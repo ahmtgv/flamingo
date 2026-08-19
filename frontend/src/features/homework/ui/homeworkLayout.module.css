@@ -1,0 +1,110 @@
+/*
+ * ШАПКА ЭКРАНОВ ЗАДАНИЙ И ПРОВЕРКИ — лист «Задания и конспект».
+ * Кадр держит высоту экрана: работа внутри прокручивается своими областями, страница — нет.
+ */
+
+.shell {
+  block-size: 100dvh;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  overflow: hidden;
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+@media (max-width: 1100px) {
+  .shell {
+    block-size: auto;
+    min-block-size: 100dvh;
+    overflow: visible;
+  }
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-5);
+  border-block-end: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+
+/* Ширину задаёт содержимое: в связке «птица + flamingo» слово шире 44 и вылезало на соседа. */
+.logoBtn {
+  display: inline-flex;
+  align-items: center;
+  flex: none;
+  min-block-size: var(--tap-min);
+  padding-inline: var(--space-2);
+  border: none;
+  border-radius: var(--radius-control);
+  background: none;
+  color: var(--color-accent);
+  cursor: pointer;
+}
+
+.back {
+  flex: none;
+  min-block-size: var(--control-height-sm);
+  padding-inline: var(--space-2);
+  border: none;
+  background: none;
+  font-family: var(--font-body);
+  font-size: var(--text-small);
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.back:hover {
+  color: var(--color-text);
+}
+
+.headTitle {
+  flex: none;
+  font-size: var(--text-small);
+  font-weight: 500;
+  letter-spacing: var(--tracking-snug);
+  white-space: nowrap;
+}
+
+.headMeta {
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  color: var(--color-text-tertiary);
+  min-inline-size: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.topActions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin-inline-start: auto;
+  flex: none;
+}
+
+.iconBtn {
+  display: inline-grid;
+  place-items: center;
+  inline-size: var(--tap-min);
+  block-size: var(--tap-min);
+  border: none;
+  border-radius: var(--radius-control);
+  background: none;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+}
+
+.iconBtn:hover {
+  color: var(--color-text);
+}
+
+.iconBtn:focus-visible,
+.back:focus-visible,
+.logoBtn:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}

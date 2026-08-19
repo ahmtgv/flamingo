@@ -104,6 +104,23 @@ class Homework:
         return self.lesson
 
     @strawberry_django.field
+    def course_title(self) -> str:
+        """
+        Название курса — одной строкой, каким бы путём задание к нему ни привязали.
+
+        🔴 `course` у задания, выданного НА УРОК, пустое: курс достаётся через
+        `lesson.section.course`. Экран «Задания» показывал из-за этого название урока на месте
+        курса — «Asking for directions» вместо «English A2», — и подпись врала о том, откуда
+        работа. Пройти это через `lesson` клиент не может: у типа `Lesson` секции нет.
+        """
+        if self.course_id:
+            return self.course.title
+        lesson = self.lesson
+        if lesson and lesson.section_id:
+            return lesson.section.course.title
+        return ""
+
+    @strawberry_django.field
     def group(self) -> GroupType | None:
         return self.group
 

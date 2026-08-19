@@ -661,6 +661,7 @@ export type Homework = {
   __typename?: 'Homework';
   allowRedo: Scalars['Boolean']['output'];
   course?: Maybe<Course>;
+  courseTitle?: Maybe<Scalars['String']['output']>;
   createdBy: User;
   description?: Maybe<Scalars['String']['output']>;
   dueAt?: Maybe<Scalars['DateTime']['output']>;
@@ -1968,6 +1969,7 @@ export type Query = {
   myChannels: Array<ChatChannel>;
   myCourses: Array<Course>;
   myDevices: Array<Device>;
+  myHomework: Array<Homework>;
   myMirror: Array<MirroredRecord>;
   myRepetitionProgress: RepetitionProgress;
   myRepetitionQueue: Array<DueCard>;
@@ -3782,6 +3784,11 @@ export type MySubmissionsQueryVariables = Exact<{
 
 
 export type MySubmissionsQuery = { __typename?: 'Query', mySubmissions: Array<{ __typename?: 'Submission', id: string, status: SubmissionStatus, score?: number | null, markless: boolean, comment?: string | null, attempt: number, submittedAt?: string | null, homework: { __typename?: 'Homework', id: string, title: string } }> };
+
+export type MyHomeworkQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type MyHomeworkQuery = { __typename?: 'Query', myHomework: Array<{ __typename?: 'Homework', id: string, title: string, description?: string | null, type: HomeworkType, dueAt?: string | null, allowRedo: boolean, courseTitle?: string | null, course?: { __typename?: 'Course', id: string, title: string } | null, lesson?: { __typename?: 'Lesson', id: string, title: string } | null, viewerSubmission?: { __typename?: 'Submission', id: string, status: SubmissionStatus, score?: number | null, markless: boolean, comment?: string | null, attempt: number, submittedAt?: string | null } | null }> };
 
 export type CreateHomeworkMutationVariables = Exact<{
   input: HomeworkInput;
@@ -8767,6 +8774,71 @@ export type MySubmissionsQueryHookResult = ReturnType<typeof useMySubmissionsQue
 export type MySubmissionsLazyQueryHookResult = ReturnType<typeof useMySubmissionsLazyQuery>;
 export type MySubmissionsSuspenseQueryHookResult = ReturnType<typeof useMySubmissionsSuspenseQuery>;
 export type MySubmissionsQueryResult = Apollo.QueryResult<MySubmissionsQuery, MySubmissionsQueryVariables>;
+export const MyHomeworkDocument = gql`
+    query MyHomework {
+  myHomework {
+    id
+    title
+    description
+    type
+    dueAt
+    allowRedo
+    courseTitle
+    course {
+      id
+      title
+    }
+    lesson {
+      id
+      title
+    }
+    viewerSubmission {
+      id
+      status
+      score
+      markless
+      comment
+      attempt
+      submittedAt
+    }
+  }
+}
+    `;
+
+/**
+ * __useMyHomeworkQuery__
+ *
+ * To run a query within a React component, call `useMyHomeworkQuery` and pass it any options that fit your needs.
+ * When your component renders, `useMyHomeworkQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useMyHomeworkQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useMyHomeworkQuery(baseOptions?: Apollo.QueryHookOptions<MyHomeworkQuery, MyHomeworkQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<MyHomeworkQuery, MyHomeworkQueryVariables>(MyHomeworkDocument, options);
+      }
+export function useMyHomeworkLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<MyHomeworkQuery, MyHomeworkQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<MyHomeworkQuery, MyHomeworkQueryVariables>(MyHomeworkDocument, options);
+        }
+// @ts-ignore
+export function useMyHomeworkSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<MyHomeworkQuery, MyHomeworkQueryVariables>): Apollo.UseSuspenseQueryResult<MyHomeworkQuery, MyHomeworkQueryVariables>;
+export function useMyHomeworkSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<MyHomeworkQuery, MyHomeworkQueryVariables>): Apollo.UseSuspenseQueryResult<MyHomeworkQuery | undefined, MyHomeworkQueryVariables>;
+export function useMyHomeworkSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<MyHomeworkQuery, MyHomeworkQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<MyHomeworkQuery, MyHomeworkQueryVariables>(MyHomeworkDocument, options);
+        }
+export type MyHomeworkQueryHookResult = ReturnType<typeof useMyHomeworkQuery>;
+export type MyHomeworkLazyQueryHookResult = ReturnType<typeof useMyHomeworkLazyQuery>;
+export type MyHomeworkSuspenseQueryHookResult = ReturnType<typeof useMyHomeworkSuspenseQuery>;
+export type MyHomeworkQueryResult = Apollo.QueryResult<MyHomeworkQuery, MyHomeworkQueryVariables>;
 export const CreateHomeworkDocument = gql`
     mutation CreateHomework($input: HomeworkInput!) {
   createHomework(input: $input) {
