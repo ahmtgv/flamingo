@@ -25,12 +25,16 @@
   top: 0;
   z-index: var(--z-sticky);
 }
+/* Знак бренда — тоже кнопка (ведёт на стартовую), и норма нажатия к нему относится. */
 .logoBtn {
   background: none;
   border: 0;
   cursor: pointer;
   padding: 0;
   border-radius: var(--radius-xs);
+  min-block-size: var(--tap-min);
+  display: inline-flex;
+  align-items: center;
 }
 .logoBtn:focus-visible {
   outline: none;
@@ -382,6 +386,11 @@
   font-size: var(--text-caption);
   color: var(--color-text-tertiary);
 }
+/*
+ * 🔴 «все →» — 25 пикселей при норме 44 (прибор `tapTargets`, наряд 40 §0).
+ * Область нажатия доводится до нормы вертикальным полем; надпись остаётся той же —
+ * подпись раздела не должна вырасти в кнопку.
+ */
 .more {
   border: 0;
   background: none;
@@ -391,6 +400,9 @@
   color: var(--color-text-secondary);
   padding: var(--space-1);
   border-radius: var(--radius-xs);
+  min-block-size: var(--tap-min);
+  display: inline-flex;
+  align-items: center;
 }
 .more:hover {
   color: var(--color-text);
@@ -742,6 +754,16 @@
   gap: var(--space-2);
 }
 
+/*
+ * 🔴 ЦЕЛЬ В 19 ПИКСЕЛЕЙ ПРИ НОРМЕ 44 (прибор дизайнера `tapTargets`, наряд 40 §0).
+ *
+ * Стрелки недели были 19 пикселей высотой — в них трудно попасть даже мышью, а на планшете
+ * (лист §21, «планшет как доска») пальцем почти нельзя. Норма `--tap-min` в системе есть с
+ * самого начала; здесь её просто не применяли.
+ *
+ * ⚠️ Область НАЖАТИЯ растёт, размер РИСУНКА — нет: кнопка остаётся такой же маленькой на
+ * вид, иначе шапка недели поедет. Отсюда прозрачная рамка вместо увеличенного шрифта.
+ */
 .weekArrow {
   background: none;
   border: 1px solid var(--color-border);
@@ -750,6 +772,11 @@
   cursor: pointer;
   line-height: 1;
   padding: 2px var(--space-2);
+  min-block-size: var(--tap-min);
+  min-inline-size: var(--tap-min);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 .weekArrow:hover { color: var(--color-text); border-color: var(--color-border-strong); }
 .weekArrow:focus-visible { outline: var(--focus-ring); outline-offset: 2px; }
