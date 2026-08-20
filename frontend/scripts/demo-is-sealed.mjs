@@ -60,6 +60,12 @@ await page.mouse.down();
 await page.mouse.move(box.x + 220, box.y + 160, { steps: 8 });
 await page.mouse.up();
 await page.waitForTimeout(500);
+/*
+ * 🔴 Прибор обязан сказать, что мерил (наряд 43 §5). «Ноль штрихов» на доске, которой на
+ * экране нет вовсе, читается как «демо запечатано», а значит «демо не открылось».
+ */
+const холст = await page.locator('svg[role=application]').count();
+console.log(`доска на экране: ${холст ? 'есть' : 'НЕТ — числа ниже ничего не значат'}`);
 console.log('штрихов на демо-доске:', await page.locator('svg[role=application] polyline').count());
 
 // 3) ПОПЫТКА дотянуться до настоящего занятия — тремя способами.

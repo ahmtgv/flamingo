@@ -120,7 +120,21 @@ for (const engine of ENGINES) {
               /назад|в кабинет|к выбору|все →|главная|отмена/i.test(n.textContent ?? '') ||
               /назад|в кабинет/i.test(n.getAttribute('aria-label') ?? ''),
             );
+            /*
+             * 🔴 ЧТО ИМЕННО ИЗМЕРЕНО — вместе с вердиктом, а не вместо него (наряд 43 §5).
+             *
+             * Прибор дизайнера четырежды подряд напечатал «чисто» для экрана, который в тот
+             * момент показывал ОТКАЗ: геометрия карточки отказа безупречна. Этот прибор
+             * страдал тем же: экран в состоянии «пусто» или «отказ» проходит все его
+             * проверки — он не прокручивается, дорога назад есть, нарушений нет.
+             *
+             * Состояние берём с карточки состояния (`data-kind`), а если её нет — по объёму
+             * текста: экран, на котором меньше ста знаков, нечего мерить.
+             */
+            const card = document.querySelector('[data-kind]');
+            const body = (document.body.innerText || '').trim();
             return {
+              state: card ? card.getAttribute('data-kind') : body.length < 100 ? 'почти пусто' : null,
               scrollBy: Math.max(0, el.scrollHeight - el.clientHeight),
               text: (document.body.innerText || '').replace(/\s+/g, ' ').slice(0, 90),
               back,
@@ -155,6 +169,21 @@ for (const engine of ENGINES) {
 writeFileSync(`${OUT}/sweep.json`, JSON.stringify(results, null, 1));
 const scrolls = results.filter((r) => (r.scrollBy ?? 0) > 2);
 console.log(`экранов пройдено: ${results.length}`);
+
+/*
+ * Сначала — на чём прибор вообще ничего не мерил. Молчание об этом делает все числа ниже
+ * бессмысленными: «ноль дефектов» на экране отказа — не заслуга, а неведение.
+ */
+const notFilled = results.filter((r) => r.state);
+if (notFilled.length) {
+  const byScreen = new Map();
+  for (const r of notFilled) byScreen.set(`${r.route} · ${r.who}`, r.state);
+  console.log(`⚠️ измерено НЕ в наполненном состоянии: ${byScreen.size} экранов — вердикт по ним ничего не значит`);
+  for (const [key, state] of byScreen) console.log(`  ${key}: [${state}]`);
+} else {
+  console.log('все экраны измерены наполненными');
+}
+
 console.log(`прокручиваются: ${scrolls.length}`);
 for (const r of scrolls) console.log(`  ${r.route} · ${r.who} · ${r.size} · ${r.theme} · ${r.browserName}: +${r.scrollBy}px`);
 const noBack = results.filter((r) => r.back === false);

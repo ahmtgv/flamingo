@@ -97,7 +97,16 @@ for (const size of [{ width: 1440, height: 900 }, { width: 1920, height: 1080 }]
         панельШирина: panel ? Math.round(panel.width) : null,
       };
     });
-    console.log(`[${size.width}x${size.height}] ${who}: ${JSON.stringify(m)}`);
+    /*
+     * 🔴 Прибор обязан сказать, ЧТО он мерил (наряд 43 §5). Комната без эфира — это не
+     * «видео не во весь экран», это «видео нет вовсе», и число тут значит другое.
+     */
+    const state = await page.evaluate(() => {
+      const card = document.querySelector('[data-kind]');
+      if (card) return card.getAttribute('data-kind');
+      return document.body.innerText.includes('Войти в эфир') ? 'эфир не поднят' : null;
+    });
+    console.log(`[${size.width}x${size.height}] ${who}${state ? ` [${state}]` : ''}: ${JSON.stringify(m)}`);
   }
   await t.context().close(); await p.context().close();
 }
