@@ -13,16 +13,36 @@
 окружения и вообще ничего вне базы. Если у удаляемых работ есть вложения — их количество
 печатается, но файлы остаются: распоряжения на них не было.
 
+🔴 СНИМОК ДЕЛАЕТСЯ СКРИПТОМ, А НЕ РУКАМИ (наряд 43 §4). 19.08 снимок сделали руками, и он
+лёг внутрь контейнера — 518 КБ исчезли при первой пересборке, страховки не было ни минуты, и
+мы этого не знали. `infra/prod/snapshot-before-purge.sh` пишет в примонтированный том и
+проверяет файл С ХОСТА: размер, читаемость архива. Без его «✓» чистку не начинать.
+
 Запуск на боевом — ТОЛЬКО ПОСЛЕ ДАМПА:
+
+    sh /opt/flamingo/infra/prod/snapshot-before-purge.sh   # снимок + проверка снаружи
+
 
     docker compose -f infra/prod/docker-compose.prod.yml --env-file .env.production \\
       exec api python manage.py purge_everything            # показать, ничего не трогая
     ... exec api python manage.py purge_everything --confirm  # удалить
 """
 
+import logging
+
 from django.contrib.auth import get_user_model
 from django.core.management.base import BaseCommand
 from django.db import transaction
+
+#: 🔴 СЛЕД В ЖУРНАЛЕ — ИЗЪЯН, СТОИВШИЙ ПОЛДНЯ СПОРА (наряд 43 §4).
+#:
+#: Чистку запустили через `ssh root@… 'команда'`, и в историю сервера такой запуск не
+#: попадает ВОВСЕ. Полдня ушло на выяснение, отработала команда или нет: база была пуста, но
+#: пуста она могла быть и по другой причине. Догадка вместо знания.
+#:
+#: Теперь команда пишет строку сама: когда, сколько записей каждого вида ушло. Журнал
+#: контейнера переживает и `ssh`, и закрытую сессию.
+log = logging.getLogger("flamingo.purge")
 
 
 class Command(BaseCommand):
@@ -55,14 +75,25 @@ class Command(BaseCommand):
             self.stdout.write(self.style.WARNING("Это только показ. Удалить: --confirm"))
             return
 
+        log.warning(
+            "purge_everything: начало · %s",
+            " · ".join(f"{label}={number}" for label, number in counts.items()),
+        )
         with transaction.atomic():
             deleted = self._delete()
+
+        left = self._count()
+        log.warning(
+            "purge_everything: удалено записей %s · осталось %s",
+            deleted,
+            " · ".join(f"{label}={number}" for label, number in left.items()),
+        )
 
         self.stdout.write("")
         self.stdout.write(self.style.SUCCESS(f"Удалено записей всего: {deleted}"))
         self.stdout.write("")
         self.stdout.write("Осталось в базе:")
-        for label, number in self._count().items():
+        for label, number in left.items():
             self.stdout.write(f"  {label}: {number}")
 
         # ⚠️ Учреждения и группы наряд НЕ называет, и я их не трогаю — «ничего сверх списка».

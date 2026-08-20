@@ -53,6 +53,33 @@ if [ "$WHAT" = "all" ] || [ "$WHAT" = "server" ]; then
   ssh "$SRV" "cd /opt/flamingo && docker compose -f infra/prod/docker-compose.prod.yml \
       --env-file .env.production up -d --build api" \
     && ok "контейнер api пересобран" || { bad "сборка на сервере не прошла"; exit 1; }
+
+  # ── 2а. МИГРАЦИИ ────────────────────────────────────────────────────────
+  #
+  # 🔴 ДВАЖДЫ ЛОЖИЛИСЬ В БОЮ ИЗ-ЗА ЭТОГО, И ОБА РАЗА ОДИНАКОВО.
+  #
+  # Контейнер пересобран, код новый, а таблица старая — и продукт падает на первом же
+  # запросе к новому полю: «null value in column "timezone" violates not-null constraint»
+  # (18.08), и раньше того же вида отказ с `markless`. Симптом всегда выглядит как ошибка
+  # приложения, а причина — в том, что миграцию никто не применил.
+  #
+  # Проверяем ПОСЛЕ сборки и ДО того, как сказать «выкачено»: `showmigrations --plan`
+  # печатает `[ ]` у каждой непринятой. Одна такая — выкат считается несостоявшимся.
+  step "СЕРВЕР · миграции"
+  PENDING=$(ssh "$SRV" "cd /opt/flamingo && docker compose -f infra/prod/docker-compose.prod.yml \
+      --env-file .env.production exec -T api python manage.py showmigrations --plan 2>/dev/null \
+      | grep -c '^\[ \]'" | tr -d ' \r')
+  # Пустой ответ — это НЕ «ноль»: значит команда не выполнилась, и мы ничего не знаем.
+  if [ -z "$PENDING" ]; then
+    bad "не удалось спросить сервер о миграциях — считаем выкат несостоявшимся"
+    exit 1
+  elif [ "$PENDING" != "0" ]; then
+    bad "непринятых миграций: $PENDING — новый код на старой таблице"
+    echo "      применить:  ssh $SRV \"cd /opt/flamingo && docker compose -f infra/prod/docker-compose.prod.yml --env-file .env.production exec -T api python manage.py migrate\""
+    exit 1
+  else
+    ok "непринятых миграций нет"
+  fi
 fi
 
 # ── 3. ПРИЛОЖЕНИЕ ──────────────────────────────────────────────────────────
