@@ -1,5 +1,5 @@
 import { ICON_SM } from '@/shared/ui/iconSizes';
-import { AlertCircle, ArrowLeft, Mail, ShieldCheck, Users } from 'lucide-react';
+import { AlertCircle, Mail, ShieldCheck, Users } from 'lucide-react';
 import { type ChangeEvent, type FormEvent, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -8,7 +8,7 @@ import { Navigate, useLocation, useNavigate, useParams } from 'react-router-dom'
 
 import type { RegisterUserInput } from '@/entities/graphql/generated';
 import { useRegisterUserMutation } from '@/entities/graphql/generated';
-import { Button, Card, Checkbox, FieldRow, Segmented, TextField } from '@/shared/ui';
+import { Button, Checkbox, FieldRow, Segmented, TextField } from '@/shared/ui';
 
 import { applyAuth } from '../model/auth';
 import { isUiRole, toGqlRole, type UiRole } from '../model/roles';
@@ -47,7 +47,19 @@ function RegisterForm({ role }: { role: UiRole }) {
   const back = returnTo(location.search);
   const [values, setValues] = useState({ ...EMPTY_REGISTER });
   const [errors, setErrors] = useState<Errors>({});
-  const [age, setAge] = useState<AgeBandUi>('teen');
+  /*
+   * 🔴 ВОЗРАСТ ПРИХОДИТ ИЗ «КТО ВЫ», А НЕ ВЫБИРАЕТСЯ ЗДЕСЬ (лист «Вход и регистрация»).
+   * Раньше человек видел форму целиком, менял переключатель — и половина полей исчезала у
+   * него на глазах. Теперь ветка выбрана раньше, и форма сразу та, что нужна.
+   *
+   * ⚠️ Переключатель не удалён совсем: если в адресе ветки нет (старая ссылка, приглашение),
+   * форма показывает его, а не гадает за человека.
+   */
+  const ageFromUrl = new URLSearchParams(location.search).get('age');
+  const bandFromUrl = AGE_OPTIONS.includes(ageFromUrl as AgeBandUi)
+    ? (ageFromUrl as AgeBandUi)
+    : null;
+  const [age, setAge] = useState<AgeBandUi>(bandFromUrl ?? 'teen');
   const [formError, setFormError] = useState<string | null>(null);
   // R-08: плашку надо не только показать, но и подвести к ней человека.
   const formErrorRef = useRef<HTMLParagraphElement>(null);
@@ -133,30 +145,33 @@ function RegisterForm({ role }: { role: UiRole }) {
   const showParentEmail = isStudent && (age === 'junior' || age === 'teen');
 
   return (
-    <AuthLayout>
+    <AuthLayout
+      back={{ label: t('nav.otherRole'), to: '/register' }}
+      step={t('nav.step2', {
+        role: isStudent ? t(`roleSelect.student.${age}.short`) : t(`roles.${role}.title`),
+      })}
+    >
       {IS_PREVIEW && (
         /* 🔴 R-17: витрина обязана сказать, что запись закрыта, а не делать вид, что форма
            заведёт учётную запись. Аудит §0.1: дефект был не в том, что регистрация не
            работает, а в том, что она врала «Что-то пошло не так». */
-        <p className={styles.showcaseNotice} role="status">
+        <p className={styles.note} role="status">
           {t('showcase.notice')}
         </p>
       )}
-      <button type="button" className={styles.back} onClick={() => navigate('/register')}>
-        <ArrowLeft size={ICON_SM} /> {t('register.backToRoles')}
-      </button>
-
       <div className={styles.head}>
-        <span className={styles.eyebrow}>{t(`roles.${role}.title`)}</span>
-        <h1 className={styles.title}>{t('register.title')}</h1>
+        {/* Заголовок — сама ветка: «Ученик 12–17 лет», «Преподаватель». Он же отвечает на
+            вопрос «куда я попал», и второй титул над ним лист не рисует. */}
+        <h1 className={styles.title}>
+          {isStudent ? t(`roleSelect.student.${age}.title`) : t(`roles.${role}.title`)}
+        </h1>
         <p className={styles.subtitle}>
-          {isStudent ? t('register.subtitleStudent') : t('register.subtitleDefault')}
+          {isStudent ? t(`register.lead.${age}`) : t(`register.lead.${role}`)}
         </p>
       </div>
 
-      <Card>
-        <form noValidate onSubmit={handleSubmit}>
-          {isStudent && (
+      <form className={styles.form} noValidate onSubmit={handleSubmit}>
+          {isStudent && !bandFromUrl && (
             <div className={styles.segWrap}>
               <Segmented
                 ariaLabel={t('register.ageGroupLabel')}
@@ -168,11 +183,11 @@ function RegisterForm({ role }: { role: UiRole }) {
                 options={AGE_OPTIONS.map((value) => ({ value, label: t(`register.age.${value}`) }))}
               />
               {ageMismatch && (
-                <p className={styles.hint} role="status">
+                <p className={styles.formLine} role="status">
                   {t('register.ageMismatch', { band: t(`register.age.${derivedAge}`) })}{' '}
                   <button
                     type="button"
-                    className={styles.linkBtn}
+                    className={styles.link}
                     onClick={() => derivedAge && setAge(derivedAge)}
                   >
                     {t('register.ageMismatchFix')}
@@ -329,15 +344,15 @@ function RegisterForm({ role }: { role: UiRole }) {
             onChange={(e) => setValues((v) => ({ ...v, consent: e.target.checked }))}
           >
             {isStudent && age === 'junior' ? t('consent.labelJunior') : t('consent.label')}{' '}
-            <a className={styles.linkBtn} href="/policy" target="_blank" rel="noreferrer noopener">
+            <a className={styles.link} href="/policy" target="_blank" rel="noreferrer noopener">
               {t('consent.policy')}
             </a>{' '}
             {t('consent.and')}{' '}
-            <a className={styles.linkBtn} href="/offer" target="_blank" rel="noreferrer noopener">
+            <a className={styles.link} href="/offer" target="_blank" rel="noreferrer noopener">
               {t('consent.offer')}
             </a>
           </Checkbox>
-          {errors.consent && <p className={styles.consentError}>{t(errors.consent)}</p>}
+          {errors.consent && <p className={styles.formLine} role="alert">{t(errors.consent)}</p>}
 
           {isStudent && age === 'teen' && (
             <p className={styles.note}>
@@ -360,13 +375,23 @@ function RegisterForm({ role }: { role: UiRole }) {
             </p>
           )}
 
-          <Button type="submit" variant="primary" block loading={loading} className={styles.submit}>
-            {t('register.submit')}
-          </Button>
-        </form>
-      </Card>
+          <div className={styles.actions}>
+            <Button type="submit" variant="primary" loading={loading}>
+              {t('register.submit')}
+            </Button>
+          </div>
+          {/* Лист говорит, что будет ДАЛЬШЕ, ещё до нажатия: человек соглашается не на
+              «создать аккаунт», а на понятный следующий шаг. */}
+          <p className={styles.note}>
+            {role === 'teacher'
+              ? t('register.footTeacher')
+              : isStudent && age === 'teen'
+                ? t('register.footStudentTeen')
+                : ''}
+          </p>
+      </form>
 
-      <p className={styles.footer}>
+      <p className={styles.note}>
         {t('roleSelect.haveAccount')}{' '}
         <button
           type="button"

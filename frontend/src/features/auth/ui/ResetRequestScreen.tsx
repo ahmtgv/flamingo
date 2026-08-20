@@ -62,7 +62,7 @@ export function ResetRequestScreen() {
 
   if (sent) {
     return (
-      <AuthLayout>
+      <AuthLayout back={{ label: t('nav.toLogin'), to: '/login' }}>
         <Card className={styles.success}>
           <div className={styles.successIcon}>
             <Check size={ICON_LG} strokeWidth={2.5} />
@@ -78,12 +78,11 @@ export function ResetRequestScreen() {
   }
 
   return (
-    <AuthLayout>
+    <AuthLayout back={{ label: t('nav.toLogin'), to: '/login' }}>
       <button type="button" className={styles.back} onClick={() => navigate('/login')}>
         <ArrowLeft size={ICON_SM} /> {t('reset.backToLogin')}
       </button>
       <div className={styles.head}>
-        <span className={styles.eyebrow}>{t('reset.eyebrow')}</span>
         <h1 className={styles.title}>{t('reset.title')}</h1>
         <p className={styles.subtitle}>{t('reset.subtitle')}</p>
       </div>
@@ -104,7 +103,7 @@ export function ResetRequestScreen() {
               {formError}
             </p>
           )}
-          <Button type="submit" variant="primary" block loading={loading} className={styles.submit}>
+          <Button type="submit" variant="primary" block loading={loading}>
             {t('reset.submit')}
           </Button>
         </form>

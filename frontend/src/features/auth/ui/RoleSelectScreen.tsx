@@ -1,22 +1,13 @@
-import { ICON_LG } from '@/shared/ui/iconSizes';
-import { BookOpen, Building2, GraduationCap, type LucideIcon, Users } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useLocation, useNavigate } from 'react-router-dom';
 
-import type { UiRole } from '../model/roles';
+import { type AgeBandUi } from '../model/validation';
 import { AuthLayout } from './AuthLayout';
 import { returnTo, withReturnTo } from '@/shared/lib/returnTo';
 
 import styles from './auth.module.css';
 
-const ROLE_ICONS: Record<UiRole, LucideIcon> = {
-  student: GraduationCap,
-  parent: Users,
-  teacher: BookOpen,
-  admin: Building2,
-};
 
-const ORDER: UiRole[] = ['student', 'parent', 'teacher', 'admin'];
 
 export function RoleSelectScreen() {
   const { t } = useTranslation('auth');
@@ -26,35 +17,70 @@ export function RoleSelectScreen() {
   // пришедший из приложения на `/link?code=…`, после регистрации оказывался на стартовой.
   const back = returnTo(location.search);
 
+  /*
+   * 🔴 ВОЗРАСТ УЧЕНИКА СПРАШИВАЕТСЯ ЗДЕСЬ, А НЕ ВНУТРИ ФОРМЫ (лист «Вход и регистрация»).
+   *
+   * Ветки уже были в продукте — младший, подросток, взрослый: у них разные правила согласия,
+   * и это закон, а не оформление. Но выбирались они переключателем ВНУТРИ формы, то есть
+   * человек сначала видел все поля сразу, а потом половина исчезала. Лист разводит это на два
+   * шага: сперва «кто вы», потом форма ровно под эту ветку.
+   *
+   * ⚠️ Родителя и администратора лист не рисует. Я их НЕ убираю: убрать путь регистрации —
+   * это ограничение продукта, а его выдумывать нельзя (наряд §7). Вопрос владельцу записан
+   * в отчёте.
+   */
+  const AGE_OPTIONS: AgeBandUi[] = ['junior', 'teen', 'adult'];
+
+  const rows: { key: string; to: string; title: string; desc: string; cost: string }[] = [
+    ...AGE_OPTIONS.map((band) => ({
+      key: `student-${band}`,
+      to: `/register/student?age=${band}`,
+      title: t(`roleSelect.student.${band}.title`),
+      desc: t(`roleSelect.student.${band}.desc`),
+      cost: t(`roleSelect.student.${band}.cost`),
+    })),
+    {
+      key: 'teacher',
+      to: '/register/teacher',
+      title: t('roles.teacher.title'),
+      desc: t('roleSelect.teacher.desc'),
+      cost: t('roleSelect.teacher.cost'),
+    },
+    ...(['parent', 'admin'] as const).map((role) => ({
+      key: role,
+      to: `/register/${role}`,
+      title: t(`roles.${role}.title`),
+      desc: t(`roles.${role}.desc`),
+      cost: '',
+    })),
+  ];
+
   return (
-    <AuthLayout wide>
+    <AuthLayout back={{ label: t('nav.toLanding'), to: '/' }} step={t('nav.step1')}>
       <div className={styles.head}>
-        <span className={styles.eyebrow}>{t('roleSelect.eyebrow')}</span>
         <h1 className={styles.title}>{t('roleSelect.title')}</h1>
         <p className={styles.subtitle}>{t('roleSelect.subtitle')}</p>
       </div>
 
       <div className={styles.roles}>
-        {ORDER.map((role) => {
-          const Icon = ROLE_ICONS[role];
-          return (
-            <button
-              key={role}
-              type="button"
-              className={styles.roleCard}
-              onClick={() => navigate(withReturnTo(`/register/${role}`, back ?? ''))}
-            >
-              <span className={styles.roleIcon}>
-                <Icon size={ICON_LG} />
-              </span>
-              <h3 className={styles.roleTitle}>{t(`roles.${role}.title`)}</h3>
-              <p className={styles.roleDesc}>{t(`roles.${role}.desc`)}</p>
-            </button>
-          );
-        })}
+        {rows.map((row) => (
+          <button
+            key={row.key}
+            type="button"
+            className={styles.roleCard}
+            onClick={() => navigate(withReturnTo(row.to, back ?? ''))}
+          >
+            <span>
+              <span className={styles.roleTitle}>{row.title}</span>
+              <p className={styles.roleDesc}>{row.desc}</p>
+            </span>
+            {/* Цена ветки словом: во что человек ввязывается, до того как начал. */}
+            {row.cost && <span className={styles.roleCost}>{row.cost}</span>}
+          </button>
+        ))}
       </div>
 
-      <p className={styles.footer}>
+      <p className={styles.note}>
         {t('roleSelect.haveAccount')}{' '}
         <button
           type="button"

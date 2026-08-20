@@ -7,7 +7,7 @@ import { failureKind } from '@/shared/lib/requestFailure';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 import { useLoginMutation } from '@/entities/graphql/generated';
-import { Button, Card, TextField } from '@/shared/ui';
+import { Button, TextField } from '@/shared/ui';
 
 import { applyAuth } from '../model/auth';
 import { type Errors, validateLogin } from '../model/validation';
@@ -60,58 +60,62 @@ export function LoginScreen() {
   }
 
   return (
-    <AuthLayout>
+    <AuthLayout back={{ label: t('nav.toLanding'), to: '/' }} step={t('nav.stepLogin')}>
       {IS_PREVIEW && (
         /* 🔴 R-17: витрина обязана сказать, что запись закрыта, а не делать вид, что форма
-           заведёт учётную запись. Аудит §0.1: дефект был не в том, что регистрация не
-           работает, а в том, что она врала «Что-то пошло не так». */
-        <p className={styles.showcaseNotice} role="status">
+           заведёт учётную запись. Дефект был не в том, что регистрация не работает, а в том,
+           что она врала «Что-то пошло не так». */
+        <p className={styles.note} role="status">
           {t('showcase.loginNotice')}
         </p>
       )}
       <div className={styles.head}>
-        <span className={styles.eyebrow}>{t('login.eyebrow')}</span>
         <h1 className={styles.title}>{t('login.title')}</h1>
         <p className={styles.subtitle}>{t('login.subtitle')}</p>
       </div>
-      <Card>
-        <form noValidate onSubmit={handleSubmit}>
-          {formError && (
-            <p className={styles.formError} role="alert">
-              <AlertCircle size={ICON_SM} aria-hidden="true" />
-              {formError}
-            </p>
-          )}
-          <TextField
-            label={t('fields.email')}
-            requiredMark
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            error={errors.email ? t(errors.email) : undefined}
-            placeholder={t('placeholders.email')}
-            autoComplete="email"
-          />
-          <TextField
-            label={t('fields.password')}
-            requiredMark
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            error={errors.password ? t(errors.password) : undefined}
-            autoComplete="current-password"
-          />
-          <div className={styles.subActions}>
-            <button type="button" className={styles.link} onClick={() => navigate('/reset')}>
-              {t('login.forgot')}
-            </button>
-          </div>
-          <Button type="submit" variant="primary" block loading={loading}>
+
+      {/* Карточки вокруг формы лист не рисует: форма и есть содержимое правой створки. */}
+      <form className={styles.form} noValidate onSubmit={handleSubmit}>
+        {formError && (
+          <p className={styles.formError} role="alert">
+            <AlertCircle size={ICON_SM} aria-hidden="true" />
+            {formError}
+          </p>
+        )}
+        <TextField
+          label={t('fields.email')}
+          hint={t('login.emailHint')}
+          requiredMark
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          error={errors.email ? t(errors.email) : undefined}
+          placeholder={t('placeholders.email')}
+          autoComplete="email"
+        />
+        <TextField
+          label={t('fields.password')}
+          requiredMark
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          error={errors.password ? t(errors.password) : undefined}
+          autoComplete="current-password"
+        />
+        <div className={styles.actions}>
+          <Button type="submit" variant="primary" loading={loading}>
             {t('login.submit')}
           </Button>
-        </form>
-      </Card>
-      <p className={styles.footer}>
+          <button type="button" className={styles.link} onClick={() => navigate('/reset')}>
+            {t('login.forgot')}
+          </button>
+        </div>
+        {/* Лист говорит здесь две вещи: что есть второй путь (код приглашения) и что
+            восстановление пароля пока делает человек. Обе — про честность, а не про форму. */}
+        <p className={styles.note}>{t('login.footNote')}</p>
+      </form>
+
+      <p className={styles.note}>
         {t('login.noAccount')}{' '}
         <button
           type="button"

@@ -40,7 +40,7 @@ export function ResetConfirmScreen() {
 
   if (!token) {
     return (
-      <AuthLayout>
+      <AuthLayout back={{ label: t('nav.toLogin'), to: '/login' }}>
         <Card className={styles.success}>
           <h2 className={styles.successTitle}>{t('reset.invalidLink')}</h2>
           <Button variant="secondary" onClick={() => navigate('/login')}>
@@ -53,7 +53,7 @@ export function ResetConfirmScreen() {
 
   if (done) {
     return (
-      <AuthLayout>
+      <AuthLayout back={{ label: t('nav.toLogin'), to: '/login' }}>
         <Card className={styles.success}>
           <div className={styles.successIcon}>
             <Check size={ICON_LG} strokeWidth={2.5} />
@@ -69,9 +69,8 @@ export function ResetConfirmScreen() {
   }
 
   return (
-    <AuthLayout>
+    <AuthLayout back={{ label: t('nav.toLogin'), to: '/login' }}>
       <div className={styles.head}>
-        <span className={styles.eyebrow}>{t('reset.eyebrow')}</span>
         <h1 className={styles.title}>{t('reset.confirmTitle')}</h1>
         <p className={styles.subtitle}>{t('reset.confirmSubtitle')}</p>
       </div>
@@ -93,7 +92,7 @@ export function ResetConfirmScreen() {
             hint={t('hints.password')}
             autoComplete="new-password"
           />
-          <Button type="submit" variant="primary" block loading={loading} className={styles.submit}>
+          <Button type="submit" variant="primary" block loading={loading}>
             {t('reset.confirmSubmit')}
           </Button>
         </form>

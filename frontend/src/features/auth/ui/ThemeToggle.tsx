@@ -16,7 +16,7 @@ export function ThemeToggle() {
   return (
     <button
       type="button"
-      className={styles.themeToggle}
+      className={styles.themeBtn}
       onClick={() => dispatch(toggleTheme())}
       aria-label={goingDark ? t('theme.toDark') : t('theme.toLight')}
     >

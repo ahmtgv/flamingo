@@ -76,6 +76,10 @@ const DEFAULT_SCREENS = [
   ['/homework', 'teacher'],
   [`/subjects/${course}`, 'teacher'],
   [`/sessions/${session}/room`, 'teacher'],
+  // Путь владельца: он проходит эти три экрана до того, как увидит кабинет.
+  ['/login', null],
+  ['/register', null],
+  ['/register/teacher', null],
   ['/', null],
 ];
 const only = process.env.SCREENS?.split(',').map((s) => s.trim()).filter(Boolean);
