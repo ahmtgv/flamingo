@@ -77,6 +77,7 @@ const DEFAULT_SCREENS = [
   [`/subjects/${course}`, 'teacher'],
   [`/sessions/${session}/room`, 'teacher'],
   // Путь владельца: он проходит эти три экрана до того, как увидит кабинет.
+  ['/courses', null],
   ['/login', null],
   ['/register', null],
   ['/register/teacher', null],

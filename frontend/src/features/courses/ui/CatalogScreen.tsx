@@ -1,5 +1,3 @@
-import { ICON_SM } from '@/shared/ui/iconSizes';
-import { ArrowLeft } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -7,10 +5,11 @@ import { useSession } from '@/shared/hooks/useSession';
 import { useNavigate } from 'react-router-dom';
 
 import { type CourseFilter, useCatalogQuery } from '@/entities/graphql/generated';
-import { Button, ErrorState, Input } from '@/shared/ui';
+import { Button, ErrorState, Input, StateCard } from '@/shared/ui';
 
-import { CoursesLayout } from './CoursesLayout';
-import styles from './courses.module.css';
+import { Logo } from '@/shared/ui';
+
+import styles from './catalog.module.css';
 import { HOME_ROUTE } from '@/shared/lib/homeRoute';
 
 type ChipKey = 'all' | 'math' | 'langs' | 'physics' | 'grade7' | 'oge' | 'courses' | 'cpd';
@@ -48,7 +47,6 @@ export function CatalogScreen() {
 
   const nodes = data?.catalog.nodes ?? [];
   const totalCount = data?.catalog.totalCount ?? 0;
-  const subjectCount = data?.catalog.subjectCount ?? 0;
   // Platform-zero (empty catalog, no active filter) hides the search + chips entirely; a
   // no-match under an active filter keeps them and offers a reset.
   const isZero = !loading && !error && !hasFilter && totalCount === 0;
@@ -62,109 +60,154 @@ export function CatalogScreen() {
     setChip('all');
   }
 
-  return (
-    <CoursesLayout>
-      <div className={styles.content}>
-        {/* 🔴 Дверь ведёт туда, откуда человек пришёл: гостя — на афишу, вошедшего — в кабинет.
-            Каталог открыт постороннему (наряд 40-бис §4), а кабинета у него нет: «В кабинет»
-            отправило бы его на форму входа — то есть в ту самую стену, которую мы убрали. */}
-        <button type="button" className={styles.back} onClick={() => navigate(home)}>
-          <ArrowLeft size={ICON_SM} /> {isGuest ? t('common:actions.toLanding') : t('courses:back')}
-        </button>
+  /*
+   * Признаки отбора листа, разложенные по группам. Показываем только те, за которыми стоят
+   * настоящие поля курса: предмет, кому, вид. «Когда занятия» и «Размер группы» лист рисует,
+   * а в `Course` таких полей нет вовсе — и рисовать отбор, который ничего не отбирает, хуже,
+   * чем не рисовать его: человек решит, что курсов нет.
+   */
+  const GROUPS: { title: string; keys: ChipKey[] }[] = [
+    { title: t('catalog.groups.subject'), keys: ['math', 'langs', 'physics'] },
+    { title: t('catalog.groups.who'), keys: ['grade7', 'oge'] },
+    { title: t('catalog.groups.kind'), keys: ['courses', 'cpd'] },
+  ];
 
-        <div className={styles.catHead}>
-          <h1 className={styles.pageTitle}>{t('catalog.title')}</h1>
-          {/* Counts only once resolved — never assert "0 курсов" while the query is in flight. */}
-          {!isZero && data && (
-            <span className={styles.catMeta}>
-              {t('catalog.coursesCount', { count: totalCount })} ·{' '}
-              {t('catalog.subjectsCount', { count: subjectCount })}
-            </span>
+  return (
+    <div className={styles.shell}>
+      <header className={styles.top}>
+        <button
+          type="button"
+          className={styles.logoBtn}
+          onClick={() => navigate('/')}
+          aria-label="Flamingo"
+        >
+          <Logo word={false} />
+        </button>
+        {/* Дверь ведёт туда, откуда человек пришёл: гостя — на афишу, вошедшего — в кабинет. */}
+        <button type="button" className={styles.back} onClick={() => navigate(home)}>
+          {isGuest ? t('common:actions.toLanding') : t('courses:back')}
+        </button>
+        <span className={styles.topTitle}>{t('catalog.title')}</span>
+        <span className={styles.topTag}>{t('catalog.tagline')}</span>
+        <div className={styles.topActions}>
+          {isGuest && (
+            <>
+              <Button variant="secondary" size="sm" onClick={() => navigate('/login')}>
+                {t('common:actions.signIn')}
+              </Button>
+              <Button variant="primary" size="sm" onClick={() => navigate('/register')}>
+                {t('catalog.signUp')}
+              </Button>
+            </>
           )}
         </div>
+      </header>
 
-        {!isZero && (
-          <>
-            <div className={styles.catSearch}>
+      <div className={styles.page}>
+        <aside className={styles.rail} aria-label={t('catalog.railLabel')}>
+          <span className={styles.railHead}>{t('catalog.filterHead')}</span>
+          {GROUPS.map((group) => (
+            <div className={styles.group} key={group.title}>
+              <p className={styles.groupTitle}>{group.title}</p>
+              {/* `data-wrap-ok` — отметка прибора: этот ряд ОБЯЗАН переноситься. Рельс листа
+                  так и нарисован: признаки идут по два-три в строку и переходят на следующую.
+                  Без отметки прибор считает перенос дефектом — и он прав по умолчанию, потому
+                  что чаще всего развалившийся ряд это поломка, а не замысел. */}
+              <div className={styles.chips} data-wrap-ok>
+                {group.keys.map((key) => (
+                  <button
+                    key={key}
+                    type="button"
+                    className={styles.chip}
+                    aria-pressed={chip === key}
+                    onClick={() => setChip(chip === key ? 'all' : key)}
+                  >
+                    {t(`catalog.chips.${key}`)}
+                  </button>
+                ))}
+              </div>
+            </div>
+          ))}
+          <p className={styles.railFoot}>{t('catalog.timezoneNote')}</p>
+        </aside>
+
+        <section className={styles.list} aria-label={t('catalog.title')}>
+          <div className={styles.listHead}>
+            <div className={styles.search}>
               <Input
                 type="search"
                 placeholder={t('catalog.searchPh')}
                 value={search}
                 onChange={(e) => {
                   setSearch(e.target.value);
-                  // A chip that carries its own search term (ОГЭ) can't AND with free text —
-                  // release it rather than leave it pressed while its filter is overridden.
                   if (chipFilter.search && e.target.value.trim()) setChip('all');
                 }}
                 aria-label={t('catalog.searchAria')}
               />
             </div>
-            <div className={styles.chips} role="group" aria-label={t('catalog.searchAria')}>
-              {CHIPS.map((c) => (
+            {/* Счётчик только когда ответ пришёл: «0 курсов» во время запроса — это неправда. */}
+            {data && !isZero && (
+              <span className={styles.found}>
+                {t('catalog.found', { total: totalCount, shown: nodes.length })}
+              </span>
+            )}
+          </div>
+
+          {error && nodes.length === 0 ? (
+            <ErrorState error={error} onRetry={() => void refetch()} />
+          ) : loading && nodes.length === 0 ? (
+            <p className={styles.empty}>{t('common:actions.loading')}</p>
+          ) : isZero ? (
+            <StateCard kind="empty" where={t('catalog.zero.where')} title={t('catalog.zero.title')}>
+              <p>{t('catalog.zero.body')}</p>
+            </StateCard>
+          ) : isNoResults ? (
+            <StateCard
+              kind="empty"
+              where={t('catalog.noResults.where')}
+              title={t('catalog.noResults.title')}
+              actions={
+                <Button variant="secondary" size="sm" onClick={reset}>
+                  {t('catalog.reset')}
+                </Button>
+              }
+            >
+              <p>{t('catalog.noResults.body', { query: trimmed || t(`catalog.chips.${chip}`) })}</p>
+            </StateCard>
+          ) : (
+            <div className={styles.cards}>
+              {nodes.map((c) => (
                 <button
-                  key={c.key}
+                  key={c.id}
                   type="button"
-                  className={`${styles.chip} ${chip === c.key ? styles.chipOn : ''}`}
-                  aria-pressed={chip === c.key}
-                  onClick={() => setChip(c.key)}
+                  className={styles.card}
+                  onClick={() => navigate(`/courses/${c.id}`)}
                 >
-                  {t(`catalog.chips.${c.key}`)}
+                  <span className={styles.cover} aria-hidden="true" />
+                  <span className={styles.cardBody}>
+                    <span className={styles.cardKicker}>
+                      <span className={styles.cardSubj}>
+                        {[c.subject, t(`level.${c.level}`)].filter(Boolean).join(' · ')}
+                      </span>
+                      <span className={styles.cardState}>
+                        {c.enrollmentCount > 0
+                          ? t('catalog.cardStudents', { count: c.enrollmentCount })
+                          : t('catalog.cardNew')}
+                      </span>
+                    </span>
+                    <span className={styles.cardTitle}>{c.title}</span>
+                    <span className={styles.cardWho}>{c.owner.user.formalName}</span>
+                    <span className={styles.cardFoot}>
+                      <span>{t('catalog.cardLessons', { count: c.lessonCount })}</span>
+                      <span className={styles.cardOpen}>{t('catalog.cardOpen')}</span>
+                    </span>
+                  </span>
                 </button>
               ))}
             </div>
-          </>
-        )}
-
-        {error && nodes.length === 0 ? (
-          <ErrorState error={error} onRetry={() => void refetch()} />
-        ) : loading && nodes.length === 0 ? (
-          <p className={styles.empty}>{t('common:actions.loading')}</p>
-        ) : isZero ? (
-          <div className={styles.catState}>
-            <h2>{t('catalog.zero.title')}</h2>
-            <p>{t('catalog.zero.body')}</p>
-          </div>
-        ) : isNoResults ? (
-          <div className={styles.catState}>
-            <h2>{t('catalog.noResults.title')}</h2>
-            <p>{t('catalog.noResults.body', { query: trimmed || t(`catalog.chips.${chip}`) })}</p>
-            <Button variant="secondary" onClick={reset}>
-              {t('catalog.reset')}
-            </Button>
-          </div>
-        ) : (
-          <div className={styles.catCards}>
-            {nodes.map((c) => (
-              <button
-                key={c.id}
-                type="button"
-                className={styles.courseCard}
-                onClick={() => navigate(`/courses/${c.id}`)}
-              >
-                <div className={styles.cardSubj}>
-                  {/* «Программа» на карточке — шум: школьный предмет и так выглядит предметом.
-                      Вид пишем тогда, когда он что-то добавляет: курс и ДПО. */}
-                  {[c.subject, t(`level.${c.level}`), c.format !== 'PROGRAM' ? t(`format.${c.format}`) : null]
-                    .filter(Boolean)
-                    .join(' · ')}
-                </div>
-                <div className={styles.courseTitle}>{c.title}</div>
-                {c.description && <div className={styles.courseDesc}>{c.description}</div>}
-                <div className={styles.cardMetaRow}>
-                  <span>
-                    {c.owner.user.formalName}
-                  </span>
-                  <span>
-                    {c.enrollmentCount > 0
-                      ? t('catalog.cardStudents', { count: c.enrollmentCount })
-                      : t('catalog.cardNew')}
-                  </span>
-                </div>
-              </button>
-            ))}
-          </div>
-        )}
+          )}
+        </section>
       </div>
-    </CoursesLayout>
+    </div>
   );
 }

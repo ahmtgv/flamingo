@@ -19,7 +19,7 @@ describe('RegisterScreen', () => {
 
     // Switch the age band to junior (7–11), then submit the empty form.
     await user.click(screen.getByRole('button', { name: '7–11 лет' }));
-    await user.click(screen.getByRole('button', { name: 'Создать аккаунт' }));
+    await user.click(screen.getByRole('button', { name: 'Зарегистрироваться' }));
 
     expect(
       await screen.findByText(/Без согласия мы не можем завести учётную запись/),
@@ -34,6 +34,6 @@ describe('RegisterScreen', () => {
       { route: '/register/teacher' },
     );
 
-    expect(screen.getByLabelText(/Специальность/)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Предмет/)).toBeInTheDocument();
   });
 });

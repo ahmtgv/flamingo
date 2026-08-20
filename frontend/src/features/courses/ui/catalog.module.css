@@ -1,0 +1,351 @@
+/*
+ * КАТАЛОГ КУРСОВ — собран с листа «Каталог и курс» (наряд 43).
+ *
+ * Слева рельс отбора, справа решётка карточек. Прежде отбор стоял полосой над карточками и
+ * при пяти признаках занимал треть первого экрана — то есть человек листал фильтры, а не курсы.
+ *
+ * ⚠️ Чего на этом экране НЕТ и почему: цены, размера группы и времени занятий. Лист их
+ * рисует, а в `Course` таких полей не существует — ни price, ни вместимости, ни расписания.
+ * Нарисовать «4 200 ₽ / мес» там, где числа нет, значит соврать в самом дорогом месте.
+ * Записано в отчёте наряда 43 вопросом владельцу.
+ */
+
+.shell {
+  block-size: 100dvh;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  overflow: hidden;
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+@media (max-width: 1000px) {
+  .shell {
+    block-size: auto;
+    min-block-size: 100dvh;
+    overflow: visible;
+  }
+}
+
+/* ── Шапка ───────────────────────────────────────────────────────────────────── */
+
+.top {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-5);
+  border-block-end: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+
+.logoBtn {
+  display: inline-flex;
+  align-items: center;
+  flex: none;
+  min-block-size: var(--tap-min);
+  padding-inline: var(--space-2);
+  border: none;
+  border-radius: var(--radius-control);
+  background: none;
+  color: var(--color-accent);
+  cursor: pointer;
+}
+
+.back {
+  flex: none;
+  min-block-size: var(--control-height-sm);
+  padding-inline: var(--space-2);
+  border: none;
+  background: none;
+  font-family: var(--font-body);
+  font-size: var(--text-small);
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.back:hover {
+  color: var(--color-text);
+}
+
+.topTitle {
+  flex: none;
+  font-size: var(--text-small);
+  font-weight: 500;
+  letter-spacing: var(--tracking-snug);
+  white-space: nowrap;
+}
+
+/* Обещание каталога — машинным голосом рядом с названием, а не заголовком под ним. */
+.topTag {
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  color: var(--color-text-tertiary);
+  min-inline-size: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.topActions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-inline-start: auto;
+  flex: none;
+}
+
+/* ── Кадр: рельс + решётка ───────────────────────────────────────────────────── */
+
+.page {
+  display: grid;
+  grid-template-columns: 260px minmax(0, 1fr);
+  min-block-size: 0;
+  overflow: hidden;
+}
+
+@media (max-width: 1000px) {
+  .page {
+    grid-template-columns: minmax(0, 1fr);
+    overflow: visible;
+  }
+}
+
+.rail {
+  display: grid;
+  align-content: start;
+  gap: var(--space-5);
+  padding: var(--space-5);
+  border-inline-end: 1px solid var(--color-border);
+  background: var(--color-surface);
+  min-block-size: 0;
+  overflow-y: auto;
+}
+
+.railHead {
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+}
+
+.group {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.groupTitle {
+  margin: 0;
+  font-size: var(--text-small);
+  font-weight: 500;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+/* Признак отбора — пилюля. Выбранная поднята подложкой, не акцентом: акцент на этом экране
+   принадлежит «Завести учётку», а отбор — это не действие, а состояние взгляда. */
+.chip {
+  min-block-size: var(--control-height-sm);
+  padding-inline: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface);
+  font-family: var(--font-body);
+  font-size: var(--text-caption);
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.chip:hover {
+  border-color: var(--color-border-strong);
+  color: var(--color-text);
+}
+
+.chip[aria-pressed='true'] {
+  background: var(--color-surface-subtle);
+  border-color: var(--color-border-strong);
+  color: var(--color-text);
+}
+
+.chip:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+/* Время — в поясе смотрящего, и это написано словами рядом (ПРАВИЛА 8.5). */
+.railFoot {
+  margin: 0;
+  padding-block-start: var(--space-4);
+  border-block-start: 1px solid var(--color-border);
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  line-height: var(--leading-snug);
+  color: var(--color-text-tertiary);
+}
+
+/* ── Решётка карточек ────────────────────────────────────────────────────────── */
+
+.list {
+  display: grid;
+  align-content: start;
+  gap: var(--space-4);
+  padding: var(--space-5);
+  min-block-size: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.listHead {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-inline-size: 0;
+}
+
+.search {
+  flex: 1 1 auto;
+  min-inline-size: 0;
+}
+
+.found {
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  color: var(--color-text-tertiary);
+  white-space: nowrap;
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: var(--space-4);
+}
+
+.card {
+  display: grid;
+  grid-template-rows: auto auto;
+  align-content: start;
+  gap: 0;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+  font: inherit;
+  color: inherit;
+  text-align: start;
+  cursor: pointer;
+  min-inline-size: 0;
+}
+
+.card:hover {
+  border-color: var(--color-border-strong);
+}
+
+.card:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+/*
+ * Обложка собирается из названия, а не берётся файлом (ИЗМЕНЕНИЯ-СМЫСЛА §9): просить у
+ * преподавателя картинку до первого урока — значит гарантировать пустые места в каталоге.
+ * Пока рисунка нет — бумага в полоску, тем же приёмом, что на листе.
+ */
+.cover {
+  aspect-ratio: 16 / 7;
+  background:
+    repeating-linear-gradient(
+      -45deg,
+      var(--color-surface-subtle) 0 10px,
+      var(--color-surface) 10px 20px
+    );
+  border-block-end: 1px solid var(--color-border);
+}
+
+.cardBody {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-4) var(--space-5) var(--space-5);
+  min-inline-size: 0;
+}
+
+.cardKicker {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+  min-inline-size: 0;
+}
+
+.cardSubj {
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  color: var(--color-text-tertiary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* «идёт набор» — состояние, а не украшение: справа, машинным голосом. */
+.cardState {
+  margin-inline-start: auto;
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+}
+
+.cardTitle {
+  font-family: var(--font-heading);
+  font-size: var(--text-h3);
+  font-weight: 600;
+  line-height: var(--leading-heading);
+  letter-spacing: var(--tracking-snug);
+}
+
+.cardWho {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  font-size: var(--text-small);
+  color: var(--color-text-secondary);
+  min-inline-size: 0;
+}
+
+/* Проверенный диплом — зелёным: это решение, а не тревога (ПРАВИЛА 5.8). */
+.cardVerified {
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  color: var(--color-go-text);
+  white-space: nowrap;
+}
+
+.cardFoot {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+  padding-block-start: var(--space-2);
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  color: var(--color-text-tertiary);
+  min-inline-size: 0;
+}
+
+.cardOpen {
+  margin-inline-start: auto;
+  color: var(--color-text-secondary);
+  text-decoration: underline;
+  text-decoration-color: var(--color-border-strong);
+  text-underline-offset: 3px;
+  white-space: nowrap;
+}
+
+.empty {
+  margin: 0;
+  font-size: var(--text-small);
+  color: var(--color-text-secondary);
+}

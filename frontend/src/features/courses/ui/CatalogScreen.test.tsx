@@ -52,7 +52,7 @@ const catalogMock = (
 });
 
 describe('CatalogScreen — atlas 04', () => {
-  it('full: renders headrow meta, cards, and a "новый" course badge', async () => {
+  it('шапка считает найденное, карточка называет курс, преподавателя и состояние', async () => {
     const data = connection(
       [
         node({ id: 'c-alg' }),
@@ -64,7 +64,9 @@ describe('CatalogScreen — atlas 04', () => {
     renderWithProviders(<CatalogScreen />, { mocks: [catalogMock(null, data)], route: '/courses' });
 
     expect(await screen.findByText('Курсы')).toBeInTheDocument();
-    expect(screen.getByText(/142 курса · 12 предметов/)).toBeInTheDocument();
+    // Лист считает не «курсы и предметы», а «найдено · показано»: человеку важно, сколько
+    // из найденного он сейчас видит, а не сколько предметов есть в природе.
+    expect(screen.getByText(/найдено 142 · показано/)).toBeInTheDocument();
     expect(screen.getByText('Алгебра: от уравнений к функциям')).toBeInTheDocument();
     // enrollmentCount 0 → "новый"; >0 → "N учеников"
     expect(screen.getByText('новый')).toBeInTheDocument();
@@ -74,14 +76,17 @@ describe('CatalogScreen — atlas 04', () => {
     expect(screen.getByRole('button', { name: 'математика' })).toBeInTheDocument();
   });
 
-  it('platform-zero: shows "Каталог наполняется" and hides search + chips', async () => {
+  it('пустой каталог объясняет словами; отбор при этом остаётся на месте', async () => {
     renderWithProviders(<CatalogScreen />, {
       mocks: [catalogMock(null, connection([], 0, 0))],
       route: '/courses',
     });
     expect(await screen.findByText('Каталог наполняется')).toBeInTheDocument();
-    expect(screen.queryByRole('searchbox')).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'все' })).not.toBeInTheDocument();
+    // ⚠️ Прежде поиск и признаки ПРЯТАЛИСЬ на пустом каталоге. На листе рельс отбора стоит
+    // слева всегда: исчезающая половина экрана читается как поломка, а не как «пока пусто».
+    // Макет не прыгает между состояниями (ПРАВИЛА 6.6).
+    expect(screen.getByRole('searchbox')).toBeInTheDocument();
+    expect(screen.getByRole('complementary', { name: 'Отбор курсов' })).toBeInTheDocument();
   });
 
   it('never asserts "0 курсов" while the query is still in flight', async () => {
@@ -90,9 +95,10 @@ describe('CatalogScreen — atlas 04', () => {
       mocks: [{ ...catalogMock(null, data), delay: 30 }],
       route: '/courses',
     });
-    // headrow stays silent rather than claiming an empty catalog while loading
-    expect(screen.queryByText(/0 курсов/)).not.toBeInTheDocument();
-    expect(await screen.findByText(/142 курса · 12 предметов/)).toBeInTheDocument();
+    // Счётчик молчит, пока ответа нет: «найдено 0» во время запроса — это неправда, а не
+    // «пока неизвестно». Появляется он только вместе с числом.
+    expect(screen.queryByText(/найдено 0/)).not.toBeInTheDocument();
+    expect(await screen.findByText(/найдено 142/)).toBeInTheDocument();
   });
 
   it('typing a search releases a chip whose own filter it would override (ОГЭ)', async () => {
@@ -108,13 +114,18 @@ describe('CatalogScreen — atlas 04', () => {
     });
     await screen.findByText('Алгебра: от уравнений к функциям');
 
+    // Признак снимается повторным нажатием, поэтому «все» отдельной кнопкой больше нет:
+    // рельс листа состоит из признаков, а не из признаков плюс «сбросить всё».
     await user.click(screen.getByRole('button', { name: 'ОГЭ' }));
     expect(screen.getByRole('button', { name: 'ОГЭ' })).toHaveAttribute('aria-pressed', 'true');
 
     await user.type(screen.getByRole('searchbox', { name: 'Поиск по каталогу' }), 'а');
     // the chip no longer claims to be filtering — its search term was overridden
     expect(screen.getByRole('button', { name: 'ОГЭ' })).toHaveAttribute('aria-pressed', 'false');
-    expect(screen.getByRole('button', { name: 'все' })).toHaveAttribute('aria-pressed', 'true');
+    // Ни один признак не нажат — отбор идёт по строке поиска, и рельс это показывает.
+    for (const name of ['математика', 'языки', 'физика', '7 класс', 'ОГЭ']) {
+      expect(screen.getByRole('button', { name })).toHaveAttribute('aria-pressed', 'false');
+    }
   });
 
   it('no-results under a chip filter: shows "Ничего не нашлось" + reset', async () => {
