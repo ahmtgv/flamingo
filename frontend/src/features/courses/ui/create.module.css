@@ -1,0 +1,153 @@
+/*
+ * СОЗДАНИЕ КУРСА И ЗАНЯТИЯ.
+ *
+ * 🔴 ЛИСТА НЕТ — СОБРАНО ИЗ ОБЩЕГО НАБОРА (наряд 43 §1).
+ *
+ * Ревьюер проверил все десять листов передачи: «Создать курс» и «Создать занятие»
+ * существуют только КНОПКАМИ в кабинете преподавателя, а экранов, куда они ведут, дизайнер
+ * не рисовал вовсе. Пропустить их нельзя: без них владелец не проходит свой путь, а каждый
+ * день без этого — день без живого урока.
+ *
+ * Поэтому здесь нет ни одного собственного решения о виде: рамка, поля, кнопки и подписи
+ * взяты из набора, собранного по листам (`shared/ui`, `tokens.css`, ПРАВИЛА 2–7). Когда
+ * дизайнер нарисует лист, правка будет дешёвой именно потому, что своего здесь ничего нет.
+ */
+
+.shell {
+  block-size: 100dvh;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  overflow: hidden;
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+@media (max-width: 900px) {
+  .shell {
+    block-size: auto;
+    min-block-size: 100dvh;
+    overflow: visible;
+  }
+}
+
+.top {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-5);
+  border-block-end: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+
+.logoBtn {
+  display: inline-flex;
+  align-items: center;
+  flex: none;
+  min-block-size: var(--tap-min);
+  padding-inline: var(--space-2);
+  border: none;
+  border-radius: var(--radius-control);
+  background: none;
+  color: var(--color-accent);
+  cursor: pointer;
+}
+
+.back {
+  flex: none;
+  min-block-size: var(--control-height-sm);
+  padding-inline: var(--space-2);
+  border: none;
+  background: none;
+  font-family: var(--font-body);
+  font-size: var(--text-small);
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.back:hover {
+  color: var(--color-text);
+}
+
+.topTitle {
+  flex: none;
+  font-size: var(--text-small);
+  font-weight: 500;
+  letter-spacing: var(--tracking-snug);
+  white-space: nowrap;
+}
+
+.step {
+  margin-inline-start: auto;
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  color: var(--color-text-tertiary);
+  white-space: nowrap;
+}
+
+/* Форма — одна колонка ограниченной ширины: длинная строка ввода не помогает печатать. */
+.page {
+  display: grid;
+  align-content: start;
+  gap: var(--space-5);
+  padding: var(--space-6);
+  max-inline-size: 640px;
+  inline-size: 100%;
+  margin-inline: auto;
+  min-block-size: 0;
+  overflow-y: auto;
+}
+
+.head {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: var(--text-h1);
+  font-weight: 600;
+  line-height: var(--leading-heading);
+  letter-spacing: var(--tracking-snug);
+}
+
+.lead {
+  margin: 0;
+  font-size: var(--text-body);
+  line-height: var(--leading-body);
+  color: var(--color-text-secondary);
+}
+
+.form {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.formError {
+  margin: 0;
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-error);
+  border-radius: var(--radius-control);
+  font-size: var(--text-small);
+  line-height: var(--leading-snug);
+  color: var(--color-error-text);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  padding-block-start: var(--space-4);
+  border-block-start: 1px solid var(--color-border);
+}
+
+/* Что будет после нажатия — сказано до нажатия, а не после. */
+.note {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  line-height: var(--leading-snug);
+  color: var(--color-text-tertiary);
+}

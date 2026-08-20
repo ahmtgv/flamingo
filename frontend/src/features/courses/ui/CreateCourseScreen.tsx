@@ -1,5 +1,5 @@
 import { ICON_SM } from '@/shared/ui/iconSizes';
-import { AlertCircle, ArrowLeft } from 'lucide-react';
+import { AlertCircle } from 'lucide-react';
 import { type FormEvent, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
@@ -9,11 +9,11 @@ import {
   type CourseLevel,
   useCreateCourseMutation,
 } from '@/entities/graphql/generated';
-import { Button, Card, TextField } from '@/shared/ui';
+import { Button, Logo, TextField } from '@/shared/ui';
 
 import { AudienceFields } from './AudienceFields';
-import { CoursesLayout } from './CoursesLayout';
-import styles from './courses.module.css';
+import styles from './create.module.css';
+import { HOME_ROUTE } from '@/shared/lib/homeRoute';
 
 export function CreateCourseScreen() {
   const { t } = useTranslation(['courses', 'common']);
@@ -57,65 +57,82 @@ export function CreateCourseScreen() {
   }
 
   return (
-    <CoursesLayout>
-      <div className={styles.content}>
-        <button type="button" className={styles.back} onClick={() => navigate('/courses')}>
-          <ArrowLeft size={ICON_SM} /> {t('catalog.title')}
+    <div className={styles.shell}>
+      {/*
+        🔴 ЛИСТА НЕТ — СОБРАНО ИЗ ОБЩЕГО НАБОРА (наряд 43 §1). Дизайнер не рисовал экранов
+        создания вовсе: «Создать курс» существует только кнопкой в кабинете. Своего вида
+        здесь нет ни в одном месте — рамка, поля и кнопки из набора, собранного по листам.
+      */}
+      <header className={styles.top}>
+        <button
+          type="button"
+          className={styles.logoBtn}
+          onClick={() => navigate(HOME_ROUTE)}
+          aria-label="Flamingo"
+        >
+          <Logo word={false} />
         </button>
-        <div className={styles.pageHead}>
-          <div>
-            <h1 className={styles.pageTitle}>{t('create.title')}</h1>
-            <p className={styles.pageSub}>{t('create.subtitle')}</p>
-          </div>
+        <button type="button" className={styles.back} onClick={() => navigate(HOME_ROUTE)}>
+          {t('create.back')}
+        </button>
+        <span className={styles.topTitle}>{t('create.title')}</span>
+        <span className={styles.step}>{t('create.step')}</span>
+      </header>
+
+      <div className={styles.page}>
+        <div className={styles.head}>
+          <h1 className={styles.title}>{t('create.title')}</h1>
+          <p className={styles.lead}>{t('create.subtitle')}</p>
         </div>
-        <Card>
-          <form noValidate onSubmit={handleSubmit}>
-            {formError && (
-              <p className={styles.formError} role="alert">
-                <AlertCircle size={ICON_SM} aria-hidden="true" />
-                {formError}
-              </p>
-            )}
-            <TextField
-              label={t('create.name')}
-              requiredMark
-              value={form.title}
-              onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
-              error={errors.title ? t(errors.title) : undefined}
-              placeholder={t('create.namePh')}
-            />
-            <TextField
-              label={t('create.subject')}
-              requiredMark
-              value={form.subject}
-              onChange={(e) => setForm((f) => ({ ...f, subject: e.target.value }))}
-              error={errors.subject ? t(errors.subject) : undefined}
-              placeholder={t('create.subjectPh')}
-            />
-            {/* Аудитория — два поля (решение владельца 15.08). См. ../audience.ts. */}
-            <AudienceFields
-              level={form.level}
-              format={form.format}
-              onLevel={(level) => setForm((f) => ({ ...f, level }))}
-              onFormat={(format) => setForm((f) => ({ ...f, format }))}
-            />
-            <TextField
-              label={t('create.description')}
-              value={form.description}
-              onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
-              placeholder={t('create.descriptionPh')}
-            />
-            <div className={styles.actionsRow}>
-              <Button type="submit" variant="primary" loading={loading}>
-                {t('create.submit')}
-              </Button>
-              <Button type="button" variant="secondary" onClick={() => navigate('/courses')}>
-                {t('create.cancel')}
-              </Button>
-            </div>
-          </form>
-        </Card>
+
+        <form className={styles.form} noValidate onSubmit={handleSubmit}>
+          {formError && (
+            <p className={styles.formError} role="alert">
+              <AlertCircle size={ICON_SM} aria-hidden="true" />
+              {formError}
+            </p>
+          )}
+          <TextField
+            label={t('create.name')}
+            requiredMark
+            value={form.title}
+            onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
+            error={errors.title ? t(errors.title) : undefined}
+            placeholder={t('create.namePh')}
+          />
+          <TextField
+            label={t('create.subject')}
+            requiredMark
+            value={form.subject}
+            onChange={(e) => setForm((f) => ({ ...f, subject: e.target.value }))}
+            error={errors.subject ? t(errors.subject) : undefined}
+            placeholder={t('create.subjectPh')}
+          />
+          {/* Аудитория — два поля (решение владельца 15.08). См. ../audience.ts. */}
+          <AudienceFields
+            level={form.level}
+            format={form.format}
+            onLevel={(level) => setForm((f) => ({ ...f, level }))}
+            onFormat={(format) => setForm((f) => ({ ...f, format }))}
+          />
+          <TextField
+            label={t('create.description')}
+            value={form.description}
+            onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
+            placeholder={t('create.descriptionPh')}
+          />
+          <div className={styles.actions}>
+            <Button type="submit" variant="primary" loading={loading}>
+              {t('create.submit')}
+            </Button>
+            <Button type="button" variant="secondary" onClick={() => navigate(HOME_ROUTE)}>
+              {t('create.cancel')}
+            </Button>
+          </div>
+          {/* Курс заводится черновиком: сказать это ДО нажатия дешевле, чем объяснять после. */}
+          <p className={styles.note}>{t('create.note')}</p>
+        </form>
       </div>
-    </CoursesLayout>
+    </div>
   );
 }
