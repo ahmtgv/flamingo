@@ -893,11 +893,16 @@
   min-inline-size: 0;
 }
 
+/*
+ * 🔴 4.33:1 ПРИ НОРМЕ 4.5 (прибор дизайнера). Третичная краска — украшательная, а время
+ * занятия украшением не является: это единственное место, где человек читает, КОГДА урок.
+ * Та же ошибка, что со строкой про записи занятий в кабинете ученика.
+ */
 .evTime {
   font-family: var(--font-mono);
   font-size: var(--text-caption);
   font-variant-numeric: tabular-nums;
-  color: var(--color-text-tertiary);
+  color: var(--color-text-secondary);
 }
 
 .evName {

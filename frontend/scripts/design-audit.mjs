@@ -220,7 +220,7 @@ console.log('\n=== ПОДРОБНО (первый вид каждого экра
 for (const r of rows) {
   if (!r.details) continue;
   const d = r.details;
-  const any = d.overlaps.length || d.tapTargets.length || d.clipped.length || d.textUnderLayer?.length || d.rowWrap?.length;
+  const any = d.overlaps.length || d.tapTargets.length || d.clipped.length || d.textUnderLayer?.length || d.rowWrap?.length || d.contrast?.length;
   if (!any) continue;
   console.log(`  ${r.route} · ${r.who}`);
   for (const x of d.overlaps) console.log('    пересечение:', JSON.stringify(x).slice(0, 190));
