@@ -42,7 +42,7 @@
 .roomMeta {
   font-family: var(--font-mono);
   font-size: var(--text-caption);
-  color: var(--color-text-tertiary);
+  color: var(--color-text-detail);
 }
 
 /* Окно ещё не собрано — сказано словами, а не пустотой (ПРАВИЛА 6.2). */

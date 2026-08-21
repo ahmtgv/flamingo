@@ -81,7 +81,7 @@
   margin: 0;
   font-family: var(--font-mono);
   font-size: var(--text-caption);
-  color: var(--color-text-tertiary);
+  color: var(--color-text-detail);
 }
 
 .page {
@@ -127,7 +127,7 @@
   font-size: var(--text-caption);
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--color-text-tertiary);
+  color: var(--color-text-hint);
 }
 
 .field {
@@ -145,7 +145,7 @@
   font-family: var(--font-mono);
   font-size: var(--text-caption);
   line-height: var(--leading-snug);
-  color: var(--color-text-tertiary);
+  color: var(--color-text-detail);
 }
 
 /* ── День недели ─────────────────────────────────────────────────────────────── */
@@ -269,7 +269,7 @@
   font-size: var(--text-caption);
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--color-text-tertiary);
+  color: var(--color-text-hint);
 }
 
 /* Число — крупное и с подписью, что это за число (ПРАВИЛА 4.5). Акцентом не красится. */
@@ -346,7 +346,7 @@
   font-family: var(--font-mono);
   font-size: var(--text-caption);
   line-height: var(--leading-snug);
-  color: var(--color-text-tertiary);
+  color: var(--color-text-detail);
 }
 
 .formError {

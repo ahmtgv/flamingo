@@ -23,7 +23,7 @@
 /* Обязательное помечено словом в подписи, а не одной звёздочкой цвета тревоги. */
 .required::after {
   content: ' *';
-  color: var(--color-text-tertiary);
+  color: var(--color-text-hint);
 }
 
 .input,
@@ -50,7 +50,7 @@
 
 .input::placeholder,
 .textarea::placeholder {
-  color: var(--color-text-tertiary);
+  color: var(--color-text-hint);
 }
 
 .input:hover,
@@ -92,7 +92,7 @@
 }
 
 .hint {
-  color: var(--color-text-tertiary);
+  color: var(--color-text-detail);
 }
 
 .error {
@@ -145,7 +145,7 @@
   inset-block-start: 50%;
   translate: 0 -50%;
   pointer-events: none;
-  color: var(--color-text-tertiary);
+  color: var(--color-text-hint);
 }
 
 /* ── Галочка ─────────────────────────────────────────────────────────────────── */

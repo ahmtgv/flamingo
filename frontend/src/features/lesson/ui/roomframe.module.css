@@ -250,7 +250,7 @@
 .whoMeta {
   font-family: var(--font-mono);
   font-size: var(--text-caption);
-  color: var(--color-text-tertiary);
+  color: var(--color-text-detail);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -346,7 +346,7 @@
   background: none;
   font-family: var(--font-mono);
   font-size: var(--text-caption);
-  color: var(--color-text-tertiary);
+  color: var(--color-text-hint);
   white-space: nowrap;
   cursor: pointer;
 }
@@ -450,7 +450,7 @@
   background: none;
   font-family: var(--font-mono);
   font-size: var(--text-small);
-  color: var(--color-text-tertiary);
+  color: var(--color-text-hint);
   cursor: pointer;
 }
 

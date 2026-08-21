@@ -80,7 +80,7 @@
 .topTag {
   font-family: var(--font-mono);
   font-size: var(--text-caption);
-  color: var(--color-text-tertiary);
+  color: var(--color-text-detail);
   min-inline-size: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -127,7 +127,7 @@
   font-size: var(--text-caption);
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--color-text-tertiary);
+  color: var(--color-text-hint);
 }
 
 .group {
@@ -186,7 +186,7 @@
   font-family: var(--font-mono);
   font-size: var(--text-caption);
   line-height: var(--leading-snug);
-  color: var(--color-text-tertiary);
+  color: var(--color-text-detail);
 }
 
 /* ── Решётка карточек ────────────────────────────────────────────────────────── */
@@ -216,7 +216,7 @@
 .found {
   font-family: var(--font-mono);
   font-size: var(--text-caption);
-  color: var(--color-text-tertiary);
+  color: var(--color-text-detail);
   white-space: nowrap;
 }
 
@@ -284,7 +284,7 @@
 .cardSubj {
   font-family: var(--font-mono);
   font-size: var(--text-caption);
-  color: var(--color-text-tertiary);
+  color: var(--color-text-detail);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -331,7 +331,7 @@
   padding-block-start: var(--space-2);
   font-family: var(--font-mono);
   font-size: var(--text-caption);
-  color: var(--color-text-tertiary);
+  color: var(--color-text-detail);
   min-inline-size: 0;
 }
 

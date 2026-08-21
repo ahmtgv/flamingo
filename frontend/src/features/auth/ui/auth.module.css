@@ -118,7 +118,7 @@
   font-family: var(--font-mono);
   font-size: var(--text-caption);
   line-height: var(--leading-snug);
-  color: var(--color-text-tertiary);
+  color: var(--color-text-detail);
 }
 
 /* ── Правая створка: дело ────────────────────────────────────────────────────── */
@@ -172,7 +172,7 @@
   margin-inline-start: auto;
   font-family: var(--font-mono);
   font-size: var(--text-caption);
-  color: var(--color-text-tertiary);
+  color: var(--color-text-hint);
   white-space: nowrap;
 }
 
@@ -275,7 +275,7 @@
   font-family: var(--font-mono);
   font-size: var(--text-caption);
   line-height: var(--leading-snug);
-  color: var(--color-text-tertiary);
+  color: var(--color-text-detail);
 }
 
 /*
@@ -369,7 +369,7 @@
 .roleCost {
   font-family: var(--font-mono);
   font-size: var(--text-caption);
-  color: var(--color-text-tertiary);
+  color: var(--color-text-detail);
   white-space: nowrap;
 }
 
@@ -406,7 +406,7 @@
   font-family: var(--font-mono);
   font-size: var(--text-caption);
   line-height: var(--leading-snug);
-  color: var(--color-text-tertiary);
+  color: var(--color-text-detail);
 }
 
 .themeBtn {

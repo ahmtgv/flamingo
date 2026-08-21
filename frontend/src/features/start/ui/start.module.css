@@ -110,7 +110,7 @@
   font-family: var(--font-mono);
   font-size: var(--text-caption);
   font-variant-numeric: tabular-nums;
-  color: var(--color-text-tertiary);
+  color: var(--color-text-detail);
   white-space: nowrap;
 }
 
@@ -253,7 +253,7 @@
   font-size: var(--text-caption);
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--color-text-tertiary);
+  color: var(--color-text-hint);
   white-space: nowrap;
 }
 
@@ -261,7 +261,7 @@
 .slotCount {
   font-family: var(--font-mono);
   font-size: var(--text-caption);
-  color: var(--color-text-tertiary);
+  color: var(--color-text-detail);
   min-inline-size: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -388,7 +388,7 @@
   font-family: var(--font-mono);
   font-size: var(--text-caption);
   font-variant-numeric: tabular-nums;
-  color: var(--color-text-tertiary);
+  color: var(--color-text-detail);
   white-space: nowrap;
 }
 
@@ -408,7 +408,7 @@
   display: block;
   font-family: var(--font-mono);
   font-size: var(--text-caption);
-  color: var(--color-text-tertiary);
+  color: var(--color-text-detail);
   min-inline-size: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -447,7 +447,7 @@
 .rTag {
   font-family: var(--font-mono);
   font-size: var(--text-caption);
-  color: var(--color-text-tertiary);
+  color: var(--color-text-detail);
   white-space: nowrap;
 }
 
@@ -473,7 +473,7 @@
 .dayName {
   font-family: var(--font-mono);
   font-size: var(--text-caption);
-  color: var(--color-text-tertiary);
+  color: var(--color-text-detail);
   white-space: nowrap;
 }
 
@@ -517,7 +517,7 @@
   font-family: var(--font-mono);
   font-size: var(--text-caption);
   font-variant-numeric: tabular-nums;
-  color: var(--color-text-tertiary);
+  color: var(--color-text-detail);
 }
 
 .chipName {
@@ -571,7 +571,7 @@
 .metricOf {
   font-family: var(--font-mono);
   font-size: var(--text-caption);
-  color: var(--color-text-tertiary);
+  color: var(--color-text-detail);
   min-inline-size: 0;
 }
 
@@ -630,7 +630,7 @@
   gap: var(--space-3);
   font-family: var(--font-mono);
   font-size: var(--text-caption);
-  color: var(--color-text-tertiary);
+  color: var(--color-text-detail);
 }
 
 .progressLine {
@@ -733,7 +733,7 @@
   font-weight: 500;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--color-text-tertiary);
+  color: var(--color-text-hint);
 }
 
 .nowLive .nowKind {
@@ -784,7 +784,7 @@
 .nowNote {
   font-family: var(--font-mono);
   font-size: var(--text-caption);
-  color: var(--color-text-tertiary);
+  color: var(--color-text-detail);
 }
 
 /* ── Недельная полоса — состав из разметки ───────────────────────────────────── */
@@ -800,7 +800,7 @@
   font-family: var(--font-mono);
   font-size: var(--text-caption);
   font-variant-numeric: tabular-nums;
-  color: var(--color-text-tertiary);
+  color: var(--color-text-detail);
   white-space: nowrap;
 }
 
@@ -859,7 +859,7 @@
   gap: var(--space-2);
   font-family: var(--font-mono);
   font-size: var(--text-caption);
-  color: var(--color-text-tertiary);
+  color: var(--color-text-detail);
 }
 
 .dayToday .dHead {
@@ -920,7 +920,7 @@
 .dMore {
   font-family: var(--font-mono);
   font-size: var(--text-caption);
-  color: var(--color-text-tertiary);
+  color: var(--color-text-hint);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -973,7 +973,7 @@
 .courseNext {
   font-family: var(--font-mono);
   font-size: var(--text-caption);
-  color: var(--color-text-tertiary);
+  color: var(--color-text-hint);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1124,7 +1124,7 @@
 .accCtx {
   font-family: var(--font-mono);
   font-size: var(--text-caption);
-  color: var(--color-text-tertiary);
+  color: var(--color-text-hint);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1151,7 +1151,7 @@
   font-size: var(--text-caption);
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--color-text-tertiary);
+  color: var(--color-text-hint);
 }
 
 /* Строка обучения — цель нажатия вся строка (ПРАВИЛА 7.1а). */
@@ -1184,7 +1184,7 @@
   display: inline-grid;
   place-items: center;
   flex: none;
-  color: var(--color-text-tertiary);
+  color: var(--color-text-hint);
 }
 
 .accT {
@@ -1198,7 +1198,7 @@
   display: block;
   font-family: var(--font-mono);
   font-size: var(--text-caption);
-  color: var(--color-text-tertiary);
+  color: var(--color-text-hint);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1221,7 +1221,7 @@
   font-family: var(--font-mono);
   font-size: var(--text-caption);
   line-height: var(--leading-snug);
-  color: var(--color-text-tertiary);
+  color: var(--color-text-hint);
 }
 
 /* Кнопка карточки-приглашения стоит в потоке слева, а не растягивается на всю ширину. */

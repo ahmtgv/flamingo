@@ -76,7 +76,7 @@
   margin: 0;
   font-family: var(--font-mono);
   font-size: var(--text-caption);
-  color: var(--color-text-tertiary);
+  color: var(--color-text-detail);
   min-inline-size: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -151,7 +151,7 @@
 .queueCount {
   font-family: var(--font-mono);
   font-size: var(--text-caption);
-  color: var(--color-text-tertiary);
+  color: var(--color-text-detail);
 }
 
 .queueList {
@@ -201,7 +201,7 @@
   grid-column: 1 / -1;
   font-family: var(--font-mono);
   font-size: var(--text-caption);
-  color: var(--color-text-tertiary);
+  color: var(--color-text-detail);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -211,7 +211,7 @@
 .wait {
   font-family: var(--font-mono);
   font-size: var(--text-caption);
-  color: var(--color-text-tertiary);
+  color: var(--color-text-detail);
   white-space: nowrap;
 }
 
@@ -224,7 +224,7 @@
   font-family: var(--font-mono);
   font-size: var(--text-caption);
   line-height: var(--leading-snug);
-  color: var(--color-text-tertiary);
+  color: var(--color-text-detail);
 }
 
 /* ── Работа ──────────────────────────────────────────────────────────────────── */
@@ -259,14 +259,14 @@
   font-family: var(--font-mono);
   font-size: var(--text-caption);
   font-weight: 400;
-  color: var(--color-text-tertiary);
+  color: var(--color-text-detail);
 }
 
 .workMeta {
   margin: 0;
   font-family: var(--font-mono);
   font-size: var(--text-caption);
-  color: var(--color-text-tertiary);
+  color: var(--color-text-detail);
 }
 
 .workBody {
@@ -315,7 +315,7 @@
   font-size: var(--text-caption);
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--color-text-tertiary);
+  color: var(--color-text-hint);
   margin-inline-end: var(--space-2);
 }
 
@@ -352,7 +352,7 @@
   font-family: var(--font-mono);
   font-size: var(--text-caption);
   line-height: var(--leading-snug);
-  color: var(--color-text-tertiary);
+  color: var(--color-text-detail);
 }
 
 .send {
