@@ -107,7 +107,7 @@
               <div style="border: 1px solid var(--color-border); border-radius: var(--radius-card); background: var(--color-surface); padding: var(--space-4) var(--space-5) var(--space-5);">
                 <span style="display: flex; align-items: baseline; gap: var(--space-3); margin-bottom: var(--space-4);">
                   <span style="font: 500 12px var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .08em; text-transform: uppercase;">Неделя</span>
-                  <span style="font: 400 12px var(--font-mono); color: var(--color-text-tertiary);">18–24 августа · 9 занятий</span>
+                  <span style="font: 400 12px var(--font-mono); color: var(--color-text-tertiary);">17–23 августа · 9 занятий</span>
                   <button onClick="{{ noop }}" style="margin-left: auto; font-size: var(--text-caption); font-family: var(--font-body); color: var(--color-text-secondary); background: none; border: none; cursor: pointer; min-height: var(--tap-min); padding: 0 var(--space-2);">всё расписание →</button>
                 </span>
 
@@ -251,7 +251,7 @@
               <div style="border: 1px solid var(--color-border); border-radius: var(--radius-card); background: var(--color-surface); padding: var(--space-4) var(--space-5) var(--space-5);">
                 <span style="display: flex; align-items: baseline; gap: var(--space-3); margin-bottom: var(--space-4);">
                   <span style="font: 500 12px var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .08em; text-transform: uppercase;">Неделя</span>
-                  <span style="font: 400 12px var(--font-mono); color: var(--color-text-tertiary);">18–24 августа · 5 занятий</span>
+                  <span style="font: 400 12px var(--font-mono); color: var(--color-text-tertiary);">17–23 августа · 5 занятий</span>
                 </span>
 
                 <sc-if value="{{ weekDown }}" hint-placeholder-val="{{ false }}">
@@ -393,7 +393,7 @@
                 <button onClick="{{ noop }}" aria-label="Прошлая неделя" style="width: 34px; height: 34px; border: 1px solid var(--color-border); border-radius: var(--radius-control); background: none; color: var(--color-text-secondary); font: 500 13px var(--font-mono); cursor: pointer;" style-hover="border-color: var(--color-border-strong);">←</button>
                 <button onClick="{{ noop }}" aria-label="Следующая неделя" style="width: 34px; height: 34px; border: 1px solid var(--color-border); border-radius: var(--radius-control); background: none; color: var(--color-text-secondary); font: 500 13px var(--font-mono); cursor: pointer;" style-hover="border-color: var(--color-border-strong);">→</button>
               </span>
-              <span style="font: 400 12px var(--font-mono); color: var(--color-text-tertiary);">18–24 августа 2026 · время в вашем поясе: Москва, UTC+3</span>
+              <span style="font: 400 12px var(--font-mono); color: var(--color-text-tertiary);">17–23 августа 2026 · время в вашем поясе: Москва, UTC+3</span>
               <span style="margin-left: auto; display: flex; gap: var(--space-2);">
                 <button onClick="{{ noop }}" style="min-height: var(--control-height-sm); font-size: var(--text-caption); font-family: var(--font-body); color: var(--color-text); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-control); padding: 0 var(--space-4); cursor: pointer;" style-hover="border-color: var(--color-border-strong);">День</button>
                 <button onClick="{{ noop }}" style="min-height: var(--control-height-sm); font-size: var(--text-caption); font-family: var(--font-body); color: var(--color-on-accent); background: var(--color-accent-solid); border: none; border-radius: var(--radius-control); padding: 0 var(--space-4); cursor: pointer;" style-hover="background: var(--color-accent-solid-hover);">Поставить занятие</button>
@@ -584,28 +584,30 @@ class Component extends DCLogic {
   weekData() {
     const teacher = this.state.screen !== 'pupil';
     const acc = 'var(--color-accent-subtle)', plain = 'var(--color-surface)';
-    // в узкой колонке недели название сокращается сознательно, полное — в подсказке
+    // Календарь настоящий: 20 августа 2026 — ЧЕТВЕРГ, неделя идёт пн 17 — вс 23.
+    // Демо-числа уходят в засев данных, и «срок сутками вместо календарных дней» начинается
+    // ровно здесь: если на листе пятница 22-е, в сиде она тоже станет 22-м.
     const days = [
-      ['пн 18', [['09:00', 'A2', 'English A2 · подростки', plain], ['14:00', 'Мат. 7', 'Математика 7 класс', plain]]],
-      ['вт 19', [['11:00', 'B1', 'English B1 · взрослые', plain]]],
-      ['ср 20', [['09:00', 'A2', 'English A2 · подростки', acc], ['16:30', 'Разбор', 'Разбор работ · A2', plain]]],
-      ['чт 21', [['12:00', 'A2', 'English A2 · подростки', plain]]],
-      ['пт 22', [['10:00', 'Физ. 9', 'Физика 9 класс', plain], ['15:00', 'B1', 'English B1 · взрослые', plain]]],
-      ['сб 23', []],
-      ['вс 24', []],
+      ['пн 17', [['09:00', 'A2', 'English A2 · подростки', plain], ['14:00', 'Мат. 7', 'Математика 7 класс', plain]]],
+      ['вт 18', [['11:00', 'B1', 'English B1 · взрослые', plain]]],
+      ['ср 19', [['09:00', 'A2', 'English A2 · подростки', plain], ['16:30', 'Разбор', 'Разбор работ · A2', plain]]],
+      ['чт 20', [['09:00', 'A2', 'English A2 · подростки', acc], ['12:00', 'Мат. 7', 'Математика 7 класс', plain]]],
+      ['пт 21', [['10:00', 'Физ. 9', 'Физика 9 класс', plain], ['15:00', 'B1', 'English B1 · взрослые', plain]]],
+      ['сб 22', []],
+      ['вс 23', []],
     ];
     const pupilDays = [
-      ['пн 18', [['09:00', 'A2', 'English A2 · Unit 3', plain]]],
-      ['вт 19', []],
-      ['ср 20', [['09:00', 'A2', 'English A2 · Unit 4', acc]]],
-      ['чт 21', [['12:00', 'A2', 'English A2 · Unit 5', plain]]],
-      ['пт 22', [['15:00', 'Физ. 9', 'Физика 9 класс', plain]]],
-      ['сб 23', []],
-      ['вс 24', []],
+      ['пн 17', [['09:00', 'A2', 'English A2 · Unit 3', plain]]],
+      ['вт 18', []],
+      ['ср 19', [['09:00', 'A2', 'English A2 · Unit 4', plain]]],
+      ['чт 20', [['09:00', 'A2', 'English A2 · Unit 5', acc]]],
+      ['пт 21', [['15:00', 'Физ. 9', 'Физика 9 класс', plain]]],
+      ['сб 22', []],
+      ['вс 23', []],
     ];
     return (teacher ? days : pupilDays).map((d, i) => ({
       label: d[0],
-      color: i === 2 ? 'var(--color-text)' : 'var(--color-text-tertiary)',
+      color: i === 3 ? 'var(--color-text)' : 'var(--color-text-tertiary)',
       slots: d[1].map((s) => ({ time: s[0], name: s[1], full: s[2], bg: s[3] })),
     }));
   }

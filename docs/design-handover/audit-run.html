@@ -48,10 +48,48 @@ const SHEETS = [
     { label: 'частичный отказ', wait: 1000, run: (d) => click(d, '[data-sw="st"][data-val="partial"]') },
     { label: 'частичный · ученик', wait: 1000, run: (d) => click(d, '[data-sw="role"][data-val="pupil"]') },
   ] },
-  { file: 'Вокруг урока.dc.html' },
+  // Проектор переключается внутри экрана — снимаем каждый источник: у чужого рядом стоит
+  // право словами, и оно не должно ни обрезаться, ни уезжать за кадр.
+  { file: 'Вокруг урока.dc.html', extra: [
+    { label: 'проектор · ученик', wait: 900, run: (d) => click(d, '[data-sw="sub"][data-val="b"]') },
+    { label: 'проектор · пара', wait: 900, run: (d) => click(d, '[data-sw="sub"][data-val="c"]') },
+    { label: 'проектор · книга', wait: 900, run: (d) => click(d, '[data-sw="sub"][data-val="d"]') },
+    { label: 'проектор · трансляция', wait: 900, run: (d) => click(d, '[data-sw="sub"][data-val="e"]') },
+    { label: 'проектор · ждёт выбора', wait: 900, run: (d) => click(d, '[data-sw="sub"][data-val="f"]') },
+  ] },
   { file: 'Приложение и надзор.dc.html' },
+  { file: 'Первая страница.dc.html', extra: [
+    { label: 'телефон 390', wait: 1100, run: (d) => click(d, '[data-sw="w"][data-val="390"]') },
+  ] },
+  // Мобильные листы: кадр помечен data-mobile, поэтому pageScroll у них не судится,
+  // а работает mobileScroll: одна вертикальная прокрутка листа, горизонтальной нет.
+  { file: 'Телефон.dc.html', extra: [
+    { label: 'расписание · неделя', wait: 1000, run: (d) => click(d, '[data-sw="view"][data-val="week"]') },
+    { label: 'задания', wait: 1000, run: (d) => click(d, '[data-sw="screen"][data-val="tasks"]') },
+    { label: 'задания · частичный', wait: 1000, run: (d) => click(d, '[data-sw="st"][data-val="partial"]') },
+    { label: 'моя учёба', wait: 1000, run: (d) => { click(d, '[data-sw="st"][data-val="filled"]'); click(d, '[data-sw="screen"][data-val="learn"]'); } },
+    { label: 'запуск', wait: 1000, run: (d) => click(d, '[data-sw="screen"][data-val="start"]') },
+    { label: 'запуск · отказ', wait: 1000, run: (d) => click(d, '[data-sw="st"][data-val="failed"]') },
+    { label: 'чат', wait: 1000, run: (d) => { click(d, '[data-sw="screen"][data-val="chat"]'); click(d, '[data-sw="st"][data-val="filled"]'); } },
+    { label: 'чат · 7–11', wait: 1000, run: (d) => click(d, '[data-sw="mode"]') },
+  ] },
+  { file: 'Создание курса и занятия.dc.html', extra: [
+    { label: 'курс · пусто', wait: 1000, run: (d) => click(d, '[data-sw="st"][data-val="empty"]') },
+    { label: 'курс · частичный', wait: 1000, run: (d) => click(d, '[data-sw="st"][data-val="partial"]') },
+    { label: 'курс · отказ', wait: 1000, run: (d) => click(d, '[data-sw="st"][data-val="failed"]') },
+    { label: 'занятие', wait: 1000, run: (d) => { click(d, '[data-sw="st"][data-val="filled"]'); click(d, '[data-sw="screen"][data-val="lesson"]'); } },
+    { label: 'занятие · частичный', wait: 1000, run: (d) => click(d, '[data-sw="st"][data-val="partial"]') },
+    { label: 'занятие · отказ', wait: 1000, run: (d) => click(d, '[data-sw="st"][data-val="failed"]') },
+    { label: 'занятие · 1512 · 7–11', wait: 1100, run: (d) => { click(d, '[data-sw="st"][data-val="filled"]'); click(d, '[data-sw="w"][data-val="1512"]'); click(d, '[data-sw="mode"]'); } },
+  ] },
+  { file: 'Источники мира.dc.html', extra: [
+    { label: 'частичный отказ', wait: 1000, run: (d) => click(d, '[data-sw="st"][data-val="partial"]') },
+    { label: 'пусто', wait: 1000, run: (d) => click(d, '[data-sw="st"][data-val="empty"]') },
+    { label: 'отказ', wait: 1000, run: (d) => click(d, '[data-sw="st"][data-val="failed"]') },
+    { label: '1512 · наполнено', wait: 1100, run: (d) => { click(d, '[data-sw="st"][data-val="filled"]'); click(d, '[data-sw="w"][data-val="1512"]'); } },
+  ] },
 ];
-const KEYS = ['pageScroll','overlaps','absOverlaps','textUnderLayer','frameBleed','clipped','rowTops','gaps','rawValues','tapTargets','contrast','wrapped','rowWrap','accents','accentsGo','jump'];
+const KEYS = ['pageScroll', 'mobileScroll','overlaps','absOverlaps','textUnderLayer','frameBleed','clipped','rowTops','gaps','rawValues','tapTargets','contrast','wrapped','rowWrap','accents','accentsGo','jump'];
 const DETAIL = ['textUnderLayer','frameBleed','overlaps','absOverlaps','rowWrap','clipped','tapTargets','contrast','wrapped','rawValues','rowTops'];
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 

@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="tokens.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  html, body { height: 100%; overflow: hidden; }
+  a { color: var(--color-link); text-decoration: none; }
+  a:hover { color: var(--color-accent-text); }
+  input::placeholder, textarea::placeholder { color: var(--color-text-tertiary); }
+  input:focus-visible, button:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+</style>
+</helmet>
+<div ref="{{ setRoot }}" data-theme="{{ theme }}" data-mode="{{ mode }}" style="height: 100vh; display: grid; grid-template-rows: auto minmax(0, 1fr); background: var(--color-bg); color: var(--color-text); font-family: var(--font-body); overflow: hidden;">
+
+  <div style="display: flex; align-items: center; gap: var(--space-2); padding: var(--space-3) var(--space-4); border-bottom: 1px solid var(--color-border); flex-wrap: wrap;">
+    <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .08em; text-transform: uppercase;">лист</span>
+    <button data-sw="screen" data-val="course" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer; white-space: nowrap;">курс</button>
+    <button data-sw="screen" data-val="lesson" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer; white-space: nowrap;">занятие</button>
+
+    <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .08em; text-transform: uppercase; margin-left: var(--space-4);">состояние</span>
+    <button data-sw="st" data-val="filled" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer; white-space: nowrap;">наполнено</button>
+    <button data-sw="st" data-val="empty" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer; white-space: nowrap;">пусто</button>
+    <button data-sw="st" data-val="loading" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer; white-space: nowrap;">загружается</button>
+    <button data-sw="st" data-val="failed" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer; white-space: nowrap;">отказ</button>
+    <button data-sw="st" data-val="partial" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer; white-space: nowrap;">частичный</button>
+
+    <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .08em; text-transform: uppercase; margin-left: var(--space-4);">кадр</span>
+    <button data-sw="w" data-val="1280" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer; white-space: nowrap;">1280×800</button>
+    <button data-sw="w" data-val="1512" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer; white-space: nowrap;">1512×944</button>
+
+    <span style="margin-left: auto; display: flex; gap: var(--space-2); align-items: center;">
+      <span data-scroll-probe style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); white-space: nowrap;">прокрутка страницы: 0 px</span>
+      <button data-sw="mode" data-val="toggle" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer; white-space: nowrap;">7–11</button>
+      <button data-sw="theme" data-val="toggle" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer; white-space: nowrap;">тема</button>
+    </span>
+  </div>
+
+  <div ref="{{ setHost }}" style="display: grid; place-items: center; overflow: hidden; min-height: 0;">
+    <div data-audit-scope ref="{{ setFrame }}" style="width: 1280px; height: 800px; position: relative; border-radius: var(--radius-card); overflow: hidden; background: var(--color-bg); box-shadow: var(--shadow-lg); border: 1px solid var(--color-border); display: grid; grid-template-rows: auto minmax(0, 1fr);">
+
+      <div data-geo="make-head" style="display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: var(--space-4); padding: var(--space-4) var(--space-6); border-bottom: 1px solid var(--color-border); background: var(--color-surface);">
+        <span style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-2); min-width: 0;">
+          <span style="display: flex; align-items: center; gap: var(--space-3); min-width: 0;">
+            <a href="Кабинет и учёба.dc.html" style="display: flex; align-items: center; gap: var(--space-2); min-height: var(--tap-min); color: var(--color-text); white-space: nowrap;" style-hover="color: var(--color-accent-text);">
+              <span style="font: 400 18px var(--font-mono);">‹</span>
+              <span style="font-size: var(--text-small);">Кабинет</span>
+            </a>
+            <span style="font-family: var(--font-heading); font-size: var(--text-h1); font-weight: 600; letter-spacing: var(--tracking-tight); white-space: nowrap;">{{ title }}</span>
+          </span>
+          <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); line-height: var(--leading-snug);">{{ subtitle }}</span>
+        </span>
+        <span style="display: flex; gap: var(--space-2); align-items: center; white-space: nowrap;">
+          <span data-save style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-secondary);">{{ saveNote }}</span>
+        </span>
+      </div>
+
+      <div style="min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr) 344px; gap: var(--space-5); padding: var(--space-5) var(--space-6);">
+
+        <div data-form style="min-height: 0; overflow: auto; display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-4); align-content: start; padding-inline-end: var(--space-1);">
+
+          <sc-if value="{{ partial }}" hint-placeholder-val="{{ false }}">
+            <div style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-2); padding: var(--space-4) var(--space-5); border: 1px solid var(--color-border); border-inline-start: 2px solid var(--color-border-strong); border-radius: var(--radius-card); background: var(--color-surface-subtle);">
+              <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-secondary); letter-spacing: .08em; text-transform: uppercase;">{{ partialKicker }}</span>
+              <span style="font-size: var(--text-small); font-weight: 500; text-wrap: pretty;">{{ partialTitle }}</span>
+              <span style="display: grid; gap: 2px; font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-secondary); line-height: var(--leading-snug);">
+                <sc-for list="{{ partialFacts }}" as="p" hint-placeholder-count="3">
+                  <span>{{ p.text }}</span>
+                </sc-for>
+              </span>
+              <button onClick="{{ noop }}" style="justify-self: start; min-height: var(--control-height-sm); padding: 0 var(--space-3); font-size: var(--text-caption); font-family: var(--font-body); color: var(--color-text); background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-control); cursor: pointer; white-space: nowrap;">{{ partialAction }}</button>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ courseForm }}" hint-placeholder-val="{{ true }}">
+            <div style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-4);">
+
+              <div style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-4); padding: var(--space-5); border: 1px solid var(--color-border); border-radius: var(--radius-card); background: var(--color-surface);">
+                <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .08em; text-transform: uppercase;">Название и предмет</span>
+
+                <label style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-2);">
+                  <span style="font-size: var(--text-small); color: var(--color-text-secondary);">Как называется курс</span>
+                  <input type="text" defaultValue="{{ vName }}" placeholder="Например: Химия · неорганика" style="width: 100%; min-height: var(--control-height-lg); padding: 0 var(--space-4); font-size: var(--text-body); font-family: var(--font-body); color: var(--color-text); background: var(--color-bg); border: 1px solid var(--color-border); border-radius: var(--radius-control);">
+                  <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary);">это имя ученик видит в каталоге и в своём расписании</span>
+                </label>
+
+                <span style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-2);">
+                  <span style="font-size: var(--text-small); color: var(--color-text-secondary);">Предмет</span>
+                  <span data-wrap-ok style="display: flex; gap: var(--space-2); flex-wrap: wrap;">
+                    <sc-for list="{{ subjects }}" as="s" hint-placeholder-count="7">
+                      <button data-pick="subject" data-val="{{ s.id }}" onClick="{{ onPick }}" style="min-height: var(--control-height-sm); padding: 0 var(--space-3); font-size: var(--text-caption); font-family: var(--font-body); color: var(--color-text-secondary); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); cursor: pointer; white-space: nowrap;">{{ s.label }}</button>
+                    </sc-for>
+                  </span>
+                  <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary);">от предмета зависит цвет обложки и место в каталоге</span>
+                </span>
+
+                <span style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-2);">
+                  <span style="font-size: var(--text-small); color: var(--color-text-secondary);">Для кого</span>
+                  <span style="display: flex; gap: var(--space-1); padding: 3px; border: 1px solid var(--color-border); border-radius: var(--radius-control); background: var(--color-bg); width: max-content; max-width: 100%;">
+                    <sc-for list="{{ levels }}" as="l" hint-placeholder-count="4">
+                      <button data-pick="level" data-val="{{ l.id }}" onClick="{{ onPick }}" style="min-height: var(--control-height-sm); padding: 0 var(--space-4); font-size: var(--text-caption); font-family: var(--font-body); color: var(--color-text-secondary); background: none; border: none; border-radius: var(--radius-sm); cursor: pointer; white-space: nowrap;">{{ l.label }}</button>
+                    </sc-for>
+                  </span>
+                </span>
+              </div>
+
+              <div style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-4); padding: var(--space-5); border: 1px solid var(--color-border); border-radius: var(--radius-card); background: var(--color-surface);">
+                <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .08em; text-transform: uppercase;">Ритм занятий</span>
+
+                <span style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-4);">
+                  <span style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-2); min-width: 0;">
+                    <span style="font-size: var(--text-small); color: var(--color-text-secondary);">Одно занятие идёт</span>
+                    <span style="display: flex; gap: var(--space-1); padding: 3px; border: 1px solid var(--color-border); border-radius: var(--radius-control); background: var(--color-bg);">
+                      <sc-for list="{{ durations }}" as="d" hint-placeholder-count="4">
+                        <button data-pick="dur" data-val="{{ d.id }}" onClick="{{ onPick }}" style="flex: 1 1 0; min-width: 0; min-height: var(--control-height-sm); font-size: var(--text-caption); font-family: var(--font-body); color: var(--color-text-secondary); background: none; border: none; border-radius: var(--radius-sm); cursor: pointer; white-space: nowrap;">{{ d.label }}</button>
+                      </sc-for>
+                    </span>
+                  </span>
+                  <span style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-2); min-width: 0;">
+                    <span style="font-size: var(--text-small); color: var(--color-text-secondary);">Сколько раз в неделю</span>
+                    <span style="display: flex; gap: var(--space-1); padding: 3px; border: 1px solid var(--color-border); border-radius: var(--radius-control); background: var(--color-bg);">
+                      <sc-for list="{{ perWeek }}" as="p" hint-placeholder-count="4">
+                        <button data-pick="week" data-val="{{ p.id }}" onClick="{{ onPick }}" style="flex: 1 1 0; min-width: 0; min-height: var(--control-height-sm); font-size: var(--text-caption); font-family: var(--font-body); color: var(--color-text-secondary); background: none; border: none; border-radius: var(--radius-sm); cursor: pointer; white-space: nowrap;">{{ p.label }}</button>
+                      </sc-for>
+                    </span>
+                  </span>
+                </span>
+
+                <span style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-2);">
+                  <span style="font-size: var(--text-small); color: var(--color-text-secondary);">В какие дни</span>
+                  <span style="display: flex; gap: var(--space-2); flex-wrap: wrap;">
+                    <sc-for list="{{ weekDays }}" as="d" hint-placeholder-count="7">
+                      <button data-pick="day" data-val="{{ d.id }}" onClick="{{ onPick }}" style="width: 52px; min-height: var(--control-height-sm); font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-secondary); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-control); cursor: pointer;">{{ d.label }}</button>
+                    </sc-for>
+                  </span>
+                  <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); line-height: var(--leading-snug);">{{ rhythmNote }}</span>
+                </span>
+              </div>
+
+              <div style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-4); padding: var(--space-5); border: 1px solid var(--color-border); border-radius: var(--radius-card); background: var(--color-surface);">
+                <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .08em; text-transform: uppercase;">Цена и обложка</span>
+
+                <span style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-4);">
+                  <span style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-2); min-width: 0;">
+                    <span style="font-size: var(--text-small); color: var(--color-text-secondary);">Сколько стоит</span>
+                    <sc-if value="{{ priceOk }}" hint-placeholder-val="{{ true }}">
+                      <span style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-2);">
+                        <span style="display: flex; gap: var(--space-1); padding: 3px; border: 1px solid var(--color-border); border-radius: var(--radius-control); background: var(--color-bg);">
+                          <sc-for list="{{ prices }}" as="p" hint-placeholder-count="2">
+                            <button data-pick="price" data-val="{{ p.id }}" onClick="{{ onPick }}" style="flex: 1 1 0; min-width: 0; min-height: var(--control-height-sm); font-size: var(--text-caption); font-family: var(--font-body); color: var(--color-text-secondary); background: none; border: none; border-radius: var(--radius-sm); cursor: pointer; white-space: nowrap;">{{ p.label }}</button>
+                          </sc-for>
+                        </span>
+                        <input type="text" defaultValue="{{ vPrice }}" placeholder="1 200 ₽ за занятие" style="width: 100%; min-height: var(--control-height-md); padding: 0 var(--space-4); font-size: var(--text-small); font-family: var(--font-mono); color: var(--color-text); background: var(--color-bg); border: 1px solid var(--color-border); border-radius: var(--radius-control);">
+                      </span>
+                    </sc-if>
+                    <sc-if value="{{ priceDown }}" hint-placeholder-val="{{ false }}">
+                      <span style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-2); padding: var(--space-3) var(--space-4); border: 1px solid var(--color-border); border-inline-start: 2px solid var(--color-border-strong); border-radius: var(--radius-control); background: var(--color-bg);">
+                        <span style="font-size: var(--text-caption); color: var(--color-text); line-height: var(--leading-snug); text-wrap: pretty;">Цену сейчас поставить нельзя — служба оплат не отвечает</span>
+                        <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-secondary); line-height: var(--leading-snug);">курс сохранится бесплатным, цену добавите потом — ученики уже записанные ничего не потеряют</span>
+                      </span>
+                    </sc-if>
+                  </span>
+
+                  <span style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-2); min-width: 0;">
+                    <span style="font-size: var(--text-small); color: var(--color-text-secondary);">Обложка</span>
+                    <span style="display: flex; gap: var(--space-2); flex-wrap: wrap;">
+                      <sc-for list="{{ motifs }}" as="m" hint-placeholder-count="3">
+                        <button data-pick="motif" data-val="{{ m.id }}" onClick="{{ onPick }}" style="width: 56px; height: 56px; padding: 0; border: 1px solid var(--color-border); border-radius: var(--radius-sm); background-color: var(--color-surface-subtle); background-image: {{ m.pattern }}; cursor: pointer;" aria-label="{{ m.label }}"></button>
+                      </sc-for>
+                    </span>
+                    <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); line-height: var(--leading-snug);">картинку загружать не надо: обложка собирается из названия и цвета предмета</span>
+                  </span>
+                </span>
+              </div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ lessonForm }}" hint-placeholder-val="{{ false }}">
+            <div style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-4);">
+
+              <div style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-4); padding: var(--space-5); border: 1px solid var(--color-border); border-radius: var(--radius-card); background: var(--color-surface);">
+                <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .08em; text-transform: uppercase;">Когда</span>
+
+                <span style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-2);">
+                  <span style="font-size: var(--text-small); color: var(--color-text-secondary);">День — неделя 17–23 августа 2026</span>
+                  <span style="display: flex; gap: var(--space-2); flex-wrap: wrap;">
+                    <sc-for list="{{ dates }}" as="d" hint-placeholder-count="7">
+                      <button data-pick="date" data-val="{{ d.id }}" onClick="{{ onPick }}" style="width: 62px; min-height: 58px; display: grid; gap: 2px; justify-items: center; align-content: center; font-family: var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-control); cursor: pointer;">
+                        <span style="font-size: var(--text-caption); font-weight: 500; color: var(--color-text-secondary);">{{ d.dow }}</span>
+                        <span style="font-size: var(--text-body); font-weight: 500; color: var(--color-text);">{{ d.num }}</span>
+                      </button>
+                    </sc-for>
+                  </span>
+                </span>
+
+                <span style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-4);">
+                  <label style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-2); min-width: 0;">
+                    <span style="font-size: var(--text-small); color: var(--color-text-secondary);">Во сколько начинаем</span>
+                    <input type="text" defaultValue="{{ vTime }}" placeholder="11:30" style="width: 100%; min-height: var(--control-height-md); padding: 0 var(--space-4); font-size: var(--text-body); font-family: var(--font-mono); color: var(--color-text); background: var(--color-bg); border: 1px solid var(--color-border); border-radius: var(--radius-control);">
+                    <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); line-height: var(--leading-snug);">{{ tzNote }}</span>
+                  </label>
+                  <span style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-2); min-width: 0;">
+                    <span style="font-size: var(--text-small); color: var(--color-text-secondary);">Сколько идёт</span>
+                    <span style="display: flex; gap: var(--space-1); padding: 3px; border: 1px solid var(--color-border); border-radius: var(--radius-control); background: var(--color-bg);">
+                      <sc-for list="{{ durations }}" as="d" hint-placeholder-count="4">
+                        <button data-pick="dur" data-val="{{ d.id }}" onClick="{{ onPick }}" style="flex: 1 1 0; min-width: 0; min-height: var(--control-height-sm); font-size: var(--text-caption); font-family: var(--font-body); color: var(--color-text-secondary); background: none; border: none; border-radius: var(--radius-sm); cursor: pointer; white-space: nowrap;">{{ d.label }}</button>
+                      </sc-for>
+                    </span>
+                    <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); line-height: var(--leading-snug);">{{ endNote }}</span>
+                  </span>
+                </span>
+
+                <button data-pick="repeat" data-val="on" onClick="{{ onPick }}" style="display: flex; align-items: center; gap: var(--space-3); text-align: start; min-width: 0; min-height: var(--tap-min); padding: 0; border: none; background: none; cursor: pointer; font-family: var(--font-body);">
+                  <span style="flex: none; width: 56px; height: var(--control-height-sm); padding: 3px; border: 1px solid {{ repeatBorder }}; border-radius: var(--radius-pill); background: {{ repeatTrack }}; display: flex; align-items: center; justify-content: {{ repeatPos }};">
+                    <span style="width: 22px; height: 22px; border-radius: 50%; background: {{ repeatKnob }};"></span>
+                  </span>
+                  <span style="font-size: var(--text-small); color: var(--color-text); text-wrap: pretty; min-width: 0;">{{ repeatLabel }}</span>
+                </button>
+              </div>
+
+              <div style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-4); padding: var(--space-5); border: 1px solid var(--color-border); border-radius: var(--radius-card); background: var(--color-surface);">
+                <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .08em; text-transform: uppercase;">О чём занятие</span>
+
+                <label style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-2);">
+                  <span style="font-size: var(--text-small); color: var(--color-text-secondary);">Тема — её видит класс в расписании</span>
+                  <input type="text" defaultValue="{{ vTopic }}" placeholder="Например: Почему горит магний" style="width: 100%; min-height: var(--control-height-lg); padding: 0 var(--space-4); font-size: var(--text-body); font-family: var(--font-body); color: var(--color-text); background: var(--color-bg); border: 1px solid var(--color-border); border-radius: var(--radius-control);">
+                </label>
+
+                <span style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-2);">
+                  <span style="font-size: var(--text-small); color: var(--color-text-secondary);">Материалы к занятию</span>
+                  <sc-for list="{{ materials }}" as="m" hint-placeholder-count="2">
+                    <span style="display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--space-3); align-items: center; min-height: var(--tap-min); padding: 0 var(--space-4); border: 1px solid var(--color-border); border-radius: var(--radius-control); background: var(--color-bg);">
+                      <span style="display: grid; gap: 2px; min-width: 0;">
+                        <span style="font-size: var(--text-small); color: var(--color-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ m.name }}</span>
+                        <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ m.right }}</span>
+                      </span>
+                      <button onClick="{{ noop }}" style="min-height: var(--control-height-sm); padding: 0 var(--space-3); font-size: var(--text-caption); font-family: var(--font-body); color: var(--color-text-secondary); background: none; border: none; cursor: pointer; white-space: nowrap;" style-hover="color: var(--color-text);">убрать</button>
+                    </span>
+                  </sc-for>
+                  <span style="display: flex; gap: var(--space-2); flex-wrap: wrap;">
+                    <button onClick="{{ noop }}" style="min-height: var(--control-height-sm); padding: 0 var(--space-4); font-size: var(--text-caption); font-family: var(--font-body); color: var(--color-text); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-control); cursor: pointer; white-space: nowrap;" style-hover="border-color: var(--color-border-strong);">Из библиотеки курса</button>
+                    <a href="Источники мира.dc.html" style="display: flex; align-items: center; min-height: var(--control-height-sm); padding: 0 var(--space-4); font-size: var(--text-caption); color: var(--color-text); border: 1px solid var(--color-border); border-radius: var(--radius-control); white-space: nowrap;" style-hover="border-color: var(--color-border-strong);">Из источников мира</a>
+                    <button onClick="{{ noop }}" style="min-height: var(--control-height-sm); padding: 0 var(--space-4); font-size: var(--text-caption); font-family: var(--font-body); color: var(--color-text); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-control); cursor: pointer; white-space: nowrap;" style-hover="border-color: var(--color-border-strong);">Свой файл</button>
+                  </span>
+                  <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); line-height: var(--leading-snug);">у чужого материала право написано словами — его увидит класс, а не только вы</span>
+                </span>
+              </div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ isLoading }}" hint-placeholder-val="{{ false }}">
+            <div style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-4);">
+              <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary);">{{ loadingSays }}</span>
+              <sc-for list="{{ skeleton }}" as="sk" hint-placeholder-count="3">
+                <span style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-4); padding: var(--space-5); border: 1px solid var(--color-border); border-radius: var(--radius-card); background: var(--color-surface);">
+                  <span style="height: 12px; width: 30%; border-radius: 2px; background: var(--color-surface-subtle);"></span>
+                  <span style="height: var(--control-height-lg); border-radius: var(--radius-control); background: var(--color-surface-subtle);"></span>
+                  <span style="display: flex; gap: var(--space-2);">
+                    <span style="height: var(--control-height-sm); width: {{ sk.a }}; border-radius: var(--radius-pill); background: var(--color-surface-subtle);"></span>
+                    <span style="height: var(--control-height-sm); width: {{ sk.b }}; border-radius: var(--radius-pill); background: var(--color-surface-subtle);"></span>
+                  </span>
+                </span>
+              </sc-for>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ isFailed }}" hint-placeholder-val="{{ false }}">
+            <div style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-4); align-content: start; padding: var(--space-6); border: 1px solid var(--color-border); border-radius: var(--radius-card); background: var(--color-surface);">
+              <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-error-text); letter-spacing: .08em; text-transform: uppercase;">{{ failKicker }}</span>
+              <span style="font-family: var(--font-heading); font-size: var(--text-h2); font-weight: 600; letter-spacing: var(--tracking-snug); text-wrap: pretty;">{{ failTitle }}</span>
+              <span style="font-size: var(--text-small); color: var(--color-text-secondary); line-height: var(--leading-body); max-width: 70ch; text-wrap: pretty;">{{ failBody }}</span>
+              <span style="display: grid; gap: var(--space-2); padding-inline-start: var(--space-3); border-inline-start: 2px solid var(--color-border-strong); font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-secondary); line-height: var(--leading-snug);">
+                <sc-for list="{{ failFacts }}" as="f" hint-placeholder-count="3">
+                  <span>{{ f.text }}</span>
+                </sc-for>
+              </span>
+              <span style="display: flex; gap: var(--space-2); flex-wrap: wrap;">
+                <button onClick="{{ noop }}" style="min-height: var(--tap-min); padding: 0 var(--space-5); font-size: var(--text-small); font-family: var(--font-body); color: var(--color-on-accent); background: var(--color-accent-solid); border: none; border-radius: var(--radius-control); cursor: pointer; white-space: nowrap;" style-hover="background: var(--color-accent-solid-hover);">{{ failAction }}</button>
+                <a href="Кабинет и учёба.dc.html" style="display: flex; align-items: center; min-height: var(--tap-min); padding: 0 var(--space-5); font-size: var(--text-small); color: var(--color-text); border: 1px solid var(--color-border); border-radius: var(--radius-control); white-space: nowrap;" style-hover="border-color: var(--color-border-strong);">Вернуться в кабинет</a>
+              </span>
+            </div>
+          </sc-if>
+        </div>
+
+        <div data-geo="make-rail" style="min-height: 0; display: grid; grid-template-rows: minmax(0, 1fr) auto; gap: var(--space-4);">
+
+          <div style="min-height: 0; overflow: hidden; display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); gap: var(--space-4); padding: var(--space-5); border: 1px solid var(--color-border); border-radius: var(--radius-card); background: var(--color-surface);">
+            <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .08em; text-transform: uppercase;">{{ railKicker }}</span>
+
+            <sc-if value="{{ courseRail }}" hint-placeholder-val="{{ true }}">
+              <span style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-3); align-content: start; min-height: 0;">
+                <span style="height: 132px; border-radius: var(--radius-md); border: 1px solid var(--color-border); background-color: var(--color-surface-subtle); background-image: {{ coverPattern }}; display: grid; align-content: end; padding: var(--space-4);">
+                  <span style="font-family: var(--font-heading); font-size: var(--text-h3); font-weight: 600; color: {{ coverColor }}; line-height: var(--leading-heading); text-wrap: pretty;">{{ coverName }}</span>
+                </span>
+                <span style="display: grid; gap: var(--space-2); font-size: var(--text-caption); color: var(--color-text-secondary); line-height: var(--leading-snug);">
+                  <sc-for list="{{ railRows }}" as="r" hint-placeholder-count="4">
+                    <span style="display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: var(--space-3);">
+                      <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary);">{{ r.k }}</span>
+                      <span style="text-wrap: pretty;">{{ r.v }}</span>
+                    </span>
+                  </sc-for>
+                </span>
+              </span>
+            </sc-if>
+
+            <sc-if value="{{ lessonRail }}" hint-placeholder-val="{{ false }}">
+              <span style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-3); align-content: start; min-height: 0;">
+                <span style="display: grid; gap: var(--space-1);">
+                  <span style="font-family: var(--font-mono); font-size: var(--text-h2); font-weight: 500; color: var(--color-text); line-height: var(--leading-tight);">{{ pupilCount }}</span>
+                  <span style="font-size: var(--text-caption); color: var(--color-text-secondary); line-height: var(--leading-snug);">учеников записано на курс — все получат это занятие</span>
+                </span>
+                <span style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-2); border-top: 1px solid var(--color-border); padding-top: var(--space-3);">
+                  <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); line-height: var(--leading-snug);">{{ tzRailNote }}</span>
+                  <sc-for list="{{ zones }}" as="z" hint-placeholder-count="3">
+                    <span style="display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--space-3); align-items: baseline;">
+                      <span style="font-size: var(--text-caption); color: var(--color-text); min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ z.who }}</span>
+                      <span style="font: 500 var(--text-caption) var(--font-mono); color: {{ z.color }}; white-space: nowrap;">{{ z.at }}</span>
+                    </span>
+                  </sc-for>
+                  <span style="font: 400 var(--text-caption) var(--font-mono); color: {{ warnColor }}; line-height: var(--leading-snug); text-wrap: pretty;">{{ zoneWarn }}</span>
+                </span>
+              </span>
+            </sc-if>
+          </div>
+
+          <div style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-2); padding: var(--space-5); border: 1px solid var(--color-border); border-radius: var(--radius-card); background: var(--color-surface);">
+            <sc-if value="{{ goPrimary }}" hint-placeholder-val="{{ true }}">
+              <button onClick="{{ noop }}" style="min-height: var(--tap-min); font-size: var(--text-small); font-family: var(--font-body); font-weight: 500; color: var(--color-on-go); background: var(--color-go-solid); border: none; border-radius: var(--radius-control); cursor: pointer; white-space: nowrap;" style-hover="background: var(--color-go-solid-hover);">{{ primaryLabel }}</button>
+            </sc-if>
+            <sc-if value="{{ flatPrimary }}" hint-placeholder-val="{{ false }}">
+              <button onClick="{{ noop }}" style="min-height: var(--tap-min); font-size: var(--text-small); font-family: var(--font-body); font-weight: 500; color: var(--color-go-text); background: none; border: 1px solid var(--color-go-border); border-radius: var(--radius-control); cursor: pointer; white-space: nowrap;" style-hover="border-color: var(--color-go-line);">{{ primaryLabel }}</button>
+            </sc-if>
+            <button onClick="{{ noop }}" style="min-height: var(--control-height-md); font-size: var(--text-caption); font-family: var(--font-body); color: var(--color-text); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-control); cursor: pointer; white-space: nowrap;" style-hover="border-color: var(--color-border-strong);">{{ secondaryLabel }}</button>
+            <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-secondary); line-height: var(--leading-snug); text-wrap: pretty;">{{ primaryNote }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;: {&quot;width&quot;: 1400, &quot;height&quot;: 900}}">
+class Component extends DCLogic {
+  // Создание курса и создание занятия. Экраны, без которых продукта нет: кнопки в кабинете
+  // вели в пустоту, а без курса нет ни расписания, ни урока, ни ученика.
+  //
+  // Два решения, которые здесь важнее полей:
+  // 1. Курс сохраняется САМ и живёт черновиком. «Опубликовать» — отдельный шаг и единственная
+  //    зелёная заливка на экране: это и есть «решено, можно дальше» (ПРАВИЛА 5.11).
+  // 2. Время занятия задаётся в поясе преподавателя, а рельс сразу показывает, во сколько это
+  //    у учеников. Пояс — не поле в настройках, а следствие, которое видно при вводе
+  //    (ПРАВИЛА 8.5). Там же единственное коралловое: у кого это время попадает на школу.
+  state = {
+    screen: 'course', st: 'filled', w: 1280, theme: 'light', mode: 'default',
+    subject: 'chem', level: 'g78', dur: '45', week: '2', days: ['mon', 'thu'],
+    price: 'paid', motif: 'b', date: 'thu', repeat: true,
+  };
+
+  componentDidMount() {
+    this.onResize = () => this.fit();
+    window.addEventListener('resize', this.onResize);
+    this.settle();
+    this.probe = setInterval(() => {
+      const el = this.root && this.root.querySelector('[data-scroll-probe]');
+      if (el) el.textContent = 'прокрутка страницы: ' + Math.max(0, document.documentElement.scrollHeight - window.innerHeight) + ' px';
+    }, 1000);
+  }
+  componentDidUpdate() { this.settle(); }
+  componentWillUnmount() { window.removeEventListener('resize', this.onResize); clearInterval(this.probe); }
+
+  settle() { this.fit(); this.applyChrome(); requestAnimationFrame(() => this.fit()); }
+
+  fit() {
+    const host = this.host, f = this.frame;
+    if (!host || !f) return;
+    const W = this.state.w, H = this.state.w === 1280 ? 800 : 944;
+    const s = Math.min(1, (host.clientWidth - 40) / W, (host.clientHeight - 40) / H);
+    host.style.position = 'relative';
+    f.style.position = 'absolute';
+    f.style.left = '50%'; f.style.top = '50%';
+    f.style.width = W + 'px'; f.style.height = H + 'px';
+    f.style.transform = 'translate(-50%, -50%) scale(' + s.toFixed(4) + ')';
+  }
+
+  applyChrome() {
+    const root = this.root; if (!root) return;
+    const s = this.state;
+    const cur = { screen: s.screen, st: s.st, w: String(s.w) };
+    root.querySelectorAll('[data-sw]').forEach((b) => {
+      const k = b.dataset.sw, v = b.dataset.val;
+      if (!(k in cur)) return;
+      const on = cur[k] === v;
+      b.style.color = on ? 'var(--color-text)' : 'var(--color-text-secondary)';
+      b.style.borderColor = on ? 'var(--color-border-strong)' : 'var(--color-border)';
+      b.style.background = on ? 'var(--color-surface)' : 'none';
+    });
+    // Выбранное в форме отмечается нейтрально — сильной рамкой и приглушённой заливкой.
+    // Акцент на этом экране принадлежит публикации, а не переключателю уровня (ПРАВИЛА 5.7).
+    const pick = { subject: s.subject, level: s.level, dur: s.dur, week: s.week, price: s.price, motif: s.motif, date: s.date };
+    root.querySelectorAll('[data-pick]').forEach((b) => {
+      const k = b.dataset.pick, v = b.dataset.val;
+      if (k === 'day') {
+        const on = s.days.indexOf(v) >= 0;
+        b.style.color = on ? 'var(--color-text)' : 'var(--color-text-secondary)';
+        b.style.borderColor = on ? 'var(--color-border-strong)' : 'var(--color-border)';
+        b.style.background = on ? 'var(--color-surface-subtle)' : 'none';
+        return;
+      }
+      if (!(k in pick)) return;
+      const on = pick[k] === v;
+      if (k === 'motif') {
+        b.style.borderColor = on ? 'var(--color-border-strong)' : 'var(--color-border)';
+        b.style.borderWidth = on ? '2px' : '1px';
+        return;
+      }
+      b.style.color = on ? 'var(--color-text)' : 'var(--color-text-secondary)';
+      b.style.background = on ? 'var(--color-surface-subtle)' : 'none';
+      if (b.style.borderStyle === 'solid' || k === 'subject' || k === 'date') {
+        b.style.borderColor = on ? 'var(--color-border-strong)' : 'var(--color-border)';
+      }
+    });
+    // рельс не тянется (ПРАВИЛА 3.5), а форма получает воздух на 1512
+    const body = this.frame && this.frame.querySelector('[data-form]');
+    if (body) body.style.paddingInlineEnd = this.state.w >= 1512 ? 'var(--space-3)' : 'var(--space-1)';
+  }
+
+  onSw = (e) => {
+    const { sw, val } = e.currentTarget.dataset;
+    if (sw === 'theme') return this.setState((s) => ({ theme: s.theme === 'dark' ? 'light' : 'dark' }));
+    if (sw === 'mode') return this.setState((s) => ({ mode: s.mode === 'kids' ? 'default' : 'kids' }));
+    if (sw === 'w') return this.setState({ w: Number(val) });
+    this.setState({ [sw]: val });
+  };
+
+  onPick = (e) => {
+    const { pick, val } = e.currentTarget.dataset;
+    if (pick === 'day') {
+      return this.setState((s) => ({ days: s.days.indexOf(val) >= 0 ? s.days.filter((d) => d !== val) : s.days.concat([val]) }));
+    }
+    if (pick === 'repeat') return this.setState((s) => ({ repeat: !s.repeat }));
+    this.setState({ [pick]: val });
+  };
+
+  MOTIFS = {
+    a: 'repeating-linear-gradient(90deg, var(--color-border-strong) 0 2px, transparent 2px 14px)',
+    b: 'repeating-linear-gradient(135deg, var(--color-border-strong) 0 2px, transparent 2px 16px)',
+    c: 'radial-gradient(var(--color-border-strong) 1.5px, transparent 1.6px)',
+  };
+
+  renderVals() {
+    const s = this.state;
+    const course = s.screen === 'course';
+    const partial = s.st === 'partial';
+    const empty = s.st === 'empty';
+    const form = s.st === 'filled' || partial || empty;
+
+    const dayNames = { mon: 'пн', tue: 'вт', wed: 'ср', thu: 'чт', fri: 'пт', sat: 'сб', sun: 'вс' };
+    const picked = s.days.map((d) => dayNames[d]).join(', ');
+    const durText = { '30': '30 минут', '45': '45 минут', '60': 'час', '90': 'полтора часа' }[s.dur];
+
+    // Неделя настоящая: 20 августа 2026 — четверг, неделя пн 17 — вс 23.
+    const dates = [
+      { id: 'mon', dow: 'пн', num: '17' }, { id: 'tue', dow: 'вт', num: '18' },
+      { id: 'wed', dow: 'ср', num: '19' }, { id: 'thu', dow: 'чт', num: '20' },
+      { id: 'fri', dow: 'пт', num: '21' }, { id: 'sat', dow: 'сб', num: '22' },
+      { id: 'sun', dow: 'вс', num: '23' },
+    ];
+    const dateFull = { mon: '17 августа', tue: '18 августа', wed: '19 августа', thu: '20 августа', fri: '21 августа', sat: '22 августа', sun: '23 августа' }[s.date];
+
+    const head = course
+      ? { title: empty ? 'Новый курс' : 'Химия · неорганика',
+          sub: empty ? 'курс живёт черновиком, пока вы его не опубликуете — ученики черновик не видят'
+                     : 'черновик · 11 занятий составлено · ученики его пока не видят' }
+      : { title: empty ? 'Новое занятие' : 'Занятие 12 · Почему горит магний',
+          sub: 'курс «Химия · неорганика» · время задаётся в вашем поясе: Москва, UTC+3' };
+
+    const failCourse = {
+      k: 'отказ · справочник предметов',
+      t: 'Список предметов не пришёл',
+      b: 'Курс без предмета создать нельзя: от предмета зависит и место в каталоге, и обложка, и то, кому курс покажут. Молчит справочник предметов, а не ваш черновик.',
+      f: [
+        { text: 'работает: ваши курсы, занятия и расписание' },
+        { text: 'не работает: выбор предмета и уровня — значит и создание курса' },
+        { text: 'с данными: введённое название сохранено черновиком, 12:04' },
+      ],
+      a: 'Запросить справочник снова',
+    };
+    const failLesson = {
+      k: 'отказ · курс не найден',
+      t: 'Курс, к которому ставится занятие, не открылся',
+      b: 'Занятие живёт внутри курса — без курса его некуда поставить. Возможно, курс удалён или у вас больше нет к нему прав; ваши остальные курсы работают.',
+      f: [
+        { text: 'работает: остальные курсы и уже поставленные занятия' },
+        { text: 'не работает: этот курс — значит и новое занятие в нём' },
+        { text: 'с данными: черновик темы и материалов сохранён, 12:04' },
+      ],
+      a: 'Загрузить курс снова',
+    };
+    const fail = course ? failCourse : failLesson;
+
+    const partialCourse = {
+      k: 'частичный отказ · служба оплат',
+      t: 'Курс собирается, цену пока поставить нельзя',
+      f: [
+        { text: 'работает: название, предмет, ритм, обложка, публикация' },
+        { text: 'не работает: цена — служба оплат не отвечает с 09:40' },
+        { text: 'с данными: черновик сохранён 12:04, курс уйдёт бесплатным' },
+      ],
+      a: 'Проверить службу оплат',
+    };
+    const partialLesson = {
+      k: 'частичный отказ · пояса учеников',
+      t: 'Занятие поставить можно, чужие пояса не пришли',
+      f: [
+        { text: 'работает: дата, время, тема, материалы, постановка в расписание' },
+        { text: 'не работает: пересчёт времени в пояса учеников' },
+        { text: 'с данными: время сохранится в вашем поясе, у учеников пересчитается само' },
+      ],
+      a: 'Запросить пояса снова',
+    };
+    const par = course ? partialCourse : partialLesson;
+
+    return {
+      setRoot: (el) => { this.root = el; },
+      setHost: (el) => { this.host = el; },
+      setFrame: (el) => { this.frame = el; },
+      theme: s.theme === 'dark' ? 'dark' : 'light',
+      mode: s.mode === 'kids' ? 'kids' : 'default',
+
+      title: head.title,
+      subtitle: head.sub,
+      saveNote: s.st === 'loading' ? 'открываем черновик' : (s.st === 'failed' ? 'черновик сохранён 12:04' : 'сохраняется само · последнее сохранение 12:04'),
+
+      courseForm: course && form,
+      lessonForm: !course && form,
+      isLoading: s.st === 'loading',
+      isFailed: s.st === 'failed',
+      partial: partial,
+
+      partialKicker: par.k, partialTitle: par.t, partialFacts: par.f, partialAction: par.a,
+      failKicker: fail.k, failTitle: fail.t, failBody: fail.b, failFacts: fail.f, failAction: fail.a,
+      loadingSays: course ? 'открываем черновик курса · первыми придут название и предмет' : 'открываем занятие · первыми придут дата и тема',
+      skeleton: [{ a: '38%', b: '26%' }, { a: '30%', b: '44%' }, { a: '46%', b: '22%' }],
+
+      vName: empty ? '' : 'Химия · неорганика',
+      // на обложке имени ещё нет — говорим об этом словами, а не пустотой
+      coverName: empty ? 'название появится здесь' : 'Химия · неорганика',
+      coverColor: empty ? 'var(--color-text-tertiary)' : 'var(--color-text)',
+      vPrice: empty ? '' : '1 200 ₽ за занятие',
+      vTime: empty ? '' : '11:30',
+      vTopic: empty ? '' : 'Почему горит магний',
+
+      subjects: [
+        { id: 'chem', label: 'химия' }, { id: 'math', label: 'математика' },
+        { id: 'phys', label: 'физика' }, { id: 'bio', label: 'биология' },
+        { id: 'hist', label: 'история' }, { id: 'lang', label: 'английский' },
+        { id: 'astro', label: 'астрономия' },
+      ],
+      levels: [
+        { id: 'g56', label: '5–6 класс' }, { id: 'g78', label: '7–8 класс' },
+        { id: 'g911', label: '9–11 класс' }, { id: 'adult', label: 'взрослые' },
+      ],
+      durations: [
+        { id: '30', label: '30 мин' }, { id: '45', label: '45 мин' },
+        { id: '60', label: 'час' }, { id: '90', label: '1,5 часа' },
+      ],
+      perWeek: [
+        { id: '1', label: '1' }, { id: '2', label: '2' }, { id: '3', label: '3' }, { id: '5', label: '5' },
+      ],
+      prices: [{ id: 'free', label: 'бесплатно' }, { id: 'paid', label: 'за деньги' }],
+      weekDays: [
+        { id: 'mon', label: 'пн' }, { id: 'tue', label: 'вт' }, { id: 'wed', label: 'ср' },
+        { id: 'thu', label: 'чт' }, { id: 'fri', label: 'пт' }, { id: 'sat', label: 'сб' }, { id: 'sun', label: 'вс' },
+      ],
+      motifs: [
+        { id: 'a', label: 'полосы', pattern: this.MOTIFS.a },
+        { id: 'b', label: 'наклон', pattern: this.MOTIFS.b },
+        { id: 'c', label: 'точки', pattern: this.MOTIFS.c },
+      ],
+      coverPattern: this.MOTIFS[s.motif] || this.MOTIFS.b,
+      rhythmNote: s.days.length
+        ? 'выбрано дней: ' + s.days.length + ' (' + picked + ') · занятие идёт ' + durText + ' · первое поставите сами'
+        : 'дни не выбраны — курс сохранится, но расписание останется пустым',
+
+      priceOk: !partial || !course,
+      priceDown: partial && course,
+
+      dates: dates,
+      tzNote: 'вы в поясе Москва, UTC+3 — у учеников пересчитается само',
+      endNote: 'закончится в ' + ({ '30': '12:00', '45': '12:15', '60': '12:30', '90': '13:00' }[s.dur]) + ' по вашему времени',
+      // ПРАВИЛА 5.9 + 5.10а: кружок 22×22 — площадь, а не полоса, и зелёным он был второй
+      // заливкой рядом с «Поставить в расписание». Включённость несут положение кружка,
+      // заливка дорожки нейтральным и слова рядом («17 занятий»), а не цвет.
+      // ПРАВИЛА 7.1а: цель нажатия — вся строка, --tap-min; дорожка ростом --control-height-sm.
+      // Индикатор состояния — значащая графика, порог 3,0 (ПРАВИЛА 4.10). Пара «дорожка +
+      // кружок» считается ДРУГ К ДРУГУ и к карточке за ней: серое на сером давало 1,4–1,7,
+      // и включённость приходилось угадывать по положению. Чернила против белого — 15:1
+      // включено, 4,6:1 выключено, и в тёмной теме пара разворачивается сама.
+      repeatPos: s.repeat ? 'flex-end' : 'flex-start',
+      repeatTrack: s.repeat ? 'var(--color-text)' : 'var(--color-bg)',
+      repeatKnob: s.repeat ? 'var(--color-surface)' : 'var(--color-text-secondary)',
+      // В выключенном положении дорожка совпадает с карточкой, значит границу несёт контур:
+      // `--color-border-strong` давал к карточке 1,75 — контур был, а видно его не было.
+      repeatBorder: s.repeat ? 'var(--color-text)' : 'var(--color-text-secondary)',
+      repeatLabel: s.repeat
+        ? 'повторять каждую неделю в этот день до 20 декабря — 17 занятий'
+        : 'одно занятие, без повторов',
+      materials: [
+        { name: 'Конспект «Металлы и кислород»', right: 'ваш файл · остаётся у учеников' },
+        { name: 'NASA · снимок дня: горение в невесомости', right: 'право: можно брать в свою работу' },
+      ],
+
+      railKicker: course ? 'Что увидит ученик' : 'Кого это касается',
+      courseRail: course,
+      lessonRail: !course,
+      railRows: [
+        { k: 'предмет', v: { chem: 'химия', math: 'математика', phys: 'физика', bio: 'биология', hist: 'история', lang: 'английский', astro: 'астрономия' }[s.subject] },
+        { k: 'для кого', v: { g56: '5–6 класс', g78: '7–8 класс', g911: '9–11 класс', adult: 'взрослые' }[s.level] },
+        { k: 'ритм', v: s.week + ' раза в неделю · ' + durText + (s.days.length ? ' · ' + picked : '') },
+        { k: 'цена', v: partial && course ? 'бесплатно (цену добавите позже)'
+            : (s.price === 'free' ? 'бесплатно' : (empty ? 'ещё не указана' : '1 200 ₽ за занятие')) },
+      ],
+      pupilCount: '14',
+      tzRailNote: partial && !course
+        ? 'пояса учеников не пришли — показываем ваше время; у учеников пересчитается само'
+        : 'у учеников это будет так, в их поясах:',
+      zones: partial && !course ? [] : [
+        { who: 'Даша · Калининград, UTC+2', at: '10:30', color: 'var(--color-text-secondary)' },
+        { who: 'Артём · Новосибирск, UTC+7', at: '15:30', color: 'var(--color-text-secondary)' },
+        { who: 'Ли · Шанхай, UTC+8', at: '16:30', color: 'var(--color-accent-text)' },
+      ],
+      warnColor: partial && !course ? 'var(--color-text-secondary)' : 'var(--color-accent-text)',
+      zoneWarn: partial && !course
+        ? 'пересчёт вернётся сам, когда служба ответит — переставлять занятие не придётся'
+        : 'у Ли это 16:30 — школа ещё идёт, он опоздает или пропустит',
+
+      // ПРАВИЛА 5.11: где на экране появилось коралловое действие (отказ, «загрузить снова»),
+      // зелёное решение отдаёт заливку и берёт обводку.
+      goPrimary: form,
+      flatPrimary: !form,
+      primaryLabel: course ? 'Опубликовать курс' : 'Поставить в расписание',
+      secondaryLabel: course ? 'Сохранить черновиком' : 'Сохранить черновиком',
+      primaryNote: course
+        ? 'после публикации курс появится в каталоге и на него можно записаться. Снять с публикации можно в любой момент — записанные ученики останутся.'
+        : 'занятие встанет в расписание 14 ученикам и придёт им уведомлением. ' + dateFull + ', 11:30 по вашему времени.',
+
+      onSw: this.onSw,
+      onPick: this.onPick,
+      noop: () => {},
+    };
+  }
+}
+</script>
+</body>
+</html>

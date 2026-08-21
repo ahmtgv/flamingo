@@ -516,13 +516,49 @@
     return bad;
   };
 
+  /* Мобильное исключение (ПРАВИЛА 8.6а). На телефоне запрет прокрутки страницы бессмысленен:
+     расписание на неделю и список заданий физически не влезают в 844 px, а «не больше двух
+     прокручиваемых областей» на 390 px превращается в две вложенные прокрутки — то есть
+     ровно в то, что запрет должен был предотвратить. Правило меняет форму, а не исчезает:
+     лист телефона прокручивается ВЕСЬ и только вертикально, вложенных прокруток нет,
+     горизонтальной — нет никогда. Прибор это и мерит: mobileScroll вместо pageScroll.
+     Кадр помечается data-mobile на том же узле, что data-audit-scope. */
+  function mobileScroll(root) {
+    const bad = [];
+    const hx = Math.max(0, root.scrollWidth - root.clientWidth);
+    if (hx > 1) bad.push({ what: 'горизонтальная прокрутка листа', px: Math.round(hx), sig: sig(root) });
+    let nested = 0, sheets = 0;
+    root.querySelectorAll('*').forEach((el) => {
+      const cs = getComputedStyle(el);
+      const oy = cs.overflowY, ox = cs.overflowX;
+      if ((oy === 'auto' || oy === 'scroll') && el.scrollHeight - el.clientHeight > 2) {
+        // Одна прокрутка листа разрешена и помечена data-sheet-scroll: шапка и полка вкладок
+        // на телефоне стоят на месте, ездит только содержимое. Вторая такая — уже дефект.
+        if (el.hasAttribute('data-sheet-scroll')) {
+          sheets++;
+          if (sheets > 1) bad.push({ what: 'вторая прокрутка листа', sig: sig(el) });
+          return;
+        }
+        nested++;
+        bad.push({ what: 'вложенная вертикальная прокрутка внутри прокручиваемого листа', sig: sig(el) });
+      }
+      if ((ox === 'auto' || ox === 'scroll') && el.scrollWidth - el.clientWidth > 2 && !el.hasAttribute('data-strip-ok')) {
+        bad.push({ what: 'горизонтальная прокрутка области (полоса разрешается только с data-strip-ok)', sig: sig(el) });
+      }
+    });
+    return { defects: bad, nested, sheets };
+  }
+
   window.flAudit = function (opts) {
     const o = opts || {};
     const root = scope();
+    const isMobile = o.mobile != null ? !!o.mobile : root.hasAttribute('data-mobile');
     visCache = new WeakMap();
     const report = {
       label: o.label || document.title || location.pathname,
+      mobile: isMobile,
       pageScroll: Math.max(0, document.documentElement.scrollHeight - window.innerHeight),
+      mobileScroll: isMobile ? mobileScroll(root) : null,
       overlaps: overlaps(root),
       absOverlaps: absOverlaps(root),
       textUnderLayer: textUnderLayer(root),
@@ -538,7 +574,9 @@
       accents: accents(root),
     };
     report.verdict = {
-      pageScroll: report.pageScroll === 0 ? 'ok' : 'ДЕФЕКТ',
+      pageScroll: isMobile
+        ? 'ok · телефон: прокрутка листа разрешена (ПРАВИЛА 8.6а)'
+        : (report.pageScroll === 0 ? 'ok' : 'ДЕФЕКТ'),
       overlaps: report.overlaps.length ? 'ДЕФЕКТ ' + report.overlaps.length : 'ok',
       absOverlaps: report.absOverlaps.length ? 'ДЕФЕКТ · в абсолютном слое ' + report.absOverlaps.length : 'ok',
       textUnderLayer: report.textUnderLayer.length ? 'ДЕФЕКТ · текст под слоем ' + report.textUnderLayer.length : 'ok',
@@ -550,6 +588,10 @@
       wrapped: report.wrapped.length ? 'ДЕФЕКТ · подпись рвётся в ' + report.wrapped.length : 'ok',
       rowWrap: report.rowWrap.length ? 'ДЕФЕКТ · ряд развалился в ' + report.rowWrap.length : 'ok',
       frameBleed: report.frameBleed.length ? 'ДЕФЕКТ · вышло за кадр ' + report.frameBleed.length : 'ok',
+      mobileScroll: !isMobile ? 'не применимо · настольный кадр'
+        : (report.mobileScroll.defects.length
+            ? 'ДЕФЕКТ · ' + report.mobileScroll.defects.length + ' (вложенных прокруток ' + report.mobileScroll.nested + ')'
+            : 'ok · одна вертикальная прокрутка листа, горизонтальной нет'),
       // ПРАВИЛА 5.1: одна акцентная заливка на экран (точка состояния + главное действие = 2 допустимо),
       // акцентного текста — не больше трёх надписей
       accents: report.accents.fillCount > 2 || report.accents.textCount > 3
