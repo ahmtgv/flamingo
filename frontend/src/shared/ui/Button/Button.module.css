@@ -101,6 +101,27 @@
   color: var(--color-text-disabled);
 }
 
+/*
+ * 🔴 ЗЕЛЁНЫЙ ГОЛОС — «решено, можно дальше» (ПРАВИЛА 5.8, 5.11). Появился, когда пришёл лист
+ * создания курса: там публикация нарисована зелёной заливкой, и это не украшение — это
+ * второй смысл. Коралловый обслуживает то, что ГОРИТ; зелёный — то, что РЕШЕНО.
+ *
+ * ⚠️ Заливка одна на экран, как и коралловая (5.9): второй цвет без предела даёт ёлку
+ * быстрее, чем один.
+ */
+.go {
+  background: var(--color-go-solid);
+  color: var(--color-on-go);
+}
+
+.go:hover:not(:disabled) {
+  background: var(--color-go-solid-hover);
+}
+
+.go:disabled {
+  background: var(--color-text-disabled);
+}
+
 .danger {
   background: none;
   border-color: var(--color-accent);
