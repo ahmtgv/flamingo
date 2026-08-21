@@ -1,5 +1,6 @@
 """Learning-content models: COURSE, SECTION, LESSON, MATERIAL, ENROLLMENT (ERD §3.2)."""
 
+from django.contrib.postgres.fields import ArrayField
 from django.db import models
 
 from common.enums import (
@@ -42,6 +43,26 @@ class Course(SoftDeleteModel):
         max_length=12, choices=choices(CourseStatus), default=CourseStatus.DRAFT.value
     )
     cover_key = models.CharField(max_length=512, blank=True, default="")
+
+    # --- РИТМ ЗАНЯТИЙ (лист «Создание курса и занятия», решение владельца §50) -------------
+    #
+    # 🔴 РИТМ — ЗАЯВЛЕНИЕ, А НЕ РАСПИСАНИЕ. Он описывает, что преподаватель ОБЕЩАЕТ: «45 минут,
+    # дважды в неделю, по понедельникам и четвергам». Правда о времени живёт в другом месте —
+    # в `Lesson.schedule_rule` и в самих `LessonSession`.
+    #
+    # ⚠️ Выводить одно из другого молча НЕЛЬЗЯ. Учитель перенесёт первый же урок, и два
+    # источника правды разойдутся: экран покажет «по понедельникам», а занятие будет в среду.
+    # Экран создания занятия имеет право ПОДСТАВИТЬ значения отсюда как подсказку — и только.
+    #
+    # Все три пустые по умолчанию: курс без объявленного ритма законен и ничем не хуже.
+    # Количество занятий здесь НЕ хранится — «семнадцать занятий» считается по занятиям.
+    lesson_minutes = models.PositiveSmallIntegerField(null=True, blank=True)
+    lessons_per_week = models.PositiveSmallIntegerField(null=True, blank=True)
+    #: Дни недели по ISO: 1 — понедельник, 7 — воскресенье. Пустой список = дни не объявлены.
+    lesson_days = ArrayField(
+        models.PositiveSmallIntegerField(), default=list, blank=True, size=7
+    )
+
     # Payment-readiness seam (see courses/access.py + CLAUDE.md "Future: Payments").
     # price is in integer minor units (kopecks); null = free. currency is ISO-4217;
     # null when free. No pricing/gating logic exists yet — these are integration points.

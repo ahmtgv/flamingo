@@ -230,6 +230,11 @@ type Course {
   sections: [Section!]!
   lessonCount: Int!
   enrollmentCount: Int!
+  # Ритм — ЗАЯВЛЕНИЕ преподавателя, не расписание (§50). Правда о времени живёт в
+  # Lesson.scheduleRule и в самих занятиях; выводить одно из другого молча нельзя.
+  lessonMinutes: Int
+  lessonsPerWeek: Int
+  lessonDays: [Int!]!
   # Ближайшее ещё не начавшееся занятие курса — «когда» для витрины. Считается по занятиям
   # его уроков; новых полей в модели нет (решение владельца §47).
   nextSessionAt: DateTime
@@ -1257,6 +1262,11 @@ input AddChildInput {
 input UploadRequestInput { filename: String! contentType: String! purpose: UploadPurpose! }
 
 input CourseInput {
+  # Ритм занятий: сколько идёт, сколько раз в неделю, по каким дням (ISO: 1 = понедельник).
+  # Все три необязательны — курс без объявленного ритма законен.
+  lessonMinutes: Int
+  lessonsPerWeek: Int
+  lessonDays: [Int!]
   title: String!
   description: String
   level: CourseLevel!

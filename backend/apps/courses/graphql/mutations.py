@@ -25,6 +25,13 @@ class CourseInput:
     institution_id: strawberry.ID | None = None
     group_id: strawberry.ID | None = None
     cover_key: str | None = None
+    # --- Ритм занятий (лист «Создание курса и занятия», §50) ---------------------------
+    # Заявление преподавателя, а не расписание: сколько идёт занятие, сколько раз в неделю,
+    # по каким дням (ISO: 1 — понедельник). Все три необязательны — курс без объявленного
+    # ритма законен, и старый клиент, который их не шлёт, ничего не ломает.
+    lesson_minutes: int | None = None
+    lessons_per_week: int | None = None
+    lesson_days: list[int] | None = None
 
 
 @strawberry.input
@@ -108,6 +115,9 @@ class CoursesMutation:
             cover_key=input.cover_key or "",
             institution_id=input.institution_id,
             group_id=input.group_id,
+            lesson_minutes=input.lesson_minutes,
+            lessons_per_week=input.lessons_per_week,
+            lesson_days=input.lesson_days,
         )
 
     @strawberry.mutation
@@ -124,6 +134,9 @@ class CoursesMutation:
             cover_key=input.cover_key,
             institution_id=input.institution_id,
             group_id=input.group_id,
+            lesson_minutes=input.lesson_minutes,
+            lessons_per_week=input.lessons_per_week,
+            lesson_days=input.lesson_days,
         )
 
     @strawberry.mutation

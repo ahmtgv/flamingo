@@ -146,6 +146,9 @@ erDiagram
     uuid institution_id FK
     uuid group_id FK
     enum status
+    int lesson_minutes
+    int lessons_per_week
+    int_array lesson_days
   }
   SECTION {
     uuid id PK
@@ -369,7 +372,19 @@ pupil joins or leaves a course. Implementation: `backend/apps/accounts/learning.
 
 ### 3.2 Learning content
 
-**COURSE** `title, description, level enum, subject, language, owner_teacher_id FK, institution_id FK NULL, group_id FK NULL, status enum (draft/published/archived), cover_key, deleted_at`.
+**COURSE** `title, description, level enum, subject, language, owner_teacher_id FK, institution_id FK NULL, group_id FK NULL, status enum (draft/published/archived), cover_key, lesson_minutes NULL, lessons_per_week NULL, lesson_days int[] , deleted_at`.
+
+> 🔴 **Ритм занятий — заявление, а не расписание** (решение владельца §50, лист «Создание
+> курса и занятия»). Три поля описывают, что преподаватель ОБЕЩАЕТ: сколько идёт занятие,
+> сколько раз в неделю, в какие дни (`lesson_days` — ISO-дни, 1 = понедельник). Все три
+> пустые по умолчанию: курс без объявленного ритма законен.
+>
+> Правда о времени живёт в другом месте — `LESSON.schedule_rule` и сами `LESSON_SESSION`.
+> **Выводить одно из другого молча нельзя:** учитель перенесёт первый же урок, и два
+> источника правды разойдутся. Экран создания занятия вправе ПОДСТАВИТЬ значения из ритма
+> как подсказку — и только.
+>
+> Количество занятий не хранится: «семнадцать занятий» считается по занятиям.
 **SECTION** `course_id, title, description, cover_key, order int`.
 **LESSON** `section_id, title, description, duration_min, options jsonb {camera,screen,chat,homework}, schedule_rule jsonb {type:once|weekly, days[], time}, status enum, order int, deleted_at`.
 **LESSON_SESSION** — concrete occurrence (for attendance and CMF buckets).

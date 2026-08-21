@@ -2013,6 +2013,10 @@ function catalog(vars: Vars): CatalogQuery {
     {
       __typename: 'Course',
       id: IDS.course.algebra,
+      // Ритм — заявление преподавателя; у демо-курсов он объявлен не у всех, и это норма.
+      lessonMinutes: 45,
+      lessonsPerWeek: 2,
+      lessonDays: [1, 4],
       title: 'Алгебра: от уравнений к функциям',
       description: 'Системный курс на учебный год: линейные уравнения, системы, функции и графики.',
       subject: 'Математика',
@@ -2026,6 +2030,10 @@ function catalog(vars: Vars): CatalogQuery {
     {
       __typename: 'Course',
       id: IDS.course.english,
+      // Ритм — заявление преподавателя; у демо-курсов он объявлен не у всех, и это норма.
+      lessonMinutes: 45,
+      lessonsPerWeek: 2,
+      lessonDays: [1, 4],
       title: 'Английский: разговорная практика',
       description: 'Группы до 5 человек, живой разбор ошибок.',
       subject: 'Языки',
@@ -2039,6 +2047,10 @@ function catalog(vars: Vars): CatalogQuery {
     {
       __typename: 'Course',
       id: IDS.course.physics,
+      // Ритм — заявление преподавателя; у демо-курсов он объявлен не у всех, и это норма.
+      lessonMinutes: 45,
+      lessonsPerWeek: 2,
+      lessonDays: [1, 4],
       title: 'Физика: решаем вторую часть',
       description: 'Интенсив по задачам с развёрнутым ответом (ОГЭ).',
       subject: 'Физика',

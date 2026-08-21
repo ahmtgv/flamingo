@@ -234,3 +234,69 @@ def test_file_material_key_validation_and_download_authz(monkeypatch):
     # …and anonymous is denied.
     with pytest.raises(PermissionDenied):
         services.material_file_url(None, mat)
+
+
+# --- ритм занятий: заявление, а не расписание (§50) --------------------------
+def test_rhythm_is_optional_and_stored_as_declared():
+    """
+    🔴 Ритм — ЗАЯВЛЕНИЕ преподавателя: «45 минут, дважды в неделю, пн и чт». Правда о времени
+    живёт в занятиях; здесь только обещание, и пустое обещание законно.
+    """
+    teacher = make_teacher("rh.t@example.com")
+
+    bare = services.create_course(teacher, title="Без ритма", subject="Физика", level="grade_9")
+    assert bare.lesson_minutes is None
+    assert bare.lessons_per_week is None
+    assert bare.lesson_days == [], "курс без объявленного ритма законен"
+
+    declared = services.create_course(
+        teacher,
+        title="С ритмом",
+        subject="Химия",
+        level="grade_8",
+        lesson_minutes=45,
+        lessons_per_week=2,
+        lesson_days=[4, 1],
+    )
+    # Дни приходят в том порядке, в каком их нажали, а храним по порядку недели.
+    assert declared.lesson_days == [1, 4]
+    assert (declared.lesson_minutes, declared.lessons_per_week) == (45, 2)
+
+
+def test_rhythm_days_are_cleaned_not_trusted():
+    """
+    Массив в базе примет что угодно — `[0, 0, 99]` в том числе, — и разбираться с этим
+    пришлось бы каждому, кто его читает. Чистим на входе.
+    """
+    teacher = make_teacher("rh.t2@example.com")
+    course = services.create_course(
+        teacher,
+        title="Мусор",
+        subject="История",
+        level="grade_7",
+        lesson_days=[0, 3, 3, 99, 7],
+    )
+    assert course.lesson_days == [3, 7]
+
+
+def test_rhythm_does_not_schedule_anything():
+    """
+    🔴 САМОЕ ВАЖНОЕ ПРО РИТМ: он ничего не ставит в расписание.
+
+    Объявить «дважды в неделю по понедельникам» и получить занятия — разные действия. Если
+    ритм начнёт заводить занятия сам, учитель перенесёт первое же — и два источника правды
+    разойдутся: экран покажет «по понедельникам», а занятие будет в среду.
+    """
+    from apps.scheduling.models import LessonSession
+
+    teacher = make_teacher("rh.t3@example.com")
+    course = services.create_course(
+        teacher,
+        title="Ритм без занятий",
+        subject="Биология",
+        level="grade_9",
+        lesson_minutes=45,
+        lessons_per_week=2,
+        lesson_days=[1, 4],
+    )
+    assert LessonSession.objects.filter(lesson__section__course=course).count() == 0

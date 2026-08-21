@@ -373,6 +373,9 @@ export type Course = {
   institution?: Maybe<Institution>;
   language: Scalars['String']['output'];
   lessonCount: Scalars['Int']['output'];
+  lessonDays: Array<Scalars['Int']['output']>;
+  lessonMinutes?: Maybe<Scalars['Int']['output']>;
+  lessonsPerWeek?: Maybe<Scalars['Int']['output']>;
   level: CourseLevel;
   nextSessionAt?: Maybe<Scalars['DateTime']['output']>;
   owner: TeacherProfile;
@@ -413,6 +416,9 @@ export type CourseInput = {
   groupId?: InputMaybe<Scalars['ID']['input']>;
   institutionId?: InputMaybe<Scalars['ID']['input']>;
   language?: InputMaybe<Scalars['String']['input']>;
+  lessonDays?: InputMaybe<Array<Scalars['Int']['input']>>;
+  lessonMinutes?: InputMaybe<Scalars['Int']['input']>;
+  lessonsPerWeek?: InputMaybe<Scalars['Int']['input']>;
   level: CourseLevel;
   subject: Scalars['String']['input'];
   title: Scalars['String']['input'];
@@ -3427,7 +3433,7 @@ export type CatalogQueryVariables = Exact<{
 }>;
 
 
-export type CatalogQuery = { __typename?: 'Query', catalog: { __typename?: 'CourseConnection', totalCount: number, subjectCount: number, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null }, nodes: Array<{ __typename?: 'Course', id: string, title: string, description?: string | null, subject: string, level: CourseLevel, format: CourseFormat, status: CourseStatus, lessonCount: number, enrollmentCount: number, nextSessionAt?: string | null, owner: { __typename?: 'TeacherProfile', specialty?: string | null, user: { __typename?: 'User', id: string, firstName: string, lastName: string, displayName: string, shortName: string, formalName: string } } }> } };
+export type CatalogQuery = { __typename?: 'Query', catalog: { __typename?: 'CourseConnection', totalCount: number, subjectCount: number, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null }, nodes: Array<{ __typename?: 'Course', id: string, title: string, description?: string | null, subject: string, level: CourseLevel, format: CourseFormat, status: CourseStatus, lessonCount: number, enrollmentCount: number, nextSessionAt?: string | null, lessonMinutes?: number | null, lessonsPerWeek?: number | null, lessonDays: Array<number>, owner: { __typename?: 'TeacherProfile', specialty?: string | null, user: { __typename?: 'User', id: string, firstName: string, lastName: string, displayName: string, shortName: string, formalName: string } } }> } };
 
 export type CourseDetailQueryVariables = Exact<{
   id: Scalars['ID']['input'];
@@ -6528,6 +6534,9 @@ export const CatalogDocument = gql`
       lessonCount
       enrollmentCount
       nextSessionAt
+      lessonMinutes
+      lessonsPerWeek
+      lessonDays
       owner {
         specialty
         user {

@@ -130,6 +130,9 @@ def create_course(
     cover_key: str = "",
     institution_id=None,
     group_id=None,
+    lesson_minutes=None,
+    lessons_per_week=None,
+    lesson_days=None,
 ) -> Course:
     profile = _teacher_profile(user)
     institution, group = _resolve_institutional(user, institution_id, group_id)
@@ -148,15 +151,46 @@ def create_course(
         description=description or "",
         language=language or "ru",
         cover_key=cover_key or "",
+        # Ритм — ЗАЯВЛЕНИЕ преподавателя, не расписание (решение владельца §50). Пустой ритм
+        # законен: курс без обещания ничем не хуже курса с обещанием.
+        lesson_minutes=lesson_minutes,
+        lessons_per_week=lessons_per_week,
+        lesson_days=_clean_days(lesson_days),
         institution=institution,
         group=group,
     )
 
 
+def _clean_days(days) -> list[int]:
+    """
+    Дни ритма — ISO-номера, 1 (понедельник) … 7 (воскресенье), без повторов, по порядку.
+
+    🔴 Чистим на входе, а не доверяем клиенту: массив в базе принимает что угодно, включая
+    `[0, 0, 99]`, и разбираться с этим пришлось бы каждому, кто его читает. Пустой список —
+    честное «дни не объявлены», а не «занятий нет».
+    """
+    if not days:
+        return []
+    return sorted({int(d) for d in days if isinstance(d, int) and 1 <= int(d) <= 7})
+
+
 @transaction.atomic
 def update_course(user, course_id, **fields) -> Course:
     course = _owned_course(user, course_id)
-    allowed = {"title", "subject", "level", "format", "description", "language", "cover_key"}
+    allowed = {
+        "title",
+        "subject",
+        "level",
+        "format",
+        "description",
+        "language",
+        "cover_key",
+        "lesson_minutes",
+        "lessons_per_week",
+        "lesson_days",
+    }
+    if "lesson_days" in fields:
+        fields["lesson_days"] = _clean_days(fields["lesson_days"])
     for key, value in fields.items():
         if key in allowed and value is not None:
             setattr(course, key, _val(value))

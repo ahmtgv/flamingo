@@ -111,6 +111,26 @@ class Lesson:
         return LessonStatus(self.status)
 
     @strawberry_django.field
+    def lesson_minutes(self) -> int | None:
+        """Сколько идёт одно занятие по ЗАЯВЛЕНИЮ преподавателя (§50). Не расписание."""
+        return self.lesson_minutes
+
+    @strawberry_django.field
+    def lessons_per_week(self) -> int | None:
+        return self.lessons_per_week
+
+    @strawberry_django.field
+    def lesson_days(self) -> list[int]:
+        """
+        Дни недели по ISO: 1 — понедельник, 7 — воскресенье. Пустой список — дни не объявлены.
+
+        🔴 Это ОБЕЩАНИЕ, а не правда о времени: правда живёт в `Lesson.scheduleRule` и в самих
+        занятиях. Клиент вправе подставить эти дни как подсказку при создании занятия — и
+        только. Учитель перенесёт первый же урок, и вывод одного из другого начнёт врать.
+        """
+        return list(self.lesson_days or [])
+
+    @strawberry_django.field
     def next_session_at(self) -> dt.datetime | None:
         """Ближайшее назначенное занятие по этому уроку — или ничего.
 
@@ -212,6 +232,26 @@ class Course:
     @strawberry_django.field
     def sections(self) -> list[Section]:
         return list(self.sections.all())
+
+    @strawberry_django.field
+    def lesson_minutes(self) -> int | None:
+        """Сколько идёт одно занятие по ЗАЯВЛЕНИЮ преподавателя (§50). Не расписание."""
+        return self.lesson_minutes
+
+    @strawberry_django.field
+    def lessons_per_week(self) -> int | None:
+        return self.lessons_per_week
+
+    @strawberry_django.field
+    def lesson_days(self) -> list[int]:
+        """
+        Дни недели по ISO: 1 — понедельник, 7 — воскресенье. Пустой список — дни не объявлены.
+
+        🔴 Это ОБЕЩАНИЕ, а не правда о времени: правда живёт в `Lesson.scheduleRule` и в самих
+        занятиях. Клиент вправе подставить эти дни как подсказку при создании занятия — и
+        только. Учитель перенесёт первый же урок, и вывод одного из другого начнёт врать.
+        """
+        return list(self.lesson_days or [])
 
     @strawberry_django.field
     def next_session_at(self) -> dt.datetime | None:

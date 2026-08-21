@@ -30,6 +30,13 @@ const SUBJECTS = [
  * «Для кого» листа — четыре ступени вместо одиннадцати классов. Уровень в модели остаётся
  * классом, потому что на нём стоит весь каталог; ступень — способ спросить, а не второе поле.
  */
+/** Длительность занятия — минуты, как их называет лист. */
+const MINUTES = [30, 45, 60, 90] as const;
+/** Сколько раз в неделю. Больше пяти — это уже не ритм, а ежедневность; лист столько и даёт. */
+const PER_WEEK = [1, 2, 3, 5] as const;
+/** Дни недели по ISO: 1 — понедельник. Порядок хранения — недельный, порядок нажатия неважен. */
+const DAYS = [1, 2, 3, 4, 5, 6, 7] as const;
+
 const BANDS: { key: string; level: CourseLevel }[] = [
   { key: 'g56', level: 'GRADE_6' },
   { key: 'g78', level: 'GRADE_8' },
@@ -53,6 +60,19 @@ export function CreateCourseScreen() {
   const [title, setTitle] = useState('');
   const [subject, setSubject] = useState<string | null>(null);
   const [band, setBand] = useState(BANDS[1]);
+  /*
+   * 🔴 РИТМ — ЗАЯВЛЕНИЕ, А НЕ РАСПИСАНИЕ (решение владельца §50).
+   *
+   * Здесь преподаватель говорит, что ОБЕЩАЕТ: сколько идёт занятие, сколько раз в неделю, по
+   * каким дням. Ни одно занятие от этого не появляется. Экран создания занятия имеет право
+   * подставить эти значения ПОДСКАЗКОЙ — и только: учитель перенесёт первый же урок, и вывод
+   * одного из другого начнёт врать.
+   *
+   * Пустой ритм законен: курс без обещания ничем не хуже курса с обещанием.
+   */
+  const [minutes, setMinutes] = useState<number | null>(null);
+  const [perWeek, setPerWeek] = useState<number | null>(null);
+  const [days, setDays] = useState<number[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [createCourse, { loading }] = useCreateCourseMutation();
@@ -81,7 +101,17 @@ export function CreateCourseScreen() {
     try {
       const { data } = await createCourse({
         variables: {
-          input: { title, subject: subject as string, level: band.level, format: 'PROGRAM' },
+          input: {
+            title,
+            subject: subject as string,
+            level: band.level,
+            format: 'PROGRAM',
+            // Необъявленное шлём как null, а не как ноль: «не сказал» и «сказал ноль» —
+            // разные вещи, и ноль минут был бы обещанием, которое нельзя выполнить.
+            lessonMinutes: minutes,
+            lessonsPerWeek: perWeek,
+            lessonDays: days.length ? days : null,
+          },
         },
       });
       const id = data?.createCourse?.id;
@@ -183,6 +213,77 @@ export function CreateCourseScreen() {
               </div>
             </div>
           </section>
+
+          <section className={styles.block} aria-label={t('create.blockRhythm')}>
+            <span className={styles.blockHead}>{t('create.blockRhythm')}</span>
+
+            <div className={styles.field}>
+              <span className={styles.label}>{t('create.minutes')}</span>
+              <div className={styles.seg} data-wrap-ok>
+                {MINUTES.map((m) => (
+                  <button
+                    key={m}
+                    type="button"
+                    className={styles.segBtn}
+                    aria-pressed={minutes === m}
+                    onClick={() => setMinutes(minutes === m ? null : m)}
+                  >
+                    {t('create.minutesValue', { n: m })}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className={styles.field}>
+              <span className={styles.label}>{t('create.perWeek')}</span>
+              <div className={styles.seg} data-wrap-ok>
+                {PER_WEEK.map((n) => (
+                  <button
+                    key={n}
+                    type="button"
+                    className={styles.segBtn}
+                    aria-pressed={perWeek === n}
+                    onClick={() => setPerWeek(perWeek === n ? null : n)}
+                  >
+                    {n}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className={styles.field}>
+              <span className={styles.label}>{t('create.days')}</span>
+              <div className={styles.chips} data-wrap-ok>
+                {DAYS.map((d) => (
+                  <button
+                    key={d}
+                    type="button"
+                    className={styles.chip}
+                    aria-pressed={days.includes(d)}
+                    onClick={() =>
+                      setDays((prev) =>
+                        prev.includes(d) ? prev.filter((x) => x !== d) : [...prev, d].sort(),
+                      )
+                    }
+                  >
+                    {t(`create.dayShort.${d}`)}
+                  </button>
+                ))}
+              </div>
+              {/* 🔴 Строка говорит ровно то, что происходит: это обещание, а не расписание.
+                  Первое занятие ставит человек — иначе два источника правды разойдутся. */}
+              <span className={styles.hint}>
+                {days.length || minutes || perWeek
+                  ? t('create.rhythmSummary', {
+                      days: days.length
+                        ? days.map((d) => t(`create.dayShort.${d}`)).join(', ')
+                        : t('create.daysNone'),
+                      minutes: minutes ?? '—',
+                    })
+                  : t('create.rhythmEmpty')}
+              </span>
+            </div>
+          </section>
         </div>
 
         <aside className={styles.rail} aria-label={t('create.railLabel')}>
@@ -212,6 +313,22 @@ export function CreateCourseScreen() {
               <dd>{subject ?? '—'}</dd>
               <dt>{t('create.specBand')}</dt>
               <dd>{t(`create.bands.${band.key}`)}</dd>
+              {/* Ритм в превью — только если объявлен: пустая строка «ритм —» ничего не
+                  сообщает, а место занимает. */}
+              {(minutes || perWeek || days.length > 0) && (
+                <>
+                  <dt>{t('create.specRhythm')}</dt>
+                  <dd>
+                    {[
+                      perWeek ? t('create.perWeekValue', { n: perWeek }) : null,
+                      minutes ? t('create.minutesValue', { n: minutes }) : null,
+                      days.length ? days.map((d) => t(`create.dayShort.${d}`)).join(', ') : null,
+                    ]
+                      .filter(Boolean)
+                      .join(' · ')}
+                  </dd>
+                </>
+              )}
             </dl>
           </section>
           )}

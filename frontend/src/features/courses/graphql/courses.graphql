@@ -20,6 +20,9 @@ query Catalog($filter: CourseFilter, $first: Int, $after: String) {
       lessonCount
       enrollmentCount
       nextSessionAt
+      lessonMinutes
+      lessonsPerWeek
+      lessonDays
       owner {
         specialty
         user {

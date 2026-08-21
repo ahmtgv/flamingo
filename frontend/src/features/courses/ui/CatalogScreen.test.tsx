@@ -23,6 +23,11 @@ const node = (over: Partial<CatalogQuery['catalog']['nodes'][number]>) => ({
   format: 'PROGRAM' as const,
   status: 'PUBLISHED' as const,
   lessonCount: 36,
+  // Ритм в заглушке пустой: курс без объявленного ритма законен, и витрина обязана
+  // выглядеть правильно именно в этом, самом частом случае.
+  lessonMinutes: null,
+  lessonsPerWeek: null,
+  lessonDays: [],
   enrollmentCount: 18,
   owner: owner('Мария', 'Петровна'),
   ...over,
