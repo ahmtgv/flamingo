@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import datetime as dt
+from enum import Enum
 from typing import TYPE_CHECKING, Annotated
 
 import strawberry
@@ -135,6 +136,35 @@ class ParentProfileType:
         return list(models.StudentProfile.objects.filter(user_id__in=child_ids))
 
 
+@strawberry.enum
+class Consent152FzState(Enum):
+    """Три состояния согласия на обработку персональных данных — то, что видит человек."""
+
+    GRANTED = "granted"
+    MISSING = "missing"
+    REVOKED = "revoked"
+
+
+@strawberry.type
+class Consent152Fz:
+    """
+    Согласие 152-ФЗ СОСТОЯНИЕМ, а не флажком (решение владельца).
+
+    🔴 Здесь нет и не должно быть ни одной мутации. Кнопка «дать согласие» на экране аккаунта
+    означала бы, что подпись ставит тот, кто сидит за устройством, — то есть ребёнок. Согласие
+    взрослого даётся по ссылке из письма, отдельным экраном, и он не собирается: почта
+    отложена, а без неё это кнопка в никуда.
+    """
+
+    state: Consent152FzState
+    #: Когда дано. `null` — если не давали или отозвано до появления отметки.
+    at: dt.datetime | None
+    #: Кем дано. `null` — знаем, что дано, но не знаем имени (форму заполнял взрослый рядом).
+    by_whom: str | None
+    #: Своё ли это согласие. У младшего — нет: за него подписывает взрослый.
+    is_self: bool
+
+
 @strawberry_django.type(models.User)
 class UserType:
     id: auto
@@ -155,6 +185,22 @@ class UserType:
     consent_152fz_at: auto
     #: Пояс человека (§37). Пусто — не сказал; сутки тогда считаются по умолчанию сервера.
     timezone: auto
+
+    @strawberry_django.field
+    def consent152fz(self, info: strawberry.Info) -> Consent152Fz:
+        """
+        Состояние согласия — кем и когда, нет, отозвано.
+
+        ⚠️ Своя учётка: `me` — единственный запрос, отдающий `UserType` себе, и чужое
+        согласие никого не касается.
+        """
+        data = services.consent_152fz_state(self)
+        return Consent152Fz(
+            state=Consent152FzState(data["state"]),
+            at=data["at"],
+            by_whom=data["by_whom"],
+            is_self=data["is_self"],
+        )
 
     @strawberry_django.field
     def email(self, info: strawberry.Info) -> str | None:

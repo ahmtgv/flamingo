@@ -97,6 +97,15 @@ const meMock = (role: Role, consentAttention = true) => ({
         consentSpeech: false,
         consentAttention,
         consent152fzAt: null,
+        // Согласие 152-ФЗ состоянием: у подростка в заглушке его НЕТ — галочку при
+        // регистрации он ставит сам, а родительским согласием она не является.
+        consent152fz: {
+          __typename: 'Consent152Fz',
+          state: 'MISSING',
+          at: null,
+          byWhom: null,
+          isSelf: false,
+        },
         studentProfile:
           role === 'STUDENT'
             ? { __typename: 'StudentProfile', markless: false, ageBand: 'TEEN', gradeLevel: '7', points: 0 }

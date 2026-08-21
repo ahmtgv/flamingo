@@ -7,6 +7,8 @@ import {
 } from '@/entities/graphql/generated';
 import { failureText } from '@/shared/lib/requestFailure';
 
+import { Checkbox } from '@/shared/ui';
+
 import styles from './account.module.css';
 
 /**
@@ -59,18 +61,23 @@ export function AttentionConsentCard() {
         <span className={styles.tag}>SEduM</span>
       </div>
 
-      <label className={styles.row}>
-        <input
-          type="checkbox"
-          checked={granted ?? false}
-          disabled={loading || saving || granted === null}
-          onChange={() => void toggle()}
-        />
-        <span>
-          <b>{t('attention.analyse')}</b>
-          <small className={styles.hint}>{t('attention.analyseHint')}</small>
-        </span>
-      </label>
+      {/*
+        🔴 ГАЛОЧКА ИЗ НАБОРА, А НЕ СВОЯ (§48 п.4). Здесь стоял собственный `<input>` целью
+        13 px при норме 44 — на карточке, где человек как раз и принимает решение о своей
+        камере. Наборная галочка даёт полную строку целью и настоящий квадрат 20 px, а сам
+        `input` спрятан общим рецептом, который не убегает за кадр.
+
+        Расхождение чинится в наборе и берётся отсюда — иначе следующий экран заведёт третью
+        галочку с третьим размером.
+      */}
+      <Checkbox
+        checked={granted ?? false}
+        disabled={loading || saving || granted === null}
+        onChange={() => void toggle()}
+      >
+        <b>{t('attention.analyse')}</b>
+        <small className={styles.hint}>{t('attention.analyseHint')}</small>
+      </Checkbox>
 
       {/* 🔒 Лист D8: «что уходит с этого компьютера» — словами ребёнка, а не юриста.
           Человек соглашается на то, что понял, поэтому блок стоит рядом с переключателем,

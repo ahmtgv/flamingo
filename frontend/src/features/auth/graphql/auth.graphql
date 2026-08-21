@@ -123,6 +123,12 @@ mutation SubmitVerificationDocument($fileKey: String!) {
 
 query Me {
   me {
+    consent152fz {
+      state
+      at
+      byWhom
+      isSelf
+    }
     id
     email
     firstName

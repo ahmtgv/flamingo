@@ -484,3 +484,69 @@ def set_my_timezone(user, timezone_name: str) -> bool:
         user.timezone = name
         user.save(update_fields=["timezone", "updated_at"])
     return True
+
+
+# --- 152-ФЗ: состояние согласия, а не галочка -------------------------------
+def consent_152fz_state(user: User) -> dict:
+    """
+    Чьё согласие на обработку персональных данных и когда — СОСТОЯНИЕМ, а не флажком.
+
+    🔴 РЕШЕНИЕ ВЛАДЕЛЬЦА: на «Моём аккаунте» согласие показывается состоянием, и КНОПКИ там
+    быть не должно. Иначе подпись поставит тот, кто сидит за устройством, — то есть ребёнок.
+    Экран согласия взрослого не собирается вовсе: он открывается ссылкой из письма, а почта
+    отложена, и без неё это кнопка в никуда.
+
+    Три состояния, которые обязан различать экран:
+
+    * ``granted``  — согласие есть. Сказано, КЕМ и КОГДА.
+    * ``missing``  — согласия нет. Для подростка это нормальное текущее положение: он
+      подтвердил форму сам, а письмо родителю не ушло — почта отложена.
+    * ``revoked``  — согласие было и отозвано. 152-ФЗ даёт это право в любой момент;
+      различаем по тому, что отметка времени осталась, а флаг снят.
+
+    ⚠️ ГАЛОЧКА ПРИ РЕГИСТРАЦИИ — НЕ СОГЛАСИЕ РОДИТЕЛЯ. У подростка её ставит он сам, и
+    выдавать это за родительскую подпись нельзя: именно этой подменой и опасно окно с
+    кнопкой. Поэтому подростку без живой связи с родителем возвращается ``missing``.
+    """
+    band = None
+    if user.role == Role.STUDENT.value:
+        profile = getattr(user, "student_profile", None)
+        band = getattr(profile, "age_band", None)
+
+    # Родительское согласие, если связь уже подтверждена. Оно сильнее галочки на форме.
+    link = (
+        Guardianship.objects.filter(
+            child_user=user, status=GuardianshipStatus.ACTIVE.value, consent_152fz=True
+        )
+        .select_related("parent_user")
+        .order_by("-consent_at")
+        .first()
+    )
+    if link:
+        return {
+            "state": "granted",
+            "at": link.consent_at,
+            "by_whom": link.parent_user.display_name,
+            "is_self": False,
+        }
+
+    if band == AgeBand.TEEN.value:
+        # Подтверждение формы подростком существует, но родительским согласием не является.
+        return {"state": "missing", "at": None, "by_whom": None, "is_self": False}
+
+    if user.consent_152fz:
+        # Младшему форму заполняет взрослый за тем же устройством — так написано в самой
+        # форме. Это слабее подтверждённой связи, и мы не выдаём это за неё: говорим, что
+        # согласие дано при регистрации, и не называем имени, которого не знаем.
+        return {
+            "state": "granted",
+            "at": user.consent_152fz_at,
+            "by_whom": None if band == AgeBand.JUNIOR.value else user.display_name,
+            "is_self": band != AgeBand.JUNIOR.value,
+        }
+
+    if user.consent_152fz_at is not None:
+        # Отметка времени осталась, а флага нет — согласие было и отозвано.
+        return {"state": "revoked", "at": user.consent_152fz_at, "by_whom": None, "is_self": False}
+
+    return {"state": "missing", "at": None, "by_whom": None, "is_self": False}

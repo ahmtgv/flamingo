@@ -362,6 +362,19 @@ export type ConnectionType =
   | 'RELAY'
   | 'UNKNOWN';
 
+export type Consent152Fz = {
+  __typename?: 'Consent152Fz';
+  at?: Maybe<Scalars['DateTime']['output']>;
+  byWhom?: Maybe<Scalars['String']['output']>;
+  isSelf: Scalars['Boolean']['output'];
+  state: Consent152FzState;
+};
+
+export type Consent152FzState =
+  | 'GRANTED'
+  | 'MISSING'
+  | 'REVOKED';
+
 export type Course = {
   __typename?: 'Course';
   coverUrl?: Maybe<Scalars['String']['output']>;
@@ -2977,6 +2990,7 @@ export type User = {
   __typename?: 'User';
   adminProfile?: Maybe<AdminProfile>;
   avatarUrl?: Maybe<Scalars['String']['output']>;
+  consent152fz: Consent152Fz;
   consent152fzAt?: Maybe<Scalars['DateTime']['output']>;
   consentAttention: Scalars['Boolean']['output'];
   consentSpeech: Scalars['Boolean']['output'];
@@ -3255,7 +3269,7 @@ export type SubmitVerificationDocumentMutation = { __typename?: 'Mutation', subm
 export type MeQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type MeQuery = { __typename?: 'Query', me?: { __typename?: 'User', id: string, email: string, firstName: string, lastName: string, displayName: string, shortName: string, role: Role, locale: string, avatarUrl?: string | null, consentSpeech: boolean, consentAttention: boolean, consent152fzAt?: string | null, studentProfile?: { __typename?: 'StudentProfile', ageBand: AgeBand, gradeLevel?: string | null, points: number, markless: boolean } | null, teacherProfile?: { __typename?: 'TeacherProfile', verificationStatus: VerificationStatus, specialty?: string | null, verificationDocuments: Array<{ __typename?: 'VerificationDocument', id: string, filename: string, sizeBytes?: number | null, status: VerificationStatus, reason: string, createdAt: string }> } | null, parentProfile?: { __typename?: 'ParentProfile', children: Array<{ __typename?: 'StudentProfile', ageBand: AgeBand, gradeLevel?: string | null, user: { __typename?: 'User', id: string, firstName: string, lastName: string, displayName: string, shortName: string } }> } | null } | null };
+export type MeQuery = { __typename?: 'Query', me?: { __typename?: 'User', id: string, email: string, firstName: string, lastName: string, displayName: string, shortName: string, role: Role, locale: string, avatarUrl?: string | null, consentSpeech: boolean, consentAttention: boolean, consent152fzAt?: string | null, consent152fz: { __typename?: 'Consent152Fz', state: Consent152FzState, at?: string | null, byWhom?: string | null, isSelf: boolean }, studentProfile?: { __typename?: 'StudentProfile', ageBand: AgeBand, gradeLevel?: string | null, points: number, markless: boolean } | null, teacherProfile?: { __typename?: 'TeacherProfile', verificationStatus: VerificationStatus, specialty?: string | null, verificationDocuments: Array<{ __typename?: 'VerificationDocument', id: string, filename: string, sizeBytes?: number | null, status: VerificationStatus, reason: string, createdAt: string }> } | null, parentProfile?: { __typename?: 'ParentProfile', children: Array<{ __typename?: 'StudentProfile', ageBand: AgeBand, gradeLevel?: string | null, user: { __typename?: 'User', id: string, firstName: string, lastName: string, displayName: string, shortName: string } }> } | null } | null };
 
 export type SetAvatarMutationVariables = Exact<{
   fileKey: Scalars['String']['input'];
@@ -5382,6 +5396,12 @@ export type SubmitVerificationDocumentMutationOptions = Apollo.BaseMutationOptio
 export const MeDocument = gql`
     query Me {
   me {
+    consent152fz {
+      state
+      at
+      byWhom
+      isSelf
+    }
     id
     email
     firstName

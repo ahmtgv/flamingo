@@ -274,6 +274,18 @@ function me(): MeQuery {
     // в состоянии по умолчанию, а не в удобном для скриншота (OWNER_SCOPE §19).
     consentSpeech: true,
     consentAttention: false,
+    /*
+     * Согласие 152-ФЗ состоянием. В демо оно ДАНО и своё: витрина показывает взрослого
+     * посетителя, за которого никто не подписывает. Кнопки рядом нет ни в демо, ни в
+     * продукте — подпись не ставят с экрана аккаунта (решение владельца).
+     */
+    consent152fz: {
+      __typename: 'Consent152Fz' as const,
+      state: 'GRANTED' as const,
+      at: '2026-08-01T09:00:00Z',
+      byWhom: null,
+      isSelf: true,
+    },
     studentProfile: null,
     teacherProfile: null,
     parentProfile: null,

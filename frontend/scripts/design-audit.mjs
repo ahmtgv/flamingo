@@ -80,6 +80,7 @@ const DEFAULT_SCREENS = [
   ['/start', 'teacher'],
   ['/start', 'pupil'],
   ['/my-learning', 'pupil'],
+  ['/account', 'pupil'],
   ['/homework', 'pupil'],
   // Преподаватель на ученическом экране: `myHomework` отдаёт ему пусто — проверяем, что
   // экран при этом говорит словами, а не показывает поломку.

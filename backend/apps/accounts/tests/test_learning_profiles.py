@@ -8,6 +8,7 @@ memberships and enrolments — and that a person can only ever switch into their
 from datetime import date
 
 import pytest
+from django.utils import timezone
 
 from apps.accounts import learning
 from apps.accounts import services as accounts
@@ -207,3 +208,123 @@ def test_a_stale_choice_falls_back_instead_of_stranding_the_account():
 
 def test_anonymous_caller_has_no_profiles():
     assert learning.learning_profiles(None) == []
+
+
+# --- 152-ФЗ состоянием, а не галочкой (решение владельца) --------------------
+def test_consent_state_for_an_adult_is_their_own():
+    """Взрослый подписывает за себя — так и сказано, с именем и датой."""
+    from apps.accounts import services
+
+    user = accounts.register_user(
+        email="c.adult@example.com",
+        password="strongpass1!",
+        first_name="Адель",
+        last_name="А",
+        role=Role.TEACHER,
+        specialty="Химия",
+        consent_152fz=True,
+    )
+    state = services.consent_152fz_state(user)
+    assert state["state"] == "granted"
+    assert state["is_self"] is True
+    assert state["at"] is not None
+
+
+def test_consent_state_for_a_teen_is_missing_even_though_the_box_was_ticked():
+    """
+    🔴 САМОЕ ВАЖНОЕ. Галочку при регистрации подросток ставит САМ — родительским согласием
+    она не является. Выдать её за родительскую подпись значит подменить подписанта: ровно то,
+    ради чего с экрана аккаунта убрана кнопка.
+
+    Письмо родителю при этом не уходит — почта отложена, — поэтому честное состояние
+    сегодня «нет», а не «дано».
+    """
+    from apps.accounts import services
+
+    teen = accounts.register_user(
+        email="c.teen@example.com",
+        password="strongpass1!",
+        first_name="Аня",
+        last_name="К",
+        role=Role.STUDENT,
+        birth_date=date(2012, 5, 1),
+        parent_email="parent@example.com",
+        consent_152fz=True,
+    )
+    state = services.consent_152fz_state(teen)
+    assert state["state"] == "missing", "галочка подростка — не согласие родителя"
+    assert state["by_whom"] is None
+
+
+def test_consent_state_names_the_parent_once_the_link_is_confirmed():
+    """Подтверждённая связь сильнее галочки: тогда мы знаем и КЕМ, и когда."""
+    from apps.accounts import services
+    from apps.accounts.models import Guardianship
+    from common.enums import GuardianshipStatus
+
+    teen = accounts.register_user(
+        email="c.teen2@example.com",
+        password="strongpass1!",
+        first_name="Петя",
+        last_name="К",
+        role=Role.STUDENT,
+        birth_date=date(2012, 5, 1),
+        consent_152fz=True,
+    )
+    parent = accounts.register_user(
+        email="c.parent@example.com",
+        password="strongpass1!",
+        first_name="Мария",
+        last_name="К",
+        role=Role.PARENT,
+        consent_152fz=True,
+    )
+    Guardianship.objects.create(
+        parent_user=parent,
+        child_user=teen,
+        status=GuardianshipStatus.ACTIVE.value,
+        consent_152fz=True,
+        consent_at=timezone.now(),
+    )
+    state = services.consent_152fz_state(teen)
+    assert state["state"] == "granted"
+    assert state["by_whom"] == parent.display_name
+    assert state["is_self"] is False
+
+
+def test_consent_state_tells_revoked_apart_from_never_given():
+    """
+    152-ФЗ даёт право отозвать согласие в любой момент. «Не давали» и «отозвано» — разные
+    положения, и булево поле их не различает: различаем по тому, что отметка времени
+    осталась, а флаг снят.
+    """
+    from apps.accounts import services
+
+    user = accounts.register_user(
+        email="c.rev@example.com",
+        password="strongpass1!",
+        first_name="Ольга",
+        last_name="Б",
+        role=Role.TEACHER,
+        specialty="Физика",
+        consent_152fz=True,
+    )
+    assert services.consent_152fz_state(user)["state"] == "granted"
+
+    user.consent_152fz = False  # отзыв: отметка времени остаётся
+    user.save(update_fields=["consent_152fz"])
+    assert services.consent_152fz_state(user)["state"] == "revoked"
+
+    never = accounts.register_user(
+        email="c.never@example.com",
+        password="strongpass1!",
+        first_name="Иван",
+        last_name="Н",
+        role=Role.TEACHER,
+        specialty="История",
+        consent_152fz=True,
+    )
+    never.consent_152fz = False
+    never.consent_152fz_at = None
+    never.save(update_fields=["consent_152fz", "consent_152fz_at"])
+    assert services.consent_152fz_state(never)["state"] == "missing"

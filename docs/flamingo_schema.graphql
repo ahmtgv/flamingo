@@ -96,6 +96,18 @@ enum NotificationChannel { PUSH EMAIL IN_APP }
 enum UploadPurpose { AVATAR MATERIAL SUBMISSION VERIFICATION COVER INSTITUTION_LOGO BOARD_IMAGE }
 
 # ----------------------------------------------------------------------------- Identity & org
+# Согласие 152-ФЗ СОСТОЯНИЕМ, а не флажком (решение владельца). Мутации у него нет и не
+# должно быть: кнопка на экране аккаунта означала бы, что подпись ставит тот, кто сидит за
+# устройством, — то есть ребёнок. Согласие взрослого даётся по ссылке из письма.
+type Consent152Fz {
+  state: Consent152FzState!
+  at: DateTime          # когда дано; null — не давали
+  byWhom: String        # кем; null — знаем, что дано, но не знаем имени
+  isSelf: Boolean!      # своё ли: у младшего нет, за него подписывает взрослый
+}
+
+enum Consent152FzState { GRANTED  MISSING  REVOKED }
+
 type User {
   id: ID!
   email: String!
@@ -127,6 +139,8 @@ type User {
   # Когда подписано согласие 152-ФЗ (при регистрации). Мастер показывает дату вместо метки
   # «обязательно»: галочки там нет, и метка без элемента управления читалась как поломка.
   consent152fzAt: DateTime
+  # Состояние согласия — кем и когда · нет · отозвано. Читается экраном «Мой аккаунт».
+  consent152fz: Consent152Fz!
   studentProfile: StudentProfile
   teacherProfile: TeacherProfile
   parentProfile: ParentProfile

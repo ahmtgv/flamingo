@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useMeQuery } from '@/entities/graphql/generated';
 
 import { AttentionConsentCard } from './AttentionConsentCard';
+import { LegalConsentCard } from './LegalConsentCard';
 import styles from './account.module.css';
 
 /**
@@ -29,6 +30,7 @@ export function AccountScreen() {
       </header>
 
       <AttentionConsentCard />
+      <LegalConsentCard />
     </main>
   );
 }
