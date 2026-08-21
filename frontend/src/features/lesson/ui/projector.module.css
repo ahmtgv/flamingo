@@ -144,8 +144,9 @@
   font-family: var(--font-mono);
   font-size: var(--text-body);
   line-height: var(--leading-snug);
-  color: var(--color-text-on-video);
-  opacity: 0.8;
+  /* Тише — цветом (правило 4.7): на второй экран смотрят издалека, и прозрачность там
+     съедает больше, чем в упор. */
+  color: rgb(255 255 255 / 80%);
 }
 
 .projectorFocus {

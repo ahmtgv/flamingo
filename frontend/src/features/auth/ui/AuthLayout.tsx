@@ -59,7 +59,10 @@ export function AuthLayout({
       </aside>
 
       <main className={styles.pane}>
-        <div className={styles.paneTop}>
+        {/* `data-wrap-ok` — отметка прибора: этот ряд ОБЯЗАН переноситься. На телефоне
+            «назад», шаг и переключатель темы в одну строку не помещаются, и перенос здесь
+            замысел, а не поломка. */}
+        <div className={styles.paneTop} data-wrap-ok>
           {back ? (
             <button type="button" className={styles.back} onClick={() => navigate(back.to)}>
               {back.label}

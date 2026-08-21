@@ -255,7 +255,15 @@ def test_teacher_sees_a_grading_queue_not_a_pupil_progress_list():
     assert page.progress == [] and page.continue_entries == []
 
 
-def test_week_is_seven_days_starting_today_and_marks_today():
+def test_week_is_a_calendar_week_from_monday_and_marks_today():
+    """
+    🔴 Полоса — КАЛЕНДАРНАЯ неделя с понедельника, а не семь дней от сегодня (правка листа
+    «Кабинет и учёба», 21.08).
+
+    Прежняя проверка держала старое поведение зелёным: она требовала, чтобы сегодня было
+    ПЕРВЫМ днём. В четверг человек видел «чт · пт · сб · вс · пн · вт · ср» и не мог ответить
+    на вопрос, ради которого смотрит: что у меня на этой неделе.
+    """
     teacher = make_teacher()
     school = Institution.objects.create(name="Гимназия №1")
     pupil = make_pupil()
@@ -266,7 +274,14 @@ def test_week_is_seven_days_starting_today_and_marks_today():
 
     week = start_page.start_page(pupil).week
     assert len(week) == 7
-    assert [day.is_today for day in week].count(True) == 1 and week[0].is_today
+    # Первый день недели — понедельник, каким бы днём ни был сегодня.
+    assert week[0].date.weekday() == 0, "неделя обязана начинаться с понедельника"
+    assert week[-1].date.weekday() == 6
+    # Сегодня внутри недели ровно одно — и на своём месте, а не первым.
+    marks = [day.is_today for day in week]
+    assert marks.count(True) == 1
+    today = start_page.whenfor.local_date(pupil)
+    assert week[marks.index(True)].date == today
     assert sum(len(day.entries) for day in week) >= 1
 
 

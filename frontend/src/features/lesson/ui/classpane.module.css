@@ -135,7 +135,15 @@
   color: rgb(255 255 255 / 70%);
 }
 
-/* «На большой экран» — появляется по наведению, но с клавиатуры доступна всегда. */
+/*
+ * 🔴 «НА БОЛЬШОЙ ЭКРАН» ПРЯТАЛАСЬ ПРОЗРАЧНОСТЬЮ — правило дизайнера 4.7 (передача 21.08):
+ * прозрачность не инструмент иерархии. Кнопка на `opacity: 0` не «тише», её просто НЕТ:
+ * человек не знает, что действие существует, пока случайно не наведёт мышь. На пульте доски
+ * тем же приёмом получалось 1,53 при пороге 4,5.
+ *
+ * Тише делается цветом и весом: кнопка стоит всегда, приглушённая, и по наведению плитки
+ * набирает контраст. Клавиатура и читалка её видели и раньше — теперь видит и глаз.
+ */
 .pin {
   position: absolute;
   inset-block-start: var(--space-2);
@@ -147,15 +155,17 @@
   background: rgb(0 0 0 / 45%);
   font-family: var(--font-body);
   font-size: var(--text-caption);
-  color: var(--color-text-on-video);
-  opacity: 0;
+  color: rgb(255 255 255 / 62%);
   cursor: pointer;
-  transition: opacity var(--duration-fast) var(--ease-standard);
+  transition:
+    color var(--duration-fast) var(--ease-standard),
+    border-color var(--duration-fast) var(--ease-standard);
 }
 
 .tile:hover .pin,
 .pin:focus-visible {
-  opacity: 1;
+  border-color: rgb(255 255 255 / 55%);
+  color: var(--color-text-on-video);
 }
 
 .tile[data-hand] .pin {
@@ -213,8 +223,9 @@
   font-family: var(--font-mono);
   font-size: var(--text-caption);
   line-height: var(--leading-snug);
-  color: var(--color-text-on-video);
-  opacity: 0.72;
+  /* Тише — цветом, не прозрачностью (правило 4.7). `opacity` съедает контраст незаметно для
+     токенов: значение остаётся «правильным», а на экране текст уже не читается. */
+  color: rgb(255 255 255 / 72%);
 }
 
 /* На узкой колонке подпись не помещается рядом — она уходит под камеру. */

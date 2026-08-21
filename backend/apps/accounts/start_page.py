@@ -584,15 +584,31 @@ def _teaching(user, course_ids, sessions) -> list[StartCourse]:
     return result
 
 
+def monday_of(day: dt.date) -> dt.date:
+    """
+    🔴 НЕДЕЛЯ НАЧИНАЕТСЯ С ПОНЕДЕЛЬНИКА, А НЕ С СЕГОДНЯ (правка листа «Кабинет и учёба»,
+    передача дизайнера 21.08).
+
+    Полоса показывала СЕМЬ ДНЕЙ ОТ СЕГОДНЯ, и это другая вещь. В четверг человек видел
+    «чт · пт · сб · вс · пн · вт · ср» и не мог ответить на вопрос, ради которого смотрит:
+    что у меня на этой неделе. Понедельник в такой полосе принадлежал уже следующей неделе,
+    но выглядел как часть текущей.
+
+    Лист подписан прямым текстом: «20 августа 2026 — ЧЕТВЕРГ, неделя идёт пн 17 — вс 23».
+    """
+    return day - dt.timedelta(days=day.weekday())
+
+
 def _week(user, sessions, attention, today: dt.date) -> list[StartDay]:
-    """Seven days from today — sessions plus anything with a deadline in that window.
+    """Календарная неделя с понедельника — занятия плюс всё со сроком в этом окне.
 
     A cadet has no timetable, so their strip simply comes back with empty days: the sheet
     fills it with repetition load, and spaced repetition (FSRS) is R4.4. Showing invented
     card counts here would be worse than showing an honest empty week.
     """
+    start = monday_of(today)
     by_day: dict[dt.date, list[StartEntry]] = {
-        today + dt.timedelta(days=offset): [] for offset in range(WEEK_DAYS)
+        start + dt.timedelta(days=offset): [] for offset in range(WEEK_DAYS)
     }
     for entry in [*sessions, *attention]:
         if entry.at is None:
@@ -624,7 +640,8 @@ def week_strip(user, week_start: dt.date | None = None) -> list[StartDay]:
     if profile is None:
         return []
     today = whenfor.local_date(user)
-    start = week_start or today
+    # Понедельник и у запрошенной недели: стрелки листают неделями, а не пятидневками.
+    start = monday_of(week_start or today)
     now = timezone.now()
     course_ids = _scoped_course_ids(user, profile)
 

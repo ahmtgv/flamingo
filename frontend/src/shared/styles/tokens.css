@@ -265,6 +265,10 @@
   --fl-moss-50: #e7f2ea;
   --fl-moss-950: #1c2f24;
   --fl-leaf-700: #4a7a16;
+  /* 🔴 Ступень добавлена дизайнером (передача 21.08): зелёный текст детского режима давал
+     3,86 на приглушённой поверхности — ниже порога 4,5. Тише не делают прозрачностью и не
+     делают светлее: берут ступень темнее. */
+  --fl-leaf-800: #3d6412;
   --fl-leaf-500: #619b21;
   --fl-leaf-300: #a8d96a;
   --fl-leaf-50: #eef4e2;
@@ -373,7 +377,7 @@
   /* «дальше» в детском режиме: семья `leaf` — добавлено дизайнером 19.08. */
   --color-go: var(--fl-leaf-500);
   --color-go-line: var(--fl-leaf-500);
-  --color-go-text: var(--fl-leaf-700);
+  --color-go-text: var(--fl-leaf-800);
   --color-go-solid: var(--fl-leaf-700);
   --color-go-solid-hover: var(--fl-leaf-500);
   --color-on-go: var(--fl-white);

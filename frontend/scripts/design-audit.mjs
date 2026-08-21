@@ -99,7 +99,14 @@ const only = process.env.SCREENS?.split(',').map((s) => s.trim()).filter(Boolean
 const SCREENS = only ? DEFAULT_SCREENS.filter(([r]) => only.some((o) => r.startsWith(o))) : DEFAULT_SCREENS;
 
 /** Виды приёмки: светлая · тёмная · детский, две настольные ширины (§5 п.2). */
+/*
+ * Виды прогона. Телефон — по требованию (`MOBILE=1`): листы телефона пришли 21.08, но экраны
+ * под них ещё не собраны, и постоянный поток дефектов утопил бы находки по настольным.
+ * Прибор `mobileScroll` дизайнера работает только в узком кадре — без этого вида он молчит,
+ * а молчание прибора мы больше не читаем как «чисто».
+ */
 const VIEWS = [
+  ...(process.env.MOBILE ? [{ name: 'телефон 390', width: 390, height: 844, theme: 'light', kids: false }] : []),
   { name: 'светлая 1280', width: 1280, height: 800, theme: 'light', kids: false },
   { name: 'тёмная 1280', width: 1280, height: 800, theme: 'dark', kids: false },
   { name: 'детский 1280', width: 1280, height: 800, theme: 'light', kids: true },
@@ -214,7 +221,18 @@ for (const [route, who] of SCREENS) {
         return bad.slice(0, 6);
       });
       await page.addScriptTag({ content: AUDIT });
-      const report = await page.evaluate((label) => window.flAudit({ label }), `${route} · ${who ?? 'гость'}`);
+      /*
+       * 🔴 КАДР НАДО НАЗВАТЬ. Прибор сам решает, мерить ему `pageScroll` или `mobileScroll`,
+       * но узнаёт он это от нас: `mobile` в вызове (или `data-mobile` на узле кадра).
+       * Не сказав, я получил пять «ДЕФЕКТ · pageScroll» на телефоне — там, где вертикальная
+       * прокрутка РАЗРЕШЕНА (ПРАВИЛА 8.6а), и запрещена только горизонтальная.
+       *
+       * Прибор не соврал: он ответил на тот вопрос, который я задал.
+       */
+      const report = await page.evaluate(
+        ({ label, mobile }) => window.flAudit({ label, mobile }),
+        { label: `${route} · ${who ?? 'гость'}`, mobile: view.width < 700 },
+      );
       /*
        * 🔴 ФИГУРЫ ВНУТРИ РИСУНКА — НЕ НАЛОЖЕНИЕ. Прибор обходит все элементы подряд, включая
        * внутренности `<svg>`, и два соседних контура знака бренда (крыло поверх тела)
@@ -244,6 +262,7 @@ for (const [route, who] of SCREENS) {
             clipped: (report.clipped ?? []).slice(0, 3),
             contrast: (report.contrast ?? []).slice(0, 4),
             escapes: report.escapes ?? [],
+            mobileScroll: report.mobileScroll?.defects ?? [],
             // Кто именно накрыл текст: без имени слоя находка неисправима.
             textUnderLayer: (report.textUnderLayer ?? []).slice(0, 6),
             rowWrap: (report.rowWrap ?? []).slice(0, 3),
@@ -277,7 +296,7 @@ console.log('\n=== ПОДРОБНО (первый вид каждого экра
 for (const r of rows) {
   if (!r.details) continue;
   const d = r.details;
-  const any = d.overlaps.length || d.tapTargets.length || d.clipped.length || d.textUnderLayer?.length || d.rowWrap?.length || d.contrast?.length || d.escapes?.length;
+  const any = d.overlaps.length || d.tapTargets.length || d.clipped.length || d.textUnderLayer?.length || d.rowWrap?.length || d.contrast?.length || d.escapes?.length || d.mobileScroll?.length;
   if (!any) continue;
   console.log(`  ${r.route} · ${r.who}`);
   for (const x of d.overlaps) console.log('    пересечение:', JSON.stringify(x).slice(0, 190));
@@ -287,4 +306,5 @@ for (const r of rows) {
   for (const x of d.rowWrap ?? []) console.log('    ряд развалился:', JSON.stringify(x).slice(0, 190));
   for (const x of d.contrast ?? []) console.log('    контраст:', JSON.stringify(x).slice(0, 190));
   for (const x of d.escapes ?? []) console.log('    absolute без предка:', JSON.stringify(x).slice(0, 190));
+  for (const x of d.mobileScroll ?? []) console.log('    телефон:', JSON.stringify(x).slice(0, 190));
 }

@@ -8,7 +8,8 @@
     "signOut": "Выйти",
     "retry": "Повторить",
     "toCabinet": "В кабинет",
-    "toLanding": "На главную"
+    "toLanding": "На главную",
+    "signIn": "Войти"
   },
   "theme": {
     "toLight": "Светлая тема",
