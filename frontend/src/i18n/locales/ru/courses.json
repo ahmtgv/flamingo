@@ -186,7 +186,8 @@
     "sessionAt": "занятие {{when}}",
     "noSession": "занятие не назначено",
     "expandSection": "Развернуть раздел",
-    "collapseSection": "Свернуть раздел"
+    "collapseSection": "Свернуть раздел",
+    "students": "учеников: {{count}}"
   },
   "create": {
     "title": "Новый курс",

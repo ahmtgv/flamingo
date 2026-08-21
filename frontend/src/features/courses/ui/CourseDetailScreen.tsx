@@ -330,7 +330,7 @@ function OwnerConstructor({ course, onDone }: { course: CourseT; onDone: () => v
             <span className={`${styles.pill} ${isDraft ? styles.pillDraft : ''}`}>
               {isDraft ? t('manage.pillDraft') : t('manage.pillPublished')}
             </span>{' '}
-            · {t('catalog.cardStudents', { count: course.enrollmentCount })} ·{' '}
+            · {t('manage.students', { count: course.enrollmentCount })} ·{' '}
             {updatedLabel(course.updatedAt, t)}
           </div>
           <h1 className={styles.pageTitle}>{course.title}</h1>
