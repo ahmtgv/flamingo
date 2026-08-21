@@ -1,38 +1,38 @@
-/* The lockup sits on one baseline: mark, then wordmark. The mark scales with the type
-   (em, not px), so a heading logo and a sidebar logo stay in the same proportion — the
-   brandbook's rule about the gap being half the mark height falls out of that automatically. */
+/*
+ * ЗНАК — пересобрано по листам (наряд 43). Птица и слово; коралловая точка после слова —
+ * единственное акцентное пятно знака.
+ *
+ * ⚠️ Ширину знаку НЕ задавать. Дважды наступили: в пульте комнаты и в шапке кабинета кнопке
+ * ставили 44 px, а связка «птица + flamingo» шире — слово ложилось на соседа. Высоту цели
+ * нажатия держит кнопка вокруг, размер рисунка — сам знак.
+ */
+
 .logo {
-  font-family: var(--font-heading);
-  font-weight: var(--weight-semibold);
-  font-size: var(--text-h3);
-  letter-spacing: var(--tracking-snug);
   display: inline-flex;
   align-items: center;
-  gap: 0.42em;
+  gap: var(--space-2);
   color: var(--color-text);
-  margin: 0;
-  line-height: 1;
 }
 
-/* 1.55em keeps the bird above ~28px at every place the logo is used. Below that its neck
-   disappears — that size has its own drawing (design-assets/flamingo-bird-small.svg). */
 .mark {
-  width: 1.7em;
-  height: 1.55em;
+  inline-size: 22px;
+  block-size: 20px;
   flex: none;
-  overflow: visible;
 }
 
 .word {
   display: inline-flex;
-  align-items: flex-end;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--font-heading);
+  font-size: var(--text-body);
+  font-weight: 600;
+  letter-spacing: var(--tracking-snug);
 }
 
 .dot {
-  width: 8px;
-  height: 8px;
+  inline-size: 5px;
+  block-size: 5px;
   border-radius: 50%;
   background: var(--color-accent);
-  margin-left: 5px;
-  margin-bottom: 3px;
 }

@@ -1,54 +1,61 @@
-/* Строка о связи. Только семантические токены — литералов нет (§7 CLAUDE.md). */
+/*
+ * СВЯЗЬ — пересобрано по листам (наряд 43).
+ *
+ * Два голоса, и разница между ними — решение владельца (§32.3): тихий почти везде, громкий
+ * ТОЛЬКО в уроке. В уроке молчать нельзя — преподаватель должен узнать, что класс перестал
+ * его видеть, а не догадаться через двадцать минут.
+ *
+ * Цветом состояние не передаётся: тон только усиливает слово, которое уже написано рядом.
+ */
+
 .line {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: var(--space-2);
-  margin: 0;
-  font-size: var(--text-small);
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  color: var(--color-text-tertiary);
+  white-space: nowrap;
 }
 
 .dot {
-  inline-size: var(--space-2);
-  block-size: var(--space-2);
-  border-radius: var(--radius-pill);
-  background: currentColor;
+  inline-size: 5px;
+  block-size: 5px;
   flex: none;
+  border-radius: 50%;
+  background: var(--color-border-strong);
 }
 
-/* Тихо: обычные экраны. Цветом не кричим — это статус, а не авария. */
+/* Тихий: подпись в углу, не мешает. */
 .quiet {
-  color: var(--color-text-secondary);
-  padding-block: var(--space-1);
+  opacity: 0.8;
 }
 
-/* Заметно: урок. Здесь строка имеет право занять место и взять цвет состояния. */
+/* Громкий: рамка и место в потоке — его нельзя пролистнуть глазами. */
 .loud {
   padding: var(--space-2) var(--space-3);
-  border-radius: var(--radius-sm);
-  font-size: var(--text-body);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
 }
 
+/* Связи нет вовсе — единственный случай, где связь заслуживает акцента: урок рвётся. */
 .loud.none {
-  color: var(--color-error-text);
-  background: var(--color-error-bg);
+  border-color: var(--color-accent);
+  color: var(--color-accent-text);
 }
 
+.loud.none .dot {
+  background: var(--color-accent);
+}
+
+/* Слабая связь — предупреждение, но не тревога: урок идёт, просто хуже. */
 .loud.weak {
-  color: var(--color-warning-text);
-  background: var(--color-warning-bg);
+  border-color: var(--color-border-strong);
+  color: var(--color-text);
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .loud {
-    animation: appear var(--duration-fast) var(--ease-standard);
-  }
-}
-
-@keyframes appear {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
+.loud.weak .dot {
+  background: var(--color-text-tertiary);
 }

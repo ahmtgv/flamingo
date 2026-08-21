@@ -1,49 +1,55 @@
+/*
+ * ПОСЛЕДНЯЯ СЕТКА — экран, который остаётся, когда упало всё остальное. Пересобрано по
+ * листам (наряд 43).
+ *
+ * Здесь особенно важно ПРАВИЛА 6.4: «что-то пошло не так» запрещено. Человек в этом месте
+ * уже потерял то, что делал, и единственное, чем ему можно помочь, — сказать, что уцелело
+ * и куда идти.
+ */
+
 .wrap {
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: grid;
+  place-items: center;
+  min-block-size: 100dvh;
   padding: var(--space-6);
   background: var(--color-bg);
+  color: var(--color-text);
 }
 
 .panel {
-  width: 100%;
-  max-width: var(--content-max-narrow);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  gap: var(--space-3);
-  background: var(--color-surface);
+  display: grid;
+  gap: var(--space-4);
+  justify-items: start;
+  inline-size: min(520px, 100%);
+  padding: var(--space-6) var(--space-7);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-card);
-  padding: var(--space-8) var(--space-6);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-lg);
 }
 
 .icon {
-  color: var(--color-text-tertiary);
-  margin-bottom: var(--space-1);
+  color: var(--color-accent-text);
 }
 
 .title {
+  margin: 0;
   font-family: var(--font-heading);
   font-size: var(--text-h2);
-  color: var(--color-text);
-  margin: 0;
+  font-weight: 600;
+  line-height: var(--leading-heading);
+  letter-spacing: var(--tracking-snug);
 }
 
 .body {
-  font-size: var(--text-body);
-  color: var(--color-text-secondary);
   margin: 0;
-  max-width: 44ch;
+  font-size: var(--text-body);
+  line-height: var(--leading-body);
+  color: var(--color-text-secondary);
 }
 
 .actions {
   display: flex;
-  gap: var(--space-3);
-  margin-top: var(--space-3);
   flex-wrap: wrap;
-  justify-content: center;
+  gap: var(--space-2);
 }
