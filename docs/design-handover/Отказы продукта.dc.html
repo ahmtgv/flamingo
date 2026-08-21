@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="tokens.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  html, body { height: 100%; overflow: hidden; }
+  a { color: var(--color-link); text-decoration: none; }
+  a:hover { color: var(--color-accent-text); }
+</style>
+</helmet>
+<div ref="{{ setRoot }}" data-theme="{{ theme }}" data-mode="{{ mode }}" style="height: 100vh; display: grid; grid-template-rows: auto minmax(0, 1fr); background: var(--color-bg); color: var(--color-text); font-family: var(--font-body); overflow: hidden;">
+
+  <div style="display: flex; align-items: center; gap: var(--space-2); padding: var(--space-3) var(--space-4); border-bottom: 1px solid var(--color-border); flex-wrap: wrap;">
+    <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-hint); letter-spacing: .08em; text-transform: uppercase;">случай</span>
+    <button data-sw="kind" data-val="notfound" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer; white-space: nowrap;">страницы нет</button>
+    <button data-sw="kind" data-val="offline" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer; white-space: nowrap;">нет связи</button>
+    <button data-sw="kind" data-val="server" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer; white-space: nowrap;">сервер молчит</button>
+    <button data-sw="kind" data-val="version" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer; white-space: nowrap;">версия устарела</button>
+    <button data-sw="kind" data-val="denied" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer; white-space: nowrap;">нет доступа</button>
+    <button data-sw="kind" data-val="works" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer; white-space: nowrap;">плановые работы</button>
+
+    <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-hint); letter-spacing: .08em; text-transform: uppercase; margin-left: var(--space-4);">кадр</span>
+    <button data-sw="w" data-val="1280" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer; white-space: nowrap;">1280×800</button>
+    <button data-sw="w" data-val="390" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer; white-space: nowrap;">390×844</button>
+
+    <span style="margin-left: auto; display: flex; gap: var(--space-2); align-items: center;">
+      <span data-scroll-probe style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-hint); white-space: nowrap;">прокрутка страницы: 0 px</span>
+      <button data-sw="mode" data-val="toggle" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer; white-space: nowrap;">7–11</button>
+      <button data-sw="theme" data-val="toggle" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer; white-space: nowrap;">тема</button>
+    </span>
+  </div>
+
+  <div ref="{{ setHost }}" style="display: grid; place-items: center; overflow: hidden; min-height: 0;">
+    <div data-audit-scope data-mobile="{{ mobileAttr }}" ref="{{ setFrame }}" style="width: 1280px; height: 800px; position: relative; border-radius: var(--radius-card); overflow: hidden; background: var(--color-bg); box-shadow: var(--shadow-lg); border: 1px solid var(--color-border); display: grid; grid-template-rows: auto minmax(0, 1fr) auto;">
+
+      <div data-geo="fail-head" style="display: flex; align-items: center; gap: var(--space-3); padding: var(--space-4) var(--space-6); border-bottom: 1px solid var(--color-border); background: var(--color-surface);">
+        <img src="design-assets/flamingo-bird.svg" alt="Flamingo" style="width: 22px; height: 22px; flex: none;">
+        <span style="font-size: var(--text-small); font-weight: 600; letter-spacing: var(--tracking-snug);">Flamingo</span>
+        <span style="margin-left: auto; font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-detail); white-space: nowrap;">{{ headMeta }}</span>
+      </div>
+
+      <div data-geo="fail-body" style="min-height: 0; display: grid; place-items: center; padding: var(--space-6);">
+        <div data-column style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-5); max-width: 68ch;">
+
+          <span style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-3);">
+            <span style="font: 500 var(--text-caption) var(--font-mono); color: {{ kickerColor }}; letter-spacing: .08em; text-transform: uppercase;">{{ kicker }}</span>
+            <span style="font-family: var(--font-heading); font-size: var(--text-h1); font-weight: 600; letter-spacing: var(--tracking-tight); line-height: var(--leading-heading); text-wrap: pretty;">{{ title }}</span>
+            <span style="font-size: var(--text-body); color: var(--color-text-secondary); line-height: var(--leading-body); text-wrap: pretty;">{{ body }}</span>
+          </span>
+
+          <span style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-2); padding-inline-start: var(--space-4); border-inline-start: 2px solid var(--color-border-strong);">
+            <sc-for list="{{ facts }}" as="f" hint-placeholder-count="3">
+              <span style="display: grid; grid-template-columns: 116px minmax(0, 1fr); gap: var(--space-3); align-items: baseline;">
+                <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-hint);">{{ f.k }}</span>
+                <span style="font-size: var(--text-small); color: var(--color-text-detail); line-height: var(--leading-snug); text-wrap: pretty;">{{ f.v }}</span>
+              </span>
+            </sc-for>
+          </span>
+
+          <span data-wrap-ok style="display: flex; gap: var(--space-2); flex-wrap: wrap; align-items: center;">
+            <sc-if value="{{ goPrimary }}" hint-placeholder-val="{{ true }}">
+              <button onClick="{{ noop }}" style="min-height: var(--tap-min); padding: 0 var(--space-5); font-size: var(--text-small); font-family: var(--font-body); font-weight: 500; color: var(--color-on-go); background: var(--color-go-solid); border: none; border-radius: var(--radius-control); cursor: pointer; white-space: nowrap;" style-hover="background: var(--color-go-solid-hover);">{{ primaryLabel }}</button>
+            </sc-if>
+            <sc-if value="{{ flatPrimary }}" hint-placeholder-val="{{ false }}">
+              <button onClick="{{ noop }}" style="min-height: var(--tap-min); padding: 0 var(--space-5); font-size: var(--text-small); font-family: var(--font-body); font-weight: 500; color: var(--color-text); background: none; border: 1px solid var(--color-border-strong); border-radius: var(--radius-control); cursor: pointer; white-space: nowrap;">{{ primaryLabel }}</button>
+            </sc-if>
+            <a href="{{ secondHref }}" style="display: flex; align-items: center; min-height: var(--tap-min); padding: 0 var(--space-5); font-size: var(--text-small); color: var(--color-text); border: 1px solid var(--color-border); border-radius: var(--radius-control); white-space: nowrap;" style-hover="border-color: var(--color-border-strong);">{{ secondLabel }}</a>
+          </span>
+
+          <span style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-2); padding-top: var(--space-4); border-top: 1px solid var(--color-border);">
+            <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-detail); letter-spacing: .06em; text-transform: uppercase;">{{ worksKicker }}</span>
+            <sc-for list="{{ works }}" as="w" hint-placeholder-count="3">
+              <span style="display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--space-3); align-items: baseline;">
+                <span style="font-size: var(--text-caption); color: var(--color-text); min-width: 0; text-wrap: pretty;">{{ w.what }}</span>
+                <span style="font: 500 var(--text-caption) var(--font-mono); color: {{ w.color }}; white-space: nowrap;">{{ w.state }}</span>
+              </span>
+            </sc-for>
+          </span>
+        </div>
+      </div>
+
+      <div data-geo="fail-foot" style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-1); padding: var(--space-4) var(--space-6); border-top: 1px solid var(--color-border); background: var(--color-surface);">
+        <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-detail); line-height: var(--leading-snug); text-wrap: pretty;">{{ footNote }}</span>
+        <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-hint); line-height: var(--leading-snug); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ techLine }}</span>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;: {&quot;width&quot;: 1400, &quot;height&quot;: 900}}">
+class Component extends DCLogic {
+  // Отказы уровня продукта — те самые места, где обычно живёт «что-то пошло не так».
+  // Здесь этой фразы нет ни в одном из шести случаев, и вот по каким правилам:
+  //
+  // 1. **Назвать, ЧТО именно не работает, а не «что-то».** Разные причины требуют разных
+  //    действий: нет связи — ждать и не жать; сервер молчит — жать бесполезно, но учёба
+  //    не потеряна; версия устарела — надо обновить, и это единственный случай, где
+  //    виноват сам продукт.
+  // 2. **Сказать, ЧТО ПРИ ЭТОМ РАБОТАЕТ.** Полный отказ продукта — редкость: чаще молчит
+  //    одна служба. Список «работает / не работает / с данными» тот же, что в частичных
+  //    отказах листов (ПРАВИЛА 6.5), — человек видит, куда идти вместо этого.
+  // 3. **Не винить человека и не хвалить себя.** Ни «упс», ни «мы уже работаем над этим»
+  //    без числа. Если знаем срок — пишем срок; не знаем — говорим, что не знаем.
+  // 4. **Техническая строка внизу — не украшение, а то, что человек скопирует в поддержку.**
+  //    Код, время, узел. Мелким, отдельно, но не спрятанным: без неё в переписке начинается
+  //    «а что было на экране».
+  // 5. **Зелёная заливка — только там, где нажатие ПОМОЖЕТ.** В «нет связи» и «сервер
+  //    молчит» повтор бессмысленен, пока причина не ушла: там кнопка обводкой.
+  state = { kind: 'notfound', w: 1280, theme: 'light', mode: 'default' };
+
+  componentDidMount() {
+    this.onResize = () => this.fit();
+    window.addEventListener('resize', this.onResize);
+    this.settle();
+    this.probe = setInterval(() => {
+      const el = this.root && this.root.querySelector('[data-scroll-probe]');
+      if (el) el.textContent = 'прокрутка страницы: ' + Math.max(0, document.documentElement.scrollHeight - window.innerHeight) + ' px';
+    }, 1000);
+  }
+  componentDidUpdate() { this.settle(); }
+  componentWillUnmount() { window.removeEventListener('resize', this.onResize); clearInterval(this.probe); }
+
+  settle() { this.fit(); this.applyChrome(); requestAnimationFrame(() => this.fit()); }
+
+  fit() {
+    const host = this.host, f = this.frame;
+    if (!host || !f) return;
+    const W = this.state.w, H = W === 390 ? 844 : 800;
+    const s = Math.min(1, (host.clientWidth - 40) / W, (host.clientHeight - 40) / H);
+    host.style.position = 'relative';
+    f.style.position = 'absolute';
+    f.style.left = '50%'; f.style.top = '50%';
+    f.style.width = W + 'px'; f.style.height = H + 'px';
+    f.style.borderRadius = W === 390 ? '44px' : 'var(--radius-card)';
+    f.style.transform = 'translate(-50%, -50%) scale(' + s.toFixed(4) + ')';
+  }
+
+  applyChrome() {
+    const root = this.root; if (!root) return;
+    const s = this.state;
+    const cur = { kind: s.kind, w: String(s.w) };
+    root.querySelectorAll('[data-sw]').forEach((b) => {
+      const k = b.dataset.sw, v = b.dataset.val;
+      if (!(k in cur)) return;
+      const on = cur[k] === v;
+      b.style.color = on ? 'var(--color-text)' : 'var(--color-text-secondary)';
+      b.style.borderColor = on ? 'var(--color-border-strong)' : 'var(--color-border)';
+      b.style.background = on ? 'var(--color-surface)' : 'none';
+    });
+    // На телефоне отказ не центрируется: он начинается сверху, потому что читается сразу,
+    // а не «после того, как найдёшь глазами середину».
+    const body = this.frame && this.frame.querySelector('[data-geo="fail-body"]');
+    if (body) {
+      body.style.placeItems = s.w === 390 ? 'start stretch' : 'center';
+      body.style.padding = s.w === 390 ? 'var(--space-5)' : 'var(--space-6)';
+    }
+  }
+
+  onSw = (e) => {
+    const { sw, val } = e.currentTarget.dataset;
+    if (sw === 'theme') return this.setState((s) => ({ theme: s.theme === 'dark' ? 'light' : 'dark' }));
+    if (sw === 'mode') return this.setState((s) => ({ mode: s.mode === 'kids' ? 'default' : 'kids' }));
+    if (sw === 'w') return this.setState({ w: Number(val) });
+    this.setState({ [sw]: val });
+  };
+
+  renderVals() {
+    const s = this.state;
+    const ok = 'var(--color-go-text)';
+    const no = 'var(--color-accent-text)';
+    const mid = 'var(--color-text-detail)';
+
+    const K = {
+      notfound: {
+        k: 'страницы нет', kc: mid,
+        t: 'Такой страницы у нас нет',
+        b: 'Ссылка ведёт в пустоту: либо в адресе опечатка, либо страницу убрали. Ничего не сломалось — ни ваш аккаунт, ни учёба.',
+        f: [
+          { k: 'работает', v: 'всё остальное: расписание, занятия, задания, «Моя учёба»' },
+          { k: 'не работает', v: 'только этот адрес' },
+          { k: 'с данными', v: 'ничего не потеряно и не изменено' },
+        ],
+        p: 'Открыть расписание', primaryGo: true,
+        s: 'На первую страницу', sh: 'Первая страница.dc.html',
+        foot: 'Если вы попали сюда по ссылке из нашего письма — напишите нам, ссылка неверная, и это наша ошибка.',
+        tech: 'код 404 · 21 августа, 14:12 · /course/химия/unit-99',
+        works: null,
+      },
+      offline: {
+        k: 'нет связи · у вас', kc: no,
+        t: 'Телефон или компьютер потерял сеть',
+        b: 'Дело в вашем подключении: наши серверы отвечают, а данные до вас не доходят. Нажимать «попробовать снова» бессмысленно, пока сеть не вернётся — мы сами поймём, что она вернулась, и продолжим с того же места.',
+        f: [
+          { k: 'работает', v: 'то, что уже загружено: открытый конспект и черновики' },
+          { k: 'не работает', v: 'всё, что нужно спросить у сервера' },
+          { k: 'с данными', v: 'написанное сохранено на устройстве и уйдёт само' },
+        ],
+        p: 'Проверить сеть ещё раз', primaryGo: false,
+        s: 'Открыть, что загружено', sh: 'Задания и конспект.dc.html',
+        foot: 'Если вы на уроке — он идёт без вас, и вы вернётесь на то же место. Камера и микрофон выключены, вас не видно и не слышно.',
+        tech: 'нет ответа сети · последний удачный запрос 14:11:48',
+        works: null,
+      },
+      server: {
+        k: 'молчит наш сервер', kc: no,
+        t: 'Мы не отвечаем — это на нашей стороне',
+        b: 'Ваша сеть в порядке, отвечаем мы. Повторять запрос не нужно: как только служба поднимется, страница откроется сама. Учёба, работы и записи на курсы никуда не денутся — они не в этой службе.',
+        f: [
+          { k: 'работает', v: 'вход в аккаунт и уже открытые страницы' },
+          { k: 'не работает', v: 'каталог курсов и запись на них' },
+          { k: 'с данными', v: 'ничего не потеряно; сданные работы на месте' },
+        ],
+        p: 'Обновить страницу', primaryGo: false,
+        s: 'Открыть «Мою учёбу»', sh: 'Кабинет и учёба.dc.html',
+        foot: 'Мы видим этот сбой у себя и не ждём, что вы о нём сообщите. Если он держится больше часа — напишите, значит мы его не видим.',
+        tech: 'код 503 · 21 августа, 14:12 · служба каталога',
+        works: [
+          { what: 'вход и аккаунт', state: 'работает', color: ok },
+          { what: 'урок и доска', state: 'работает', color: ok },
+          { what: 'каталог курсов', state: 'молчит', color: no },
+          { what: 'расписание и задания', state: 'работает', color: ok },
+        ],
+      },
+      version: {
+        k: 'версия устарела', kc: mid,
+        t: 'Это приложение старее, чем сервер',
+        b: 'Мы поменяли то, что старая версия не понимает. Дальше она работать не сможет — не из строгости, а потому что показала бы неверные данные: например, занятие в чужом часовом поясе.',
+        f: [
+          { k: 'работает', v: 'ничего в этой версии — обновление обязательно' },
+          { k: 'не работает', v: 'всё, что требует сервера' },
+          { k: 'с данными', v: 'ваши данные на сервере целы, обновление их не тронет' },
+        ],
+        p: 'Обновить приложение', primaryGo: true,
+        s: 'Открыть в браузере', sh: 'Первая страница.dc.html',
+        foot: 'Обновление занимает меньше минуты и не требует входить заново. Если обновиться нельзя — откройте Flamingo в браузере, там всегда свежая версия.',
+        tech: 'версия 2.1.4 · требуется 2.4.0 или новее',
+        works: null,
+      },
+      denied: {
+        k: 'нет доступа', kc: mid,
+        t: 'Эта страница не для вашего аккаунта',
+        b: 'Права проверены и не подошли: вы не записаны на этот курс, или он снят с публикации, или ссылку дали не вам. Это не ошибка и не сбой — так и должно быть.',
+        f: [
+          { k: 'работает', v: 'ваши курсы, занятия и задания' },
+          { k: 'не работает', v: 'этот курс — вы в нём не участник' },
+          { k: 'с данными', v: 'ничего не изменено' },
+        ],
+        p: 'Открыть свои курсы', primaryGo: true,
+        s: 'Найти курс в каталоге', sh: 'Каталог и курс.dc.html',
+        foot: 'Если вам дали эту ссылку и вы должны были её открыть — попросите преподавателя записать вас на курс: сама ссылка доступ не даёт.',
+        tech: 'код 403 · 21 августа, 14:12 · курс #4172',
+        works: null,
+      },
+      works: {
+        k: 'плановые работы', kc: mid,
+        t: 'Мы обновляем продукт до 15:00',
+        b: 'Это не сбой: мы предупреждали об этом в аккаунте вчера. Уроки в это время не идут по расписанию — занятий на 14:00 и 14:30 сегодня нет, преподаватели знают.',
+        f: [
+          { k: 'работает', v: 'чтение: конспекты, «Моя учёба», источники мира' },
+          { k: 'не работает', v: 'уроки, сдача работ, запись на курсы' },
+          { k: 'с данными', v: 'ничего не потеряно; сроки работ сдвинуты на час' },
+        ],
+        p: 'Читать конспекты', primaryGo: true,
+        s: 'Посмотреть расписание', sh: 'Телефон.dc.html',
+        foot: 'Осталось около 48 минут. Страница обновится сама, как только работы закончатся — держать её открытой не нужно.',
+        tech: 'плановые работы · начало 14:00, ожидаемое окончание 15:00',
+        works: [
+          { what: 'конспекты и «Моя учёба»', state: 'работает', color: ok },
+          { what: 'источники мира', state: 'работает', color: ok },
+          { what: 'урок и доска', state: 'выключены', color: no },
+          { what: 'сдача работ', state: 'выключена', color: no },
+        ],
+      },
+    };
+
+    const c = K[s.kind] || K.notfound;
+
+    return {
+      setRoot: (el) => { this.root = el; },
+      setHost: (el) => { this.host = el; },
+      setFrame: (el) => { this.frame = el; },
+      theme: s.theme === 'dark' ? 'dark' : 'light',
+      mode: s.mode === 'kids' ? 'kids' : 'default',
+      mobileAttr: s.w === 390 ? '' : null,
+
+      headMeta: s.kind === 'offline' ? 'нет сети' : (s.kind === 'works' ? 'работы до 15:00' : 'flamingo.school'),
+      kicker: c.k,
+      kickerColor: c.kc,
+      title: c.t,
+      body: c.b,
+      facts: c.f,
+
+      goPrimary: c.primaryGo,
+      flatPrimary: !c.primaryGo,
+      primaryLabel: c.p,
+      secondLabel: c.s,
+      secondHref: c.sh,
+
+      // Список служб показывается там, где важно, что молчит ОДНА служба, а не всё.
+      worksKicker: c.works ? 'что работает прямо сейчас' : 'куда идти вместо этого',
+      works: c.works || [
+        { what: 'расписание и занятия', state: 'работает', color: ok },
+        { what: 'задания и конспекты', state: 'работает', color: ok },
+        { what: '«Моя учёба»', state: 'работает', color: ok },
+      ],
+
+      footNote: c.foot,
+      techLine: c.tech,
+
+      onSw: this.onSw,
+      noop: () => {},
+    };
+  }
+}
+</script>
+</body>
+</html>

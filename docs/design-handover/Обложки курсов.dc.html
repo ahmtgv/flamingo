@@ -19,11 +19,11 @@
 <div ref="{{ setRoot }}" data-theme="{{ theme }}" style="height: 100vh; display: grid; grid-template-rows: auto minmax(0, 1fr); background: var(--color-bg); color: var(--color-text); font-family: var(--font-body); overflow: hidden;">
 
   <div style="display: flex; align-items: center; gap: var(--space-2); padding: var(--space-3) var(--space-4); border-bottom: 1px solid var(--color-border); flex-wrap: wrap;">
-    <span style="font: 500 11px var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .08em; text-transform: uppercase;">обложки курсов · система без картинок</span>
+    <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .08em; text-transform: uppercase;">обложки курсов · система без картинок</span>
     <span style="margin-left: auto; display: flex; gap: var(--space-2); align-items: center;">
-      <button data-sw="mode" onClick="{{ onSw }}" style="font: 500 12px var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">{{ modeLabel }}</button>
-      <button data-sw="motif" onClick="{{ onSw }}" style="font: 500 12px var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">{{ motifLabel }}</button>
-      <button data-sw="theme" onClick="{{ onSw }}" style="font: 500 12px var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">тема</button>
+      <button data-sw="mode" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">{{ modeLabel }}</button>
+      <button data-sw="motif" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">{{ motifLabel }}</button>
+      <button data-sw="theme" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">тема</button>
     </span>
   </div>
 
@@ -39,16 +39,16 @@
       <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); grid-template-rows: repeat(4, minmax(0, 1fr)); gap: var(--space-4); min-height: 0;">
         <sc-for list="{{ covers }}" as="c" hint-placeholder-count="16">
           <span style="position: relative; border-radius: var(--radius-card); overflow: hidden; border: 1px solid var(--color-border); background-color: {{ c.tint }}; background-image: {{ c.motif }}; background-size: {{ c.size }}; background-position: {{ c.pos }}; display: grid; align-content: end; gap: 3px; padding: var(--space-4); min-width: 0;">
-            <span style="font: 500 11px var(--font-mono); color: {{ c.inkSoft }}; letter-spacing: .08em; text-transform: uppercase;">{{ c.subject }}</span>
+            <span style="font: 500 var(--text-caption) var(--font-mono); color: {{ c.inkSoft }}; letter-spacing: .08em; text-transform: uppercase;">{{ c.subject }}</span>
             <span style="font-family: var(--font-heading); font-size: var(--text-body); font-weight: 600; color: {{ c.ink }}; letter-spacing: var(--tracking-snug); line-height: var(--leading-heading);">{{ c.name }}</span>
-            <span style="font: 400 11px var(--font-mono); color: {{ c.inkSoft }};">{{ c.meta }}</span>
+            <span style="font: 400 var(--text-caption) var(--font-mono); color: {{ c.inkSoft }};">{{ c.meta }}</span>
           </span>
         </sc-for>
       </div>
 
       <div style="display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: var(--space-7); border-top: 1px solid var(--color-border); padding-top: var(--space-5);">
         <div style="display: grid; gap: var(--space-3); align-content: start;">
-          <span style="font: 500 11px var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .08em; text-transform: uppercase;">шесть мотивов · один и тот же курс в каждом</span>
+          <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .08em; text-transform: uppercase;">шесть мотивов · один и тот же курс в каждом</span>
           <span style="display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: var(--space-3);">
             <sc-for list="{{ motifs }}" as="m" hint-placeholder-count="6">
               <span style="display: grid; gap: var(--space-2); justify-items: start; min-width: 0;">
@@ -57,14 +57,14 @@
               </span>
             </sc-for>
           </span>
-          <span style="font: 400 11px var(--font-mono); color: var(--color-text-secondary); line-height: var(--leading-snug);">мотив назначает не человек: он вычисляется из названия и не меняется при перезагрузке. Один курс — всегда одна обложка.</span>
+          <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-secondary); line-height: var(--leading-snug);">мотив назначает не человек: он вычисляется из названия и не меняется при перезагрузке. Один курс — всегда одна обложка.</span>
         </div>
 
         <div style="display: grid; gap: var(--space-2); align-content: start;">
-          <span style="font: 500 11px var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .08em; text-transform: uppercase;">правила обложки</span>
+          <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .08em; text-transform: uppercase;">правила обложки</span>
           <sc-for list="{{ rules }}" as="r" hint-placeholder-count="5">
             <span style="display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: var(--space-3); padding-bottom: var(--space-2); border-bottom: 1px solid var(--color-border);">
-              <span style="font: 500 11px var(--font-mono); color: var(--color-text-tertiary);">{{ r.n }}</span>
+              <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary);">{{ r.n }}</span>
               <span style="font-size: var(--text-caption); color: var(--color-text-secondary); line-height: var(--leading-snug); text-wrap: pretty;">{{ r.text }}</span>
             </span>
           </sc-for>

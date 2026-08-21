@@ -51,7 +51,7 @@
           <span style="margin-inline-start: auto; font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); white-space: nowrap;">{{ headMeta }}</span>
         </span>
         <span style="font-family: var(--font-heading); font-size: var(--text-h2); font-weight: 600; letter-spacing: var(--tracking-snug); line-height: var(--leading-heading); text-wrap: pretty;">{{ title }}</span>
-        <span style="font-size: var(--text-small); color: var(--color-text-secondary); line-height: var(--leading-snug); text-wrap: pretty;">{{ subtitle }}</span>
+        <span style="min-height: calc(2 * var(--leading-snug) * 1em); font-size: var(--text-small); color: var(--color-text-secondary); line-height: var(--leading-snug); text-wrap: pretty;">{{ subtitle }}</span>
       </div>
 
       <div data-sheet-scroll style="overflow: auto; min-height: 0; padding: var(--space-5) var(--space-5) var(--space-6); display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-4); align-content: start;">
@@ -180,7 +180,7 @@
         <sc-if value="{{ hasSecondary }}" hint-placeholder-val="{{ true }}">
           <button onClick="{{ noop }}" style="min-height: var(--tap-min); border: 1px solid var(--color-border); border-radius: var(--radius-control); background: none; color: var(--color-text); font-size: var(--text-small); font-family: var(--font-body); cursor: pointer; white-space: nowrap;" style-hover="border-color: var(--color-border-strong);">{{ secondaryLabel }}</button>
         </sc-if>
-        <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-secondary); line-height: var(--leading-snug); text-wrap: pretty;">{{ primaryNote }}</span>
+        <span style="min-height: calc(3 * var(--leading-snug) * 1em); font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-secondary); line-height: var(--leading-snug); text-wrap: pretty;">{{ primaryNote }}</span>
       </div>
     </div>
   </div>
@@ -290,7 +290,10 @@ class Component extends DCLogic {
         ? { t: 'Согласие подтверждено', s: 'Дальше ничего делать не нужно. Эту страницу можно закрыть.' }
         : (revoke
           ? { t: 'Отозвать согласие для Даши', s: 'Вы подтвердили его 12 августа. Прочитайте, что закроется и что останется.' }
-          : { t: 'Согласие для Даши Королёвой', s: 'Страница открывается по ссылке из письма — на вашем устройстве.' }));
+          // Шапка — именованное место: подзаголовок держится в две строки во всех
+          // состояниях, иначе она теряет 19 px (поймано прибором транзиций).
+          : { t: 'Согласие для Даши Королёвой',
+              s: 'Страница открывается по ссылке из письма — на вашем устройстве. Ей 13 лет, поэтому согласие даёт взрослый.' }));
 
     return {
       setRoot: (el) => { this.root = el; },
@@ -351,12 +354,17 @@ class Component extends DCLogic {
       dangerPrimary: revoke,
       flatPrimary: (ask && !s.adult) || done || s.st === 'expired' || s.st === 'loading' || s.st === 'failed',
       primaryLabel: done ? 'Закрыть страницу'
+        : (s.st === 'failed' ? 'Проверить снова'
         : (revoke ? 'Отозвать согласие'
-          : (s.st === 'expired' ? 'Закрыть страницу'
-            : (s.st === 'failed' ? 'Проверить снова'
-              : (s.st === 'loading' ? 'Подтвердить согласие' : 'Подтвердить согласие')))),
-      hasSecondary: ask || revoke,
-      secondaryLabel: ask ? 'Не подтверждать' : 'Оставить согласие',
+          : (s.st === 'expired' ? 'Закрыть страницу' : 'Подтвердить согласие'))),
+      // Подвал — именованное место (data-geo), значит он обязан стоять на месте во всех
+      // состояниях: прибор транзиций поймал, что в отказе он съезжал на высоту второй
+      // кнопки. Вторая кнопка есть всегда, меняется только её смысл.
+      hasSecondary: true,
+      secondaryLabel: ask ? 'Не подтверждать'
+        : (revoke ? 'Оставить согласие'
+          : (done ? 'Вернуться к странице согласия'
+            : (s.st === 'expired' ? 'Прочитать, на что согласие' : 'Закрыть страницу'))),
       primaryNote: ask
         ? (s.adult
           ? 'мы запишем ваше имя, родство и время подтверждения, и пришлём копию на вашу почту. Отозвать согласие можно этой же ссылкой в любой день.'

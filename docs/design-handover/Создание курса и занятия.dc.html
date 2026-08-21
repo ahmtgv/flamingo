@@ -25,6 +25,7 @@
     <button data-sw="screen" data-val="course" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer; white-space: nowrap;">курс</button>
     <button data-sw="screen" data-val="lesson" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer; white-space: nowrap;">занятие</button>
     <button data-sw="screen" data-val="move" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer; white-space: nowrap;">перенос и отмена</button>
+    <button data-sw="screen" data-val="edit" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer; white-space: nowrap;">правка курса</button>
 
     <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .08em; text-transform: uppercase; margin-left: var(--space-4);">состояние</span>
     <button data-sw="st" data-val="filled" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer; white-space: nowrap;">наполнено</button>
@@ -146,38 +147,16 @@
               </div>
 
               <div style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-4); padding: var(--space-5); border: 1px solid var(--color-border); border-radius: var(--radius-card); background: var(--color-surface);">
-                <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .08em; text-transform: uppercase;">Цена и обложка</span>
+                <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .08em; text-transform: uppercase;">Обложка</span>
 
-                <span style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-4);">
-                  <span style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-2); min-width: 0;">
-                    <span style="font-size: var(--text-small); color: var(--color-text-secondary);">Сколько стоит</span>
-                    <sc-if value="{{ priceOk }}" hint-placeholder-val="{{ true }}">
-                      <span style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-2);">
-                        <span style="display: flex; gap: var(--space-1); padding: 3px; border: 1px solid var(--color-border); border-radius: var(--radius-control); background: var(--color-bg);">
-                          <sc-for list="{{ prices }}" as="p" hint-placeholder-count="2">
-                            <button data-pick="price" data-val="{{ p.id }}" onClick="{{ onPick }}" style="flex: 1 1 0; min-width: 0; min-height: var(--control-height-sm); font-size: var(--text-caption); font-family: var(--font-body); color: var(--color-text-secondary); background: none; border: none; border-radius: var(--radius-sm); cursor: pointer; white-space: nowrap;">{{ p.label }}</button>
-                          </sc-for>
-                        </span>
-                        <input type="text" defaultValue="{{ vPrice }}" placeholder="1 200 ₽ за занятие" style="width: 100%; min-height: var(--control-height-md); padding: 0 var(--space-4); font-size: var(--text-small); font-family: var(--font-mono); color: var(--color-text); background: var(--color-bg); border: 1px solid var(--color-border); border-radius: var(--radius-control);">
-                      </span>
-                    </sc-if>
-                    <sc-if value="{{ priceDown }}" hint-placeholder-val="{{ false }}">
-                      <span style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-2); padding: var(--space-3) var(--space-4); border: 1px solid var(--color-border); border-inline-start: 2px solid var(--color-border-strong); border-radius: var(--radius-control); background: var(--color-bg);">
-                        <span style="font-size: var(--text-caption); color: var(--color-text); line-height: var(--leading-snug); text-wrap: pretty;">Цену сейчас поставить нельзя — служба оплат не отвечает</span>
-                        <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-secondary); line-height: var(--leading-snug);">курс сохранится бесплатным, цену добавите потом — ученики уже записанные ничего не потеряют</span>
-                      </span>
-                    </sc-if>
+                <span style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-2); min-width: 0;">
+                  <span style="font-size: var(--text-small); color: var(--color-text-secondary);">Мотив</span>
+                  <span style="display: flex; gap: var(--space-2); flex-wrap: wrap;">
+                    <sc-for list="{{ motifs }}" as="m" hint-placeholder-count="3">
+                      <button data-pick="motif" data-val="{{ m.id }}" onClick="{{ onPick }}" style="width: 56px; height: 56px; padding: 0; border: 1px solid var(--color-border); border-radius: var(--radius-sm); background-color: var(--color-surface-subtle); background-image: {{ m.pattern }}; cursor: pointer;" aria-label="{{ m.label }}"></button>
+                    </sc-for>
                   </span>
-
-                  <span style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-2); min-width: 0;">
-                    <span style="font-size: var(--text-small); color: var(--color-text-secondary);">Обложка</span>
-                    <span style="display: flex; gap: var(--space-2); flex-wrap: wrap;">
-                      <sc-for list="{{ motifs }}" as="m" hint-placeholder-count="3">
-                        <button data-pick="motif" data-val="{{ m.id }}" onClick="{{ onPick }}" style="width: 56px; height: 56px; padding: 0; border: 1px solid var(--color-border); border-radius: var(--radius-sm); background-color: var(--color-surface-subtle); background-image: {{ m.pattern }}; cursor: pointer;" aria-label="{{ m.label }}"></button>
-                      </sc-for>
-                    </span>
-                    <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); line-height: var(--leading-snug);">картинку загружать не надо: обложка собирается из названия и цвета предмета</span>
-                  </span>
+                  <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); line-height: var(--leading-snug); text-wrap: pretty;">картинку загружать не надо: обложка собирается из названия, цвета предмета и мотива. Один и тот же курс всегда получает одну и ту же обложку</span>
                 </span>
               </div>
             </div>
@@ -256,6 +235,87 @@
             </div>
           </sc-if>
 
+          <sc-if value="{{ editForm }}" hint-placeholder-val="{{ false }}">
+            <div style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-4);">
+
+              <div style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-4); padding: var(--space-5); border: 1px solid var(--color-border); border-radius: var(--radius-card); background: var(--color-surface);">
+                <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .08em; text-transform: uppercase;">Меняется свободно</span>
+                <span style="font-size: var(--text-caption); color: var(--color-text-secondary); line-height: var(--leading-snug); text-wrap: pretty;">Это никто из записанных не заметит: ни в расписании, ни в «Моей учёбе» ничего не сдвинется.</span>
+
+                <label style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-2);">
+                  <span style="font-size: var(--text-small); color: var(--color-text-secondary);">О курсе — это читают перед тем, как записаться</span>
+                  <textarea rows="3" defaultValue="{{ vAbout }}" placeholder="Три-четыре строки: что будет на занятиях и чем этот курс отличается" style="width: 100%; padding: var(--space-3) var(--space-4); font-size: var(--text-small); font-family: var(--font-body); line-height: var(--leading-body); color: var(--color-text); background: var(--color-bg); border: 1px solid var(--color-border); border-radius: var(--radius-control); resize: none;"></textarea>
+                </label>
+
+                <span style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-2);">
+                  <span style="font-size: var(--text-small); color: var(--color-text-secondary);">Мотив обложки</span>
+                  <span style="display: flex; gap: var(--space-2); flex-wrap: wrap;">
+                    <sc-for list="{{ motifs }}" as="m" hint-placeholder-count="3">
+                      <button data-pick="motif" data-val="{{ m.id }}" onClick="{{ onPick }}" style="width: 56px; height: 56px; padding: 0; border: 1px solid var(--color-border); border-radius: var(--radius-sm); background-color: var(--color-surface-subtle); background-image: {{ m.pattern }}; cursor: pointer;" aria-label="{{ m.label }}"></button>
+                    </sc-for>
+                  </span>
+                </span>
+              </div>
+
+              <div style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-4); padding: var(--space-5); border: 1px solid var(--color-border); border-inline-start: 2px solid var(--color-border-strong); border-radius: var(--radius-card); background: var(--color-surface);">
+                <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text); letter-spacing: .08em; text-transform: uppercase;">Меняется с предупреждением</span>
+                <span style="font-size: var(--text-caption); color: var(--color-text-secondary); line-height: var(--leading-snug); text-wrap: pretty;">Это увидят 14 записанных. Что именно они увидят — сказано под каждым полем.</span>
+
+                <label style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-2);">
+                  <span style="font-size: var(--text-small); color: var(--color-text-secondary);">Название курса</span>
+                  <input type="text" defaultValue="Химия · неорганика" placeholder="Название курса" style="width: 100%; min-height: var(--control-height-lg); padding: 0 var(--space-4); font-size: var(--text-body); font-family: var(--font-body); color: var(--color-text); background: var(--color-bg); border: 1px solid var(--color-border); border-radius: var(--radius-control);">
+                  <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-secondary); line-height: var(--leading-snug); text-wrap: pretty;">новое имя встанет у записанных в расписании и в «Моей учёбе». Пройденные занятия останутся под ним же — старого имени в истории не сохранится</span>
+                </label>
+
+                <span style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-2);">
+                  <span style="font-size: var(--text-small); color: var(--color-text-secondary);">Уровень</span>
+                  <span style="display: flex; gap: var(--space-1); padding: 3px; border: 1px solid var(--color-border); border-radius: var(--radius-control); background: var(--color-bg); width: max-content; max-width: 100%;">
+                    <sc-for list="{{ levels }}" as="l" hint-placeholder-count="4">
+                      <button data-pick="level" data-val="{{ l.id }}" onClick="{{ onPick }}" style="min-height: var(--control-height-sm); padding: 0 var(--space-4); font-size: var(--text-caption); font-family: var(--font-body); color: var(--color-text-secondary); background: none; border: none; border-radius: var(--radius-sm); cursor: pointer; white-space: nowrap;">{{ l.label }}</button>
+                    </sc-for>
+                  </span>
+                  <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-secondary); line-height: var(--leading-snug); text-wrap: pretty;">курс переедет в другую полку каталога и покажется другим людям. Записанные останутся — их никуда не переносит</span>
+                </span>
+
+                <span style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-2);">
+                  <span style="font-size: var(--text-small); color: var(--color-text-secondary);">Ритм: дни и сколько раз в неделю</span>
+                  <span style="display: flex; gap: var(--space-2); flex-wrap: wrap;">
+                    <sc-for list="{{ weekDays }}" as="d" hint-placeholder-count="7">
+                      <button data-pick="day" data-val="{{ d.id }}" onClick="{{ onPick }}" style="width: 52px; min-height: var(--control-height-sm); font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-secondary); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-control); cursor: pointer;">{{ d.label }}</button>
+                    </sc-for>
+                  </span>
+                  <span style="font: 400 var(--text-caption) var(--font-mono); color: {{ rhythmWarnColor }}; line-height: var(--leading-snug); text-wrap: pretty;">{{ rhythmWarn }}</span>
+                </span>
+              </div>
+
+              <div style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-3); padding: var(--space-5); border: 1px solid var(--color-border); border-radius: var(--radius-card); background: var(--color-surface-subtle);">
+                <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-secondary); letter-spacing: .08em; text-transform: uppercase;">После публикации не меняется</span>
+                <span style="display: grid; gap: var(--space-3);">
+                  <sc-for list="{{ frozen }}" as="f" hint-placeholder-count="2">
+                    <span style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-1);">
+                      <span style="display: flex; align-items: baseline; gap: var(--space-3);">
+                        <span style="font-size: var(--text-small); font-weight: 500; color: var(--color-text);">{{ f.what }}</span>
+                        <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); white-space: nowrap;">{{ f.value }}</span>
+                      </span>
+                      <span style="font-size: var(--text-caption); color: var(--color-text-secondary); line-height: var(--leading-snug); text-wrap: pretty;">{{ f.why }}</span>
+                    </span>
+                  </sc-for>
+                </span>
+                <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); line-height: var(--leading-snug); text-wrap: pretty;">чтобы поменять предмет, курс придётся завести заново: записанные останутся в этом, старый можно снять с публикации</span>
+              </div>
+
+              <div style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-3); padding: var(--space-5); border: 1px solid var(--color-border); border-inline-start: 2px solid var(--color-accent-solid); border-radius: var(--radius-card); background: var(--color-surface);">
+                <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-accent-text); letter-spacing: .08em; text-transform: uppercase;">Снять с публикации</span>
+                <span style="font-size: var(--text-small); color: var(--color-text-secondary); line-height: var(--leading-body); max-width: 74ch; text-wrap: pretty;">Курс исчезнет из каталога, и записаться на него больше не смогут. У 14 записанных всё останется: расписание, занятия, работы, чат. Вернуть в каталог можно в любой день.</span>
+                <span style="display: flex; gap: var(--space-2); flex-wrap: wrap;">
+                  <button onClick="{{ noop }}" style="min-height: var(--tap-min); padding: 0 var(--space-4); font-size: var(--text-small); font-family: var(--font-body); color: var(--color-accent-text); background: none; border: 1px solid var(--color-accent-subtle-border); border-radius: var(--radius-control); cursor: pointer; white-space: nowrap;" style-hover="border-color: var(--color-accent-solid);">Снять с публикации</button>
+                  <button onClick="{{ noop }}" style="min-height: var(--tap-min); padding: 0 var(--space-3); font-size: var(--text-caption); font-family: var(--font-body); color: var(--color-text-secondary); background: none; border: none; cursor: pointer; white-space: nowrap;" style-hover="color: var(--color-text);">Что будет с занятиями</button>
+                </span>
+                <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); line-height: var(--leading-snug); text-wrap: pretty;">удалить курс целиком нельзя, пока в нём есть записанные: их работы и конспекты — не ваши данные</span>
+              </div>
+            </div>
+          </sc-if>
+
           <sc-if value="{{ moveForm }}" hint-placeholder-val="{{ false }}">
             <div style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-4);">
 
@@ -321,7 +381,7 @@
                   <span style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-2); padding-inline-start: var(--space-3); border-inline-start: 2px solid var(--color-border-strong); font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-secondary); line-height: var(--leading-snug);">
                     <span>остаётся: материалы занятия, конспект прошлых уроков, чат курса</span>
                     <span>исчезает: само занятие в расписании и напоминание о нём</span>
-                    <span>не меняется: оплата курса — отменённое занятие не списывается</span>
+                    <span>не меняется: остальные занятия курса и запись учеников на него</span>
                   </span>
                 </div>
               </sc-if>
@@ -379,6 +439,25 @@
                       <span style="text-wrap: pretty;">{{ r.v }}</span>
                     </span>
                   </sc-for>
+                </span>
+              </span>
+            </sc-if>
+
+            <sc-if value="{{ editRail }}" hint-placeholder-val="{{ false }}">
+              <span style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-3); align-content: start; min-height: 0;">
+                <span style="display: grid; gap: var(--space-1);">
+                  <span style="font-family: var(--font-mono); font-size: var(--text-h2); font-weight: 500; color: var(--color-text); line-height: var(--leading-tight);">14</span>
+                  <span style="font-size: var(--text-caption); color: var(--color-text-secondary); line-height: var(--leading-snug); text-wrap: pretty;">{{ editMetricLabel }}</span>
+                </span>
+                <span style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-2); border-top: 1px solid var(--color-border); padding-top: var(--space-3);">
+                  <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); line-height: var(--leading-snug);">{{ editRailNote }}</span>
+                  <sc-for list="{{ editRows }}" as="e" hint-placeholder-count="4">
+                    <span style="display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--space-3); align-items: baseline;">
+                      <span style="font-size: var(--text-caption); color: var(--color-text); min-width: 0; text-wrap: pretty;">{{ e.what }}</span>
+                      <span style="font: 500 var(--text-caption) var(--font-mono); color: {{ e.color }}; white-space: nowrap;">{{ e.who }}</span>
+                    </span>
+                  </sc-for>
+                  <span style="font: 400 var(--text-caption) var(--font-mono); color: {{ editWarnColor }}; line-height: var(--leading-snug); text-wrap: pretty;">{{ editWarn }}</span>
                 </span>
               </span>
             </sc-if>
@@ -458,7 +537,7 @@ class Component extends DCLogic {
   state = {
     screen: 'course', st: 'filled', w: 1280, theme: 'light', mode: 'default',
     subject: 'chem', level: 'g78', dur: '45', week: '2', days: ['mon', 'thu'],
-    price: 'paid', motif: 'b', date: 'thu', repeat: true, act: 'move',
+    motif: 'b', date: 'thu', repeat: true, act: 'move',
   };
 
   // У экрана столько состояний, сколько у него источников, и не больше. У переноса пустого
@@ -468,6 +547,8 @@ class Component extends DCLogic {
     course: ['filled', 'empty', 'loading', 'failed', 'partial'],
     lesson: ['filled', 'empty', 'loading', 'failed', 'partial'],
     move:   ['filled', 'loading', 'failed', 'partial'],
+    // У правки нет «пусто»: курс опубликован — значит заполнен. Иначе править нечего.
+    edit:   ['filled', 'loading', 'failed', 'partial'],
   };
 
   componentDidMount() {
@@ -516,7 +597,7 @@ class Component extends DCLogic {
     });
     // Выбранное в форме отмечается нейтрально — сильной рамкой и приглушённой заливкой.
     // Акцент на этом экране принадлежит публикации, а не переключателю уровня (ПРАВИЛА 5.7).
-    const pick = { subject: s.subject, level: s.level, dur: s.dur, week: s.week, price: s.price, motif: s.motif, date: s.date, act: s.act };
+    const pick = { subject: s.subject, level: s.level, dur: s.dur, week: s.week, motif: s.motif, date: s.date, act: s.act };
     root.querySelectorAll('[data-pick]').forEach((b) => {
       const k = b.dataset.pick, v = b.dataset.val;
       if (k === 'day') {
@@ -575,6 +656,10 @@ class Component extends DCLogic {
     const s = this.state;
     const course = s.screen === 'course';
     const move = s.screen === 'move';
+    // Правка ОПУБЛИКОВАННОГО курса — не то же, что создание черновика: у курса есть
+    // записанные, и каждое поле надо делить по последствиям, а не по разделам формы.
+    // Три полки: свободно · с предупреждением (видят записанные) · после публикации нельзя.
+    const edit = s.screen === 'edit';
     const cancel = move && s.act === 'cancel';
     const partial = s.st === 'partial';
     const empty = s.st === 'empty';
@@ -610,7 +695,7 @@ class Component extends DCLogic {
             // живёт там (ПРАВИЛА 8.2а).
             sub: 'занятие уже стоит в расписании 14 учеников · изменения они видят в расписании курса' }
         : { title: empty ? 'Новое занятие' : 'Занятие 12 · Почему горит магний',
-            sub: 'курс «Химия · неорганика» · время задаётся в вашем поясе: Москва, UTC+3' });
+            sub: 'курс «Химия · неорганика» · время задаётся в вашем поясе: Москва, UTC+3' }));
 
     const failCourse = {
       k: 'отказ · справочник предметов',
@@ -658,17 +743,32 @@ class Component extends DCLogic {
       ],
       a: 'Проверить службу снова',
     };
-    const fail = course ? failCourse : (move ? (cancel ? failCancel : failMove) : failLesson);
-
-    const partialCourse = {
-      k: 'частичный отказ · служба оплат',
-      t: 'Курс собирается, цену пока поставить нельзя',
+    const failEdit = {
+      k: 'отказ · курс не открылся',
+      t: 'Правку сохранить нельзя: курс не читается',
+      b: 'Служба курса не отвечает. Ни одно поле не изменено — и это правильнее половины правки: записанные не увидят курс, у которого поменялось название, но не поменялся ритм.',
       f: [
-        { text: 'работает: название, предмет, ритм, обложка, публикация' },
-        { text: 'не работает: цена — служба оплат не отвечает с 09:40' },
-        { text: 'с данными: черновик сохранён 12:04, курс уйдёт бесплатным' },
+        { text: 'работает: расписание, занятия, чат — у записанных всё как было' },
+        { text: 'не работает: чтение и запись курса — значит и правка' },
+        { text: 'с данными: ничего не изменено, черновик правки сохранён 12:04' },
       ],
-      a: 'Проверить службу оплат',
+      a: 'Загрузить курс снова',
+    };
+    const fail = course ? failCourse : (move ? (cancel ? failCancel : failMove) : (edit ? failEdit : failLesson));
+
+    // Оплаты в продукте нет и не будет как минимум год (решение владельца §47.2): цена
+    // не спрашивается и не показывается — она была бы обещанием, которое некому исполнить.
+    // Поля price/currency в модели остаются точкой будущей интеграции, но экрана у них нет.
+    // Частичный отказ курса — справочник предметов: каталог наш, справочник чужой.
+    const partialCourse = {
+      k: 'частичный отказ · справочник предметов',
+      t: 'Курс собирается, но предмет пока не выбрать',
+      f: [
+        { text: 'работает: название, уровень, ритм, обложка, черновик' },
+        { text: 'не работает: список предметов — справочник молчит с 09:40' },
+        { text: 'с данными: черновик сохранён 12:04, публикация ждёт предмета' },
+      ],
+      a: 'Запросить справочник снова',
     };
     const partialLesson = {
       k: 'частичный отказ · пояса учеников',
@@ -700,7 +800,17 @@ class Component extends DCLogic {
       ],
       a: 'Запросить список снова',
     };
-    const par = course ? partialCourse : (move ? (cancel ? partialCancel : partialMove) : partialLesson);
+    const partialEdit = {
+      k: 'частичный отказ · список записанных',
+      t: 'Править можно, но кого правка касается — сейчас не видно',
+      f: [
+        { text: 'работает: правка названия, уровня, ритма, обложки и «о курсе»' },
+        { text: 'не работает: список записанных — служба курса молчит с 09:40' },
+        { text: 'с данными: правка запишется, у записанных всё обновится в расписании' },
+      ],
+      a: 'Запросить список снова',
+    };
+    const par = course ? partialCourse : (move ? (cancel ? partialCancel : partialMove) : (edit ? partialEdit : partialLesson));
 
     return {
       setRoot: (el) => { this.root = el; },
@@ -714,7 +824,8 @@ class Component extends DCLogic {
       saveNote: s.st === 'loading' ? 'открываем черновик' : (s.st === 'failed' ? 'черновик сохранён 12:04' : 'сохраняется само · последнее сохранение 12:04'),
 
       courseForm: course && form,
-      lessonForm: !course && !move && form,
+      editForm: edit && form,
+      lessonForm: !course && !move && !edit && form,
       moveForm: move && form,
       actMove: move && !cancel,
       actCancel: cancel,
@@ -739,7 +850,6 @@ class Component extends DCLogic {
       // на обложке имени ещё нет — говорим об этом словами, а не пустотой
       coverName: empty ? 'название появится здесь' : 'Химия · неорганика',
       coverColor: empty ? 'var(--color-text-tertiary)' : 'var(--color-text)',
-      vPrice: empty ? '' : '1 200 ₽ за занятие',
       vTime: empty ? '' : '11:30',
       vTopic: empty ? '' : 'Почему горит магний',
 
@@ -760,7 +870,6 @@ class Component extends DCLogic {
       perWeek: [
         { id: '1', label: '1' }, { id: '2', label: '2' }, { id: '3', label: '3' }, { id: '5', label: '5' },
       ],
-      prices: [{ id: 'free', label: 'бесплатно' }, { id: 'paid', label: 'за деньги' }],
       weekDays: [
         { id: 'mon', label: 'пн' }, { id: 'tue', label: 'вт' }, { id: 'wed', label: 'ср' },
         { id: 'thu', label: 'чт' }, { id: 'fri', label: 'пт' }, { id: 'sat', label: 'сб' }, { id: 'sun', label: 'вс' },
@@ -771,12 +880,18 @@ class Component extends DCLogic {
         { id: 'c', label: 'точки', pattern: this.MOTIFS.c },
       ],
       coverPattern: this.MOTIFS[s.motif] || this.MOTIFS.b,
+      vAbout: 'Восемь лет веду химию в школе и здесь. На занятии больше опытов, чем формул: сначала видим, потом объясняем. Готовлю к олимпиадам, но начинаю с того, чтобы было не страшно.',
+      frozen: [
+        { what: 'Предмет', value: 'химия', why: 'от предмета зависит полка каталога, цвет обложки и то, кому курс показали. Те, кто записался, выбирали именно химию — менять её под ними нельзя.' },
+        { what: 'Длина занятия', value: durText, why: 'у записанных уже стоят занятия в расписании этой длины. Сдвиг ломает их день, а не только ваш.' },
+      ],
+      rhythmWarnColor: s.days.length ? 'var(--color-text-secondary)' : 'var(--color-accent-text)',
+      rhythmWarn: s.days.length
+        ? 'будущие занятия переедут на выбранные дни — ' + picked + '. Прошедшие останутся там, где были; отмену и перенос по одному делайте на «переносе и отмене»'
+        : 'дни не выбраны — новые занятия появляться перестанут, а уже поставленные останутся на месте',
       rhythmNote: s.days.length
         ? 'выбрано дней: ' + s.days.length + ' (' + picked + ') · занятие идёт ' + durText + ' · первое поставите сами'
         : 'дни не выбраны — курс сохранится, но расписание останется пустым',
-
-      priceOk: !partial || !course,
-      priceDown: partial && course,
 
       dates: dates,
       tzNote: 'вы в поясе Москва, UTC+3 — у учеников пересчитается само',
@@ -803,10 +918,26 @@ class Component extends DCLogic {
         { name: 'NASA · снимок дня: горение в невесомости', right: 'право: можно брать в свою работу' },
       ],
 
-      railKicker: course ? 'Что увидит ученик' : (cancel ? 'Что придёт ученикам' : 'Кого это касается'),
+      railKicker: course ? 'Что увидит ученик' : (edit ? 'Кого касается правка' : (cancel ? 'Что придёт ученикам' : 'Кого это касается')),
       courseRail: course,
-      lessonRail: !course && !move,
+      lessonRail: !course && !move && !edit,
       moveRail: move,
+      editRail: edit,
+      editMetricLabel: 'человек уже записаны — правка их не отписывает и не переносит',
+      editRailNote: partial
+        ? 'список записанных не пришёл — показываем, что меняется у них по правилам курса:'
+        : 'что у них изменится от вашей правки:',
+      editRows: [
+        { what: 'название курса', who: 'увидят', color: 'var(--color-text)' },
+        { what: 'уровень и полка каталога', who: 'не увидят', color: 'var(--color-text-secondary)' },
+        { what: 'ритм и будущие занятия', who: 'увидят', color: 'var(--color-text)' },
+        { what: 'обложка и «о курсе»', who: 'не увидят', color: 'var(--color-text-secondary)' },
+        { what: 'пройденные занятия и работы', who: 'не тронутся', color: 'var(--color-go-text)' },
+      ],
+      editWarnColor: s.days.length ? 'var(--color-text-secondary)' : 'var(--color-accent-text)',
+      editWarn: s.days.length
+        ? 'прошедшие занятия не двигаются никогда: сдвинутся только те, что ещё не были'
+        : 'дни не выбраны: будущие занятия сниматься не будут, но новые перестанут появляться',
       // Перенос считается не «на два дня вперёд», а по календарю и по поясам: у Ли новое
       // время попадает в ночь, и это горит — коралловым, как всякое «не получится».
       // Рельс не обещает того, чего экран сделать не может: пока служба молчит, ученикам
@@ -853,8 +984,7 @@ class Component extends DCLogic {
         { k: 'предмет', v: { chem: 'химия', math: 'математика', phys: 'физика', bio: 'биология', hist: 'история', lang: 'английский', astro: 'астрономия' }[s.subject] },
         { k: 'для кого', v: { g56: '5–6 класс', g78: '7–8 класс', g911: '9–11 класс', adult: 'взрослые' }[s.level] },
         { k: 'ритм', v: s.week + ' раза в неделю · ' + durText + (s.days.length ? ' · ' + picked : '') },
-        { k: 'цена', v: partial && course ? 'бесплатно (цену добавите позже)'
-            : (s.price === 'free' ? 'бесплатно' : (empty ? 'ещё не указана' : '1 200 ₽ за занятие')) },
+        { k: 'обложка', v: { a: 'полосы' , b: 'наклон', c: 'точки' }[s.motif] + ' · цвет по предмету' },
       ],
       pupilCount: '14',
       tzRailNote: partial && !course
@@ -880,8 +1010,12 @@ class Component extends DCLogic {
       flatPrimary: !form && !cancel,
       flatDanger: !form && cancel,
       dangerPrimary: form && cancel,
-      primaryLabel: course ? 'Опубликовать курс' : (move ? (cancel ? 'Отменить занятие' : 'Перенести занятие') : 'Поставить в расписание'),
-      secondaryLabel: course ? 'Сохранить черновиком' : (move ? (cancel ? 'Не отменять, вернуться к переносу' : 'Оставить как было') : 'Сохранить черновиком'),
+      primaryLabel: course ? 'Опубликовать курс'
+        : (edit ? 'Сохранить правку'
+          : (move ? (cancel ? 'Отменить занятие' : 'Перенести занятие') : 'Поставить в расписание')),
+      secondaryLabel: course ? 'Сохранить черновиком'
+        : (edit ? 'Отменить правку'
+          : (move ? (cancel ? 'Не отменять, вернуться к переносу' : 'Оставить как было') : 'Сохранить черновиком')),
       // ПРАВИЛА 6.5г: подпись под кнопкой — тоже обещание, и в отказе она обещать не имеет
       // права. Обезвредить рельс и оставить обещание под кнопкой — то же вранье, только ниже.
       primaryNote: s.st === 'loading'
@@ -893,16 +1027,20 @@ class Component extends DCLogic {
             : 'пока служба расписания молчит, у учеников стоит прежнее время: занятие на месте, новое время и причина сохранены черновиком.')
           : (course
             ? 'пока справочник молчит, публиковать нечего: черновик сохранён и никуда не денется.'
-            : 'пока курс не открылся, ставить занятие некуда: тема и материалы сохранены черновиком.'))
+            : (edit
+              ? 'пока курс не читается, сохранять нечего: у записанных всё как было, черновик правки сохранён.'
+              : 'пока курс не открылся, ставить занятие некуда: тема и материалы сохранены черновиком.')))
+        : (edit
+          ? 'название и ритм увидят 14 записанных: имя — в расписании и «Моей учёбе», ритм — в будущих занятиях. Пройденное и сданное не тронется.'
         : (course
           ? 'после публикации курс появится в каталоге и на него можно записаться. Снять с публикации можно в любой момент — записанные ученики останутся.'
           : (move
             ? (cancel
-              ? 'занятие исчезнет из расписания 14 учеников, рядом останется ваша причина: расписание сообщит об отмене тому, кто откроет его к занятию. Оплата за отменённое занятие не списывается.'
+              ? 'занятие исчезнет из расписания 14 учеников, рядом останется ваша причина: расписание сообщит об отмене тому, кто откроет его к занятию. Остальные занятия курса и запись на него не меняются.'
               : (earlier
                 ? 'занятие переедет вместе с материалами, конспектом и чатом на ' + dateFull + '. Расписание покажет это только тому, кто в него зайдёт раньше нового дня, — до остальных придётся дойти самим.'
                 : 'занятие переедет вместе с материалами, конспектом и чатом. В расписании 14 учеников встанет новое время и ваша причина — они увидят его, когда откроют расписание.'))
-            : 'занятие встанет в расписание 14 учеников. ' + dateFull + ', 11:30 по вашему времени — они увидят его, открыв расписание.')),
+            : 'занятие встанет в расписание 14 учеников. ' + dateFull + ', 11:30 по вашему времени — они увидят его, открыв расписание.'))),
 
       onSw: this.onSw,
       onPick: this.onPick,

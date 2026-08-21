@@ -19,27 +19,27 @@
 <div ref="{{ setRoot }}" data-theme="{{ theme }}" data-mode="{{ mode }}" style="height: 100vh; display: grid; grid-template-rows: auto minmax(0, 1fr); background: var(--color-bg); color: var(--color-text); font-family: var(--font-body); overflow: hidden;">
 
   <div style="display: flex; align-items: center; gap: var(--space-2); padding: var(--space-3) var(--space-4); border-bottom: 1px solid var(--color-border); flex-wrap: wrap;">
-    <span style="font: 500 11px var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .08em; text-transform: uppercase;">экран</span>
-    <button data-sw="screen" data-val="teacher" onClick="{{ onSw }}" style="font: 500 12px var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">кабинет · преподаватель</button>
-    <button data-sw="screen" data-val="pupil" onClick="{{ onSw }}" style="font: 500 12px var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">кабинет · ученик</button>
-    <button data-sw="screen" data-val="learning" onClick="{{ onSw }}" style="font: 500 12px var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">моя учёба</button>
-    <button data-sw="screen" data-val="schedule" onClick="{{ onSw }}" style="font: 500 12px var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">расписание</button>
+    <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .08em; text-transform: uppercase;">экран</span>
+    <button data-sw="screen" data-val="teacher" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">кабинет · преподаватель</button>
+    <button data-sw="screen" data-val="pupil" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">кабинет · ученик</button>
+    <button data-sw="screen" data-val="learning" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">моя учёба</button>
+    <button data-sw="screen" data-val="schedule" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">расписание</button>
 
-    <span style="font: 500 11px var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .08em; text-transform: uppercase; margin-left: var(--space-4);">состояние</span>
-    <button data-sw="st" data-val="filled" onClick="{{ onSw }}" style="font: 500 12px var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">наполнено</button>
-    <button data-sw="st" data-val="empty" onClick="{{ onSw }}" style="font: 500 12px var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">пусто</button>
-    <button data-sw="st" data-val="loading" onClick="{{ onSw }}" style="font: 500 12px var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">загружается</button>
-    <button data-sw="st" data-val="failed" onClick="{{ onSw }}" style="font: 500 12px var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">отказ</button>
-    <button data-sw="st" data-val="partial" onClick="{{ onSw }}" style="font: 500 12px var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">частичный отказ</button>
+    <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .08em; text-transform: uppercase; margin-left: var(--space-4);">состояние</span>
+    <button data-sw="st" data-val="filled" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">наполнено</button>
+    <button data-sw="st" data-val="empty" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">пусто</button>
+    <button data-sw="st" data-val="loading" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">загружается</button>
+    <button data-sw="st" data-val="failed" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">отказ</button>
+    <button data-sw="st" data-val="partial" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">частичный отказ</button>
 
-    <span style="font: 500 11px var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .08em; text-transform: uppercase; margin-left: var(--space-4);">кадр</span>
-    <button data-sw="w" data-val="1280" onClick="{{ onSw }}" style="font: 500 12px var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">1280×800</button>
-    <button data-sw="w" data-val="1512" onClick="{{ onSw }}" style="font: 500 12px var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">1512×944</button>
+    <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .08em; text-transform: uppercase; margin-left: var(--space-4);">кадр</span>
+    <button data-sw="w" data-val="1280" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">1280×800</button>
+    <button data-sw="w" data-val="1512" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">1512×944</button>
 
     <span style="margin-left: auto; display: flex; gap: var(--space-2); align-items: center;">
-      <span data-scroll-probe style="font: 400 11px var(--font-mono); color: var(--color-text-tertiary);">прокрутка страницы: 0 px</span>
-      <button data-sw="theme" data-val="toggle" onClick="{{ onSw }}" style="font: 500 12px var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">тема</button>
-      <button data-sw="kids" data-val="toggle" onClick="{{ onSw }}" style="font: 500 12px var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">kids</button>
+      <span data-scroll-probe style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary);">прокрутка страницы: 0 px</span>
+      <button data-sw="theme" data-val="toggle" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">тема</button>
+      <button data-sw="kids" data-val="toggle" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">kids</button>
     </span>
   </div>
 
@@ -57,9 +57,9 @@
           </sc-for>
         </span>
         <span style="margin-left: auto; display: flex; align-items: center; gap: var(--space-3);">
-          <span style="font: 400 12px var(--font-mono); color: var(--color-text-tertiary);">{{ clock }}</span>
+          <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary);">{{ clock }}</span>
           <span style="display: flex; align-items: center; gap: var(--space-2); padding: var(--space-1) var(--space-3) var(--space-1) var(--space-2); border: 1px solid var(--color-border); border-radius: var(--radius-pill);">
-            <span style="width: 24px; height: 24px; border-radius: 50%; background: var(--color-surface-subtle); display: grid; place-items: center; font: 500 10px var(--font-mono); color: var(--color-text-secondary);">{{ meIni }}</span>
+            <span style="width: 24px; height: 24px; border-radius: 50%; background: var(--color-surface-subtle); display: grid; place-items: center; font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-secondary);">{{ meIni }}</span>
             <span style="font-size: var(--text-caption); color: var(--color-text);">{{ meName }}</span>
           </span>
         </span>
@@ -74,7 +74,7 @@
               <div style="border: 1px solid var(--color-border); border-inline-start: 2px solid var(--color-accent); border-radius: var(--radius-card); padding: var(--space-5); background: var(--color-surface); display: grid; gap: var(--space-3);">
                 <span style="display: flex; align-items: center; gap: var(--space-2);">
                   <span style="width: 6px; height: 6px; border-radius: 50%; background: var(--color-accent);"></span>
-                  <span style="font: 500 11px var(--font-mono); color: var(--color-accent-text); letter-spacing: .08em; text-transform: uppercase; white-space: nowrap;">идёт 24 из 45 минут</span>
+                  <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-accent-text); letter-spacing: .08em; text-transform: uppercase; white-space: nowrap;">идёт 24 из 45 минут</span>
                 </span>
                 <span style="font-family: var(--font-heading); font-size: var(--text-h3); font-weight: 600; letter-spacing: var(--tracking-snug);">English A2 · Unit 4 — Travel</span>
                 <span style="font-size: var(--text-caption); color: var(--color-text-secondary);">6 участников в комнате · внимание класса 78 · Аня подняла руку</span>
@@ -86,15 +86,15 @@
 
               <div style="border: 1px solid var(--color-border); border-radius: var(--radius-card); background: var(--color-surface); display: grid; grid-template-rows: auto minmax(0, 1fr); min-height: 0; overflow: hidden;">
                 <span style="display: flex; align-items: baseline; gap: var(--space-3); padding: var(--space-4) var(--space-5) var(--space-3);">
-                  <span style="font: 500 12px var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .08em; text-transform: uppercase;">Требует внимания</span>
-                  <span style="font: 400 12px var(--font-mono); color: var(--color-text-tertiary);">7 дел</span>
+                  <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .08em; text-transform: uppercase;">Требует внимания</span>
+                  <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary);">7 дел</span>
                 </span>
                 <div style="overflow: auto; padding: 0 var(--space-5) var(--space-4); min-height: 0;">
                   <sc-for list="{{ todo }}" as="t" hint-placeholder-count="7">
                     <span style="display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--space-3); align-items: center; padding: var(--space-3) 0; border-bottom: 1px solid var(--color-border);">
                       <span style="display: grid; gap: 2px; min-width: 0;">
                         <span style="font-size: var(--text-caption); font-weight: 500;">{{ t.name }}</span>
-                        <span style="font: 400 11px var(--font-mono); color: var(--color-text-tertiary);">{{ t.sub }}</span>
+                        <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary);">{{ t.sub }}</span>
                       </span>
                       <button onClick="{{ noop }}" style="font-size: var(--text-caption); font-family: var(--font-body); color: var(--color-text); background: none; border: none; cursor: pointer; white-space: nowrap; min-height: var(--tap-min); padding: 0 var(--space-2); text-decoration: underline; text-decoration-color: var(--color-border-strong); text-underline-offset: 3px;">{{ t.act }}</button>
                     </span>
@@ -106,16 +106,16 @@
             <div style="display: grid; grid-template-rows: auto minmax(0, 1fr); gap: var(--space-4); min-height: 0;">
               <div style="border: 1px solid var(--color-border); border-radius: var(--radius-card); background: var(--color-surface); padding: var(--space-4) var(--space-5) var(--space-5);">
                 <span style="display: flex; align-items: baseline; gap: var(--space-3); margin-bottom: var(--space-4);">
-                  <span style="font: 500 12px var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .08em; text-transform: uppercase;">Неделя</span>
-                  <span style="font: 400 12px var(--font-mono); color: var(--color-text-tertiary);">17–23 августа · 9 занятий</span>
+                  <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .08em; text-transform: uppercase;">Неделя</span>
+                  <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary);">17–23 августа · 9 занятий</span>
                   <button onClick="{{ noop }}" style="margin-left: auto; font-size: var(--text-caption); font-family: var(--font-body); color: var(--color-text-secondary); background: none; border: none; cursor: pointer; min-height: var(--tap-min); padding: 0 var(--space-2);">всё расписание →</button>
                 </span>
 
                 <sc-if value="{{ weekDown }}" hint-placeholder-val="{{ false }}">
                   <div style="display: grid; gap: var(--space-3); align-content: start; padding: var(--space-4) var(--space-5); border: 1px solid var(--color-border); border-radius: var(--radius-control); background: var(--color-surface);">
-                    <span style="font: 500 11px var(--font-mono); color: var(--color-text-secondary); letter-spacing: .08em; text-transform: uppercase;">частичный отказ · расписание</span>
+                    <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-secondary); letter-spacing: .08em; text-transform: uppercase;">частичный отказ · расписание</span>
                     <span style="font-size: var(--text-small); font-weight: 500; color: var(--color-text);">Неделя не пришла — остальное в кабинете работает</span>
-                    <span style="display: grid; gap: var(--space-1); font: 400 11px var(--font-mono); color: var(--color-text-secondary); line-height: var(--leading-snug);">
+                    <span style="display: grid; gap: var(--space-1); font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-secondary); line-height: var(--leading-snug);">
                       <span>работает: текущее занятие · дела · курсы · работы</span>
                       <span>не работает: только показ недели — сами занятия на месте и никуда не делись</span>
                     </span>
@@ -130,10 +130,10 @@
                 <div style="display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: var(--space-2);">
                   <sc-for list="{{ week }}" as="d" hint-placeholder-count="7">
                     <span style="display: grid; gap: var(--space-2); align-content: start; min-width: 0;">
-                      <span style="font: 500 11px var(--font-mono); color: {{ d.color }}; letter-spacing: .04em;">{{ d.label }}</span>
+                      <span style="font: 500 var(--text-caption) var(--font-mono); color: {{ d.color }}; letter-spacing: .04em;">{{ d.label }}</span>
                       <sc-for list="{{ d.slots }}" as="s" hint-placeholder-count="2">
                         <span style="display: grid; gap: 1px; border-radius: var(--radius-sm); border: 1px solid var(--color-border); background: {{ s.bg }}; padding: var(--space-2); min-height: 52px; align-content: start; min-width: 0; overflow: hidden;">
-                          <span style="font: 500 10px var(--font-mono); color: var(--color-text-secondary);">{{ s.time }}</span>
+                          <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-secondary);">{{ s.time }}</span>
                           <span title="{{ s.full }}" style="font-size: 11px; color: var(--color-text); line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ s.name }}</span>
                         </span>
                       </sc-for>
@@ -145,21 +145,21 @@
 
               <div style="border: 1px solid var(--color-border); border-radius: var(--radius-card); background: var(--color-surface); display: grid; grid-template-rows: auto minmax(0, 1fr); min-height: 0; overflow: hidden;">
                 <span style="display: flex; align-items: baseline; gap: var(--space-3); padding: var(--space-4) var(--space-5) var(--space-3);">
-                  <span style="font: 500 12px var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .08em; text-transform: uppercase;">Мои курсы</span>
-                  <span style="font: 400 12px var(--font-mono); color: var(--color-text-tertiary);">4 курса · 63 ученика</span>
+                  <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .08em; text-transform: uppercase;">Мои курсы</span>
+                  <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary);">4 курса · 63 ученика</span>
                 </span>
                 <div style="overflow: auto; padding: 0 var(--space-5) var(--space-4); min-height: 0;">
                   <sc-for list="{{ courses }}" as="c" hint-placeholder-count="4">
                     <span style="display: grid; grid-template-columns: minmax(0, 1fr) 92px auto; gap: var(--space-3); align-items: center; padding: var(--space-3) 0; border-bottom: 1px solid var(--color-border);">
                       <span style="display: grid; gap: 2px; min-width: 0;">
                         <span style="font-size: var(--text-caption); font-weight: 500;">{{ c.name }}</span>
-                        <span style="font: 400 11px var(--font-mono); color: var(--color-text-tertiary);">{{ c.sub }}</span>
+                        <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary);">{{ c.sub }}</span>
                       </span>
                       <span style="display: grid; gap: var(--space-1);">
                         <span style="height: 3px; border-radius: 2px; background: var(--color-surface-subtle);">
                           <span style="display: block; height: 3px; border-radius: 2px; background: var(--color-go-line); width: {{ c.progW }};"></span>
                         </span>
-                        <span style="font: 400 10px var(--font-mono); color: var(--color-text-tertiary);">{{ c.prog }}</span>
+                        <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary);">{{ c.prog }}</span>
                       </span>
                       <button onClick="{{ noop }}" style="font-size: var(--text-caption); font-family: var(--font-body); color: var(--color-text); background: none; border: none; cursor: pointer; white-space: nowrap; min-height: var(--tap-min); padding: 0 var(--space-2); text-decoration: underline; text-decoration-color: var(--color-border-strong); text-underline-offset: 3px;">открыть</button>
                     </span>
@@ -171,10 +171,10 @@
             <div style="display: grid; grid-template-rows: auto auto minmax(0, 1fr) auto; gap: var(--space-4); min-height: 0;">
               <sc-if value="{{ showAttention }}" hint-placeholder-val="{{ true }}">
                 <div style="border: 1px solid var(--color-border); border-radius: var(--radius-card); background: var(--color-surface); padding: var(--space-4) var(--space-5) var(--space-5); display: grid; gap: var(--space-3);">
-                  <span style="font: 500 11px var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .08em; text-transform: uppercase;">усвоение группы · A2</span>
+                  <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .08em; text-transform: uppercase;">усвоение группы · A2</span>
                   <span style="display: flex; align-items: baseline; gap: var(--space-2);">
                     <span style="font: 500 var(--text-metric) var(--font-mono); line-height: 1; letter-spacing: var(--tracking-tight);">78</span>
-                    <span style="font: 400 12px var(--font-mono); color: var(--color-text-tertiary);">из 100 · за неделю +4</span>
+                    <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary);">из 100 · за неделю +4</span>
                   </span>
                   <span data-kids-hide style="display: flex; align-items: flex-end; gap: 3px; height: 34px;">
                     <sc-for list="{{ spark }}" as="b" hint-placeholder-count="14">
@@ -192,11 +192,11 @@
               </div>
 
               <div style="border: 1px solid var(--color-border); border-radius: var(--radius-card); background: var(--color-surface); display: grid; grid-template-rows: auto minmax(0, 1fr); min-height: 168px; overflow: hidden;">
-                <span style="padding: var(--space-4) var(--space-5) var(--space-3); font: 500 12px var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .08em; text-transform: uppercase;">Вопросы учеников</span>
+                <span style="padding: var(--space-4) var(--space-5) var(--space-3); font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .08em; text-transform: uppercase;">Вопросы учеников</span>
                 <div style="overflow: auto; padding: 0 var(--space-5) var(--space-4); min-height: 0;">
                   <sc-for list="{{ questions }}" as="q" hint-placeholder-count="3">
                     <span style="display: grid; gap: 2px; padding: var(--space-3) 0; border-bottom: 1px solid var(--color-border);">
-                      <span style="font: 400 11px var(--font-mono); color: var(--color-text-tertiary);">{{ q.who }}</span>
+                      <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary);">{{ q.who }}</span>
                       <span style="font-size: var(--text-caption); line-height: var(--leading-snug);">{{ q.text }}</span>
                     </span>
                   </sc-for>
@@ -220,7 +220,7 @@
               <div style="border: 1px solid var(--color-border); border-inline-start: 2px solid var(--color-accent); border-radius: var(--radius-card); padding: var(--space-5); background: var(--color-surface); display: grid; gap: var(--space-3);">
                 <span style="display: flex; align-items: center; gap: var(--space-2);">
                   <span style="width: 6px; height: 6px; border-radius: 50%; background: var(--color-accent);"></span>
-                  <span style="font: 500 11px var(--font-mono); color: var(--color-accent-text); letter-spacing: .08em; text-transform: uppercase;">урок идёт · вас ждут</span>
+                  <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-accent-text); letter-spacing: .08em; text-transform: uppercase;">урок идёт · вас ждут</span>
                 </span>
                 <span style="font-family: var(--font-heading); font-size: var(--text-h3); font-weight: 600; letter-spacing: var(--tracking-snug);">English A2 · Unit 4 — Travel</span>
                 <span style="font-size: var(--text-caption); color: var(--color-text-secondary);">Люция Валерьевна · идёт 24 минуты · доска открыта для письма</span>
@@ -229,16 +229,16 @@
 
               <div style="border: 1px solid var(--color-border); border-radius: var(--radius-card); background: var(--color-surface); display: grid; grid-template-rows: auto minmax(0, 1fr); min-height: 0; overflow: hidden;">
                 <span style="display: flex; align-items: baseline; gap: var(--space-3); padding: var(--space-4) var(--space-5) var(--space-3);">
-                  <span style="font: 500 12px var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .08em; text-transform: uppercase;">Сдать</span>
-                  <span style="font: 400 12px var(--font-mono); color: var(--color-text-tertiary);">4 работы · ближняя до четверга</span>
+                  <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .08em; text-transform: uppercase;">Сдать</span>
+                  <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary);">4 работы · ближняя до четверга</span>
                 </span>
                 <div style="overflow: auto; padding: 0 var(--space-5) var(--space-4); min-height: 0;">
                   <sc-for list="{{ homework }}" as="h" hint-placeholder-count="4">
                     <span style="display: grid; grid-template-columns: 62px minmax(0, 1fr) auto; gap: var(--space-3); align-items: center; padding: var(--space-3) 0; border-bottom: 1px solid var(--color-border);">
-                      <span style="font: 500 11px var(--font-mono); color: {{ h.color }};">{{ h.due }}</span>
+                      <span style="font: 500 var(--text-caption) var(--font-mono); color: {{ h.color }};">{{ h.due }}</span>
                       <span style="display: grid; gap: 2px; min-width: 0;">
                         <span style="font-size: var(--text-caption); font-weight: 500;">{{ h.name }}</span>
-                        <span style="font: 400 11px var(--font-mono); color: var(--color-text-tertiary);">{{ h.sub }}</span>
+                        <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary);">{{ h.sub }}</span>
                       </span>
                       <button onClick="{{ noop }}" style="font-size: var(--text-caption); font-family: var(--font-body); color: var(--color-text); background: none; border: none; cursor: pointer; white-space: nowrap; min-height: var(--tap-min); padding: 0 var(--space-2); text-decoration: underline; text-decoration-color: var(--color-border-strong); text-underline-offset: 3px;">{{ h.act }}</button>
                     </span>
@@ -250,15 +250,15 @@
             <div style="display: grid; grid-template-rows: auto minmax(0, 1fr); gap: var(--space-4); min-height: 0;">
               <div style="border: 1px solid var(--color-border); border-radius: var(--radius-card); background: var(--color-surface); padding: var(--space-4) var(--space-5) var(--space-5);">
                 <span style="display: flex; align-items: baseline; gap: var(--space-3); margin-bottom: var(--space-4);">
-                  <span style="font: 500 12px var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .08em; text-transform: uppercase;">Неделя</span>
-                  <span style="font: 400 12px var(--font-mono); color: var(--color-text-tertiary);">17–23 августа · 5 занятий</span>
+                  <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .08em; text-transform: uppercase;">Неделя</span>
+                  <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary);">17–23 августа · 5 занятий</span>
                 </span>
 
                 <sc-if value="{{ weekDown }}" hint-placeholder-val="{{ false }}">
                   <div style="display: grid; gap: var(--space-3); align-content: start; padding: var(--space-4) var(--space-5); border: 1px solid var(--color-border); border-radius: var(--radius-control); background: var(--color-surface);">
-                    <span style="font: 500 11px var(--font-mono); color: var(--color-text-secondary); letter-spacing: .08em; text-transform: uppercase;">частичный отказ · расписание</span>
+                    <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-secondary); letter-spacing: .08em; text-transform: uppercase;">частичный отказ · расписание</span>
                     <span style="font-size: var(--text-small); font-weight: 500; color: var(--color-text);">Неделя не пришла — остальное в кабинете работает</span>
-                    <span style="display: grid; gap: var(--space-1); font: 400 11px var(--font-mono); color: var(--color-text-secondary); line-height: var(--leading-snug);">
+                    <span style="display: grid; gap: var(--space-1); font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-secondary); line-height: var(--leading-snug);">
                       <span>работает: задания · повторение · моя учёба</span>
                       <span>не работает: только показ недели — занятия на месте, время не менялось</span>
                     </span>
@@ -272,10 +272,10 @@
                 <div style="display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: var(--space-2);">
                   <sc-for list="{{ week }}" as="d" hint-placeholder-count="7">
                     <span style="display: grid; gap: var(--space-2); align-content: start; min-width: 0;">
-                      <span style="font: 500 11px var(--font-mono); color: {{ d.color }};">{{ d.label }}</span>
+                      <span style="font: 500 var(--text-caption) var(--font-mono); color: {{ d.color }};">{{ d.label }}</span>
                       <sc-for list="{{ d.slots }}" as="s" hint-placeholder-count="1">
                         <span style="display: grid; gap: 1px; border-radius: var(--radius-sm); border: 1px solid var(--color-border); background: {{ s.bg }}; padding: var(--space-2); min-height: 52px; align-content: start; min-width: 0; overflow: hidden;">
-                          <span style="font: 500 10px var(--font-mono); color: var(--color-text-secondary);">{{ s.time }}</span>
+                          <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-secondary);">{{ s.time }}</span>
                           <span title="{{ s.full }}" style="font-size: 11px; color: var(--color-text); line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ s.name }}</span>
                         </span>
                       </sc-for>
@@ -287,17 +287,17 @@
 
               <div style="border: 1px solid var(--color-border); border-radius: var(--radius-card); background: var(--color-surface); display: grid; grid-template-rows: auto minmax(0, 1fr); min-height: 0; overflow: hidden;">
                 <span style="display: flex; align-items: baseline; gap: var(--space-3); padding: var(--space-4) var(--space-5) var(--space-3);">
-                  <span style="font: 500 12px var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .08em; text-transform: uppercase;">Повторить</span>
-                  <span style="font: 400 12px var(--font-mono); color: var(--color-text-tertiary);">12 слов ждут · 6 минут</span>
+                  <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .08em; text-transform: uppercase;">Повторить</span>
+                  <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary);">12 слов ждут · 6 минут</span>
                 </span>
                 <div style="overflow: auto; padding: 0 var(--space-5) var(--space-4); min-height: 0;">
                   <sc-for list="{{ words }}" as="w" hint-placeholder-count="6">
                     <span style="display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--space-3); align-items: baseline; padding: var(--space-3) 0; border-bottom: 1px solid var(--color-border);">
                       <span style="display: grid; gap: 2px; min-width: 0;">
                         <span style="font-size: var(--text-caption); font-weight: 500;">{{ w.word }}</span>
-                        <span style="font: 400 11px var(--font-mono); color: var(--color-text-tertiary);">{{ w.tr }}</span>
+                        <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary);">{{ w.tr }}</span>
                       </span>
-                      <span style="font: 400 11px var(--font-mono); color: var(--color-text-tertiary);">{{ w.when }}</span>
+                      <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary);">{{ w.when }}</span>
                     </span>
                   </sc-for>
                 </div>
@@ -306,10 +306,10 @@
 
             <div style="display: grid; grid-template-rows: auto minmax(0, 1fr); gap: var(--space-4); min-height: 0;">
               <div style="border: 1px solid var(--color-border); border-radius: var(--radius-card); background: var(--color-surface); padding: var(--space-4) var(--space-5) var(--space-5); display: grid; gap: var(--space-3);">
-                <span style="font: 500 11px var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .08em; text-transform: uppercase;">мой прогресс · A2</span>
+                <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .08em; text-transform: uppercase;">мой прогресс · A2</span>
                 <span style="display: flex; align-items: baseline; gap: var(--space-2);">
                   <span style="font: 500 var(--text-metric) var(--font-mono); line-height: 1; letter-spacing: var(--tracking-tight);">64</span>
-                  <span style="font: 400 12px var(--font-mono); color: var(--color-text-tertiary);">% курса · 11 из 17 уроков</span>
+                  <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary);">% курса · 11 из 17 уроков</span>
                 </span>
                 <span style="height: 4px; border-radius: 2px; background: var(--color-surface-subtle);">
                   <span style="display: block; height: 4px; border-radius: 2px; background: var(--color-border-strong); width: 64%;"></span>
@@ -321,7 +321,7 @@
                 <span style="font-family: var(--font-heading); font-size: var(--text-h2); font-weight: 600; letter-spacing: var(--tracking-snug); line-height: var(--leading-heading);">Моя учёба</span>
                 <span style="font-size: var(--text-small); color: var(--color-text-secondary); line-height: var(--leading-body); text-wrap: pretty;">Всё, что вы прошли: занятия, работы со всеми попытками, конспекты, доски, выданные материалы и переписка. Открывается с любого устройства и остаётся вашей, даже если преподаватель уйдёт.</span>
                 <button onClick="{{ goLearning }}" style="min-height: var(--control-height-md); font-size: var(--text-small); font-family: var(--font-body); color: var(--color-on-accent); background: var(--color-accent-solid); border: none; border-radius: var(--radius-control); padding: 0 var(--space-5); cursor: pointer; justify-self: start;" style-hover="background: var(--color-accent-solid-hover);">Открыть</button>
-                <span style="font: 400 11px var(--font-mono); color: var(--color-text-secondary); line-height: var(--leading-snug);">записи занятий не существует · остаются конспекты, доски, работы и оценки</span>
+                <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-secondary); line-height: var(--leading-snug);">записи занятий не существует · остаются конспекты, доски, работы и оценки</span>
               </div>
             </div>
           </div>
@@ -330,22 +330,22 @@
         <sc-if value="{{ showLearning }}" hint-placeholder-val="{{ false }}">
           <div data-geo="рабочая область" style="position: absolute; inset: 0; padding: var(--space-5); display: grid; grid-template-columns: 232px minmax(0, 1fr); gap: var(--space-4); min-height: 0;">
             <div style="border: 1px solid var(--color-border); border-radius: var(--radius-card); background: var(--color-surface); padding: var(--space-4); display: grid; grid-template-rows: auto minmax(0, 1fr) auto; gap: var(--space-3); min-height: 0;">
-              <span style="font: 500 11px var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .08em; text-transform: uppercase; padding: 0 var(--space-2);">что осталось у вас</span>
+              <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .08em; text-transform: uppercase; padding: 0 var(--space-2);">что осталось у вас</span>
               <div style="display: grid; gap: var(--space-1); align-content: start; overflow: auto; min-height: 0;">
                 <sc-for list="{{ sections }}" as="s" hint-placeholder-count="7">
                   <button data-section="{{ s.id }}" onClick="{{ onSection }}" style="display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--space-2); align-items: center; text-align: start; min-height: var(--tap-min); border: none; border-radius: var(--radius-control); background: none; color: var(--color-text); font-family: var(--font-body); font-size: var(--text-small); padding: 0 var(--space-3); cursor: pointer;" style-hover="background: var(--color-surface-hover);">
                     <span>{{ s.label }}</span>
-                    <span style="font: 400 11px var(--font-mono); color: var(--color-text-tertiary);">{{ s.count }}</span>
+                    <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary);">{{ s.count }}</span>
                   </button>
                 </sc-for>
               </div>
-              <span style="font: 400 11px var(--font-mono); color: var(--color-text-tertiary); line-height: var(--leading-snug); padding: var(--space-3) var(--space-2) 0; border-top: 1px solid var(--color-border);">всё это открывается с любого устройства и не зависит от преподавателя</span>
+              <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); line-height: var(--leading-snug); padding: var(--space-3) var(--space-2) 0; border-top: 1px solid var(--color-border);">всё это открывается с любого устройства и не зависит от преподавателя</span>
             </div>
 
             <div style="display: grid; grid-template-rows: auto minmax(0, 1fr); gap: var(--space-4); min-height: 0;">
               <div style="display: flex; align-items: baseline; gap: var(--space-3); flex-wrap: wrap;">
                 <span style="font-family: var(--font-heading); font-size: var(--text-h1); font-weight: 600; letter-spacing: var(--tracking-tight);">{{ learnTitle }}</span>
-                <span style="font: 400 12px var(--font-mono); color: var(--color-text-tertiary);">{{ learnMeta }}</span>
+                <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary);">{{ learnMeta }}</span>
                 <span style="margin-left: auto; display: flex; gap: var(--space-2);">
                   <input placeholder="Найти в своей учёбе" style="width: 240px; height: var(--control-height-sm); border: 1px solid var(--color-border); border-radius: var(--radius-control); background: var(--color-surface); color: var(--color-text); font-family: var(--font-body); font-size: var(--text-caption); padding: 0 var(--space-3);">
                   <button onClick="{{ noop }}" style="min-height: var(--control-height-sm); font-size: var(--text-caption); font-family: var(--font-body); color: var(--color-text); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-control); padding: 0 var(--space-4); cursor: pointer;" style-hover="border-color: var(--color-border-strong);">Выгрузить всё</button>
@@ -355,18 +355,18 @@
               <div data-learn-grid style="overflow: auto; min-height: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-4); align-content: start;">
                 <sc-if value="{{ weekDown }}" hint-placeholder-val="{{ false }}">
                   <span style="grid-column: 1 / -1; display: grid; gap: var(--space-2); padding: var(--space-4) var(--space-5); border: 1px solid var(--color-border); border-radius: var(--radius-card); background: var(--color-surface);">
-                    <span style="font: 500 11px var(--font-mono); color: var(--color-text-secondary); letter-spacing: .08em; text-transform: uppercase;">частичный отказ · словарь</span>
+                    <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-secondary); letter-spacing: .08em; text-transform: uppercase;">частичный отказ · словарь</span>
                     <span style="font-size: var(--text-small); font-weight: 500;">Словарь не пришёл — шесть остальных разделов на месте</span>
-                    <span style="font: 400 11px var(--font-mono); color: var(--color-text-secondary); line-height: var(--leading-snug);">работает: конспекты · работы · тесты · курсы · заметки · выгрузка</span>
-                    <span style="font: 400 11px var(--font-mono); color: var(--color-text-secondary); line-height: var(--leading-snug);">ваши слова и их интервалы целы — повторение просто недоступно, пока раздел не ответит</span>
+                    <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-secondary); line-height: var(--leading-snug);">работает: конспекты · работы · тесты · курсы · заметки · выгрузка</span>
+                    <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-secondary); line-height: var(--leading-snug);">ваши слова и их интервалы целы — повторение просто недоступно, пока раздел не ответит</span>
                   </span>
                 </sc-if>
                 <sc-for list="{{ learnItems }}" as="i" hint-placeholder-count="8">
                   <span style="border: 1px solid var(--color-border); border-radius: var(--radius-card); background: var(--color-surface); padding: var(--space-4) var(--space-5); display: grid; gap: var(--space-2);">
                     <span style="display: flex; align-items: baseline; gap: var(--space-3);">
-                      <span style="font: 500 11px var(--font-mono); color: var(--color-text-tertiary);">{{ i.date }}</span>
-                      <span style="font: 400 11px var(--font-mono); color: var(--color-text-tertiary);">{{ i.kind }}</span>
-                      <span style="margin-left: auto; font: 500 11px var(--font-mono); color: {{ i.markColor }};">{{ i.mark }}</span>
+                      <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary);">{{ i.date }}</span>
+                      <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary);">{{ i.kind }}</span>
+                      <span style="margin-left: auto; font: 500 var(--text-caption) var(--font-mono); color: {{ i.markColor }};">{{ i.mark }}</span>
                     </span>
                     <span style="font-size: var(--text-body); font-weight: 500; letter-spacing: var(--tracking-snug);">{{ i.name }}</span>
                     <span style="font-size: var(--text-caption); color: var(--color-text-secondary); line-height: var(--leading-snug);">{{ i.sub }}</span>
@@ -378,7 +378,7 @@
                 </sc-for>
                 <span style="grid-column: 1 / -1; display: flex; align-items: center; gap: var(--space-3); padding: var(--space-1) 0 var(--space-4);">
                   <button onClick="{{ noop }}" style="min-height: var(--control-height-md); font-size: var(--text-small); font-family: var(--font-body); color: var(--color-text); background: none; border: 1px solid var(--color-border-strong); border-radius: var(--radius-control); padding: 0 var(--space-5); cursor: pointer;" style-hover="background: var(--color-surface-hover);">{{ moreLabel }}</button>
-                  <span style="font: 400 11px var(--font-mono); color: var(--color-text-tertiary);">{{ moreNote }}</span>
+                  <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary);">{{ moreNote }}</span>
                 </span>
               </div>
             </div>
@@ -393,7 +393,7 @@
                 <button onClick="{{ noop }}" aria-label="Прошлая неделя" style="width: 34px; height: 34px; border: 1px solid var(--color-border); border-radius: var(--radius-control); background: none; color: var(--color-text-secondary); font: 500 13px var(--font-mono); cursor: pointer;" style-hover="border-color: var(--color-border-strong);">←</button>
                 <button onClick="{{ noop }}" aria-label="Следующая неделя" style="width: 34px; height: 34px; border: 1px solid var(--color-border); border-radius: var(--radius-control); background: none; color: var(--color-text-secondary); font: 500 13px var(--font-mono); cursor: pointer;" style-hover="border-color: var(--color-border-strong);">→</button>
               </span>
-              <span style="font: 400 12px var(--font-mono); color: var(--color-text-tertiary);">17–23 августа 2026 · время в вашем поясе: Москва, UTC+3</span>
+              <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary);">17–23 августа 2026 · время в вашем поясе: Москва, UTC+3</span>
               <span style="margin-left: auto; display: flex; gap: var(--space-2);">
                 <button onClick="{{ noop }}" style="min-height: var(--control-height-sm); font-size: var(--text-caption); font-family: var(--font-body); color: var(--color-text); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-control); padding: 0 var(--space-4); cursor: pointer;" style-hover="border-color: var(--color-border-strong);">День</button>
                 <button onClick="{{ noop }}" style="min-height: var(--control-height-sm); font-size: var(--text-caption); font-family: var(--font-body); color: var(--color-on-accent); background: var(--color-accent-solid); border: none; border-radius: var(--radius-control); padding: 0 var(--space-4); cursor: pointer;" style-hover="background: var(--color-accent-solid-hover);">Поставить занятие</button>
@@ -402,10 +402,10 @@
 
             <sc-if value="{{ weekDown }}" hint-placeholder-val="{{ false }}">
               <div style="border: 1px solid var(--color-border); border-radius: var(--radius-card); background: var(--color-surface); display: grid; align-content: start; gap: var(--space-3); padding: var(--space-6) var(--space-7); min-height: 0;">
-                <span style="font: 500 11px var(--font-mono); color: var(--color-text-secondary); letter-spacing: .08em; text-transform: uppercase;">отказ · расписание</span>
+                <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-secondary); letter-spacing: .08em; text-transform: uppercase;">отказ · расписание</span>
                 <span style="font-family: var(--font-heading); font-size: var(--text-h3); font-weight: 600; letter-spacing: var(--tracking-snug);">Расписание не пришло</span>
                 <span style="font-size: var(--text-small); color: var(--color-text-secondary); line-height: var(--leading-body); max-width: 62ch; text-wrap: pretty;">У этого экрана один источник, и он не ответил — значит частичного отказа здесь быть не может и показывать половину сетки нечего. Занятия на месте: время не менялось, ничего не отменено.</span>
-                <span style="display: grid; gap: var(--space-2); font: 400 11px var(--font-mono); color: var(--color-text-secondary); line-height: var(--leading-snug); border-inline-start: 2px solid var(--color-border-strong); padding-inline-start: var(--space-4);">
+                <span style="display: grid; gap: var(--space-2); font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-secondary); line-height: var(--leading-snug); border-inline-start: 2px solid var(--color-border-strong); padding-inline-start: var(--space-4);">
                   <span>работает: кабинет · текущее занятие · курсы · работы</span>
                   <span>не работает: показ расписания — и в кабинете, и здесь</span>
                 </span>
@@ -421,20 +421,20 @@
               <div style="display: grid; grid-template-columns: 64px repeat(7, minmax(0, 1fr)); border-bottom: 1px solid var(--color-border);">
                 <span></span>
                 <sc-for list="{{ week }}" as="d" hint-placeholder-count="7">
-                  <span style="padding: var(--space-3) var(--space-3) var(--space-2); font: 500 11px var(--font-mono); color: {{ d.color }}; border-inline-start: 1px solid var(--color-border);">{{ d.label }}</span>
+                  <span style="padding: var(--space-3) var(--space-3) var(--space-2); font: 500 var(--text-caption) var(--font-mono); color: {{ d.color }}; border-inline-start: 1px solid var(--color-border);">{{ d.label }}</span>
                 </sc-for>
               </div>
               <div style="overflow: auto; min-height: 0;">
                 <sc-for list="{{ hours }}" as="h" hint-placeholder-count="12">
                   <span style="display: grid; grid-template-columns: 64px repeat(7, minmax(0, 1fr)); border-bottom: 1px solid var(--color-border); min-height: 56px;">
-                    <span style="padding: var(--space-2) var(--space-3); font: 400 11px var(--font-mono); color: var(--color-text-tertiary);">{{ h.label }}</span>
+                    <span style="padding: var(--space-2) var(--space-3); font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary);">{{ h.label }}</span>
                     <sc-for list="{{ h.cells }}" as="c" hint-placeholder-count="7">
                       <span style="border-inline-start: 1px solid var(--color-border); padding: var(--space-1);">
                         <sc-if value="{{ c.name }}" hint-placeholder-val="{{ false }}">
                           <span style="display: grid; gap: 1px; height: 100%; border-radius: var(--radius-sm); border: 1px solid var(--color-border); background: {{ c.bg }}; padding: var(--space-2);">
-                            <span style="font: 500 10px var(--font-mono); color: var(--color-text-secondary);">{{ c.time }}</span>
+                            <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-secondary);">{{ c.time }}</span>
                             <span style="font-size: 11px; color: var(--color-text); line-height: 1.3;">{{ c.name }}</span>
-                            <span style="font: 400 10px var(--font-mono); color: var(--color-text-tertiary);">{{ c.who }}</span>
+                            <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary);">{{ c.who }}</span>
                           </span>
                         </sc-if>
                       </span>
@@ -450,18 +450,18 @@
         <sc-if value="{{ showEmpty }}" hint-placeholder-val="{{ false }}">
           <div style="position: absolute; inset: 0; background: var(--color-bg); display: grid; place-items: center; padding: var(--space-8);">
             <div style="width: min(760px, 92%); display: grid; gap: var(--space-5);">
-              <span style="font: 400 11px var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .08em; text-transform: uppercase;">{{ emptyKicker }}</span>
+              <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .08em; text-transform: uppercase;">{{ emptyKicker }}</span>
               <span style="font-family: var(--font-heading); font-size: var(--text-h1); font-weight: 600; letter-spacing: var(--tracking-tight); line-height: var(--leading-heading);">{{ emptyTitle }}</span>
               <span style="font-size: var(--text-lead); color: var(--color-text-secondary); line-height: var(--leading-body); max-width: 62ch; text-wrap: pretty;">{{ emptyBody }}</span>
               <div style="display: grid; gap: 0; border-top: 1px solid var(--color-border);">
                 <sc-for list="{{ steps }}" as="s" hint-placeholder-count="5">
                   <span style="display: grid; grid-template-columns: 34px minmax(0, 1fr) auto; gap: var(--space-4); align-items: center; padding: var(--space-4) 0; border-bottom: 1px solid var(--color-border);">
-                    <span style="font: 500 12px var(--font-mono); color: {{ s.color }};">{{ s.n }}</span>
+                    <span style="font: 500 var(--text-caption) var(--font-mono); color: {{ s.color }};">{{ s.n }}</span>
                     <span style="display: grid; gap: 2px;">
                       <span style="font-size: var(--text-body); font-weight: 500;">{{ s.title }}</span>
                       <span style="font-size: var(--text-caption); color: var(--color-text-secondary); line-height: var(--leading-snug);">{{ s.sub }}</span>
                     </span>
-                    <span style="font: 400 11px var(--font-mono); color: var(--color-text-tertiary);">{{ s.meta }}</span>
+                    <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary);">{{ s.meta }}</span>
                   </span>
                 </sc-for>
               </div>
@@ -483,21 +483,21 @@
                 <span style="height: 8px; width: 74%; border-radius: 2px; background: var(--color-surface-subtle);"></span>
               </span>
             </sc-for>
-            <span style="grid-column: 1 / -1; font: 400 12px var(--font-mono); color: var(--color-text-tertiary);">собираем ваш кабинет · расписание и работы приходят первыми</span>
+            <span style="grid-column: 1 / -1; font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary);">собираем ваш кабинет · расписание и работы приходят первыми</span>
           </div>
         </sc-if>
 
         <sc-if value="{{ showFailed }}" hint-placeholder-val="{{ false }}">
           <div style="position: absolute; inset: 0; background: var(--color-bg); display: grid; place-items: center; padding: var(--space-8);">
             <div style="width: min(620px, 92%); border: 1px solid var(--color-border); border-radius: var(--radius-card); background: var(--color-surface); box-shadow: var(--shadow-md); padding: var(--space-8); display: grid; gap: var(--space-4); justify-items: start;">
-              <span style="font: 400 11px var(--font-mono); color: var(--color-error-text); letter-spacing: .08em; text-transform: uppercase;">{{ failKicker }}</span>
+              <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-error-text); letter-spacing: .08em; text-transform: uppercase;">{{ failKicker }}</span>
               <span style="font-family: var(--font-heading); font-size: var(--text-h2); font-weight: 600; letter-spacing: var(--tracking-snug); line-height: var(--leading-heading);">{{ failTitle }}</span>
               <span style="font-size: var(--text-body); color: var(--color-text-secondary); line-height: var(--leading-body); text-wrap: pretty;">{{ failBody }}</span>
               <span style="display: flex; gap: var(--space-2); flex-wrap: wrap;">
                 <button onClick="{{ noop }}" style="min-height: var(--control-height-md); font-size: var(--text-small); font-family: var(--font-body); color: var(--color-on-accent); background: var(--color-accent-solid); border: none; border-radius: var(--radius-control); padding: 0 var(--space-5); cursor: pointer;" style-hover="background: var(--color-accent-solid-hover);">Попробовать снова</button>
                 <button onClick="{{ noop }}" style="min-height: var(--control-height-md); font-size: var(--text-small); font-family: var(--font-body); color: var(--color-text); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-control); padding: 0 var(--space-5); cursor: pointer;" style-hover="border-color: var(--color-border-strong);">{{ failSecond }}</button>
               </span>
-              <span style="font: 400 11px var(--font-mono); color: var(--color-text-tertiary); line-height: var(--leading-snug);">{{ failFoot }}</span>
+              <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); line-height: var(--leading-snug);">{{ failFoot }}</span>
             </div>
           </div>
         </sc-if>

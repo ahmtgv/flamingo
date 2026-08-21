@@ -20,24 +20,24 @@
 <div ref="{{ setRoot }}" data-theme="{{ theme }}" data-mode="{{ mode }}" style="height: 100vh; display: grid; grid-template-rows: auto minmax(0, 1fr); background: var(--color-bg); color: var(--color-text); font-family: var(--font-body); overflow: hidden;">
 
   <div style="display: flex; align-items: center; gap: var(--space-2); padding: var(--space-3) var(--space-4); border-bottom: 1px solid var(--color-border); flex-wrap: wrap;">
-    <span style="font: 500 11px var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .08em; text-transform: uppercase;">экран</span>
-    <button data-sw="screen" data-val="wait" onClick="{{ onSw }}" style="font: 500 12px var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">ожидание урока</button>
-    <button data-sw="screen" data-val="projector" onClick="{{ onSw }}" style="font: 500 12px var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">второй экран</button>
-    <button data-sw="screen" data-val="demo" onClick="{{ onSw }}" style="font: 500 12px var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">демо-урок для гостя</button>
+    <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .08em; text-transform: uppercase;">экран</span>
+    <button data-sw="screen" data-val="wait" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">ожидание урока</button>
+    <button data-sw="screen" data-val="projector" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">второй экран</button>
+    <button data-sw="screen" data-val="demo" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">демо-урок для гостя</button>
 
-    <span style="font: 500 11px var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .08em; text-transform: uppercase; margin-left: var(--space-4);">случай</span>
-    <button data-sw="sub" data-val="a" onClick="{{ onSw }}" style="font: 500 12px var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">{{ subA }}</button>
-    <button data-sw="sub" data-val="b" onClick="{{ onSw }}" style="font: 500 12px var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">{{ subB }}</button>
-    <button data-sw="sub" data-val="f" onClick="{{ onSw }}" style="font: 500 12px var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">{{ subC }}</button>
+    <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .08em; text-transform: uppercase; margin-left: var(--space-4);">случай</span>
+    <sc-for list="{{ subs }}" as="s" hint-placeholder-count="3">
+      <button data-sw="sub" data-val="{{ s.id }}" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">{{ s.label }}</button>
+    </sc-for>
 
-    <span style="font: 500 11px var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .08em; text-transform: uppercase; margin-left: var(--space-4);">кадр</span>
-    <button data-sw="w" data-val="1280" onClick="{{ onSw }}" style="font: 500 12px var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">1280×800</button>
-    <button data-sw="w" data-val="1512" onClick="{{ onSw }}" style="font: 500 12px var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">1512×944</button>
+    <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .08em; text-transform: uppercase; margin-left: var(--space-4);">кадр</span>
+    <button data-sw="w" data-val="1280" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">1280×800</button>
+    <button data-sw="w" data-val="1512" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">1512×944</button>
 
     <span style="margin-left: auto; display: flex; gap: var(--space-2); align-items: center;">
-      <span data-scroll-probe style="font: 400 11px var(--font-mono); color: var(--color-text-tertiary);">прокрутка страницы: 0 px</span>
-      <button data-sw="theme" data-val="toggle" onClick="{{ onSw }}" style="font: 500 12px var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">тема</button>
-      <button data-sw="kids" data-val="toggle" onClick="{{ onSw }}" style="font: 500 12px var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">kids</button>
+      <span data-scroll-probe style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary);">прокрутка страницы: 0 px</span>
+      <button data-sw="theme" data-val="toggle" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">тема</button>
+      <button data-sw="kids" data-val="toggle" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">kids</button>
     </span>
   </div>
 
@@ -50,13 +50,13 @@
             <img src="design-assets/flamingo-bird.svg" alt="Flamingo" style="width: 20px; height: 20px; flex: none;">
             <button onClick="{{ noop }}" style="min-height: var(--control-height-sm); font-size: var(--text-small); font-family: var(--font-body); color: rgba(255, 255, 255, .62); background: none; border: none; cursor: pointer; padding: var(--space-2);" style-hover="color: var(--color-text-on-video);">← в кабинет</button>
             <span style="font-size: var(--text-small); font-weight: 500;">English A2 · Unit 5 — Shopping</span>
-            <span style="font: 400 12px var(--font-mono); color: rgba(255, 255, 255, .45);">Люция Валерьевна · 45 минут</span>
+            <span style="font: 400 var(--text-caption) var(--font-mono); color: rgba(255, 255, 255, .45);">Люция Валерьевна · 45 минут</span>
           </div>
 
           <div style="display: grid; grid-template-columns: minmax(0, 1.1fr) 340px; gap: var(--space-9); align-content: center; padding: 0 var(--space-11);">
             <div style="display: grid; gap: var(--space-5); align-content: center;">
-              <span style="display: inline-flex; align-items: center; gap: var(--space-2); font: 500 11px var(--font-mono); color: {{ tagColor }}; letter-spacing: .08em; text-transform: uppercase;">
-                <span style="width: 6px; height: 6px; border-radius: 50%; background: {{ tagColor }}; animation: flPulse 2.4s ease-in-out infinite;"></span>{{ waitTag }}
+              <span style="display: inline-flex; align-items: center; gap: var(--space-2); font: 500 var(--text-caption) var(--font-mono); color: {{ tagColor }}; letter-spacing: .08em; text-transform: uppercase;">
+                <span style="width: var(--dot-size); height: var(--dot-size); border-radius: 50%; background: {{ tagColor }}; animation: flPulse 2.4s ease-in-out infinite;"></span>{{ waitTag }}
               </span>
               <span style="font: 500 var(--text-metric) var(--font-mono); line-height: 1; letter-spacing: var(--tracking-tight);">{{ waitBig }}</span>
               <span style="font-family: var(--font-heading); font-size: var(--text-h2); font-weight: 600; letter-spacing: var(--tracking-snug); line-height: var(--leading-heading); max-width: 30ch;">{{ waitTitle }}</span>
@@ -69,18 +69,18 @@
 
             <div style="display: grid; gap: var(--space-4); align-content: center;">
               <div style="position: relative; border-radius: var(--radius-md); overflow: hidden; background: rgba(255, 255, 255, .05); border: 1px solid rgba(255, 255, 255, .12); aspect-ratio: 16 / 10; display: grid; place-items: center;">
-                <span style="font: 400 12px var(--font-mono); color: rgba(255, 255, 255, .45);">ваша камера включена</span>
-                <span style="position: absolute; left: var(--space-3); bottom: var(--space-2); font: 400 11px var(--font-mono); color: rgba(255, 255, 255, .6);">вы · Аня</span>
+                <span style="font: 400 var(--text-caption) var(--font-mono); color: rgba(255, 255, 255, .45);">ваша камера включена</span>
+                <span style="position: absolute; left: var(--space-3); bottom: var(--space-2); font: 400 var(--text-caption) var(--font-mono); color: rgba(255, 255, 255, .6);">вы · Аня</span>
               </div>
-              <span style="font: 400 11px var(--font-mono); color: rgba(255, 255, 255, .38); line-height: var(--leading-snug);">кадры камеры остаются на этом устройстве · наружу уходит только показатель внимания во время урока</span>
+              <span style="font: 400 var(--text-caption) var(--font-mono); color: rgba(255, 255, 255, .38); line-height: var(--leading-snug);">кадры камеры остаются на этом устройстве · наружу уходит только показатель внимания во время урока</span>
               <div style="display: grid; gap: 0; border-top: 1px solid rgba(255, 255, 255, .1);">
                 <sc-for list="{{ meanwhile }}" as="m" hint-placeholder-count="3">
                   <button onClick="{{ noop }}" style="display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--space-3); align-items: center; text-align: start; min-height: var(--tap-min); padding: var(--space-3) 0; background: none; border: none; border-bottom: 1px solid rgba(255, 255, 255, .1); color: var(--color-text-on-video); font-family: var(--font-body); cursor: pointer;">
                     <span style="display: grid; gap: 2px;">
                       <span style="font-size: var(--text-caption); font-weight: 500;">{{ m.name }}</span>
-                      <span style="font: 400 11px var(--font-mono); color: rgba(255, 255, 255, .4);">{{ m.sub }}</span>
+                      <span style="font: 400 var(--text-caption) var(--font-mono); color: rgba(255, 255, 255, .4);">{{ m.sub }}</span>
                     </span>
-                    <span style="font: 400 12px var(--font-mono); color: rgba(255, 255, 255, .5);">→</span>
+                    <span style="font: 400 var(--text-caption) var(--font-mono); color: rgba(255, 255, 255, .5);">→</span>
                   </button>
                 </sc-for>
               </div>
@@ -88,7 +88,7 @@
           </div>
 
           <div style="display: flex; align-items: center; gap: var(--space-3); padding: var(--space-4) var(--space-5); border-top: 1px solid rgba(255, 255, 255, .08);">
-            <span style="font: 400 11px var(--font-mono); color: rgba(255, 255, 255, .38);">{{ waitFoot }}</span>
+            <span style="font: 400 var(--text-caption) var(--font-mono); color: rgba(255, 255, 255, .38);">{{ waitFoot }}</span>
             <button onClick="{{ noop }}" style="margin-left: auto; min-height: var(--control-height-sm); font-size: var(--text-caption); font-family: var(--font-body); color: rgba(255, 255, 255, .62); background: none; border: 1px solid rgba(255, 255, 255, .18); border-radius: var(--radius-pill); padding: var(--space-2) var(--space-4); cursor: pointer;" style-hover="color: var(--color-text-on-video);">Проверить камеру и микрофон</button>
           </div>
         </div>
@@ -98,7 +98,7 @@
         <div style="position: absolute; inset: 0; background: var(--color-surface-video); color: var(--color-text-on-video); display: grid; grid-template-rows: auto minmax(0, 1fr) auto;">
           <div style="display: flex; align-items: center; gap: var(--space-4); padding: var(--space-5) var(--space-8) var(--space-3);">
             <span style="font-size: var(--text-h3); font-weight: 500; letter-spacing: var(--tracking-snug);">{{ projTitle }}</span>
-            <span style="font: 400 var(--text-small) var(--font-mono); color: rgba(255, 255, 255, .45);">{{ projMeta }}</span>
+            <span style="font: 400 var(--text-small) var(--font-mono); color: var(--color-text-on-video-quiet);">{{ projMeta }}</span>
             <span style="margin-left: auto; display: inline-flex; align-items: center; gap: var(--space-2); font: 500 var(--text-caption) var(--font-mono); color: var(--color-accent); letter-spacing: .08em; text-transform: uppercase;">
               <span style="width: 8px; height: 8px; border-radius: 50%; background: var(--color-accent); animation: flPulse 2.4s ease-in-out infinite;"></span>второй экран
             </span>
@@ -119,9 +119,9 @@
               <span style="font: 500 48px var(--font-mono); color: rgba(255, 255, 255, .3);">ПК</span>
               <span style="position: absolute; left: var(--space-6); bottom: var(--space-6); display: grid; gap: var(--space-2);">
                 <span style="font-family: var(--font-heading); font-size: var(--text-h1); font-weight: 600; letter-spacing: var(--tracking-snug);">Петя Ковалёв</span>
-                <span style="font: 400 var(--text-lead) var(--font-mono); color: rgba(255, 255, 255, .5);">отвечает · камера в эфире</span>
+                <span style="font: 400 var(--text-lead) var(--font-mono); color: var(--color-text-on-video-quiet);">отвечает · камера в эфире</span>
               </span>
-              <span style="position: absolute; right: var(--space-6); top: var(--space-6); font: 500 var(--text-small) var(--font-mono); color: var(--color-accent); border: 1px solid var(--color-accent); border-radius: var(--radius-xs); padding: 6px var(--space-3); letter-spacing: .08em; text-transform: uppercase;">наведён преподавателем</span>
+              <span style="position: absolute; right: var(--space-6); top: var(--space-6); font: 500 var(--text-small) var(--font-mono); color: var(--color-text-on-video); background: var(--color-accent-solid); border-radius: var(--radius-xs); padding: var(--space-2) var(--space-3); letter-spacing: .08em; text-transform: uppercase;">наведён преподавателем</span>
             </div>
           </sc-if>
 
@@ -218,7 +218,7 @@
             <img src="design-assets/flamingo-bird.svg" alt="Flamingo" style="width: 22px; height: 22px; flex: none;">
             <button onClick="{{ noop }}" style="min-height: var(--control-height-sm); font-size: var(--text-small); font-family: var(--font-body); color: var(--color-text-secondary); background: none; border: none; cursor: pointer; padding: var(--space-2);" style-hover="color: var(--color-text);">← на первую страницу</button>
             <span style="font-size: var(--text-small); font-weight: 500;">Потрогать занятие</span>
-            <span style="font: 400 12px var(--font-mono); color: var(--color-text-tertiary);">без регистрации · чужие уроки показать нельзя — записей не существует</span>
+            <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary);">без регистрации · чужие уроки показать нельзя — записей не существует</span>
             <span style="margin-left: auto; display: flex; gap: var(--space-2);">
               <button onClick="{{ noop }}" style="min-height: var(--control-height-sm); font-size: var(--text-caption); font-family: var(--font-body); color: var(--color-text); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-control); padding: 0 var(--space-4); cursor: pointer;" style-hover="border-color: var(--color-border-strong);">Войти</button>
               <button onClick="{{ noop }}" style="min-height: var(--control-height-sm); font-size: var(--text-caption); font-family: var(--font-body); color: var(--color-on-accent); background: var(--color-accent-solid); border: none; border-radius: var(--radius-control); padding: 0 var(--space-4); cursor: pointer;" style-hover="background: var(--color-accent-solid-hover);">Завести учётную запись</button>
@@ -227,17 +227,17 @@
 
           <div style="display: grid; grid-template-columns: minmax(0, 1fr) 320px; min-height: 0;">
             <div style="position: relative; background-color: var(--color-surface); background-image: radial-gradient(circle, var(--color-border) 1px, transparent 1px); background-size: 24px 24px; overflow: hidden;">
-              <div style="position: absolute; left: 30%; top: 22%; background: var(--color-surface-subtle); border: 1px solid var(--color-border-strong); color: var(--color-text); border-radius: var(--radius-md); padding: var(--space-3) var(--space-4); font-size: var(--text-body); font-weight: 600;">Asking for directions<span style="display: block; font: 400 11px var(--font-mono); margin-top: 2px;">тема занятия</span></div>
+              <div style="position: absolute; left: 30%; top: 22%; background: var(--color-surface-subtle); border: 1px solid var(--color-border-strong); color: var(--color-text); border-radius: var(--radius-md); padding: var(--space-3) var(--space-4); font-size: var(--text-body); font-weight: 600;">Asking for directions<span style="display: block; font: 400 var(--text-caption) var(--font-mono); margin-top: 2px;">тема занятия</span></div>
               <div style="position: absolute; left: 8%; top: 14%; background: var(--color-surface); border: 1px solid var(--color-border-strong); border-radius: var(--radius-md); padding: var(--space-2) var(--space-3); font-size: var(--text-caption); box-shadow: var(--shadow-xs);">Excuse me, how do I get to…?</div>
               <div style="position: absolute; left: 8%; top: 42%; background: var(--color-surface); border: 1px solid var(--color-border-strong); border-radius: var(--radius-md); padding: var(--space-2) var(--space-3); font-size: var(--text-caption); box-shadow: var(--shadow-xs);">Is it far from here?</div>
               <div style="position: absolute; left: 58%; top: 16%; background: var(--color-surface); border: 1px solid var(--color-border-strong); border-radius: var(--radius-md); padding: var(--space-2) var(--space-3); font-size: var(--text-caption); box-shadow: var(--shadow-xs);">turn left / right</div>
               <div style="position: absolute; left: 56%; top: 44%; background: var(--color-surface-subtle); border: 1px solid var(--color-border-strong); border-radius: var(--radius-xs); padding: var(--space-3); font-size: var(--text-caption); transform: rotate(-1.2deg);">go straight ahead ≠ go straight <b style="font-weight: 600;">on</b></div>
               <div style="position: absolute; left: 24%; top: 62%; border: 1px solid var(--color-border-strong); border-radius: var(--radius-md); overflow: hidden;">
-                <span style="display: grid; place-content: center; width: 200px; height: 112px; background-image: repeating-linear-gradient(135deg, var(--color-surface-subtle) 0 8px, var(--color-surface) 8px 16px); font: 400 11px var(--font-mono); color: var(--color-text-tertiary);">карта станции</span>
+                <span style="display: grid; place-content: center; width: 200px; height: 112px; background-image: repeating-linear-gradient(135deg, var(--color-surface-subtle) 0 8px, var(--color-surface) 8px 16px); font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary);">карта станции</span>
               </div>
               <span style="position: absolute; left: var(--space-5); bottom: var(--space-5); display: flex; align-items: center; gap: var(--space-3);">
                 <button onClick="{{ noop }}" style="min-height: var(--control-height-md); font-size: var(--text-small); font-family: var(--font-body); color: var(--color-text); background: var(--color-surface); border: 1px solid var(--color-border-strong); border-radius: var(--radius-control); padding: 0 var(--space-5); cursor: pointer;" style-hover="background: var(--color-surface-hover);">Нарисовать самому</button>
-                <span style="font: 400 12px var(--font-mono); color: var(--color-text-tertiary); background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: var(--space-2) var(--space-4);">это пример холста · ваши линии живут в этой вкладке и никуда не уходят</span>
+                <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: var(--space-2) var(--space-4);">это пример холста · ваши линии живут в этой вкладке и никуда не уходят</span>
               </span>
             </div>
 
@@ -249,12 +249,12 @@
                 </span>
                 <span style="font-size: var(--text-caption); color: var(--color-text-secondary); line-height: var(--leading-snug);">Лиц в демо нет: выдумывать людей мы не будем, а чужие занятия не записываются. На занятии здесь живые камеры — преподаватель и вы.</span>
                 <button onClick="{{ noop }}" style="min-height: var(--control-height-md); font-size: var(--text-caption); font-family: var(--font-body); color: var(--color-text); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-control); padding: 0 var(--space-4); cursor: pointer; white-space: nowrap;" style-hover="border-color: var(--color-border-strong);">Включить свою камеру</button>
-                <span style="font: 400 11px var(--font-mono); color: var(--color-text-tertiary); line-height: var(--leading-snug);">только по вашему нажатию · разбор идёт в браузере, в демо наружу не уходит даже показатель</span>
+                <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); line-height: var(--leading-snug);">только по вашему нажатию · разбор идёт в браузере, в демо наружу не уходит даже показатель</span>
               </div>
               <div style="overflow: auto; padding: var(--space-4) var(--space-5); min-height: 0; display: grid; gap: var(--space-4); align-content: start;">
                 <sc-for list="{{ parts }}" as="p" hint-placeholder-count="5">
                   <span style="display: grid; gap: 3px;">
-                    <span style="font: 500 11px var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .08em; text-transform: uppercase;">{{ p.kicker }}</span>
+                    <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .08em; text-transform: uppercase;">{{ p.kicker }}</span>
                     <span style="font-size: var(--text-small); font-weight: 500;">{{ p.title }}</span>
                     <span style="font-size: var(--text-caption); color: var(--color-text-secondary); line-height: var(--leading-snug);">{{ p.body }}</span>
                   </span>
@@ -310,13 +310,24 @@ class Component extends DCLogic {
       const k = b.dataset.sw, v = b.dataset.val;
       if (!(k in cur)) return;
       const on = cur[k] === v;
+      // 🔴 Служебная раскраска не имеет права заходить ВНУТРЬ кадра. Кнопки «что выводим»
+      // тоже помечены data-sw (они и переключают случай), но живут на тёмном экране
+      // проектора: светлые токены давали им 3,23 при пороге 4,5 — шесть надписей в четырёх
+      // видах. Прибор поймал это только после расширения прогона на подэкраны проектора.
+      // Внутри кадра — своя пара цветов под тёмный фон.
+      if (b.closest('[data-audit-scope]')) {
+        b.style.color = on ? 'var(--color-text-on-video)' : 'var(--color-text-on-video-quiet)';
+        b.style.borderColor = on ? 'var(--color-border-on-video-strong)' : 'var(--color-border-on-video)';
+        b.style.background = on ? 'var(--color-surface-on-video)' : 'none';
+        return;
+      }
       b.style.color = on ? 'var(--color-text)' : 'var(--color-text-secondary)';
       b.style.borderColor = on ? 'var(--color-border-strong)' : 'var(--color-border)';
       b.style.background = on ? 'var(--color-surface)' : 'none';
     });
     // у демо один случай — лишние переключатели не висят пустыми
     const single = this.state.screen === 'demo';
-    root.querySelectorAll('[data-sw="sub"]').forEach((b) => {
+    root.querySelectorAll('[data-sw="sub"]:not([data-audit-scope] [data-sw="sub"])').forEach((b) => {
       b.style.display = single && b.dataset.val !== 'a' ? 'none' : 'inline-block';
     });
   }
@@ -335,12 +346,35 @@ class Component extends DCLogic {
     // Проектор — не «доска на большом экране». На него уходит любое окно урока и любой
     // источник: два ученика рядом, книга из библиотеки, конспект, живая трансляция по API.
     // Правило одно и то же для всех: смотрят издалека, значит крупно и без мелочей.
+    // 🔴 РАЗГАДКА «sc-for не работает в полосе». Виноват не sc-for, а этот список: он был
+    // массивом ПОДПИСЕЙ (строк), а не списком случаев. Подписи брались по индексу
+    // (subA = subs[0]…), а data-val был вписан руками — «a», «b» и сразу «f». Отсюда две
+    // беды. Первая: sc-for нечего было положить в data-val, у строки нет id — я решил, что
+    // «sc-for здесь ломается», и обошёл явными кнопками. Вторая, тихая и хуже: третья
+    // кнопка показывала подпись subs[2] («связь потеряна»), а отдавала ключ 'f', которого
+    // в карте ожидания нет — waitMap[s.sub] падал на `|| waitMap.a`, и экран молча
+    // показывал ПЕРВЫЙ случай под подписью третьего. Прибор такое не ловит по природе:
+    // разметка цела, контраст в норме, врёт только смысл.
+    // Правило из этого: **список для sc-for — список сущностей с id, а не подписей.**
     const subs = {
-      wait: ['до начала', 'преподаватель вышел', 'связь потеряна'],
+      wait: [
+        { id: 'a', label: 'до начала' },
+        { id: 'b', label: 'преподаватель вышел' },
+        { id: 'c', label: 'связь потеряна' },
+      ],
       // Источник для проектора выбирается ВНУТРИ самого экрана — это часть продукта, а не
-      // служебной полосы: преподаватель так и делает, кнопкой «что выводим»
-      projector: ['доска', 'ученик', 'ждёт выбора'],
-      demo: ['доска занятия', 'доска занятия', 'доска занятия'],
+      // служебной полосы: преподаватель так и делает, кнопкой «что выводим». В полосе
+      // остаются три случая самого экрана.
+      projector: [
+        { id: 'a', label: 'доска' },
+        { id: 'b', label: 'ученик' },
+        { id: 'f', label: 'ждёт выбора' },
+      ],
+      demo: [
+        { id: 'a', label: 'доска занятия' },
+        { id: 'b', label: 'гость смотрит' },
+        { id: 'c', label: 'гость хочет писать' },
+      ],
     }[s.screen];
 
     // Случай выбирается одним переключателем на три разных экрана, поэтому ключ бывает чужим:
@@ -380,7 +414,7 @@ class Component extends DCLogic {
       isWait: s.screen === 'wait',
       isProjector: s.screen === 'projector',
       isDemo: s.screen === 'demo',
-      subA: subs[0], subB: subs[1], subC: subs[2],
+      subs: subs,
       waitTag: wait.tag, tagColor: wait.tagColor, waitBig: wait.big, waitTitle: wait.title,
       waitBody: wait.body, waitAction: wait.action, waitSecond: wait.second, waitFoot: wait.foot,
       meanwhile: [
