@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="tokens.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  html, body { height: 100%; overflow: hidden; }
+  a { color: var(--color-link); text-decoration: none; }
+  a:hover { color: var(--color-accent-text); }
+  input::placeholder { color: var(--color-text-tertiary); }
+  input:focus-visible, button:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+  [data-sheet-scroll] { scrollbar-width: none; }
+  [data-sheet-scroll]::-webkit-scrollbar { width: 0; height: 0; }
+</style>
+</helmet>
+<div ref="{{ setRoot }}" data-theme="{{ theme }}" data-mode="{{ mode }}" style="height: 100vh; display: grid; grid-template-rows: auto minmax(0, 1fr); background: var(--color-bg); color: var(--color-text); font-family: var(--font-body); overflow: hidden;">
+
+  <div style="display: flex; align-items: center; gap: var(--space-2); padding: var(--space-3) var(--space-4); border-bottom: 1px solid var(--color-border); flex-wrap: wrap;">
+    <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .08em; text-transform: uppercase;">состояние</span>
+    <button data-sw="st" data-val="ask" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer; white-space: nowrap;">спрашиваем</button>
+    <button data-sw="st" data-val="done" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer; white-space: nowrap;">подтверждено</button>
+    <button data-sw="st" data-val="revoke" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer; white-space: nowrap;">отзыв</button>
+    <button data-sw="st" data-val="expired" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer; white-space: nowrap;">ссылка стара</button>
+    <button data-sw="st" data-val="loading" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer; white-space: nowrap;">загружается</button>
+    <button data-sw="st" data-val="failed" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer; white-space: nowrap;">отказ</button>
+
+    <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .08em; text-transform: uppercase; margin-left: var(--space-4);">кадр</span>
+    <button data-sw="w" data-val="390" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer; white-space: nowrap;">390×844</button>
+    <button data-sw="w" data-val="1280" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer; white-space: nowrap;">1280×800</button>
+
+    <span style="margin-left: auto; display: flex; gap: var(--space-2); align-items: center;">
+      <span data-scroll-probe style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); white-space: nowrap;">прокрутка страницы: 0 px</span>
+      <button data-sw="theme" data-val="toggle" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer; white-space: nowrap;">тема</button>
+    </span>
+  </div>
+
+  <div ref="{{ setHost }}" style="display: grid; place-items: center; overflow: hidden; min-height: 0;">
+    <div data-audit-scope data-mobile="{{ mobileAttr }}" ref="{{ setFrame }}" style="width: 390px; height: 844px; position: relative; border-radius: 44px; overflow: hidden; background: var(--color-bg); box-shadow: var(--shadow-lg); border: 1px solid var(--color-border); display: grid; grid-template-rows: auto minmax(0, 1fr) auto;">
+
+      <div data-geo="cons-head" style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-2); padding: var(--space-5) var(--space-5) var(--space-4); border-bottom: 1px solid var(--color-border); background: var(--color-surface);">
+        <span style="display: flex; align-items: center; gap: var(--space-3); min-width: 0;">
+          <img src="design-assets/flamingo-bird.svg" alt="Flamingo" style="width: 22px; height: 22px; flex: none;">
+          <span style="font-size: var(--text-small); font-weight: 600; letter-spacing: var(--tracking-snug);">Flamingo</span>
+          <span style="margin-inline-start: auto; font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); white-space: nowrap;">{{ headMeta }}</span>
+        </span>
+        <span style="font-family: var(--font-heading); font-size: var(--text-h2); font-weight: 600; letter-spacing: var(--tracking-snug); line-height: var(--leading-heading); text-wrap: pretty;">{{ title }}</span>
+        <span style="font-size: var(--text-small); color: var(--color-text-secondary); line-height: var(--leading-snug); text-wrap: pretty;">{{ subtitle }}</span>
+      </div>
+
+      <div data-sheet-scroll style="overflow: auto; min-height: 0; padding: var(--space-5) var(--space-5) var(--space-6); display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-4); align-content: start;">
+
+        <sc-if value="{{ showPage }}" hint-placeholder-val="{{ true }}">
+          <div style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-4);">
+
+            <div style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-3); padding: var(--space-4); border: 1px solid var(--color-border); border-inline-start: 2px solid var(--color-border-strong); border-radius: var(--radius-card); background: var(--color-surface);">
+              <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-secondary); letter-spacing: .06em; text-transform: uppercase;">о ком это</span>
+              <span style="display: grid; gap: var(--space-2);">
+                <sc-for list="{{ who }}" as="w" hint-placeholder-count="3">
+                  <span style="display: grid; grid-template-columns: 104px minmax(0, 1fr); gap: var(--space-3); align-items: baseline;">
+                    <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary);">{{ w.k }}</span>
+                    <span style="font-size: var(--text-small); color: var(--color-text); text-wrap: pretty;">{{ w.v }}</span>
+                  </span>
+                </sc-for>
+              </span>
+            </div>
+
+            <div style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-4);">
+              <sc-for list="{{ blocks }}" as="b" hint-placeholder-count="4">
+                <span style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-2);">
+                  <span style="font-size: var(--text-body); font-weight: 500; line-height: var(--leading-snug); text-wrap: pretty;">{{ b.q }}</span>
+                  <span style="font-size: var(--text-small); color: var(--color-text-secondary); line-height: var(--leading-body); text-wrap: pretty;">{{ b.a }}</span>
+                </span>
+              </sc-for>
+            </div>
+
+            <sc-if value="{{ isAsk }}" hint-placeholder-val="{{ true }}">
+              <div style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-4); padding: var(--space-4); border: 1px solid var(--color-border); border-radius: var(--radius-card); background: var(--color-surface);">
+                <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .06em; text-transform: uppercase;">кто подтверждает</span>
+                <label style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-2);">
+                  <span style="font-size: var(--text-caption); color: var(--color-text-secondary);">Ваше имя и фамилия</span>
+                  <input type="text" defaultValue="" placeholder="Мария Королёва" style="width: 100%; min-height: var(--tap-min); padding: 0 var(--space-4); font-size: var(--text-body); font-family: var(--font-body); color: var(--color-text); background: var(--color-bg); border: 1px solid var(--color-border); border-radius: var(--radius-control);">
+                </label>
+                <span style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-2);">
+                  <span style="font-size: var(--text-caption); color: var(--color-text-secondary);">Кто вы для Даши</span>
+                  <span style="display: flex; gap: var(--space-2); flex-wrap: wrap;">
+                    <sc-for list="{{ kins }}" as="k" hint-placeholder-count="4">
+                      <button data-pick="kin" data-val="{{ k.id }}" onClick="{{ onPick }}" style="min-height: var(--tap-min); padding: 0 var(--space-4); font-size: var(--text-small); font-family: var(--font-body); color: var(--color-text-secondary); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); cursor: pointer; white-space: nowrap;">{{ k.label }}</button>
+                    </sc-for>
+                  </span>
+                </span>
+                <button data-pick="adult" data-val="on" onClick="{{ onPick }}" style="display: grid; grid-template-columns: auto minmax(0, 1fr); gap: var(--space-3); align-items: start; text-align: start; min-width: 0; min-height: var(--tap-min); padding: 0; border: none; background: none; cursor: pointer; font-family: var(--font-body);">
+                  <span style="flex: none; width: 24px; height: 24px; margin-top: 2px; border: 1px solid {{ adultBorder }}; border-radius: var(--radius-xs); background: {{ adultBg }}; display: grid; place-items: center; font-family: var(--font-mono); font-size: var(--text-small); font-weight: 500; color: {{ adultMark }};">{{ adultGlyph }}</span>
+                  <span style="font-size: var(--text-small); color: var(--color-text); line-height: var(--leading-snug); min-width: 0; text-wrap: pretty;">Мне 18 лет или больше, я родитель или опекун Даши и отвечаю за неё</span>
+                </button>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ isDone }}" hint-placeholder-val="{{ false }}">
+              <div style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-3); padding: var(--space-4); border: 1px solid var(--color-border); border-inline-start: 2px solid var(--color-go-line); border-radius: var(--radius-card); background: var(--color-surface);">
+                <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-go-text); letter-spacing: .06em; text-transform: uppercase;">подтверждено</span>
+                <span style="font-size: var(--text-body); font-weight: 500; line-height: var(--leading-snug); text-wrap: pretty;">Мария Королёва (мама), 21 августа 2026, 14:12</span>
+                <span style="font-size: var(--text-small); color: var(--color-text-secondary); line-height: var(--leading-body); text-wrap: pretty;">Даша уже видит это в своём аккаунте: запись на курс, сдача работ и чат открылись. Эту страницу можно закрыть.</span>
+                <span style="display: grid; gap: var(--space-1); padding-inline-start: var(--space-3); border-inline-start: 2px solid var(--color-border-strong); font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-secondary); line-height: var(--leading-snug);">
+                  <span>копия того, что вы подтвердили, ушла на вашу почту</span>
+                  <span>отозвать согласие можно этой же ссылкой, в любой момент</span>
+                </span>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ isRevoke }}" hint-placeholder-val="{{ false }}">
+              <div style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-3); padding: var(--space-4); border: 1px solid var(--color-border); border-inline-start: 2px solid var(--color-accent-solid); border-radius: var(--radius-card); background: var(--color-surface);">
+                <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-accent-text); letter-spacing: .06em; text-transform: uppercase;">отзыв согласия</span>
+                <span style="font-size: var(--text-body); font-weight: 500; line-height: var(--leading-snug); text-wrap: pretty;">Вы подтвердили согласие 12 августа. Отозвать его можно сейчас</span>
+                <span style="display: grid; gap: var(--space-2); font-size: var(--text-small); color: var(--color-text-secondary); line-height: var(--leading-body);">
+                  <span style="text-wrap: pretty;">Закроется: запись на новые курсы, сдача работ, чат урока и оценки.</span>
+                  <span style="text-wrap: pretty;">Останется: то, что Даша уже прошла и сдала, — в её «Моей учёбе». Данные при отзыве не удаляются, они лежат и ждут. Удалить их целиком Даша может у себя, отдельной кнопкой.</span>
+                  <span style="text-wrap: pretty;">Вернуть согласие можно этой же ссылкой.</span>
+                </span>
+              </div>
+            </sc-if>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isExpired }}" hint-placeholder-val="{{ false }}">
+          <div style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-4); align-content: start; padding-top: var(--space-4);">
+            <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-secondary); letter-spacing: .08em; text-transform: uppercase;">ссылке больше семи дней</span>
+            <span style="font-family: var(--font-heading); font-size: var(--text-h2); font-weight: 600; letter-spacing: var(--tracking-snug); line-height: var(--leading-heading); text-wrap: pretty;">Эта ссылка устарела — подтвердить по ней нельзя</span>
+            <span style="font-size: var(--text-small); color: var(--color-text-secondary); line-height: var(--leading-body); text-wrap: pretty;">Ссылка живёт семь дней: так чужой человек не подтвердит согласие по пересланному письму спустя месяц. Ничего не потеряно, и Даша ничего не сделала неправильно.</span>
+            <span style="display: grid; gap: var(--space-2); padding-inline-start: var(--space-3); border-inline-start: 2px solid var(--color-border-strong); font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-secondary); line-height: var(--leading-snug);">
+              <span>что делать: попросите Дашу отправить ссылку заново — в её аккаунте одна кнопка</span>
+              <span>новая ссылка придёт на эту же почту и будет действовать семь дней</span>
+            </span>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isLoading }}" hint-placeholder-val="{{ false }}">
+          <div style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-4);">
+            <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary);">проверяем ссылку · первым придёт, кому и на что вы даёте согласие</span>
+            <sc-for list="{{ skeleton }}" as="sk" hint-placeholder-count="4">
+              <span style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-2);">
+                <span style="height: 15px; width: {{ sk.a }}; border-radius: 2px; background: var(--color-surface-subtle);"></span>
+                <span style="height: 12px; width: 100%; border-radius: 2px; background: var(--color-surface-subtle);"></span>
+                <span style="height: 12px; width: {{ sk.b }}; border-radius: 2px; background: var(--color-surface-subtle);"></span>
+              </span>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isFailed }}" hint-placeholder-val="{{ false }}">
+          <div style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-4); align-content: start; padding-top: var(--space-4);">
+            <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-error-text); letter-spacing: .08em; text-transform: uppercase;">отказ · служба согласий</span>
+            <span style="font-family: var(--font-heading); font-size: var(--text-h2); font-weight: 600; letter-spacing: var(--tracking-snug); line-height: var(--leading-heading); text-wrap: pretty;">Подтвердить сейчас не получится</span>
+            <span style="font-size: var(--text-small); color: var(--color-text-secondary); line-height: var(--leading-body); text-wrap: pretty;">Служба согласий не отвечает. Нажимать наугад не нужно: пока она молчит, подпись не запишется — а показать вам «подтверждено» и не записать было бы хуже всего.</span>
+            <span style="display: grid; gap: var(--space-2); padding-inline-start: var(--space-3); border-inline-start: 2px solid var(--color-border-strong); font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-secondary); line-height: var(--leading-snug);">
+              <span>работает: сама страница — прочитать, на что вы даёте согласие, можно сейчас</span>
+              <span>не работает: запись подтверждения — значит и подтверждение</span>
+              <span>с данными: ничего не изменено, ссылка остаётся годной</span>
+            </span>
+          </div>
+        </sc-if>
+      </div>
+
+      <div data-geo="cons-foot" style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-2); padding: var(--space-4) var(--space-5) var(--space-5); border-top: 1px solid var(--color-border); background: var(--color-surface);">
+        <sc-if value="{{ goPrimary }}" hint-placeholder-val="{{ true }}">
+          <button onClick="{{ noop }}" style="min-height: var(--tap-min); border: none; border-radius: var(--radius-control); background: var(--color-go-solid); color: var(--color-on-go); font-size: var(--text-body); font-family: var(--font-body); font-weight: 500; cursor: pointer; white-space: nowrap;" style-hover="background: var(--color-go-solid-hover);">{{ primaryLabel }}</button>
+        </sc-if>
+        <sc-if value="{{ dangerPrimary }}" hint-placeholder-val="{{ false }}">
+          <button onClick="{{ noop }}" style="min-height: var(--tap-min); border: none; border-radius: var(--radius-control); background: var(--color-accent-solid); color: var(--color-on-accent); font-size: var(--text-body); font-family: var(--font-body); font-weight: 500; cursor: pointer; white-space: nowrap;" style-hover="background: var(--color-accent-solid-hover);">{{ primaryLabel }}</button>
+        </sc-if>
+        <sc-if value="{{ flatPrimary }}" hint-placeholder-val="{{ false }}">
+          <button onClick="{{ noop }}" style="min-height: var(--tap-min); border: 1px solid var(--color-border-strong); border-radius: var(--radius-control); background: none; color: var(--color-text); font-size: var(--text-body); font-family: var(--font-body); font-weight: 500; cursor: pointer; white-space: nowrap;">{{ primaryLabel }}</button>
+        </sc-if>
+        <sc-if value="{{ hasSecondary }}" hint-placeholder-val="{{ true }}">
+          <button onClick="{{ noop }}" style="min-height: var(--tap-min); border: 1px solid var(--color-border); border-radius: var(--radius-control); background: none; color: var(--color-text); font-size: var(--text-small); font-family: var(--font-body); cursor: pointer; white-space: nowrap;" style-hover="border-color: var(--color-border-strong);">{{ secondaryLabel }}</button>
+        </sc-if>
+        <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-secondary); line-height: var(--leading-snug); text-wrap: pretty;">{{ primaryNote }}</span>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;: {&quot;width&quot;: 1200, &quot;height&quot;: 940}}">
+class Component extends DCLogic {
+  // Экран согласия для ВЗРОСЛОГО. Открывается по ссылке из письма на его собственном
+  // устройстве — этим его подпись и отличается от детской (ПРАВИЛА 8.14). Ребёнок сюда
+  // не попадает: у него в аккаунте только состояние и «отправить ссылку».
+  //
+  // Четыре решения:
+  // 1. **Страница текста — четыре вопроса и четыре ответа**, без юридического языка и без
+  //    «настоящим подтверждаю». Взрослый читает то, что подписывает, а не ссылку на закон.
+  // 2. **Подтверждение — зелёная заливка, отзыв — коралловая**, и они никогда не рядом:
+  //    ссылка приходит либо за подтверждением, либо за отзывом (ПРАВИЛА 5.8, 5.11).
+  // 3. **Отметка «мне 18 и я отвечаю за неё» — не украшение, а условие**: пока не отмечена,
+  //    подтверждение стоит обводкой и не решает. Заливку получает то, что можно нажать.
+  // 4. **Ссылка живёт семь дней**, и у устаревшей ссылки свой экран со словами, что делать.
+  //    Отдельное состояние, потому что это самый частый способ сюда попасть неудачно.
+  state = { st: 'ask', w: 390, theme: 'light', kin: 'mom', adult: false };
+
+  componentDidMount() {
+    this.onResize = () => this.fit();
+    window.addEventListener('resize', this.onResize);
+    this.settle();
+    this.probe = setInterval(() => {
+      const el = this.root && this.root.querySelector('[data-scroll-probe]');
+      const sc = this.frame && this.frame.querySelector('[data-sheet-scroll]');
+      if (el) el.textContent = 'прокрутка страницы: ' + Math.max(0, document.documentElement.scrollHeight - window.innerHeight)
+        + ' px · листа: ' + (sc ? Math.max(0, sc.scrollHeight - sc.clientHeight) : 0) + ' px';
+    }, 1000);
+  }
+  componentDidUpdate() { this.settle(); }
+  componentWillUnmount() { window.removeEventListener('resize', this.onResize); clearInterval(this.probe); }
+
+  settle() { this.fit(); this.applyChrome(); requestAnimationFrame(() => this.fit()); }
+
+  dims() { return this.state.w === 390 ? { W: 390, H: 844 } : { W: 1280, H: 800 }; }
+
+  fit() {
+    const host = this.host, f = this.frame;
+    if (!host || !f) return;
+    const { W, H } = this.dims();
+    const s = Math.min(1, (host.clientWidth - 40) / W, (host.clientHeight - 40) / H);
+    host.style.position = 'relative';
+    f.style.position = 'absolute';
+    f.style.left = '50%'; f.style.top = '50%';
+    f.style.width = W + 'px'; f.style.height = H + 'px';
+    f.style.borderRadius = W === 390 ? '44px' : 'var(--radius-card)';
+    f.style.transform = 'translate(-50%, -50%) scale(' + s.toFixed(4) + ')';
+  }
+
+  applyChrome() {
+    const root = this.root; if (!root) return;
+    const s = this.state;
+    const cur = { st: s.st, w: String(s.w) };
+    root.querySelectorAll('[data-sw]').forEach((b) => {
+      const k = b.dataset.sw, v = b.dataset.val;
+      if (!(k in cur)) return;
+      const on = cur[k] === v;
+      b.style.color = on ? 'var(--color-text)' : 'var(--color-text-secondary)';
+      b.style.borderColor = on ? 'var(--color-border-strong)' : 'var(--color-border)';
+      b.style.background = on ? 'var(--color-surface)' : 'none';
+    });
+    root.querySelectorAll('[data-pick="kin"]').forEach((b) => {
+      const on = b.dataset.val === s.kin;
+      b.style.color = on ? 'var(--color-text)' : 'var(--color-text-secondary)';
+      b.style.borderColor = on ? 'var(--color-border-strong)' : 'var(--color-border)';
+      b.style.background = on ? 'var(--color-surface-subtle)' : 'none';
+    });
+    // на широком кадре страница не растягивается на всю ширину: читать 120 знаков в строке
+    // невозможно, а это единственный текст, который взрослый обязан прочесть целиком
+    // Колонка чтения берётся из токена (--content-max-narrow), а не из голого числа:
+    // 620px в инлайновом стиле прибор ловит как rawValues, и правильно ловит.
+    const pad = s.w !== 390 ? 'calc((100% - var(--content-max-narrow)) / 2)' : 'var(--space-5)';
+    ['[data-sheet-scroll]', '[data-geo="cons-head"]', '[data-geo="cons-foot"]'].forEach((sel) => {
+      const el = this.frame && this.frame.querySelector(sel);
+      if (el) el.style.paddingInline = pad;
+    });
+  }
+
+  onSw = (e) => {
+    const { sw, val } = e.currentTarget.dataset;
+    if (sw === 'theme') return this.setState((s) => ({ theme: s.theme === 'dark' ? 'light' : 'dark' }));
+    if (sw === 'w') return this.setState({ w: Number(val) });
+    this.setState({ [sw]: val });
+  };
+
+  onPick = (e) => {
+    const { pick, val } = e.currentTarget.dataset;
+    if (pick === 'adult') return this.setState((s) => ({ adult: !s.adult }));
+    this.setState({ [pick]: val });
+  };
+
+  renderVals() {
+    const s = this.state;
+    const ask = s.st === 'ask';
+    const done = s.st === 'done';
+    const revoke = s.st === 'revoke';
+    const page = ask || done || revoke;
+    const ready = ask && s.adult;
+
+    const head = ask
+      ? { t: 'Даша просит вас подтвердить согласие', s: 'Ей 13 лет, поэтому согласие на обработку её данных даёт взрослый. Прочитайте, на что оно, — это одна страница.' }
+      : (done
+        ? { t: 'Согласие подтверждено', s: 'Дальше ничего делать не нужно. Эту страницу можно закрыть.' }
+        : (revoke
+          ? { t: 'Отозвать согласие для Даши', s: 'Вы подтвердили его 12 августа. Прочитайте, что закроется и что останется.' }
+          : { t: 'Согласие для Даши Королёвой', s: 'Страница открывается по ссылке из письма — на вашем устройстве.' }));
+
+    return {
+      setRoot: (el) => { this.root = el; },
+      setHost: (el) => { this.host = el; },
+      setFrame: (el) => { this.frame = el; },
+      theme: s.theme === 'dark' ? 'dark' : 'light',
+      mode: 'default',
+      // ПРАВИЛА 8.6а: на телефонном кадре прокрутка листа разрешена и мерится mobileScroll
+      mobileAttr: s.w === 390 ? '' : null,
+
+      headMeta: s.w === 390 ? 'ссылка из письма' : 'ссылка из письма · открыто на компьютере',
+      title: head.t,
+      subtitle: head.s,
+
+      showPage: page,
+      isAsk: ask,
+      isDone: done,
+      isRevoke: revoke,
+      isExpired: s.st === 'expired',
+      isLoading: s.st === 'loading',
+      isFailed: s.st === 'failed',
+
+      who: [
+        { k: 'ученик', v: 'Даша Королёва, 13 лет' },
+        { k: 'что учит', v: 'Химия · неорганика, преподаватель Ирина Соколова' },
+        { k: 'кто спрашивает', v: 'Flamingo, школа онлайн-занятий' },
+      ],
+
+      // Четыре вопроса, на которые взрослый имеет право знать ответ. Юридического языка нет
+      // ни в одном: «обработка персональных данных» здесь называется своими словами.
+      blocks: [
+        { q: 'Что о Даше будет храниться',
+          a: 'Имя, почта, часовой пояс. Курсы, на которые она записалась, её работы и оценки за них, конспекты и выученные слова. Больше ничего.' },
+        { q: 'Что не будет храниться никогда',
+          a: 'Видео с камеры и звук с урока. Кадры разбираются прямо на устройстве Даши и на наш сервер не уходят — записей уроков у нас нет вообще, ни для вас, ни для преподавателя, ни для нас.' },
+        { q: 'Кто это видит',
+          a: 'Имя и аватар — все, кто на уроке. Работы и оценки — Даша и её преподаватель. Почту — только Даша. Мы не передаём эти данные никому и не показываем рекламу.' },
+        { q: 'Сколько это хранится и как убрать',
+          a: 'Пока Даша учится, и три года после — так требует закон к учебным записям. Забрать копию всех данных или удалить их целиком Даша может у себя в аккаунте в любой день, без писем в поддержку. Удаление отменяется 30 дней.' },
+      ],
+
+      kins: [
+        { id: 'mom', label: 'мама' }, { id: 'dad', label: 'папа' },
+        { id: 'guard', label: 'опекун' }, { id: 'other', label: 'другой родственник' },
+      ],
+      // Отметка — значащая графика, порог 3,0, считается парой (ПРАВИЛА 4.10)
+      adultBg: s.adult ? 'var(--color-text)' : 'var(--color-bg)',
+      adultBorder: s.adult ? 'var(--color-text)' : 'var(--color-text-secondary)',
+      adultMark: s.adult ? 'var(--color-surface)' : 'transparent',
+      adultGlyph: s.adult ? '✓' : '',
+
+      skeleton: [{ a: '62%', b: '84%' }, { a: '54%', b: '76%' }, { a: '68%', b: '90%' }, { a: '48%', b: '70%' }],
+
+      // Зелёная заливка — за решением, и только за ним. «Закрыть страницу» в подтверждённом
+      // виде ничего не решает: решение уже принято и записано в карточке выше — и оно же
+      // выглядело то решением, то нейтралью в устаревшей ссылке под той же надписью.
+      goPrimary: ready,
+      dangerPrimary: revoke,
+      flatPrimary: (ask && !s.adult) || done || s.st === 'expired' || s.st === 'loading' || s.st === 'failed',
+      primaryLabel: done ? 'Закрыть страницу'
+        : (revoke ? 'Отозвать согласие'
+          : (s.st === 'expired' ? 'Закрыть страницу'
+            : (s.st === 'failed' ? 'Проверить снова'
+              : (s.st === 'loading' ? 'Подтвердить согласие' : 'Подтвердить согласие')))),
+      hasSecondary: ask || revoke,
+      secondaryLabel: ask ? 'Не подтверждать' : 'Оставить согласие',
+      primaryNote: ask
+        ? (s.adult
+          ? 'мы запишем ваше имя, родство и время подтверждения, и пришлём копию на вашу почту. Отозвать согласие можно этой же ссылкой в любой день.'
+          : 'отметьте, что вам 18 или больше и вы отвечаете за Дашу, — без этого подтвердить нельзя.')
+        : (done
+          ? 'Даша уже видит, что согласие дано: у неё в аккаунте стоит ваше имя и дата.'
+          : (revoke
+            ? 'отзыв закроет запись на курсы, сдачу работ и чат. Пройденное останется у Даши, данные не удаляются.'
+            : (s.st === 'expired'
+              ? 'подтвердить по этой ссылке нельзя — попросите Дашу отправить новую.'
+              : (s.st === 'failed'
+                ? 'пока служба молчит, подпись не запишется: ссылка останется годной, ничего делать не нужно.'
+                : 'проверяем ссылку — кнопка заработает, когда страница откроется.')))),
+
+      onSw: this.onSw,
+      onPick: this.onPick,
+      noop: () => {},
+    };
+  }
+}
+</script>
+</body>
+</html>

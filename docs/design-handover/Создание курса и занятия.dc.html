@@ -24,6 +24,7 @@
     <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .08em; text-transform: uppercase;">лист</span>
     <button data-sw="screen" data-val="course" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer; white-space: nowrap;">курс</button>
     <button data-sw="screen" data-val="lesson" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer; white-space: nowrap;">занятие</button>
+    <button data-sw="screen" data-val="move" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer; white-space: nowrap;">перенос и отмена</button>
 
     <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .08em; text-transform: uppercase; margin-left: var(--space-4);">состояние</span>
     <button data-sw="st" data-val="filled" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer; white-space: nowrap;">наполнено</button>
@@ -255,6 +256,78 @@
             </div>
           </sc-if>
 
+          <sc-if value="{{ moveForm }}" hint-placeholder-val="{{ false }}">
+            <div style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-4);">
+
+              <div style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-4); padding: var(--space-5); border: 1px solid var(--color-border); border-radius: var(--radius-card); background: var(--color-surface);">
+                <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .08em; text-transform: uppercase;">Что сейчас стоит в расписании</span>
+                <span style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-2); padding: var(--space-4); border: 1px solid var(--color-border); border-inline-start: 2px solid var(--color-border-strong); border-radius: var(--radius-control); background: var(--color-bg);">
+                  <span style="font-size: var(--text-body); font-weight: 500;">Химия · Почему горит магний</span>
+                  <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-secondary); line-height: var(--leading-snug);">четверг, 20 августа, 11:30–12:15 · 14 учеников · до начала 2 дня</span>
+                </span>
+                <span style="display: flex; gap: var(--space-1); padding: 3px; border: 1px solid var(--color-border); border-radius: var(--radius-control); background: var(--color-bg); width: max-content; max-width: 100%;">
+                  <button data-pick="act" data-val="move" onClick="{{ onPick }}" style="min-height: var(--control-height-sm); padding: 0 var(--space-4); font-size: var(--text-caption); font-family: var(--font-body); color: var(--color-text-secondary); background: none; border: none; border-radius: var(--radius-sm); cursor: pointer; white-space: nowrap;">Перенести</button>
+                  <button data-pick="act" data-val="cancel" onClick="{{ onPick }}" style="min-height: var(--control-height-sm); padding: 0 var(--space-4); font-size: var(--text-caption); font-family: var(--font-body); color: var(--color-text-secondary); background: none; border: none; border-radius: var(--radius-sm); cursor: pointer; white-space: nowrap;">Отменить</button>
+                </span>
+              </div>
+
+              <sc-if value="{{ actMove }}" hint-placeholder-val="{{ true }}">
+                <div style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-4); padding: var(--space-5); border: 1px solid var(--color-border); border-radius: var(--radius-card); background: var(--color-surface);">
+                  <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .08em; text-transform: uppercase;">Куда переносим</span>
+                  <span style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-2);">
+                    <span style="font-size: var(--text-small); color: var(--color-text-secondary);">Новый день — неделя 17–23 августа 2026</span>
+                    <span style="display: flex; gap: var(--space-2); flex-wrap: wrap;">
+                      <sc-for list="{{ dates }}" as="d" hint-placeholder-count="7">
+                        <button data-pick="date" data-val="{{ d.id }}" onClick="{{ onPick }}" style="width: 62px; min-height: 58px; display: grid; gap: 2px; justify-items: center; align-content: center; font-family: var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-control); cursor: pointer;">
+                          <span style="font-size: var(--text-caption); font-weight: 500; color: var(--color-text-secondary);">{{ d.dow }}</span>
+                          <span style="font-size: var(--text-body); font-weight: 500; color: var(--color-text);">{{ d.num }}</span>
+                        </button>
+                      </sc-for>
+                    </span>
+                  </span>
+                  <label style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-2); max-width: 220px;">
+                    <span style="font-size: var(--text-small); color: var(--color-text-secondary);">Новое время начала</span>
+                    <input type="text" defaultValue="15:00" placeholder="15:00" style="width: 100%; min-height: var(--control-height-md); padding: 0 var(--space-4); font-size: var(--text-body); font-family: var(--font-mono); color: var(--color-text); background: var(--color-bg); border: 1px solid var(--color-border); border-radius: var(--radius-control);">
+                  </label>
+                  <sc-if value="{{ moveEarlier }}" hint-placeholder-val="{{ false }}">
+                    <span style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-2); padding: var(--space-4); border: 1px solid var(--color-border); border-inline-start: 2px solid var(--color-accent-solid); border-radius: var(--radius-control); background: var(--color-bg);">
+                      <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-accent-text); letter-spacing: .06em; text-transform: uppercase;">раньше — расписание не успеет предупредить</span>
+                      <span style="font-size: var(--text-small); color: var(--color-text); line-height: var(--leading-snug); text-wrap: pretty;">{{ earlierTitle }}</span>
+                      <span style="font-size: var(--text-caption); color: var(--color-text-secondary); line-height: var(--leading-body); max-width: 76ch; text-wrap: pretty;">Расписание сообщает тому, кто в него зашёл. При переносе назад ученик откроет его в прежний день — а занятие уже прошло. Чат курса читают так же: те, кто заходит.</span>
+                      <span style="display: flex; gap: var(--space-2); flex-wrap: wrap;">
+                        <button onClick="{{ noop }}" style="min-height: var(--tap-min); padding: 0 var(--space-4); font-size: var(--text-small); font-family: var(--font-body); color: var(--color-text); background: none; border: 1px solid var(--color-border-strong); border-radius: var(--radius-control); cursor: pointer; white-space: nowrap;">Открыть список записанных с почтой</button>
+                        <button onClick="{{ noop }}" style="min-height: var(--tap-min); padding: 0 var(--space-4); font-size: var(--text-small); font-family: var(--font-body); color: var(--color-text); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-control); cursor: pointer; white-space: nowrap;" style-hover="border-color: var(--color-border-strong);">Написать в чат курса</button>
+                      </span>
+                      <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); line-height: var(--leading-snug); text-wrap: pretty;">письма и пуша в продукте нет — до всех четырнадцати доходит только личное сообщение, и это решение за вами</span>
+                    </span>
+                  </sc-if>
+
+                  <label style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-2);">
+                    <span style="font-size: var(--text-small); color: var(--color-text-secondary);">Почему переносим — эту строку прочитают ученики</span>
+                    <input type="text" defaultValue="Перенос из-за школьной олимпиады: в 11:30 половина класса на туре." placeholder="Одна строка причины — без неё перенос выглядит капризом" style="width: 100%; min-height: var(--control-height-lg); padding: 0 var(--space-4); font-size: var(--text-small); font-family: var(--font-body); color: var(--color-text); background: var(--color-bg); border: 1px solid var(--color-border); border-radius: var(--radius-control);">
+                    <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); line-height: var(--leading-snug);">материалы, конспект и чат занятия переезжают вместе с ним — ничего не теряется. Оповещений нет: причина будет видна в расписании рядом с новым временем</span>
+                  </label>
+                </div>
+              </sc-if>
+
+              <sc-if value="{{ actCancel }}" hint-placeholder-val="{{ false }}">
+                <div style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-4); padding: var(--space-5); border: 1px solid var(--color-border); border-inline-start: 2px solid var(--color-accent-solid); border-radius: var(--radius-card); background: var(--color-surface);">
+                  <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-accent-text); letter-spacing: .08em; text-transform: uppercase;">Отмена — то, что нельзя вернуть тихо</span>
+                  <span style="font-size: var(--text-small); color: var(--color-text-secondary); line-height: var(--leading-body); max-width: 70ch; text-wrap: pretty;">Занятие исчезнет из расписания 14 учеников, и рядом останется ваша причина — расписание сообщит об отмене тому, кто откроет его к занятию. Отменённое занятие не восстанавливается: если время ещё можно спасти, лучше перенести.</span>
+                  <label style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-2);">
+                    <span style="font-size: var(--text-small); color: var(--color-text-secondary);">Причина — её увидит класс, а не только вы</span>
+                    <input type="text" defaultValue="Заболела, восстановлю занятие на следующей неделе." placeholder="Одна строка: почему занятия не будет" style="width: 100%; min-height: var(--control-height-lg); padding: 0 var(--space-4); font-size: var(--text-small); font-family: var(--font-body); color: var(--color-text); background: var(--color-bg); border: 1px solid var(--color-border); border-radius: var(--radius-control);">
+                  </label>
+                  <span style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-2); padding-inline-start: var(--space-3); border-inline-start: 2px solid var(--color-border-strong); font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-secondary); line-height: var(--leading-snug);">
+                    <span>остаётся: материалы занятия, конспект прошлых уроков, чат курса</span>
+                    <span>исчезает: само занятие в расписании и напоминание о нём</span>
+                    <span>не меняется: оплата курса — отменённое занятие не списывается</span>
+                  </span>
+                </div>
+              </sc-if>
+            </div>
+          </sc-if>
+
           <sc-if value="{{ isLoading }}" hint-placeholder-val="{{ false }}">
             <div style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-4);">
               <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary);">{{ loadingSays }}</span>
@@ -310,6 +383,25 @@
               </span>
             </sc-if>
 
+            <sc-if value="{{ moveRail }}" hint-placeholder-val="{{ false }}">
+              <span style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-3); align-content: start; min-height: 0;">
+                <span style="display: grid; gap: var(--space-1);">
+                  <span style="font-family: var(--font-mono); font-size: var(--text-h2); font-weight: 500; color: var(--color-text); line-height: var(--leading-tight);">{{ moveMetric }}</span>
+                  <span style="font-size: var(--text-caption); color: var(--color-text-secondary); line-height: var(--leading-snug); text-wrap: pretty;">{{ moveMetricLabel }}</span>
+                </span>
+                <span style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-2); border-top: 1px solid var(--color-border); padding-top: var(--space-3);">
+                  <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); line-height: var(--leading-snug);">{{ moveRailNote }}</span>
+                  <sc-for list="{{ moveRows }}" as="m" hint-placeholder-count="3">
+                    <span style="display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--space-3); align-items: baseline;">
+                      <span style="font-size: var(--text-caption); color: var(--color-text); min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ m.who }}</span>
+                      <span style="font: 500 var(--text-caption) var(--font-mono); color: {{ m.color }}; white-space: nowrap;">{{ m.at }}</span>
+                    </span>
+                  </sc-for>
+                  <span style="font: 400 var(--text-caption) var(--font-mono); color: {{ moveWarnColor }}; line-height: var(--leading-snug); text-wrap: pretty;">{{ moveWarn }}</span>
+                </span>
+              </span>
+            </sc-if>
+
             <sc-if value="{{ lessonRail }}" hint-placeholder-val="{{ false }}">
               <span style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-3); align-content: start; min-height: 0;">
                 <span style="display: grid; gap: var(--space-1);">
@@ -337,6 +429,12 @@
             <sc-if value="{{ flatPrimary }}" hint-placeholder-val="{{ false }}">
               <button onClick="{{ noop }}" style="min-height: var(--tap-min); font-size: var(--text-small); font-family: var(--font-body); font-weight: 500; color: var(--color-go-text); background: none; border: 1px solid var(--color-go-border); border-radius: var(--radius-control); cursor: pointer; white-space: nowrap;" style-hover="border-color: var(--color-go-line);">{{ primaryLabel }}</button>
             </sc-if>
+            <sc-if value="{{ flatDanger }}" hint-placeholder-val="{{ false }}">
+              <button onClick="{{ noop }}" style="min-height: var(--tap-min); font-size: var(--text-small); font-family: var(--font-body); font-weight: 500; color: var(--color-text); background: none; border: 1px solid var(--color-border-strong); border-radius: var(--radius-control); cursor: pointer; white-space: nowrap;">{{ primaryLabel }}</button>
+            </sc-if>
+            <sc-if value="{{ dangerPrimary }}" hint-placeholder-val="{{ false }}">
+              <button onClick="{{ noop }}" style="min-height: var(--tap-min); font-size: var(--text-small); font-family: var(--font-body); font-weight: 500; color: var(--color-on-accent); background: var(--color-accent-solid); border: none; border-radius: var(--radius-control); cursor: pointer; white-space: nowrap;" style-hover="background: var(--color-accent-solid-hover);">{{ primaryLabel }}</button>
+            </sc-if>
             <button onClick="{{ noop }}" style="min-height: var(--control-height-md); font-size: var(--text-caption); font-family: var(--font-body); color: var(--color-text); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-control); cursor: pointer; white-space: nowrap;" style-hover="border-color: var(--color-border-strong);">{{ secondaryLabel }}</button>
             <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-secondary); line-height: var(--leading-snug); text-wrap: pretty;">{{ primaryNote }}</span>
           </div>
@@ -360,7 +458,16 @@ class Component extends DCLogic {
   state = {
     screen: 'course', st: 'filled', w: 1280, theme: 'light', mode: 'default',
     subject: 'chem', level: 'g78', dur: '45', week: '2', days: ['mon', 'thu'],
-    price: 'paid', motif: 'b', date: 'thu', repeat: true,
+    price: 'paid', motif: 'b', date: 'thu', repeat: true, act: 'move',
+  };
+
+  // У экрана столько состояний, сколько у него источников, и не больше. У переноса пустого
+  // состояния не бывает: занятие уже стоит в расписании — иначе переносить нечего. Кнопка
+  // состояния, которого нет, выдавала за «пусто» ровно то же «наполнено» (найдено ревьюером).
+  STATES = {
+    course: ['filled', 'empty', 'loading', 'failed', 'partial'],
+    lesson: ['filled', 'empty', 'loading', 'failed', 'partial'],
+    move:   ['filled', 'loading', 'failed', 'partial'],
   };
 
   componentDidMount() {
@@ -393,9 +500,15 @@ class Component extends DCLogic {
     const root = this.root; if (!root) return;
     const s = this.state;
     const cur = { screen: s.screen, st: s.st, w: String(s.w) };
+    const allowed = this.STATES[s.screen] || ['filled'];
     root.querySelectorAll('[data-sw]').forEach((b) => {
       const k = b.dataset.sw, v = b.dataset.val;
       if (!(k in cur)) return;
+      // ПРАВИЛА 6.6: скрывая элемент, помним его display и возвращаем именно его
+      if (k === 'st') {
+        if (!b.dataset.disp) b.dataset.disp = getComputedStyle(b).display;
+        b.style.display = allowed.indexOf(v) < 0 ? 'none' : b.dataset.disp;
+      }
       const on = cur[k] === v;
       b.style.color = on ? 'var(--color-text)' : 'var(--color-text-secondary)';
       b.style.borderColor = on ? 'var(--color-border-strong)' : 'var(--color-border)';
@@ -403,7 +516,7 @@ class Component extends DCLogic {
     });
     // Выбранное в форме отмечается нейтрально — сильной рамкой и приглушённой заливкой.
     // Акцент на этом экране принадлежит публикации, а не переключателю уровня (ПРАВИЛА 5.7).
-    const pick = { subject: s.subject, level: s.level, dur: s.dur, week: s.week, price: s.price, motif: s.motif, date: s.date };
+    const pick = { subject: s.subject, level: s.level, dur: s.dur, week: s.week, price: s.price, motif: s.motif, date: s.date, act: s.act };
     root.querySelectorAll('[data-pick]').forEach((b) => {
       const k = b.dataset.pick, v = b.dataset.val;
       if (k === 'day') {
@@ -436,6 +549,10 @@ class Component extends DCLogic {
     if (sw === 'theme') return this.setState((s) => ({ theme: s.theme === 'dark' ? 'light' : 'dark' }));
     if (sw === 'mode') return this.setState((s) => ({ mode: s.mode === 'kids' ? 'default' : 'kids' }));
     if (sw === 'w') return this.setState({ w: Number(val) });
+    if (sw === 'screen') {
+      const allowed = this.STATES[val] || ['filled'];
+      return this.setState((st) => ({ screen: val, st: allowed.indexOf(st.st) < 0 ? 'filled' : st.st }));
+    }
     this.setState({ [sw]: val });
   };
 
@@ -457,6 +574,8 @@ class Component extends DCLogic {
   renderVals() {
     const s = this.state;
     const course = s.screen === 'course';
+    const move = s.screen === 'move';
+    const cancel = move && s.act === 'cancel';
     const partial = s.st === 'partial';
     const empty = s.st === 'empty';
     const form = s.st === 'filled' || partial || empty;
@@ -473,13 +592,25 @@ class Component extends DCLogic {
       { id: 'sun', dow: 'вс', num: '23' },
     ];
     const dateFull = { mon: '17 августа', tue: '18 августа', wed: '19 августа', thu: '20 августа', fri: '21 августа', sat: '22 августа', sun: '23 августа' }[s.date];
+    // Уточнение владельца: расписание — и есть оповещение, но только для того, кто пришёл.
+    // При переносе НАЗАД оно не работает по устройству: ученик откроет прежний день, когда
+    // занятие уже прошло. Чат курса страдает тем же. Поэтому у переноса две ветки, и на
+    // ранней экран прямо говорит, что ученик может не узнать вовремя.
+    const dayOrder = { mon: 0, tue: 1, wed: 2, thu: 3, fri: 4, sat: 5, sun: 6 };
+    const earlier = move && dayOrder[s.date] < dayOrder.thu;
 
     const head = course
       ? { title: empty ? 'Новый курс' : 'Химия · неорганика',
           sub: empty ? 'курс живёт черновиком, пока вы его не опубликуете — ученики черновик не видят'
                      : 'черновик · 11 занятий составлено · ученики его пока не видят' }
-      : { title: empty ? 'Новое занятие' : 'Занятие 12 · Почему горит магний',
-          sub: 'курс «Химия · неорганика» · время задаётся в вашем поясе: Москва, UTC+3' };
+      : (move
+        ? { title: cancel ? 'Отмена занятия' : 'Перенос занятия',
+            // Расписание и есть оповещение для того, кто приходит на занятие. Шапка говорит
+            // это прямо; оговорка про «может не узнать» верна только для переноса назад и
+            // живёт там (ПРАВИЛА 8.2а).
+            sub: 'занятие уже стоит в расписании 14 учеников · изменения они видят в расписании курса' }
+        : { title: empty ? 'Новое занятие' : 'Занятие 12 · Почему горит магний',
+            sub: 'курс «Химия · неорганика» · время задаётся в вашем поясе: Москва, UTC+3' });
 
     const failCourse = {
       k: 'отказ · справочник предметов',
@@ -503,7 +634,31 @@ class Component extends DCLogic {
       ],
       a: 'Загрузить курс снова',
     };
-    const fail = course ? failCourse : failLesson;
+    const failMove = {
+      k: 'отказ · служба расписания',
+      t: 'Перенести нельзя: расписание не принимает изменение',
+      b: 'Служба расписания не отвечает. Занятие остаётся там, где стояло, — и это лучше половины переноса: у учеников в расписании не появится ни старого, ни нового времени одновременно.',
+      f: [
+        { text: 'работает: материалы, конспект, чат курса' },
+        { text: 'не работает: любое изменение расписания — значит и перенос' },
+        { text: 'с данными: новое время и причина сохранены черновиком, 12:04' },
+      ],
+      a: 'Проверить службу снова',
+    };
+    // Отмена — своя операция, и её отказ/частичный не могут говорить про перенос: экран,
+    // на котором карточка обещает одно, а рельс другое, врёт вдвойне (найдено ревьюером).
+    const failCancel = {
+      k: 'отказ · служба расписания',
+      t: 'Отменить нельзя: расписание не принимает изменение',
+      b: 'Служба расписания не отвечает. Занятие пока остаётся на месте — у учеников оно так и стоит в расписании. Если время уже не спасти, напишите в чат курса, чтобы никто не пришёл напрасно.',
+      f: [
+        { text: 'работает: материалы, конспект, чат курса' },
+        { text: 'не работает: любое изменение расписания — значит и отмена' },
+        { text: 'с данными: ваша причина сохранена черновиком, 12:04' },
+      ],
+      a: 'Проверить службу снова',
+    };
+    const fail = course ? failCourse : (move ? (cancel ? failCancel : failMove) : failLesson);
 
     const partialCourse = {
       k: 'частичный отказ · служба оплат',
@@ -525,7 +680,27 @@ class Component extends DCLogic {
       ],
       a: 'Запросить пояса снова',
     };
-    const par = course ? partialCourse : partialLesson;
+    const partialMove = {
+      k: 'частичный отказ · список учеников',
+      t: 'Перенести можно, но кого это касается — сейчас не видно',
+      f: [
+        { text: 'работает: перенос, материалы, конспект, чат курса' },
+        { text: 'не работает: список записанных и их пояса — служба курса молчит' },
+        { text: 'с данными: перенос запишется, ученики увидят новое время в расписании' },
+      ],
+      a: 'Запросить список снова',
+    };
+    const partialCancel = {
+      k: 'частичный отказ · список учеников',
+      t: 'Отменить можно, но кого это касается — сейчас не видно',
+      f: [
+        { text: 'работает: отмена, расписание остальных занятий, чат курса' },
+        { text: 'не работает: список записанных — служба курса молчит' },
+        { text: 'с данными: отмена запишется, занятие исчезнет из их расписания' },
+      ],
+      a: 'Запросить список снова',
+    };
+    const par = course ? partialCourse : (move ? (cancel ? partialCancel : partialMove) : partialLesson);
 
     return {
       setRoot: (el) => { this.root = el; },
@@ -539,14 +714,25 @@ class Component extends DCLogic {
       saveNote: s.st === 'loading' ? 'открываем черновик' : (s.st === 'failed' ? 'черновик сохранён 12:04' : 'сохраняется само · последнее сохранение 12:04'),
 
       courseForm: course && form,
-      lessonForm: !course && form,
+      lessonForm: !course && !move && form,
+      moveForm: move && form,
+      actMove: move && !cancel,
+      actCancel: cancel,
+      moveEarlier: move && !cancel && form && earlier,
+      earlierTitle: 'Занятие уедет на ' + dateFull + ' — раньше, чем стоит сейчас (четверг, 20 августа)',
       isLoading: s.st === 'loading',
       isFailed: s.st === 'failed',
       partial: partial,
 
       partialKicker: par.k, partialTitle: par.t, partialFacts: par.f, partialAction: par.a,
       failKicker: fail.k, failTitle: fail.t, failBody: fail.b, failFacts: fail.f, failAction: fail.a,
-      loadingSays: course ? 'открываем черновик курса · первыми придут название и предмет' : 'открываем занятие · первыми придут дата и тема',
+      loadingSays: course
+        ? 'открываем черновик курса · первыми придут название и предмет'
+        : (move
+          ? (cancel
+            ? 'открываем занятие · первыми придут дата и время, за ними список записанных'
+            : 'открываем занятие · первыми придут дата и время, за ними пояса учеников')
+          : 'открываем занятие · первыми придут дата и тема'),
       skeleton: [{ a: '38%', b: '26%' }, { a: '30%', b: '44%' }, { a: '46%', b: '22%' }],
 
       vName: empty ? '' : 'Химия · неорганика',
@@ -617,9 +803,52 @@ class Component extends DCLogic {
         { name: 'NASA · снимок дня: горение в невесомости', right: 'право: можно брать в свою работу' },
       ],
 
-      railKicker: course ? 'Что увидит ученик' : 'Кого это касается',
+      railKicker: course ? 'Что увидит ученик' : (cancel ? 'Что придёт ученикам' : 'Кого это касается'),
       courseRail: course,
-      lessonRail: !course,
+      lessonRail: !course && !move,
+      moveRail: move,
+      // Перенос считается не «на два дня вперёд», а по календарю и по поясам: у Ли новое
+      // время попадает в ночь, и это горит — коралловым, как всякое «не получится».
+      // Рельс не обещает того, чего экран сделать не может: пока служба молчит, ученикам
+      // ничего не уйдёт, и говорить «14 получат отмену» рядом с отказом — врать дважды.
+      moveMetric: !form ? '—' : (cancel ? '14' : '15:00'),
+      moveMetricLabel: s.st === 'loading'
+        ? 'занятие ещё читается — в расписании учеников пока прежнее время'
+        : !form
+        ? 'пока служба расписания молчит, у учеников стоит прежнее время — ничего не изменилось'
+        : (cancel
+          ? 'учеников получат отмену с вашей причиной — она уйдёт словами, а не «занятие отменено»'
+          : 'новое время начала, четверг 20 августа, в вашем поясе'),
+      moveRailNote: !form
+        ? 'что увидят ученики — станет известно, когда служба ответит'
+        : (cancel
+          ? 'расписание и есть оповещение — вот что в нём увидит ученик:'
+          : (earlier
+            ? 'новое время в поясах учеников — если они успеют его увидеть:'
+            : 'у учеников новое время будет так:')),
+      moveRows: !form ? [] : cancel
+        ? [
+            { who: 'в расписании', at: 'отменено', color: 'var(--color-accent-text)' },
+            { who: 'рядом с отменой', at: 'ваша причина', color: 'var(--color-text-secondary)' },
+            { who: 'в «Моей учёбе»', at: 'без изменений', color: 'var(--color-text-secondary)' },
+          ]
+        : [
+            { who: 'Даша · Калининград, UTC+2', at: '14:00', color: 'var(--color-text-secondary)' },
+            { who: 'Артём · Новосибирск, UTC+7', at: '19:00', color: 'var(--color-text-secondary)' },
+            { who: 'Ли · Шанхай, UTC+8', at: '20:00', color: 'var(--color-accent-text)' },
+          ],
+      moveWarnColor: !form ? 'var(--color-text-secondary)' : 'var(--color-accent-text)',
+      moveWarn: s.st === 'loading'
+        ? 'ничего ещё не изменено: экран только читает занятие'
+        : !form
+        ? (cancel
+          ? 'ничего не потеряно: ваша причина сохранена черновиком'
+          : 'ничего не потеряно: новое время и причина сохранены черновиком')
+        : cancel
+        ? 'отменённое занятие исчезнет из расписания — тот, кто откроет его к занятию, увидит отмену и причину'
+        : (earlier
+          ? 'перенос назад расписание сообщить не успеет: ученик откроет прежний день, когда занятие уже прошло'
+          : 'у Ли это 20:00, и это уже поздний вечер: двое из четырнадцати не придут'),
       railRows: [
         { k: 'предмет', v: { chem: 'химия', math: 'математика', phys: 'физика', bio: 'биология', hist: 'история', lang: 'английский', astro: 'астрономия' }[s.subject] },
         { k: 'для кого', v: { g56: '5–6 класс', g78: '7–8 класс', g911: '9–11 класс', adult: 'взрослые' }[s.level] },
@@ -643,13 +872,37 @@ class Component extends DCLogic {
 
       // ПРАВИЛА 5.11: где на экране появилось коралловое действие (отказ, «загрузить снова»),
       // зелёное решение отдаёт заливку и берёт обводку.
-      goPrimary: form,
-      flatPrimary: !form,
-      primaryLabel: course ? 'Опубликовать курс' : 'Поставить в расписание',
-      secondaryLabel: course ? 'Сохранить черновиком' : 'Сохранить черновиком',
-      primaryNote: course
-        ? 'после публикации курс появится в каталоге и на него можно записаться. Снять с публикации можно в любой момент — записанные ученики останутся.'
-        : 'занятие встанет в расписание 14 ученикам и придёт им уведомлением. ' + dateFull + ', 11:30 по вашему времени.',
+      // Отмена — единственное место этого листа, где заливка коралловая: она горит и
+      // не отменяется обратно. Зелёного рядом с ней нет вовсе (ПРАВИЛА 5.8, 5.11).
+      goPrimary: form && !cancel,
+      // Пока экран в отказе, «Отменить занятие» не должно выглядеть ни зелёным решением,
+      // ни горящим действием: нажать всё равно нельзя, пока служба не ответит.
+      flatPrimary: !form && !cancel,
+      flatDanger: !form && cancel,
+      dangerPrimary: form && cancel,
+      primaryLabel: course ? 'Опубликовать курс' : (move ? (cancel ? 'Отменить занятие' : 'Перенести занятие') : 'Поставить в расписание'),
+      secondaryLabel: course ? 'Сохранить черновиком' : (move ? (cancel ? 'Не отменять, вернуться к переносу' : 'Оставить как было') : 'Сохранить черновиком'),
+      // ПРАВИЛА 6.5г: подпись под кнопкой — тоже обещание, и в отказе она обещать не имеет
+      // права. Обезвредить рельс и оставить обещание под кнопкой — то же вранье, только ниже.
+      primaryNote: s.st === 'loading'
+        ? 'пока экран открывается, ничего не меняется: кнопка заработает, когда данные придут.'
+        : !form
+        ? (move
+          ? (cancel
+            ? 'пока служба расписания молчит, у учеников стоит прежнее время: занятие на месте, ваша причина сохранена черновиком.'
+            : 'пока служба расписания молчит, у учеников стоит прежнее время: занятие на месте, новое время и причина сохранены черновиком.')
+          : (course
+            ? 'пока справочник молчит, публиковать нечего: черновик сохранён и никуда не денется.'
+            : 'пока курс не открылся, ставить занятие некуда: тема и материалы сохранены черновиком.'))
+        : (course
+          ? 'после публикации курс появится в каталоге и на него можно записаться. Снять с публикации можно в любой момент — записанные ученики останутся.'
+          : (move
+            ? (cancel
+              ? 'занятие исчезнет из расписания 14 учеников, рядом останется ваша причина: расписание сообщит об отмене тому, кто откроет его к занятию. Оплата за отменённое занятие не списывается.'
+              : (earlier
+                ? 'занятие переедет вместе с материалами, конспектом и чатом на ' + dateFull + '. Расписание покажет это только тому, кто в него зайдёт раньше нового дня, — до остальных придётся дойти самим.'
+                : 'занятие переедет вместе с материалами, конспектом и чатом. В расписании 14 учеников встанет новое время и ваша причина — они увидят его, когда откроют расписание.'))
+            : 'занятие встанет в расписание 14 учеников. ' + dateFull + ', 11:30 по вашему времени — они увидят его, открыв расписание.')),
 
       onSw: this.onSw,
       onPick: this.onPick,
