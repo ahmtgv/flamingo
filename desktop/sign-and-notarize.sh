@@ -168,22 +168,35 @@ codesign --verify --deep --strict --verbose=2 "$APP" 2>&1 | tail -2
 
 echo
 echo "── Нотаризация ──────────────────────────────"
-# 🔴 «Профиль не найден» и «не смог спросить Apple» — РАЗНЫЕ новости (наряд 34).
-# Здесь стояла одна проверка на оба случая, и при отвалившейся сети скрипт советовал бы
-# заводить профиль, который на месте. Смотрим, что именно ответил notarytool.
-NOTARY_CHECK="$(xcrun notarytool history --keychain-profile "$PROFILE" 2>&1 >/dev/null || true)"
-if [ -n "$NOTARY_CHECK" ] && ! printf '%s' "$NOTARY_CHECK" | grep -qi "no keychain password item"; then
+# 🔴 ТРИ РАЗНЫЕ НОВОСТИ, А НЕ ДВЕ (наряд 44 §4; было — наряд 34).
+#
+# «Профиль не найден», «до связки ключей не достучаться» и «не смог спросить Apple» лечатся
+# по-разному, а скрипт сваливал первые две в одну. Владелец получил совет заводить профиль,
+# который ЖИВ: `notarytool history` из обычного терминала отвечает «Successfully received
+# submission history». Не достучались до связки — это не отсутствие профиля.
+#
+# Порядок проверок — от самого дешёвого и самого частого к редкому.
+
+# 1. Связка вообще доступна этой оболочке? Из неинтерактивной (ssh, запуск из редактора,
+#    агент) она может быть заперта, и любой поиск в ней вернёт «item not found» — то есть
+#    соврёт ровно про отсутствие.
+if ! security show-keychain-info login.keychain-db >/dev/null 2>&1; then
   echo
-  echo "  ⚠️ Нотаризация пропущена: не удалось спросить службу Apple."
-  echo "     Профиль «$PROFILE» при этом на месте — дело не в нём."
-  echo "     Ответ: $(printf '%s' "$NOTARY_CHECK" | head -1)"
+  echo "  ⚠️ Нотаризация пропущена: до связки ключей не достучаться из этой оболочки."
+  echo "     Это НЕ значит, что профиля нет. Связка заперта или недоступна неинтерактивному"
+  echo "     запуску — так бывает при вызове из редактора, по ssh или из агента."
   echo
-  echo "  Приложение подписано. Повторите позже: bash desktop/sign-and-notarize.sh"
+  echo "  Что делать: повторить из обычного Терминала:  bash desktop/sign-and-notarize.sh"
+  echo "  Приложение при этом подписано и на своей машине работает."
   exit 0
 fi
 
-if [ -n "$NOTARY_CHECK" ]; then
+NOTARY_CHECK="$(xcrun notarytool history --keychain-profile "$PROFILE" 2>&1 >/dev/null || true)"
+
+# 2. Связка доступна, а профиля в ней действительно нет — тогда его заводят.
+if printf '%s' "$NOTARY_CHECK" | grep -qi "no keychain password item"; then
   echo "  ⚠️ Профиль «$PROFILE» в связке не найден — нотаризация пропущена."
+  echo "     Связка при этом доступна, дело именно в профиле."
   echo "     Создать (владелец, один раз, у себя):"
   echo "       xcrun notarytool store-credentials \"$PROFILE\" \\"
   echo "         --key <AuthKey_XXXX.p8> --key-id <KEY_ID> --issuer <ISSUER_ID>"
@@ -193,9 +206,17 @@ if [ -n "$NOTARY_CHECK" ]; then
   exit 0
 fi
 
-# Нотаризуют архив или образ, а не .app: notarytool принимает zip/dmg/pkg.
-ZIP="${APP%.app}.zip"
-/usr/bin/ditto -c -k --keepParent "$APP" "$ZIP"
+# 3. Профиль на месте, связка открыта — значит не ответила служба Apple.
+if [ -n "$NOTARY_CHECK" ]; then
+  echo
+  echo "  ⚠️ Нотаризация пропущена: не удалось спросить службу Apple."
+  echo "     Профиль «$PROFILE» при этом на месте, связка открыта — дело не в них."
+  echo "     Ответ: $(printf '%s' "$NOTARY_CHECK" | head -1)"
+  echo
+  echo "  Приложение подписано. Повторите позже: bash desktop/sign-and-notarize.sh"
+  exit 0
+fi
+
 xcrun notarytool submit "$ZIP" --keychain-profile "$PROFILE" --wait
 rm -f "$ZIP"
 
