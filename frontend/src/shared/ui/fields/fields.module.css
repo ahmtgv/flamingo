@@ -188,11 +188,9 @@
 
 /* Настоящий input под визуальным квадратом: клавиатура и читалка работают как обычно. */
 .checkInput {
-  position: absolute;
-  inline-size: 1px;
-  block-size: 1px;
-  opacity: 0;
-  pointer-events: none;
+  /* Прячем от глаз, но не от читалки. Правило одно и живёт в tokens.css: копии этого
+     рецепта разъезжались и трижды оказались ловушкой «absolute без предка». */
+  composes: fl-visually-hidden from global;
 }
 
 .box {

@@ -159,6 +159,49 @@ for (const [route, who] of SCREENS) {
       if (process.env.DUMP_TEXT && view === VIEWS[0]) {
         console.log('ТЕКСТ', route, '→', (await page.evaluate(() => document.body.innerText)).replace(/\s+/g, ' ').slice(0, 260));
       }
+      /*
+       * 🔴 ЛОВУШКА «ABSOLUTE БЕЗ ПРЕДКА» — СОБСТВЕННЫЙ ПРИБОР (наряд 43, находка владельца).
+       *
+       * У элемента с `position: absolute` без позиционированного предка containing block —
+       * САМА СТРАНИЦА. Такой элемент не подчиняется `overflow: hidden` ни одного кадра над
+       * ним и тянет прокрутку документа со своего места.
+       *
+       * Поймано вживую: спрятанная галочка из общего набора (1 × 1 px, невидимая) оказалась
+       * на 894-м пикселе при кадре 800 и растянула страницу на 95 px. Все ВИДИМЫЕ элементы
+       * при этом помещались, и глазами не было видно ничего.
+       *
+       * Владелец: «одна найденная ловушка редко бывает единственной». Поэтому ищем не в том
+       * месте, где нашли, а на каждом экране прогона.
+       */
+      const escapees = await page.evaluate(() => {
+        const bad = [];
+        document.querySelectorAll('*').forEach((el) => {
+          if (getComputedStyle(el).position !== 'absolute') return;
+          // Ищем позиционированного предка ДО body: он и есть containing block.
+          let anchored = false;
+          for (let p = el.parentElement; p && p !== document.body; p = p.parentElement) {
+            if (getComputedStyle(p).position !== 'static') { anchored = true; break; }
+          }
+          if (anchored) return;
+          const r = el.getBoundingClientRect();
+          /*
+           * ⚠️ Сам по себе `absolute` без предка ещё не беда: прижатый к началу страницы
+           * элемент стоит в нуле и ничего не тянет. Беда — когда он при этом ЗА КАДРОМ: тогда
+           * его не обрезает ни одна рамка, и документ вытягивается до него.
+           *
+           * Сузил правило ПОСЛЕ того, как оно поймало настоящий дефект, а не вместо: широкая
+           * версия показывала три места, из них одно настоящее и два прижатых. Проверено
+           * нарочной поломкой — снял прижатие, прибор снова назвал место.
+           */
+          if (r.bottom <= innerHeight + 1 && r.right <= innerWidth + 1 && r.top >= -1) return;
+          bad.push({
+            el: `${el.tagName.toLowerCase()}.${String(el.className).split(' ')[0]}`,
+            низ: Math.round(r.bottom),
+            текст: (el.textContent || '').trim().slice(0, 20),
+          });
+        });
+        return bad.slice(0, 6);
+      });
       await page.addScriptTag({ content: AUDIT });
       const report = await page.evaluate((label) => window.flAudit({ label }), `${route} · ${who ?? 'гость'}`);
       /*
@@ -178,6 +221,8 @@ for (const [route, who] of SCREENS) {
       report.overlaps = (report.overlaps ?? []).filter((o) => !isArt(o));
       report.verdict.overlaps = report.overlaps.length ? `ДЕФЕКТ ${report.overlaps.length}` : 'ok';
       if (artCount) skippedArt += artCount;
+      report.verdict.escapes = escapees.length ? `ДЕФЕКТ · absolute без предка ${escapees.length}` : 'ok';
+      report.escapes = escapees;
       const defects = Object.entries(report.verdict).filter(([, v]) => String(v).startsWith('ДЕФЕКТ'));
       // Подробности — только для первого вида: они одинаковы во всех, а печатать вчетверо
       // значит утопить находку в повторах (той же болезнью страдал лог сервера, §37 §4.2).
@@ -187,6 +232,7 @@ for (const [route, who] of SCREENS) {
             tapTargets: (report.tapTargets ?? []).slice(0, 6),
             clipped: (report.clipped ?? []).slice(0, 3),
             contrast: (report.contrast ?? []).slice(0, 4),
+            escapes: report.escapes ?? [],
             // Кто именно накрыл текст: без имени слоя находка неисправима.
             textUnderLayer: (report.textUnderLayer ?? []).slice(0, 6),
             rowWrap: (report.rowWrap ?? []).slice(0, 3),
@@ -220,7 +266,7 @@ console.log('\n=== ПОДРОБНО (первый вид каждого экра
 for (const r of rows) {
   if (!r.details) continue;
   const d = r.details;
-  const any = d.overlaps.length || d.tapTargets.length || d.clipped.length || d.textUnderLayer?.length || d.rowWrap?.length || d.contrast?.length;
+  const any = d.overlaps.length || d.tapTargets.length || d.clipped.length || d.textUnderLayer?.length || d.rowWrap?.length || d.contrast?.length || d.escapes?.length;
   if (!any) continue;
   console.log(`  ${r.route} · ${r.who}`);
   for (const x of d.overlaps) console.log('    пересечение:', JSON.stringify(x).slice(0, 190));
@@ -229,4 +275,5 @@ for (const r of rows) {
   for (const x of d.textUnderLayer ?? []) console.log('    текст под слоем:', JSON.stringify(x).slice(0, 190));
   for (const x of d.rowWrap ?? []) console.log('    ряд развалился:', JSON.stringify(x).slice(0, 190));
   for (const x of d.contrast ?? []) console.log('    контраст:', JSON.stringify(x).slice(0, 190));
+  for (const x of d.escapes ?? []) console.log('    absolute без предка:', JSON.stringify(x).slice(0, 190));
 }

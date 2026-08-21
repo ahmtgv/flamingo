@@ -420,12 +420,9 @@
   color: var(--color-link);
 }
 .srOnly {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip: rect(0 0 0 0);
-  white-space: nowrap;
+  /* Прячем от глаз, но не от читалки. Правило одно и живёт в tokens.css: копии этого
+     рецепта разъезжались и трижды оказались ловушкой «absolute без предка». */
+  composes: fl-visually-hidden from global;
 }
 
 /* TEMPORARY: кликабельный рельс витрины — уходит вместе с демо-слоем. */

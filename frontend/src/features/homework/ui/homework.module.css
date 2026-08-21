@@ -168,14 +168,9 @@
   box-shadow: var(--focus-ring);
 }
 .fileInput {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  border: 0;
+  /* Прячем от глаз, но не от читалки. Правило одно и живёт в tokens.css: копии этого
+     рецепта разъезжались и трижды оказались ловушкой «absolute без предка». */
+  composes: fl-visually-hidden from global;
 }
 .fileList {
   list-style: none;
