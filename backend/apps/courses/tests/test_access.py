@@ -17,6 +17,7 @@ from apps.courses.access import can_access_course
 from apps.courses.models import Course, Enrollment
 from apps.institutions import services as institutions
 from common.enums import AccessStatus, Role
+from common.exceptions import PermissionDenied
 
 pytestmark = pytest.mark.django_db
 
@@ -220,3 +221,48 @@ def test_create_course_persists_and_honors_institutional_group():
         services.create_course(
             stranger, title="X", subject="Математика", level="grade_7", group_id=str(group.id)
         )
+
+
+# --- кого касается занятие: пояса учеников (лист «Создание курса и занятия») --
+def test_course_audience_is_owner_only():
+    """
+    🔴 Имя и город чужого ребёнка — персональные данные. Список отдаётся ТОЛЬКО владельцу
+    курса: знание `courseId` правом не является.
+    """
+    from apps.courses import services
+
+    owner = make_teacher("aud.owner@example.com")
+    stranger = make_teacher("aud.stranger@example.com")
+    course = make_published_course(owner)
+    pupil = make_student("aud.p@example.com")
+    services.enroll(pupil, course.id)
+
+    assert [m["name"] for m in services.course_audience(owner, course.id)] == [
+        pupil.display_name
+    ]
+    with pytest.raises(PermissionDenied):
+        services.course_audience(stranger, course.id)
+    with pytest.raises(PermissionDenied):
+        services.course_audience(pupil, course.id)
+
+
+def test_course_audience_says_when_a_timezone_is_not_named():
+    """
+    Пояс не назван — отдаём `None`, а не подставляем свой. Подставленный пояс выглядит как
+    знание, которого нет, и преподаватель поставит занятие «удобно» тому, о ком не знает
+    ничего.
+    """
+    from apps.courses import services
+
+    owner = make_teacher("aud.o2@example.com")
+    course = make_published_course(owner)
+    silent = make_student("aud.silent@example.com")
+    named = make_student("aud.named@example.com")
+    named.timezone = "Asia/Shanghai"
+    named.save(update_fields=["timezone"])
+    services.enroll(silent, course.id)
+    services.enroll(named, course.id)
+
+    zones = {m["student_id"]: m["timezone"] for m in services.course_audience(owner, course.id)}
+    assert zones[str(silent.id)] is None, "пояс не назван — говорим об этом, а не подставляем свой"
+    assert zones[str(named.id)] == "Asia/Shanghai"

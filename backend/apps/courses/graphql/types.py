@@ -574,6 +574,20 @@ class JournalStudent:
 
 
 @strawberry.type
+class AudienceMember:
+    """
+    Записанный на курс и его пояс — для экрана создания занятия.
+
+    `timezone` пустой — человек пояса не назвал. Экран обязан сказать это словами, а не
+    подставить свой: подставленный пояс выглядит как знание, которого нет.
+    """
+
+    student_id: strawberry.ID
+    name: str
+    timezone: str | None
+
+
+@strawberry.type
 class JournalSession:
     session_id: strawberry.ID
     title: str

@@ -36,7 +36,6 @@ import {
   usePublishLessonMutation,
   useReorderLessonsMutation,
   useReorderSectionsMutation,
-  useScheduleSessionMutation,
   useUnpublishCourseMutation,
   useUpdateCourseMutation,
   useUpdateLessonMutation,
@@ -551,7 +550,25 @@ function OwnerConstructor({ course, onDone }: { course: CourseT; onDone: () => v
                         {t('manage.publishLesson')}
                       </Button>
                     )}
-                    <ScheduleSessionForm lessonId={lesson.id} />
+                    {/*
+                      🔴 Постановка занятия уехала на СВОЙ экран (лист «Создание курса и
+                      занятия»). Форма здесь была одним полем `datetime-local`: она ставила
+                      занятие, не показывая, кого оно касается, — а именно это и решает,
+                      удачное ли выбрано время. Название передаём состоянием маршрута: за ним
+                      незачем ходить вторым запросом, второй источник однажды разойдётся.
+                    */}
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      icon={<CalendarPlus size={ICON_SM} />}
+                      onClick={() =>
+                        navigate(`/courses/${course.id}/lessons/${lesson.id}/schedule`, {
+                          state: { title: lesson.title },
+                        })
+                      }
+                    >
+                      {t('schedule.submit')}
+                    </Button>
                     <Button
                       variant="secondary"
                       size="sm"
@@ -833,65 +850,6 @@ function LessonEditForm({ lesson, onDone }: { lesson: LessonT; onDone: () => voi
       <Button type="button" variant="secondary" size="sm" onClick={() => setOpen(false)}>
         {t('manage.cancel')}
       </Button>
-    </form>
-  );
-}
-
-function ScheduleSessionForm({ lessonId }: { lessonId: string }) {
-  const { t } = useTranslation('schedule');
-  const [open, setOpen] = useState(false);
-  const [when, setWhen] = useState('');
-  const [done, setDone] = useState(false);
-  const [failed, setFailed] = useState<string | null>(null);
-  const [scheduleSession, { loading }] = useScheduleSessionMutation();
-
-  async function submit(e: FormEvent) {
-    e.preventDefault();
-    if (!when) return;
-    setFailed(null);
-    try {
-      await scheduleSession({
-        variables: { input: { lessonId, startAt: new Date(when).toISOString() } },
-      });
-      setDone(true);
-    } catch (error) {
-      // 🔴 Занятие, которое «как будто назначено», — это класс, пришедший в пустую комнату.
-      setFailed(t(failureText(error)));
-    }
-  }
-
-  if (done) {
-    return (
-      <span className={styles.lessonMeta}>
-        <Check size={14} /> {t('status.SCHEDULED')}
-      </span>
-    );
-  }
-  if (!open) {
-    return (
-      <Button variant="secondary" size="sm" icon={<CalendarPlus size={ICON_SM} />} onClick={() => setOpen(true)}>
-        {t('lessonForm.schedule')}
-      </Button>
-    );
-  }
-  return (
-    <form className={styles.inlineForm} onSubmit={submit}>
-      <div>
-        <Input
-          type="datetime-local"
-          value={when}
-          onChange={(e) => setWhen(e.target.value)}
-          aria-label={t('lessonForm.schedule')}
-        />
-      </div>
-      <Button type="submit" variant="secondary" size="sm" loading={loading}>
-        {t('lessonForm.submit')}
-      </Button>
-      {failed && (
-        <p className={styles.formError} role="alert">
-          {failed}
-        </p>
-      )}
     </form>
   );
 }

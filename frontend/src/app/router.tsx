@@ -22,6 +22,7 @@ import { Cabinet } from '@/features/cabinet';
 import { LinkMachineScreen, SettingsScreen, SetupScreen } from '@/features/desktop';
 import { ArrivalScreen, InvitePanel } from '@/features/meeting';
 import { AdminInstitutionScreen, PeopleScreen, VerificationScreen } from '@/features/admin';
+import { ScheduleLessonScreen } from '@/features/courses/ui/ScheduleLessonScreen';
 import { CatalogScreen, CourseDetailScreen, CreateCourseScreen } from '@/features/courses';
 import {
   GradingQueueScreen,
@@ -444,6 +445,16 @@ export function AppRouter() {
           element={
             <ProtectedRoute>
               <VerificationScreen />
+            </ProtectedRoute>
+          }
+        />
+        {/* Создание занятия — лист «Создание курса и занятия». Курс в адресе, потому что
+            «кого это касается» считается по записанным на КУРС, а не на урок. */}
+        <Route
+          path="/courses/:courseId/lessons/:lessonId/schedule"
+          element={
+            <ProtectedRoute>
+              <ScheduleLessonScreen />
             </ProtectedRoute>
           }
         />

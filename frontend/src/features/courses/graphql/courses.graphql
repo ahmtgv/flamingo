@@ -224,3 +224,12 @@ mutation AddMaterial($input: MaterialInput!) {
 mutation DeleteMaterial($id: ID!) {
   deleteMaterial(id: $id)
 }
+
+# Кого касается занятие — для экрана создания занятия (лист «Создание курса и занятия»).
+query CourseAudience($courseId: ID!) {
+  courseAudience(courseId: $courseId) {
+    studentId
+    name
+    timezone
+  }
+}

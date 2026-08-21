@@ -658,3 +658,36 @@ def share_material(user, material_id) -> Material:
         except Exception:  # noqa: BLE001 — выдача состоялась; копия — лучшее усилие
             pass
     return material
+
+
+def course_audience(user, course_id) -> list[dict]:
+    """
+    Кого касается занятие: записанные на курс, каждый со своим часовым поясом.
+
+    🔴 Ради этого лист «Создание курса и занятия» и нарисован. Преподаватель ставит занятие в
+    СВОЁМ поясе, а живут ученики где угодно: 11:30 в Москве — это 16:30 в Шанхае, где школа
+    ещё идёт. Без этого списка преподаватель узнаёт о промахе от ученика, который не пришёл.
+
+    ⚠️ Право видеть: только владелец курса. Имя и город чужого ребёнка — персональные данные,
+    и отдавать их всякому, кто знает `courseId`, нельзя.
+
+    Пояс может быть не назван (`timezone` пустой) — тогда `None`, и экран честно скажет
+    «пояс не указан», а не подставит московское время за человека.
+    """
+    course = _owned_course(user, course_id)
+    rows = (
+        Enrollment.objects.filter(course=course)
+        .select_related("student__user")
+        .order_by("student__user__first_name")
+    )
+    out = []
+    for row in rows:
+        student_user = row.student.user
+        out.append(
+            {
+                "student_id": str(student_user.id),
+                "name": student_user.display_name,
+                "timezone": student_user.timezone or None,
+            }
+        )
+    return out

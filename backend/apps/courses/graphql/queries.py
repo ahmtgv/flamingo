@@ -9,6 +9,7 @@ from common.enums import CourseFormat, CourseLevel, CourseStatus
 from common.pagination import paginate
 
 from .types import (
+    AudienceMember,
     Course,
     CourseConnection,
     CourseJournal,
@@ -34,6 +35,14 @@ class CourseFilter:
 
 @strawberry.type
 class CoursesQuery:
+    @strawberry.field
+    def course_audience(
+        self, info: strawberry.Info, course_id: strawberry.ID
+    ) -> list[AudienceMember]:
+        """Кого касается занятие: записанные на курс со своими поясами. Только владелец курса."""
+        rows = services.course_audience(require_user(info), course_id)
+        return [AudienceMember(**row) for row in rows]
+
     @strawberry.field
     def catalog(
         self,

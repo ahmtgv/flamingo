@@ -174,6 +174,13 @@ export type Attribution = {
   sourceUrl?: Maybe<Scalars['String']['output']>;
 };
 
+export type AudienceMember = {
+  __typename?: 'AudienceMember';
+  name: Scalars['String']['output'];
+  studentId: Scalars['ID']['output'];
+  timezone?: Maybe<Scalars['String']['output']>;
+};
+
 export type AuthPayload = {
   __typename?: 'AuthPayload';
   refreshToken: Scalars['String']['output'];
@@ -1955,6 +1962,7 @@ export type Query = {
   chatReports: Array<ChatReport>;
   chatUnread: Scalars['Int']['output'];
   course?: Maybe<Course>;
+  courseAudience: Array<AudienceMember>;
   courseBoards: Array<BoardSnapshot>;
   /**
    * Журнал предмета — первая половина (промпт 36 §5): занятия, присутствие, оценки по группе.
@@ -2078,6 +2086,11 @@ export type QueryChannelMessagesArgs = {
 
 export type QueryCourseArgs = {
   id: Scalars['ID']['input'];
+};
+
+
+export type QueryCourseAudienceArgs = {
+  courseId: Scalars['ID']['input'];
 };
 
 
@@ -3586,6 +3599,13 @@ export type DeleteMaterialMutationVariables = Exact<{
 
 
 export type DeleteMaterialMutation = { __typename?: 'Mutation', deleteMaterial: boolean };
+
+export type CourseAudienceQueryVariables = Exact<{
+  courseId: Scalars['ID']['input'];
+}>;
+
+
+export type CourseAudienceQuery = { __typename?: 'Query', courseAudience: Array<{ __typename?: 'AudienceMember', studentId: string, name: string, timezone?: string | null }> };
 
 export type RequestPairingCodeMutationVariables = Exact<{
   deviceName: Scalars['String']['input'];
@@ -7336,6 +7356,51 @@ export function useDeleteMaterialMutation(baseOptions?: Apollo.MutationHookOptio
 export type DeleteMaterialMutationHookResult = ReturnType<typeof useDeleteMaterialMutation>;
 export type DeleteMaterialMutationResult = Apollo.MutationResult<DeleteMaterialMutation>;
 export type DeleteMaterialMutationOptions = Apollo.BaseMutationOptions<DeleteMaterialMutation, DeleteMaterialMutationVariables>;
+export const CourseAudienceDocument = gql`
+    query CourseAudience($courseId: ID!) {
+  courseAudience(courseId: $courseId) {
+    studentId
+    name
+    timezone
+  }
+}
+    `;
+
+/**
+ * __useCourseAudienceQuery__
+ *
+ * To run a query within a React component, call `useCourseAudienceQuery` and pass it any options that fit your needs.
+ * When your component renders, `useCourseAudienceQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useCourseAudienceQuery({
+ *   variables: {
+ *      courseId: // value for 'courseId'
+ *   },
+ * });
+ */
+export function useCourseAudienceQuery(baseOptions: Apollo.QueryHookOptions<CourseAudienceQuery, CourseAudienceQueryVariables> & ({ variables: CourseAudienceQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<CourseAudienceQuery, CourseAudienceQueryVariables>(CourseAudienceDocument, options);
+      }
+export function useCourseAudienceLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<CourseAudienceQuery, CourseAudienceQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<CourseAudienceQuery, CourseAudienceQueryVariables>(CourseAudienceDocument, options);
+        }
+// @ts-ignore
+export function useCourseAudienceSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<CourseAudienceQuery, CourseAudienceQueryVariables>): Apollo.UseSuspenseQueryResult<CourseAudienceQuery, CourseAudienceQueryVariables>;
+export function useCourseAudienceSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<CourseAudienceQuery, CourseAudienceQueryVariables>): Apollo.UseSuspenseQueryResult<CourseAudienceQuery | undefined, CourseAudienceQueryVariables>;
+export function useCourseAudienceSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<CourseAudienceQuery, CourseAudienceQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<CourseAudienceQuery, CourseAudienceQueryVariables>(CourseAudienceDocument, options);
+        }
+export type CourseAudienceQueryHookResult = ReturnType<typeof useCourseAudienceQuery>;
+export type CourseAudienceLazyQueryHookResult = ReturnType<typeof useCourseAudienceLazyQuery>;
+export type CourseAudienceSuspenseQueryHookResult = ReturnType<typeof useCourseAudienceSuspenseQuery>;
+export type CourseAudienceQueryResult = Apollo.QueryResult<CourseAudienceQuery, CourseAudienceQueryVariables>;
 export const RequestPairingCodeDocument = gql`
     mutation RequestPairingCode($deviceName: String!, $platform: DevicePlatform, $appVersion: String) {
   requestPairingCode(

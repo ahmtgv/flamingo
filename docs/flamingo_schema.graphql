@@ -326,6 +326,12 @@ type Material {
   order: Int!
 }
 
+type AudienceMember {
+  studentId: ID!
+  name: String!
+  timezone: String   # null — пояс не назван; экран говорит это словами, а не подставляет свой
+}
+
 type Enrollment {
   id: ID!
   student: StudentProfile!
@@ -1720,6 +1726,9 @@ type Query {
 
   # catalog & content
   catalog(filter: CourseFilter, first: Int = 20, after: String): CourseConnection!
+  # Кого касается занятие: записанные на курс со своими поясами. Только владелец курса —
+  # имя и город чужого ребёнка персональные данные, знание courseId правом не является.
+  courseAudience(courseId: ID!): [AudienceMember!]!
   course(id: ID!): Course
   lesson(id: ID!): Lesson
   myCourses: [Course!]!                                   # teacher's own courses (incl. drafts)

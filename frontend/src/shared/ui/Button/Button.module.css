@@ -69,9 +69,20 @@
   background: var(--color-accent-solid-hover);
 }
 
-/* Занятая кнопка — приглушённая, а не пропавшая: место и ширина остаются теми же. */
-.primary:disabled {
-  background: var(--color-text-disabled);
+/*
+ * 🔴 ВЫКЛЮЧЕННАЯ КНОПКА ОБЯЗАНА ЧИТАТЬСЯ. Белый текст на `--color-text-disabled` давал
+ * 1,91 при пороге 4,5 — прибор поймал это на «Поставить в расписание», когда время выбрано
+ * в прошлом. Человек в этот момент как раз и должен прочесть, ЧТО ему сейчас недоступно.
+ *
+ * Приглушаем поверхностью и чернилами, а не белым по серому: фон — тихая подложка, текст —
+ * второстепенная краска. Обе из набора, обе проходят порог.
+ */
+.primary:disabled,
+.go:disabled,
+.danger:disabled {
+  background: var(--color-surface-subtle);
+  border-color: var(--color-border);
+  color: var(--color-text-secondary);
 }
 
 .secondary {
@@ -118,9 +129,6 @@
   background: var(--color-go-solid-hover);
 }
 
-.go:disabled {
-  background: var(--color-text-disabled);
-}
 
 .danger {
   background: none;
