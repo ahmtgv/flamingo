@@ -2468,6 +2468,11 @@ function teacherDashboard(): TeacherDashboardQuery {
     id,
     submittedAt,
     status,
+    // Проверка работ читает саму работу — демо обязано отдавать то же, что живой сервер,
+    // иначе экран в демо выглядит иначе, чем в продукте, и мы узнаём об этом от человека.
+    attempt: 1,
+    contentText: 'Ответ ученика — в демо он один на всех, в продукте свой у каждого.',
+    markless: false,
     student: {
       __typename: 'StudentProfile' as const,
       user: { __typename: 'User' as const, id: u.id, firstName: u.firstName, lastName: u.lastName, displayName: u.firstName, formalName: u.firstName, shortName: u.firstName, fullName: `${u.lastName} ${u.firstName}` },

@@ -3338,7 +3338,7 @@ export type BoardChangedSubscription = { __typename?: 'Subscription', boardChang
 export type TeacherDashboardQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type TeacherDashboardQuery = { __typename?: 'Query', teacherDashboard: { __typename?: 'TeacherDashboard', studentCount: number, newStudentsThisWeek: number, courses: Array<{ __typename?: 'Course', id: string, title: string, status: CourseStatus, lessonCount: number, enrollmentCount: number }>, upcomingSessions: Array<{ __typename?: 'LessonSession', id: string, startAt: string, endAt?: string | null, status: SessionStatus, lesson: { __typename?: 'Lesson', id: string, title: string } }>, pendingSubmissions: Array<{ __typename?: 'Submission', id: string, submittedAt?: string | null, status: SubmissionStatus, student: { __typename?: 'StudentProfile', user: { __typename?: 'User', id: string, firstName: string, lastName: string, displayName: string, shortName: string, formalName: string } }, homework: { __typename?: 'Homework', id: string, title: string, lesson?: { __typename?: 'Lesson', id: string, title: string } | null } }> } };
+export type TeacherDashboardQuery = { __typename?: 'Query', teacherDashboard: { __typename?: 'TeacherDashboard', studentCount: number, newStudentsThisWeek: number, courses: Array<{ __typename?: 'Course', id: string, title: string, status: CourseStatus, lessonCount: number, enrollmentCount: number }>, upcomingSessions: Array<{ __typename?: 'LessonSession', id: string, startAt: string, endAt?: string | null, status: SessionStatus, lesson: { __typename?: 'Lesson', id: string, title: string } }>, pendingSubmissions: Array<{ __typename?: 'Submission', id: string, submittedAt?: string | null, status: SubmissionStatus, attempt: number, contentText?: string | null, markless: boolean, student: { __typename?: 'StudentProfile', user: { __typename?: 'User', id: string, firstName: string, lastName: string, displayName: string, shortName: string, formalName: string } }, homework: { __typename?: 'Homework', id: string, title: string, lesson?: { __typename?: 'Lesson', id: string, title: string } | null } }> } };
 
 export type MyChannelsQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -5957,6 +5957,9 @@ export const TeacherDashboardDocument = gql`
       id
       submittedAt
       status
+      attempt
+      contentText
+      markless
       student {
         user {
           id

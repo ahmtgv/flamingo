@@ -44,8 +44,8 @@ function dashboard(over: Partial<TeacherDashboardQuery['teacherDashboard']>): Te
         { __typename: 'LessonSession', id: 's-later', startAt: iso(150 * 60_000), endAt: null, status: 'SCHEDULED', lesson: { __typename: 'Lesson', id: 'les-2', title: 'Алгебра — системы уравнений' } },
       ],
       pendingSubmissions: [
-        { __typename: 'Submission', id: 'p-1', submittedAt: iso(-2 * DAY - 3 * HOUR), status: 'LATE', student: { __typename: 'StudentProfile', user: { __typename: 'User', id: 'u-t', firstName: 'Тимур', lastName: 'И.', displayName: 'Тимур', formalName: 'Тимур И.', shortName: 'Тимур И.' } }, homework: { __typename: 'Homework', id: 'h-1', title: 'Задачи 12–18', lesson: { __typename: 'Lesson', id: 'les-1', title: 'Линейные уравнения' } } },
-        { __typename: 'Submission', id: 'p-2', submittedAt: iso(-4 * HOUR), status: 'SUBMITTED', student: { __typename: 'StudentProfile', user: { __typename: 'User', id: 'u-v', firstName: 'Вера', lastName: 'С.', displayName: 'Вера', formalName: 'Вера С.', shortName: 'Вера С.' } }, homework: { __typename: 'Homework', id: 'h-2', title: 'Графики', lesson: { __typename: 'Lesson', id: 'les-2', title: 'Функции' } } },
+        { __typename: 'Submission', id: 'p-1', attempt: 1, contentText: 'ответ', markless: false, submittedAt: iso(-2 * DAY - 3 * HOUR), status: 'LATE', student: { __typename: 'StudentProfile', user: { __typename: 'User', id: 'u-t', firstName: 'Тимур', lastName: 'И.', displayName: 'Тимур', formalName: 'Тимур И.', shortName: 'Тимур И.' } }, homework: { __typename: 'Homework', id: 'h-1', title: 'Задачи 12–18', lesson: { __typename: 'Lesson', id: 'les-1', title: 'Линейные уравнения' } } },
+        { __typename: 'Submission', id: 'p-2', attempt: 1, contentText: 'ответ', markless: false, submittedAt: iso(-4 * HOUR), status: 'SUBMITTED', student: { __typename: 'StudentProfile', user: { __typename: 'User', id: 'u-v', firstName: 'Вера', lastName: 'С.', displayName: 'Вера', formalName: 'Вера С.', shortName: 'Вера С.' } }, homework: { __typename: 'Homework', id: 'h-2', title: 'Графики', lesson: { __typename: 'Lesson', id: 'les-2', title: 'Функции' } } },
       ],
       ...over,
     },

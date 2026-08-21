@@ -30,6 +30,9 @@ query TeacherDashboard {
       id
       submittedAt
       status
+      attempt
+      contentText
+      markless
       student {
         user {
           id

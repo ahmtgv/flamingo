@@ -1,133 +1,367 @@
+/*
+ * ПРОВЕРКА РАБОТ — собрано с листа «Задания и конспект», вид «проверка · преподаватель».
+ * Старый файл снесён целиком: был список строк с кнопкой «Проверить», уводившей на другой
+ * экран. Лист держит проверку В ОДНОМ месте: слева очередь, справа работа и оценка.
+ *
+ * 🔴 Довод листа, а не вкуса: проверяя двадцать работ, преподаватель делал двадцать переходов
+ * туда и обратно. «Отправить и взять следующую» — то же действие без дороги.
+ */
+
 .shell {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
+  block-size: 100dvh;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  overflow: hidden;
   background: var(--color-bg);
   color: var(--color-text);
 }
+
+@media (max-width: 1000px) {
+  .shell {
+    block-size: auto;
+    min-block-size: 100dvh;
+    overflow: visible;
+  }
+}
+
 .topbar {
   display: flex;
   align-items: center;
   gap: var(--space-3);
-  padding: var(--space-4) var(--space-6);
-  border-bottom: 1px solid var(--color-border);
-  background: var(--nav-material);
-  backdrop-filter: blur(var(--nav-blur));
-  -webkit-backdrop-filter: blur(var(--nav-blur));
-  position: sticky;
-  top: 0;
-  z-index: var(--z-sticky);
+  padding: var(--space-3) var(--space-5);
+  border-block-end: 1px solid var(--color-border);
+  background: var(--color-surface);
 }
+
 .logoBtn {
-  background: none;
-  border: 0;
-  cursor: pointer;
-  padding: 0;
-  border-radius: var(--radius-xs);
-}
-.logoBtn:focus-visible {
-  outline: none;
-  box-shadow: var(--focus-ring);
-}
-.topActions {
-  margin-left: auto;
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-}
-.iconBtn {
-  width: var(--control-height-md);
-  height: var(--control-height-md);
   display: inline-flex;
   align-items: center;
-  justify-content: center;
+  flex: none;
+  min-block-size: var(--tap-min);
+  padding-inline: var(--space-2);
+  border: none;
   border-radius: var(--radius-control);
-  border: 1px solid var(--color-border-strong);
-  background: transparent;
-  color: var(--color-text-secondary);
-  cursor: pointer;
-}
-.iconBtn:hover {
-  background: var(--color-surface-hover);
-  color: var(--color-text);
-}
-.iconBtn:focus-visible {
-  outline: none;
-  box-shadow: var(--focus-ring);
-}
-.content {
-  width: 100%;
-  max-width: var(--content-max-base);
-  margin: 0 auto;
-  padding: var(--space-7) var(--space-6) var(--space-12);
-}
-.back {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-1);
   background: none;
-  border: 0;
+  color: var(--color-accent);
   cursor: pointer;
-  color: var(--color-text-secondary);
+}
+
+.back {
+  flex: none;
+  min-block-size: var(--control-height-sm);
+  padding-inline: var(--space-2);
+  border: none;
+  background: none;
   font-family: var(--font-body);
   font-size: var(--text-small);
-  padding: var(--space-2) 2px;
-  margin-bottom: var(--space-3);
-  border-radius: var(--radius-xs);
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+  cursor: pointer;
 }
+
 .back:hover {
   color: var(--color-text);
 }
+
 .pageTitle {
-  font-family: var(--font-heading);
-  font-size: var(--text-h1);
-  font-weight: var(--weight-semibold);
+  margin: 0;
+  flex: none;
+  font-size: var(--text-small);
+  font-weight: 500;
   letter-spacing: var(--tracking-snug);
-}
-.pageSub {
-  font-size: var(--text-body);
-  color: var(--color-text-secondary);
-  margin: var(--space-2) 0 var(--space-6);
-}
-.empty {
-  color: var(--color-text-secondary);
-  font-size: var(--text-body);
-  padding: var(--space-8) 0;
-  text-align: center;
+  white-space: nowrap;
 }
 
-.row {
+.pageSub {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  color: var(--color-text-tertiary);
+  min-inline-size: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.topActions {
   display: flex;
   align-items: center;
-  gap: var(--space-4);
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-card);
-  padding: var(--space-4) var(--space-5);
-  margin-bottom: var(--space-3);
-  flex-wrap: wrap;
+  gap: 2px;
+  margin-inline-start: auto;
+  flex: none;
 }
-.rowMain {
-  flex: 1;
-  min-width: 0;
-}
-.student {
-  font-family: var(--font-heading);
-  font-weight: var(--weight-semibold);
-  font-size: var(--text-body);
-}
-.homework {
-  font-size: var(--text-caption);
+
+.iconBtn {
+  display: inline-grid;
+  place-items: center;
+  inline-size: var(--tap-min);
+  block-size: var(--tap-min);
+  border: none;
+  border-radius: var(--radius-control);
+  background: none;
   color: var(--color-text-secondary);
-  margin-top: 2px;
+  cursor: pointer;
 }
+
+.iconBtn:hover {
+  color: var(--color-text);
+}
+
+/* ── Кадр: очередь + работа ──────────────────────────────────────────────────── */
+
+.content {
+  display: grid;
+  grid-template-columns: 300px minmax(0, 1fr);
+  min-block-size: 0;
+  overflow: hidden;
+}
+
+@media (max-width: 1000px) {
+  .content {
+    grid-template-columns: minmax(0, 1fr);
+    overflow: visible;
+  }
+}
+
+.queue {
+  display: grid;
+  align-content: start;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  border-inline-end: 1px solid var(--color-border);
+  background: var(--color-surface);
+  min-block-size: 0;
+  overflow: hidden;
+}
+
+.queueHead {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+  padding: var(--space-5) var(--space-5) var(--space-3);
+}
+
+.queueTitle {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: var(--text-h3);
+  font-weight: 600;
+  letter-spacing: var(--tracking-snug);
+}
+
+.queueCount {
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  color: var(--color-text-tertiary);
+}
+
+.queueList {
+  min-block-size: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+/* Строка очереди — цель нажатия целиком (ПРАВИЛА 7.1а): выбирает работу справа. */
+.row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: var(--space-3);
+  inline-size: 100%;
+  min-block-size: var(--tap-min);
+  padding: var(--space-3) var(--space-5);
+  border: none;
+  background: none;
+  font: inherit;
+  color: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.row:hover {
+  background: var(--color-surface-hover);
+}
+
+.row[aria-current='true'] {
+  background: var(--color-accent-subtle);
+}
+
+.row:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.student {
+  font-size: var(--text-small);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.homework {
+  grid-column: 1 / -1;
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  color: var(--color-text-tertiary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Сколько ждёт. Дольше двух дней — горит: это то, что преподавателю надо знать про себя. */
 .wait {
   font-family: var(--font-mono);
-  font-variant-numeric: tabular-nums;
   font-size: var(--text-caption);
   color: var(--color-text-tertiary);
   white-space: nowrap;
 }
+
 .late {
-  color: var(--color-warning-text);
+  color: var(--color-accent-text);
+}
+
+.queueFoot {
+  padding: var(--space-3) var(--space-5) var(--space-5);
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  line-height: var(--leading-snug);
+  color: var(--color-text-tertiary);
+}
+
+/* ── Работа ──────────────────────────────────────────────────────────────────── */
+
+.work {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  min-block-size: 0;
+  overflow: hidden;
+}
+
+.workHead {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-5) var(--space-6) var(--space-4);
+}
+
+.workTitle {
+  margin: 0;
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  font-family: var(--font-heading);
+  font-size: var(--text-h2);
+  font-weight: 600;
+  line-height: var(--leading-heading);
+  letter-spacing: var(--tracking-snug);
+}
+
+.workWho {
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  font-weight: 400;
+  color: var(--color-text-tertiary);
+}
+
+.workMeta {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  color: var(--color-text-tertiary);
+}
+
+.workBody {
+  min-block-size: 0;
+  overflow-y: auto;
+  padding: 0 var(--space-6) var(--space-5);
+}
+
+/* Сама работа — в рамке, чтобы было видно, где кончается ученик и начинается интерфейс. */
+.answer {
+  margin: 0;
+  padding: var(--space-5);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+  font-size: var(--text-body);
+  line-height: var(--leading-body);
+  white-space: pre-wrap;
+}
+
+.empty {
+  margin: 0;
+  font-size: var(--text-small);
+  color: var(--color-text-secondary);
+}
+
+/* ── Полоса оценки ───────────────────────────────────────────────────────────── */
+
+.grade {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-6) var(--space-5);
+  border-block-start: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+
+.gradeRow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.gradeLabel {
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+  margin-inline-end: var(--space-2);
+}
+
+/* Отметка — единственная акцентная заливка экрана, и только у выбранной. */
+.mark {
+  inline-size: var(--tap-min);
+  min-block-size: var(--tap-min);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  background: var(--color-surface);
+  font-family: var(--font-mono);
+  font-size: var(--text-body);
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.mark:hover {
+  border-color: var(--color-border-strong);
+}
+
+.mark[aria-pressed='true'] {
+  border-color: var(--color-accent-solid);
+  background: var(--color-accent-solid);
+  color: var(--color-on-accent);
+}
+
+.mark:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.gradeNote {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  line-height: var(--leading-snug);
+  color: var(--color-text-tertiary);
+}
+
+.send {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.comment {
+  flex: 1 1 auto;
+  min-inline-size: 0;
 }

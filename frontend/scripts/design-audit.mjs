@@ -63,6 +63,16 @@ for (const [title, due, desc] of [
   const hw = (await gql('mutation($i: HomeworkInput!){ createHomework(input:$i){ id } }', { i: { lessonId: lesson, title, type: 'TEXT', description: desc, ...(due ? { dueAt: due } : {}) } }, teacher)).createHomework.id;
   await gql('mutation($h:ID!){ publishHomework(id:$h){ id } }', { h: hw }, teacher);
 }
+/*
+ * 🔴 СДАННАЯ РАБОТА В ЗАСЕВЕ — иначе экран проверки меряется пустым.
+ * Прибор сам это и сказал: «[empty] чисто» на четырёх видах подряд. Правило §5 работает
+ * только если на него отвечать, а не читать его как «чисто».
+ */
+{
+  const hw = (await gql('mutation($i: HomeworkInput!){ createHomework(input:$i){ id } }', { i: { lessonId: lesson, title: 'Описать дорогу от дома до школы', type: 'TEXT', description: '5–7 предложений' } }, teacher)).createHomework.id;
+  await gql('mutation($h:ID!){ publishHomework(id:$h){ id } }', { h: hw }, teacher);
+  await gql('mutation($i: SubmitHomeworkInput!){ submitHomework(input:$i){ id } }', { i: { homeworkId: hw, contentText: 'I go out of my house and turn left. Then I go straight ahead about two hundred meters to the crossroads.' } }, pupil);
+}
 const session = (await gql('mutation($i: ScheduleSessionInput!){ scheduleSession(input:$i){ id } }', { i: { lessonId: lesson, startAt: new Date().toISOString() } }, teacher)).scheduleSession.id;
 await gql('mutation($s:ID!){ startSession(sessionId:$s){ id } }', { s: session }, teacher);
 
@@ -74,6 +84,7 @@ const DEFAULT_SCREENS = [
   // Преподаватель на ученическом экране: `myHomework` отдаёт ему пусто — проверяем, что
   // экран при этом говорит словами, а не показывает поломку.
   ['/homework', 'teacher'],
+  ['/grading', 'teacher'],
   [`/subjects/${course}`, 'teacher'],
   [`/sessions/${session}/room`, 'teacher'],
   // Путь владельца: он проходит эти три экрана до того, как увидит кабинет.
