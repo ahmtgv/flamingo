@@ -66,6 +66,26 @@ export function CatalogScreen() {
    * а в `Course` таких полей нет вовсе — и рисовать отбор, который ничего не отбирает, хуже,
    * чем не рисовать его: человек решит, что курсов нет.
    */
+  /**
+   * Когда ближайшее занятие — словом. «старт в пн» человек читает быстрее даты, а дальше
+   * недели уже нужна дата: «в пн» через три недели — это не «скоро».
+   *
+   * `null` — честное «занятий пока нет»: у черновика курса их не бывает, и придумывать
+   * дату нельзя (решение владельца §47 — без новых полей, время берётся из уроков).
+   */
+  function whenStarts(iso: string | null | undefined): string | null {
+    if (!iso) return null;
+    const at = new Date(iso);
+    const midnight = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+    const days = Math.round((midnight(at) - midnight(new Date())) / 86_400_000);
+    if (days <= 0) return t('catalog.startsToday');
+    if (days === 1) return t('catalog.startsTomorrow');
+    if (days < 7) return t(`catalog.startsWeekday.${at.getDay()}`);
+    return t('catalog.startsOn', {
+      date: new Intl.DateTimeFormat('ru-RU', { day: 'numeric', month: 'short' }).format(at),
+    });
+  }
+
   const GROUPS: { title: string; keys: ChipKey[] }[] = [
     { title: t('catalog.groups.subject'), keys: ['math', 'langs', 'physics'] },
     { title: t('catalog.groups.who'), keys: ['grade7', 'oge'] },
@@ -189,16 +209,23 @@ export function CatalogScreen() {
                       <span className={styles.cardSubj}>
                         {[c.subject, t(`level.${c.level}`)].filter(Boolean).join(' · ')}
                       </span>
+                      {/* Когда — из занятий уроков курса, без новых полей (владелец §47). */}
                       <span className={styles.cardState}>
-                        {c.enrollmentCount > 0
-                          ? t('catalog.cardStudents', { count: c.enrollmentCount })
-                          : t('catalog.cardNew')}
+                        {whenStarts(c.nextSessionAt) ?? t('catalog.noSessions')}
                       </span>
                     </span>
                     <span className={styles.cardTitle}>{c.title}</span>
                     <span className={styles.cardWho}>{c.owner.user.formalName}</span>
                     <span className={styles.cardFoot}>
                       <span>{t('catalog.cardLessons', { count: c.lessonCount })}</span>
+                      {/* 🔴 Размер группы — СКОЛЬКО ЗАПИСАНО СЕЙЧАС, а не «до восьми».
+                          Вместимости в модели нет, и написать «группа до 8» значило бы
+                          выдумать обещание. Считается по зачислениям (владелец §47). */}
+                      <span>
+                        {c.enrollmentCount > 0
+                          ? t('catalog.cardStudents', { count: c.enrollmentCount })
+                          : t('catalog.cardNew')}
+                      </span>
                       <span className={styles.cardOpen}>{t('catalog.cardOpen')}</span>
                     </span>
                   </span>

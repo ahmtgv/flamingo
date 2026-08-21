@@ -15,10 +15,7 @@
     "subjectsCount_one": "{{count}} предмет",
     "subjectsCount_few": "{{count}} предмета",
     "subjectsCount_many": "{{count}} предметов",
-    "cardStudents_one": "{{count}} ученик",
-    "cardStudents_few": "{{count}} ученика",
-    "cardStudents_many": "{{count}} учеников",
-    "cardNew": "новый",
+    "cardNew": "пока никого",
     "chips": {
       "all": "все",
       "math": "математика",
@@ -51,7 +48,21 @@
     "timezoneNote": "время занятий показано в вашем поясе",
     "signUp": "Завести учётку",
     "cardLessons": "{{count}} уроков",
-    "cardOpen": "смотреть"
+    "cardOpen": "смотреть",
+    "startsToday": "старт сегодня",
+    "startsTomorrow": "старт завтра",
+    "startsWeekday": {
+      "0": "старт в вс",
+      "1": "старт в пн",
+      "2": "старт во вт",
+      "3": "старт в ср",
+      "4": "старт в чт",
+      "5": "старт в пт",
+      "6": "старт в сб"
+    },
+    "startsOn": "старт {{date}}",
+    "noSessions": "занятий пока нет",
+    "cardStudents": "в группе: {{count}}"
   },
   "level": {
     "PRESCHOOL": "Дошкольники",

@@ -19,6 +19,7 @@ query Catalog($filter: CourseFilter, $first: Int, $after: String) {
       status
       lessonCount
       enrollmentCount
+      nextSessionAt
       owner {
         specialty
         user {

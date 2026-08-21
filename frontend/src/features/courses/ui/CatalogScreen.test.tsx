@@ -68,9 +68,13 @@ describe('CatalogScreen — atlas 04', () => {
     // из найденного он сейчас видит, а не сколько предметов есть в природе.
     expect(screen.getByText(/найдено 142 · показано/)).toBeInTheDocument();
     expect(screen.getByText('Алгебра: от уравнений к функциям')).toBeInTheDocument();
-    // enrollmentCount 0 → "новый"; >0 → "N учеников"
-    expect(screen.getByText('новый')).toBeInTheDocument();
-    expect(screen.getByText('18 учеников')).toBeInTheDocument();
+    // 🔴 Размер группы — сколько записано СЕЙЧАС, а не «до восьми»: вместимости в модели
+    // нет, и обещать её нельзя (решение владельца §47). Ноль называется «пока никого», а не
+    // «новый»: «новый» — про курс, а колонка про людей.
+    expect(screen.getByText('пока никого')).toBeInTheDocument();
+    expect(screen.getByText('в группе: 18')).toBeInTheDocument();
+    // Курс без занятий говорит об этом словами, а не молчит и не выдумывает дату.
+    expect(screen.getAllByText('занятий пока нет').length).toBeGreaterThan(0);
     // search + chips are present in the populated catalog
     expect(screen.getByRole('searchbox', { name: 'Поиск по каталогу' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'математика' })).toBeInTheDocument();

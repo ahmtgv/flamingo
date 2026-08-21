@@ -374,6 +374,7 @@ export type Course = {
   language: Scalars['String']['output'];
   lessonCount: Scalars['Int']['output'];
   level: CourseLevel;
+  nextSessionAt?: Maybe<Scalars['DateTime']['output']>;
   owner: TeacherProfile;
   rating?: Maybe<Scalars['Float']['output']>;
   sections: Array<Section>;
@@ -3426,7 +3427,7 @@ export type CatalogQueryVariables = Exact<{
 }>;
 
 
-export type CatalogQuery = { __typename?: 'Query', catalog: { __typename?: 'CourseConnection', totalCount: number, subjectCount: number, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null }, nodes: Array<{ __typename?: 'Course', id: string, title: string, description?: string | null, subject: string, level: CourseLevel, format: CourseFormat, status: CourseStatus, lessonCount: number, enrollmentCount: number, owner: { __typename?: 'TeacherProfile', specialty?: string | null, user: { __typename?: 'User', id: string, firstName: string, lastName: string, displayName: string, shortName: string, formalName: string } } }> } };
+export type CatalogQuery = { __typename?: 'Query', catalog: { __typename?: 'CourseConnection', totalCount: number, subjectCount: number, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null }, nodes: Array<{ __typename?: 'Course', id: string, title: string, description?: string | null, subject: string, level: CourseLevel, format: CourseFormat, status: CourseStatus, lessonCount: number, enrollmentCount: number, nextSessionAt?: string | null, owner: { __typename?: 'TeacherProfile', specialty?: string | null, user: { __typename?: 'User', id: string, firstName: string, lastName: string, displayName: string, shortName: string, formalName: string } } }> } };
 
 export type CourseDetailQueryVariables = Exact<{
   id: Scalars['ID']['input'];
@@ -6523,6 +6524,7 @@ export const CatalogDocument = gql`
       status
       lessonCount
       enrollmentCount
+      nextSessionAt
       owner {
         specialty
         user {

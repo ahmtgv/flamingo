@@ -230,6 +230,9 @@ type Course {
   sections: [Section!]!
   lessonCount: Int!
   enrollmentCount: Int!
+  # Ближайшее ещё не начавшееся занятие курса — «когда» для витрины. Считается по занятиям
+  # его уроков; новых полей в модели нет (решение владельца §47).
+  nextSessionAt: DateTime
   rating: Float
   createdAt: DateTime!
   updatedAt: DateTime!

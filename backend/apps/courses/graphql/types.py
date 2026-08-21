@@ -11,6 +11,7 @@ import datetime as dt
 
 import strawberry
 import strawberry_django
+from django.utils import timezone
 from strawberry import auto
 from strawberry.scalars import JSON
 
@@ -211,6 +212,30 @@ class Course:
     @strawberry_django.field
     def sections(self) -> list[Section]:
         return list(self.sections.all())
+
+    @strawberry_django.field
+    def next_session_at(self) -> dt.datetime | None:
+        """
+        Ближайшее занятие курса — то, что на витрине читается как «старт в пн».
+
+        🔴 БЕЗ НОВЫХ ПОЛЕЙ (решение владельца §47). Лист каталога рисует время занятий, и я
+        сначала не показал ничего, решив, что данных нет. Данные есть: занятия висят на
+        уроках курса, и «когда» — это ближайшее из них, ещё не начавшееся.
+
+        ⚠️ `None` — честный ответ «занятий пока нет», а не ноль и не «скоро»: у черновика
+        курса их действительно не бывает, и придумывать дату нельзя.
+        """
+        from apps.scheduling.models import LessonSession
+
+        row = (
+            LessonSession.objects.filter(
+                lesson__section__course=self, start_at__gte=timezone.now()
+            )
+            .order_by("start_at")
+            .values_list("start_at", flat=True)
+            .first()
+        )
+        return row
 
     @strawberry_django.field
     def lesson_count(self) -> int:
