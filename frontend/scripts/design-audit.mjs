@@ -76,29 +76,48 @@ for (const [title, due, desc] of [
 const session = (await gql('mutation($i: ScheduleSessionInput!){ scheduleSession(input:$i){ id } }', { i: { lessonId: lesson, startAt: new Date().toISOString() } }, teacher)).scheduleSession.id;
 await gql('mutation($s:ID!){ startSession(sessionId:$s){ id } }', { s: session }, teacher);
 
+/*
+ * 🔴 КАЖДЫЙ ЭКРАН НАЗЫВАЕТ СЕБЯ САМ — иначе прогон меряет не тот экран и молчит об этом.
+ *
+ * Нашлось у дизайнера и подтвердилось у нас нарочной поломкой: экран, падающий при
+ * монтировании, был назван «чисто» ЧЕТЫРЕЖДЫ. Сигнала не было ВООБЩЕ — ни `pageerror`, ни
+ * `console.error`; на месте экрана оказалась форма входа (защищённый маршрут отбросил), в
+ * ней 938 знаков текста и живой ориентир. Геометрия формы входа безупречна — она и мерилась.
+ *
+ * Поэтому у каждой строки есть `expect`: имя области или заголовок, который на этом экране
+ * ОБЯЗАН быть. Нет его — прогон краснеет, что бы ни показала геометрия.
+ *
+ * ⚠️ Список — сущности с полями, а не массив по позициям (правило дизайнера, CLAUDE.md):
+ * подписи по индексу однажды разъезжаются, и экран меряется под чужим именем.
+ */
 const DEFAULT_SCREENS = [
-  ['/start', 'teacher'],
-  ['/start', 'pupil'],
-  ['/my-learning', 'pupil'],
-  ['/account', 'pupil'],
-  ['/homework', 'pupil'],
+  { route: '/start', who: 'teacher', expect: 'Сейчас' },
+  { route: '/start', who: 'pupil', expect: 'Сейчас' },
+  { route: '/my-learning', who: 'pupil', expect: /Моя учёба/ },
+  { route: '/account', who: 'pupil', expect: 'Согласие на обработку персональных данных' },
+  { route: '/homework', who: 'pupil', expect: 'Что задано' },
   // Преподаватель на ученическом экране: `myHomework` отдаёт ему пусто — проверяем, что
   // экран при этом говорит словами, а не показывает поломку.
-  ['/homework', 'teacher'],
-  ['/grading', 'teacher'],
-  [`/subjects/${course}`, 'teacher'],
-  [`/sessions/${session}/room`, 'teacher'],
-  // Путь владельца: он проходит эти три экрана до того, как увидит кабинет.
-  ['/courses', null],
-  ['/courses/new', 'teacher'],
-  [`/courses/${course}/lessons/${lesson}/schedule`, 'teacher'],
-  ['/login', null],
-  ['/register', null],
-  ['/register/teacher', null],
-  ['/', null],
+  { route: '/homework', who: 'teacher', expect: 'Что задано' },
+  { route: '/grading', who: 'teacher', expect: 'На проверке' },
+  { route: `/subjects/${course}`, who: 'teacher', expect: /./ },
+  { route: `/sessions/${session}/room`, who: 'teacher', expect: 'Окна урока' },
+  // Путь владельца: он проходит эти экраны до того, как увидит кабинет.
+  { route: '/courses', who: null, expect: 'Отбор курсов' },
+  { route: '/courses/new', who: 'teacher', expect: 'что увидит ученик' },
+  {
+    route: `/courses/${course}/lessons/${lesson}/schedule`,
+    who: 'teacher',
+    expect: 'кого это касается',
+  },
+  { route: '/login', who: null, expect: /Вход/ },
+  { route: '/register', who: null, expect: /Кто вы/ },
+  { route: '/register/teacher', who: null, expect: /Преподаватель/ },
+  { route: '/', who: null, expect: /Источники мира/ },
 ];
-const only = process.env.SCREENS?.split(',').map((s) => s.trim()).filter(Boolean);
-const SCREENS = only ? DEFAULT_SCREENS.filter(([r]) => only.some((o) => r.startsWith(o))) : DEFAULT_SCREENS;
+
+const only = process.env.SCREENS?.split(',').map((x) => x.trim()).filter(Boolean);
+const SCREENS = only ? DEFAULT_SCREENS.filter((s) => only.some((o) => s.route.startsWith(o))) : DEFAULT_SCREENS;
 
 /** Виды приёмки: светлая · тёмная · детский, две настольные ширины (§5 п.2). */
 /*
@@ -135,7 +154,7 @@ const browser = await chromium.launch({
 const rows = [];
 // Сколько раз отсеяны фигуры рисунка — печатается в конце, чтобы отсев не был молчаливым.
 let skippedArt = 0;
-for (const [route, who] of SCREENS) {
+for (const { route, who, expect } of SCREENS) {
   for (const view of VIEWS) {
     const ctx = await browser.newContext({
       viewport: { width: view.width, height: view.height },
@@ -143,6 +162,16 @@ for (const [route, who] of SCREENS) {
       permissions: ['camera', 'microphone'],
     });
     const page = await ctx.newPage();
+    /*
+     * Падения собираем С ПЕРВОЙ СЕКУНДЫ: экран умирает раньше, чем мы соберёмся смотреть.
+     * Вход в продукт делается этой же страницей, поэтому чистим список перед самим экраном —
+     * иначе шум формы входа притворится смертью измеряемого.
+     */
+    const pageErrors = [];
+    page.on('pageerror', (e) => pageErrors.push(String(e).replace(/\s+/g, ' ').slice(0, 90)));
+    page.on('console', (m) => {
+      if (m.type() === 'error') pageErrors.push(m.text().replace(/\s+/g, ' ').slice(0, 90));
+    });
     try {
       if (who) {
         await page.goto(`${DEV}/login`, { waitUntil: 'domcontentloaded' });
@@ -152,6 +181,7 @@ for (const [route, who] of SCREENS) {
         await page.getByRole('button', { name: 'Войти' }).click();
         await page.waitForURL((u) => !u.pathname.startsWith('/login'), { timeout: 30_000 });
       }
+      pageErrors.length = 0;
       await page.goto(`${DEV}${route}`, { waitUntil: 'domcontentloaded' });
       await page.waitForTimeout(2500);
       if (view.kids) {
@@ -171,6 +201,32 @@ for (const [route, who] of SCREENS) {
        * Теперь состояние экрана печатается рядом с вердиктом. Молчать о том, ЧТО измерено,
        * прибор больше не имеет права.
        */
+      /*
+       * 🔴 ЖИВ ЛИ ЭКРАН ВООБЩЕ. Три вопроса, каждый дешёвый, и все три обязаны сойтись:
+       *
+       *   1. мы на том адресе, который просили — иначе продукт отбросил нас в другое место
+       *      (у нас это была форма входа, и её геометрия безупречна);
+       *   2. на экране есть то, чем он себя называет — область или заголовок;
+       *   3. страница не падала — `pageerror` и `console.error` собираются с самого начала.
+       *
+       * Ни один прибор геометрии этого не спросит: он мерит то, что нашёл, и не знает, что
+       * искал не то.
+       */
+      const alive = await page.evaluate((want) => {
+        const text = document.body.innerText || '';
+        const byLabel = [...document.querySelectorAll('[aria-label]')].map((n) =>
+          n.getAttribute('aria-label'),
+        );
+        const rx = want.startsWith('/') ? new RegExp(want.slice(1, -1)) : null;
+        const found = rx
+          ? rx.test(text) || byLabel.some((l) => rx.test(l ?? ''))
+          : text.includes(want) || byLabel.includes(want);
+        return { path: location.pathname, found };
+      }, expect instanceof RegExp ? `/${expect.source}/` : expect);
+
+      const wrongPlace = alive.path !== route;
+      const missing = !alive.found;
+
       const state = await page.evaluate(() => {
         const card = document.querySelector('[data-kind]');
         if (card) return card.getAttribute('data-kind');
@@ -252,6 +308,16 @@ for (const [route, who] of SCREENS) {
       report.overlaps = (report.overlaps ?? []).filter((o) => !isArt(o));
       report.verdict.overlaps = report.overlaps.length ? `ДЕФЕКТ ${report.overlaps.length}` : 'ok';
       if (artCount) skippedArt += artCount;
+      /*
+       * Мёртвый экран — это ДЕФЕКТ, а не «чисто». Зелёная клетка над мёртвым экраном
+       * опаснее красной: она снимает вопрос, который надо было задать.
+       */
+      const deaths = [];
+      if (wrongPlace) deaths.push(`адрес сменился: просили ${route}, оказались на ${alive.path}`);
+      if (missing) deaths.push(`экран не назвал себя: не нашли «${expect}»`);
+      for (const e of pageErrors.slice(0, 2)) deaths.push(`падение страницы: ${e}`);
+      report.verdict.alive = deaths.length ? `ДЕФЕКТ · ${deaths.join(' · ')}` : 'ok';
+      report.deaths = deaths;
       report.verdict.escapes = escapees.length ? `ДЕФЕКТ · absolute без предка ${escapees.length}` : 'ok';
       report.escapes = escapees;
       const defects = Object.entries(report.verdict).filter(([, v]) => String(v).startsWith('ДЕФЕКТ'));
@@ -281,14 +347,28 @@ await browser.close();
 
 console.log('\n=== ВЕРДИКТ ПО ЭКРАНАМ ===');
 let total = 0;
+/*
+ * 🔴 ЭКРАН, КОТОРЫЙ НЕ ОТКРЫЛСЯ, — ЭТО ДЕФЕКТ. Он шёл строкой «не открылся» и в счётчик НЕ
+ * попадал: итог «0 дефектов» под четырьмя отказами читается как успех. Та же дыра, что и
+ * зелёная клетка над мёртвым экраном, только с другой стороны.
+ */
+let notOpened = 0;
 for (const r of rows) {
-  if (r.error) { console.log(`  ${r.route} · ${r.who} · ${r.view}: не открылся — ${r.error}`); continue; }
+  if (r.error) {
+    console.log(`  ${r.route} · ${r.who} · ${r.view}: НЕ ОТКРЫЛСЯ — ${r.error}`);
+    notOpened += 1;
+    total += 1;
+    continue;
+  }
   total += r.defects.length;
   const shown = r.defects.length ? r.defects.join(' | ') : 'чисто';
   // Состояние — впереди вердикта: «чисто» на отказе читается иначе, чем «чисто» на данных.
   console.log(`  ${r.route} · ${r.who} · ${r.view}: ${r.state ? `[${r.state}] ` : ''}${shown}`);
 }
-console.log(`\nвсего дефектов геометрии: ${total}`);
+console.log(`\nвсего дефектов: ${total}`);
+if (notOpened) {
+  console.log(`  из них экранов, которые вообще не открылись: ${notOpened}`);
+}
 if (skippedArt) {
   // Молчаливый отсев — это то же враньё, что молчаливое ограничение выборки.
   console.log(`  (не считались фигуры внутри рисунков: ${skippedArt} — это знак бренда, не наложение)`);
