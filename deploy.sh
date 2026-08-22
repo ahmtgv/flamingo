@@ -66,10 +66,49 @@ freshness_verdict() {
   return 0
 }
 
+# Четвёртый исход: контейнер свежий, а домен обслуживает КТО-ТО ДРУГОЙ — старый контейнер,
+# забытый стек, чужой апстрим в Caddy. Три проверки выше этого не видят вовсе: они смотрят
+# на контейнер, который сами же и выбрали, а не на то, что отвечает по адресу.
+#
+# 🔒 Сравниваются HMAC-и, а не коммиты: домен отдаёт отпечаток под `SECRET_KEY`, и
+# постороннему это бессмысленная строка (см. backend/common/health.py). Нам нужно
+# только равенство.
+domain_verdict() {
+  local served="$1" expected="$2"
+  echo "  домен отдаёт:     ${served:-—}"
+  echo "  ждём от домена:   ${expected:-—}"
+
+  if [ -z "$expected" ]; then
+    bad "не удалось вычислить ожидаемый отпечаток — сверять не с чем"
+    echo "      Молчание за согласие не считаем: проверка не состоялась."
+    return 1
+  fi
+  if [ -z "$served" ] || [ "$served" = "null" ]; then
+    bad "домен не назвал отпечаток"
+    echo "      Либо по адресу отвечает образ старше этих ворот (в нём нет /healthz),"
+    echo "      либо запрос до api вообще не доходит. Проверить: curl -s https://api.flamingo.plus/healthz"
+    return 1
+  fi
+  if [ "$served" != "$expected" ]; then
+    bad "домен отвечает НЕ ТЕМ контейнером"
+    echo "      Код на сервере свежий и в контейнере свежий — но по адресу отвечает другой:"
+    echo "      старый контейнер, второй стек или чужой апстрим в Caddy."
+    echo "      Смотреть: ssh $SRV \"cd /opt/flamingo && $COMPOSE ps --all\" и infra/prod/Caddyfile"
+    return 1
+  fi
+  ok "домен обслуживается тем самым контейнером"
+  return 0
+}
+
 # Разбор без сервера — им пользуется проверка, и им же можно спросить руками:
-#   bash deploy.sh verdict <ждём> <на диске> <в контейнере>
+#   bash deploy.sh verdict        <ждём> <на диске> <в контейнере>
+#   bash deploy.sh verdict-domain <домен отдал> <ждём от домена>
 if [ "$WHAT" = "verdict" ]; then
   freshness_verdict "${2:-}" "${3:-}" "${4:-}"
+  exit $?
+fi
+if [ "$WHAT" = "verdict-domain" ]; then
+  domain_verdict "${2:-}" "${3:-}"
   exit $?
 fi
 
@@ -131,6 +170,53 @@ sent_stamp() {
 ask_disk()      { ssh "$SRV" "cat /opt/flamingo/backend/BUILD_COMMIT 2>/dev/null" | tr -d " \r\n"; }
 ask_container() { ssh "$SRV" "cd /opt/flamingo && $COMPOSE exec -T api cat /app/BUILD_COMMIT 2>/dev/null" | tr -d " \r\n"; }
 
+# Что отдаёт домен. Ответ — JSON вида {"ok": true, "build": "…"}; разбираем питоном, потому
+# что `grep` по JSON врёт ровно в тот день, когда порядок полей поменяется.
+ask_domain() {
+  curl -s -m 15 -H 'Cache-Control: no-cache' https://api.flamingo.plus/healthz 2>/dev/null \
+    | python3 -c "import json,sys; print((json.load(sys.stdin).get('build') or ''))" 2>/dev/null
+}
+
+# Чего мы от домена ждём.
+#
+# 🔒 БОЕВОЙ КЛЮЧ ОСТАЁТСЯ НА СЕРВЕРЕ. Владелец описал местный расчёт — но `SECRET_KEY` живёт
+# в `.env.production`, который rsync намеренно не возит, и локально его нет (файл пуст).
+# Тащить боевой ключ на машину исполнителя ради буквы указания — понижение безопасности
+# ради удобства проверки, поэтому по умолчанию отпечаток считает САМ КОНТЕЙНЕР, уже
+# сверенный по коду шагом выше. Если ключ на машине всё-таки есть (переменная окружения),
+# считаем на месте — тогда сверка не зависит от контейнера вовсе.
+expected_domain_fingerprint() {
+  local want="$1"
+  if [ -n "${SECRET_KEY:-}" ]; then
+    STAMP="$want" python3 -c "import hashlib,hmac,os; print(hmac.new(os.environ['SECRET_KEY'].encode(), os.environ['STAMP'].encode(), hashlib.sha256).hexdigest())"
+    return
+  fi
+  # Питон едет в контейнер через stdin: так не нужно продираться сквозь три уровня кавычек,
+  # и код виден целиком, а не размазан по экранированию.
+  ssh "$SRV" "cd /opt/flamingo && $COMPOSE exec -T api python -" <<'PYCODE' 2>/dev/null | tr -d " \r\n"
+import os
+
+import django
+
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
+django.setup()
+from common.health import build_fingerprint  # noqa: E402
+
+print(build_fingerprint() or "")
+PYCODE
+}
+
+# Спросить сам расчёт, без сервера и без выката:
+#   SECRET_KEY=… bash deploy.sh fingerprint <отпечаток сборки>
+# Этим пользуется `tests/test_deploy_gate.py`: он сверяет расчёт выката с тем, что считает
+# сам продукт (`common/health.py`). Разойдись эти двое — ворота сравнивали бы несравнимое
+# и ругались на здоровый домен каждым выкатом.
+if [ "$WHAT" = "fingerprint" ]; then
+  expected_domain_fingerprint "${2:-}"
+  exit $?
+fi
+
+
 
 if [ "$WHAT" = "all" ] || [ "$WHAT" = "server" ]; then
   step "СЕРВЕР · rsync + пересборка api"
@@ -157,9 +243,18 @@ if [ "$WHAT" = "all" ] || [ "$WHAT" = "server" ]; then
   DISK="$(ask_disk)"
   IN_CONTAINER="$(ask_container)"
   freshness_verdict "$WANT" "$DISK" "$IN_CONTAINER" || exit 1
-  ssh "$SRV" "cd /opt/flamingo && $COMPOSE ps api" || bad "не удалось показать состояние контейнера" 
+  ssh "$SRV" "cd /opt/flamingo && $COMPOSE ps api" || bad "не удалось показать состояние контейнера"
 
-  # ── 2б. МИГРАЦИИ ────────────────────────────────────────────────────────
+  # ── 2б. ТОТ ЛИ КОНТЕЙНЕР ОТВЕЧАЕТ ДОМЕНУ ────────────────────────────────
+  #
+  # Три проверки выше смотрят на контейнер, который мы сами и выбрали. Домен при этом может
+  # обслуживаться другим — и сегодня этого не увидел бы никто.
+  step "СЕРВЕР · тот ли контейнер отвечает домену"
+  EXPECTED="$(expected_domain_fingerprint "$WANT")"
+  SERVED="$(ask_domain)"
+  domain_verdict "$SERVED" "$EXPECTED" || exit 1
+
+  # ── 2в. МИГРАЦИИ ────────────────────────────────────────────────────────
   #
   # 🔴 ДВАЖДЫ ЛОЖИЛИСЬ В БОЮ ИЗ-ЗА ЭТОГО, И ОБА РАЗА ОДИНАКОВО.
   #

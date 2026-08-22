@@ -5,6 +5,7 @@ from strawberry.django.views import GraphQLView
 
 from api.schema import schema
 from apps.files.local_view import local_file
+from common.health import healthz
 
 # JWT bearer auth (no cookies) -> CSRF is not applicable to the API endpoint.
 # 🔴 ОТЛАДОЧНАЯ КОНСОЛЬ БЫЛА ОТКРЫТА ВСЕМУ МИРУ (наряд 37 §4.1, найдено 18.08).
@@ -31,4 +32,7 @@ urlpatterns = [
     # профиля, а маршрута под него не было ни одного: внутри приложения загрузка файла уходила
     # в 404, а загруженное не открывалось. Смотри `apps/files/local_view.py` — там же границы.
     re_path(r"^local-files/(?P<key>.+)$", local_file),
+    # Короткий служебный путь: домен доказывает, каким контейнером он обслуживается.
+    # Отдаёт HMAC от отпечатка сборки, а не сам коммит (см. common/health.py).
+    path("healthz", healthz),
 ]

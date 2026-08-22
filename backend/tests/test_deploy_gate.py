@@ -14,6 +14,7 @@
 
 from __future__ import annotations
 
+import os
 import subprocess
 from pathlib import Path
 
@@ -25,14 +26,23 @@ HEAD = "89c5cd4cc2b5a77e7e058eef74c6576b116e2680"
 OLD = "367f4d6aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 
 
-def verdict(want: str, disk: str, in_container: str) -> tuple[int, str]:
+def _run(*args: str, env: dict | None = None) -> tuple[int, str]:
     done = subprocess.run(
-        ["bash", str(DEPLOY), "verdict", want, disk, in_container],
+        ["bash", str(DEPLOY), *args],
         capture_output=True,
         text=True,
         timeout=30,
+        env={**os.environ, **(env or {})},
     )
     return done.returncode, done.stdout + done.stderr
+
+
+def verdict(want: str, disk: str, in_container: str) -> tuple[int, str]:
+    return _run("verdict", want, disk, in_container)
+
+
+def domain(served: str, expected: str) -> tuple[int, str]:
+    return _run("verdict-domain", served, expected)
 
 
 def test_the_gate_exists_at_all():
@@ -79,3 +89,75 @@ def test_every_mismatch_refuses(bad_pair):
     # Ни одно расхождение не проходит молча — в том числе редкое «на диске старое,
     # а в контейнере новое» (собрали не из того дерева).
     assert verdict(*bad_pair)[0] == 1
+
+
+# --- четвёртый исход: домен отвечает не тем контейнером ----------------------
+#
+# Три проверки выше смотрят на контейнер, который выкат сам же и выбрал. Кто отвечает ПО
+# АДРЕСУ — они не спрашивают, и такой случай сегодня не увидел бы никто.
+FP_A = "a" * 64
+FP_B = "b" * 64
+
+
+def test_a_matching_domain_passes():
+    code, out = domain(FP_A, FP_A)
+    assert code == 0, out
+    assert "тем самым контейнером" in out
+
+
+def test_a_domain_served_by_someone_else_is_caught_and_named():
+    code, out = domain(FP_B, FP_A)
+    assert code == 1
+    assert "НЕ ТЕМ контейнером" in out
+    # Названо, где смотреть: второй стек или чужой апстрим.
+    assert "Caddyfile" in out
+
+
+def test_a_silent_domain_is_not_taken_for_agreement():
+    code, out = domain("", FP_A)
+    assert code == 1
+    assert "домен не назвал отпечаток" in out
+
+
+def test_json_null_is_read_as_silence_not_as_a_value():
+    # `/healthz` отдаёт `"build": null`, когда отпечатка в образе нет. Прочитать это как
+    # строку «null» и сравнивать с ней — значит однажды принять её за совпадение.
+    assert domain("null", FP_A)[0] == 1
+
+
+def test_without_an_expected_value_the_check_refuses_instead_of_passing():
+    # Не смогли вычислить ожидаемое — проверка не состоялась. Молчание не согласие.
+    code, out = domain(FP_A, "")
+    assert code == 1
+    assert "сверять не с чем" in out
+
+
+def test_the_deploy_and_the_product_compute_the_same_fingerprint():
+    """🔴 Обе стороны считают ОДНО И ТО ЖЕ — иначе ворота сравнивают несравнимое.
+
+    Разойдись расчёт выката и расчёт `common/health.py` (другой алгоритм, другая
+    кодировка, лишний перевод строки) — и ворота ругались бы «домен отвечает не тем»
+    на совершенно здоровом домене, каждым выкатом, пока им не перестали бы верить.
+    """
+    from django.test import override_settings
+
+    from common import health
+
+    key = "k" * 50
+    code, out = _run("fingerprint", HEAD, env={"SECRET_KEY": key})
+    assert code == 0, out
+    from_deploy = out.strip()
+
+    health.build_fingerprint.cache_clear()
+    stamp_dir = Path(__file__).resolve().parent / "_fp_tmp"
+    stamp_dir.mkdir(exist_ok=True)
+    (stamp_dir / "BUILD_COMMIT").write_text(HEAD + "\n")
+    try:
+        with override_settings(BASE_DIR=stamp_dir, SECRET_KEY=key):
+            from_product = health.build_fingerprint()
+    finally:
+        (stamp_dir / "BUILD_COMMIT").unlink()
+        stamp_dir.rmdir()
+        health.build_fingerprint.cache_clear()
+
+    assert from_deploy == from_product
