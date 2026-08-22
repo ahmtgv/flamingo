@@ -114,6 +114,22 @@ const DEFAULT_SCREENS = [
   { route: '/register', who: null, expect: /Кто вы/ },
   { route: '/register/teacher', who: null, expect: /Преподаватель/ },
   { route: '/', who: null, expect: /Источники мира/ },
+
+  /*
+   * 🔴 ДВЕ КАНАРЕЙКИ — ЗАВЕДОМО МЁРТВЫЕ КЛЕТКИ, КОТОРЫЕ ОБЯЗАНЫ КРАСНЕТЬ КАЖДЫЙ ПРОГОН.
+   *
+   * Караул жизни доказан провалом один раз — в день, когда он написан. Караул, который
+   * никто не ломает, однажды тихо перестаёт ловить, и узнаём мы об этом на мёртвом экране,
+   * названном чистым. Поэтому поломка живёт в прогоне постоянно.
+   *
+   * Продукт при этом чист: обе канарейки — дело прибора. Первая просит защищённый экран
+   * гостем (продукт отбросит на вход — ветка «адрес сменился»), вторая просит несуществующий
+   * экран (ветка «не назвал себя»).
+   *
+   * Если хоть одна из них позеленела — ослеп сам караул, и прогон об этом кричит.
+   */
+  { route: '/account', who: null, expect: 'Согласие на обработку персональных данных', canary: 'адрес сменился' },
+  { route: '/__мёртвый-экран__', who: null, expect: 'этого текста нет нигде', canary: 'экран не назвал себя' },
 ];
 
 const only = process.env.SCREENS?.split(',').map((x) => x.trim()).filter(Boolean);
@@ -154,7 +170,7 @@ const browser = await chromium.launch({
 const rows = [];
 // Сколько раз отсеяны фигуры рисунка — печатается в конце, чтобы отсев не был молчаливым.
 let skippedArt = 0;
-for (const { route, who, expect } of SCREENS) {
+for (const { route, who, expect, canary } of SCREENS) {
   for (const view of VIEWS) {
     const ctx = await browser.newContext({
       viewport: { width: view.width, height: view.height },
@@ -336,7 +352,7 @@ for (const { route, who, expect } of SCREENS) {
             rowWrap: (report.rowWrap ?? []).slice(0, 3),
           }
         : null;
-      rows.push({ route, who: who ?? 'гость', view: view.name, state, defects: defects.map(([k, v]) => `${k}: ${v}`), details });
+      rows.push({ route, who: who ?? 'гость', view: view.name, state, canary, alive: report.verdict.alive, defects: defects.map(([k, v]) => `${k}: ${v}`), details });
     } catch (e) {
       rows.push({ route, who: who ?? 'гость', view: view.name, error: String(e).split('\n')[0].slice(0, 100) });
     }
@@ -360,11 +376,27 @@ for (const r of rows) {
     total += 1;
     continue;
   }
-  total += r.defects.length;
+  if (!r.canary) total += r.defects.length;
   const shown = r.defects.length ? r.defects.join(' | ') : 'чисто';
   // Состояние — впереди вердикта: «чисто» на отказе читается иначе, чем «чисто» на данных.
   console.log(`  ${r.route} · ${r.who} · ${r.view}: ${r.state ? `[${r.state}] ` : ''}${shown}`);
 }
+/*
+ * Проверка самой проверки. Канарейка, которая перестала краснеть, — не хорошая новость, а
+ * ослепший прибор: он продолжит печатать «чисто» над мёртвыми экранами.
+ */
+const canaries = rows.filter((r) => r.canary);
+const blind = canaries.filter((r) => !r.error && !String(r.alive ?? '').startsWith('ДЕФЕКТ'));
+console.log('\n=== КАНАРЕЙКИ (обязаны краснеть) ===');
+if (!canaries.length) {
+  console.log('  ⚠️ канареек в прогоне нет — караул жизни ничем не проверен');
+} else if (blind.length) {
+  console.log(`  🔴 ОСЛЕП КАРАУЛ ЖИЗНИ: ${blind.length} канареек прошли как живые`);
+  for (const r of blind) console.log(`     ${r.route} · ${r.view} · ждали «${r.canary}»`);
+} else {
+  console.log(`  ok · ${canaries.length} клеток, все покраснели как задумано`);
+}
+
 console.log(`\nвсего дефектов: ${total}`);
 if (notOpened) {
   console.log(`  из них экранов, которые вообще не открылись: ${notOpened}`);
