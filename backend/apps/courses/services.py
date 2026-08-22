@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from django.db import transaction
 from django.db.models import Count, Max, Q
+import datetime as dt
+
 from django.utils import timezone
 
 from apps.accounts.models import StudentProfile, TeacherProfile
@@ -24,7 +26,7 @@ from common.exceptions import NotFound, PermissionDenied, ValidationError
 from common.text_input import clean_text
 
 from .access import can_access_course
-from .models import Course, Enrollment, Lesson, Material, Section
+from .models import Course, CourseInvite, Enrollment, Lesson, Material, Section
 
 
 def _val(x):

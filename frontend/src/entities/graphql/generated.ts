@@ -444,6 +444,13 @@ export type CourseInput = {
   title: Scalars['String']['input'];
 };
 
+export type CourseInviteView = {
+  __typename?: 'CourseInviteView';
+  code: Scalars['String']['output'];
+  daysLeft: Scalars['Int']['output'];
+  expiresAt: Scalars['DateTime']['output'];
+};
+
 export type CourseJournal = {
   __typename?: 'CourseJournal';
   cells: Array<JournalCell>;
@@ -1102,6 +1109,7 @@ export type Mutation = {
   putBoardElement: BoardElement;
   putWordOnBoard: Scalars['ID']['output'];
   recordCabinetBackup: Device;
+  redeemCourseInvite: Course;
   redeemProjectorCode: ProjectorJoin;
   refreshToken: AuthPayload;
   registerUser: AuthPayload;
@@ -1129,6 +1137,7 @@ export type Mutation = {
   resolveChatReport: ChatReport;
   respondGuardianship: Guardianship;
   reviewWord: DueCard;
+  revokeCourseInvite: Scalars['Boolean']['output'];
   revokeDevice: Scalars['Boolean']['output'];
   saveBoard: BoardSnapshot;
   saveItem: SubjectMaterial;
@@ -1448,6 +1457,11 @@ export type MutationPutWordOnBoardArgs = {
 };
 
 
+export type MutationRedeemCourseInviteArgs = {
+  code: Scalars['String']['input'];
+};
+
+
 export type MutationRedeemProjectorCodeArgs = {
   code: Scalars['String']['input'];
 };
@@ -1580,6 +1594,11 @@ export type MutationReviewWordArgs = {
   rating: ReviewRating;
   stability: Scalars['Float']['input'];
   state: CardState;
+};
+
+
+export type MutationRevokeCourseInviteArgs = {
+  courseId: Scalars['ID']['input'];
 };
 
 
@@ -1964,6 +1983,7 @@ export type Query = {
   course?: Maybe<Course>;
   courseAudience: Array<AudienceMember>;
   courseBoards: Array<BoardSnapshot>;
+  courseInvite: CourseInviteView;
   /**
    * Журнал предмета — первая половина (промпт 36 §5): занятия, присутствие, оценки по группе.
    * Чего ещё нет: правка оценки в клетке, выгрузка, свод по четверти, переход из клетки в работу.
@@ -2095,6 +2115,11 @@ export type QueryCourseAudienceArgs = {
 
 
 export type QueryCourseBoardsArgs = {
+  courseId: Scalars['ID']['input'];
+};
+
+
+export type QueryCourseInviteArgs = {
   courseId: Scalars['ID']['input'];
 };
 
@@ -3606,6 +3631,27 @@ export type CourseAudienceQueryVariables = Exact<{
 
 
 export type CourseAudienceQuery = { __typename?: 'Query', courseAudience: Array<{ __typename?: 'AudienceMember', studentId: string, name: string, timezone?: string | null }> };
+
+export type CourseInviteQueryVariables = Exact<{
+  courseId: Scalars['ID']['input'];
+}>;
+
+
+export type CourseInviteQuery = { __typename?: 'Query', courseInvite: { __typename?: 'CourseInviteView', code: string, expiresAt: string, daysLeft: number } };
+
+export type RedeemCourseInviteMutationVariables = Exact<{
+  code: Scalars['String']['input'];
+}>;
+
+
+export type RedeemCourseInviteMutation = { __typename?: 'Mutation', redeemCourseInvite: { __typename?: 'Course', id: string, title: string } };
+
+export type RevokeCourseInviteMutationVariables = Exact<{
+  courseId: Scalars['ID']['input'];
+}>;
+
+
+export type RevokeCourseInviteMutation = { __typename?: 'Mutation', revokeCourseInvite: boolean };
 
 export type RequestPairingCodeMutationVariables = Exact<{
   deviceName: Scalars['String']['input'];
@@ -7401,6 +7447,116 @@ export type CourseAudienceQueryHookResult = ReturnType<typeof useCourseAudienceQ
 export type CourseAudienceLazyQueryHookResult = ReturnType<typeof useCourseAudienceLazyQuery>;
 export type CourseAudienceSuspenseQueryHookResult = ReturnType<typeof useCourseAudienceSuspenseQuery>;
 export type CourseAudienceQueryResult = Apollo.QueryResult<CourseAudienceQuery, CourseAudienceQueryVariables>;
+export const CourseInviteDocument = gql`
+    query CourseInvite($courseId: ID!) {
+  courseInvite(courseId: $courseId) {
+    code
+    expiresAt
+    daysLeft
+  }
+}
+    `;
+
+/**
+ * __useCourseInviteQuery__
+ *
+ * To run a query within a React component, call `useCourseInviteQuery` and pass it any options that fit your needs.
+ * When your component renders, `useCourseInviteQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useCourseInviteQuery({
+ *   variables: {
+ *      courseId: // value for 'courseId'
+ *   },
+ * });
+ */
+export function useCourseInviteQuery(baseOptions: Apollo.QueryHookOptions<CourseInviteQuery, CourseInviteQueryVariables> & ({ variables: CourseInviteQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<CourseInviteQuery, CourseInviteQueryVariables>(CourseInviteDocument, options);
+      }
+export function useCourseInviteLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<CourseInviteQuery, CourseInviteQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<CourseInviteQuery, CourseInviteQueryVariables>(CourseInviteDocument, options);
+        }
+// @ts-ignore
+export function useCourseInviteSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<CourseInviteQuery, CourseInviteQueryVariables>): Apollo.UseSuspenseQueryResult<CourseInviteQuery, CourseInviteQueryVariables>;
+export function useCourseInviteSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<CourseInviteQuery, CourseInviteQueryVariables>): Apollo.UseSuspenseQueryResult<CourseInviteQuery | undefined, CourseInviteQueryVariables>;
+export function useCourseInviteSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<CourseInviteQuery, CourseInviteQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<CourseInviteQuery, CourseInviteQueryVariables>(CourseInviteDocument, options);
+        }
+export type CourseInviteQueryHookResult = ReturnType<typeof useCourseInviteQuery>;
+export type CourseInviteLazyQueryHookResult = ReturnType<typeof useCourseInviteLazyQuery>;
+export type CourseInviteSuspenseQueryHookResult = ReturnType<typeof useCourseInviteSuspenseQuery>;
+export type CourseInviteQueryResult = Apollo.QueryResult<CourseInviteQuery, CourseInviteQueryVariables>;
+export const RedeemCourseInviteDocument = gql`
+    mutation RedeemCourseInvite($code: String!) {
+  redeemCourseInvite(code: $code) {
+    id
+    title
+  }
+}
+    `;
+export type RedeemCourseInviteMutationFn = Apollo.MutationFunction<RedeemCourseInviteMutation, RedeemCourseInviteMutationVariables>;
+
+/**
+ * __useRedeemCourseInviteMutation__
+ *
+ * To run a mutation, you first call `useRedeemCourseInviteMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useRedeemCourseInviteMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [redeemCourseInviteMutation, { data, loading, error }] = useRedeemCourseInviteMutation({
+ *   variables: {
+ *      code: // value for 'code'
+ *   },
+ * });
+ */
+export function useRedeemCourseInviteMutation(baseOptions?: Apollo.MutationHookOptions<RedeemCourseInviteMutation, RedeemCourseInviteMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<RedeemCourseInviteMutation, RedeemCourseInviteMutationVariables>(RedeemCourseInviteDocument, options);
+      }
+export type RedeemCourseInviteMutationHookResult = ReturnType<typeof useRedeemCourseInviteMutation>;
+export type RedeemCourseInviteMutationResult = Apollo.MutationResult<RedeemCourseInviteMutation>;
+export type RedeemCourseInviteMutationOptions = Apollo.BaseMutationOptions<RedeemCourseInviteMutation, RedeemCourseInviteMutationVariables>;
+export const RevokeCourseInviteDocument = gql`
+    mutation RevokeCourseInvite($courseId: ID!) {
+  revokeCourseInvite(courseId: $courseId)
+}
+    `;
+export type RevokeCourseInviteMutationFn = Apollo.MutationFunction<RevokeCourseInviteMutation, RevokeCourseInviteMutationVariables>;
+
+/**
+ * __useRevokeCourseInviteMutation__
+ *
+ * To run a mutation, you first call `useRevokeCourseInviteMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useRevokeCourseInviteMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [revokeCourseInviteMutation, { data, loading, error }] = useRevokeCourseInviteMutation({
+ *   variables: {
+ *      courseId: // value for 'courseId'
+ *   },
+ * });
+ */
+export function useRevokeCourseInviteMutation(baseOptions?: Apollo.MutationHookOptions<RevokeCourseInviteMutation, RevokeCourseInviteMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<RevokeCourseInviteMutation, RevokeCourseInviteMutationVariables>(RevokeCourseInviteDocument, options);
+      }
+export type RevokeCourseInviteMutationHookResult = ReturnType<typeof useRevokeCourseInviteMutation>;
+export type RevokeCourseInviteMutationResult = Apollo.MutationResult<RevokeCourseInviteMutation>;
+export type RevokeCourseInviteMutationOptions = Apollo.BaseMutationOptions<RevokeCourseInviteMutation, RevokeCourseInviteMutationVariables>;
 export const RequestPairingCodeDocument = gql`
     mutation RequestPairingCode($deviceName: String!, $platform: DevicePlatform, $appVersion: String) {
   requestPairingCode(

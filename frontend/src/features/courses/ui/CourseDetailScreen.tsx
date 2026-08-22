@@ -338,6 +338,15 @@ function OwnerConstructor({ course, onDone }: { course: CourseT; onDone: () => v
           <CourseSwitcher currentId={course.id} />
         </div>
         <div className={styles.cHeadActions}>
+          {/* 🔴 Дверь к приглашению. Без неё код существует, а позвать им некого:
+              экран собран, и попасть на него неоткуда. */}
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => navigate(`/courses/${course.id}/invite`)}
+          >
+            {t('invite.callPupil')}
+          </Button>
           <Button
             variant="secondary"
             size="sm"

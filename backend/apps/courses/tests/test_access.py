@@ -10,6 +10,7 @@ a free course (enrollment-based).
 from datetime import date
 
 import pytest
+from django.utils import timezone
 
 from apps.accounts import services as accounts
 from apps.courses import services
@@ -17,7 +18,7 @@ from apps.courses.access import can_access_course
 from apps.courses.models import Course, Enrollment
 from apps.institutions import services as institutions
 from common.enums import AccessStatus, Role
-from common.exceptions import PermissionDenied
+from common.exceptions import NotFound, PermissionDenied, ValidationError
 
 pytestmark = pytest.mark.django_db
 
@@ -165,7 +166,7 @@ def test_create_course_persists_and_honors_institutional_group():
     not a member of the institution cannot bind a course to its group."""
     from apps.institutions.models import InstitutionMembership
     from common.enums import MembershipRole, MembershipStatus
-    from common.exceptions import PermissionDenied
+    from common.exceptions import NotFound, PermissionDenied, ValidationError
 
     teacher = make_teacher()
     in_group = make_student("ig2@example.com")
@@ -266,3 +267,87 @@ def test_course_audience_says_when_a_timezone_is_not_named():
     zones = {m["student_id"]: m["timezone"] for m in services.course_audience(owner, course.id)}
     assert zones[str(silent.id)] is None, "пояс не назван — говорим об этом, а не подставляем свой"
     assert zones[str(named.id)] == "Asia/Shanghai"
+
+
+# --- приглашение в курс: как позвать постороннего (§53) ---------------------
+def test_invite_is_one_per_course_not_one_per_click():
+    """
+    Приглашение одно на курс. Иначе преподаватель, открывший экран трижды, раздаёт три кода
+    и сам не знает, какой из них у ученика.
+    """
+    from apps.courses import services
+
+    teacher = make_teacher("inv.t@example.com")
+    course = make_published_course(teacher)
+    first = services.course_invite(teacher, course.id)
+    again = services.course_invite(teacher, course.id)
+    assert first.id == again.id
+    assert first.code.startswith("FLM-")
+
+
+def test_invite_belongs_to_the_owner_only():
+    """Код курса раздаёт тот, чей курс. Иначе позвать в чужой курс мог бы кто угодно."""
+    from apps.courses import services
+
+    owner = make_teacher("inv.o@example.com")
+    stranger = make_teacher("inv.s@example.com")
+    course = make_published_course(owner)
+    with pytest.raises(PermissionDenied):
+        services.course_invite(stranger, course.id)
+
+
+def test_redeem_puts_a_stranger_into_the_course():
+    """🔴 То самое действие, которого не было: код → человек на занятиях."""
+    from apps.courses import services
+
+    teacher = make_teacher("inv.t2@example.com")
+    course = make_published_course(teacher)
+    invite = services.course_invite(teacher, course.id)
+    stranger = make_student("inv.p@example.com")
+
+    assert Enrollment.objects.filter(course=course, student__user=stranger).count() == 0
+    services.redeem_course_invite(stranger, invite.code)
+    assert Enrollment.objects.filter(course=course, student__user=stranger).count() == 1
+
+
+def test_three_refusals_are_told_apart():
+    """
+    🔴 «Срок вышел», «код закрыт» и «такого кода нет» — три разные новости и три разных
+    действия. Один ответ «не найдено» на все три отправляет человека искать опечатку,
+    которой он не делал.
+    """
+    from datetime import timedelta
+
+    from apps.courses import services
+    from apps.courses.models import CourseInvite
+
+    teacher = make_teacher("inv.t3@example.com")
+    course = make_published_course(teacher)
+    pupil = make_student("inv.p3@example.com")
+
+    with pytest.raises(NotFound):
+        services.redeem_course_invite(pupil, "FLM-XXXX")
+
+    expired = services.course_invite(teacher, course.id)
+    CourseInvite.objects.filter(id=expired.id).update(
+        expires_at=timezone.now() - timedelta(hours=1)
+    )
+    with pytest.raises(ValidationError, match="Срок"):
+        services.redeem_course_invite(pupil, expired.code)
+
+    fresh = services.course_invite(teacher, course.id)
+    services.revoke_course_invite(teacher, course.id)
+    with pytest.raises(ValidationError, match="закрыт"):
+        services.redeem_course_invite(pupil, fresh.code)
+
+
+def test_revoking_kills_the_old_code_immediately():
+    """«Заменить код»: старый перестаёт работать сразу, иначе замена ничего не меняет."""
+    from apps.courses import services
+
+    teacher = make_teacher("inv.t4@example.com")
+    course = make_published_course(teacher)
+    old = services.course_invite(teacher, course.id)
+    services.revoke_course_invite(teacher, course.id)
+    new = services.course_invite(teacher, course.id)
+    assert new.code != old.code

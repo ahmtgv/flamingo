@@ -140,6 +140,23 @@ class CoursesMutation:
         )
 
     @strawberry.mutation
+    def redeem_course_invite(self, info: strawberry.Info, code: str) -> Course:
+        """
+        Войти в курс по коду из приглашения — действие, которого в продукте не было.
+
+        Отказы называются по-разному намеренно: «срок вышел» и «код закрыт» лечатся просьбой
+        к преподавателю, «такого кода нет» означает опечатку. Один ответ на все три
+        отправляет человека искать ошибку, которой он не делал.
+        """
+        return services.redeem_course_invite(require_user(info), code)
+
+    @strawberry.mutation
+    def revoke_course_invite(self, info: strawberry.Info, course_id: strawberry.ID) -> bool:
+        """«Заменить код»: старый перестаёт работать сразу же."""
+        services.revoke_course_invite(require_user(info), course_id)
+        return True
+
+    @strawberry.mutation
     def publish_course(self, info: strawberry.Info, id: strawberry.ID) -> Course:
         return services.publish_course(require_user(info), id)
 

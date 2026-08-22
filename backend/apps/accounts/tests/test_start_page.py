@@ -270,7 +270,16 @@ def test_week_is_a_calendar_week_from_monday_and_marks_today():
     join(pupil, school)
     course, lesson = course_with_lesson(teacher, "Астрономия", institution=school)
     courses.enroll(pupil, course.id)
-    LessonSession.objects.create(lesson=lesson, start_at=timezone.now() + timedelta(days=2))
+    # 🔴 ЗАНЯТИЕ — ВНУТРЬ ТЕКУЩЕЙ НЕДЕЛИ, А НЕ «ЧЕРЕЗ ДВА ДНЯ».
+    #
+    # Было `now + 2 дня`, и в субботу это уже СЛЕДУЮЩАЯ календарная неделя: проверка падала
+    # по субботам и воскресеньям и была зелёной остальные пять дней. Ровно та ловушка, о
+    # которой предупреждал дизайнер: даты в засеве считаются от текущего дня, но считать
+    # надо до нужной ГРАНИЦЫ, а не «плюс сколько-то».
+    #
+    # Сегодняшний полдень лежит в текущей неделе всегда, каким бы днём ни был сегодня.
+    midday = timezone.localtime(timezone.now()).replace(hour=12, minute=0, second=0, microsecond=0)
+    LessonSession.objects.create(lesson=lesson, start_at=midday)
 
     week = start_page.start_page(pupil).week
     assert len(week) == 7

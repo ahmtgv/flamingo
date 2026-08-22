@@ -23,6 +23,8 @@ import { LinkMachineScreen, SettingsScreen, SetupScreen } from '@/features/deskt
 import { ArrivalScreen, InvitePanel } from '@/features/meeting';
 import { AdminInstitutionScreen, PeopleScreen, VerificationScreen } from '@/features/admin';
 import { ScheduleLessonScreen } from '@/features/courses/ui/ScheduleLessonScreen';
+import { InviteScreen } from '@/features/courses/ui/InviteScreen';
+import { JoinRoute } from '@/features/courses/ui/JoinRoute';
 import { CatalogScreen, CourseDetailScreen, CreateCourseScreen } from '@/features/courses';
 import {
   GradingQueueScreen,
@@ -43,7 +45,7 @@ import { NotFoundScreen } from '@/features/notfound/NotFoundScreen';
 import { MyLearningScreen } from '@/features/mylearning/ui/MyLearningScreen';
 import { ConnectionLine } from '@/shared/ui/ConnectionLine/ConnectionLine';
 import { DesktopShell } from '@/features/desktop/DesktopShell';
-import { withReturnTo } from '@/shared/lib/returnTo';
+import { returnTo, withReturnTo } from '@/shared/lib/returnTo';
 import { useThisDeviceQuery } from '@/entities/graphql/generated';
 import { useSession } from '@/shared/hooks/useSession';
 
@@ -129,6 +131,7 @@ function MachineRoute({ children }: { children: ReactNode }) {
 /** Keep authenticated users out of the auth screens. */
 function PublicOnlyRoute({ children }: { children: ReactNode }) {
   const { status } = useSession();
+  const location = useLocation();
   // В приложении формы входа и регистрации не показываются вовсе: пароль здесь не спрашивают,
   // а регистрация и восстановление живут в вебе, где видны адресная строка и замок (§19.4).
   if (isDesktop()) return <Navigate to="/setup" replace />;
@@ -136,7 +139,14 @@ function PublicOnlyRoute({ children }: { children: ReactNode }) {
   // значит вход и регистрация недостижимы: посетителя уносит на /start. Аудит требует, чтобы
   // регистрация ЧЕСТНО говорила, что запись закрыта (§0.1), а сказать это может только экран,
   // до которого можно дойти. На витрине пускаем; в бою правило прежнее.
-  if (status === 'authenticated' && !IS_PREVIEW) return <Navigate to="/start" replace />;
+  // 🔴 Найдено замером 22.08: сюда приходят С АДРЕСОМ НАЗНАЧЕНИЯ (`?next=/join/FLM-…`), и
+  // отправлять такого человека на /start — значит терять приглашение ровно в тот миг, когда
+  // оно сработало. Форма входа честно звала `navigate(back)`, но эта переадресация случалась
+  // раньше и уводила на стартовую: посторонний, пришедший по ссылке на курс, после входа
+  // оказывался в пустом кабинете и второй раз ссылку уже не открывал.
+  if (status === 'authenticated' && !IS_PREVIEW) {
+    return <Navigate to={returnTo(location.search) ?? '/start'} replace />;
+  }
   return <>{children}</>;
 }
 
@@ -450,6 +460,19 @@ export function AppRouter() {
         />
         {/* Создание занятия — лист «Создание курса и занятия». Курс в адресе, потому что
             «кого это касается» считается по записанным на КУРС, а не на урок. */}
+        {/* Преподаватель зовёт: код, ссылка, кто уже вошёл. */}
+        <Route
+          path="/courses/:courseId/invite"
+          element={
+            <ProtectedRoute>
+              <InviteScreen />
+            </ProtectedRoute>
+          }
+        />
+        {/* 🔴 Человек приходит ПО ССЫЛКЕ. Адрес открытый: он ещё не наш, у него нет учётки.
+            Вход по коду требует входа в продукт — `ProtectedRoute` отправит на форму и
+            вернёт сюда же (`returnTo`), а код останется в адресе. */}
+        <Route path="/join/:code" element={<JoinRoute />} />
         <Route
           path="/courses/:courseId/lessons/:lessonId/schedule"
           element={

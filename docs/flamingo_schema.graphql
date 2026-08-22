@@ -326,6 +326,12 @@ type Material {
   order: Int!
 }
 
+type CourseInviteView {
+  code: String!
+  expiresAt: DateTime!
+  daysLeft: Int!
+}
+
 type AudienceMember {
   studentId: ID!
   name: String!
@@ -1729,6 +1735,9 @@ type Query {
   # Кого касается занятие: записанные на курс со своими поясами. Только владелец курса —
   # имя и город чужого ребёнка персональные данные, знание courseId правом не является.
   courseAudience(courseId: ID!): [AudienceMember!]!
+  # Приглашение в курс — код и срок. Ссылку собирает клиент из своего origin: домен в коде
+  # сервера не зашивается (караул nothing_is_baked_in).
+  courseInvite(courseId: ID!): CourseInviteView!
   course(id: ID!): Course
   lesson(id: ID!): Lesson
   myCourses: [Course!]!                                   # teacher's own courses (incl. drafts)
@@ -1827,6 +1836,9 @@ type Mutation {
   createCourse(input: CourseInput!): Course!
   updateCourse(id: ID!, input: CourseInput!): Course!
   publishCourse(id: ID!): Course!
+  # Войти в курс по коду. Три отказа названы по-разному: срок вышел · код закрыт · нет кода.
+  redeemCourseInvite(code: String!): Course!
+  revokeCourseInvite(courseId: ID!): Boolean!
   unpublishCourse(id: ID!): Course!
   archiveCourse(id: ID!): Course!
   deleteCourse(id: ID!): Boolean!

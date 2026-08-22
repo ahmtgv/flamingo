@@ -1,6 +1,7 @@
 """Courses queries: catalog, course, lesson."""
 
 import strawberry
+from django.utils import timezone
 
 from apps.courses import journal, models, services, subject, tasks_progress
 from apps.courses.access import can_access_course
@@ -10,6 +11,7 @@ from common.pagination import paginate
 
 from .types import (
     AudienceMember,
+    CourseInviteView,
     Course,
     CourseConnection,
     CourseJournal,
@@ -35,6 +37,18 @@ class CourseFilter:
 
 @strawberry.type
 class CoursesQuery:
+    @strawberry.field
+    def course_invite(self, info: strawberry.Info, course_id: strawberry.ID) -> CourseInviteView:
+        """Действующее приглашение курса; нет — заводится новое. Только владелец курса."""
+        invite = services.course_invite(require_user(info), course_id)
+        return CourseInviteView(
+            code=invite.code,
+            expires_at=invite.expires_at,
+            # Дней осталось — округляем ВВЕРХ: «остался 0 дней» у кода, который работает
+            # ещё десять часов, читается как «уже не работает».
+            days_left=max(0, -((timezone.now() - invite.expires_at).days)),
+        )
+
     @strawberry.field
     def course_audience(
         self, info: strawberry.Info, course_id: strawberry.ID

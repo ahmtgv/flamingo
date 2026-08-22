@@ -110,6 +110,8 @@ const DEFAULT_SCREENS = [
     who: 'teacher',
     expect: 'кого это касается',
   },
+  // Приглашение — то, чем зовут постороннего. Обе половины листа на одном экране.
+  { route: `/courses/${course}/invite`, who: 'teacher', expect: 'Позвать ученика на курс' },
   { route: '/login', who: null, expect: /Вход/ },
   { route: '/register', who: null, expect: /Кто вы/ },
   { route: '/register/teacher', who: null, expect: /Преподаватель/ },

@@ -233,3 +233,23 @@ query CourseAudience($courseId: ID!) {
     timezone
   }
 }
+
+# Приглашение в курс — экран «Приложение и надзор», вид «приглашение».
+query CourseInvite($courseId: ID!) {
+  courseInvite(courseId: $courseId) {
+    code
+    expiresAt
+    daysLeft
+  }
+}
+
+mutation RedeemCourseInvite($code: String!) {
+  redeemCourseInvite(code: $code) {
+    id
+    title
+  }
+}
+
+mutation RevokeCourseInvite($courseId: ID!) {
+  revokeCourseInvite(courseId: $courseId)
+}

@@ -113,6 +113,12 @@ NOT_EXPORTED: dict[str, str] = {
     "compliance.PolicyDecisionLog": "the operator's evidence ledger, not the person's data",
     "compliance.PolicyChangeLog": "the operator's own audit trail",
     "scheduling.ProjectorCode": "a short-lived credential; expires long before any restore",
+    "courses.CourseInvite": (
+        "a seven-day credential for joining a course, not content. Restoring one would revive"
+        " a code the teacher may have replaced precisely because it leaked — and the whole"
+        " point of «заменить код» is that the old one stops working. The enrolment it"
+        " produced travels; the key that opened the door does not"
+    ),
     "chat.InstitutionChatSettings": (
         "an institution's safety policy — configuration, restored from the institution rather"
         " than carried in a person's file, or one teacher's backup would rewrite a school's rules"
