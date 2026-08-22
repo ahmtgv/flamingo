@@ -268,9 +268,7 @@ class Course:
         from apps.scheduling.models import LessonSession
 
         row = (
-            LessonSession.objects.filter(
-                lesson__section__course=self, start_at__gte=timezone.now()
-            )
+            LessonSession.objects.filter(lesson__section__course=self, start_at__gte=timezone.now())
             .order_by("start_at")
             .values_list("start_at", flat=True)
             .first()
@@ -603,8 +601,13 @@ class AudienceMember:
     """
 
     student_id: strawberry.ID
+    enrollment_id: strawberry.ID
     name: str
     timezone: str | None
+    # 🔴 Состояние зачисления (§51, §54.1): «на курсе», «ждёт согласия представителя»,
+    # «ждёт вашего ответа». Экран обязан назвать, ЧЕГО ждут, — иначе преподаватель считает,
+    # что человек на курсе, а тот к занятию не попадёт.
+    status: EnrollmentStatus
 
 
 @strawberry.type

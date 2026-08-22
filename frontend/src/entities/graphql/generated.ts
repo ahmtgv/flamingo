@@ -176,7 +176,9 @@ export type Attribution = {
 
 export type AudienceMember = {
   __typename?: 'AudienceMember';
+  enrollmentId: Scalars['ID']['output'];
   name: Scalars['String']['output'];
+  status: EnrollmentStatus;
   studentId: Scalars['ID']['output'];
   timezone?: Maybe<Scalars['String']['output']>;
 };
@@ -561,7 +563,8 @@ export type Enrollment = {
 export type EnrollmentStatus =
   | 'ACTIVE'
   | 'COMPLETED'
-  | 'PENDING';
+  | 'PENDING_CONSENT'
+  | 'PENDING_TEACHER';
 
 export type Exercise = {
   __typename?: 'Exercise';
@@ -1060,6 +1063,7 @@ export type Mutation = {
   addWordToMyList: SrsCard;
   advanceDeviceSetup: Device;
   answerExercise: Attempt;
+  approveEnrollment: Enrollment;
   archiveCourse: Course;
   assembleLessonSummary: LessonSummary;
   assignTeacher: GroupTeacher;
@@ -1077,6 +1081,7 @@ export type Mutation = {
   createProjectorCode: ProjectorCast;
   createReview: Review;
   createSection: Section;
+  declineEnrollment: Scalars['Boolean']['output'];
   deleteCourse: Scalars['Boolean']['output'];
   deleteHomework: Scalars['Boolean']['output'];
   deleteLesson: Scalars['Boolean']['output'];
@@ -1109,7 +1114,7 @@ export type Mutation = {
   putBoardElement: BoardElement;
   putWordOnBoard: Scalars['ID']['output'];
   recordCabinetBackup: Device;
-  redeemCourseInvite: Course;
+  redeemCourseInvite: Enrollment;
   redeemProjectorCode: ProjectorJoin;
   refreshToken: AuthPayload;
   registerUser: AuthPayload;
@@ -1229,6 +1234,11 @@ export type MutationAnswerExerciseArgs = {
 };
 
 
+export type MutationApproveEnrollmentArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
 export type MutationArchiveCourseArgs = {
   id: Scalars['ID']['input'];
 };
@@ -1315,6 +1325,11 @@ export type MutationCreateReviewArgs = {
 export type MutationCreateSectionArgs = {
   courseId: Scalars['ID']['input'];
   input: SectionInput;
+};
+
+
+export type MutationDeclineEnrollmentArgs = {
+  id: Scalars['ID']['input'];
 };
 
 
@@ -3630,7 +3645,7 @@ export type CourseAudienceQueryVariables = Exact<{
 }>;
 
 
-export type CourseAudienceQuery = { __typename?: 'Query', courseAudience: Array<{ __typename?: 'AudienceMember', studentId: string, name: string, timezone?: string | null }> };
+export type CourseAudienceQuery = { __typename?: 'Query', courseAudience: Array<{ __typename?: 'AudienceMember', studentId: string, enrollmentId: string, name: string, timezone?: string | null, status: EnrollmentStatus }> };
 
 export type CourseInviteQueryVariables = Exact<{
   courseId: Scalars['ID']['input'];
@@ -3644,7 +3659,21 @@ export type RedeemCourseInviteMutationVariables = Exact<{
 }>;
 
 
-export type RedeemCourseInviteMutation = { __typename?: 'Mutation', redeemCourseInvite: { __typename?: 'Course', id: string, title: string } };
+export type RedeemCourseInviteMutation = { __typename?: 'Mutation', redeemCourseInvite: { __typename?: 'Enrollment', id: string, status: EnrollmentStatus, course: { __typename?: 'Course', id: string, title: string } } };
+
+export type ApproveEnrollmentMutationVariables = Exact<{
+  id: Scalars['ID']['input'];
+}>;
+
+
+export type ApproveEnrollmentMutation = { __typename?: 'Mutation', approveEnrollment: { __typename?: 'Enrollment', id: string, status: EnrollmentStatus } };
+
+export type DeclineEnrollmentMutationVariables = Exact<{
+  id: Scalars['ID']['input'];
+}>;
+
+
+export type DeclineEnrollmentMutation = { __typename?: 'Mutation', declineEnrollment: boolean };
 
 export type RevokeCourseInviteMutationVariables = Exact<{
   courseId: Scalars['ID']['input'];
@@ -7406,8 +7435,10 @@ export const CourseAudienceDocument = gql`
     query CourseAudience($courseId: ID!) {
   courseAudience(courseId: $courseId) {
     studentId
+    enrollmentId
     name
     timezone
+    status
   }
 }
     `;
@@ -7496,7 +7527,11 @@ export const RedeemCourseInviteDocument = gql`
     mutation RedeemCourseInvite($code: String!) {
   redeemCourseInvite(code: $code) {
     id
-    title
+    status
+    course {
+      id
+      title
+    }
   }
 }
     `;
@@ -7526,6 +7561,71 @@ export function useRedeemCourseInviteMutation(baseOptions?: Apollo.MutationHookO
 export type RedeemCourseInviteMutationHookResult = ReturnType<typeof useRedeemCourseInviteMutation>;
 export type RedeemCourseInviteMutationResult = Apollo.MutationResult<RedeemCourseInviteMutation>;
 export type RedeemCourseInviteMutationOptions = Apollo.BaseMutationOptions<RedeemCourseInviteMutation, RedeemCourseInviteMutationVariables>;
+export const ApproveEnrollmentDocument = gql`
+    mutation ApproveEnrollment($id: ID!) {
+  approveEnrollment(id: $id) {
+    id
+    status
+  }
+}
+    `;
+export type ApproveEnrollmentMutationFn = Apollo.MutationFunction<ApproveEnrollmentMutation, ApproveEnrollmentMutationVariables>;
+
+/**
+ * __useApproveEnrollmentMutation__
+ *
+ * To run a mutation, you first call `useApproveEnrollmentMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useApproveEnrollmentMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [approveEnrollmentMutation, { data, loading, error }] = useApproveEnrollmentMutation({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useApproveEnrollmentMutation(baseOptions?: Apollo.MutationHookOptions<ApproveEnrollmentMutation, ApproveEnrollmentMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<ApproveEnrollmentMutation, ApproveEnrollmentMutationVariables>(ApproveEnrollmentDocument, options);
+      }
+export type ApproveEnrollmentMutationHookResult = ReturnType<typeof useApproveEnrollmentMutation>;
+export type ApproveEnrollmentMutationResult = Apollo.MutationResult<ApproveEnrollmentMutation>;
+export type ApproveEnrollmentMutationOptions = Apollo.BaseMutationOptions<ApproveEnrollmentMutation, ApproveEnrollmentMutationVariables>;
+export const DeclineEnrollmentDocument = gql`
+    mutation DeclineEnrollment($id: ID!) {
+  declineEnrollment(id: $id)
+}
+    `;
+export type DeclineEnrollmentMutationFn = Apollo.MutationFunction<DeclineEnrollmentMutation, DeclineEnrollmentMutationVariables>;
+
+/**
+ * __useDeclineEnrollmentMutation__
+ *
+ * To run a mutation, you first call `useDeclineEnrollmentMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDeclineEnrollmentMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [declineEnrollmentMutation, { data, loading, error }] = useDeclineEnrollmentMutation({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useDeclineEnrollmentMutation(baseOptions?: Apollo.MutationHookOptions<DeclineEnrollmentMutation, DeclineEnrollmentMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<DeclineEnrollmentMutation, DeclineEnrollmentMutationVariables>(DeclineEnrollmentDocument, options);
+      }
+export type DeclineEnrollmentMutationHookResult = ReturnType<typeof useDeclineEnrollmentMutation>;
+export type DeclineEnrollmentMutationResult = Apollo.MutationResult<DeclineEnrollmentMutation>;
+export type DeclineEnrollmentMutationOptions = Apollo.BaseMutationOptions<DeclineEnrollmentMutation, DeclineEnrollmentMutationVariables>;
 export const RevokeCourseInviteDocument = gql`
     mutation RevokeCourseInvite($courseId: ID!) {
   revokeCourseInvite(courseId: $courseId)

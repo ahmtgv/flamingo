@@ -13,7 +13,7 @@ from django.utils import timezone
 from apps.accounts.models import StudentProfile
 from apps.courses.access import can_access_course
 from apps.courses.models import Enrollment, Lesson
-from common.enums import AttendanceStatus, Role, SessionStatus
+from common.enums import AttendanceStatus, EnrollmentStatus, Role, SessionStatus
 from common.exceptions import NotFound, PermissionDenied, ValidationError
 from common.livekit import room_token
 
@@ -312,7 +312,11 @@ def my_schedule(user, start: dt.datetime, end: dt.datetime) -> list[LessonSessio
         profile = StudentProfile.objects.filter(user=user).first()
         if profile is None:
             return []
-        course_ids = Enrollment.objects.filter(student=profile).values_list("course_id", flat=True)
+        # Ожидающий (§54.1) на занятие не попадёт — значит и в расписании его быть не должно:
+        # строка «урок в 18:00», в которую нельзя войти, хуже пустого расписания.
+        course_ids = Enrollment.objects.filter(
+            student=profile, status=EnrollmentStatus.ACTIVE.value
+        ).values_list("course_id", flat=True)
         return list(qs.filter(lesson__section__course_id__in=course_ids))
     return []
 

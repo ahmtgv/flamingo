@@ -59,9 +59,7 @@ class Course(SoftDeleteModel):
     lesson_minutes = models.PositiveSmallIntegerField(null=True, blank=True)
     lessons_per_week = models.PositiveSmallIntegerField(null=True, blank=True)
     #: Дни недели по ISO: 1 — понедельник, 7 — воскресенье. Пустой список = дни не объявлены.
-    lesson_days = ArrayField(
-        models.PositiveSmallIntegerField(), default=list, blank=True, size=7
-    )
+    lesson_days = ArrayField(models.PositiveSmallIntegerField(), default=list, blank=True, size=7)
 
     # Payment-readiness seam (see courses/access.py + CLAUDE.md "Future: Payments").
     # price is in integer minor units (kopecks); null = free. currency is ISO-4217;
@@ -198,8 +196,11 @@ class Enrollment(BaseModel):
         "accounts.StudentProfile", related_name="enrollments", on_delete=models.CASCADE
     )
     course = models.ForeignKey(Course, related_name="enrollments", on_delete=models.CASCADE)
+    # 🔴 Здесь живёт ОЖИДАНИЕ (§54.1): «ждёт преподавателя» и «ждёт согласия родителя».
+    # `access_status` ниже — про оплату, и смешивать их нельзя: однажды это пустит
+    # неоплатившего или отсечёт принятого.
     status = models.CharField(
-        max_length=12, choices=choices(EnrollmentStatus), default=EnrollmentStatus.ACTIVE.value
+        max_length=20, choices=choices(EnrollmentStatus), default=EnrollmentStatus.ACTIVE.value
     )
     # Payment-gating seam (see courses/access.py). Default ACTIVE = open/free.
     access_status = models.CharField(

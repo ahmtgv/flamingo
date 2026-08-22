@@ -7,28 +7,40 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('courses', '0011_course_format_alter_course_level'),
+        ("courses", "0011_course_format_alter_course_level"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='course',
-            name='lesson_days',
-            field=django.contrib.postgres.fields.ArrayField(base_field=models.PositiveSmallIntegerField(), blank=True, default=list, size=7),
+            model_name="course",
+            name="lesson_days",
+            field=django.contrib.postgres.fields.ArrayField(
+                base_field=models.PositiveSmallIntegerField(), blank=True, default=list, size=7
+            ),
         ),
         migrations.AddField(
-            model_name='course',
-            name='lesson_minutes',
+            model_name="course",
+            name="lesson_minutes",
             field=models.PositiveSmallIntegerField(blank=True, null=True),
         ),
         migrations.AddField(
-            model_name='course',
-            name='lessons_per_week',
+            model_name="course",
+            name="lessons_per_week",
             field=models.PositiveSmallIntegerField(blank=True, null=True),
         ),
         migrations.AlterField(
-            model_name='course',
-            name='grading_scale',
-            field=models.CharField(blank=True, choices=[('five_point', 'FIVE_POINT'), ('percent', 'PERCENT'), ('pass_fail', 'PASS_FAIL'), ('markless', 'MARKLESS')], default='', max_length=12),
+            model_name="course",
+            name="grading_scale",
+            field=models.CharField(
+                blank=True,
+                choices=[
+                    ("five_point", "FIVE_POINT"),
+                    ("percent", "PERCENT"),
+                    ("pass_fail", "PASS_FAIL"),
+                    ("markless", "MARKLESS"),
+                ],
+                default="",
+                max_length=12,
+            ),
         ),
     ]

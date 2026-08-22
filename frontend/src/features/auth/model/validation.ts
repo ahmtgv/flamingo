@@ -102,6 +102,33 @@ export function validateNewPassword(password: string): Errors {
  *
  * Границы те же, что на сервере: до 10 — младший, до 18 — подросток, дальше взрослый.
  */
+/**
+ * Возраст в полных годах, либо `null`, если дата не названа или не разобрана.
+ *
+ * 🔴 Заведено 22.08 вместе с порогом 16 (§51). До этого экран знал только «полосу»
+ * (`junior`/`teen`/`adult`), а полоса отвечает на вопрос «как выглядит интерфейс».
+ * Вопрос «кто подписывает» — другой, и ответ на него — 16.
+ */
+export function yearsOld(birthDate: string): number | null {
+  if (!birthDate) return null;
+  const born = new Date(birthDate);
+  if (Number.isNaN(born.getTime())) return null;
+  const now = new Date();
+  let years = now.getFullYear() - born.getFullYear();
+  const monthDay = now.getMonth() - born.getMonth() || now.getDate() - born.getDate();
+  if (monthDay < 0) years -= 1;
+  return years;
+}
+
+/** Возраст самостоятельного согласия — 16 (§51). Дата неизвестна — значит подписывает
+ *  представитель: совершеннолетие доказывается, а не предполагается. */
+export const CONSENT_AGE = 16;
+
+export function consentsForSelf(birthDate: string): boolean {
+  const years = yearsOld(birthDate);
+  return years !== null && years >= CONSENT_AGE;
+}
+
 export function ageBandFromBirthDate(birthDate: string): AgeBandUi | null {
   if (!birthDate) return null;
   const born = new Date(birthDate);

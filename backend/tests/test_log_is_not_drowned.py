@@ -26,9 +26,9 @@ def test_an_expected_refusal_is_one_line_without_a_traceback(caplog):
     assert result.errors, "прибор пуст: запрос обязан был отказать"
     strawberry_errors = [r for r in caplog.records if r.levelno >= logging.ERROR]
     assert strawberry_errors == [], "ожидаемый отказ записан как ошибка — лог снова тонет"
-    assert any("отказ продукта" in r.getMessage() for r in caplog.records), (
-        "отказ не записан вовсе — так его не найдут, когда он станет важен"
-    )
+    assert any(
+        "отказ продукта" in r.getMessage() for r in caplog.records
+    ), "отказ не записан вовсе — так его не найдут, когда он станет важен"
 
 
 def test_an_unexpected_error_is_still_logged_loudly(caplog):
@@ -39,6 +39,6 @@ def test_an_unexpected_error_is_still_logged_loudly(caplog):
     with caplog.at_level(logging.DEBUG):
         schema.process_errors([boom], None)
 
-    assert any(r.levelno >= logging.ERROR for r in caplog.records), (
-        "неожиданная ошибка проглочена — это хуже шума"
-    )
+    assert any(
+        r.levelno >= logging.ERROR for r in caplog.records
+    ), "неожиданная ошибка проглочена — это хуже шума"

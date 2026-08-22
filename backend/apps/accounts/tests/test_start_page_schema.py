@@ -25,6 +25,7 @@ from django.contrib.auth.models import AnonymousUser
 from api.schema import schema
 from apps.accounts import services as accounts
 from common.enums import Role
+from tests.consent_helpers import sign_for_child
 
 pytestmark = pytest.mark.django_db
 
@@ -119,6 +120,8 @@ def test_the_week_strip_answers_for_a_neighbouring_week():
     pupil = _pupil()
     course = courses.create_course(teacher, title="English A2", subject="Английский", level="a2")
     courses.publish_course(teacher, course.id)
+    # §51: ребёнку младше 16 курс открывает подпись законного представителя.
+    sign_for_child(pupil)
     courses.enroll(pupil, course.id)
 
     result = _exec(WEEK, pupil, d="2026-09-07")

@@ -229,8 +229,10 @@ mutation DeleteMaterial($id: ID!) {
 query CourseAudience($courseId: ID!) {
   courseAudience(courseId: $courseId) {
     studentId
+    enrollmentId
     name
     timezone
+    status
   }
 }
 
@@ -243,11 +245,29 @@ query CourseInvite($courseId: ID!) {
   }
 }
 
+# Возвращается зачисление, а не курс: у входа есть исход. Ученик младше 16 (§51) ждёт
+# согласия представителя, и экран обязан сказать это, а не «вы на курсе».
 mutation RedeemCourseInvite($code: String!) {
   redeemCourseInvite(code: $code) {
     id
-    title
+    status
+    course {
+      id
+      title
+    }
   }
+}
+
+# §54.1: заявка из каталога висит, пока преподаватель не ответит.
+mutation ApproveEnrollment($id: ID!) {
+  approveEnrollment(id: $id) {
+    id
+    status
+  }
+}
+
+mutation DeclineEnrollment($id: ID!) {
+  declineEnrollment(id: $id)
 }
 
 mutation RevokeCourseInvite($courseId: ID!) {

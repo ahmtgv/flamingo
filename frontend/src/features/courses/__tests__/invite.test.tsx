@@ -1,6 +1,6 @@
 import { GraphQLError } from 'graphql';
 import { describe, expect, it } from 'vitest';
-import { screen, waitFor } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import {
@@ -22,7 +22,15 @@ const audienceOk = {
   request: { query: CourseAudienceDocument, variables: { courseId: COURSE } },
   result: {
     data: {
-      courseAudience: [{ studentId: 'u-1', name: 'Аня Ковалёва', timezone: 'Europe/Moscow' }],
+      courseAudience: [
+        {
+          studentId: 'u-1',
+          enrollmentId: 'e-1',
+          name: 'Аня Ковалёва',
+          timezone: 'Europe/Moscow',
+          status: 'ACTIVE',
+        },
+      ],
     },
   },
 };
@@ -57,6 +65,37 @@ describe('приглашение · сторона преподавателя', 
     expect(await screen.findByText('FLM-AB12')).toBeInTheDocument();
     expect(await screen.findByText(/Не видно, кто уже вошёл/)).toBeInTheDocument();
   });
+
+  it('ждущего называет тем, чего он ждёт, и говорит про непришедшее письмо', async () => {
+    renderWithProviders(<InviteScreen />, {
+      mocks: [
+        inviteOk,
+        {
+          request: { query: CourseAudienceDocument, variables: { courseId: COURSE } },
+          result: {
+            data: {
+              courseAudience: [
+                {
+                  studentId: 'u-2',
+                  enrollmentId: 'e-2',
+                  name: 'Петя Смирнов',
+                  timezone: null,
+                  status: 'PENDING_CONSENT',
+                },
+              ],
+            },
+          },
+        },
+      ],
+      route: `/courses/${COURSE}/invite`,
+      path: '/courses/:courseId/invite',
+    });
+
+    expect(await screen.findByText('ждёт согласия родителя')).toBeInTheDocument();
+    expect(screen.getByText(/писем мы пока не отправляем/)).toBeInTheDocument();
+    // Принять за родителя нельзя — кнопки решения тут быть не должно.
+    expect(screen.queryByRole('button', { name: 'Принять' })).not.toBeInTheDocument();
+  });
 });
 
 describe('приглашение · сторона ученика', () => {
@@ -65,7 +104,15 @@ describe('приглашение · сторона ученика', () => {
       mocks: [
         {
           request: { query: RedeemCourseInviteDocument, variables: { code: 'FLM-AB12' } },
-          result: { data: { redeemCourseInvite: { id: COURSE, title: 'Химия · неорганика' } } },
+          result: {
+            data: {
+              redeemCourseInvite: {
+                id: 'e-1',
+                status: 'ACTIVE',
+                course: { id: COURSE, title: 'Химия · неорганика' },
+              },
+            },
+          },
         },
       ],
     });
@@ -73,6 +120,33 @@ describe('приглашение · сторона ученика', () => {
     expect(screen.getByLabelText('Код из приглашения')).toHaveValue('FLM-AB12');
     await userEvent.click(screen.getByRole('button', { name: 'Войти на курс' }));
     expect(await screen.findByText(/Вы на курсе «Химия · неорганика»/)).toBeInTheDocument();
+  });
+
+  it('младше шестнадцати — «код принят», а не «вы на курсе», и сказано про письмо', async () => {
+    // §51: курс закреплён, но занятия откроются после согласия родителя. Сказать здесь
+    // «вы на курсе» — соврать тому, кто на занятие не попадёт.
+    renderWithProviders(<JoinHalf presetCode="FLM-AB12" />, {
+      mocks: [
+        {
+          request: { query: RedeemCourseInviteDocument, variables: { code: 'FLM-AB12' } },
+          result: {
+            data: {
+              redeemCourseInvite: {
+                id: 'e-2',
+                status: 'PENDING_CONSENT',
+                course: { id: COURSE, title: 'Химия · неорганика' },
+              },
+            },
+          },
+        },
+      ],
+    });
+
+    await userEvent.click(screen.getByRole('button', { name: 'Войти на курс' }));
+    expect(await screen.findByText(/Код принят/)).toBeInTheDocument();
+    expect(screen.queryByText(/Вы на курсе/)).not.toBeInTheDocument();
+    // И честная строка про то, что письмо сейчас не уйдёт.
+    expect(screen.getByText(/почта у нас ещё не включена/i)).toBeInTheDocument();
   });
 
   it('отказ произносится словами сервера, а не своими', async () => {

@@ -23,6 +23,7 @@ from apps.board import services as board
 from apps.courses import services as courses
 from apps.scheduling.models import LessonSession
 from common.enums import BoardElementKind, Role
+from tests.consent_helpers import sign_for_child
 
 pytestmark = pytest.mark.django_db
 
@@ -51,6 +52,8 @@ def _lesson_with_two_people():
     lesson = courses.create_lesson(teacher, section.id, title="Travel", duration_min=40)
     courses.publish_lesson(teacher, lesson.id)
     courses.publish_course(teacher, course.id)
+    # §51: ребёнку младше 16 курс открывает подпись законного представителя.
+    sign_for_child(pupil)
     courses.enroll(pupil, course.id)
     LessonSession.objects.create(lesson=lesson, start_at=timezone.now(), status="live")
     return teacher, pupil, lesson

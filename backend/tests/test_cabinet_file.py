@@ -33,6 +33,7 @@ from common.cabinet_file import (
 from common.enums import HomeworkType, Role
 from common.exceptions import ValidationError
 from common.portability import CABINET_TABLES, exported_model_classes
+from tests.consent_helpers import sign_for_child
 
 pytestmark = pytest.mark.django_db
 
@@ -72,6 +73,8 @@ def a_lesson_with_marked_work():
     lesson = courses.create_lesson(teacher, section.id, title="Travel", duration_min=40)
     courses.publish_lesson(teacher, lesson.id)
     courses.publish_course(teacher, course.id)
+    # §51: ребёнку младше 16 курс открывает подпись законного представителя.
+    sign_for_child(pupil)
     courses.enroll(pupil, course.id)
 
     task = homework.create_homework(

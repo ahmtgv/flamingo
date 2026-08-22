@@ -7,17 +7,20 @@ price only to document that the seam stays payment-ready — the access result i
 a free course (enrollment-based).
 """
 
+import datetime as dt
+import uuid
 from datetime import date
 
 import pytest
 from django.utils import timezone
 
 from apps.accounts import services as accounts
+from apps.accounts.services import consents_for_self
 from apps.courses import services
-from apps.courses.access import can_access_course
+from apps.courses.access import can_access_course, students_of_course
 from apps.courses.models import Course, Enrollment
 from apps.institutions import services as institutions
-from common.enums import AccessStatus, Role
+from common.enums import AccessStatus, EnrollmentStatus, Role
 from common.exceptions import NotFound, PermissionDenied, ValidationError
 
 pytestmark = pytest.mark.django_db
@@ -74,7 +77,9 @@ def test_free_course_is_enrollment_controlled():
     enrolled = make_student("enrolled@example.com")
     outsider = make_student("outsider@example.com")
     course = make_published_course(teacher)  # free (price is None) — still enrollment-gated
-    services.enroll(enrolled, course.id)
+    # §54.1: заявка из каталога висит, пока преподаватель не примет, поэтому тест принимает
+    # её явно. Раньше здесь хватало одного `enroll` — это и было изменённое правило.
+    services.approve_enrollment(teacher, services.request_enrollment(enrolled, course.id).id)
 
     assert can_access_course(teacher, course) is True  # owner
     assert can_access_course(enrolled, course) is True  # active enrollment
@@ -98,7 +103,9 @@ def test_paid_course_allows_owner_and_active_enrollment():
     teacher = make_teacher()
     student = make_student()
     course = make_published_course(teacher)
-    services.enroll(student, course.id)  # access_status defaults to active
+    # Приняли заявку (§54.1); `access_status` при этом остаётся ACTIVE по умолчанию —
+    # это и проверяется: приём преподавателя и оплата живут в разных полях.
+    services.approve_enrollment(teacher, services.request_enrollment(student, course.id).id)
     Course.objects.filter(id=course.id).update(price=50000, currency="RUB")
     course.refresh_from_db()
 
@@ -166,7 +173,7 @@ def test_create_course_persists_and_honors_institutional_group():
     not a member of the institution cannot bind a course to its group."""
     from apps.institutions.models import InstitutionMembership
     from common.enums import MembershipRole, MembershipStatus
-    from common.exceptions import NotFound, PermissionDenied, ValidationError
+    from common.exceptions import PermissionDenied
 
     teacher = make_teacher()
     in_group = make_student("ig2@example.com")
@@ -238,9 +245,7 @@ def test_course_audience_is_owner_only():
     pupil = make_student("aud.p@example.com")
     services.enroll(pupil, course.id)
 
-    assert [m["name"] for m in services.course_audience(owner, course.id)] == [
-        pupil.display_name
-    ]
+    assert [m["name"] for m in services.course_audience(owner, course.id)] == [pupil.display_name]
     with pytest.raises(PermissionDenied):
         services.course_audience(stranger, course.id)
     with pytest.raises(PermissionDenied):
@@ -351,3 +356,116 @@ def test_revoking_kills_the_old_code_immediately():
     services.revoke_course_invite(teacher, course.id)
     new = services.course_invite(teacher, course.id)
     assert new.code != old.code
+
+
+# --- 16 лет, ожидание и доступ (§51, §54.1) ---------------------------------
+def make_pupil(years: int):
+    """Ученик указанного возраста. Дата рождения считается назад от сегодня, иначе тест
+    зеленел бы ровно до дня рождения — это уже случалось с недельным."""
+    born = date.today() - dt.timedelta(days=int(years * 365.25) + 1)
+    return accounts.register_user(
+        email=f"pupil-{years}-{uuid.uuid4().hex[:6]}@example.com",
+        password="strongpass1!",
+        first_name="Аня",
+        last_name="Ковалёва",
+        role=Role.STUDENT,
+        birth_date=born,
+        consent_152fz=True,
+    )
+
+
+def test_sixteen_signs_for_self_fifteen_does_not():
+    assert consents_for_self(date.today() - dt.timedelta(days=16 * 365 + 5)) is True
+    assert consents_for_self(date.today() - dt.timedelta(days=15 * 365 + 5)) is False
+    # Возраст неизвестен — это НЕ «взрослый»: подпись доказывается, а не предполагается.
+    assert consents_for_self(None) is False
+
+
+def test_under_sixteen_by_invite_waits_for_a_parent_and_cannot_enter():
+    teacher = make_teacher()
+    course = make_published_course(teacher)
+    pupil = make_pupil(14)
+
+    services.redeem_course_invite(pupil, services.course_invite(teacher, course.id).code)
+
+    e = Enrollment.objects.get(student__user=pupil, course=course)
+    assert e.status == EnrollmentStatus.PENDING_CONSENT.value
+    # Оплата тут ни при чём и остаётся нетронутой (§54.1).
+    assert e.access_status == AccessStatus.ACTIVE.value
+    assert can_access_course(pupil, course) is False
+
+
+def test_sixteen_by_invite_gets_in_at_once():
+    teacher = make_teacher()
+    course = make_published_course(teacher)
+    pupil = make_pupil(16)
+
+    services.redeem_course_invite(pupil, services.course_invite(teacher, course.id).code)
+
+    e = Enrollment.objects.get(student__user=pupil, course=course)
+    assert e.status == EnrollmentStatus.ACTIVE.value
+    assert can_access_course(pupil, course) is True
+
+
+def test_from_catalog_waits_for_the_teacher():
+    teacher = make_teacher()
+    course = make_published_course(teacher)
+    pupil = make_pupil(17)
+
+    services.request_enrollment(pupil, course.id)
+
+    e = Enrollment.objects.get(student__user=pupil, course=course)
+    assert e.status == EnrollmentStatus.PENDING_TEACHER.value
+    assert can_access_course(pupil, course) is False
+
+    services.approve_enrollment(teacher, e.id)
+    e.refresh_from_db()
+    assert e.status == EnrollmentStatus.ACTIVE.value
+    assert can_access_course(pupil, course) is True
+
+
+def test_teacher_cannot_sign_for_a_parent():
+    teacher = make_teacher()
+    course = make_published_course(teacher)
+    pupil = make_pupil(13)
+    services.redeem_course_invite(pupil, services.course_invite(teacher, course.id).code)
+    e = Enrollment.objects.get(student__user=pupil, course=course)
+
+    with pytest.raises(ValidationError):
+        services.approve_enrollment(teacher, e.id)
+    assert can_access_course(pupil, course) is False
+
+
+def test_invitation_outweighs_a_pending_request():
+    teacher = make_teacher()
+    course = make_published_course(teacher)
+    pupil = make_pupil(17)
+    services.request_enrollment(pupil, course.id)
+
+    services.redeem_course_invite(pupil, services.course_invite(teacher, course.id).code)
+
+    assert Enrollment.objects.get(student__user=pupil, course=course).status == (
+        EnrollmentStatus.ACTIVE.value
+    )
+
+
+def test_waiting_pupil_is_not_on_the_lesson():
+    teacher = make_teacher()
+    course = make_published_course(teacher)
+    pupil = make_pupil(14)
+    services.redeem_course_invite(pupil, services.course_invite(teacher, course.id).code)
+
+    assert [s.user_id for s in students_of_course(course)] == []
+
+
+def test_teacher_sees_what_exactly_is_awaited():
+    teacher = make_teacher()
+    course = make_published_course(teacher)
+    young, grown = make_pupil(13), make_pupil(16)
+    code = services.course_invite(teacher, course.id).code
+    services.redeem_course_invite(young, code)
+    services.redeem_course_invite(grown, code)
+
+    by_id = {r["student_id"]: r["status"] for r in services.course_audience(teacher, course.id)}
+    assert by_id[str(young.id)] == EnrollmentStatus.PENDING_CONSENT.value
+    assert by_id[str(grown.id)] == EnrollmentStatus.ACTIVE.value

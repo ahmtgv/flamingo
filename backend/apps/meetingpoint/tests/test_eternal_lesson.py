@@ -29,17 +29,26 @@ pytestmark = pytest.mark.django_db
 def a_lesson_running_from_a_browser(minutes_ago: int, duration: int = 40):
     """Занятие, которое ведут БЕЗ приложения: связанной машины у преподавателя нет."""
     teacher = accounts.register_user(
-        email=f"eternal-{minutes_ago}-{duration}@example.com", password="strongpass1!",
-        first_name="Ирина", last_name="Петровна", role=Role.TEACHER,
-        specialty="Астрономия", consent_152fz=True,
+        email=f"eternal-{minutes_ago}-{duration}@example.com",
+        password="strongpass1!",
+        first_name="Ирина",
+        last_name="Петровна",
+        role=Role.TEACHER,
+        specialty="Астрономия",
+        consent_152fz=True,
     )
-    course = courses.create_course(teacher, title="Астрономия", subject="Астрономия", level="grade_9")
+    course = courses.create_course(
+        teacher, title="Астрономия", subject="Астрономия", level="grade_9"
+    )
     section = courses.create_section(teacher, course.id, title="Раздел 1")
-    lesson = courses.create_lesson(teacher, section.id, title="Большой взрыв", duration_min=duration)
+    lesson = courses.create_lesson(
+        teacher, section.id, title="Большой взрыв", duration_min=duration
+    )
     courses.publish_lesson(teacher, lesson.id)
     courses.publish_course(teacher, course.id)
     session = sch.schedule_session(
-        teacher, lesson_id=lesson.id,
+        teacher,
+        lesson_id=lesson.id,
         start_at=timezone.now() - dt.timedelta(minutes=minutes_ago),
     )
     sch.start_session(teacher, session.id)

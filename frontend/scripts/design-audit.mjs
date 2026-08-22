@@ -40,13 +40,23 @@ const n = Date.now();
 const teacherEmail = `da-t-${n}@flamingo-test.invalid`;
 const pupilEmail = `da-p-${n}@flamingo-test.invalid`;
 const teacher = (await gql(REG, { i: { email: teacherEmail, password: pass, firstName: 'Ирина', lastName: 'Петровна', role: 'TEACHER', teacher: { specialty: 'Английский' }, consent152fz: true } })).registerUser.token;
-const pupil = (await gql(REG, { i: { email: pupilEmail, password: pass, firstName: 'Аня', lastName: 'Коваль', role: 'STUDENT', student: { birthDate: '2011-05-01' }, consent152fz: true } })).registerUser.token;
+// 🔴 Ученику 16+: с шестнадцати он подписывает согласие сам (§51). С прежним 2011-м годом
+// зачисление вставало в ожидание согласия представителя, и прибор мерил экраны человека,
+// которого на курс не пустили, — то есть снова пустые состояния вместо собранных экранов.
+const pupil = (await gql(REG, { i: { email: pupilEmail, password: pass, firstName: 'Аня', lastName: 'Коваль', role: 'STUDENT', student: { birthDate: '2009-05-01' }, consent152fz: true } })).registerUser.token;
+// И тот, кто ждёт: младше шестнадцати. Он нужен, чтобы на экране приглашения было ЧТО мерить
+// в состоянии ожидания — иначе строка «ждёт согласия родителя» не отрисуется ни разу.
+const youngEmail = `da-y-${n}@flamingo-test.invalid`;
+const young = (await gql(REG, { i: { email: youngEmail, password: pass, firstName: 'Петя', lastName: 'Смирнов', role: 'STUDENT', student: { birthDate: '2014-03-01' }, consent152fz: true } })).registerUser.token;
 const course = (await gql('mutation($i: CourseInput!){ createCourse(input:$i){ id } }', { i: { title: 'Английский A2', subject: 'Английский', level: 'GRADE_7' } }, teacher)).createCourse.id;
 const section = (await gql('mutation($c:ID!,$t:String!){ createSection(courseId:$c, input:{title:$t}){ id } }', { c: course, t: 'Unit 1' }, teacher)).createSection.id;
 const lesson = (await gql('mutation($s:ID!,$t:String!){ createLesson(sectionId:$s, input:{title:$t, durationMin:40}){ id } }', { s: section, t: 'Present Perfect' }, teacher)).createLesson.id;
 await gql('mutation($l:ID!){ publishLesson(id:$l){ id } }', { l: lesson }, teacher);
 await gql('mutation($c:ID!){ publishCourse(id:$c){ id } }', { c: course }, teacher);
-await gql('mutation($c:ID!){ enroll(courseId:$c){ id } }', { c: course }, pupil);
+// Вход по приглашению — тот самый путь, которым сегодня зовут постороннего (§53).
+const inviteCode = (await gql('query($c:ID!){ courseInvite(courseId:$c){ code } }', { c: course }, teacher)).courseInvite.code;
+await gql('mutation($c:String!){ redeemCourseInvite(code:$c){ id status } }', { c: inviteCode }, pupil);
+await gql('mutation($c:String!){ redeemCourseInvite(code:$c){ id status } }', { c: inviteCode }, young);
 /*
  * 🔴 ЗАДАНИЯ В ЗАСЕВЕ — БЕЗ НИХ ПРИБОР МЕРИЛ ПУСТОЙ ЭКРАН И ПЕЧАТАЛ «ЧИСТО».
  * Я чуть не отчитался пересобранным экраном «Задания», который ни разу не показали с

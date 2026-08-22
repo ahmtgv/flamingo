@@ -41,6 +41,7 @@ from common.enums import (
     SummaryStatus,
 )
 from common.exceptions import NotFound, PermissionDenied, ValidationError
+from tests.consent_helpers import sign_for_child
 
 pytestmark = pytest.mark.django_db
 
@@ -97,8 +98,15 @@ def a_session(lesson, minutes_ago=20):
     )
 
 
-def enrolled_pupil(course, email="p@example.com", first="Аня"):
-    pupil = make_pupil(email, first)
+def enrolled_pupil(
+    course, email="p@example.com", first="Аня", *, guardian=True, birth=date(2010, 1, 1)
+):
+    """Ученик на курсе. `guardian=False` — намеренно БЕЗ подписи представителя: есть
+    проверка, которая ровно про её отсутствие, и подписывать там нельзя."""
+    pupil = make_pupil(email, first, birth=birth)
+    if guardian:
+        # §51: ребёнку младше 16 курс открывает подпись законного представителя.
+        sign_for_child(pupil)
     courses.enroll(pupil, course.id)
     return pupil
 
@@ -413,9 +421,15 @@ def test_without_consent_the_point_is_dropped_and_the_summary_says_so():
 
 
 def test_a_minors_own_consent_is_not_enough_without_a_guardians():
+    """🔴 Порог — 16 (§51). До него подпись ребёнка неполна без подписи представителя.
+
+    Прежде здесь стоял ученик 2010 года, и проверка была верна, пока «несовершеннолетний»
+    значило «до 18». С шестнадцати человек подписывает сам, поэтому ребёнка тут пришлось
+    сделать младше — иначе проверка утверждала бы обратное тому, что решено.
+    """
     teacher = consenting(make_teacher())
     course, lesson = a_lesson(teacher)
-    child = consenting(enrolled_pupil(course, first="Петя"))
+    child = consenting(enrolled_pupil(course, first="Петя", guardian=False, birth=date(2014, 1, 1)))
     parent = accounts.register_user(
         email="mum@example.com",
         password="strongpass1!",
@@ -436,6 +450,17 @@ def test_a_minors_own_consent_is_not_enough_without_a_guardians():
     )
     child.refresh_from_db()
     assert may_use_speech_of(child, tenant=teacher) is True
+
+
+def test_at_sixteen_the_pupil_signs_for_themselves():
+    """Обратная сторона §51: с шестнадцати согласия представителя не спрашивают вовсе."""
+    teacher = consenting(make_teacher())
+    course, lesson = a_lesson(teacher)
+    almost_grown = consenting(
+        enrolled_pupil(course, first="Дана", guardian=False, birth=date(2010, 1, 1))
+    )
+
+    assert may_use_speech_of(almost_grown, tenant=teacher) is True
 
 
 def test_an_adult_needs_only_their_own_consent():

@@ -23,8 +23,13 @@ pytestmark = pytest.mark.django_db
 
 def a_person(email, tz=""):
     user = services.register_user(
-        email=email, password="strongpass1!", first_name="Аня", last_name="Коваль",
-        role=Role.TEACHER, specialty="Английский", consent_152fz=True,
+        email=email,
+        password="strongpass1!",
+        first_name="Аня",
+        last_name="Коваль",
+        role=Role.TEACHER,
+        specialty="Английский",
+        consent_152fz=True,
     )
     if tz:
         user.timezone = tz
@@ -67,8 +72,13 @@ def test_a_broken_zone_does_not_take_the_page_down():
 def test_the_streak_counts_the_pupils_own_days():
     """Серия — «дни подряд», и день здесь ученика: иначе она рвётся на ровном месте."""
     pupil = services.register_user(
-        email="tz-streak@example.com", password="strongpass1!", first_name="Тимур",
-        last_name="Ким", role=Role.STUDENT, birth_date=dt.date(2011, 1, 1), consent_152fz=True,
+        email="tz-streak@example.com",
+        password="strongpass1!",
+        first_name="Тимур",
+        last_name="Ким",
+        role=Role.STUDENT,
+        birth_date=dt.date(2011, 1, 1),
+        consent_152fz=True,
     )
     pupil.timezone = "Asia/Vladivostok"
     pupil.save(update_fields=["timezone"])

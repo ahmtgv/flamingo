@@ -81,7 +81,12 @@ enum SkillArea { VOCAB GRAMMAR LISTENING READING WRITING SPEAKING PRONUNCIATION 
 # Where a set is used — and with it whether the journal ever hears about it (§7.4).
 enum ExerciseMode { LIVE HOMEWORK PRACTICE }
 enum AttemptContext { LIVE HOMEWORK PRACTICE }
-enum EnrollmentStatus { ACTIVE COMPLETED PENDING }
+enum EnrollmentStatus {
+  ACTIVE
+  COMPLETED
+  PENDING_TEACHER
+  PENDING_CONSENT
+}
 enum HomeworkType { FILE TEXT QUIZ }
 enum SubmissionStatus { SUBMITTED LATE GRADED }
 enum AttendanceStatus { PRESENT ABSENT LATE }
@@ -334,8 +339,10 @@ type CourseInviteView {
 
 type AudienceMember {
   studentId: ID!
+  enrollmentId: ID!
   name: String!
   timezone: String   # null — пояс не назван; экран говорит это словами, а не подставляет свой
+  status: EnrollmentStatus!   # чего человек ждёт: согласия представителя (§51) или ответа преподавателя (§54.1)
 }
 
 type Enrollment {
@@ -1837,7 +1844,7 @@ type Mutation {
   updateCourse(id: ID!, input: CourseInput!): Course!
   publishCourse(id: ID!): Course!
   # Войти в курс по коду. Три отказа названы по-разному: срок вышел · код закрыт · нет кода.
-  redeemCourseInvite(code: String!): Course!
+  redeemCourseInvite(code: String!): Enrollment!
   revokeCourseInvite(courseId: ID!): Boolean!
   unpublishCourse(id: ID!): Course!
   archiveCourse(id: ID!): Course!
@@ -1963,6 +1970,9 @@ type Mutation {
 
   # --- enrollment & progress
   enroll(courseId: ID!): Enrollment!
+  # §54.1: запись из каталога — заявка; принимает или отклоняет владелец курса.
+  approveEnrollment(id: ID!): Enrollment!
+  declineEnrollment(id: ID!): Boolean!
   unenroll(courseId: ID!): Boolean!
   markLessonViewed(lessonId: ID!): Enrollment!
 

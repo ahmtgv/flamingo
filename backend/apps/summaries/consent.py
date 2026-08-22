@@ -16,8 +16,9 @@ a summary looks thin.
 
 from __future__ import annotations
 
+from apps.accounts.services import consents_for_self
 from common.compliance.policy import is_feature_allowed
-from common.enums import AgeBand, GuardianshipStatus, Role
+from common.enums import GuardianshipStatus, Role
 
 FEATURE = "lesson_transcription"
 
@@ -28,12 +29,19 @@ def jurisdiction_allows_speech(subject) -> bool:
 
 
 def _is_minor(user) -> bool:
+    """Нужна ли этому человеку подпись представителя — по ВОЗРАСТУ, а не по виду интерфейса.
+
+    🔴 Здесь стояло `age_band in (JUNIOR, TEEN)` — то есть решение «кто подписывает»
+    принималось признаком, который отвечает на вопрос «как выглядит экран» (§51.3). Стоило
+    когда-нибудь сдвинуть детский вид до 13 — и вместе с ним поехала бы дееспособность,
+    молча и в законе. Теперь порог один и лежит в одном месте: `consents_for_self` (16).
+    """
     if getattr(user, "role", None) != Role.STUDENT.value:
         return False
     profile = getattr(user, "student_profile", None)
     if profile is None:
         return False
-    return profile.age_band in (AgeBand.JUNIOR.value, AgeBand.TEEN.value)
+    return not consents_for_self(profile.birth_date)
 
 
 def _guardian_consent_present(user) -> bool:

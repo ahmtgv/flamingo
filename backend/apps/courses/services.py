@@ -2,13 +2,14 @@
 
 from __future__ import annotations
 
-from django.db import transaction
-from django.db.models import Count, Max, Q
 import datetime as dt
 
+from django.db import transaction
+from django.db.models import Count, Max, Q
 from django.utils import timezone
 
 from apps.accounts.models import StudentProfile, TeacherProfile
+from apps.accounts.services import consents_for_self, guardian_consent_present
 from apps.files import services as files
 from common import storage
 from common.enums import (
@@ -426,13 +427,79 @@ def delete_material(user, material_id) -> bool:
 
 # --- enrollment & progress --------------------------------------------------
 @transaction.atomic
-def enroll(user, course_id) -> Enrollment:
+def enroll(user, course_id, *, invited: bool = False) -> Enrollment:
+    """Поставить ученика на курс — решением, которое УЖЕ принято.
+
+    Сюда приходят два пути, у которых спрашивать больше некого: приглашение преподавателя
+    (оно и есть его согласие — второго подтверждения над ним не надо) и внутренние сценарии,
+    где ученика заводят явно. Заявка из каталога идёт другой дорогой — `request_enrollment`.
+
+    🔴 Единственное, что закрывает дверь и здесь, — возраст (§51). Ученику младше 16 согласие
+    даёт законный представитель; до него зачисление ждёт (`PENDING_CONSENT`), и ждать оно
+    будет долго: согласие уходит письмом, а почты у нас пока нет (§50). Так и надо показывать.
+
+    Ожидание пишется в `status`. `access_status` не трогаем ни при каком исходе — оно
+    зарезервировано под оплату (§54.1), и смешать их значит однажды пустить неоплатившего.
+    """
+    return _place_on_course(user, course_id, waiting=None, invited=invited)
+
+
+def request_enrollment(user, course_id) -> Enrollment:
+    """Заявка из каталога: висит, пока преподаватель не примет (§54.1).
+
+    Группа — не открытая дверь: за то, кто сидит на его уроке, отвечает преподаватель,
+    особенно когда сидят дети. Оповещений у нас нет, поэтому ученик узнаёт ответ, зайдя, —
+    и экран обязан сказать это словами.
+    """
+    return _place_on_course(user, course_id, waiting=EnrollmentStatus.PENDING_TEACHER)
+
+
+def _place_on_course(user, course_id, *, waiting, invited: bool = False) -> Enrollment:
     profile = _student_profile(user)
     course = _get_course(course_id)
     if course.status != CourseStatus.PUBLISHED.value:
         raise ValidationError("Course is not open for enrollment")
-    enrollment, _ = Enrollment.objects.get_or_create(student=profile, course=course)
+    # Возраст сильнее пути: приняв ребёнка, преподаватель не заменяет подпись представителя.
+    # Но если представитель уже подписал (связь «родитель — ребёнок» с согласием по 152-ФЗ),
+    # ждать больше нечего — ожидание держится отсутствием подписи, а не возрастом самим по себе.
+    if not consents_for_self(profile.birth_date) and not guardian_consent_present(profile.user):
+        status = EnrollmentStatus.PENDING_CONSENT
+    else:
+        status = waiting or EnrollmentStatus.ACTIVE
+    enrollment, created = Enrollment.objects.get_or_create(
+        student=profile, course=course, defaults={"status": status.value}
+    )
+    # Приглашение снимает ожидание преподавателя: подал заявку из каталога, потом получил
+    # приглашение — второй раз ждать не должен. Ожидание согласия не снимает ничто, кроме
+    # самого согласия.
+    if not created and invited and enrollment.status == EnrollmentStatus.PENDING_TEACHER.value:
+        enrollment.status = EnrollmentStatus.ACTIVE.value
+        enrollment.save(update_fields=["status", "updated_at"])
     return enrollment
+
+
+def approve_enrollment(user, enrollment_id) -> Enrollment:
+    """Преподаватель принимает заявку из каталога (§54.1)."""
+    enrollment = Enrollment.objects.select_related("course").filter(id=enrollment_id).first()
+    if enrollment is None:
+        raise NotFound("Заявки нет")
+    _ensure_owner(user, enrollment.course)
+    if enrollment.status == EnrollmentStatus.PENDING_CONSENT.value:
+        # Преподаватель не может принять за родителя: это не его подпись.
+        raise ValidationError("Ученик ждёт согласия законного представителя, а не вашего")
+    enrollment.status = EnrollmentStatus.ACTIVE.value
+    enrollment.save(update_fields=["status", "updated_at"])
+    return enrollment
+
+
+def decline_enrollment(user, enrollment_id) -> bool:
+    """Отклонить заявку. Строка удаляется — человек вправе подать её снова."""
+    enrollment = Enrollment.objects.select_related("course").filter(id=enrollment_id).first()
+    if enrollment is None:
+        raise NotFound("Заявки нет")
+    _ensure_owner(user, enrollment.course)
+    enrollment.delete()
+    return True
 
 
 def unenroll(user, course_id) -> bool:
@@ -690,6 +757,12 @@ def course_audience(user, course_id) -> list[dict]:
                 "student_id": str(student_user.id),
                 "name": student_user.display_name,
                 "timezone": student_user.timezone or None,
+                # 🔴 Состояние отдаётся вместе с именем, а не выводится экраном из возраста:
+                # возраст чужого ребёнка экрану знать незачем, а «чего ждём» — обязательно.
+                "status": row.status,
+                # Личность строки — чтобы «Принять» било в конкретное зачисление, а не
+                # искало его по ученику и курсу заново (и однажды нашло не то).
+                "enrollment_id": str(row.id),
             }
         )
     return out
@@ -742,7 +815,7 @@ def revoke_course_invite(user, course_id) -> None:
     )
 
 
-def redeem_course_invite(user, code: str) -> Course:
+def redeem_course_invite(user, code: str) -> Enrollment:
     """
     Войти в курс по коду — то самое действие, которого не было.
 
@@ -766,5 +839,6 @@ def redeem_course_invite(user, code: str) -> Course:
     if invite.expires_at <= timezone.now():
         raise ValidationError("Срок кода вышел. Попросите у преподавателя новый.")
 
-    enroll(user, invite.course_id)
-    return invite.course
+    # Возвращаем зачисление: у входа бывает исход «ждёт согласия представителя» (§51), и
+    # экран обязан отличить его от «вы на курсе».
+    return enroll(user, invite.course_id, invited=True)

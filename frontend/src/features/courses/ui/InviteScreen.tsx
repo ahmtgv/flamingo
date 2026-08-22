@@ -3,8 +3,10 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import {
+  useApproveEnrollmentMutation,
   useCourseAudienceQuery,
   useCourseInviteQuery,
+  useDeclineEnrollmentMutation,
   useRedeemCourseInviteMutation,
   useRevokeCourseInviteMutation,
 } from '@/entities/graphql/generated';
@@ -36,8 +38,28 @@ export function InviteScreen() {
   const invite = useCourseInviteQuery({ variables: { courseId }, skip: !courseId });
   const audience = useCourseAudienceQuery({ variables: { courseId }, skip: !courseId });
   const [revoke, { loading: revoking }] = useRevokeCourseInviteMutation();
+  const [approve] = useApproveEnrollmentMutation();
+  const [decline] = useDeclineEnrollmentMutation();
 
   const [copied, setCopied] = useState(false);
+  // Какую строку сейчас решают: нажатая кнопка должна отвечать сама за себя, а не гасить
+  // весь список — иначе преподаватель не знает, что именно происходит.
+  const [acting, setActing] = useState<string | null>(null);
+
+  async function decide(enrollmentId: string, yes: boolean) {
+    setActing(enrollmentId);
+    try {
+      if (yes) await approve({ variables: { id: enrollmentId } });
+      else await decline({ variables: { id: enrollmentId } });
+      await audience.refetch();
+    } catch {
+      // Отказ сервера виден по тому, что строка осталась на месте: список перечитывается
+      // с сервера, а не правится на месте по вере в успех.
+      await audience.refetch();
+    } finally {
+      setActing(null);
+    }
+  }
   const code = invite.data?.courseInvite.code ?? '';
   /** Ссылку собирает клиент: домен в коде сервера не зашивается. */
   const link = code ? `${window.location.origin}/join/${code}` : '';
@@ -137,12 +159,40 @@ export function InviteScreen() {
           ) : (
             <div className={styles.who}>
               {audience.data?.courseAudience.map((m) => (
-                <div className={styles.whoRow} key={m.studentId}>
+                <div className={styles.whoRow} key={m.studentId} data-state={m.status}>
                   <span className={styles.whoName}>{m.name}</span>
-                  <span className={styles.whoState}>{t('invite.stateIn')}</span>
-                  <span className={styles.whoHow}>
-                    {m.timezone ? t('invite.zone', { zone: m.timezone }) : t('invite.zoneUnknown')}
+                  {/* 🔴 Строка говорит, ЧЕГО ждут. «Ждёт» без причины — это не состояние, а
+                      многоточие: преподаватель считает человека пришедшим, а тот на занятие
+                      не попадёт. */}
+                  <span className={styles.whoState} data-waiting={m.status !== 'ACTIVE' || undefined}>
+                    {t(`invite.state.${m.status}`)}
                   </span>
+                  <span className={styles.whoHow}>
+                    {m.status === 'PENDING_CONSENT'
+                      ? t('invite.consentNoMail')
+                      : m.timezone
+                        ? t('invite.zone', { zone: m.timezone })
+                        : t('invite.zoneUnknown')}
+                  </span>
+                  {m.status === 'PENDING_TEACHER' && (
+                    <span className={styles.whoActs}>
+                      <Button
+                        variant="primary"
+                        size="sm"
+                        loading={acting === m.enrollmentId}
+                        onClick={() => void decide(m.enrollmentId, true)}
+                      >
+                        {t('invite.accept')}
+                      </Button>
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        onClick={() => void decide(m.enrollmentId, false)}
+                      >
+                        {t('invite.decline')}
+                      </Button>
+                    </span>
+                  )}
                 </div>
               ))}
             </div>
@@ -166,14 +216,20 @@ export function JoinHalf({ presetCode }: { presetCode?: string } = {}) {
   const navigate = useNavigate();
   const [code, setCode] = useState(presetCode ?? '');
   const [failed, setFailed] = useState<string | null>(null);
-  const [joined, setJoined] = useState<string | null>(null);
+  // Не «вошёл ли», а ЧТО ПОЛУЧИЛОСЬ: код принят, но ученику младше 16 курс откроется
+  // только после согласия представителя (§51), и сказать ему «вы на курсе» — соврать.
+  const [joined, setJoined] = useState<{ title: string; status: string } | null>(null);
   const [redeem, { loading }] = useRedeemCourseInviteMutation();
 
   async function submit() {
     setFailed(null);
     try {
       const { data } = await redeem({ variables: { code: code.trim() } });
-      setJoined(data?.redeemCourseInvite?.title ?? '');
+      const result = data?.redeemCourseInvite;
+      setJoined({
+        title: result?.course.title ?? '',
+        status: result?.status ?? 'ACTIVE',
+      });
     } catch (error) {
       /*
        * 🔴 Слово сервера, а не своё. Он различает три отказа — «срок вышел», «код закрыт»,
@@ -192,7 +248,12 @@ export function JoinHalf({ presetCode }: { presetCode?: string } = {}) {
 
       {joined !== null ? (
         <>
-          <p className={styles.okLine}>{t('invite.joined', { title: joined })}</p>
+          <p className={styles.okLine} data-waiting={joined.status !== 'ACTIVE' || undefined}>
+            {t(`invite.joinedAs.${joined.status}`, { title: joined.title })}
+          </p>
+          {joined.status === 'PENDING_CONSENT' && (
+            <p className={styles.note}>{t('invite.consentNoMailPupil')}</p>
+          )}
           <Button variant="go" onClick={() => navigate(HOME_ROUTE)}>
             {t('invite.toCabinet')}
           </Button>

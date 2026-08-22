@@ -27,6 +27,7 @@ CATALOG = (
     "query { catalog { totalCount nodes { id title status } pageInfo { hasNextPage endCursor } } }"
 )
 ENROLL = "mutation($id: ID!) { enroll(courseId: $id) { id status progressPct course { id } } }"
+APPROVE = "mutation($id: ID!) { approveEnrollment(id: $id) { id status } }"
 COURSE = "query($id: ID!) { course(id: $id) { id viewerEnrollment { id status } } }"
 
 
@@ -75,7 +76,24 @@ def test_course_flow_through_schema():
         ENROLL, variable_values={"id": course_id}, context_value=_ctx(student)
     )
     assert res.errors is None, res.errors
-    assert res.data["enroll"]["status"] == "ACTIVE"
+    # §54.1: запись из каталога — заявка, а не зачисление. Здесь стояло "ACTIVE", и это
+    # было прежнее правило: ученик попадал на курс, не спросив преподавателя.
+    assert res.data["enroll"]["status"] == "PENDING_TEACHER"
+
+    # Пока преподаватель не принял, ученик видит СВОЁ ожидание — и это то, что должен
+    # прочесть экран: «заявка отправлена» и «вы на курсе» для ждущего разные вещи.
+    res = schema.execute_sync(
+        COURSE, variable_values={"id": course_id}, context_value=_ctx(student)
+    )
+    assert res.errors is None, res.errors
+    assert res.data["course"]["viewerEnrollment"]["status"] == "PENDING_TEACHER"
+
+    enrollment_id = res.data["course"]["viewerEnrollment"]["id"]
+    res = schema.execute_sync(
+        APPROVE, variable_values={"id": enrollment_id}, context_value=_ctx(teacher)
+    )
+    assert res.errors is None, res.errors
+    assert res.data["approveEnrollment"]["status"] == "ACTIVE"
 
     res = schema.execute_sync(
         COURSE, variable_values={"id": course_id}, context_value=_ctx(student)

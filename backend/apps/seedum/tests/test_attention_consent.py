@@ -21,6 +21,7 @@ from apps.seedum import services
 from apps.seedum.models import AttentionMetric
 from common.enums import Role
 from common.exceptions import PermissionDenied
+from tests.consent_helpers import sign_for_child
 
 pytestmark = pytest.mark.django_db
 
@@ -57,6 +58,8 @@ def _lesson_with_a_pupil():
     lesson = courses.create_lesson(teacher, section.id, title="Travel", duration_min=40)
     courses.publish_lesson(teacher, lesson.id)
     courses.publish_course(teacher, course.id)
+    # §51: ребёнку младше 16 курс открывает подпись законного представителя.
+    sign_for_child(pupil)
     courses.enroll(pupil, course.id)
     session = scheduling.schedule_session(teacher, lesson_id=lesson.id, start_at=timezone.now())
     return teacher, pupil, session

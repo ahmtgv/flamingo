@@ -25,21 +25,33 @@ from apps.institutions.models import (
 from apps.scheduling import services as sch
 from common.enums import HomeworkType, MembershipRole, MembershipStatus, Role
 from common.exceptions import NotFound
+from tests.consent_helpers import sign_for_child
 
 pytestmark = pytest.mark.django_db
 
 
 def teacher(email="j-t@example.com"):
     return accounts.register_user(
-        email=email, password="strongpass1!", first_name="Ирина", last_name="Петровна",
-        role=Role.TEACHER, specialty="Английский", consent_152fz=True,
+        email=email,
+        password="strongpass1!",
+        first_name="Ирина",
+        last_name="Петровна",
+        role=Role.TEACHER,
+        specialty="Английский",
+        consent_152fz=True,
     )
 
 
 def pupil(email, grade="7"):
     return accounts.register_user(
-        email=email, password="strongpass1!", first_name="Аня", last_name="Коваль",
-        role=Role.STUDENT, birth_date=date(2011, 5, 1), grade_level=grade, consent_152fz=True,
+        email=email,
+        password="strongpass1!",
+        first_name="Аня",
+        last_name="Коваль",
+        role=Role.STUDENT,
+        birth_date=date(2011, 5, 1),
+        grade_level=grade,
+        consent_152fz=True,
     )
 
 
@@ -56,9 +68,12 @@ def test_the_journal_shows_who_was_there_and_what_they_got():
     t = teacher()
     p = pupil("j-p1@example.com")
     course, lesson = a_course_with_a_lesson(t)
+    sign_for_child(p)  # §51: младше 16 — подпись представителя
     courses.enroll(p, course.id)
 
-    homework = hw.create_homework(t, title="Упражнения", type=HomeworkType.TEXT, lesson_id=lesson.id)
+    homework = hw.create_homework(
+        t, title="Упражнения", type=HomeworkType.TEXT, lesson_id=lesson.id
+    )
     hw.publish_homework(t, homework.id)
     submission = hw.submit_homework(p, homework_id=homework.id, content_text="готово")
     hw.grade_submission(t, submission_id=submission.id, score=5, comment="хорошо")
@@ -86,12 +101,18 @@ def test_a_group_pupil_is_in_the_journal_too():
     GroupTeacher.objects.create(group=group, teacher=t.teacher_profile, subject="Английский")
     # Курс внутри учреждения заводит только его участник — это правило продукта, не помеха.
     InstitutionMembership.objects.create(
-        user=t, institution=school, role=MembershipRole.TEACHER.value,
+        user=t,
+        institution=school,
+        role=MembershipRole.TEACHER.value,
         status=MembershipStatus.ACTIVE.value,
     )
     course = courses.create_course(
-        t, title="Английский", subject="Английский", level="grade_7",
-        institution_id=school.id, group_id=group.id,
+        t,
+        title="Английский",
+        subject="Английский",
+        level="grade_7",
+        institution_id=school.id,
+        group_id=group.id,
     )
     section = courses.create_section(t, course.id, title="Unit 1")
     lesson = courses.create_lesson(t, section.id, title="Урок", duration_min=40)
@@ -107,6 +128,7 @@ def test_a_first_grader_has_no_marks_in_the_journal():
     t = teacher("j-t3@example.com")
     p = pupil("j-p3@example.com", grade="1")
     course, lesson = a_course_with_a_lesson(t)
+    sign_for_child(p)  # §51: младше 16 — подпись представителя
     courses.enroll(p, course.id)
     homework = hw.create_homework(t, title="Прописи", type=HomeworkType.TEXT, lesson_id=lesson.id)
     hw.publish_homework(t, homework.id)

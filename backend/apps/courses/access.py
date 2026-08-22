@@ -24,7 +24,7 @@ Do NOT add pricing/subscription/provider logic here — that lives in the future
 """
 
 from apps.institutions.models import GroupMembership
-from common.enums import AccessStatus
+from common.enums import AccessStatus, EnrollmentStatus
 
 from .models import Course, Enrollment
 
@@ -66,10 +66,15 @@ def can_access_course(user, course: Course) -> bool:
     ):
         return True
 
-    # Enrolled student with an active access status.
+    # 🔴 Записан — и НЕ ЖДЁТ (§54.1). Два условия, потому что вопросов два: «принят ли он»
+    # (`status`) и «оплачено ли» (`access_status`). Пока здесь стояло одно только
+    # `access_status`, зачисление в ожидании открывало занятие целиком: подавший заявку
+    # из каталога входил бы на урок, не дождавшись ответа преподавателя, а ученик младше
+    # шестнадцати — без согласия представителя.
     return Enrollment.objects.filter(
         course=course,
         student__user=user,
+        status=EnrollmentStatus.ACTIVE.value,
         access_status=AccessStatus.ACTIVE.value,
     ).exists()
 
@@ -101,8 +106,12 @@ def students_of_course(course: Course) -> list:
     """
     from apps.accounts.models import StudentProfile
 
+    # Ожидающий не ученик этого курса: ни в зеркале, ни на занятии его быть не должно —
+    # ровно то же условие, что и в `can_access_course` выше.
     enrolled = Enrollment.objects.filter(
-        course=course, access_status=AccessStatus.ACTIVE.value
+        course=course,
+        status=EnrollmentStatus.ACTIVE.value,
+        access_status=AccessStatus.ACTIVE.value,
     ).values_list("student_id", flat=True)
 
     ids = set(enrolled)

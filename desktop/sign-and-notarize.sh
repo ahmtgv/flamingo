@@ -217,6 +217,18 @@ if [ -n "$NOTARY_CHECK" ]; then
   exit 0
 fi
 
+# 🔴 Найдено прогоном 22.08: `$ZIP` использовался, но НИГДЕ НЕ СОЗДАВАЛСЯ — скрипт падал
+# на `unbound variable` ровно в точке отправки. До неё всё выглядело успешным: подпись,
+# «valid on disk», «satisfies its Designated Requirement», — а нотаризация не начиналась
+# ни разу. Приложение при этом раздавать нельзя: у постороннего система его не откроет.
+#
+# Служба Apple принимает архив, а не каталог. `ditto -c -k --keepParent` — единственный
+# верный способ упаковать `.app`: обычный `zip` теряет симлинки внутри `Python.framework`,
+# и подпись после распаковки на стороне Apple перестаёт сходиться.
+ZIP="$(mktemp -d)/Flamingo.zip"
+/usr/bin/ditto -c -k --keepParent "$APP" "$ZIP"
+echo "  отправляю на проверку Apple ($(du -h "$ZIP" | cut -f1)) — это занимает минуты"
+
 xcrun notarytool submit "$ZIP" --keychain-profile "$PROFILE" --wait
 rm -f "$ZIP"
 

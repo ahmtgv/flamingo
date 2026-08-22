@@ -47,17 +47,58 @@ _RESET_SALT = "accounts.password-reset"
 def compute_age_band(birth_date: date | None) -> AgeBand:
     if not birth_date:
         return AgeBand.TEEN
-    today = date.today()
-    age = (
-        today.year
-        - birth_date.year
-        - ((today.month, today.day) < (birth_date.month, birth_date.day))
-    )
+    age = age_years(birth_date)
+    if age is None:
+        return AgeBand.TEEN
     if age < 12:
         return AgeBand.JUNIOR
     if age < 18:
         return AgeBand.TEEN
     return AgeBand.ADULT
+
+
+# 🔴 ДВА ПОРОГА, И ОНИ РАЗНЫЕ (решение владельца §51).
+#
+# `AgeBand` отвечает на вопрос «КАК ВЫГЛЯДИТ интерфейс» и держит границу на 12. Этот признак
+# отвечает на другой вопрос — «КТО ПОДПИСЫВАЕТ», и его граница 16. Слить их в один означало
+# бы, что однажды детский вид, сдвинутый до 10 или 13, тихо сдвинет и дееспособность.
+#
+# ⚠️ Возраст неизвестен (`birth_date is None`) — это НЕ «взрослый». Совершеннолетие
+# доказывается, а не предполагается: без даты рождения согласие даёт представитель.
+CONSENT_AGE = 16
+
+
+def age_years(birth_date: date | None) -> int | None:
+    """Полных лет, либо `None`, если дата рождения неизвестна."""
+    if not birth_date:
+        return None
+    today = date.today()
+    return (
+        today.year
+        - birth_date.year
+        - ((today.month, today.day) < (birth_date.month, birth_date.day))
+    )
+
+
+def consents_for_self(birth_date: date | None) -> bool:
+    """Даёт ли человек согласие сам (16+), или за него — законный представитель."""
+    age = age_years(birth_date)
+    return age is not None and age >= CONSENT_AGE
+
+
+def guardian_consent_present(user) -> bool:
+    """Подписал ли законный представитель — связь «родитель — ребёнок» с согласием 152-ФЗ.
+
+    Держится здесь, рядом с `consents_for_self`: вопрос «кто подписывает» и вопрос «подписал
+    ли» — одна тема, и разъехаться им нельзя.
+    """
+    from apps.accounts.models import Guardianship
+
+    return Guardianship.objects.filter(
+        child_user=user,
+        status=GuardianshipStatus.ACTIVE.value,
+        consent_152fz=True,
+    ).exists()
 
 
 def _coerce_role(role) -> Role:

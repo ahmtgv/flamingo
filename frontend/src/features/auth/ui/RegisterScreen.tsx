@@ -15,6 +15,7 @@ import { isUiRole, toGqlRole, type UiRole } from '../model/roles';
 import {
   ageBandFromBirthDate,
   type AgeBandUi,
+  consentsForSelf,
   EMPTY_REGISTER,
   type Errors,
   validateRegister,
@@ -354,9 +355,16 @@ function RegisterForm({ role }: { role: UiRole }) {
           </Checkbox>
           {errors.consent && <p className={styles.formLine} role="alert">{t(errors.consent)}</p>}
 
+          {/* 🔴 Порог согласия — 16 (§51), и он не совпадает с полосой интерфейса. Пока
+              строка висела на полосе «12–17», шестнадцатилетнему обещали письмо родителю,
+              которого он по решению владельца не ждёт. Дата рождения известна прямо здесь —
+              спрашиваем её, а не полосу; без даты говорим осторожную правду. */}
           {isStudent && age === 'teen' && (
             <p className={styles.note}>
-              <Mail aria-hidden="true" /> {t('register.notes.teen')}
+              <Mail aria-hidden="true" />{' '}
+              {values.birthDate && consentsForSelf(values.birthDate)
+                ? t('register.notes.selfConsent')
+                : t('register.notes.teen')}
             </p>
           )}
           {role === 'parent' && (

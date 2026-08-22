@@ -6,14 +6,14 @@ from django.utils import timezone
 from apps.courses import journal, models, services, subject, tasks_progress
 from apps.courses.access import can_access_course
 from common.auth import get_current_user, require_user
-from common.enums import CourseFormat, CourseLevel, CourseStatus
+from common.enums import CourseFormat, CourseLevel, CourseStatus, EnrollmentStatus
 from common.pagination import paginate
 
 from .types import (
     AudienceMember,
-    CourseInviteView,
     Course,
     CourseConnection,
+    CourseInviteView,
     CourseJournal,
     Lesson,
     PageInfo,
@@ -55,7 +55,9 @@ class CoursesQuery:
     ) -> list[AudienceMember]:
         """Кого касается занятие: записанные на курс со своими поясами. Только владелец курса."""
         rows = services.course_audience(require_user(info), course_id)
-        return [AudienceMember(**row) for row in rows]
+        return [
+            AudienceMember(**{**row, "status": EnrollmentStatus(row["status"])}) for row in rows
+        ]
 
     @strawberry.field
     def catalog(

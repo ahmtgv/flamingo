@@ -140,13 +140,18 @@ class CoursesMutation:
         )
 
     @strawberry.mutation
-    def redeem_course_invite(self, info: strawberry.Info, code: str) -> Course:
+    def redeem_course_invite(self, info: strawberry.Info, code: str) -> Enrollment:
         """
         Войти в курс по коду из приглашения — действие, которого в продукте не было.
 
         Отказы называются по-разному намеренно: «срок вышел» и «код закрыт» лечатся просьбой
         к преподавателю, «такого кода нет» означает опечатку. Один ответ на все три
         отправляет человека искать ошибку, которой он не делал.
+
+        🔴 Возвращается ЗАЧИСЛЕНИЕ, а не курс: у входа есть исход, и он бывает разным.
+        Ученику младше 16 (§51) курс не открывается — зачисление ждёт согласия законного
+        представителя. Отдав один лишь курс, мы заставили бы экран сказать «вы на курсе»
+        тому, кто на занятие не попадёт.
         """
         return services.redeem_course_invite(require_user(info), code)
 
@@ -273,7 +278,22 @@ class CoursesMutation:
     # --- enrollment & progress
     @strawberry.mutation
     def enroll(self, info: strawberry.Info, course_id: strawberry.ID) -> Enrollment:
-        return services.enroll(require_user(info), course_id)
+        """Запись из каталога — ЗАЯВКА, а не зачисление (§54.1).
+
+        Имя операции прежнее: его знает уже собранный клиент, а смысл поменялся у обоих
+        концов сразу. Ответ несёт `status`, и экран обязан его прочесть: «заявка отправлена»
+        и «вы на курсе» — разные вещи для того, кто ждёт занятия.
+        """
+        return services.request_enrollment(require_user(info), course_id)
+
+    @strawberry.mutation
+    def approve_enrollment(self, info: strawberry.Info, id: strawberry.ID) -> Enrollment:
+        """Преподаватель принимает заявку."""
+        return services.approve_enrollment(require_user(info), id)
+
+    @strawberry.mutation
+    def decline_enrollment(self, info: strawberry.Info, id: strawberry.ID) -> bool:
+        return services.decline_enrollment(require_user(info), id)
 
     @strawberry.mutation
     def unenroll(self, info: strawberry.Info, course_id: strawberry.ID) -> bool:

@@ -17,6 +17,7 @@ from apps.homework import services
 from common.enums import GradingScale, HomeworkType, Role
 from common.exceptions import ValidationError
 from common.marking import is_markless, scale_for, school_year
+from tests.consent_helpers import sign_for_child
 
 pytestmark = pytest.mark.django_db
 
@@ -44,6 +45,9 @@ def make_pupil(email, grade_level):
         grade_level=grade_level,
         consent_152fz=True,
     )
+    # Ребёнку младше 16 курс открывает подпись представителя (§51) — иначе он ждёт её,
+    # и проверка про безоценочность упёрлась бы в отсутствие доступа.
+    sign_for_child(pupil)
     return pupil
 
 

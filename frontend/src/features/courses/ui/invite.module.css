@@ -220,6 +220,15 @@
   color: var(--color-accent-text);
 }
 
+/* Решение по заявке — две кнопки в самой строке (правило 7.1а: цель — строка, а не значок
+   где-то сбоку). Занимают всю ширину под именем, чтобы на узком окне не сжиматься в точки. */
+.whoActs {
+  grid-column: 1 / -1;
+  display: flex;
+  gap: var(--space-2);
+  padding-block-start: var(--space-2);
+}
+
 .note {
   margin: 0;
   font-family: var(--font-mono);
