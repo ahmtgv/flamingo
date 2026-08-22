@@ -261,3 +261,41 @@ class SavedItem(BaseModel):
 
     def __str__(self) -> str:
         return self.title or (self.material.title if self.material_id else str(self.id))
+
+
+class CourseInvite(BaseModel):
+    """
+    Приглашение в курс — код, по которому посторонний человек попадает на занятия.
+
+    🔴 БЕЗ ЭТОГО ПУТЬ НЕ ПРОХОДИТСЯ ВООБЩЕ (решение владельца §53). Код группы и ответ «кто
+    ты» в продукте были, а действия «войти по коду» — нет: `JoinDecision.NOT_IN_GROUP`
+    сообщал человеку, что он не в группе, и не давал ни одного способа в неё попасть.
+    Позвать постороннего было физически нечем.
+
+    ⚠️ ПОЧЕМУ НА КУРСЕ, А НЕ НА ГРУППЕ. Лист говорит «код группы», и для учреждения это
+    верно: там группа — единица состава. Но у преподавателя, который завёл курс сам, группы
+    нет вовсе, а именно он и зовёт первого ученика. Заводить ради приглашения пустое
+    учреждение с пустой группой значило бы придумать человеку работу, которой он не просил.
+    Точка встречи группы (`meetingpoint`) остаётся как есть — это другой случай, для
+    учреждений.
+
+    Срок — семь дней с листа. Просроченный код не удаляется: человек, открывший старое
+    приглашение, должен прочитать «срок вышел, попросите новый», а не «не найдено» — это
+    разные новости и разные действия.
+    """
+
+    course = models.ForeignKey("courses.Course", related_name="invites", on_delete=models.CASCADE)
+    #: Шесть знаков без похожих друг на друга букв: код читают вслух и переписывают руками.
+    code = models.CharField(max_length=16, unique=True, db_index=True)
+    created_by = models.ForeignKey(
+        "accounts.TeacherProfile", related_name="course_invites", on_delete=models.CASCADE
+    )
+    expires_at = models.DateTimeField()
+    #: Отозвано преподавателем. Отдельно от срока: «я закрыл» и «время вышло» — разные ответы.
+    revoked_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self) -> str:
+        return f"invite {self.code} → {self.course_id}"

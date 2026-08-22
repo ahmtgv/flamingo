@@ -691,3 +691,78 @@ def course_audience(user, course_id) -> list[dict]:
             }
         )
     return out
+
+
+# --- приглашение в курс: как позвать постороннего (§53) ----------------------
+#: Знаки кода: без 0/O, 1/I/L — код читают вслух и переписывают руками.
+_INVITE_ALPHABET = "ACDEFGHJKMNPQRTUVWXY2346789"
+INVITE_DAYS = 7
+
+
+def _new_invite_code() -> str:
+    import secrets
+
+    while True:
+        code = "FLM-" + "".join(secrets.choice(_INVITE_ALPHABET) for _ in range(4))
+        if not CourseInvite.objects.filter(code=code).exists():
+            return code
+
+
+def course_invite(user, course_id) -> CourseInvite:
+    """
+    Действующее приглашение курса; нет — заводим новое. Только владелец курса.
+
+    Приглашение одно на курс, а не одно на нажатие: иначе преподаватель, открывший экран
+    трижды, раздаёт три разных кода и сам не знает, какой из них у ученика.
+    """
+    course = _owned_course(user, course_id)
+    now = timezone.now()
+    live = (
+        CourseInvite.objects.filter(course=course, revoked_at__isnull=True, expires_at__gt=now)
+        .order_by("-created_at")
+        .first()
+    )
+    if live:
+        return live
+    return CourseInvite.objects.create(
+        course=course,
+        code=_new_invite_code(),
+        created_by=course.owner,
+        expires_at=now + dt.timedelta(days=INVITE_DAYS),
+    )
+
+
+def revoke_course_invite(user, course_id) -> None:
+    """«Заменить код»: старый перестаёт работать сразу, новый заведётся при следующем показе."""
+    course = _owned_course(user, course_id)
+    CourseInvite.objects.filter(course=course, revoked_at__isnull=True).update(
+        revoked_at=timezone.now()
+    )
+
+
+def redeem_course_invite(user, code: str) -> Course:
+    """
+    Войти в курс по коду — то самое действие, которого не было.
+
+    🔴 Отказы называются по-разному, и это не формальность: «срок вышел» лечится просьбой к
+    преподавателю, «код закрыт» — тоже, а «нет такого кода» означает опечатку и лечится
+    перечитыванием. Один ответ «не найдено» на все три отправляет человека искать ошибку,
+    которой он не делал.
+
+    Зачисление идёт через общий `enroll`: право доступа к курсу решается в одном месте
+    (`courses/access.py`), и приглашение не заводит второй двери в обход него.
+    """
+    cleaned = (code or "").strip().upper()
+    if not cleaned:
+        raise ValidationError("Введите код из приглашения")
+
+    invite = CourseInvite.objects.filter(code=cleaned).select_related("course").first()
+    if invite is None:
+        raise NotFound("Такого кода нет. Проверьте, не перепутаны ли знаки.")
+    if invite.revoked_at is not None:
+        raise ValidationError("Этот код закрыт преподавателем. Попросите новый.")
+    if invite.expires_at <= timezone.now():
+        raise ValidationError("Срок кода вышел. Попросите у преподавателя новый.")
+
+    enroll(user, invite.course_id)
+    return invite.course
