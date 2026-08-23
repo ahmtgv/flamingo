@@ -1,6 +1,8 @@
 import { type ReactNode, useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
+
+import { HOME_ROUTE } from '@/shared/lib/homeRoute';
 import { useNavigate } from 'react-router-dom';
 
 import { useFrameControls } from '@/features/desktop/frameControls';
@@ -108,11 +110,43 @@ export function RoomFrame({
   /** Звук комнаты — вне сцен, см. `RoomAudio` (наряд 38). */
   roomAudio?: ReactNode;
   leaveLabel?: string;
+  /**
+   * Что сделать с эфиром при уходе: отпустить камеру, выйти из LiveKit, остановить разбор.
+   * Необязателен — и это не даёт права запереть человека, см. `leaveRoom` ниже.
+   */
   onLeave?: () => void;
 }) {
   const { t } = useTranslation('room');
   const navigate = useNavigate();
   const frameSlot = useFrameControls();
+
+  /**
+   * 🔴 ВЫХОД РАБОТАЕТ ВСЕГДА (наряд 47 §2, найдено на живой машине 23.08).
+   *
+   * Обе кнопки выхода висели на одном необязательном `onLeave`. Ученику и предпросмотру его
+   * не передавали вовсе, а преподавателю — только `joined ? leave : undefined`, где `joined`
+   * появляется лишь после «Войти в эфир», а та недоступна, пока занятие не идёт. Итог,
+   * увиденный владельцем: занятие не началось → войти нельзя → `onLeave === undefined` →
+   * кнопка ловит нажатие и НЕ ДЕЛАЕТ НИЧЕГО. Ни ошибки, ни следа. Человек заперт в комнате
+   * и закрывает приложение.
+   *
+   * И даже когда обработчик был, он не уводил с маршрута: гасил эфир и оставлял на том же
+   * адресе. Первое нажатие делало `joined = false` — и обе кнопки мертвели навсегда.
+   *
+   * Поэтому уход разделён на две разные вещи:
+   *   1. отпустить эфир — дело комнаты, `onLeave`, его может и не быть;
+   *   2. **уйти из комнаты** — дело рамы, и оно происходит всегда.
+   *
+   * Ошибка в первом не отменяет второго: развалившийся эфир — не повод запереть человека.
+   */
+  const leaveRoom = () => {
+    try {
+      onLeave?.();
+    } catch {
+      // Молча: причина ухода — не «эфир сломался», а «я ухожу».
+    }
+    navigate(HOME_ROUTE);
+  };
 
   /**
    * 🔴 ПУЛЬТЫ УХОДЯТ С ГЛАЗ, ПОКА ЧЕЛОВЕК ИХ НЕ ТРОГАЕТ.
@@ -273,12 +307,12 @@ export function RoomFrame({
         <button
           type="button"
           className={styles.logoBtn}
-          onClick={() => navigate('/start')}
+          onClick={() => navigate(HOME_ROUTE)}
           aria-label="Flamingo"
         >
           <Logo word={false} />
         </button>
-        <button type="button" className={styles.exit} onClick={onLeave}>
+        <button type="button" className={styles.exit} onClick={leaveRoom}>
           {t('exit')}
         </button>
         <span className={styles.hudSep} aria-hidden="true" />
@@ -322,7 +356,7 @@ export function RoomFrame({
           </button>
         ))}
         <span className={styles.hudSep} aria-hidden="true" />
-        <button type="button" className={styles.leave} onClick={onLeave}>
+        <button type="button" className={styles.leave} onClick={leaveRoom}>
           {leaveLabel ?? t('leave')}
         </button>
       </div>

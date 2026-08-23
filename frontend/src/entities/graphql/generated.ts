@@ -3988,7 +3988,7 @@ export type SessionStatusChangedSubscriptionVariables = Exact<{
 }>;
 
 
-export type SessionStatusChangedSubscription = { __typename?: 'Subscription', sessionStatusChanged: { __typename?: 'LessonSession', id: string, endAt?: string | null } };
+export type SessionStatusChangedSubscription = { __typename?: 'Subscription', sessionStatusChanged: { __typename?: 'LessonSession', id: string, status: SessionStatus, startAt: string, endAt?: string | null } };
 
 export type CreateProjectorCodeMutationVariables = Exact<{
   sessionId: Scalars['ID']['input'];
@@ -9659,6 +9659,8 @@ export const SessionStatusChangedDocument = gql`
     subscription SessionStatusChanged($sessionId: ID!) {
   sessionStatusChanged(sessionId: $sessionId) {
     id
+    status
+    startAt
     endAt
   }
 }

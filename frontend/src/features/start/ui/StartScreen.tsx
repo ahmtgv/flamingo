@@ -1,6 +1,8 @@
 import { LogOut, Moon, Sun } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+
+import { useStartLesson } from '@/features/lesson/startLesson';
 import { Navigate, useNavigate } from 'react-router-dom';
 
 import { useAppDispatch, useAppSelector } from '@/app/hooks';
@@ -406,6 +408,9 @@ function NowSlot({
 }) {
   const { t } = useTranslation('start');
   const navigate = useNavigate();
+  // 🔴 §47.1: кнопка обязана НАЧАТЬ урок, а не перейти в комнату. Раньше здесь стоял один
+  // `navigate`, и занятие оставалось назначенным.
+  const { start, starting, failed } = useStartLesson();
   const entry = page.now;
 
   if (!entry) {
@@ -446,17 +451,30 @@ function NowSlot({
       <div className={styles.nowRow}>
         <Button
           variant="primary"
-          onClick={() =>
-            isLesson && entry.sessionId
-              ? navigate(`/sessions/${entry.sessionId}/room`)
-              : entry.lessonId && navigate(`/lessons/${entry.lessonId}/homework`)
-          }
+          loading={starting}
+          onClick={() => {
+            if (isLesson && entry.sessionId) {
+              // Ученик не начинает занятие — он входит в идущее. Преподаватель начинает,
+              // и ждёт ответа сервера, прежде чем оказаться в комнате.
+              if (isTeacher) void start(entry.sessionId, entry.isLive);
+              else navigate(`/sessions/${entry.sessionId}/room`);
+              return;
+            }
+            if (entry.lessonId) navigate(`/lessons/${entry.lessonId}/homework`);
+          }}
         >
           {isLesson ? (isTeacher ? t('now.start') : t('now.enter')) : t('now.resume')}
         </Button>
         {until && isLesson && !entry.isLive && until.count > 0 && (
           <span className={styles.nowNote}>
             {t(until.unit === 'hours' ? 'now.inHours' : 'now.inMinutes', { count: until.count })}
+          </span>
+        )}
+        {/* Отказ произносится здесь же: молчаливое нажатие — это то, из-за чего
+            преподаватель 23.08 сидел в комнате, где урок не шёл. */}
+        {failed && (
+          <span className={styles.nowFailed} role="alert">
+            {failed}
           </span>
         )}
       </div>

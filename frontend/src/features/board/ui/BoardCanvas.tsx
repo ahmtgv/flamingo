@@ -52,6 +52,36 @@ const TOOLS: Tool[] = ['select', 'pen', 'text', 'sticker', 'shape', 'link', 'han
  * it; last write wins. A canvas that freezes while somebody is thinking is a worse failure
  * than a rare overwrite.
  */
+/**
+ * Это штрих или случайное движение мышью? (наряд 47 §5)
+ *
+ * 🔴 Порог был «два пункта»: любое протаскивание мышью по холсту — даже на три пикселя, даже
+ * `onPointerLeave` при выходе курсора за край — коммитило ПОСТОЯННЫЙ элемент. На новом курсе
+ * с нулём учеников доска оказалась покрыта штрихами, которых никто не рисовал. Очистки доски
+ * в продукте нет ни одной мутацией, а `MAX_ELEMENTS = 2000` показывает, что накопление
+ * задумано как норма, — значит каждый случайный штрих живёт вечно.
+ *
+ * Порог: минимум три точки И минимум шесть мировых пикселей пути. Осмысленная линия проходит
+ * его всегда, дрожание руки — нет.
+ *
+ * ⚠️ Это МИНИМУМ, а не решение вопроса. Сама доска привязана к УРОКУ (`board/models.py`:
+ * `lesson = OneToOneField`), то есть переживает свои проведения: второе занятие того же урока
+ * откроет холст первого. Так задумано (комментарий в `LiveRoomScreen`), и вопрос владельцу
+ * записан отдельно — см. `docs/handoff/OWNER_QUESTIONS.md`.
+ */
+const MIN_STROKE_POINTS = 3;
+const MIN_STROKE_LENGTH = 6;
+
+function isRealStroke(stroke: number[] | null): stroke is number[] {
+  if (!stroke || stroke.length < MIN_STROKE_POINTS * 2) return false;
+  let travelled = 0;
+  for (let i = 2; i < stroke.length; i += 2) {
+    travelled += Math.hypot(stroke[i] - stroke[i - 2], stroke[i + 1] - stroke[i - 1]);
+    if (travelled >= MIN_STROKE_LENGTH) return true;
+  }
+  return false;
+}
+
 export function BoardCanvas({ lessonId }: { lessonId: string }) {
   const { t } = useTranslation('board');
   const surface = useRef<HTMLDivElement>(null);
@@ -537,7 +567,7 @@ export function BoardCanvas({ lessonId }: { lessonId: string }) {
       if (pinch.current.size < 2) pinchStart.current = null;
     }
     panning.current = null;
-    if (stroke && stroke.length >= 4) {
+    if (isRealStroke(stroke)) {
       const bounds = strokeBounds(stroke);
       void commit({ kind: 'PEN' as BoardElementKind, ...bounds, data: { points: stroke } });
     }

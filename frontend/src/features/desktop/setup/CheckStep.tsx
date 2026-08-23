@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { useReportUplinkMutation } from '@/entities/graphql/generated';
@@ -32,7 +32,25 @@ export function CheckStep({ onNext }: { onNext: () => void }) {
   const [report] = useReportUplinkMutation();
 
   const media = useMediaCheck();
-  const videoRef = useRef<HTMLVideoElement>(null);
+  /*
+   * 🔴 КАДР БЫЛ ПУСТ ВСЕГДА (наряд 47 §6). `setStream` публиковался ДО `setState('live')`,
+   * а `<video>` рисуется только при `live`. Эффект привязки с зависимостью `[media.stream]`
+   * отрабатывал, когда элемента ещё не существовало, и больше не вызывался — `srcObject`
+   * не проставлялся никогда. Человек видел серый прямоугольник при горящей камере.
+   *
+   * Callback-ref решает это по построению: он срабатывает в тот момент, когда элемент
+   * появляется, — то есть заведомо после потока. Тот же приём в `VideoRoom`.
+   */
+  const attachVideo = useCallback(
+    (el: HTMLVideoElement | null) => {
+      if (!el) return;
+      if (media.stream) el.srcObject = media.stream;
+      // В WKWebView одного `srcObject` мало: `autoPlay` там не срабатывает для потока, и
+      // превью остаётся серым при живой камере (найдено владельцем 16.08).
+      void el.play().catch(() => undefined);
+    },
+    [media.stream],
+  );
   const [probing, setProbing] = useState(false);
   const [failed, setFailed] = useState<string | null>(null);
   const [left, setLeft] = useState(PROBE_SECONDS);
@@ -49,16 +67,7 @@ export function CheckStep({ onNext }: { onNext: () => void }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Превью — локальное, поток наружу не уходит (CLAUDE.md §2.1).
-  useEffect(() => {
-    const el = videoRef.current;
-    if (!el || !media.stream) return;
-    el.srcObject = media.stream;
-    // 🔴 В WKWebView одного `srcObject` мало: `autoPlay` там не срабатывает для потока,
-    // и превью остаётся серым прямоугольником при живой камере — зелёный огонёк горит,
-    // картинки нет (найдено владельцем 16.08). Просим воспроизведение явно.
-    void el.play().catch(() => undefined);
-  }, [media.stream]);
+  // Превью — локальное, поток наружу не уходит (CLAUDE.md §2.1); привязка — в `attachVideo`.
 
   // Выбор запоминается: урок откроет именно эти устройства.
   useEffect(() => {
@@ -102,7 +111,7 @@ export function CheckStep({ onNext }: { onNext: () => void }) {
         {media.state === 'live' && (
           <div className={styles.preview}>
             {media.cameras.length > 0 ? (
-              <video ref={videoRef} className={styles.previewVideo} autoPlay muted playsInline />
+              <video ref={attachVideo} className={styles.previewVideo} autoPlay muted playsInline />
             ) : (
               <p className={styles.note}>{t('setup.check.cameraMissing')}</p>
             )}

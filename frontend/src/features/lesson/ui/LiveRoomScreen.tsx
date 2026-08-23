@@ -613,6 +613,9 @@ function StudentRoom({
 
   return (
     <RoomShell
+      /* §47.2: ученику выход не передавали ВООБЩЕ — у него обе кнопки были мертвы всегда.
+         Уйти он теперь может при любом состоянии, и камера при этом отпускается. */
+      onLeave={leave}
       /*
         ⚠️ УЧЕНИКУ — ТОЛЬКО ПРЕПОДАВАТЕЛЬ, и это не про экран, а про канал (решение владельца
         Р5.1): урок раздаётся с машины преподавателя, и подписывать ученика на дорожки всех
@@ -1035,7 +1038,9 @@ function TeacherRoom({
       classAvg={receivedRef.current.length ? classAvg : null}
       spark={receivedRef.current.slice(-24)}
       attentionFor={attentionFor}
-      onLeave={joined ? leave : undefined}
+      /* §47.2: передаём всегда. Раньше стояло `joined ? leave : undefined`, и до входа
+         в эфир выход не делал ничего — комната запирала преподавателя. */
+      onLeave={leave}
       onFocus={(identity) => {
         // Отказ не должен ронять урок: не дошло до второго экрана — преподаватель ведёт дальше.
         void setProjectorFocus({ variables: { sessionId, studentId: identity } }).catch(
@@ -1136,7 +1141,7 @@ function LiveRoomRealScreen() {
   const { t } = useTranslation('common');
   const { sessionId } = useParams<{ sessionId: string }>();
   const { data: meData, loading: meLoading } = useMeQuery();
-  const { data: sessionData, loading: sessionLoading } = useSessionRoomQuery({
+  const { data: sessionData, loading: sessionLoading, refetch: refetchSession } = useSessionRoomQuery({
     variables: { id: sessionId ?? '' },
     skip: !sessionId,
   });
@@ -1144,11 +1149,36 @@ function LiveRoomRealScreen() {
   if (!sessionId) return <Navigate to="/schedule" replace />;
 
   const session = sessionData?.session ?? null;
+
+  /*
+   * 🔴 КОМНАТА СЛЫШИТ, ЧТО УРОК НАЧАЛСЯ (наряд 47 §1, вдогонку).
+   *
+   * Подписка на статус жила только в ученической комнате и смотрела в один `endAt`: комната
+   * умела узнать, что занятие КОНЧИЛОСЬ, и не умела узнать, что оно НАЧАЛОСЬ. Преподаватель,
+   * начавший урок в другом окне (или из расписания), оставался в комнате с надписью «занятие
+   * сейчас не идёт» до перезагрузки страницы.
+   *
+   * Стоит здесь, над обеими комнатами, а не внутри одной из них: слышать это должны оба.
+   * Перечитываем занятие целиком — статус тянет за собой и токен комнаты, и время начала.
+   */
+  useSessionStatusChangedSubscription({
+    variables: { sessionId: sessionId ?? '' },
+    skip: !sessionId,
+    onData: () => {
+      void refetchSession();
+    },
+  });
   // Loader ONLY on the initial load (B-states-3: a plain loader, not a blank screen). An
   // in-flight refetch keeps cached data, so we must NOT unmount the joined room (that would run
   // useSharedCamera cleanup → stop the shared camera track → black tile + CMF→0). Once we have
   // session data, never render this loader.
-  if ((meLoading || sessionLoading) && !session) {
+  // 🔴 ЖДЁМ `me` ДО ВЫБОРА КОМНАТЫ (наряд 47 §4, вторая дорога в ту же яму).
+  //
+  // Страж смотрел только на `session`. Если занятие уже в кэше, а `me` ещё летит, `meData`
+  // пуст — и преподаватель уезжал в ученическую комнату, а `MarkPresent` попутно отмечал
+  // его присутствующим учеником собственного занятия. Гонка, которая проявляется тем чаще,
+  // чем быстрее кэш.
+  if ((meLoading || sessionLoading) && (!session || !meData?.me)) {
     return (
       <div className={styles.shell} style={{ alignItems: 'center', justifyContent: 'center' }}>
         <p className={styles.note}>{t('actions.loading')}</p>
@@ -1166,7 +1196,20 @@ function LiveRoomRealScreen() {
     lessonTitle: session?.lesson?.title ?? null,
     startAt: session?.startAt ?? null,
   };
-  return meData?.me?.role === 'TEACHER' ? (
+  /*
+   * 🔴 КОМНАТУ ВЫБИРАЕТ ЗАНЯТИЕ, А НЕ РОЛЬ УЧЁТНОЙ ЗАПИСИ (наряд 47 §4).
+   *
+   * Стояло `me.role === 'TEACHER'`. Владелец 23.08 — преподаватель и владелец курса — попал
+   * в УЧЕНИЧЕСКУЮ комнату: `session.teacherId` в этом файле есть и с `me.id` не сравнивался
+   * нигде. Оттуда всё остальное, что он увидел: `ClassPane` показал его дважды — «ведущим» и
+   * «вашей камерой», обе плитки пустые, большая растянулась на 70 % колонки.
+   *
+   * Роль учётки отвечает на вопрос «кто я вообще», а не «веду ли я ЭТО занятие». Второй
+   * вопрос — единственный, который здесь имеет смысл: преподаватель бывает учеником на чужом
+   * курсе, и тогда он ученик.
+   */
+  const iAmHost = !!session?.teacherId && !!meData?.me?.id && session.teacherId === meData.me.id;
+  return iAmHost ? (
     <TeacherRoom {...props} />
   ) : (
     <>

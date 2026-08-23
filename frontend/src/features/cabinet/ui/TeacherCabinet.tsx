@@ -7,6 +7,8 @@ import {
 } from 'lucide-react';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
+
+import { useStartLesson } from '@/features/lesson/startLesson';
 import { useNavigate } from 'react-router-dom';
 
 import type { MeQuery } from '@/entities/graphql/generated';
@@ -37,6 +39,8 @@ export function TeacherCabinet({ me }: { me: Me }) {
   const { t } = useTranslation('cabinet');
   const navigate = useNavigate();
   const tp = me.teacherProfile;
+  // §47.1: начать урок — значит дождаться сервера, а не перейти по адресу.
+  const { start, starting, failed } = useStartLesson();
   const { data, loading, error, refetch } = useTeacherDashboardQuery();
 
   const nav: CabinetNavItem[] = [
@@ -172,6 +176,13 @@ export function TeacherCabinet({ me }: { me: Me }) {
             </div>
 
             <p className={styles.secTitle}>{t('teacher.sections.today')}</p>
+            {/* Отказ запуска — словами и на месте: молчаливое нажатие уже стоило владельцу
+                урока 23.08. */}
+            {failed && (
+              <p className={styles.rowSub} role="alert">
+                {failed}
+              </p>
+            )}
             {view.active.length === 0 ? (
               <p className={styles.rowEmpty}>{t('teacher.metrics.noSessions')}</p>
             ) : (
@@ -199,10 +210,13 @@ export function TeacherCabinet({ me }: { me: Me }) {
                         </button>
                       ) : startable ? (
                         <span className={styles.rowAction}>
+                          {/* 🔴 §47.1: вторая кнопка-обманка. Делала только переход —
+                              занятие оставалось назначенным, а комната пустой. */}
                           <Button
                             variant="secondary"
                             size="sm"
-                            onClick={() => navigate(`/sessions/${s.id}/room`)}
+                            loading={starting}
+                            onClick={() => void start(s.id)}
                           >
                             {t('teacher.session.start')}
                           </Button>

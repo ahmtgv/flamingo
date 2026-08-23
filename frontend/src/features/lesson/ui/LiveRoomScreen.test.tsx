@@ -57,7 +57,15 @@ vi.mock('livekit-client', () => {
   };
 });
 
-const sessionRoomMock = {
+/**
+ * 🔴 КОМНАТУ ВЫБИРАЕТ ЗАНЯТИЕ, А НЕ РОЛЬ УЧЁТКИ (наряд 47 §4).
+ *
+ * Раньше здесь хватало `me.role`, и заглушка занятия ведущего не называла. Владелец 23.08 —
+ * преподаватель и владелец курса — попал в УЧЕНИЧЕСКУЮ комнату, потому что `session.teacherId`
+ * не сравнивался ни с чем. Теперь заглушка обязана сказать, чьё это занятие: без этого
+ * проверка описывала бы мир, которого больше нет.
+ */
+const sessionRoom = (teacherId: string) => ({
   request: { query: SessionRoomDocument, variables: { id: 'sess-1' } },
   result: {
     data: {
@@ -67,11 +75,18 @@ const sessionRoomMock = {
         status: 'LIVE',
         roomToken: 'tok-1',
         teacherName: 'Тимур Учитель',
+        teacherId,
+        startAt: '2026-06-15T10:00:00Z',
         lesson: { __typename: 'Lesson', id: 'l1', title: 'Урок' },
       },
     },
   },
-};
+});
+
+/** Занятие ведёт КТО-ТО ДРУГОЙ — так его видит ученик. */
+const sessionRoomMock = sessionRoom('someone-else');
+/** Занятие ведёт тот, кто смотрит (`me.id === 'u1'`). */
+const sessionRoomMineMock = sessionRoom('u1');
 
 /**
  * 🔴 `consentAttention` — НЕ УКРАШЕНИЕ МОКА (§3-бис, 17.08).
@@ -270,7 +285,7 @@ describe('LiveRoomScreen', () => {
         },
       },
     };
-    renderRoom([meMock('TEACHER'), sessionRoomMock, subMock, attendeesMock]);
+    renderRoom([meMock('TEACHER'), sessionRoomMineMock, subMock, attendeesMock]);
 
     // Owner v3 (f9eff3d): the orb field is retired from the live view. Per-student
     // attention now lives on the video-tile chips (join-time; covered by

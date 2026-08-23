@@ -67,6 +67,29 @@ const byKind = (list: MediaDeviceInfo[], kind: MediaDeviceKind, fallback: string
     .map((d, i) => ({ id: d.deviceId, label: d.label || `${fallback} ${i + 1}` }));
 
 export function useMediaCheck(): MediaCheck {
+  /*
+   * 🔴 ССЫЛКА НА ПОТОК, А НЕ ТОЛЬКО СОСТОЯНИЕ (наряд 47 §6, измерено владельцем 23.08:
+   * индикатор камеры macOS загорелся на шаге 4 в 08:51 и горел в 09:10 — через мастер,
+   * кабинет и вход в комнату).
+   *
+   * Хук держал поток ТОЛЬКО в состоянии React. Гашение шло через `setStream`, и если человек
+   * уходил с шага, пока висело системное окно разрешения, `cleanup` отрабатывал при
+   * `stream === null`, а вернувшийся промис клал поток в уже мёртвый хук: гасить нечем,
+   * камера горит до закрытия приложения.
+   *
+   * Образцы, как надо, лежат в этом же проекте: `DemoRoomScreen` замыкает cleanup на сам
+   * объект потока, `useSharedCamera` держит `streamRef`.
+   */
+  const streamRef = useRef<MediaStream | null>(null);
+  /** Ушли ли мы с экрана. Промис разрешения переживает размонтирование — его ответ надо гасить. */
+  const goneRef = useRef(false);
+
+  const remember = useCallback((next: MediaStream | null) => {
+    streamRef.current?.getTracks().forEach((t) => t.stop());
+    streamRef.current = next;
+    setStream(next);
+  }, []);
+
   const [state, setState] = useState<MediaState>('idle');
   const [level, setLevel] = useState(0);
   const [cameras, setCameras] = useState<Device[]>([]);
@@ -126,10 +149,12 @@ export function useMediaCheck(): MediaCheck {
         audio: wantMic ? { deviceId: { exact: wantMic } } : true,
       };
       const media = await navigator.mediaDevices.getUserMedia(constraints);
-      setStream((old) => {
-        old?.getTracks().forEach((t) => t.stop());
-        return media;
-      });
+      // Ушли, пока висело системное окно, — поток гасим немедленно и наружу не отдаём.
+      if (goneRef.current) {
+        media.getTracks().forEach((t) => t.stop());
+        return;
+      }
+      remember(media);
       meter(media);
       // Названия устройств появляются ТОЛЬКО после выдачи разрешения — перечисляем после.
       const all = await navigator.mediaDevices.enumerateDevices();
@@ -140,7 +165,7 @@ export function useMediaCheck(): MediaCheck {
       setMicId(media.getAudioTracks()[0]?.getSettings().deviceId ?? null);
       setState('live');
     },
-    [meter],
+    [meter, remember],
   );
 
   const start = useCallback(async () => {
@@ -152,7 +177,11 @@ export function useMediaCheck(): MediaCheck {
       // «устройств нет»: преподаватель без камеры урок ведёт, без звука — нет.
       try {
         const audioOnly = await navigator.mediaDevices.getUserMedia({ audio: true });
-        setStream(audioOnly);
+        if (goneRef.current) {
+          audioOnly.getTracks().forEach((t) => t.stop());
+          return;
+        }
+        remember(audioOnly);
         meter(audioOnly);
         const all = await navigator.mediaDevices.enumerateDevices();
         setCameras([]);
@@ -163,7 +192,7 @@ export function useMediaCheck(): MediaCheck {
         setState(readFailure(error));
       }
     }
-  }, [open, meter]);
+  }, [open, meter, remember]);
 
   const pick = useCallback(
     (kind: 'camera' | 'mic' | 'speaker', id: string) => {
@@ -182,15 +211,24 @@ export function useMediaCheck(): MediaCheck {
 
   const stop = useCallback(() => {
     teardown();
-    setStream((old) => {
-      old?.getTracks().forEach((t) => t.stop());
-      return null;
-    });
+    remember(null);
     setState('idle');
-  }, [teardown]);
+  }, [teardown, remember]);
 
-  // Камеру гасим, уходя с экрана: индикатор, горящий после ухода, — это уже не проверка.
-  useEffect(() => stop, [stop]);
+  /*
+   * Камеру гасим, уходя с экрана: индикатор, горящий после ухода, — это уже не проверка,
+   * а слежка. Гасим ПО ССЫЛКЕ и помечаем уход, чтобы поток, пришедший после размонтирования,
+   * не остался гореть ничьим.
+   */
+  useEffect(() => {
+    goneRef.current = false;
+    return () => {
+      goneRef.current = true;
+      teardown();
+      streamRef.current?.getTracks().forEach((t) => t.stop());
+      streamRef.current = null;
+    };
+  }, [teardown]);
 
   return {
     state,
