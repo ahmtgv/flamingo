@@ -229,8 +229,10 @@
   line-height: var(--leading-snug);
   overflow-wrap: anywhere;
 }
+/* §61.3: своё сообщение — не тревога и не действие. Отличается местом и подложкой,
+   а не акцентом. */
 .msgMine .msgText {
-  background: var(--color-accent-subtle);
+  background: var(--color-surface-subtle);
 }
 
 .composer {

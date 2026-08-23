@@ -79,12 +79,13 @@
   background: rgb(255 255 255 / 4%);
 }
 
-/* Говорящего обводит акцент — но только линией: заливка на этом экране одна, у руки. */
+/* Говорящего обводит линия — заливка на этом экране одна, у руки (это правило остаётся).
+   Цвет линии зелёный: говорит — значит работает, а коралл оставлен руке (§61.3). */
 .tile[data-speaking]::after {
   content: '';
   position: absolute;
   inset: 0;
-  border: 1.5px solid var(--color-accent);
+  border: 1.5px solid var(--color-go);
   border-radius: var(--radius-md);
   pointer-events: none;
 }

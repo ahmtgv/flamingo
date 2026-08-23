@@ -132,6 +132,17 @@ export function BoardCanvas({ lessonId }: { lessonId: string }) {
   const [unsent, setUnsent] = useState(0);
   const drag = useRef<{ id: string; corner?: Corner; dx: number; dy: number } | null>(null);
   const panning = useRef<{ x: number; y: number } | null>(null);
+  /*
+   * 🔴 НАДПИСЬ БЫЛО НЕВОЗМОЖНО НАПИСАТЬ (наряд 51 §2, замер владельца и прибор
+   * `board-tools`). Инструмент «Текст» клал на холст слово-заглушку `t('newText')` и на этом
+   * заканчивался: ввода не существовало ни при создании, ни по двойному щелчку.
+   *
+   * Правка идёт в обычном `<textarea>` поверх холста, а не внутри `<svg>`: `foreignObject`
+   * в WebKit ведёт себя по-разному и роняет ввод с клавиатуры. Положение считается тем же
+   * преобразованием, что и всё остальное (`toScreen`), поэтому поле стоит ровно на элементе
+   * при любом сдвиге и масштабе.
+   */
+  const [editing, setEditing] = useState<{ id: string; text: string } | null>(null);
 
   const { data, loading, error, refetch } = useBoardQuery({ variables: { lessonId } });
   const [put] = usePutBoardElementMutation();
@@ -348,6 +359,8 @@ export function BoardCanvas({ lessonId }: { lessonId: string }) {
         if (saved) {
           setLocal((prev) => [...prev.filter((e) => e.id !== saved.id), saved]);
         }
+        // Возвращаем сохранённое: тому, кто создал надпись, она нужна сразу — открыть ввод.
+        return saved ?? null;
       } catch (e) {
         if (failureKind(e) !== 'unreachable') {
           // Доска ОТКАЗАЛА (закрыли посреди правки) — вернуть правду сервера.
@@ -492,7 +505,11 @@ export function BoardCanvas({ lessonId }: { lessonId: string }) {
         y: world.y,
         width: 180,
         height: tool === 'text' ? 40 : 120,
-        data: { text: tool === 'text' ? t('newText') : t('newSticker') },
+        // Новая надпись создаётся ПУСТОЙ: слово-заглушка на холсте — это не текст, а мусор,
+        // который человек потом стирает руками. Сразу открывается ввод.
+        data: { text: tool === 'text' ? '' : t('newSticker') },
+      }).then((saved) => {
+        if (saved && tool === 'text') setEditing({ id: saved.id, text: '' });
       });
       setTool('select');
       return;
@@ -525,6 +542,10 @@ export function BoardCanvas({ lessonId }: { lessonId: string }) {
     }
     setSelected(hit?.id ?? null);
     if (hit) drag.current = { id: hit.id, dx: world.x - hit.x, dy: world.y - hit.y };
+    // Двойной щелчок по надписи — правка (поведение Freeform, §51.2).
+    if (hit?.kind === 'TEXT' && e.detail === 2 && canWrite) {
+      setEditing({ id: hit.id, text: String((hit.data as Record<string, unknown>)?.text ?? '') });
+    }
   }
 
   function onPointerMove(e: React.PointerEvent) {
@@ -651,6 +672,10 @@ export function BoardCanvas({ lessonId }: { lessonId: string }) {
             key={id}
             type="button"
             className={styles.tool}
+            /* 🔴 §51.2: метка для ЗАМЕРА, а не для стилей. Прошлый пробник угадывал
+               строение холста (`svg g > *`) и в комнате находил первую попавшуюся иконку —
+               отсюда «ноль узлов» на исправной доске. Метки убирают угадывание. */
+            data-tool={id}
             aria-pressed={tool === id}
             aria-label={t(`tool.${id}`)}
             disabled={!canWrite && id !== 'select' && id !== 'hand'}
@@ -756,8 +781,52 @@ export function BoardCanvas({ lessonId }: { lessonId: string }) {
           void putImage(file, at);
         }}
       >
-        <svg className={styles.svg} role="presentation">
+        {editing &&
+          (() => {
+            const el = local.find((x) => x.id === editing.id);
+            if (!el) return null;
+            const at = toScreen({ x: el.x, y: el.y }, view);
+            return (
+              <textarea
+                className={styles.textEdit}
+                data-board-text-edit
+                autoFocus
+                value={editing.text}
+                style={{
+                  left: at.x,
+                  top: at.y,
+                  width: el.width * view.zoom,
+                  height: Math.max(el.height, 40) * view.zoom,
+                }}
+                onChange={(ev) => setEditing({ ...editing, text: ev.target.value })}
+                onKeyDown={(ev) => {
+                  // Escape — уйти, не сохраняя. Enter без Shift — сохранить: надпись на доске
+                  // редко бывает в несколько строк, а перенос доступен через Shift.
+                  if (ev.key === 'Escape') setEditing(null);
+                  if (ev.key === 'Enter' && !ev.shiftKey) {
+                    ev.preventDefault();
+                    (ev.target as HTMLTextAreaElement).blur();
+                  }
+                }}
+                onBlur={() => {
+                  const text = editing.text.trim();
+                  setEditing(null);
+                  // Пустая надпись не остаётся на холсте: это мусор, который никто не уберёт.
+                  if (!text) {
+                    void remove({ variables: { lessonId, elementId: el.id } });
+                    setLocal((prev) => prev.filter((x) => x.id !== el.id));
+                    return;
+                  }
+                  void commit({ ...el, data: { ...(el.data as object), text } }, el.id);
+                }}
+              />
+            );
+          })()}
+
+        <svg className={styles.svg} role="presentation" data-board-canvas>
           <g
+            /* Сдвиг и масштаб — наружу, чтобы их можно было прочесть, а не вывести. */
+            data-board-viewport={`${Math.round(view.x)},${Math.round(view.y)},${view.zoom.toFixed(2)}`}
             transform={`translate(${-view.x * view.zoom} ${-view.y * view.zoom}) scale(${view.zoom})`}
           >
             {local.map((el) => (
@@ -925,17 +994,21 @@ function ElementShape({
   const label = t('author', { name: element.authorName });
   const data = (element.data ?? {}) as Record<string, unknown>;
 
+  /** Метки для замера: вид и личность элемента читаются из DOM, а не угадываются. */
+  const mark = { 'data-el': element.kind, 'data-el-id': element.id };
+
   if (element.kind === 'LINK') {
     const from = byId.get(String(data.from ?? ''));
     const to = byId.get(String(data.to ?? ''));
     if (!from || !to) return null;
     const ends = linkEnds(from, to);
-    return <line className={styles.link} {...ends} />;
+    return <line className={styles.link} {...mark} {...ends} />;
   }
 
   if (element.kind === 'PEN') {
     return (
       <path
+        {...mark}
         className={styles.pen}
         d={strokePath((data.points as number[]) ?? [])}
         fill="none"
@@ -947,7 +1020,7 @@ function ElementShape({
   }
 
   return (
-    <g data-selected={selected || undefined} data-linking={linking || undefined}>
+    <g {...mark} data-selected={selected || undefined} data-linking={linking || undefined}>
       {element.kind === 'IMAGE' ? (
         <image
           href={String(data.src ?? '')}

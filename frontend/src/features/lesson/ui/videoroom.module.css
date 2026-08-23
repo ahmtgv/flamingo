@@ -293,10 +293,11 @@
   background: var(--color-surface-hover);
   color: var(--color-text-tertiary);
 }
+/* §61.3: включённое устройство — состояние «работает», а не тревога. */
 .controlBtn[data-on='true'] {
-  background: var(--color-accent-solid);
-  color: var(--color-text-on-accent);
-  border-color: var(--color-accent);
+  background: var(--color-go-solid);
+  color: var(--color-on-go);
+  border-color: var(--color-go);
 }
 .leaveBtn {
   border-color: var(--color-error);

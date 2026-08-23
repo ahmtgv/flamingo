@@ -194,3 +194,25 @@ g[data-linking] rect {
   z-index: 60;
   background: var(--color-bg);
 }
+
+/* Поле правки надписи — поверх холста, на месте элемента (наряд 51 §2). Вид не меняем:
+   те же чернила и тот же размер, что у надписи на холсте, — лист доски ещё не пришёл. */
+.textEdit {
+  position: absolute;
+  z-index: 3;
+  margin: 0;
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--color-go);
+  border-radius: var(--radius-xs);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  font-size: var(--text-small);
+  line-height: var(--leading-snug);
+  resize: none;
+}
+
+.textEdit:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
