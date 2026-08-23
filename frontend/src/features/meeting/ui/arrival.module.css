@@ -36,7 +36,7 @@
   padding: var(--space-7);
 }
 .card[data-live='true'] {
-  border-color: var(--color-accent);
+  border-color: var(--color-go);
 }
 /* Не ошибка — поэтому ни красного, ни рамки тревоги. */
 .card[data-offline='true'] {
@@ -76,8 +76,8 @@
   border-radius: var(--radius-control);
   padding: var(--space-3) var(--space-6);
   cursor: pointer;
-  border: 1px solid var(--color-accent);
-  background: var(--color-accent-solid);
+  border: 1px solid var(--color-go);
+  background: var(--color-go-solid);
   color: var(--color-text-on-accent);
 }
 .btnGhost {
@@ -86,7 +86,7 @@
   color: var(--color-text);
 }
 .btn:hover {
-  background: var(--color-accent-hover);
+  background: var(--color-go-solid-hover);
 }
 .btnGhost:hover {
   background: var(--color-surface-hover);

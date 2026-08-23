@@ -67,6 +67,13 @@
   border-radius: var(--radius-card);
   padding: var(--space-5) var(--space-5) var(--space-6);
 }
+/* §50.4: пока в эфир не вошли, карточки поверх холста нет вовсе — но её содержимое
+   (строка «занятие не идёт», отказ камеры) остаётся в разметке для читалки и для отказов.
+   Прячем без `display: none`: скрытое от глаз ≠ выброшенное из дерева. */
+.cardHidden {
+  composes: fl-visually-hidden from global;
+}
+
 .card + .card {
   margin-top: var(--space-4);
 }

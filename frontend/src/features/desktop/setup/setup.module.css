@@ -96,7 +96,7 @@
   color: var(--color-text-secondary);
 }
 .stepItem[data-state='now'] .stepNo {
-  background: var(--color-accent-solid);
+  background: var(--color-go-solid);
   color: var(--color-text-on-accent);
 }
 .stepItem[data-state='done'] .stepNo {
@@ -228,8 +228,8 @@
   color: var(--color-text-secondary);
 }
 .tagStrong {
-  background: var(--color-accent-subtle);
-  color: var(--color-accent-text);
+  background: var(--color-go-bg);
+  color: var(--color-go-text);
 }
 .tagGood {
   background: var(--color-surface);
@@ -427,7 +427,7 @@
   box-shadow: var(--focus-ring);
 }
 .link {
-  color: var(--color-link);
+  color: var(--color-go-text);
 }
 .srOnly {
   /* Прячем от глаз, но не от читалки. Правило одно и живёт в tokens.css: копии этого
@@ -587,7 +587,7 @@
 
 .levelFill {
   height: 100%;
-  background: var(--color-accent);
+  background: var(--color-go);
   /* Короткий переход: полоса должна ЖИТЬ вместе с голосом, а не догонять его. */
   transition: width 60ms linear;
 }

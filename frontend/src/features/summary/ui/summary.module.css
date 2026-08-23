@@ -31,8 +31,8 @@
   font-weight: var(--weight-medium);
   letter-spacing: var(--tracking-wide);
   text-transform: uppercase;
-  color: var(--color-accent-text);
-  background: var(--color-accent-subtle);
+  color: var(--color-go-text);
+  background: var(--color-go-bg);
   border-radius: var(--radius-xs);
   padding: var(--space-1) var(--space-2);
 }

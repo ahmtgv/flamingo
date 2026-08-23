@@ -119,7 +119,7 @@
 
 /* Горящий срок — полоса 2 px слева и подпись, не обводка по периметру (ПРАВИЛА 5.2). */
 .card[data-burning] {
-  border-inline-start: 2px solid var(--color-accent);
+  border-inline-start: 2px solid var(--color-go);
 }
 
 .cardKicker {
@@ -145,7 +145,7 @@
 }
 
 .cardDue[data-burning] {
-  color: var(--color-accent-text);
+  color: var(--color-go-text);
 }
 
 .cardCourse {
@@ -240,7 +240,7 @@
   margin: 0;
   font-family: var(--font-mono);
   font-size: var(--text-caption);
-  color: var(--color-accent-text);
+  color: var(--color-go-text);
 }
 
 .railNote,

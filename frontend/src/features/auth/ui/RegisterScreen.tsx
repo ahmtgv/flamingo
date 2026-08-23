@@ -385,7 +385,7 @@ function RegisterForm({ role }: { role: UiRole }) {
 
           <div className={styles.actions}>
             {/* §57: завести учётную запись — главное действие экрана. */}
-            <Button type="submit" variant="go" loading={loading}>
+            <Button type="submit" variant="primary" loading={loading}>
               {t('register.submit')}
             </Button>
           </div>

@@ -120,7 +120,7 @@
   inline-size: 20px;
   block-size: 20px;
   margin: 0;
-  accent-color: var(--color-accent-solid);
+  accent-color: var(--color-go-solid);
 }
 
 .checkboxLabel {
@@ -206,8 +206,8 @@
 }
 
 .checkInput:checked + .box {
-  border-color: var(--color-accent-solid);
-  background: var(--color-accent-solid);
+  border-color: var(--color-go-solid);
+  background: var(--color-go-solid);
 }
 
 .checkInput:focus-visible + .box {

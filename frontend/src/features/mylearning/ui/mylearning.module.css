@@ -137,7 +137,7 @@
 }
 
 .link {
-  color: var(--color-accent-text);
+  color: var(--color-go-text);
   font-size: var(--text-small);
   overflow-wrap: anywhere;
 }

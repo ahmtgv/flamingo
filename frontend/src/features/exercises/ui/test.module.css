@@ -167,7 +167,7 @@
 .histBar i {
   display: block;
   height: 100%;
-  background: var(--color-accent);
+  background: var(--color-go);
   border-radius: var(--radius-xs);
 }
 .histCount {

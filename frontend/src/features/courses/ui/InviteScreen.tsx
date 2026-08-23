@@ -185,7 +185,7 @@ export function InviteScreen() {
                         {t('invite.accept')}
                       </Button>
                       <Button
-                        variant="secondary"
+                        variant="danger"
                         size="sm"
                         onClick={() => void decide(m.enrollmentId, false)}
                       >
@@ -254,7 +254,7 @@ export function JoinHalf({ presetCode }: { presetCode?: string } = {}) {
           {joined.status === 'PENDING_CONSENT' && (
             <p className={styles.note}>{t('invite.consentNoMailPupil')}</p>
           )}
-          <Button variant="go" onClick={() => navigate(HOME_ROUTE)}>
+          <Button variant="primary" onClick={() => navigate(HOME_ROUTE)}>
             {t('invite.toCabinet')}
           </Button>
         </>
@@ -274,7 +274,7 @@ export function JoinHalf({ presetCode }: { presetCode?: string } = {}) {
             />
           </div>
           {/* §57: вход на курс — главное действие половины. */}
-          <Button variant="go" loading={loading} disabled={!code.trim()} onClick={() => void submit()}>
+          <Button variant="primary" loading={loading} disabled={!code.trim()} onClick={() => void submit()}>
             {t('invite.join')}
           </Button>
           <p className={styles.note}>{t('invite.pupilNote')}</p>

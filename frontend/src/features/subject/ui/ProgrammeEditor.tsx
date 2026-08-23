@@ -252,7 +252,7 @@ function LessonForm({
         <Button size="sm" type="submit" loading={busy}>
           {t('edit.save')}
         </Button>
-        <Button size="sm" variant="ghost" onClick={onCancel}>
+        <Button size="sm" variant="danger" onClick={onCancel}>
           {t('edit.cancel')}
         </Button>
       </div>

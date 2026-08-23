@@ -332,7 +332,7 @@
  */
 .zoneRow[data-bad] .zoneTime,
 .zoneRow[data-bad] .zoneWho {
-  color: var(--color-accent-text);
+  color: var(--color-go-text);
 }
 
 .zoneWarn {
@@ -340,7 +340,7 @@
   font-family: var(--font-mono);
   font-size: var(--text-caption);
   line-height: var(--leading-snug);
-  color: var(--color-accent-text);
+  color: var(--color-go-text);
 }
 
 .actions {

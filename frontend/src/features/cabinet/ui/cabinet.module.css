@@ -448,7 +448,7 @@
 }
 /* The single coral accent of a calm day (removed when a LIVE session takes it). */
 .metricAccent .metricNum {
-  color: var(--color-accent-text);
+  color: var(--color-go-text);
 }
 
 .secTitle {
@@ -512,11 +512,11 @@
   font-size: var(--text-small);
   font-weight: var(--weight-medium);
   color: var(--color-text-on-accent);
-  /* 🔴 Белый на `--color-accent-strong` даёт 3.95:1 при 14px — ниже порога AA (обход экранов,
-     наряд 38 §2). Пара «заливка + текст на ней» в системе одна: `--color-accent-solid`.
+  /* 🔴 Белый на `--color-go-solid` даёт 3.95:1 при 14px — ниже порога AA (обход экранов,
+     наряд 38 §2). Пара «заливка + текст на ней» в системе одна: `--color-go-solid`.
      Тот же промах я уже делал на афише — значит это не описка, а привычка брать не ту
      половину пары. */
-  background: var(--color-accent-solid);
+  background: var(--color-go-solid);
   border: 0;
   border-radius: var(--radius-sm);
   padding: 0 20px;
@@ -525,7 +525,7 @@
   transition: background var(--duration-fast) var(--ease-standard);
 }
 .liveBtn:hover {
-  background: var(--color-accent-hover);
+  background: var(--color-go-solid-hover);
 }
 .liveBtn:focus-visible {
   outline: none;

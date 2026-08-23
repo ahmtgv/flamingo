@@ -110,7 +110,7 @@
 .pointNum {
   font-family: var(--font-mono);
   font-size: var(--text-caption);
-  color: var(--color-accent-text);
+  color: var(--color-go-text);
   font-variant-numeric: tabular-nums;
 }
 

@@ -7,7 +7,6 @@ import { MutedDoor } from '@/shared/ui';
 import { Navigate, useNavigate } from 'react-router-dom';
 
 import { useAppDispatch, useAppSelector } from '@/app/hooks';
-import { VerificationBanner } from '@/features/cabinet/ui/VerificationBanner';
 import { isDesktop } from '@/features/desktop/bridge';
 import { ChatDock, useChatUnread } from '@/features/chat';
 import { toggleTheme } from '@/app/uiSlice';
@@ -190,7 +189,9 @@ export function StartScreen() {
             что его документы на проверке — или что в них отказано и почему, — было ему
             недоступно. Лист D8 прямо называет это невыполненным обещанием.
             Компонент тот же самый: у экрана не должно быть своей версии этого разговора. */}
-        {isTeacher && <VerificationBanner profile={me?.teacherProfile} />}
+        {/* §50.1: плашка о документах убрана с видных экранов. Проверка диплома ничего
+            не запрещает (§56), а жёлтая полоса во всю ширину читалась как условие работы.
+            Состояние живёт в учётной записи строкой — `VerificationLine`. */}
 
         {loading && !page ? (
           <Skeleton />
@@ -451,7 +452,7 @@ function NowSlot({
       </div>
       <div className={styles.nowRow}>
         <Button
-          variant="go"
+          variant="primary"
           loading={starting}
           onClick={() => {
             if (isLesson && entry.sessionId) {

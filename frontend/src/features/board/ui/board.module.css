@@ -34,8 +34,8 @@
   color: var(--color-text);
 }
 .tool[aria-pressed='true'] {
-  background: var(--color-accent-subtle);
-  color: var(--color-accent-text);
+  background: var(--color-go-bg);
+  color: var(--color-go-text);
 }
 .tool:disabled {
   color: var(--color-text-disabled);
@@ -83,8 +83,8 @@
 }
 
 .sticker {
-  fill: var(--color-accent-subtle);
-  stroke: var(--color-accent-subtle-border);
+  fill: var(--color-go-bg);
+  stroke: var(--color-go-border);
 }
 .shape {
   fill: var(--color-surface);
@@ -98,7 +98,7 @@
   stroke-linejoin: round;
 }
 .penLive {
-  stroke: var(--color-accent);
+  stroke: var(--color-go);
 }
 .link {
   stroke: var(--color-text-tertiary);
@@ -120,11 +120,11 @@
 }
 g[data-selected] rect,
 path[data-selected] {
-  stroke: var(--color-accent);
+  stroke: var(--color-go);
   stroke-width: 2;
 }
 g[data-linking] rect {
-  stroke: var(--color-accent);
+  stroke: var(--color-go);
   stroke-dasharray: 4 3;
 }
 
@@ -134,7 +134,7 @@ g[data-linking] rect {
   width: 12px;
   height: 12px;
   margin: -6px 0 0 -6px;
-  border: 1px solid var(--color-accent);
+  border: 1px solid var(--color-go);
   border-radius: var(--radius-xs);
   background: var(--color-surface);
   cursor: nwse-resize;
@@ -169,7 +169,7 @@ g[data-linking] rect {
 
 /* Файл тащат на холст — показываем, что отпускать можно сюда (§28.2 п.3). */
 .surface[data-dropping] {
-  outline: 2px dashed var(--color-accent);
+  outline: 2px dashed var(--color-go);
   outline-offset: -4px;
 }
 
@@ -178,7 +178,7 @@ g[data-linking] rect {
 .hintBtn {
   background: none;
   border: 0;
-  color: var(--color-accent);
+  color: var(--color-go);
   cursor: pointer;
   font: inherit;
   padding: 0;

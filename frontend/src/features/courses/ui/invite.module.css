@@ -50,7 +50,7 @@
   border: none;
   border-radius: var(--radius-control);
   background: none;
-  color: var(--color-accent);
+  color: var(--color-go);
   cursor: pointer;
 }
 
@@ -224,7 +224,7 @@
 
 /* Ждёт согласия родителя — единственное акцентное слово половины: оно требует действия. */
 .whoState[data-waiting] {
-  color: var(--color-accent-text);
+  color: var(--color-go-text);
 }
 
 /* Решение по заявке — две кнопки в самой строке (правило 7.1а: цель — строка, а не значок

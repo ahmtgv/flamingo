@@ -16,7 +16,6 @@ import { useTeacherDashboardQuery } from '@/entities/graphql/generated';
 import { Button, ErrorState } from '@/shared/ui';
 
 import { CabinetLayout, type CabinetNavItem } from './CabinetLayout';
-import { VerificationBanner } from './VerificationBanner';
 import styles from './cabinet.module.css';
 import { initialsOf } from './initials';
 import {
@@ -38,7 +37,6 @@ type Me = NonNullable<MeQuery['me']>;
 export function TeacherCabinet({ me }: { me: Me }) {
   const { t } = useTranslation('cabinet');
   const navigate = useNavigate();
-  const tp = me.teacherProfile;
   // §47.1: начать урок — значит дождаться сервера, а не перейти по адресу.
   const { start, starting, failed } = useStartLesson();
   const { data, loading, error, refetch } = useTeacherDashboardQuery();
@@ -96,7 +94,9 @@ export function TeacherCabinet({ me }: { me: Me }) {
 
         {/* Верификация — свой блок: у неё четыре состояния и своя кнопка загрузки, а не
             одна строка текста (находка владельца 15.08, п.4). */}
-        <VerificationBanner profile={tp} />
+        {/* §50.1: плашка о документах убрана с видных экранов. Проверка диплома ничего
+            не запрещает (§56), а жёлтая полоса во всю ширину читалась как условие работы.
+            Состояние живёт в учётной записи строкой — `VerificationLine`. */}
 
         {loading && !dash ? (
           <div data-testid="teacher-dash-skeleton" aria-busy="true">
@@ -213,7 +213,7 @@ export function TeacherCabinet({ me }: { me: Me }) {
                           {/* 🔴 §47.1: вторая кнопка-обманка. Делала только переход —
                               занятие оставалось назначенным, а комната пустой. */}
                           <Button
-                            variant="go"
+                            variant="primary"
                             size="sm"
                             loading={starting}
                             onClick={() => void start(s.id)}

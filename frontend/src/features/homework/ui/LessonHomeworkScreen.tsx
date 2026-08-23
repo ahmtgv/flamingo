@@ -218,7 +218,7 @@ function TeacherHomeworkCard({ hw, onDone }: { hw: HomeworkRow; onDone: () => vo
           {grading ? t('actions.hideGrading') : t('actions.grade')}
         </Button>
         <Button
-          variant="ghost"
+          variant="danger"
           size="sm"
           icon={<Trash2 size={ICON_SM} />}
           loading={deleting}

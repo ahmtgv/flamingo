@@ -54,7 +54,7 @@
   border: none;
   border-radius: var(--radius-control);
   background: none;
-  color: var(--color-accent);
+  color: var(--color-go);
   cursor: pointer;
 }
 

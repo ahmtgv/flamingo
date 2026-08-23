@@ -141,7 +141,7 @@
 .headBar i {
   display: block;
   height: 100%;
-  background: var(--color-accent);
+  background: var(--color-go);
   border-radius: var(--radius-xs);
 }
 
@@ -174,7 +174,7 @@
 }
 .tab[aria-selected='true'] {
   color: var(--color-text);
-  border-bottom-color: var(--color-accent);
+  border-bottom-color: var(--color-go);
 }
 .tab:focus-visible {
   outline: none;
@@ -281,7 +281,7 @@
   color: var(--color-text-secondary);
 }
 .stNow {
-  background: var(--color-accent-solid);
+  background: var(--color-go-solid);
   border-color: transparent;
   color: var(--color-text-on-accent);
 }
@@ -317,8 +317,8 @@
   letter-spacing: var(--tracking-wide);
 }
 .chipLive {
-  color: var(--color-accent-text);
-  border-color: var(--color-accent);
+  color: var(--color-go-text);
+  border-color: var(--color-go);
 }
 .lesRight {
   display: grid;
@@ -550,7 +550,7 @@ a.matName:focus-visible {
   padding: 0 var(--space-4);
   border: 0;
   border-radius: var(--radius-sm);
-  background: var(--color-accent-solid);
+  background: var(--color-go-solid);
   color: var(--color-text-on-accent);
   font-family: var(--font-body);
   font-size: var(--text-small);
@@ -842,7 +842,7 @@ a.srcName:focus-visible {
   color: var(--color-text-secondary);
   margin-top: 7px;
   padding-inline-start: 10px;
-  border-inline-start: 2px solid var(--color-accent);
+  border-inline-start: 2px solid var(--color-go);
   max-width: 58ch;
   line-height: var(--leading-snug);
 }
@@ -906,7 +906,7 @@ a.srcName:focus-visible {
 .tBar i {
   display: block;
   height: 100%;
-  background: var(--color-accent);
+  background: var(--color-go);
   border-radius: var(--radius-xs);
 }
 /* A weak topic is grey, not red — it is somewhere to go back to, not a verdict. */

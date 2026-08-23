@@ -338,7 +338,7 @@ export function CreateCourseScreen() {
           <section className={styles.railCard}>
             <div className={styles.actions}>
               {/* Зелёный — «решено, можно дальше» (ПРАВИЛА 5.8). Публикация и есть решение. */}
-              <Button variant="go" loading={publishing} onClick={() => void save(true)}>
+              <Button variant="primary" loading={publishing} onClick={() => void save(true)}>
                 {t('create.publish')}
               </Button>
               <Button variant="secondary" loading={loading} onClick={() => void save(false)}>

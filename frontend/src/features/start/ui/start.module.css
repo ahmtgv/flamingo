@@ -66,7 +66,7 @@
   border: none;
   border-radius: var(--radius-control);
   background: none;
-  color: var(--color-accent);
+  color: var(--color-go);
   cursor: pointer;
 }
 
@@ -307,7 +307,7 @@
  * заливка на экране: кнопка «Вернуться в урок». Всё остальное здесь чернильное.
  */
 .sNow {
-  border-inline-start: 2px solid var(--color-accent);
+  border-inline-start: 2px solid var(--color-go);
   gap: var(--space-4);
 }
 
@@ -320,14 +320,14 @@
   font-weight: 500;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--color-accent-text);
+  color: var(--color-go-text);
 }
 
 .nowKicker i {
   inline-size: 5px;
   block-size: 5px;
   border-radius: 50%;
-  background: var(--color-accent);
+  background: var(--color-go);
   animation: startPulse 2.4s var(--ease-standard) infinite;
 }
 
@@ -427,7 +427,7 @@
   block-size: 5px;
   flex: none;
   border-radius: 50%;
-  background: var(--color-accent);
+  background: var(--color-go);
 }
 
 /* Действие в строке — словом с приглушённым подчёркиванием, не коралловым (ПРАВИЛА 5.3). */
@@ -459,7 +459,7 @@
 }
 
 .rTagWarn {
-  color: var(--color-accent-text);
+  color: var(--color-go-text);
 }
 
 /* ── Недельная полоса ────────────────────────────────────────────────────────── */
@@ -516,8 +516,8 @@
 
 /* Сегодняшнее занятие подсвечено подложкой, а не заливкой акцентом. */
 .dayToday .chip {
-  background: var(--color-accent-subtle);
-  border-color: var(--color-accent-subtle);
+  background: var(--color-go-bg);
+  border-color: var(--color-go-bg);
 }
 
 .chipTime {
@@ -728,7 +728,7 @@
 }
 
 .nowLive {
-  border-inline-start: 2px solid var(--color-accent);
+  border-inline-start: 2px solid var(--color-go);
 }
 
 .nowKind {
@@ -744,7 +744,7 @@
 }
 
 .nowLive .nowKind {
-  color: var(--color-accent-text);
+  color: var(--color-go-text);
 }
 
 .nowDot {
@@ -800,7 +800,7 @@
   flex-basis: 100%;
   font-size: var(--text-small);
   line-height: var(--leading-snug);
-  color: var(--color-accent-text);
+  color: var(--color-go-text);
 }
 
 /* ── Недельная полоса — состав из разметки ───────────────────────────────────── */
@@ -853,7 +853,7 @@
 }
 
 .dayToday {
-  background: var(--color-accent-subtle);
+  background: var(--color-go-bg);
 }
 
 /*
@@ -925,12 +925,12 @@
 }
 
 .evLive {
-  background: var(--color-accent-subtle);
+  background: var(--color-go-bg);
 }
 
 .evLive .evTime,
 .evLive .evName {
-  color: var(--color-accent-text);
+  color: var(--color-go-text);
 }
 
 .dMore {
@@ -1066,7 +1066,7 @@
   block-size: 18px;
   padding-inline: 5px;
   border-radius: var(--radius-pill);
-  background: var(--color-accent-solid);
+  background: var(--color-go-solid);
   font-family: var(--font-mono);
   font-size: var(--text-caption);
   font-variant-numeric: tabular-nums;

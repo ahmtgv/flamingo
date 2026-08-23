@@ -33,7 +33,7 @@
 
 /* Идёт сейчас, горит срок — коралловая полоса слева. */
 .now {
-  border-inline-start: 2px solid var(--color-accent);
+  border-inline-start: 2px solid var(--color-go);
 }
 
 /* Решено, принято, пройдено — зелёная полоса слева (ПРАВИЛА 5.8). */

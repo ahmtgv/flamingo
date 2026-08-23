@@ -996,6 +996,21 @@ function TeacherRoom({
       lessonId={lessonId}
       isLive={isLive}
       isTeacher
+      /* §50.4: вход в эфир переехал из карточки поверх доски в пульт — туда, где живут
+         действия комнаты. Доска при этом видна всегда. */
+      actions={
+        !joined ? (
+          <Button
+            variant="primary"
+            size="sm"
+            icon={<Video size={ICON_SM} />}
+            disabled={!isLive}
+            onClick={() => void join()}
+          >
+            {t('lesson:join')}
+          </Button>
+        ) : undefined
+      }
       classTeacher={{
         id: 'self',
         name: selfName,
@@ -1048,25 +1063,17 @@ function TeacherRoom({
         );
       }}
     >
-      <div className={styles.card}>
+      {/* 🔴 §50.4 (и §58): карточки поверх доски больше нет. Она лежала во весь кадр,
+          закрывала холст и держала на себе единственную кнопку входа в эфир — владелец
+          прислал это снимком. Пока преподаватель не в эфире, поверх доски не рисуется
+          НИЧЕГО: вход живёт в пульте, отказ камеры — строкой там же. */}
+      <div className={joined ? styles.card : styles.cardHidden}>
         {!joined ? (
           <>
             {!isLive && <p className={styles.note}>{t('lesson:notLive')}</p>}
             {cameraError ? (
               <CameraErrorNote kind={cameraError} disabled={!isLive} onRetry={() => void join()} />
-            ) : (
-              <div className={styles.actions}>
-                <Button
-                  variant="primary"
-                  size="sm"
-                  icon={<Video size={ICON_SM} />}
-                  disabled={!isLive}
-                  onClick={() => void join()}
-                >
-                  {t('lesson:join')}
-                </Button>
-              </div>
-            )}
+            ) : null}
           </>
         ) : (
           <VideoRoom

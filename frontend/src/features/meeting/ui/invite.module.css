@@ -99,8 +99,8 @@
   display: inline-block;
 }
 .btn {
-  border-color: var(--color-accent);
-  background: var(--color-accent-solid);
+  border-color: var(--color-go);
+  background: var(--color-go-solid);
   color: var(--color-text-on-accent);
   padding: var(--space-3) var(--space-6);
   font-size: var(--text-small);
@@ -109,7 +109,7 @@
   background: var(--color-surface-hover);
 }
 .btn:hover {
-  background: var(--color-accent-hover);
+  background: var(--color-go-solid-hover);
 }
 .mini:disabled {
   opacity: 0.45;
@@ -206,8 +206,8 @@
   color: var(--color-success-text);
 }
 .person[data-state='AT_THE_DOOR'] .state {
-  background: var(--color-accent-subtle);
-  color: var(--color-accent-text);
+  background: var(--color-go-bg);
+  color: var(--color-go-text);
 }
 .person[data-state='NEVER_OPENED'] .state {
   color: var(--color-text-tertiary);

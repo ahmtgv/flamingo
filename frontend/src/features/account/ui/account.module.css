@@ -110,7 +110,7 @@
 }
 
 .state[data-state='revoked'] {
-  color: var(--color-accent-text);
+  color: var(--color-go-text);
 }
 
 .state[data-state='missing'] {
@@ -169,4 +169,39 @@
 .row {
   min-block-size: var(--tap-min);
   align-items: center;
+}
+
+/* §50.1: проверка диплома — строка состояния, а не плашка. Ни жёлтого фона, ни кнопки во
+   всю ширину: она ничего не запрещает, и экран не должен выглядеть как условие работы. */
+.line {
+  margin: 0;
+  font-size: var(--text-small);
+  color: var(--color-text);
+}
+
+.fileRow {
+  display: inline-flex;
+  cursor: pointer;
+}
+
+.fileBtn {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: var(--control-height-sm);
+  padding-inline: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  background: var(--color-surface);
+  font-size: var(--text-small);
+  color: var(--color-text);
+}
+
+.fileRow:hover .fileBtn {
+  border-color: var(--color-border-strong);
+}
+
+.failed {
+  margin: 0;
+  font-size: var(--text-small);
+  color: var(--color-error-text, var(--color-text));
 }

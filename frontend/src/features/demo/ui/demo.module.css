@@ -39,7 +39,7 @@
   font-size: var(--text-small);
   padding: var(--space-2) var(--space-4);
   border-radius: var(--radius-control);
-  background: var(--color-accent-solid);
+  background: var(--color-go-solid);
   color: var(--color-on-accent);
 }
 

@@ -374,7 +374,7 @@ function ReportForm({
         <Button size="sm" type="submit">
           {t('chat:report.submit')}
         </Button>
-        <Button size="sm" variant="ghost" onClick={onCancel}>
+        <Button size="sm" variant="danger" onClick={onCancel}>
           {t('chat:report.cancel')}
         </Button>
       </div>

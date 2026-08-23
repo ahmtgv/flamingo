@@ -479,7 +479,7 @@
   flex: none;
 }
 .materialLink {
-  color: var(--color-accent-text);
+  color: var(--color-go-text);
   text-decoration: none;
 }
 .materialLink:hover {

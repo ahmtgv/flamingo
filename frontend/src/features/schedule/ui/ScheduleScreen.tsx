@@ -217,7 +217,7 @@ export function ScheduleScreen() {
                       {t('actions.room')}
                     </Button>
                     <Button
-                      variant="secondary"
+                      variant="danger"
                       size="sm"
                       icon={<Square size={ICON_SM} />}
                       onClick={() => void act(() => endSession({ variables: { sessionId: s.id } }))}

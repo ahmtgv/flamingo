@@ -358,7 +358,7 @@ function OwnerConstructor({ course, onDone }: { course: CourseT; onDone: () => v
           {/* §57: публикация — то самое действие, после которого изменение видят другие. */}
           {isDraft ? (
             <Button
-              variant="go"
+              variant="primary"
               size="sm"
               loading={publishing}
               onClick={() => void act(() => publishCourse({ variables: { id: course.id } }))}
@@ -732,7 +732,7 @@ function AddSectionForm({ courseId, onDone }: { courseId: string; onDone: () => 
       <Button type="submit" variant="secondary" size="sm" icon={<Plus size={ICON_SM} />} loading={loading}>
         {t('manage.add')}
       </Button>
-      <Button type="button" variant="secondary" size="sm" onClick={() => setOpen(false)}>
+      <Button type="button" variant="danger" size="sm" onClick={() => setOpen(false)}>
         {t('manage.cancel')}
       </Button>
     </form>
@@ -779,7 +779,7 @@ function AddLessonForm({ sectionId, onDone }: { sectionId: string; onDone: () =>
       <Button type="submit" variant="secondary" size="sm" icon={<Plus size={ICON_SM} />} loading={loading}>
         {t('manage.add')}
       </Button>
-      <Button type="button" variant="secondary" size="sm" onClick={() => setOpen(false)}>
+      <Button type="button" variant="danger" size="sm" onClick={() => setOpen(false)}>
         {t('manage.cancel')}
       </Button>
     </form>
@@ -813,7 +813,7 @@ function SectionEditForm({ section, onDone }: { section: SectionT; onDone: () =>
       <Button type="submit" variant="secondary" size="sm" loading={loading}>
         {t('manage.save')}
       </Button>
-      <Button type="button" variant="secondary" size="sm" onClick={() => setOpen(false)}>
+      <Button type="button" variant="danger" size="sm" onClick={() => setOpen(false)}>
         {t('manage.cancel')}
       </Button>
     </form>
@@ -857,7 +857,7 @@ function LessonEditForm({ lesson, onDone }: { lesson: LessonT; onDone: () => voi
       <Button type="submit" variant="secondary" size="sm" loading={loading}>
         {t('manage.save')}
       </Button>
-      <Button type="button" variant="secondary" size="sm" onClick={() => setOpen(false)}>
+      <Button type="button" variant="danger" size="sm" onClick={() => setOpen(false)}>
         {t('manage.cancel')}
       </Button>
     </form>

@@ -298,7 +298,7 @@ export function ScheduleLessonScreen() {
             <div className={styles.actions}>
               {/* Зелёный — «решено, можно дальше» (ПРАВИЛА 5.8): занятие встало в расписание. */}
               <Button
-                variant="go"
+                variant="primary"
                 loading={loading}
                 disabled={done || inThePast}
                 onClick={() => void submit()}

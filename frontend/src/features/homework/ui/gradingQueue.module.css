@@ -49,7 +49,7 @@
   border: none;
   border-radius: var(--radius-control);
   background: none;
-  color: var(--color-accent);
+  color: var(--color-go);
   cursor: pointer;
 }
 
@@ -189,7 +189,7 @@
 }
 
 .row[aria-current='true'] {
-  background: var(--color-accent-subtle);
+  background: var(--color-go-bg);
 }
 
 .row:focus-visible {
@@ -223,7 +223,7 @@
 }
 
 .late {
-  color: var(--color-accent-text);
+  color: var(--color-go-text);
 }
 
 .queueFoot {
@@ -344,8 +344,8 @@
 }
 
 .mark[aria-pressed='true'] {
-  border-color: var(--color-accent-solid);
-  background: var(--color-accent-solid);
+  border-color: var(--color-go-solid);
+  background: var(--color-go-solid);
   color: var(--color-on-accent);
 }
 

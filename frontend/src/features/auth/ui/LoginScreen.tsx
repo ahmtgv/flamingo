@@ -104,7 +104,7 @@ export function LoginScreen() {
         />
         <div className={styles.actions}>
           {/* §57: «Войти» — главное действие экрана. */}
-          <Button type="submit" variant="go" loading={loading}>
+          <Button type="submit" variant="primary" loading={loading}>
             {t('login.submit')}
           </Button>
           <button type="button" className={styles.link} onClick={() => navigate('/reset')}>
