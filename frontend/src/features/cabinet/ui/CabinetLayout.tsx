@@ -19,6 +19,11 @@ export interface CabinetNavItem {
   active?: boolean;
   /** Route to navigate to; makes a non-active item a working link. */
   to?: string;
+  /**
+   * §59: дверь в неоформленный экран. Пункт виден и назван, но не нажимается, и здесь
+   * лежит ПРИЧИНА — её человек обязан прочесть, иначе приглушение выглядит поломкой.
+   */
+  note?: string;
 }
 
 interface CabinetLayoutProps {
@@ -75,7 +80,9 @@ export function CabinetLayout({ nav, user, canUploadAvatar, children }: CabinetL
             >
               <Icon />
               {item.label}
-              {!interactive && <span className={styles.navSoon}>{t('soon')}</span>}
+              {!interactive && (
+                <span className={styles.navSoon}>{item.note ?? t('soon')}</span>
+              )}
             </button>
           );
         })}

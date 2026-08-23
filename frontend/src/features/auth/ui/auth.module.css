@@ -487,3 +487,23 @@
     margin-block: 0;
   }
 }
+
+/* §59: приглушённая дверь — цветом и весом, без прозрачности (правило 4.7). Причина
+   обязана читаться: это не подсказка, а объяснение, почему нельзя. */
+.roleMuted {
+  cursor: default;
+  border-style: dashed;
+  background: var(--color-surface-subtle);
+}
+
+.roleMuted .roleTitle {
+  color: var(--color-text-secondary);
+}
+
+.roleWhy {
+  grid-column: 1 / -1;
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  line-height: var(--leading-snug);
+  color: var(--color-text-detail);
+}

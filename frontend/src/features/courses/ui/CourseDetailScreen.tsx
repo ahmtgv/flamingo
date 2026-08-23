@@ -355,9 +355,10 @@ function OwnerConstructor({ course, onDone }: { course: CourseT; onDone: () => v
           >
             {t('manage.editDescription')}
           </Button>
+          {/* §57: публикация — то самое действие, после которого изменение видят другие. */}
           {isDraft ? (
             <Button
-              variant="primary"
+              variant="go"
               size="sm"
               loading={publishing}
               onClick={() => void act(() => publishCourse({ variables: { id: course.id } }))}

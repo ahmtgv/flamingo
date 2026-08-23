@@ -13,7 +13,7 @@ import {
   useSaveItemMutation,
   useSubjectCabinetQuery,
 } from '@/entities/graphql/generated';
-import { Button, ErrorState, Logo } from '@/shared/ui';
+import { Button, MutedDoor, ErrorState, Logo } from '@/shared/ui';
 import { ICON_MD } from '@/shared/ui/iconSizes';
 
 import styles from './subject.module.css';
@@ -285,8 +285,9 @@ export function SubjectScreen() {
                     else navigate(`/lessons/${lesson.id}/homework`);
                   }}
                 />
-                <Who cab={cab} isTeacher={isTeacher} // Лист 01 обещает журнал — теперь он и открывается (наряд 36 §5).
-                  onJournal={() => navigate(`/journal/${courseId}`)} />
+                {/* §59: журнал остаётся на старом оформлении и не рисуется (решение владельца
+                    в пользу «не рисуем»). Дверь не убрана — она приглушается внутри `Who`. */}
+                <Who cab={cab} isTeacher={isTeacher} journalWhy={t('common:soon.journal')} />
                 <Sources
                   sources={cab.sources}
                   onKeep={(s, note, later) => void keepSource(s, note, later)}
@@ -600,11 +601,12 @@ function NextAction({
 function Who({
   cab,
   isTeacher,
-  onJournal,
+  journalWhy,
 }: {
   cab: Cabinet;
   isTeacher: boolean;
-  onJournal: () => void;
+  /** §59: журнал не рисуется — дверь остаётся, но не нажимается, и здесь сказано почему. */
+  journalWhy: string;
 }) {
   const { t } = useTranslation('subject');
   return (
@@ -621,9 +623,7 @@ function Who({
             {t('rail.students', { count: cab.studentCount ?? 0 })}
           </span>
           <div className={styles.nextAct}>
-            <Button size="sm" variant="secondary" onClick={onJournal}>
-              {t('rail.openJournal')}
-            </Button>
+            <MutedDoor label={t('rail.openJournal')} why={journalWhy} />
           </div>
         </div>
       ) : cab.teacherName ? (

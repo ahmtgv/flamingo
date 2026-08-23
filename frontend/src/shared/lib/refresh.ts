@@ -12,7 +12,7 @@ import {
  * Apollo so it can be called from the error link without recursion. De-duped so
  * concurrent auth failures trigger a single network refresh.
  */
-let refreshInFlight: Promise<boolean> | null = null;
+let refreshInFlight: Promise<RefreshOutcome> | null = null;
 
 /**
  * 🔴 Сколько ждать сервер, прежде чем признать, что связи нет (промпт 21 §2.1).
@@ -27,9 +27,40 @@ let refreshInFlight: Promise<boolean> | null = null;
  */
 const REFRESH_TIMEOUT_MS = 10_000;
 
-async function doRefresh(): Promise<boolean> {
+/**
+ * Чем кончилась попытка обновиться. Три исхода, и путать их нельзя.
+ *
+ * 🔴 «СЕРВЕР НЕ ОТВЕТИЛ» И «ТЕБЯ НЕ ПРИЗНАЛИ» — РАЗНЫЕ СОБЫТИЯ (наряд 48 §1).
+ *
+ * Здесь стоял `boolean`, и `clearSession()` жил в хвосте — то есть срабатывал при ЛЮБОМ
+ * неуспехе, включая обрыв сети и таймаут. Замерено 22.08: сервер убран на полминуты —
+ * и весь класс, включая комнату урока, оказывается на форме входа; ключ обновления при
+ * этом стёрт, поэтому вернувшийся сервер уже не помогает — надо вводить пароль.
+ *
+ * Ключ чистим ровно в одном случае: сервер ОТВЕТИЛ и сказал, что ключ недействителен.
+ */
+export type RefreshOutcome =
+  /** Сервер выдал новую пару — сессия жива. */
+  | 'refreshed'
+  /** Сервер ответил и отказал: ключ недействителен. Только здесь чистим. */
+  | 'rejected'
+  /** Сервера нет: сеть, таймаут, 502. Ключ трогать нельзя — он, скорее всего, в порядке. */
+  | 'unreachable';
+
+/** Ответил ли сервер «этот ключ недействителен», а не «мне сейчас плохо». */
+function saysKeyIsDead(status: number, json: { errors?: { message?: string }[] } | null): boolean {
+  // 5xx — это про сервер, а не про ключ. 4xx с внятным отказом — про ключ.
+  if (status >= 500) return false;
+  const messages = (json?.errors ?? []).map((e) => String(e?.message ?? ''));
+  if (messages.some((m) => /invalid|expired|revoked|not found|недейств|истёк|отозв/i.test(m)))
+    return true;
+  // Ответ 200 с `data.refreshToken === null` и без ошибок — сервер отработал и не признал ключ.
+  return status >= 200 && status < 500 && (json?.errors ?? []).length === 0;
+}
+
+async function doRefresh(): Promise<RefreshOutcome> {
   const refreshToken = getRefreshToken();
-  if (!refreshToken) return false;
+  if (!refreshToken) return 'rejected';
   const abort = new AbortController();
   const timer = setTimeout(() => abort.abort(), REFRESH_TIMEOUT_MS);
   try {
@@ -43,24 +74,36 @@ async function doRefresh(): Promise<boolean> {
         variables: { r: refreshToken },
       }),
     });
-    const json = (await res.json()) as {
-      data?: { refreshToken?: { token: string; refreshToken: string } };
-    };
-    const payload = json.data?.refreshToken;
+    let json: {
+      data?: { refreshToken?: { token: string; refreshToken: string } | null };
+      errors?: { message?: string }[];
+    } | null = null;
+    try {
+      json = await res.json();
+    } catch {
+      // Ответ есть, но это не наш JSON: прокси отдал страницу ошибки. Сервер, а не ключ.
+      return 'unreachable';
+    }
+    const payload = json?.data?.refreshToken;
     if (payload?.token) {
       setSession(payload.token, payload.refreshToken);
-      return true;
+      return 'refreshed';
     }
+    if (saysKeyIsDead(res.status, json)) {
+      clearSession();
+      return 'rejected';
+    }
+    return 'unreachable';
   } catch {
-    /* сеть отказала или вышел таймаут — падаем в очистку */
+    // Сеть отказала или вышел таймаут. Сессию НЕ трогаем: через минуту сервер вернётся,
+    // и урок продолжится без единого пароля.
+    return 'unreachable';
   } finally {
     clearTimeout(timer);
   }
-  clearSession();
-  return false;
 }
 
-export function refreshAccessToken(): Promise<boolean> {
+export function refreshAccessToken(): Promise<RefreshOutcome> {
   if (!refreshInFlight) {
     refreshInFlight = doRefresh().finally(() => {
       refreshInFlight = null;
@@ -88,11 +131,38 @@ export async function bootstrapSession(): Promise<void> {
     markUnauthenticated();
     return;
   }
+  let outcome: RefreshOutcome = 'unreachable';
   try {
-    await refreshAccessToken();
+    outcome = await refreshAccessToken();
   } catch {
     // Сюда попасть не должно — `doRefresh` ловит своё сам. Но «не должно» здесь стоило бы
     // вечной загрузки, а не строки в логе, поэтому ветка закрыта явно.
-    clearSession();
+    outcome = 'unreachable';
+  }
+  if (outcome === 'refreshed') return;
+  /*
+   * 🔴 Сервера нет — это НЕ «выйди и введи пароль».
+   *
+   * Экран не должен висеть на «Загрузка…», поэтому статус разрешаем в «не вошёл». Но ключ
+   * обновления остаётся на месте, и мы продолжаем тихо стучаться: вернулся сервер — сессия
+   * восстановилась сама, человек ничего не заметил. Так ведёт себя связь, а не забор.
+   */
+  if (outcome === 'unreachable') {
+    markUnauthenticated();
+    void keepTrying();
+    return;
+  }
+  markUnauthenticated();
+}
+
+/** Сколько раз и через сколько стучаться, пока сервер не вернётся. */
+const RETRY_DELAYS_MS = [3_000, 5_000, 10_000, 20_000, 30_000];
+
+async function keepTrying(): Promise<void> {
+  for (const delay of RETRY_DELAYS_MS) {
+    await new Promise((r) => setTimeout(r, delay));
+    if (!getRefreshToken()) return; // человек вышел сам — больше не наше дело
+    const outcome = await refreshAccessToken();
+    if (outcome !== 'unreachable') return; // вернулись или получили честный отказ
   }
 }

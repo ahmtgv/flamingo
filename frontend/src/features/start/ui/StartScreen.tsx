@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { useStartLesson } from '@/features/lesson/startLesson';
+import { MutedDoor } from '@/shared/ui';
 import { Navigate, useNavigate } from 'react-router-dom';
 
 import { useAppDispatch, useAppSelector } from '@/app/hooks';
@@ -450,7 +451,7 @@ function NowSlot({
       </div>
       <div className={styles.nowRow}>
         <Button
-          variant="primary"
+          variant="go"
           loading={starting}
           onClick={() => {
             if (isLesson && entry.sessionId) {
@@ -495,7 +496,7 @@ function AttentionRow({
   /** Чат — окно поверх страницы (лист 00), а не экран: строка открывает его же. */
   onOpenChat: () => void;
 }) {
-  const { t } = useTranslation('start');
+  const { t } = useTranslation(['start', 'common']);
 
   // 🔴 §27.5 п.1. Три вида записей листа, а не один. Ветки ЯВНЫЕ: неизвестный вид иначе
   // проваливался бы в ветку домашней работы ниже и рисовался как задание со сроком —
@@ -553,9 +554,9 @@ function AttentionRow({
             {t('entry.repetition', { count: entry.count ?? 0 })}
           </span>
         </span>
-        <Button variant="secondary" size="sm" onClick={() => navigate('/repetition')}>
-          {t('entry.openRepetition')}
-        </Button>
+        {/* §59: экран повторения на старом оформлении и рисоваться сейчас не будет.
+            Дверь остаётся видимой и названной — но не нажимается, и сказано почему. */}
+        <MutedDoor label={t('entry.openRepetition')} why={t('common:soon.repetition')} />
       </div>
     );
   }
@@ -631,7 +632,7 @@ function AttentionRow({
  * преподаватель имеет право их различить. Числа без опоры выглядят точнее, чем есть.
  */
 function MasterySlot({ rows }: { rows: Page['mastery'] }) {
-  const { t } = useTranslation('start');
+  const { t } = useTranslation(['start', 'common']);
   const navigate = useNavigate();
   return (
     <section className={styles.slot} aria-label={t('slots.mastery')}>
@@ -664,7 +665,7 @@ function MasterySlot({ rows }: { rows: Page['mastery'] }) {
 }
 
 function TeachingSlot({ rows }: { rows: Page['teaching'] }) {
-  const { t } = useTranslation('start');
+  const { t } = useTranslation(['start', 'common']);
   const navigate = useNavigate();
 
   return (
@@ -748,7 +749,7 @@ function shiftDate(iso: string | undefined, days: number): string {
 }
 
 function WeekStrip({ week, isCadet }: { week: Page['week']; isCadet: boolean }) {
-  const { t } = useTranslation('start');
+  const { t } = useTranslation(['start', 'common']);
   const navigate = useNavigate();
   /** Насколько недель ушли от текущей. 0 — та, что пришла со стартовой. */
   const [offset, setOffset] = useState(0);
@@ -845,7 +846,7 @@ function Skeleton() {
 }
 
 function NoProfile() {
-  const { t } = useTranslation('start');
+  const { t } = useTranslation(['start', 'common']);
   const navigate = useNavigate();
   return (
     <div className={styles.blank}>

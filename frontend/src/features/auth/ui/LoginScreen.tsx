@@ -103,7 +103,8 @@ export function LoginScreen() {
           autoComplete="current-password"
         />
         <div className={styles.actions}>
-          <Button type="submit" variant="primary" loading={loading}>
+          {/* §57: «Войти» — главное действие экрана. */}
+          <Button type="submit" variant="go" loading={loading}>
             {t('login.submit')}
           </Button>
           <button type="button" className={styles.link} onClick={() => navigate('/reset')}>

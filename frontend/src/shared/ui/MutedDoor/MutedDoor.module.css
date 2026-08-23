@@ -1,0 +1,25 @@
+/* Приглушение цветом и весом (правило 4.7). Ни одной `opacity` в этом файле — намеренно. */
+.door {
+  display: inline-flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-3) var(--space-4);
+  border: 1px dashed var(--color-border-strong);
+  border-radius: var(--radius-control);
+  background: var(--color-surface-subtle);
+  cursor: default;
+}
+
+.label {
+  font-size: var(--text-small);
+  font-weight: var(--weight-regular);
+  color: var(--color-text-secondary);
+}
+
+/* Причина — не подсказка, а часть смысла: читается обязательно (правило 4.11 → detail). */
+.why {
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  line-height: var(--leading-snug);
+  color: var(--color-text-detail);
+}

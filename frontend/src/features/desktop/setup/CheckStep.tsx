@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { Button } from '@/shared/ui';
+
 import { useReportUplinkMutation } from '@/entities/graphql/generated';
 import type { UplinkVerdict } from '@/entities/graphql/generated';
 
@@ -47,7 +49,14 @@ export function CheckStep({ onNext }: { onNext: () => void }) {
       if (media.stream) el.srcObject = media.stream;
       // В WKWebView одного `srcObject` мало: `autoPlay` там не срабатывает для потока, и
       // превью остаётся серым при живой камере (найдено владельцем 16.08).
-      void el.play().catch(() => undefined);
+      //
+      // ⚠️ `play()` бывает и не промисом: в jsdom он бросает синхронно. Ссылочный обработчик,
+      // который бросает, уносит с собой всё дерево — экран исчезает целиком. Ловим оба вида.
+      try {
+        void el.play()?.catch?.(() => undefined);
+      } catch {
+        /* среда без воспроизведения — превью не главное, экран важнее */
+      }
     },
     [media.stream],
   );
@@ -56,16 +65,16 @@ export function CheckStep({ onNext }: { onNext: () => void }) {
   const [left, setLeft] = useState(PROBE_SECONDS);
   const [result, setResult] = useState<{ verdict: UplinkVerdict; groupSize: number } | null>(null);
 
-  // 🔴 Проверка, а не перечисление (промпт 21 §3.2). Раньше экран звал `enumerateDevices()`
-  // и на этом успокаивался — а до выдачи разрешения этот список приходит без названий, часто
-  // пустой. Отсюда «Камера не найдена» на маке со встроенной камерой. Теперь спрашиваем
-  // разрешение по-настоящему: человек видит себя и видит, что микрофон слышит.
-  useEffect(() => {
-    void media.start();
-    // start стабилен по ссылке; повторный запрос разрешения нам не нужен и не поможет —
-    // macOS показывает системное окно один раз за жизнь приложения.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  /*
+   * 🔴 КАМЕРА ВКЛЮЧАЕТСЯ НАЖАТИЕМ, А НЕ САМА (наряд 48 §2, формулировка дизайнера).
+   *
+   * Здесь стоял `void media.start()` при монтировании. Замерено 23.08: два обращения к
+   * камере и микрофону сразу по приходе на шаг, зелёный индикатор macOS горит — а на экране
+   * ни строки о том, куда идут кадры. Система сообщала то, чего не сообщил продукт.
+   *
+   * Проверка при этом остаётся настоящей (промпт 21 §3.2): не `enumerateDevices()`, который
+   * до разрешения отдаёт список без названий, а честный запрос — но по нажатию человека.
+   */
 
   // Превью — локальное, поток наружу не уходит (CLAUDE.md §2.1); привязка — в `attachVideo`.
 
@@ -108,10 +117,37 @@ export function CheckStep({ onNext }: { onNext: () => void }) {
 
         {/* 🔴 Видно себя. Прежний экран показывал текст о том, найдена ли камера; человек
             узнавал, что она не та или смотрит в потолок, уже на уроке. */}
+        {/* До нажатия — тёмный кадр и приглашение. Зелёная заливка сюда не идёт (§57):
+            главное действие шага — «Дальше», а не «включить камеру». */}
+        {media.state !== 'live' && (
+          <div className={styles.preview}>
+            <div className={styles.previewDark}>
+              <Button
+                variant="secondary"
+                onClick={() => void media.start()}
+                loading={media.state === 'asking'}
+              >
+                {t('setup.check.turnOn')}
+              </Button>
+              <p className={styles.note}>{t('setup.check.beforeOn')}</p>
+            </div>
+          </div>
+        )}
+
         {media.state === 'live' && (
           <div className={styles.preview}>
             {media.cameras.length > 0 ? (
-              <video ref={attachVideo} className={styles.previewVideo} autoPlay muted playsInline />
+              <div className={styles.frame}>
+                <video ref={attachVideo} className={styles.previewVideo} autoPlay muted playsInline />
+                {/* 🔴 ПОКАЗАТЕЛЬ ПРИВАТНОСТИ — ВМЕСТЕ С КАРТИНКОЙ, ВНИЗУ КАДРА.
+                    `CLAUDE.md §7` требует его на каждом экране с камерой, и это первый
+                    экран после установки. Точка 500 + надпись 300 (правило 4.10:
+                    индикатор — значащая графика, порог 3,0, считается парой с кадром). */}
+                <p className={styles.onDevice} role="status">
+                  <i className={styles.onDeviceDot} aria-hidden="true" />
+                  {t('setup.check.onDevice')}
+                </p>
+              </div>
             ) : (
               <p className={styles.note}>{t('setup.check.cameraMissing')}</p>
             )}

@@ -273,7 +273,8 @@ export function JoinHalf({ presetCode }: { presetCode?: string } = {}) {
               aria-label={t('invite.codeLabel')}
             />
           </div>
-          <Button variant="primary" loading={loading} disabled={!code.trim()} onClick={() => void submit()}>
+          {/* §57: вход на курс — главное действие половины. */}
+          <Button variant="go" loading={loading} disabled={!code.trim()} onClick={() => void submit()}>
             {t('invite.join')}
           </Button>
           <p className={styles.note}>{t('invite.pupilNote')}</p>

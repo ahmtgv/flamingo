@@ -332,7 +332,14 @@ describe('SubjectScreen — atlas sheet 01', () => {
     expect(screen.getByText('24 из 24')).toBeInTheDocument();
     expect(screen.getByRole('tab', { name: /На проверке/ })).toBeInTheDocument();
     expect(screen.getByRole('tab', { name: /Усвоение темы/ })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Открыть журнал' })).toBeInTheDocument();
+    /*
+     * §59: журнал не рисуется и остаётся на старом оформлении. Дверь при этом ОСТАЁТСЯ —
+     * видна, названа и не нажимается, а рядом сказано, почему. Здесь стояло `getByRole
+     * ('button')`, то есть проверялось прежнее правило.
+     */
+    expect(screen.getByText('Открыть журнал')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Открыть журнал' })).not.toBeInTheDocument();
+    expect(screen.getByText(/Журнал ещё не оформлен/)).toBeInTheDocument();
   });
 
   it('cadet: own pace instead of a class, and «продолжить» on the current lesson', async () => {

@@ -87,6 +87,27 @@ describe('выход из комнаты', () => {
     expect(await screen.findByText('кабинет')).toBeInTheDocument();
   });
 
+  it('Escape уводит из комнаты — второй двери в приложении нет', async () => {
+    // §48.5: адресной строки в приложении не существует, и Escape — то, что человек жмёт
+    // первым, когда «хочу отсюда».
+    frame({ onLeave: vi.fn() });
+
+    await userEvent.keyboard('{Escape}');
+
+    expect(await screen.findByText('кабинет')).toBeInTheDocument();
+  });
+
+  it('открытая панель важнее: Escape сначала закрывает её', async () => {
+    const onPane = vi.fn();
+    frame({ pane: 'guide', onPane });
+
+    await userEvent.keyboard('{Escape}');
+
+    expect(onPane).toHaveBeenCalledWith(null);
+    // И из комнаты при этом не унесло.
+    expect(screen.queryByText('кабинет')).not.toBeInTheDocument();
+  });
+
   it('одного нажатия достаточно и при идущем уроке', async () => {
     frame({ isLive: true, onLeave: vi.fn() });
 

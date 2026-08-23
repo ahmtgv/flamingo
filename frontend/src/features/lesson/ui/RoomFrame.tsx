@@ -139,14 +139,36 @@ export function RoomFrame({
    *
    * Ошибка в первом не отменяет второго: развалившийся эфир — не повод запереть человека.
    */
-  const leaveRoom = () => {
+  /*
+   * 🔴 ESCAPE — ВТОРАЯ ДВЕРЬ (наряд 48 §5).
+   *
+   * Кнопками выйти можно с 47-го наряда, клавишей — нет, а адресной строки в приложении
+   * не существует. Escape — то, что человек жмёт первым, когда «хочу отсюда».
+   *
+   * Открытая панель важнее: пока она открыта, Escape закрывает её — иначе одно нажатие
+   * уносило бы человека из урока вместо того, чтобы убрать методичку.
+   */
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return;
+      if (pane) {
+        onPane(null);
+        return;
+      }
+      leaveRoom();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  });
+
+  function leaveRoom() {
     try {
       onLeave?.();
     } catch {
       // Молча: причина ухода — не «эфир сломался», а «я ухожу».
     }
     navigate(HOME_ROUTE);
-  };
+  }
 
   /**
    * 🔴 ПУЛЬТЫ УХОДЯТ С ГЛАЗ, ПОКА ЧЕЛОВЕК ИХ НЕ ТРОГАЕТ.

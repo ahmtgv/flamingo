@@ -4,7 +4,7 @@ import { type FormEvent, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { type MeQuery, useAddChildMutation } from '@/entities/graphql/generated';
-import { Avatar, Badge, Button, Card, Checkbox, FieldRow, TextField } from '@/shared/ui';
+import { Avatar, Badge, Button, Card, Checkbox, FieldRow, MutedDoor, TextField } from '@/shared/ui';
 
 import { CabinetLayout, type CabinetNavItem } from './CabinetLayout';
 import styles from './cabinet.module.css';
@@ -79,11 +79,9 @@ export function ParentCabinet({ me, refetchMe }: { me: Me; refetchMe: () => Prom
 
         <div className={styles.sectionActions}>
           <span />
-          {!open && (
-            <Button variant="primary" size="sm" icon={<UserPlus size={ICON_SM} />} onClick={() => setOpen(true)}>
-              {t('parent.addChild')}
-            </Button>
-          )}
+          {/* §59: кабинет родителя не рисуется в этот заход. Дверь названа и приглушена,
+              причина рядом: ребёнка записывают без родителя — по ссылке преподавателя. */}
+          <MutedDoor label={t('parent.addChild')} why={t('common:soon.children')} />
         </div>
 
         {open && (

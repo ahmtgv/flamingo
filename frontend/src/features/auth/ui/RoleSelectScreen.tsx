@@ -10,7 +10,7 @@ import styles from './auth.module.css';
 
 
 export function RoleSelectScreen() {
-  const { t } = useTranslation('auth');
+  const { t } = useTranslation(['auth', 'common']);
   const navigate = useNavigate();
   const location = useLocation();
   // 🔴 §26.4: адрес назначения обязан пережить и выбор роли. Здесь он терялся — человек,
@@ -31,7 +31,15 @@ export function RoleSelectScreen() {
    */
   const AGE_OPTIONS: AgeBandUi[] = ['junior', 'teen', 'adult'];
 
-  const rows: { key: string; to: string; title: string; desc: string; cost: string }[] = [
+  const rows: {
+    key: string;
+    to: string;
+    title: string;
+    desc: string;
+    cost: string;
+    /** §59: причина, по которой дверь не нажимается. Пусто — дверь рабочая. */
+    muted?: string;
+  }[] = [
     ...AGE_OPTIONS.map((band) => ({
       key: `student-${band}`,
       to: `/register/student?age=${band}`,
@@ -52,6 +60,12 @@ export function RoleSelectScreen() {
       title: t(`roles.${role}.title`),
       desc: t(`roles.${role}.desc`),
       cost: '',
+      /*
+       * §59 + §47.1: роль остаётся — убрать её значило бы выдумать ограничение продукта.
+       * Но кабинет родителя не нарисован, и дверь туда приглушается: видна, названа,
+       * не нажимается, и рядом сказано, что ребёнка записывают по ссылке преподавателя.
+       */
+      muted: role === 'parent' ? t('common:soon.parentRole') : '',
     })),
   ];
 
@@ -63,7 +77,16 @@ export function RoleSelectScreen() {
       </div>
 
       <div className={styles.roles}>
-        {rows.map((row) => (
+        {rows.map((row) =>
+          row.muted ? (
+            <div key={row.key} className={`${styles.roleCard} ${styles.roleMuted}`} role="note">
+              <span>
+                <span className={styles.roleTitle}>{row.title}</span>
+                <p className={styles.roleDesc}>{row.desc}</p>
+              </span>
+              <span className={styles.roleWhy}>{row.muted}</span>
+            </div>
+          ) : (
           <button
             key={row.key}
             type="button"
@@ -77,7 +100,8 @@ export function RoleSelectScreen() {
             {/* Цена ветки словом: во что человек ввязывается, до того как начал. */}
             {row.cost && <span className={styles.roleCost}>{row.cost}</span>}
           </button>
-        ))}
+          ),
+        )}
       </div>
 
       <p className={styles.note}>

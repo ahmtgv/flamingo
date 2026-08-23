@@ -213,7 +213,7 @@ export function TeacherCabinet({ me }: { me: Me }) {
                           {/* 🔴 §47.1: вторая кнопка-обманка. Делала только переход —
                               занятие оставалось назначенным, а комната пустой. */}
                           <Button
-                            variant="secondary"
+                            variant="go"
                             size="sm"
                             loading={starting}
                             onClick={() => void start(s.id)}

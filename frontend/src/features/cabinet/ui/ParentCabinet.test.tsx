@@ -1,5 +1,4 @@
 import { screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 
 import type { MeQuery } from '@/entities/graphql/generated';
@@ -44,17 +43,19 @@ describe('ParentCabinet', () => {
     expect(screen.getByText('Пётр')).toBeInTheDocument();
   });
 
-  it('gates adding a child on 152-FZ consent', async () => {
-    const user = userEvent.setup();
+  /*
+   * §59: кабинет родителя в этот заход не рисуется, и дверь «Добавить ребёнка» приглушена:
+   * видна, названа, не нажимается, причина рядом. Проверка добавления ребёнка через форму
+   * снята вместе с дверью — она описывала бы путь, которого сейчас нет.
+   *
+   * ⚠️ Сама проверка согласия на сервере при этом на месте (`apps/accounts`), и это
+   * важно: приглушение — про экран, а не про правило.
+   */
+  it('дверь «Добавить ребёнка» видна, не нажимается и объясняет, почему', () => {
     renderWithProviders(<ParentCabinet me={me} refetchMe={vi.fn().mockResolvedValue(undefined)} />);
 
-    await user.click(screen.getByRole('button', { name: 'Добавить ребёнка' }));
-    await user.type(screen.getByLabelText(/Имя ребёнка/), 'Соня');
-    await user.type(screen.getByLabelText(/Фамилия/), 'Петрова');
-    await user.click(screen.getByRole('button', { name: 'Добавить' }));
-
-    expect(
-      await screen.findByText('Нужно согласие на обработку данных ребёнка'),
-    ).toBeInTheDocument();
+    expect(screen.getByText('Добавить ребёнка')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Добавить ребёнка' })).not.toBeInTheDocument();
+    expect(screen.getByText(/Кабинет родителя ещё не оформлен/)).toBeInTheDocument();
   });
 });

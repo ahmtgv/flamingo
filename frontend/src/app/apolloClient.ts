@@ -107,8 +107,16 @@ const errorLink = onError(({ graphQLErrors, operation, forward }) => {
   if (!isAuthError) return;
   if (operation.operationName === 'RefreshToken' || !getRefreshToken()) return;
 
-  return fromPromise(refreshAccessToken()).flatMap((ok) => {
-    if (!ok) clearSession();
+  return fromPromise(refreshAccessToken()).flatMap((outcome) => {
+    /*
+     * 🔴 §48.1: здесь стояло `if (!ok) clearSession()`, и «сервер не ответил» читалось как
+     * «тебя не признали». Полминуты недоступности посреди урока выкидывали весь класс на
+     * форму входа — с уже стёртым ключом, то есть насовсем.
+     *
+     * Чистим только по прямому отказу сервера. Недоступность оставляет сессию как есть:
+     * `refresh.ts` продолжает стучаться сам, и вернувшийся сервер продолжает урок.
+     */
+    if (outcome === 'rejected') clearSession();
     // On success authLink re-runs with the new token; on failure the replay
     // surfaces the auth error so ProtectedRoute redirects to /login.
     return forward(operation);

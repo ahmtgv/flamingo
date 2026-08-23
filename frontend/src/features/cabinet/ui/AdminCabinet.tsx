@@ -12,13 +12,15 @@ import { initialsOf } from './initials';
 type Me = NonNullable<MeQuery['me']>;
 
 export function AdminCabinet({ me }: { me: Me }) {
-  const { t } = useTranslation('cabinet');
+  const { t } = useTranslation(['cabinet', 'common']);
 
   const nav: CabinetNavItem[] = [
     { key: 'dashboard', label: t('nav.dashboard'), icon: LayoutDashboard, active: true },
-    { key: 'institution', label: t('admin.institution'), icon: Building2, to: '/admin' },
-    { key: 'users', label: t('nav.users'), icon: Users, to: '/admin' },
-    { key: 'groups', label: t('nav.groups'), icon: UsersRound, to: '/admin' },
+    // §59: три административных экрана остаются на старом оформлении и не рисуются.
+    // Двери видны и названы, но не ведут никуда — причина стоит рядом, в `note`.
+    { key: 'institution', label: t('admin.institution'), icon: Building2, note: t('common:soon.admin') },
+    { key: 'users', label: t('nav.users'), icon: Users, note: t('common:soon.admin') },
+    { key: 'groups', label: t('nav.groups'), icon: UsersRound, note: t('common:soon.admin') },
     { key: 'reports', label: t('nav.reports'), icon: BarChart3 },
   ];
 

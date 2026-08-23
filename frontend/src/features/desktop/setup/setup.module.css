@@ -380,6 +380,9 @@
   align-items: center;
   flex-wrap: wrap;
 }
+/* 🔴 §57: зелёная заливка — главное действие. «Дальше», «Принять и продолжить», «Открыть
+   кабинет» — это следующий шаг мастера, а не тревога и не уход. Пока они были коралловыми,
+   акцент не указывал ни на что: им же была залита и «Выйти». */
 .btn,
 .btnGhost {
   display: inline-block;
@@ -388,9 +391,9 @@
   border-radius: var(--radius-control);
   padding: var(--space-3) var(--space-6);
   cursor: pointer;
-  border: 1px solid var(--color-accent);
-  background: var(--color-accent-solid);
-  color: var(--color-text-on-accent);
+  border: 1px solid var(--color-go-solid);
+  background: var(--color-go-solid);
+  color: var(--color-on-accent);
   text-decoration: none;
   justify-self: start;
 }
@@ -400,7 +403,7 @@
   color: var(--color-text);
 }
 .btn:hover {
-  background: var(--color-accent-hover);
+  background: var(--color-go-solid-hover);
 }
 .btnGhost:hover {
   background: var(--color-surface-hover);
@@ -491,7 +494,65 @@
   gap: var(--space-3);
 }
 
+/* Кадр целиком: картинка и строка о ней. Строка живёт ВНУТРИ кадра, внизу, — она про то,
+   что видно, и уходить от картинки ей нельзя. */
+.frame {
+  position: relative;
+  width: 100%;
+  max-width: 320px;
+}
+
+/* До нажатия — тёмный кадр той же формы: место занято, и видно, что там будет картинка. */
+.previewDark {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  width: 100%;
+  max-width: 320px;
+  aspect-ratio: 4 / 3;
+  border-radius: var(--radius-md);
+  background: var(--fl-moss-950);
+  padding: var(--space-4);
+  text-align: center;
+}
+
+.previewDark .note {
+  color: var(--fl-moss-300);
+}
+
+/* 🔴 Показатель приватности (CLAUDE.md §7). Точка 500 + надпись 300 по правилу 4.10:
+   значащая графика с порогом 3,0, считается парой с кадром под ней. Прозрачностью здесь
+   ничего не гасится (правило 4.7) — цвет и вес. */
+.onDevice {
+  position: absolute;
+  inset-inline: 0;
+  inset-block-end: 0;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-end-start-radius: var(--radius-md);
+  border-end-end-radius: var(--radius-md);
+  background: var(--fl-moss-950);
+  color: var(--fl-moss-300);
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  line-height: var(--leading-snug);
+}
+
+.onDeviceDot {
+  flex: none;
+  inline-size: 8px;
+  block-size: 8px;
+  border-radius: 50%;
+  background: var(--fl-moss-500);
+}
+
 .previewVideo {
+  display: block;
   width: 100%;
   max-width: 320px;
   aspect-ratio: 4 / 3;
