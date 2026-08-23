@@ -1128,6 +1128,11 @@ function TeacherRoom({
             {t('room.report')}
           </Button>
         </div>
+        {/* 🔴 §52.2: НАЖАТИЕ, КОТОРОЕ НИЧЕГО НЕ ДЕЛАЛО. Прибор `deadClicks` нашёл одну такую
+            кнопку на весь урок — эту. `summaryStats([])` возвращает `null`, и «Отчёт по
+            занятию» открывал пустоту: ни отчёта, ни слова о том, почему его нет. Человек
+            жмёт второй раз, потом третий. */}
+        {showReport && !report && <p className={styles.note}>{t('room.reportEmpty')}</p>}
         {report && (
           <div className={styles.report}>
             <div className={styles.reportStats}>
