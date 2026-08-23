@@ -10,7 +10,10 @@
 .card {
   display: grid;
   gap: var(--space-4);
-  max-width: 460px;
+    /* §49.4: потолок без центрирования — дефект, а не стиль: при окне 1440 справа
+     пустовало 580 px, и это ровно тот снимок, который прислал владелец. */
+  margin-inline: auto;
+  max-width: var(--content-max-narrow);
   width: 100%;
 }
 .h {

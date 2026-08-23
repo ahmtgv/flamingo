@@ -1,0 +1,72 @@
+/* Одна высота на продукт. Не выведена из отступов — задана токеном, иначе каждый экран
+   получает свою (наряд 49 §1: высота была объявлена у двух шапок из двадцати). */
+.header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-block-size: var(--header-height);
+  padding-inline: var(--space-5);
+  background: var(--color-surface);
+  border-block-end: 1px solid var(--color-border);
+}
+
+.sticky {
+  position: sticky;
+  inset-block-start: 0;
+  z-index: 5;
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  flex: none;
+}
+
+.back {
+  flex: none;
+  border: none;
+  background: none;
+  padding: var(--space-2) 0;
+  font-size: var(--text-small);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+}
+
+.back:hover {
+  color: var(--color-text);
+}
+
+.back:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.title {
+  margin: 0;
+  min-inline-size: 0;
+  font-size: var(--text-body);
+  font-weight: var(--weight-medium);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.meta {
+  min-inline-size: 0;
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  color: var(--color-text-detail);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Действия не сжимаются: они справа и коротки. Жертвой усадки должен быть заголовок,
+   у него для этого есть многоточие (наряд 49 §6). */
+.actions {
+  flex: none;
+  margin-inline-start: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}

@@ -113,7 +113,7 @@ export function InviteScreen() {
           ) : (
             <div className={styles.codeCard}>
               <span className={styles.codeMeta}>
-                {t('invite.codeMeta', { days: invite.data?.courseInvite.daysLeft ?? 0 })}
+                {t('invite.codeMeta', { count: invite.data?.courseInvite.daysLeft ?? 0 })}
               </span>
               <span className={styles.code}>{code || '···'}</span>
               <div className={styles.codeActs}>

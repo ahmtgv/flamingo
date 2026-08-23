@@ -62,7 +62,7 @@
 
 .body {
   padding: var(--space-5);
-  max-width: 1120px;
+  max-width: var(--content-max-wide); /* §49.4: то же число, что и токен */
   width: 100%;
   margin: 0 auto;
   display: flex;

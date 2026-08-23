@@ -5,7 +5,10 @@
   display: grid;
   gap: var(--space-4);
   padding: var(--space-7);
-  max-width: 860px;
+    /* §49.4: потолок без центрирования — дефект, а не стиль: при окне 1440 справа
+     пустовало 580 px, и это ровно тот снимок, который прислал владелец. */
+  margin-inline: auto;
+  max-width: var(--content-max-base);
   background: var(--color-bg);
   color: var(--color-text);
 }

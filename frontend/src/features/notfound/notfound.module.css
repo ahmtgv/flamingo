@@ -1,6 +1,6 @@
 /* «Такой страницы нет». Только семантические токены. */
 .page {
-  max-inline-size: 44rem;
+  max-inline-size: var(--content-max-narrow);
   margin: 0 auto;
   padding: var(--space-10) var(--space-6);
   display: grid;

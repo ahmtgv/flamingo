@@ -152,7 +152,7 @@
   margin: 0 auto;
   flex: 1;
 }
-@media (max-width: 860px) {
+@media (max-width: 900px) {
   .sidebar {
     display: none;
   }
@@ -181,7 +181,7 @@
   grid-template-columns: 1fr 1fr;
   gap: var(--space-4);
 }
-@media (max-width: 720px) {
+@media (max-width: 700px) {
   .grid {
     grid-template-columns: 1fr;
   }
@@ -394,7 +394,7 @@
   padding-bottom: var(--space-7);
   border-bottom: 1px solid var(--color-border);
 }
-@media (max-width: 720px) {
+@media (max-width: 700px) {
   .metrics {
     grid-template-columns: 1fr;
     gap: var(--space-6);
@@ -469,7 +469,7 @@
 .row:last-child {
   border-bottom: 0;
 }
-@media (max-width: 560px) {
+@media (max-width: 700px) {
   .row {
     grid-template-columns: 56px 1fr;
   }
@@ -555,7 +555,7 @@
   gap: var(--space-4);
   margin-top: var(--space-2);
 }
-@media (max-width: 720px) {
+@media (max-width: 700px) {
   .courses {
     grid-template-columns: 1fr;
   }
@@ -661,7 +661,7 @@
   gap: var(--space-8);
   margin: var(--space-8) 0;
 }
-@media (max-width: 720px) {
+@media (max-width: 700px) {
   .skelMetrics {
     grid-template-columns: 1fr;
   }
@@ -671,7 +671,7 @@
   grid-template-columns: repeat(3, 1fr);
   gap: var(--space-4);
 }
-@media (max-width: 720px) {
+@media (max-width: 700px) {
   .skelCourses {
     grid-template-columns: 1fr;
   }

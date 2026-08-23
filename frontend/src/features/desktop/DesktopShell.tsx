@@ -1,6 +1,6 @@
 import { type ReactNode, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 import { useThisDeviceQuery } from '@/entities/graphql/generated';
 
@@ -23,6 +23,8 @@ import type { UplinkVerdict } from './hostState';
 export function DesktopShell({ children }: { children: ReactNode }) {
   const { t } = useTranslation('desktop');
   const navigate = useNavigate();
+  // На каком экране стоим: шестерня не должна вести туда, где человек уже находится.
+  const onSettingsScreen = useLocation().pathname === '/settings';
   const [online, setOnline] = useState(() =>
     typeof navigator === 'undefined' ? true : navigator.onLine,
   );
@@ -79,9 +81,14 @@ export function DesktopShell({ children }: { children: ReactNode }) {
       joined={lesson?.joined}
       elapsed={lesson ? elapsedSince(lesson.startedAt, now) : undefined}
       actions={lesson?.actions}
-      // Шестерёнка ведёт в настройки приложения — экран, который уже существует (Р5.4).
-      // Без этой строки кнопка рисовалась и не делала ничего (находка 15.08 №4).
-      onSettings={() => navigate('/settings')}
+      /*
+       * Шестерёнка ведёт в настройки приложения — экран, который уже существует (Р5.4).
+       * Без этой строки кнопка рисовалась и не делала ничего (находка 15.08 №4).
+       *
+       * 🔴 §49.2: НА САМИХ НАСТРОЙКАХ ЕЁ НЕТ. Она вела туда же, где человек стоит, — и
+       * это была единственная дверь в раме: нажал, ничего не изменилось, выйти нечем.
+       */
+      onSettings={onSettingsScreen ? undefined : () => navigate('/settings')}
     >
       {/* 🔴 ДЕТИ НЕ РАЗМОНТИРУЮТСЯ ПРИ ОБРЫВЕ СЕТИ (найдено аудитом 17.08).
           Здесь стояло `online ? children : <OfflineScreen/>`, и это выбрасывало из дерева

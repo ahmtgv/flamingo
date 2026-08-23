@@ -1,5 +1,12 @@
+/* 🔴 §49.5: `100vh` — это высота ОКНА, а экран живёт в слоте рамы (`100dvh − 45px`).
+   Прибор `frame-bottom` поймал: слот прокручивался на 44 px, то есть страница курса
+   вылезала за раму ровно на высоту заголовка. Внутренние области при этом могут
+   прокручиваться сколько угодно — речь не о них. */
 .shell {
-  min-height: 100vh;
+  /* Определённая высота, а не только пол: `min-block-size` даёт нижнюю границу, но контейнер
+     всё равно растёт за содержимым, и `flex: 1` внутри нечего распределять. */
+  block-size: 100%;
+  min-block-size: 100%;
   display: flex;
   flex-direction: column;
   background: var(--color-bg);
@@ -55,7 +62,13 @@
   outline: none;
   box-shadow: var(--focus-ring);
 }
+/* Работа — гибкая часть кадра и прокручивается ВНУТРИ себя. Иначе она выталкивает шапку
+   за раму: замер показал 764 при слоте 756 — восемь пикселей, которых человек не видит,
+   но из-за которых прокручивается весь экран (§49.5). */
 .content {
+  flex: 1;
+  min-block-size: 0;
+  overflow-y: auto;
   width: 100%;
   max-width: var(--content-max-base);
   margin: 0 auto;
@@ -117,7 +130,7 @@
   font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
   font-size: var(--text-caption);
-  color: var(--color-text-tertiary);
+  color: var(--color-text-detail);
 }
 .catSearch {
   margin: var(--space-6) 0 var(--space-4);
@@ -159,7 +172,7 @@
   grid-template-columns: repeat(3, 1fr);
   gap: var(--space-4);
 }
-@media (max-width: 860px) {
+@media (max-width: 900px) {
   .catCards {
     grid-template-columns: 1fr;
   }
@@ -167,7 +180,7 @@
 .cardSubj {
   font-family: var(--font-mono);
   font-size: var(--text-caption);
-  color: var(--color-text-tertiary);
+  color: var(--color-text-detail);
   /* mono subj-meta reads lowercase per the sheet; Cyrillic lowercase is tracking-free (AIR). */
   text-transform: lowercase;
 }
@@ -180,7 +193,7 @@
   font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
   font-size: var(--text-caption);
-  color: var(--color-text-tertiary);
+  color: var(--color-text-detail);
 }
 .catState {
   text-align: center;
@@ -262,7 +275,7 @@
   font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
   font-size: var(--text-caption);
-  color: var(--color-text-tertiary);
+  color: var(--color-text-detail);
 }
 .courseTeacher {
   font-size: var(--text-caption);
@@ -327,7 +340,7 @@
   font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
   font-size: var(--text-caption);
-  color: var(--color-text-tertiary);
+  color: var(--color-text-detail);
 }
 
 .enrollBar {
@@ -462,7 +475,7 @@
   color: var(--color-text-secondary);
 }
 .material svg {
-  color: var(--color-text-tertiary);
+  color: var(--color-text-detail);
   flex: none;
 }
 .materialLink {
@@ -473,13 +486,13 @@
   text-decoration: underline;
 }
 .materialBody {
-  color: var(--color-text-tertiary);
+  color: var(--color-text-detail);
 }
 .materialDelete {
   background: none;
   border: 0;
   cursor: pointer;
-  color: var(--color-text-tertiary);
+  color: var(--color-text-detail);
   padding: 2px;
   border-radius: var(--radius-xs);
   display: inline-flex;
@@ -499,7 +512,7 @@
   gap: var(--space-8);
   align-items: start;
 }
-@media (max-width: 860px) {
+@media (max-width: 900px) {
   .detailGrid {
     grid-template-columns: 1fr;
     gap: var(--space-6);
@@ -508,7 +521,7 @@
 .dSubj {
   font-family: var(--font-mono);
   font-size: var(--text-caption);
-  color: var(--color-text-tertiary);
+  color: var(--color-text-detail);
   text-transform: lowercase;
   margin-bottom: var(--space-2);
 }
@@ -521,7 +534,7 @@
 .secOverline {
   font-family: var(--font-mono);
   font-size: var(--text-caption);
-  color: var(--color-text-tertiary);
+  color: var(--color-text-detail);
   margin: var(--space-7) 0 var(--space-1);
 }
 .progRow {
@@ -557,7 +570,7 @@ button.progRow:focus-visible {
   font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
   font-size: var(--text-caption);
-  color: var(--color-text-tertiary);
+  color: var(--color-text-detail);
 }
 .progTitle {
   font-weight: var(--weight-medium);
@@ -570,7 +583,7 @@ button.progRow:focus-visible {
 .progLock {
   font-family: var(--font-mono);
   font-size: var(--text-caption);
-  color: var(--color-text-tertiary);
+  color: var(--color-text-detail);
   justify-self: end;
 }
 .progDone {
@@ -600,7 +613,7 @@ button.progRow:focus-visible {
 .asideTeach {
   font-family: var(--font-mono);
   font-size: var(--text-caption);
-  color: var(--color-text-tertiary);
+  color: var(--color-text-detail);
 }
 .progressLine {
   height: 4px;
@@ -639,7 +652,7 @@ button.progRow:focus-visible {
   padding: 3px 10px;
 }
 .pillDraft {
-  color: var(--color-text-tertiary);
+  color: var(--color-text-detail);
   border-style: dashed;
 }
 .cSecTitle {
@@ -648,7 +661,7 @@ button.progRow:focus-visible {
   gap: var(--space-2);
   font-family: var(--font-mono);
   font-size: var(--text-caption);
-  color: var(--color-text-tertiary);
+  color: var(--color-text-detail);
   margin: var(--space-6) 0 var(--space-1);
 }
 .cRow {
@@ -710,13 +723,13 @@ button.progRow:focus-visible {
 .matChip svg {
   width: 13px;
   height: 13px;
-  color: var(--color-text-tertiary);
+  color: var(--color-text-detail);
 }
 .matChipDelete {
   background: none;
   border: 0;
   cursor: pointer;
-  color: var(--color-text-tertiary);
+  color: var(--color-text-detail);
   padding: 0 0 0 2px;
   display: inline-flex;
 }
@@ -765,7 +778,7 @@ button.progRow:focus-visible {
 }
 .switcherLabel {
   font-size: var(--text-caption);
-  color: var(--color-text-tertiary);
+  color: var(--color-text-detail);
   white-space: nowrap;
 }
 .lessonFilter {
@@ -777,7 +790,7 @@ button.progRow:focus-visible {
 }
 .secCount {
   font-family: var(--font-body);
-  color: var(--color-text-tertiary);
+  color: var(--color-text-detail);
 }
 /* Назначенное занятие — единственное, что на строке урока говорит о будущем; остальное
    описывает содержимое. Поэтому оно и выделено, а не набрано тем же серым. */
@@ -793,6 +806,6 @@ button.progRow:focus-visible {
 /* Правила загрузки стоят под полем и читаются до выбора файла, а не после отказа. */
 .matLimits {
   font-size: var(--text-caption);
-  color: var(--color-text-tertiary);
+  color: var(--color-text-detail);
   margin: 0;
 }

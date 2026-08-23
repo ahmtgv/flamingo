@@ -5,9 +5,16 @@
  * Рельс здесь не украшение: преподаватель ставит занятие в СВОЁМ поясе, а живут ученики где
  * угодно, и 11:30 в Москве — это 16:30 в Шанхае, где школа ещё идёт.
  */
+/* 🔴 §49.5: ВЫСОТА ОТ КОНТЕЙНЕРА, А НЕ ОТ ОКНА.
+   Слот рамы приложения равен `100dvh − 45px` (заголовок 44 + граница 1), и `.app
+   { overflow: hidden }` эту разницу срезает: низ экрана уезжает под нижний край — так
+   владелец увидел обрезанную очередь проверки. Лекарство было написано в комнате
+   (наряд 47 §3) и применено к ней одной; здесь то же самое. В браузере `100%`
+   разрешается по цепочке `html/body/#root` из `tokens.css`. */
 
 .shell {
-  block-size: 100dvh;
+  block-size: 100%;
+  min-block-size: 100%;
   display: grid;
   grid-template-rows: auto minmax(0, 1fr);
   overflow: hidden;
@@ -15,7 +22,7 @@
   color: var(--color-text);
 }
 
-@media (max-width: 1000px) {
+@media (max-width: 1100px) {
   .shell {
     block-size: auto;
     min-block-size: 100dvh;
@@ -94,7 +101,7 @@
   overflow: hidden;
 }
 
-@media (max-width: 1000px) {
+@media (max-width: 1100px) {
   .page {
     grid-template-columns: minmax(0, 1fr);
     overflow: visible;

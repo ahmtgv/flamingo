@@ -18,6 +18,8 @@ import {
   rememberCopyOut,
 } from './backupCopy';
 import { cabinetFolder, revealCabinetFolder } from './cabinetFolder';
+import { ScreenHeader, useGoBack } from '@/shared/ui';
+
 import styles from './settings.module.css';
 
 const TABS = ['link', 'data', 'devices'] as const;
@@ -38,6 +40,7 @@ type Tab = (typeof TABS)[number];
  */
 export function SettingsScreen() {
   const { t } = useTranslation('desktop');
+  const back = useGoBack();
   const [tab, setTab] = useState<Tab>('link');
   const { data, refetch } = useMyDevicesQuery();
   // Р5.5: кнопка снимает НАСТОЯЩУЮ копию — до этой фазы она лишь отмечала время.
@@ -113,14 +116,30 @@ export function SettingsScreen() {
    * Гадать по сортировке не нужно вовсе: `thisDevice` отвечает по ключу машины — то есть
    * знает, кто спрашивает, а не догадывается.
    */
+  /*
+   * §49.2: Escape закрывает экран. Дверь теперь есть в шапке, но человек, которого заперли
+   * однажды, жмёт Escape первым — и это должно работать.
+   */
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') back();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  });
+
   const machine = thisDevice.data?.thisDevice ?? null;
   const uplink = machine?.uplink ?? null;
   const setup = machine?.setup ?? null;
 
   return (
-    <div className={styles.screen}>
-      <h1 className={styles.h}>{t('settings.title')}</h1>
-      <p className={styles.intro}>{t('settings.intro')}</p>
+    <>
+      {/* 🔴 §49.2: ИЗ НАСТРОЕК НЕ БЫЛО ВЫХОДА ВООБЩЕ. Экран не импортировал роутер — ни
+          кнопки назад, ни крестика, ни Escape; единственная дверь в раме, шестерня, вела
+          сюда же. Владелец нашёл это руками и вышел, закрыв приложение. */}
+      <ScreenHeader title={t('settings.title')} back={{ label: t('settings.back') }} />
+      <div className={styles.screen}>
+        <p className={styles.intro}>{t('settings.intro')}</p>
 
       <div className={styles.tabs} role="tablist" aria-label={t('settings.title')}>
         {TABS.map((id) => (
@@ -288,7 +307,8 @@ export function SettingsScreen() {
           ))}
         </section>
       )}
-    </div>
+      </div>
+    </>
   );
 }
 

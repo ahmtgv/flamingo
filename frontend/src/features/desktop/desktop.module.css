@@ -308,7 +308,7 @@
   min-height: 60vh;
 }
 .offCard {
-  max-width: 560px;
+  max-width: var(--content-max-narrow);
   text-align: center;
   display: grid;
   gap: var(--space-2);

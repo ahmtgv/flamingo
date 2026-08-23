@@ -29,8 +29,6 @@ const OLD_LAYER = [
   'features/board/ui/board.module.css',
   'features/cabinet/ui/cabinet.module.css',
   'features/chat/ui/chat.module.css',
-  'features/courses/ui/courses.module.css',
-  'features/demo/ui/demo.module.css',
   'features/desktop/desktop.module.css',
   'features/desktop/settings.module.css',
   'features/desktop/setup/setup.module.css',
@@ -38,28 +36,28 @@ const OLD_LAYER = [
   'features/dictionary/ui/dictionary.module.css',
   'features/exercises/ui/test.module.css',
   'features/homework/ui/homework.module.css',
-  'features/journal/ui/journal.module.css',
   'features/landing/ui/landing.module.css',
   'features/lesson/ui/liveroom.module.css',
   'features/lesson/ui/videoroom.module.css',
   'features/meeting/ui/arrival.module.css',
   'features/meeting/ui/invite.module.css',
-  'features/mylearning/ui/mylearning.module.css',
-  'features/notfound/notfound.module.css',
   'features/repetition/ui/repetition.module.css',
   'features/schedule/ui/schedule.module.css',
   'features/sources/ui/sources.module.css',
-  'features/subject/ui/subject.module.css',
   'features/summary/ui/summary.module.css',
   'seedum/ui/seedum.module.css',
-  'app/app.module.css',
 ];
 
 function walk(dir: string): string[] {
   return readdirSync(dir).flatMap((name) => {
     const full = join(dir, name);
     if (statSync(full).isDirectory()) return name === 'node_modules' ? [] : walk(full);
-    return full.endsWith('.css') ? [full] : [];
+    /*
+     * 🔴 §49.8: обход смотрел ТОЛЬКО `.css`, и `var(--color-text-tertiary)`, написанный
+     * прямо в разметке, проходил мимо (`shared/demo/DemoRoleSwitcher.tsx:51`). Токен —
+     * это про цвет, а не про расширение файла.
+     */
+    return full.endsWith('.css') || full.endsWith('.tsx') ? [full] : [];
   });
 }
 
@@ -92,5 +90,23 @@ describe('устаревшие токены', () => {
     expect(missing, `в списке старого слоя есть исчезнувшие файлы:\n${missing.join('\n')}`).toEqual(
       [],
     );
+  });
+
+  it('🔴 в списке нет файлов, которые уже чисты', () => {
+    /*
+     * ТРЕТЬЯ ДЫРА, И САМАЯ ТИХАЯ (§49.8). Проверка выше смотрела только на СУЩЕСТВОВАНИЕ
+     * файла, а не на наличие в нём токена. Пять записей были чисты и не вычеркнуты —
+     * список перестал убывать, оставаясь зелёным. Комментарий в шапке предупреждал ровно
+     * об этом и сам себя не проверил.
+     */
+    const clean = OLD_LAYER.filter((rel) => {
+      const full = join(SRC, rel);
+      if (!files.includes(full)) return false; // это ловит проверка выше
+      return !readFileSync(full, 'utf8').includes('--color-text-tertiary');
+    });
+    expect(
+      clean,
+      `эти файлы уже чисты — вычеркните их из OLD_LAYER, иначе список не убывает:\n${clean.join('\n')}`,
+    ).toEqual([]);
   });
 });

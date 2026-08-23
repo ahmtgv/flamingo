@@ -27,3 +27,4 @@ export { BrandMark } from './Logo/BrandMark';
 export { ErrorBoundary } from './ErrorBoundary/ErrorBoundary';
 export { ErrorState } from './ErrorState/ErrorState';
 export { MutedDoor } from './MutedDoor/MutedDoor';
+export { ScreenHeader, useGoBack } from './ScreenHeader/ScreenHeader';

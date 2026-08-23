@@ -80,7 +80,7 @@
   padding: var(--space-1) 0;
   font-family: var(--font-mono);
   font-size: var(--text-caption);
-  color: var(--color-text-tertiary);
+  color: var(--color-text-detail);
   border-radius: var(--radius-xs);
 }
 .back:hover {
@@ -128,7 +128,7 @@
   display: block;
   font-family: var(--font-mono);
   font-size: var(--text-overline);
-  color: var(--color-text-tertiary);
+  color: var(--color-text-detail);
 }
 /* The one coral accent of this screen-state: how far you are through the programme. */
 .headBar {
@@ -188,7 +188,7 @@
   font-family: var(--font-mono);
   font-size: var(--text-overline);
   font-weight: var(--weight-medium);
-  color: var(--color-text-tertiary);
+  color: var(--color-text-detail);
   background: var(--color-surface-subtle);
   border-radius: var(--radius-sm);
   padding: 1px 6px;
@@ -221,14 +221,14 @@
   font-family: var(--font-mono);
   font-size: var(--text-overline);
   font-weight: var(--weight-medium);
-  color: var(--color-text-tertiary);
+  color: var(--color-text-detail);
   letter-spacing: var(--tracking-wide);
 }
 .sectOf {
   margin-left: auto;
   font-family: var(--font-mono);
   font-size: var(--text-overline);
-  color: var(--color-text-tertiary);
+  color: var(--color-text-detail);
   font-variant-numeric: tabular-nums;
 }
 
@@ -272,7 +272,7 @@
   font-family: var(--font-mono);
   font-size: var(--text-overline);
   font-weight: var(--weight-medium);
-  color: var(--color-text-tertiary);
+  color: var(--color-text-detail);
   margin-top: 2px;
 }
 .stDone {
@@ -328,7 +328,7 @@
 .lesWhen {
   font-family: var(--font-mono);
   font-size: var(--text-overline);
-  color: var(--color-text-tertiary);
+  color: var(--color-text-detail);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
@@ -356,7 +356,7 @@
   font-family: var(--font-mono);
   font-size: var(--text-overline);
   font-weight: var(--weight-medium);
-  color: var(--color-text-tertiary);
+  color: var(--color-text-detail);
   letter-spacing: var(--tracking-wide);
 }
 .linkish {
@@ -367,7 +367,7 @@
   border-radius: var(--radius-xs);
   font-family: var(--font-mono);
   font-size: var(--text-overline);
-  color: var(--color-text-tertiary);
+  color: var(--color-text-detail);
 }
 .linkish:hover {
   color: var(--color-text);
@@ -392,7 +392,7 @@
 .matKind {
   font-family: var(--font-mono);
   font-size: var(--text-overline);
-  color: var(--color-text-tertiary);
+  color: var(--color-text-hint);
   letter-spacing: var(--tracking-wide);
   padding-top: 3px;
 }
@@ -421,7 +421,7 @@ a.matName:focus-visible {
   display: block;
   font-family: var(--font-mono);
   font-size: var(--text-overline);
-  color: var(--color-text-tertiary);
+  color: var(--color-text-detail);
   margin-top: var(--space-1);
 }
 .matNote {
@@ -450,7 +450,7 @@ a.matName:focus-visible {
   border-radius: var(--radius-xs);
   border: none;
   background: none;
-  color: var(--color-text-tertiary);
+  color: var(--color-text-detail);
   cursor: pointer;
   display: grid;
   place-content: center;
@@ -514,7 +514,7 @@ a.matName:focus-visible {
 .qhint {
   font-family: var(--font-mono);
   font-size: var(--text-overline);
-  color: var(--color-text-tertiary);
+  color: var(--color-text-hint);
 }
 .qsep {
   height: 1px;
@@ -583,7 +583,7 @@ a.matName:focus-visible {
 .cardTitle {
   font-family: var(--font-mono);
   font-size: var(--text-caption);
-  color: var(--color-text-tertiary);
+  color: var(--color-text-detail);
 }
 .nextName {
   font-size: 0.9375rem;
@@ -592,7 +592,7 @@ a.matName:focus-visible {
 .nextWhen {
   font-family: var(--font-mono);
   font-size: var(--text-overline);
-  color: var(--color-text-tertiary);
+  color: var(--color-text-detail);
   margin-top: 3px;
 }
 .nextAct {
@@ -621,7 +621,7 @@ a.matName:focus-visible {
 .zoneWho {
   font-family: var(--font-mono);
   font-size: var(--text-overline);
-  color: var(--color-text-tertiary);
+  color: var(--color-text-detail);
   margin-bottom: var(--space-2);
   line-height: var(--leading-snug);
 }
@@ -646,7 +646,7 @@ a.matName:focus-visible {
   font-family: var(--font-mono);
   font-size: var(--text-overline);
   font-weight: var(--weight-medium);
-  color: var(--color-text-tertiary);
+  color: var(--color-text-detail);
   letter-spacing: var(--tracking-wide);
   overflow-wrap: anywhere;
 }
@@ -674,7 +674,7 @@ a.srcName:focus-visible {
   display: block;
   font-family: var(--font-mono);
   font-size: var(--text-overline);
-  color: var(--color-text-tertiary);
+  color: var(--color-text-detail);
   margin-top: 2px;
 }
 
@@ -687,7 +687,7 @@ a.srcName:focus-visible {
 /* --- shared small pieces ----------------------------------------------------------- */
 .empty {
   font-size: var(--text-small);
-  color: var(--color-text-tertiary);
+  color: var(--color-text-hint);
   line-height: var(--leading-snug);
   padding: var(--space-4) 0;
   max-width: 62ch;
@@ -753,7 +753,7 @@ a.srcName:focus-visible {
 .dialogKey {
   font-family: var(--font-mono);
   font-size: var(--text-overline);
-  color: var(--color-text-tertiary);
+  color: var(--color-text-hint);
   margin-top: var(--space-3);
 }
 .dialogFoot {
@@ -860,7 +860,7 @@ a.srcName:focus-visible {
 .taskMeta {
   font-family: var(--font-mono);
   font-size: var(--text-overline);
-  color: var(--color-text-tertiary);
+  color: var(--color-text-detail);
   text-align: end;
 }
 
@@ -876,7 +876,7 @@ a.srcName:focus-visible {
 .topic:last-child {
   border-bottom: none;
 }
-@media (max-width: 560px) {
+@media (max-width: 700px) {
   .topic {
     grid-template-columns: 1fr 46px;
   }
@@ -894,7 +894,7 @@ a.srcName:focus-visible {
   display: block;
   font-family: var(--font-mono);
   font-size: var(--text-overline);
-  color: var(--color-text-tertiary);
+  color: var(--color-text-detail);
   margin-top: 1px;
 }
 .tBar {
@@ -911,7 +911,7 @@ a.srcName:focus-visible {
 }
 /* A weak topic is grey, not red — it is somewhere to go back to, not a verdict. */
 .tBar[data-weak] i {
-  background: var(--color-text-tertiary);
+  background: var(--color-text-hint);
 }
 .tVal {
   font-family: var(--font-mono);
@@ -924,7 +924,7 @@ a.srcName:focus-visible {
 .selfNote {
   font-family: var(--font-mono);
   font-size: var(--text-overline);
-  color: var(--color-text-tertiary);
+  color: var(--color-text-hint);
   margin-top: var(--space-4);
   line-height: var(--leading-snug);
   max-width: 70ch;
@@ -941,7 +941,7 @@ a.srcName:focus-visible {
   display: block;
   font-family: var(--font-mono);
   font-size: var(--text-overline);
-  color: var(--color-text-tertiary);
+  color: var(--color-text-detail);
 }
 .editWrap {
   display: grid;
@@ -966,7 +966,7 @@ a.srcName:focus-visible {
 .editOrder {
   font-family: var(--font-mono);
   font-size: var(--text-overline);
-  color: var(--color-text-tertiary);
+  color: var(--color-text-hint);
   font-variant-numeric: tabular-nums;
 }
 .editActs {
@@ -1011,7 +1011,7 @@ a.srcName:focus-visible {
 }
 .addLesson:hover {
   color: var(--color-text);
-  border-color: var(--color-text-tertiary);
+  border-color: var(--color-text-hint);
 }
 .addLesson:focus-visible {
   outline: none;
@@ -1033,7 +1033,7 @@ a.srcName:focus-visible {
 .editLabel {
   font-family: var(--font-mono);
   font-size: var(--text-overline);
-  color: var(--color-text-tertiary);
+  color: var(--color-text-hint);
 }
 .editInput {
   width: 100%;

@@ -50,12 +50,104 @@ function has(dict: Record<string, unknown>, path: string): boolean {
   return table[last] !== undefined || PLURALS.some((suffix) => table[last + suffix] !== undefined);
 }
 
+/**
+ * 🔴 СТОРОЖ ПРОПУСКАЛ ИМЕННО ТО, ЧТО ДОЛЖЕН ЛОВИТЬ (наряд 49 §7).
+ *
+ * Проверка выше засчитывает ключ, если есть ЛИБО голый ключ, ЛИБО любая из форм. Значит
+ * `"cardLessons": "{{count}} уроков"` — голая строка со счётчиком — считалась в порядке,
+ * и человек читал «1 уроков». Так прошли восемь ключей.
+ *
+ * Правило теперь такое: **строка, подставляющая `{{count}}`, обязана иметь формы.** Голого
+ * ключа мало — он и есть поломка.
+ *
+ * ⚠️ И отдельно: `{{days}}`, `{{n}}`, `{{minutes}}` i18next склонить не может физически —
+ * он смотрит ТОЛЬКО на переменную `count`. Такие строки ловятся вторым правилом.
+ */
+const DECLINES = /^(дней|дня|день|раза|раз|минут|минуты|уроков|урока|работ|работы|учеников|ученика|ученикам|вопросов|вопроса|дел|дела|участников|участника|курсов|курса|занятий|занятия)$/i;
+
+function countKeysWithoutForms(dict: Record<string, unknown>, prefix = ''): string[] {
+  const bad: string[] = [];
+  for (const [key, value] of Object.entries(dict)) {
+    const path = prefix ? `${prefix}.${key}` : key;
+    if (value && typeof value === 'object') {
+      bad.push(...countKeysWithoutForms(value as Record<string, unknown>, path));
+      continue;
+    }
+    if (typeof value !== 'string') continue;
+    if (PLURALS.some((suffix) => key.endsWith(suffix))) continue; // это и есть форма
+    /*
+     * Формы нужны там, где число УПРАВЛЯЕТ словом: «{{count}} уроков». Строки вида
+     * «в группе: {{count}}», «+{{count}}», «{{count}} мин» склонять нечего — требовать
+     * от них тройку значит завести сторожа, который кричит на исправное.
+     *
+     * ⚠️ Слово вынимается и сравнивается ПРЯМО, без сборки регулярного выражения из чужого
+     * `source`: первая версия собирала его из `DECLINES.source` и не ловила ничего вовсе —
+     * поймано нарочной поломкой, а не чтением.
+     */
+    const after = /\{\{\s*count\s*\}\}\s+([а-яё]+)/i.exec(value);
+    if (after && DECLINES.test(after[1])) {
+      const table = dict as Record<string, unknown>;
+      const hasForms = PLURALS.some((suffix) => table[key + suffix] !== undefined);
+      if (!hasForms) bad.push(`${path} = «${value}»`);
+    }
+  }
+  return bad;
+}
+
+/**
+ * Переменные, которые выглядят счётчиком, но склонены быть не могут.
+ *
+ * ⚠️ Узко и намеренно. Первая версия ловила «{{done}} из {{total}} пройдено» и «{{n}} мин» —
+ * а там склонять нечего: после «из» форма постоянная, «мин» не склоняется вовсе. Сторож,
+ * который кричит на исправное, перестают читать, и он становится хуже отсутствующего.
+ *
+ * Ловим один случай: число УПРАВЛЯЕТ существительным, которое обязано менять форму.
+ */
+
+function fakeCounters(dict: Record<string, unknown>, prefix = ''): string[] {
+  const bad: string[] = [];
+  for (const [key, value] of Object.entries(dict)) {
+    const path = prefix ? `${prefix}.${key}` : key;
+    if (value && typeof value === 'object') {
+      bad.push(...fakeCounters(value as Record<string, unknown>, path));
+      continue;
+    }
+    if (typeof value !== 'string') continue;
+    for (const m of value.matchAll(/(из\s+|\/)?\{\{\s*(\w+)\s*\}\}\s+([а-яё]+)/gi)) {
+      // «из {{total}} занятий» и «{{done}}/{{total}} занятий» — форма постоянная в обоих.
+      if (m[1]) continue;
+      if (m[2] === 'count') continue;
+      if (!DECLINES.test(m[3])) continue;
+      bad.push(`${path} = «${value}» (переменная ${m[2]}, а склоняет только count)`);
+    }
+  }
+  return bad;
+}
+
 describe('строки интерфейса', () => {
   const files = walk(SRC);
 
   it('прибор смотрит на весь src и на все словари', () => {
     expect(files.length).toBeGreaterThan(100);
     expect(readdirSync(LOCALES).filter((f) => f.endsWith('.json')).length).toBeGreaterThan(5);
+  });
+
+  it('🔴 строка со счётчиком имеет формы, а не одну на все числа', () => {
+    const bad: string[] = [];
+    for (const name of readdirSync(LOCALES).filter((f) => f.endsWith('.json'))) {
+      const dict = JSON.parse(readFileSync(join(LOCALES, name), 'utf8')) as Record<string, unknown>;
+      bad.push(...countKeysWithoutForms(dict).map((x) => `${name}: ${x}`));
+    }
+    expect(bad, `«1 уроков» — ключи со счётчиком без форм:\n${bad.join('\n')}`).toEqual([]);
+  });
+
+  it('🔴 счётчик подставляется переменной `count` — другую i18next не склоняет', () => {
+    const bad: string[] = [];
+    for (const name of readdirSync(LOCALES).filter((f) => f.endsWith('.json'))) {
+      const dict = JSON.parse(readFileSync(join(LOCALES, name), 'utf8')) as Record<string, unknown>;
+      bad.push(...fakeCounters(dict).map((x) => `${name}: ${x}`));
+    }
+    expect(bad, `число рядом со словом, но не через count:\n${bad.join('\n')}`).toEqual([]);
   });
 
   it('🔴 ни один экран не показывает ключ вместо слова', () => {

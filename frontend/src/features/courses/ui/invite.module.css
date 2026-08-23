@@ -7,9 +7,16 @@
  *
  * 🔴 Без этого экрана путь не проходится вовсе: позвать постороннего было физически нечем.
  */
+/* 🔴 §49.5: ВЫСОТА ОТ КОНТЕЙНЕРА, А НЕ ОТ ОКНА.
+   Слот рамы приложения равен `100dvh − 45px` (заголовок 44 + граница 1), и `.app
+   { overflow: hidden }` эту разницу срезает: низ экрана уезжает под нижний край — так
+   владелец увидел обрезанную очередь проверки. Лекарство было написано в комнате
+   (наряд 47 §3) и применено к ней одной; здесь то же самое. В браузере `100%`
+   разрешается по цепочке `html/body/#root` из `tokens.css`. */
 
 .shell {
-  block-size: 100dvh;
+  block-size: 100%;
+  min-block-size: 100%;
   display: grid;
   grid-template-rows: auto minmax(0, 1fr);
   overflow: hidden;
@@ -17,7 +24,7 @@
   color: var(--color-text);
 }
 
-@media (max-width: 1000px) {
+@media (max-width: 1100px) {
   .shell {
     block-size: auto;
     min-block-size: 100dvh;
@@ -80,7 +87,7 @@
   overflow: hidden;
 }
 
-@media (max-width: 1000px) {
+@media (max-width: 1100px) {
   .page {
     grid-template-columns: minmax(0, 1fr);
     overflow: visible;
@@ -103,7 +110,7 @@
   background: var(--color-surface);
 }
 
-@media (max-width: 1000px) {
+@media (max-width: 1100px) {
   .half + .half {
     border-inline-start: none;
     border-block-start: 1px solid var(--color-border);

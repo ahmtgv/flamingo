@@ -4,7 +4,7 @@
   display: grid;
   gap: var(--space-5);
   padding: var(--space-7);
-  max-width: 720px;
+  max-width: var(--content-max-narrow);
   margin: 0 auto;
   min-height: 100vh;
   background: var(--color-bg);

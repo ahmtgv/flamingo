@@ -1,6 +1,6 @@
 /* Журнал предмета. Только семантические токены. */
 .page {
-  max-inline-size: 80rem;
+  max-inline-size: var(--content-max-wide);
   margin: 0 auto;
   padding: var(--space-6);
   display: grid;

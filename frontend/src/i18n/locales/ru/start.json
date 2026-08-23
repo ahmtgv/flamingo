@@ -46,7 +46,9 @@
     "teaching": "Мои курсы",
     "allCourses": "все курсы →",
     "mastery": "Усвоение группы",
-    "attentionCount": "{{count}} дел"
+    "attentionCount_one": "{{count}} дело",
+    "attentionCount_few": "{{count}} дела",
+    "attentionCount_many": "{{count}} дел"
   },
   "now": {
     "live": "идёт сейчас",

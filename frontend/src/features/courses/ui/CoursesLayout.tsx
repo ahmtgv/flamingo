@@ -7,7 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '@/app/hooks';
 import { toggleTheme } from '@/app/uiSlice';
 import { useLogout } from '@/app/useLogout';
-import { Logo } from '@/shared/ui';
+import { Logo, ScreenHeader } from '@/shared/ui';
 
 import styles from './courses.module.css';
 import { HOME_ROUTE } from '@/shared/lib/homeRoute';
@@ -22,34 +22,40 @@ export function CoursesLayout({ children }: { children: ReactNode }) {
 
   return (
     <div className={styles.shell}>
-      <header className={styles.topbar}>
-        <button
-          type="button"
-          className={styles.logoBtn}
-          onClick={() => navigate(HOME_ROUTE)}
-          aria-label="Flamingo"
-        >
-          <Logo />
-        </button>
-        <div className={styles.topActions}>
+      {/* §49.1: одна шапка на продукт. Здесь была своя — одна из двадцати; высота у неё
+          вытекала из отступов, поэтому переход с соседнего экрана дёргал содержимое. */}
+      <ScreenHeader
+        brand={
           <button
             type="button"
-            className={styles.iconBtn}
-            onClick={() => dispatch(toggleTheme())}
-            aria-label={goingDark ? t('common:theme.toDark') : t('common:theme.toLight')}
+            className={styles.logoBtn}
+            onClick={() => navigate(HOME_ROUTE)}
+            aria-label="Flamingo"
           >
-            {goingDark ? <Moon size={ICON_MD} /> : <Sun size={ICON_MD} />}
+            <Logo />
           </button>
-          <button
-            type="button"
-            className={styles.iconBtn}
-            onClick={() => void logout()}
-            aria-label={t('cabinet:signOut')}
-          >
-            <LogOut size={ICON_MD} />
-          </button>
-        </div>
-      </header>
+        }
+        actions={
+          <>
+            <button
+              type="button"
+              className={styles.iconBtn}
+              onClick={() => dispatch(toggleTheme())}
+              aria-label={goingDark ? t('common:theme.toDark') : t('common:theme.toLight')}
+            >
+              {goingDark ? <Moon size={ICON_MD} /> : <Sun size={ICON_MD} />}
+            </button>
+            <button
+              type="button"
+              className={styles.iconBtn}
+              onClick={() => void logout()}
+              aria-label={t('cabinet:signOut')}
+            >
+              <LogOut size={ICON_MD} />
+            </button>
+          </>
+        }
+      />
       {children}
     </div>
   );

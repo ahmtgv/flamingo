@@ -274,11 +274,13 @@ export function CreateCourseScreen() {
                   Первое занятие ставит человек — иначе два источника правды разойдутся. */}
               <span className={styles.hint}>
                 {days.length || minutes || perWeek
-                  ? t('create.rhythmSummary', {
+                  ? t(minutes ? 'create.rhythmSummary' : 'create.rhythmSummaryNoMinutes', {
                       days: days.length
                         ? days.map((d) => t(`create.dayShort.${d}`)).join(', ')
                         : t('create.daysNone'),
-                      minutes: minutes ?? '—',
+                      // §49.7: i18next склоняет только `count`; «минут» после числа
+                      // обязано меняться, поэтому переменная переименована.
+                      count: minutes ?? 0,
                     })
                   : t('create.rhythmEmpty')}
               </span>
@@ -320,7 +322,7 @@ export function CreateCourseScreen() {
                   <dt>{t('create.specRhythm')}</dt>
                   <dd>
                     {[
-                      perWeek ? t('create.perWeekValue', { n: perWeek }) : null,
+                      perWeek ? t('create.perWeekValue', { count: perWeek }) : null,
                       minutes ? t('create.minutesValue', { n: minutes }) : null,
                       days.length ? days.map((d) => t(`create.dayShort.${d}`)).join(', ') : null,
                     ]

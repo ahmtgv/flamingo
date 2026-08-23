@@ -11,7 +11,7 @@
   align-content: start;
 }
 .page > * {
-  max-width: 720px;
+  max-width: var(--content-max-narrow);
   width: 100%;
   margin-inline: auto;
 }

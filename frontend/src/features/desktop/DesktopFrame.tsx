@@ -1,9 +1,9 @@
-import { type ReactNode, useState } from 'react';
+import { type ReactNode, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { BrandMark } from '@/shared/ui';
 
-import { APP_VERSION, minimiseWindow, setTrayLabel } from './bridge';
+import { APP_VERSION, setTrayLabel } from './bridge';
 import { ControlsContext } from './frameControls';
 import {
   connectionWord,
@@ -71,6 +71,14 @@ export function DesktopFrame({
   const word = connectionWord(facts);
   const level = meterLevel(facts);
 
+  /*
+   * 🔴 ПОДПИСЬ В СИСТЕМНОМ УГЛУ ЖИВЁТ ДАЛЬШЕ (§60.3).
+   *
+   * Её ставила кнопка «свернуть», которую владелец велел убрать: она дублировала жёлтый
+   * системный кружок. Но смысл подписи был не в кнопке, а в том, что свернувший окно
+   * преподаватель забывает про открытую комнату. Поэтому подпись теперь обновляется сама,
+   * при смене состояния, — и системное сворачивание показывает её так же.
+   */
   const trayLabel =
     state === 'idle' || state === 'offline'
       ? t('tray.idle')
@@ -78,17 +86,9 @@ export function DesktopFrame({
         ? t('tray.liveWith', { elapsed: elapsed ?? '', joined, total: participantCount })
         : t('tray.live', { elapsed: elapsed ?? '' });
 
-  /**
-   * 🔴 Свернуть — не завершить. The window goes away, the lesson does not: the pupils stay
-   * connected to this machine and the tray keeps saying so. Ending a lesson is a separate
-   * button with its own word, and it lives in the strip precisely because a teacher who
-   * minimises the window forgets that the room is still open (sheet D1, «Завершить остаётся
-   * в раме»).
-   */
-  const handleMinimise = () => {
+  useEffect(() => {
     void setTrayLabel(trayLabel);
-    void minimiseWindow();
-  };
+  }, [trayLabel]);
 
   return (
     <ControlsContext.Provider value={slot}>
@@ -124,15 +124,9 @@ export function DesktopFrame({
           </output>
 
           <span className={styles.titleRight}>
-            <button
-              type="button"
-              className={styles.iconBtn}
-              onClick={handleMinimise}
-              title={t('title.minimise')}
-              aria-label={t('title.minimise')}
-            >
-              ▾
-            </button>
+            {/* 🔴 §60.3: кнопка «свернуть» убрана. Она дублировала жёлтый системный кружок
+                macOS, стоящий в 78 px левее, и была нарисована голым знаком «▾» — тем самым,
+                который владелец принял за «что-то ещё». Системные кружки на месте. */}
             {/* 🔴 Находка владельца 15.08 №4: шестерёнка была нарисована, а обработчика у неё
                 не было — `onSettings` необязателен, и никто его не передавал. Кнопка, которая
                 ничего не делает, хуже отсутствующей: человек решает, что сломался он.

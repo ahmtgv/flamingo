@@ -90,7 +90,9 @@
     "open": "открыт"
   },
   "meta": {
-    "teacher": "урок · {{count}} участников",
-    "teacherAlone": "урок · вы один в комнате"
+    "teacherAlone": "урок · вы один в комнате",
+    "teacher_one": "урок · {{count}} участник",
+    "teacher_few": "урок · {{count}} участника",
+    "teacher_many": "урок · {{count}} участников"
   }
 }

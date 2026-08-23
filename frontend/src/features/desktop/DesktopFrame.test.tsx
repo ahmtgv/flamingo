@@ -1,5 +1,4 @@
-import { screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+import { screen, waitFor } from '@testing-library/react';
 import { createPortal } from 'react-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -55,11 +54,12 @@ describe('рама приложения — заголовок (лист D1)', (
     expect(screen.getByText(/^\d+\.\d+\.\d+$/)).toBeInTheDocument();
   });
 
-  it('в заголовке только свернуть и настройки — не место для функций', () => {
+  it('в заголовке одна кнопка — настройки; не место для функций', () => {
+    // §60.3: было две, вторая — «свернуть», дублировавшая системный жёлтый кружок.
     frame({ onSettings: () => {} });
     const bar = screen.getByRole('banner');
     const buttons = screen.getAllByRole('button').filter((b) => bar.contains(b));
-    expect(buttons).toHaveLength(2);
+    expect(buttons).toHaveLength(1);
   });
 
   it('🔴 шестерёнки нет, пока некому её обработать', () => {
@@ -67,8 +67,11 @@ describe('рама приложения — заголовок (лист D1)', (
     // делало ничего. Кнопка, которая ничего не делает, хуже отсутствующей.
     frame();
     const bar = screen.getByRole('banner');
-    const buttons = screen.getAllByRole('button').filter((b) => bar.contains(b));
-    expect(buttons).toHaveLength(1);
+    // Без обработчика кнопок в заголовке не остаётся вовсе (§60.3 убрал «свернуть»),
+    // поэтому спрашиваем `queryAll`: `getAll` бросает на пустом списке, и проверка
+    // падала бы по причине, к делу не относящейся.
+    const buttons = screen.queryAllByRole('button').filter((b) => bar.contains(b));
+    expect(buttons).toHaveLength(0);
     expect(screen.queryByRole('button', { name: 'Настройки' })).not.toBeInTheDocument();
   });
 });
@@ -132,32 +135,38 @@ describe('рама приложения — полоса состояния', ()
 });
 
 describe('рама приложения — трей', () => {
-  it('🔴 свернуть — не завершить: урок не трогают', async () => {
+  /*
+   * 🔴 §60.3: КНОПКА «СВЕРНУТЬ» УБРАНА — она дублировала жёлтый системный кружок macOS,
+   * стоящий в 78 px левее, и была нарисована голым знаком «▾».
+   *
+   * Смысл подписи в трее при этом остался: свернувший окно преподаватель забывает про
+   * открытую комнату. Поэтому подпись теперь ставится САМА, при смене состояния, и
+   * системное сворачивание показывает её так же. Проверяем это, а не кнопку.
+   */
+  it('подпись в трее ставится сама, без всякой кнопки', async () => {
     insideTheApp();
     frame();
-    await userEvent.click(screen.getByRole('button', { name: 'Свернуть в трей' }));
 
-    const commands = invoke.mock.calls.map(([cmd]) => cmd);
-    expect(commands).toContain('minimise_window');
-    // Nothing in this path may end a lesson, close a room or stop the sidecar.
-    expect(commands.join(' ')).not.toMatch(/end|finish|close|stop|quit/i);
+    await waitFor(() => {
+      const label = invoke.mock.calls.find(([cmd]) => cmd === 'set_tray_label')?.[1] as
+        | { label: string }
+        | undefined;
+      expect(label?.label).toContain('24:16');
+      expect(label?.label).toContain('6 из 8');
+    });
   });
 
-  it('в трее то же, что в заголовке', async () => {
+  it('ставя подпись, рама не трогает урок', async () => {
     insideTheApp();
     frame();
-    await userEvent.click(screen.getByRole('button', { name: 'Свернуть в трей' }));
 
-    const label = invoke.mock.calls.find(([cmd]) => cmd === 'set_tray_label')?.[1] as {
-      label: string;
-    };
-    expect(label.label).toContain('24:16');
-    expect(label.label).toContain('6 из 8');
+    await waitFor(() => expect(invoke).toHaveBeenCalled());
+    const commands = invoke.mock.calls.map(([cmd]) => cmd).join(' ');
+    expect(commands).not.toMatch(/end|finish|close|stop|quit/i);
   });
 
-  it('в браузере кнопка ничего не ломает', async () => {
+  it('в браузере рама ничего не зовёт', () => {
     frame(); // no __TAURI_INTERNALS__
-    await userEvent.click(screen.getByRole('button', { name: 'Свернуть в трей' }));
     expect(invoke).not.toHaveBeenCalled();
   });
 });

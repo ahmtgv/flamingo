@@ -65,7 +65,7 @@
     "specialty": "предмет",
     "education": "образование",
     "load": "нагрузка",
-    "loadValue": "{{courses}} курса · {{sessions}} занятий",
+    "loadValue": "курсов: {{courses}} · занятий: {{sessions}}",
     "noneStated": "не указано",
     "documents": "Документы",
     "open": "Открыть",

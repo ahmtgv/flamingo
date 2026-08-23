@@ -48,7 +48,7 @@ export function DemoRoleSwitcher() {
         style={{
           fontFamily: 'var(--font-mono)',
           fontSize: 'var(--text-overline)',
-          color: 'var(--color-text-tertiary)',
+          color: 'var(--color-text-hint)',
           paddingInlineStart: 'var(--space-1)',
           textTransform: 'uppercase',
           letterSpacing: '0.06em',
