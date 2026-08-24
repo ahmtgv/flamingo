@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Flamingo · прогон «нажми всё и сравни снимки»</title>
+<style>
+  body { margin: 0; font: 13px/1.5 -apple-system, system-ui, sans-serif; color: #1a1a1a; background: #fff; }
+  h1 { font-size: 17px; margin: 20px 16px 4px; }
+  p.sub { margin: 0 16px 16px; color: #666; max-width: 96ch; }
+  table { border-collapse: collapse; margin: 0 16px 20px; font-size: 12px; }
+  th, td { border: 1px solid #e4e4e4; padding: 5px 9px; text-align: left; vertical-align: top; }
+  th { background: #fafafa; font-weight: 600; }
+  td.bad { color: #b3261e; font-weight: 600; }
+  td.ok { color: #2a7d4f; }
+  td.num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+  #stage { position: fixed; left: -4000px; top: 0; }
+  iframe { width: 1400px; height: 950px; border: 0; }
+  details { margin: 0 16px 12px; }
+  pre { margin: 6px 0 0; font-size: 11px; white-space: pre-wrap; background: #fafafa; padding: 8px; }
+  #status { margin: 0 16px 16px; font-family: ui-monospace, monospace; font-size: 12px; }
+</style>
+</head>
+<body>
+<h1>Прогон 19: нажми всё и сравни снимки</h1>
+<p class="sub">Восемнадцать приборов меряют картинку и мёртвую кнопку не видят. Этот проход нажимает
+каждый интерактивный элемент внутри кадра и валится, если после нажатия в кадре не изменилось
+ничего; затем щёлкает по случаям служебной полосы и требует, чтобы два разных имени дали два
+разных снимка. Кнопка вправе молчать, если молчание объявлено словами: <code>data-still="почему"</code>.
+Каждому проходу даётся свежий кадр — прибор состояние не восстанавливает.</p>
+<div id="status">загружается…</div>
+<div id="out"></div>
+<div id="stage"></div>
+
+<script src="audit-clicks.js"></script>
+<script>
+const SHEETS = [
+  'Комната урока.dc.html',
+  'Доска.dc.html',
+  'Страница курса.dc.html',
+  'Кабинет и учёба.dc.html',
+  'Кабинет предмета.dc.html',
+  'Каталог и курс.dc.html',
+  'Создание курса и занятия.dc.html',
+  'Задания и конспект.dc.html',
+  'Вокруг урока.dc.html',
+  'Чат.dc.html',
+  'Вход и регистрация.dc.html',
+  'Мой аккаунт.dc.html',
+  'Согласие взрослого.dc.html',
+  'Приложение и надзор.dc.html',
+  'Источники мира.dc.html',
+  'Отказы продукта.dc.html',
+  'Письма.dc.html',
+  'Первая страница.dc.html',
+  'Телефон.dc.html',
+  'Телефон · вход и запись.dc.html',
+  'Комната урока на телефоне.dc.html',
+  'Обложки курсов.dc.html',
+];
+
+const sleep = (ms) => new Promise((res) => {
+  const t0 = performance.now();
+  const ch = new MessageChannel();
+  const tick = () => (performance.now() - t0 >= ms ? res() : ch.port2.postMessage(0));
+  ch.port1.onmessage = tick;
+  tick();
+});
+
+async function open(file) {
+  const fr = document.createElement('iframe');
+  fr.src = encodeURI(file);
+  document.getElementById('stage').append(fr);
+  await Promise.race([new Promise((res) => { fr.onload = res; }), sleep(12000)]);
+  const d = fr.contentDocument, w = fr.contentWindow;
+  for (let i = 0; i < 60 && !(d && d.querySelector('[data-audit-scope]')); i++) await sleep(200);
+  await sleep(1100);
+  const s = d.createElement('script');
+  s.src = './audit-clicks.js';
+  d.body.append(s);
+  for (let i = 0; i < 40 && !w.flClicks; i++) await sleep(100);
+  return { fr, d, w };
+}
+
+// Лист без кадра или без единого живого элемента — не «ok», а «не запустился» (ПРАВИЛА 6.7е).
+function aliveOf(d) {
+  const root = d && d.querySelector('[data-audit-scope]');
+  if (!root) return 'кадра нет вовсе: [data-audit-scope] не появился';
+  const n = root.querySelectorAll('button, [role="button"], a[href], input, select, textarea').length;
+  if (!n) return 'в кадре ни одного интерактивного элемента — щёлкать нечего';
+  return null;
+}
+
+// Любой проход имеет предел. Зависший лист — тоже результат и строка в таблице, а не причина
+// оставить остальные двадцать листов неизмеренными.
+const withLimit = (p, ms, what) => Promise.race([
+  p,
+  sleep(ms).then(() => { throw new Error('проход не завершился за ' + Math.round(ms / 1000) + ' с: ' + what); }),
+]);
+
+async function runSheet(file) {
+  const name = file.replace('.dc.html', '');
+  const rows = [];
+  let a = await open(file);
+  const notAlive = aliveOf(a.d);
+  if (notAlive || !a.w.flClicks) {    a.fr.remove();
+    return [{ name: name + ' · ЛИСТ НЕ ЗАПУСТИЛСЯ', dead: true, detail: { причина: notAlive || 'прибор не подключился к листу' } }];
+  }
+  const tA = performance.now();
+  const clicks = await withLimit(a.w.flClicks({ label: name, quiet: true }), 100000, name + ' · нажатия');
+  console.log('[прогон] ' + name + ' · нажатия: ' + Math.round(performance.now() - tA) + ' мс, элементов ' + clicks.всего);
+  a.fr.remove();
+
+  // Второй проход — свежий кадр: имена случаев проверяются на листе, которого ещё не касались.
+  let cases = null;
+  const b = await open(file);
+  const tB = performance.now();
+  if (b.w.flCases) cases = await withLimit(b.w.flCases({ label: name, quiet: true }), 80000, name + ' · случаи');
+  console.log('[прогон] ' + name + ' · случаи: ' + Math.round(performance.now() - tB) + ' мс, снимков ' + (cases ? cases.снимков : 0));
+  b.fr.remove();
+
+  rows.push({ name, clicks, cases });
+  return rows;
+}
+
+function cell(tr, text, cls) {
+  const td = document.createElement('td');
+  td.textContent = text;
+  if (cls) td.className = cls;
+  tr.append(td);
+}
+
+(async function () {
+  const st = document.getElementById('status');
+  const out = document.getElementById('out');
+  const table = document.createElement('table');
+  table.innerHTML = '<tr><th>лист</th><th>элементов</th><th>нажато</th><th>ссылок</th><th>отвечают</th><th>объявлено немых</th>'
+    + '<th>молчат необъявленно</th><th>не проверено</th><th>дверь отвечает</th><th>служебное имя в кадре</th>'
+    + '<th>снимков случаев</th><th>имя без снимка</th></tr>';
+  out.append(table);
+
+  // Проверка самого прибора — до листов. Прибор, который не видел дефекта, ничем не доказан.
+  const self = await window.flClicksSelfTest();
+  const details = [];
+
+  const only = new URLSearchParams(location.search).get('only');
+  const list = only ? SHEETS.filter((f) => only.split(',').some((q) => f.indexOf(q) >= 0)) : SHEETS;
+
+  for (let i = 0; i < list.length; i++) {
+    st.textContent = 'лист ' + (i + 1) + ' из ' + list.length + ': ' + list[i];
+    let rs;
+    try { rs = await runSheet(list[i]); }
+    catch (e) { rs = [{ name: list[i].replace('.dc.html', '') + ' · ПРОГОН УПАЛ', dead: true, detail: { ошибка: String((e && e.stack) || e).slice(0, 600) } }]; }
+    document.querySelectorAll('#stage iframe').forEach((f) => f.remove());
+    rs.forEach((r) => {
+      const tr = document.createElement('tr');
+      cell(tr, r.name);
+      if (r.dead) {
+        const td = document.createElement('td');
+        td.colSpan = 11; td.className = 'bad'; td.textContent = 'ЛИСТ НЕ ИЗМЕРЕН · ' + Object.values(r.detail)[0];
+        tr.append(td);
+        details.push({ name: r.name, data: r.detail });
+      } else {
+        const c = r.clicks, k = r.cases;
+        cell(tr, String(c.всего), 'num');
+        cell(tr, String(c.нажато), c.нажато ? 'num' : 'num bad');
+        cell(tr, String(c.ссылок), 'num');
+        cell(tr, String(c.отвечают), 'num ok');
+        cell(tr, String(c.объявлено_немых), 'num');
+        // Клетка не бывает зелёной, когда не нажали ни одного элемента.
+        cell(tr, !c.нажато ? 'НЕ ИЗМЕРЕНО · только ссылки'
+          : c.dead.length ? 'ДЕФЕКТ · ' + c.dead.length : 'ok', !c.нажато || c.dead.length ? 'bad' : 'ok');
+        // Сумма по строке обязана сходиться: элементов = нажато + ссылок + не проверено.
+        // Без этого столбца «ok» стояло над листом, часть которого прибор не трогал.
+        cell(tr, String(c.не_проверено), c.не_проверено ? 'num bad' : 'num');
+        cell(tr, c.zombie.length ? 'ДЕФЕКТ · ' + c.zombie.length : 'ok', c.zombie.length ? 'bad' : 'ok');
+        cell(tr, c.swInside.length ? 'ДЕФЕКТ · ' + c.swInside.length : 'ok', c.swInside.length ? 'bad' : 'ok');
+        cell(tr, k ? String(k.снимков) : '—', 'num');
+        cell(tr, k && k.twins.length ? 'ДЕФЕКТ · ' + k.twins.length : 'ok', k && k.twins.length ? 'bad' : 'ok');
+        const d = {};
+        if (c.dead.length) d.молчат = c.dead;
+        if (c.zombie.length) d.дверь_отвечает = c.zombie;
+        if (c.noisy.length) d.фокус_на_двери = c.noisy;
+        if (c.swInside.length) d.служебное_имя_в_кадре = c.swInside;
+        if (c.gone.length || c.skipped.length) d.не_проверено = c.gone.concat(c.skipped);
+        if (k && k.twins.length) d.имя_без_снимка = k.twins;
+        if (k && k.depends && k.depends.length) d.зависит_от_вида = k.depends;
+        if (k && k.unnamed.length) d.имя_не_подтверждено = k.unnamed;
+        if (Object.keys(d).length) details.push({ name: r.name, data: d });
+        if (!c.нажато) details.push({ name: r.name + ' · НЕ ИЗМЕРЕНО', data: { причина: c.verdict.clicks, ссылки: c.links } });
+      }
+      table.append(tr);
+    });
+  }
+
+  // Прибор обязан падать громко на заведомо мёртвом листе — иначе зелёной таблице верить нельзя.
+  let fixture = 'не проверено';
+  try {
+    const f = await open('выгрузка/проверка-мёртвого-листа.dc.html');
+    const why = aliveOf(f.d);
+    let r = null;
+    if (!why && f.w.flClicks) r = await f.w.flClicks({ label: 'мёртвый лист', quiet: true });
+    f.fr.remove();
+    fixture = why ? 'да · ' + why
+      : !f.w.flClicks ? 'да · прибор не подключился к листу'
+      : !r.ожил ? 'да · в кадре ни одного видимого элемента'
+      : r.dead.length ? 'да · мёртвый лист дал ' + r.dead.length + ' молчащих кнопок'
+      : 'НЕТ — прибор назвал мёртвый лист живым (элементов ' + r.всего + ', отвечают ' + r.отвечают + ', объявлено немых ' + r.объявлено_немых + ')';
+  } catch (e) { fixture = 'НЕТ — образец не открылся: ' + String(e).slice(0, 120); }
+
+  st.textContent = 'готово · самопроверка прибора: ' + (self.ok ? 'ok, 4 из 4' : 'ПРОВАЛ — ' + JSON.stringify(self))
+    + ' · мёртвый лист ловится: ' + fixture;
+
+  details.forEach((d) => {
+    const el = document.createElement('details');
+    const s = document.createElement('summary');
+    s.textContent = d.name;
+    const pre = document.createElement('pre');
+    pre.textContent = JSON.stringify(d.data, null, 1);
+    el.append(s, pre);
+    document.getElementById('out').append(el);
+  });
+})();
+</script>
+</body>
+</html>

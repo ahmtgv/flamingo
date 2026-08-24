@@ -18,9 +18,12 @@
 </style>
 </head>
 <body>
-<h1>Прогон проверок — 15 приборов по всем листам пула</h1>
-<p class="note">В прогон идёт только пул экранов. «Первая страница» и черновики в него не входят: необъяснённый файл в корне — ровно тот мусор, который проверки и ищут.</p>
-<div id="out">считаю…</div>
+<h1>Прогон проверок — 18 приборов по всем листам пула, плюс проверка жизни листа</h1>
+<p class="note">Перед замерами каждый лист проверяется на жизнь: есть ли кадр, отвечают ли переключатели, не кричит ли страница в консоль. Не оживший лист даёт строку «ЛИСТ НЕ ЗАПУСТИЛСЯ» и НЕ меряется дальше: по мёртвому экрану все восемнадцать приборов честно говорят ok, и это самый опасный вид тишины.</p>
+<p class="note">В прогон идёт только пул экранов; черновики и справочный лист «Зелёный кандидаты» в него не входят: необъяснённый файл в корне — ровно тот мусор, который проверки и ищут. «Первая страница» из черновиков вышла и снимается наравне с остальными.</p>
+<p class="note">Ожидание не на таймерах: скрытая вкладка через пять минут душит <code>setTimeout</code> до одного пробуждения в минуту, и прогон до таблицы не доходит (это и был §15 отчёта — «прогон до таблицы не дошёл, фоновая вкладка душит таймеры»). Паузы отсчитываются по <code>Date.now()</code> через <code>MessageChannel</code>, который не душится. Длительности пауз не изменены.</p>
+<p class="note" id="prog">считаю…</p>
+<div id="out"></div>
 <pre id="self"></pre>
 <div id="stage"></div>
 <script>
@@ -28,10 +31,18 @@ const click = (d, sel) => { const el = d.querySelector(sel); if (el) el.click();
 const SHEETS = [
   { file: 'Комната урока.dc.html', extra: [
     { label: 'пульты скрыты', wait: 6500, run: () => {} },
-    { label: 'панель открыта', wait: 900, run: (d) => click(d, '[data-sw="panel"][data-val="people"]') },
-    { label: '30 участников', wait: 900, run: (d) => { click(d, '[data-sw="panel"][data-val="people"]'); click(d, '[data-sw="count"][data-val="30"]'); } },
-    { label: 'частичный отказ', wait: 900, run: (d) => { click(d, '[data-sw="count"][data-val="20"]'); click(d, '[data-sw="st"][data-val="partial"]'); } },
-    { label: 'правила', wait: 900, run: (d) => { click(d, '[data-sw="st"][data-val="filled"]'); click(d, '[data-sw="view"][data-val="rules"]'); } },
+    { label: 'панель открыта', wait: 900, run: (d) => click(d, '[data-pick="panel"][data-val="people"]') },
+    { label: '30 участников', wait: 900, run: (d) => { click(d, '[data-pick="panel"][data-val="people"]'); click(d, '[data-sw="count"][data-val="30"]'); } },
+    { label: 'доска не пришла', wait: 900, run: (d) => { click(d, '[data-sw="count"][data-val="20"]'); click(d, '[data-sw="st"][data-val="partial"]'); } },
+    // Четыре случая комнаты, которых в продукте не было вовсе (задача 23 августа §1).
+    { label: 'эфир не поднялся', wait: 900, run: (d) => click(d, '[data-sw="st"][data-val="failed"]') },
+    { label: 'до начала · преподаватель', wait: 1000, run: (d) => { click(d, '[data-sw="st"][data-val="filled"]'); click(d, '[data-sw="phase"][data-val="before"]'); } },
+    { label: 'до начала · один в комнате', wait: 900, run: (d) => click(d, '[data-sw="count"][data-val="1"]') },
+    { label: 'до начала · ученик', wait: 900, run: (d) => click(d, '[data-sw="role"][data-val="pupil"]') },
+    { label: 'занятие закончилось', wait: 1000, run: (d) => { click(d, '[data-sw="role"][data-val="teacher"]'); click(d, '[data-sw="count"][data-val="20"]'); click(d, '[data-sw="phase"][data-val="after"]'); } },
+    { label: 'урок идёт · учеников нет', wait: 1000, run: (d) => { click(d, '[data-sw="phase"][data-val="live"]'); click(d, '[data-sw="st"][data-val="filled"]'); click(d, '[data-sw="count"][data-val="1"]'); } },
+    { label: 'двое в комнате', wait: 900, run: (d) => click(d, '[data-sw="count"][data-val="2"]') },
+    { label: 'правила', wait: 900, run: (d) => { click(d, '[data-sw="count"][data-val="20"]'); click(d, '[data-sw="view"][data-val="rules"]'); } },
   ] },
   { file: 'Кабинет и учёба.dc.html', extra: [
     { label: 'частичный отказ', wait: 1000, run: (d) => click(d, '[data-sw="st"][data-val="partial"]') },
@@ -48,16 +59,36 @@ const SHEETS = [
     { label: 'частичный отказ', wait: 1000, run: (d) => click(d, '[data-sw="st"][data-val="partial"]') },
     { label: 'частичный · ученик', wait: 1000, run: (d) => click(d, '[data-sw="role"][data-val="pupil"]') },
   ] },
-  // Проектор переключается внутри экрана — снимаем каждый источник: у чужого рядом стоит
-  // право словами, и оно не должно ни обрезаться, ни уезжать за кадр.
+  // Имена разведены в самом листе (решение владельца 22 августа): служебная полоса — data-sw,
+  // продуктовая кнопка «что выводим» — data-pick="src". Обход селектором больше не нужен.
   { file: 'Вокруг урока.dc.html', extra: [
-    { label: 'проектор · ученик', wait: 900, run: (d) => click(d, '[data-sw="sub"][data-val="b"]') },
-    { label: 'проектор · пара', wait: 900, run: (d) => click(d, '[data-sw="sub"][data-val="c"]') },
-    { label: 'проектор · книга', wait: 900, run: (d) => click(d, '[data-sw="sub"][data-val="d"]') },
-    { label: 'проектор · трансляция', wait: 900, run: (d) => click(d, '[data-sw="sub"][data-val="e"]') },
-    { label: 'проектор · ждёт выбора', wait: 900, run: (d) => click(d, '[data-sw="sub"][data-val="f"]') },
+    { label: 'ожидание · преподаватель вышел', wait: 900, run: (d) => click(d, '[data-sw="sub"][data-val="b"]') },
+    { label: 'ожидание · связь потеряна', wait: 900, run: (d) => click(d, '[data-sw="sub"][data-val="c"]') },
+    { label: 'проектор · доска', wait: 1000, run: (d) => click(d, '[data-sw="screen"][data-val="projector"]') },
+    { label: 'проектор · ученик', wait: 900, run: (d) => click(d, '[data-pick="src"][data-val="b"]') },
+    { label: 'проектор · пара', wait: 900, run: (d) => click(d, '[data-pick="src"][data-val="c"]') },
+    { label: 'проектор · книга', wait: 900, run: (d) => click(d, '[data-pick="src"][data-val="d"]') },
+    { label: 'проектор · трансляция', wait: 900, run: (d) => click(d, '[data-pick="src"][data-val="e"]') },
+    { label: 'проектор · ждёт выбора', wait: 900, run: (d) => click(d, '[data-pick="src"][data-val="f"]') },
+    { label: 'демо · доска занятия', wait: 1000, run: (d) => click(d, '[data-sw="screen"][data-val="demo"]') },
+    // Снимков демо один, а не три: разметка демо по `sub` не ветвится, и три снимка были бы
+    // одним экраном под тремя именами — тот же дефект стенда, что был у проектора (§21.2).
   ] },
-  { file: 'Приложение и надзор.dc.html' },
+  // Лист шёл в прогоне ОДНИМ снимком: мастер первого запуска снимался только на первом шаге,
+  // а приглашение, журнал и надзор не снимались вовсе. Найдено 22 августа при добавлении
+  // второго отказа камеры — то же, что было с «Обложками» (§21.4).
+  { file: 'Приложение и надзор.dc.html', extra: [
+    { label: 'первый запуск · шаг 4 · до нажатия', wait: 1000, run: (d) => click(d, '[data-sw="step"][data-val="4"]') },
+    { label: 'шаг 4 · камера идёт', wait: 900, run: (d) => click(d, '[data-sw="cam"][data-val="on"]') },
+    { label: 'шаг 4 · доступ запретили', wait: 900, run: (d) => click(d, '[data-sw="cam"][data-val="denied"]') },
+    { label: 'шаг 4 · камера занята', wait: 900, run: (d) => click(d, '[data-sw="cam"][data-val="busy"]') },
+    { label: 'приглашение ученика', wait: 1000, run: (d) => { click(d, '[data-sw="cam"][data-val="off"]'); click(d, '[data-sw="screen"][data-val="invite"]'); } },
+    { label: 'приглашение · никто не вошёл', wait: 1000, run: (d) => click(d, '[data-sw="st"][data-val="empty"]') },
+    { label: 'журнал', wait: 1000, run: (d) => { click(d, '[data-sw="st"][data-val="filled"]'); click(d, '[data-sw="screen"][data-val="journal"]'); } },
+    { label: 'журнал · отказ', wait: 1000, run: (d) => click(d, '[data-sw="st"][data-val="failed"]') },
+    { label: 'надзор', wait: 1000, run: (d) => { click(d, '[data-sw="st"][data-val="filled"]'); click(d, '[data-sw="screen"][data-val="oversight"]'); } },
+    { label: 'надзор · нет права', wait: 1000, run: (d) => click(d, '[data-sw="st"][data-val="failed"]') },
+  ] },
   { file: 'Первая страница.dc.html', extra: [
     { label: 'телефон 390', wait: 1100, run: (d) => click(d, '[data-sw="w"][data-val="390"]') },
   ] },
@@ -70,6 +101,9 @@ const SHEETS = [
     { label: 'моя учёба', wait: 1000, run: (d) => { click(d, '[data-sw="st"][data-val="filled"]'); click(d, '[data-sw="screen"][data-val="learn"]'); } },
     { label: 'запуск', wait: 1000, run: (d) => click(d, '[data-sw="screen"][data-val="start"]') },
     { label: 'запуск · отказ', wait: 1000, run: (d) => click(d, '[data-sw="st"][data-val="failed"]') },
+    // Второй отказ камеры: «занята другой программой». Лечится не в настройках телефона,
+    // а закрытием чужого приложения — поэтому это отдельный случай, а не тот же текст.
+    { label: 'запуск · камера занята', wait: 1000, run: (d) => click(d, '[data-sw="st"][data-val="busy"]') },
     { label: 'чат', wait: 1000, run: (d) => { click(d, '[data-sw="screen"][data-val="chat"]'); click(d, '[data-sw="st"][data-val="filled"]'); } },
     { label: 'чат · 7–11', wait: 1000, run: (d) => click(d, '[data-sw="mode"]') },
   ] },
@@ -85,6 +119,10 @@ const SHEETS = [
     { label: 'перенос назад · вт 18', wait: 1000, run: (d) => { click(d, '[data-sw="st"][data-val="filled"]'); click(d, '[data-pick="date"][data-val="tue"]'); } },
     { label: 'перенос вперёд · пт 21', wait: 1000, run: (d) => click(d, '[data-pick="date"][data-val="fri"]') },
     { label: 'правка курса', wait: 1000, run: (d) => click(d, '[data-sw="screen"][data-val="edit"]') },
+    // Состояние «правка · загружается» не снималось ни одним снимком: прибор прыжков щёлкает
+    // loading только на экране по умолчанию, а extras у правки покрывали partial и failed.
+    // Именно там жили две чужие строки («открываем черновик» / «открываем занятие»).
+    { label: 'правка · загружается', wait: 1000, run: (d) => click(d, '[data-sw="st"][data-val="loading"]') },
     { label: 'правка · частичный', wait: 1000, run: (d) => click(d, '[data-sw="st"][data-val="partial"]') },
     { label: 'правка · отказ', wait: 1000, run: (d) => click(d, '[data-sw="st"][data-val="failed"]') },
     { label: 'отмена', wait: 1000, run: (d) => { click(d, '[data-sw="st"][data-val="filled"]'); click(d, '[data-pick="act"][data-val="cancel"]'); } },
@@ -119,8 +157,7 @@ const SHEETS = [
     { label: 'вас вывели на экран', wait: 1000, run: (d) => click(d, '[data-sw="view"][data-val="shown"]') },
     { label: 'дали писать', wait: 1000, run: (d) => click(d, '[data-sw="view"][data-val="draw"]') },
     { label: 'доска · рука поднята', wait: 1000, run: (d) => { click(d, '[data-sw="view"][data-val="board"]'); click(d, '[data-sw="hand"]'); } },
-    { label: 'связь потеряна', wait: 1000, run: (d) => click(d, '[data-sw="st"][data-val="failed"]') },
-    { label: 'частичный · нет лиц', wait: 1000, run: (d) => click(d, '[data-sw="st"][data-val="partial"]') },
+    { label: 'связь потеряна', wait: 1000, run: (d) => click(d, '[data-sw="st"][data-val="failed"]') },    { label: 'частичный · нет лиц', wait: 1000, run: (d) => click(d, '[data-sw="st"][data-val="partial"]') },
     { label: '7–11', wait: 1000, run: (d) => { click(d, '[data-sw="st"][data-val="filled"]'); click(d, '[data-sw="mode"]'); } },
   ] },
   { file: 'Письма.dc.html', extra: [
@@ -151,17 +188,86 @@ const SHEETS = [
     { label: 'отказ', wait: 1000, run: (d) => click(d, '[data-sw="st"][data-val="failed"]') },
     { label: '1512 · наполнено', wait: 1100, run: (d) => { click(d, '[data-sw="st"][data-val="filled"]'); click(d, '[data-sw="w"][data-val="1512"]'); } },
   ] },
+  // Лист пула, которого в прогоне не было вовсе: в таблице пула девятнадцать листов, в SHEETS
+  // было восемнадцать. Именно на обложках ревьюер нашёл 38 провалов контраста (отчёт §11),
+  // то есть лист с историей дефектов стоял вне ежедневного замера.
+  // Лист 23 августа: страница курса с разделами — отсюда ставится занятие (решение владельца §59.3).
+  // Лист 23 августа, вечер (§61.1): доска целиком — все семь инструментов и восемь случаев.
+  { file: 'Доска.dc.html', extra: [
+    { label: 'пустой холст', wait: 900, run: (d) => click(d, '[data-sw="case"][data-val="empty"]') },
+    { label: 'текст · ввод', wait: 900, run: (d) => click(d, '[data-sw="case"][data-val="typing"]') },
+    { label: 'текст · готов', wait: 900, run: (d) => click(d, '[data-sw="case"][data-val="typed"]') },
+    { label: 'выделен объект', wait: 900, run: (d) => click(d, '[data-sw="case"][data-val="selected"]') },
+    { label: 'перетаскивание', wait: 900, run: (d) => click(d, '[data-sw="case"][data-val="dragging"]') },
+    { label: 'вставленная картинка', wait: 900, run: (d) => click(d, '[data-sw="case"][data-val="image"]') },
+    { label: 'панорама ладошкой', wait: 900, run: (d) => click(d, '[data-sw="case"][data-val="pan"]') },
+    // Три инструмента без своего вида холста: их выбор виден только в панели и в строке
+    // настроек — и именно поэтому их надо снимать отдельно (без них три из семи
+    // инструментов восемь дней были невыбираемы, и прогон этого не видел).
+    { label: 'инструмент · фигура', wait: 900, run: (d) => click(d, '[data-tool="shape"]') },
+    { label: 'инструмент · наклейка', wait: 900, run: (d) => click(d, '[data-tool="sticker"]') },
+    { label: 'инструмент · связь', wait: 900, run: (d) => click(d, '[data-tool="link"]') },
+    // Имена разведены (ПРАВИЛА 6.7д): в полосе `data-sw`, в кадре `data-pick` — обход селектором снят.
+    { label: 'доска закрыта ученикам', wait: 1000, run: (d) => { click(d, '[data-sw="case"][data-val="draw"]'); click(d, '[data-sw="access"][data-val="closed"]'); } },
+  ] },
+  { file: 'Страница курса.dc.html', extra: [
+    { label: 'разделов нет', wait: 950, run: (d) => click(d, '[data-sw="st"][data-val="empty"]') },
+    { label: 'загружается', wait: 950, run: (d) => click(d, '[data-sw="st"][data-val="loading"]') },
+    { label: 'расписание молчит', wait: 950, run: (d) => click(d, '[data-sw="st"][data-val="partial"]') },
+    { label: 'курс не открылся', wait: 950, run: (d) => click(d, '[data-sw="st"][data-val="failed"]') },
+    { label: 'опубликован', wait: 1000, run: (d) => { click(d, '[data-sw="st"][data-val="filled"]'); click(d, '[data-sw="pub"][data-val="live"]'); } },
+    { label: 'опубликован · 1512', wait: 1000, run: (d) => click(d, '[data-sw="w"][data-val="1512"]') },
+  ] },
+  { file: 'Обложки курсов.dc.html' },
+  // Мобильный путь постороннего человека — добавлен 22 августа: без этих листов ребёнок
+  // с телефона не мог завести учётную запись.
+  { file: 'Телефон · вход и запись.dc.html', extra: [
+    { label: 'вход · ошибка почты', wait: 900, run: (d) => click(d, '[data-sw="st"][data-val="failed"]') },
+    { label: 'регистрация', wait: 1000, run: (d) => { click(d, '[data-sw="screen"][data-val="reg"]'); click(d, '[data-sw="st"][data-val="filled"]'); } },
+    { label: 'регистрация · почта занята', wait: 900, run: (d) => click(d, '[data-sw="st"][data-val="failed"]') },
+    { label: 'новый пароль', wait: 1000, run: (d) => { click(d, '[data-sw="screen"][data-val="reset"]'); click(d, '[data-sw="st"][data-val="filled"]'); } },
+    { label: 'новый пароль · почта молчит', wait: 900, run: (d) => click(d, '[data-sw="st"][data-val="failed"]') },
+    { label: 'каталог', wait: 1000, run: (d) => { click(d, '[data-sw="screen"][data-val="catalog"]'); click(d, '[data-sw="st"][data-val="filled"]'); } },
+    { label: 'каталог · астрономия', wait: 900, run: (d) => click(d, '[data-pick="subject"][data-val="astr"]') },
+    { label: 'каталог · пусто', wait: 900, run: (d) => click(d, '[data-sw="st"][data-val="empty"]') },
+    { label: 'каталог · частичный', wait: 900, run: (d) => click(d, '[data-sw="st"][data-val="partial"]') },
+    { label: 'каталог · отказ', wait: 900, run: (d) => click(d, '[data-sw="st"][data-val="failed"]') },
+    { label: 'курс', wait: 1000, run: (d) => { click(d, '[data-sw="screen"][data-val="course"]'); click(d, '[data-sw="st"][data-val="filled"]'); } },
+    { label: 'курс · согласия нет', wait: 900, run: (d) => click(d, '[data-sw="consent"][data-val="none"]') },
+    { label: 'курс · согласие подтверждено', wait: 900, run: (d) => click(d, '[data-sw="consent"][data-val="given"]') },
+    { label: 'мой аккаунт · согласия нет', wait: 1000, run: (d) => { click(d, '[data-sw="screen"][data-val="account"]'); click(d, '[data-sw="consent"][data-val="none"]'); } },
+    { label: 'мой аккаунт · согласие есть', wait: 900, run: (d) => click(d, '[data-sw="consent"][data-val="given"]') },
+    { label: 'курс · заявка отправлена', wait: 900, run: (d) => click(d, '[data-sw="st"][data-val="sent"]') },
+    { label: 'курс · отказ', wait: 900, run: (d) => click(d, '[data-sw="st"][data-val="failed"]') },
+    { label: 'мой аккаунт', wait: 1000, run: (d) => { click(d, '[data-sw="screen"][data-val="account"]'); click(d, '[data-sw="st"][data-val="filled"]'); } },
+    { label: 'мой аккаунт · 7–11', wait: 1000, run: (d) => click(d, '[data-sw="mode"]') },
+    { label: 'мой аккаунт · отказ', wait: 900, run: (d) => { click(d, '[data-sw="mode"]'); click(d, '[data-sw="st"][data-val="failed"]'); } },
+  ] },
 ];
-const KEYS = ['pageScroll', 'mobileScroll','overlaps','absOverlaps','textUnderLayer','frameBleed','clipped','rowTops','gaps','rawValues','tapTargets','contrast','wrapped','rowWrap','accents','accentsGo','jump','jumpStates'];
+const KEYS = ['alive', 'pageErrors', 'pageScroll', 'mobileScroll','overlaps','absOverlaps','textUnderLayer','frameBleed','clipped','rowTops','gaps','rawValues','tapTargets','contrast','wrapped','rowWrap','accents','accentsGo','jump','jumpStates'];
 const DETAIL = ['textUnderLayer','frameBleed','overlaps','absOverlaps','rowWrap','clipped','tapTargets','contrast','wrapped','rawValues','rowTops','jumpStates'];
-const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+// Пауза без setTimeout: в скрытой вкладке таймеры душатся до одного пробуждения в минуту,
+// и прогон из 100+ снимков до таблицы не доходит. MessageChannel не душится, а время
+// отсчитывается по Date.now() — длительности пауз те же, что были.
+const __chan = new MessageChannel();
+const __waiters = [];
+__chan.port1.onmessage = () => {
+  const now = Date.now();
+  for (let i = __waiters.length - 1; i >= 0; i--) if (__waiters[i].t <= now) __waiters.splice(i, 1)[0].r();
+  if (__waiters.length) __chan.port2.postMessage(0);
+};
+const sleep = (ms) => new Promise((r) => {
+  __waiters.push({ t: Date.now() + ms, r: r });
+  if (__waiters.length === 1) __chan.port2.postMessage(0);
+});
 
 async function runSheet(sheet, wantSelfTest) {
   const fr = document.createElement('iframe');
   fr.src = encodeURI(sheet.file);
   document.getElementById('stage').append(fr);
-  await new Promise((res) => { fr.onload = res; setTimeout(res, 12000); });
+  await Promise.race([new Promise((res) => { fr.onload = res; }), sleep(12000)]);
   const w = fr.contentWindow, d = fr.contentDocument;
+  const errs = watchErrors(w);
   for (let i = 0; i < 60 && !d.querySelector('[data-audit-scope]'); i++) await sleep(200);
   await sleep(1200);
   const s = d.createElement('script');
@@ -170,6 +276,22 @@ async function runSheet(sheet, wantSelfTest) {
   for (let i = 0; i < 40 && !w.flAudit; i++) await sleep(100);
   const name = sheet.file.replace('.dc.html', '');
   if (!w.flAudit) { fr.remove(); return [{ label: name, verdict: null }]; }
+
+  // 🔴 ЖИВ ЛИ ЛИСТ — ПЕРЕД ЛЮБЫМ ЗАМЕРОМ. Причина в цене ошибки: 22 августа в листе
+  // «Создание курса и занятия» стояла лишняя скобка, класс логики не разобрался целиком,
+  // два вида не рисовались вовсе — а прогон назвал лист чистым. Со статичной разметкой
+  // все восемнадцать приборов честно говорят ok: мёртвый экран не перекрывается, не обрезается
+  // и не прыгает — он просто не работает. Зелёная клетка над мёртвым листом опаснее красной:
+  // красную чинят, зелёной верят. Тот же корень, что §21.2, только этажом выше: там прибор
+  // мерил не тот экран, здесь — не тот лист (ПРАВИЛА 6.7е).
+  const alive = await probeAlive(d);
+  if (!alive.ok) {
+    fr.remove();
+    return [{
+      label: name + ' · ЛИСТ НЕ ЗАПУСТИЛСЯ', verdict: null, dead: true,
+      detail: { причина: alive.why, ошибки_страницы: errs.slice(0, 6) },
+    }];
+  }
 
   // прибор 15: карка́с в «загружается» против «наполнено» — макет не имеет права прыгать
   let jump = null;
@@ -220,6 +342,7 @@ async function runSheet(sheet, wantSelfTest) {
     ? 'ДЕФЕКТ · каркас съезжает: ' + restKeys.map((k) => k + ' (' + restJumps[k].length + ')').join(', ')
     : 'ok';
   if (restKeys.length) rows[0].detail.jumpStates = restJumps;
+  rows[0].verdict.alive = alive.why;
   let self = wantSelfTest ? w.flAuditSelfTest() : null;
   for (const e of (sheet.extra || [])) {
     e.run(d);
@@ -227,22 +350,87 @@ async function runSheet(sheet, wantSelfTest) {
     rows.push(take(name + ' · ' + e.label));
   }
   if (self) rows[0].self = self;
+  // Ошибки страницы собираются за весь лист, включая щелчки по состояниям: лист может ожить
+  // и умереть на третьем виде. Строка всегда видна — и когда ошибок нет, тоже.
+  rows[0].verdict.pageErrors = errs.length ? 'ДЕФЕКТ · ошибок страницы ' + errs.length : 'ok';
+  if (errs.length) rows[0].detail.pageErrors = errs.slice(0, 6);
   fr.remove();
   return rows;
 }
 
-(async () => {
-  const rows = [];
-  let self = null;
-  for (let i = 0; i < SHEETS.length; i++) {
-    const rs = await runSheet(SHEETS[i], i === 0);
-    rs.forEach((r) => { if (r.self) self = r.self; rows.push(r); });
+// Ловит то, о чём лист кричит в консоль ПОСЛЕ загрузки. Ограничение честное: ошибки САМОГО запуска
+// (сбой разбора класса логики) случаются ДО того, как сюда можно вообще подключиться, и этот
+// перехват их не видит — проверено на копии сломанного листа: ошибок 0. Именно поэтому
+// главный судья жизни — probeAlive (реестр рунтайма плюс ответ переключателя), а не этот список.
+function watchErrors(w) {
+  const errs = [];
+  const push = (s) => { if (errs.length < 40) errs.push(String(s).slice(0, 300)); };
+  w.addEventListener('error', (e) => push('ошибка: ' + (e.message || e.type)));
+  w.addEventListener('unhandledrejection', (e) => push('обещание отклонено: ' + (e.reason && e.reason.message || e.reason)));
+  const orig = w.console.error;
+  w.console.error = function () {
+    push('console.error: ' + Array.from(arguments).map((a) => (a && a.message) || a).join(' '));
+    return orig.apply(this, arguments);
+  };
+  return errs;
+}
+
+// Отвечают ли переключатели. Самая простая проверка жизни и единственная, которая не зависит
+// от устройства рунтайма: если щелчок по служебной кнопке не меняет разметку ни на байт,
+// листом никто не управляет. Пробуется СНАЧАЛА полоса состояний (у неё разница всегда
+// огромная), потом любая другая группа. Продуктовые кнопки внутри кадра не берутся:
+// они часть экрана, а не пульт прибора.
+async function probeAlive(d) {
+  const root = d.querySelector('[data-audit-scope]');
+  if (!root) return { ok: false, why: 'кадра нет вовсе: [data-audit-scope] не появился' };
+  if (root.innerHTML.length < 400) return { ok: false, why: 'кадр пуст: разметки ' + root.innerHTML.length + ' знаков' };
+
+  // Самый точный сигнал, и он называет причину словами: рунтайм хранит ошибку разбора
+  // класса логики в своём реестре и рисует шаблон без логики — страница выглядит целой.
+  // На сломанном 22 августа листе здесь было ровно: «Unexpected token ")"».
+  try {
+    const reg = d.defaultView.__dcRegistry;
+    const list = typeof reg === 'function' ? reg() : reg;
+    for (const k of Object.keys(list || {})) {
+      const e = list[k];
+      if (e && e.logicError) return { ok: false, why: 'класс логики не разобрался — ' + String(e.logicError).slice(0, 160) };
+      if (e && !e.tpl) return { ok: false, why: 'шаблон не скомпилирован: ' + k };
+    }
+  } catch (e) { /* чужой рунтайм — остаётся поведенческая проверка ниже */ }
+
+  const groups = {};
+  d.querySelectorAll('[data-sw][data-val]').forEach((b) => {
+    if (b.closest('[data-audit-scope]')) return;
+    (groups[b.dataset.sw] = groups[b.dataset.sw] || []).push(b);
+  });
+  const names = Object.keys(groups).filter((k) => new Set(groups[k].map((b) => b.dataset.val)).size > 1);
+  names.sort((a, b) => (a === 'st' ? -1 : b === 'st' ? 1 : 0));
+  if (!names.length) return { ok: true, why: 'ok · переключателей нет, проверен только кадр' };
+
+  const sig = () => { const s = root.innerHTML; let h = 0; for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0; return s.length + ':' + h; };
+  const g = names[0];
+  const before = sig();
+  const start = groups[g].find((b) => b.getAttribute('aria-pressed') === 'true') || groups[g][0];
+  for (const b of groups[g]) {
+    if (b === start) continue;
+    b.click();
+    await sleep(850);
+    if (sig() !== before) {
+      start.click();
+      await sleep(700);
+      return { ok: true, why: 'ok · по переключателю ' + g };
+    }
   }
+  return { ok: false, why: 'переключатель ' + g + ' не отвечает: разметка не меняется ни на байт' };
+}
+
+function render(rows, self, progress) {
+  document.getElementById('prog').textContent = progress;
   const th = ['лист / состояние', ...KEYS].map((k) => '<th>' + k + '</th>').join('');
   const body = rows.map((r) => {
     const cells = KEYS.map((k) => {
-      const v = r.verdict ? (r.verdict[k] === undefined ? '—' : r.verdict[k]) : 'не загрузился';
-      const bad = String(v).indexOf('ДЕФЕКТ') === 0 || String(v).indexOf('вне сетки') === 0 || v === 'не загрузился';
+      const v = r.verdict ? (r.verdict[k] === undefined ? '—' : r.verdict[k]) : (r.dead ? 'лист не запустился' : 'не загрузился');
+      const bad = String(v).indexOf('ДЕФЕКТ') === 0 || String(v).indexOf('вне сетки') === 0 || v === 'не загрузился' || v === 'лист не запустился';
       return '<td class="' + (bad ? 'bad' : 'ok') + '">' + v + '</td>';
     }).join('');
     return '<tr><td>' + r.label + '</td>' + cells + '</tr>';
@@ -252,10 +440,48 @@ async function runSheet(sheet, wantSelfTest) {
   const hist = rows.filter((r) => r.gaps).map((r) => r.label + ' → ' + JSON.stringify(r.gaps.hist) + ' волоски ' + JSON.stringify(r.gaps.hairlines));
   document.getElementById('self').textContent =
     'самопроверка приборов: ' + JSON.stringify(self, null, 1) +
+    '\n\nловит ли мёртвый лист (копия с заведомо лишней скобкой): ' + (window.__auditFixture || 'ещё не проверено') +
     '\n\nгистограмма отступов:\n' + hist.join('\n') +
     '\n\nдефекты:\n' + (defects.join('\n') || 'нет');
+}
+
+// Строки публикуются после КАЖДОГО листа, а не в конце: прежде любое исключение на одном
+// листе съедало всю таблицу молча, и стенд выглядел «ещё считает». Лист, на котором
+// прогон упал, теперь виден строкой с причиной, а остальные домеряются.
+(async () => {
+  const rows = [];
+  let self = null;
   window.__auditRows = rows;
-  window.__auditSelf = self;
+  // Первым делом — проверка самого прибора жизни на заведомо мёртвом листе. Прибор,
+  // который никогда не видел дефекта, неотличим от прибора, который его не ловит.
+  try {
+    const fx = document.createElement('iframe');
+    fx.src = encodeURI('выгрузка/проверка-мёртвого-листа.dc.html');
+    document.getElementById('stage').append(fx);
+    await Promise.race([new Promise((res) => { fx.onload = res; }), sleep(12000)]);
+    await sleep(3200);
+    const v = await probeAlive(fx.contentDocument);
+    fx.remove();
+    window.__auditFixture = v.ok ? 'НЕТ — прибор назвал мёртвый лист живым, верить таблице нельзя' : 'да · ' + v.why;
+  } catch (e) {
+    window.__auditFixture = 'проверка не прошла: ' + String(e).slice(0, 200);
+  }
+  for (let i = 0; i < SHEETS.length; i++) {
+    const name = SHEETS[i].file.replace('.dc.html', '');
+    render(rows, self, 'лист ' + (i + 1) + ' из ' + SHEETS.length + ': ' + name + ' — снимков уже ' + rows.length);
+    let rs;
+    try {
+      rs = await runSheet(SHEETS[i], i === 0);
+    } catch (e) {
+      rs = [{ label: name + ' · ПРОГОН УПАЛ', verdict: null, detail: { ошибка: String((e && e.stack) || e).slice(0, 700) } }];
+      document.querySelectorAll('#stage iframe').forEach((f) => f.remove());
+    }
+    rs.forEach((r) => { if (r.self) self = r.self; rows.push(r); });
+    window.__auditSelf = self;
+    render(rows, self, 'лист ' + (i + 1) + ' из ' + SHEETS.length + ' готов: ' + name + ' — снимков ' + rows.length);
+  }
+  window.__auditDone = true;
+  render(rows, self, 'прогон закончен: листов ' + SHEETS.length + ', снимков ' + rows.length);
 })();
 </script>
 </body>

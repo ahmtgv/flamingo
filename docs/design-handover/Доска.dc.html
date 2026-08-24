@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="tokens.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  html, body { height: 100%; overflow: hidden; }
+  a { color: var(--color-link); text-decoration: none; }
+  a:hover { color: var(--color-accent-text); }
+  @keyframes flCaret { 0%, 49% { opacity: 1; } 50%, 100% { opacity: 0; } }
+</style>
+</helmet>
+<div ref="{{ setRoot }}" data-theme="{{ theme }}" style="height: 100vh; display: grid; grid-template-rows: auto minmax(0, 1fr); background: var(--color-bg); color: var(--color-text); font-family: var(--font-body); overflow: hidden;">
+
+  <div style="display: flex; align-items: center; gap: var(--space-2); padding: var(--space-3) var(--space-4); border-bottom: 1px solid var(--color-border); flex-wrap: wrap;">
+    <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .08em; text-transform: uppercase;">случай</span>
+    <button data-sw="case" data-val="empty" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">пустой холст</button>
+    <button data-sw="case" data-val="draw" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">перо</button>
+    <button data-sw="case" data-val="typing" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">текст · ввод</button>
+    <button data-sw="case" data-val="typed" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">текст · готов</button>
+    <button data-sw="case" data-val="selected" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">выделен объект</button>
+    <button data-sw="case" data-val="dragging" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">перетаскивание</button>
+    <button data-sw="case" data-val="image" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">картинка</button>
+    <button data-sw="case" data-val="pan" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">панорама</button>
+
+    <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .08em; text-transform: uppercase; margin-left: var(--space-4);">доска ученикам</span>
+    <button data-sw="access" data-val="open" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">открыта</button>
+    <button data-sw="access" data-val="closed" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">закрыта</button>
+
+    <span style="margin-left: auto; display: flex; gap: var(--space-2); align-items: center;">
+      <span data-scroll-probe style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary);">прокрутка страницы: 0 px</span>
+      <button data-sw="theme" data-val="toggle" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">тема</button>
+    </span>
+  </div>
+
+  <div ref="{{ setHost }}" style="display: grid; place-items: center; overflow: hidden; min-height: 0;">
+    <div data-audit-scope ref="{{ setFrame }}" style="width: 1280px; height: 800px; position: relative; border-radius: var(--radius-card); overflow: hidden; border: 1px solid var(--color-border); background: var(--color-bg); box-shadow: var(--shadow-lg);">
+
+      <!-- ХОЛСТ. Точечная сетка — единственный признак того, что холст бесконечный: он не
+           обрезан рамкой листа, панорама сдвигает сетку вместе с объектами. -->
+      <div data-geo="холст" style="position: absolute; inset: 0; background-color: var(--color-surface); background-image: radial-gradient(circle, var(--color-border) 1px, transparent 1px); background-size: 24px 24px; background-position: {{ dotShift }}; cursor: {{ canvasCursor }};">
+
+        <sc-if value="{{ hasWork }}" hint-placeholder-val="{{ true }}">
+          <!-- Панорама сдвигает содержимое СМЕЩЕНИЕМ, а не `transform`: трансформированная
+               обёртка сама вылезала за кадр на 47 px, и прибор `frameBleed` был прав —
+               за краем оказывался невидимый прямоугольник во всю площадь холста. -->
+          <div style="position: absolute; left: {{ panX }}; top: {{ panY }}; right: 0; bottom: 0;">
+
+            <span style="position: absolute; left: 96px; top: 74px; font-family: var(--font-heading); font-size: 30px; font-weight: 600; letter-spacing: var(--tracking-tight); color: var(--color-text);">Как спросить дорогу</span>
+            <span style="position: absolute; left: 96px; top: 116px; font: 400 var(--text-small) var(--font-mono); color: var(--color-text-secondary);">Unit 4 · Travel</span>
+
+            <!-- Рукописный след пером. Единственное место, где нужен путь: обвести написанное
+                 фигурами нельзя, а плитка-заглушка соврала бы про то, что рисуют на доске. -->
+            <svg viewBox="0 0 420 150" style="position: absolute; left: 92px; top: 168px; width: 420px; height: 150px; overflow: visible;" aria-label="написано пером">
+              <!-- Одно написанное — ОДИН путь с подпутями, а не три соседних `path`: у соседей
+                   рамки честно пересекаются (104 px², прибор `overlaps`), и в разметке это
+                   выглядит как наложение объектов, хотя рука вела одну линию. -->
+              <path d="M8 96 C 44 20, 96 22, 118 92 C 130 128, 168 126, 176 84 C 182 46, 214 40, 230 92 M258 60 L 258 100 M 244 78 L 274 78 M300 44 C 336 44, 342 96, 306 100 C 342 104, 340 148, 300 148" fill="none" stroke="var(--color-text)" stroke-width="3.5" stroke-linecap="round" />
+            </svg>
+            <sc-if value="{{ inking }}" hint-placeholder-val="{{ false }}">
+              <!-- Свежий штрих идёт по свободному холсту, а не поверх фигуры: рисовать поверх
+                   объекта на настоящей доске законно, но на единственном показательном снимке
+                   это читается как случайное наложение (5040 px² с рамкой фигуры). -->
+              <svg viewBox="0 0 200 90" style="position: absolute; left: 116px; top: 336px; width: 200px; height: 90px;" aria-label="след пера сейчас">
+                <path d="M6 66 C 40 10, 78 14, 96 62 C 108 90, 134 88, 142 58" fill="none" stroke="var(--color-accent)" stroke-width="3.5" stroke-linecap="round" />
+              </svg>
+              <span style="position: absolute; left: 254px; top: 380px; width: var(--space-4); height: var(--space-4); transform: translate(-50%, -50%); border-radius: 50%; background: var(--color-accent);"></span>
+            </sc-if>
+
+            <!-- Наклейки стоят ПРАВЕЕ полосы инструментов и её строки настроек: панель плавает
+                 поверх холста, и объект под ней читать нельзя. Прибор `textUnderLayer` поймал
+                 это сразу — левая колонка холста до x=336 принадлежит инструментам. -->
+            <!-- Жёлтая наклейка НЕ рисуется, когда она выделена или переносится: в этих случаях
+                 её содержимое живёт внутри рамки выделения (ниже). Прежде рамка и объект были
+                 разными элементами с независимыми координатами — «ехала» пустая рамка, а
+                 наклейка стояла на месте под пунктиром «было здесь». -->
+            <sc-if value="{{ showStaticNote }}" hint-placeholder-val="{{ true }}">
+              <span style="position: absolute; left: 340px; top: 470px; width: 196px; min-height: 128px; padding: var(--space-4); border-radius: var(--radius-md); background: var(--color-warning-bg); border: 1px solid var(--color-warning); font-size: var(--text-small); color: var(--color-text); line-height: var(--leading-snug); box-shadow: var(--shadow-sm);">Excuse me, how do I get to the station?</span>
+            </sc-if>
+            <span data-author-dot style="position: absolute; left: 556px; top: 470px; width: 196px; min-height: 128px; padding: var(--space-4); border-radius: var(--radius-md); background: var(--color-surface); border: 1px solid var(--color-border); font-size: var(--text-small); color: var(--color-text); line-height: var(--leading-snug); box-shadow: var(--shadow-sm);">Turn left, then go straight on
+              <!-- 🔴 ПОДПИСЬ АВТОРА. В продукте она стоит у КАЖДОГО объекта и налезает на него.
+                   Здесь у чужого объекта — только точка с инициалами В УГЛУ рамки, снаружи
+                   содержимого; полное имя показывается лишь у выделенного (ниже) и в списке
+                   соавторов в углу холста. Свои объекты подписи не носят вовсе: своё авторство
+                   человек и так знает, а подпись у каждого превращает доску в список фамилий. -->
+              <!-- Инициалы — самой мелкой ступенью шкалы, а не сырыми 9px: размер, спрятанный
+                   в сокращении `font:`, прибор «голый px» не ловит, но шкала от этого не
+                   перестаёт быть шкалой. -->
+              <span aria-label="автор · Аня Коваль" style="position: absolute; right: -9px; top: -9px; width: 26px; height: 26px; border-radius: 50%; background: var(--color-surface); border: 1px solid var(--color-border-strong); display: grid; place-items: center; font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-secondary);">АК</span>
+            </span>
+
+            <!-- 🔴 Подпись фигуры лежит ВНУТРИ рамки, а не рядом с ней. Прежде это были две
+                 сестры с независимыми ширинами (620 + 260 = 880 против границы объекта 860),
+                 и текст вылезал за рамку на 20 px — при другом тексте вылет был бы другим.
+                 Тот же класс, что §26.9: рамка и её содержимое не должны быть разными
+                 элементами, иначе они разъезжаются. -->
+            <span style="position: absolute; left: 592px; top: 96px; width: 268px; height: 152px; padding: var(--space-5); box-sizing: border-box; border-radius: var(--radius-md); border: 2px solid var(--color-text-tertiary); background: none; font-size: var(--text-small); color: var(--color-text-secondary); line-height: var(--leading-snug);">маршрут: метро → площадь → вокзал</span>
+
+            <!-- 🔴 СВЯЗЬ КРЕПИТСЯ К ОБЪЕКТАМ, а не висит в пустоте. Прежде путь был набран
+                 произвольными числами в своей системе координат, и оба конца обрывались
+                 в пустом холсте: до белой наклейки не доставало 67 px. Разработчик не мог
+                 прочитать из листа, к чему связь привязана — к краю, к центру, к точке.
+                 Теперь координаты выведены из рамок: источник — низ фигуры [593, 97, 861, 249],
+                 середина (727, 249); цель — верх белой наклейки [557, 471, 753, 599],
+                 середина (655, 471). Значит связь идёт от середины нижнего края объекта
+                 к середине верхнего края цели, наконечник — у цели.
+                 Линия и наконечник — один путь: у двух соседних `path` рамки пересекаются,
+                 и прибор `overlaps` честно считает это наложением объектов. -->
+            <svg viewBox="0 0 160 222" style="position: absolute; left: 593px; top: 249px; width: 160px; height: 222px;" aria-label="связь: фигура «маршрут» → ответ «Turn left»">
+              <path d="M134 0 C 134 86, 62 132, 62 222 M54 211 L 62 221 L 70 211" fill="none" stroke="var(--color-text-tertiary)" stroke-width="2" stroke-linecap="round" />
+            </svg>
+
+            <sc-if value="{{ showImage }}" hint-placeholder-val="{{ false }}">
+              <span style="position: absolute; left: 760px; top: 290px; width: 300px; height: 196px; border-radius: var(--radius-md); overflow: hidden; border: 1px solid var(--color-border); background: var(--color-surface-subtle); display: grid; place-items: center; box-shadow: var(--shadow-md);">
+                <span style="display: grid; gap: var(--space-2); justify-items: center; text-align: center; padding: var(--space-4);">
+                  <!-- Вторичный, а не третичный: на приглушённой поверхности третичный давал
+                       4,33 при пороге 4,5 (прибор `contrast`). -->
+                  <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-secondary);">картинка · схема станции.png</span>
+                  <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-secondary);">1600 × 1040 · вставлена в 12:14</span>
+                </span>
+                <span style="position: absolute; inset: 0; border: 1.5px solid var(--color-link); border-radius: var(--radius-md); pointer-events: none;"></span>
+                <sc-for list="{{ handles }}" as="h" hint-placeholder-count="4">
+                  <span style="position: absolute; left: {{ h.x }}; top: {{ h.y }}; width: var(--space-4); height: var(--space-4); transform: translate(-50%, -50%); border-radius: var(--radius-xs); background: var(--color-bg); border: 1.5px solid var(--color-link); cursor: {{ h.cur }};"></span>
+                </sc-for>
+                <!-- Полное имя автора — только у выделенного объекта, и внутри нижнего края
+                     его рамки: подпись принадлежит рамке, а не месту под ней. -->
+                <span style="position: absolute; left: 1px; right: 1px; bottom: 1px; display: flex; align-items: center; gap: var(--space-2); padding: var(--space-1) var(--space-3); border-radius: 0 0 var(--radius-md) var(--radius-md); background: color-mix(in oklab, var(--color-surface) 88%, transparent); backdrop-filter: blur(var(--nav-blur)); font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                  <span style="width: 7px; height: 7px; flex: none; border-radius: 50%; background: var(--color-border-strong);"></span>вставила Аня Коваль · 12:14
+                </span>
+              </span>
+            </sc-if>
+
+            <sc-if value="{{ typing }}" hint-placeholder-val="{{ false }}">
+              <!-- ТЕКСТ В МОМЕНТ ВВОДА. Курсор ставится сразу по щелчку: рамки-заготовки нет,
+                   есть каретка и тонкая линия базовой ширины — она показывает, куда пойдёт
+                   строка. Никакого диалога «введите текст» (§58: карточек поверх холста нет). -->
+              <!-- Блок ввода поднят выше нижнего пульта: пульт стал двухстрочным (674–779),
+                   и пояснение под кареткой оказывалось под ним. -->
+              <span style="position: absolute; left: 96px; top: 556px; display: flex; align-items: baseline; min-height: 30px;">
+                <span style="font-size: 22px; color: var(--color-text);">station is close to</span>
+                <span style="width: 2px; height: 26px; margin-left: 2px; background: var(--color-text); animation: flCaret 1s step-end infinite;"></span>
+              </span>
+              <span style="position: absolute; left: 96px; top: 592px; width: 260px; height: 1px; background: var(--color-link);"></span>
+              <span style="position: absolute; left: 96px; top: 602px; font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-secondary);">ввод · Esc оставляет написанное, ⌫ на пустом убирает текст</span>
+            </sc-if>
+
+            <sc-if value="{{ typed }}" hint-placeholder-val="{{ false }}">
+              <span style="position: absolute; left: 96px; top: 556px; font-size: 22px; color: var(--color-text);">station is close to the market</span>
+            </sc-if>
+
+            <sc-if value="{{ selection }}" hint-placeholder-val="{{ false }}">
+              <!-- ВЫДЕЛЕННЫЙ ОБЪЕКТ: рамка по краю самого объекта, ручки за углы и середины
+                   сторон, полное имя автора под рамкой. Тень при перетаскивании — сдвиг
+                   и приподнятость, не изменение размера. -->
+              <!-- Рамка выделения И ЕСТЬ объект: внутри её собственное содержимое, поэтому
+                   при переносе едет наклейка, а не пустой прямоугольник. -->
+              <span style="position: absolute; left: {{ selLeft }}; top: {{ selTop }}; width: 196px; height: 128px; padding: var(--space-4); box-sizing: border-box; border-radius: var(--radius-md); background: var(--color-warning-bg); border: 1.5px solid var(--color-link); font-size: var(--text-small); color: var(--color-text); line-height: var(--leading-snug); box-shadow: {{ selShadow }}; transform: {{ selLift }};">Excuse me, how do I get to the station?
+                <sc-for list="{{ handles }}" as="h" hint-placeholder-count="8">
+                  <span style="position: absolute; left: {{ h.x }}; top: {{ h.y }}; width: var(--space-4); height: var(--space-4); transform: translate(-50%, -50%); border-radius: var(--radius-xs); background: var(--color-bg); border: 1.5px solid var(--color-link); cursor: {{ h.cur }};"></span>
+                </sc-for>
+                <!-- 🔴 Подпись выделенного принадлежит РАМКЕ и не выходит за её габарит: под
+                     рамкой она заезжала на соседнюю наклейку (81 × 81 px при перетаскивании).
+                     Приборы такого не ловят по природе — у подписи нет ни фона, ни рамки,
+                     и с буквами соседа её буквы не сталкиваются. А при перетаскивании подписи
+                     нет вовсе: в движении важны новое место и пунктирный след, а не авторство. -->
+                <sc-if value="{{ showSelAuthor }}" hint-placeholder-val="{{ true }}">
+                  <span style="position: absolute; left: 1px; right: 1px; bottom: 1px; display: flex; align-items: center; gap: var(--space-2); padding: var(--space-1) var(--space-3); border-radius: 0 0 var(--radius-md) var(--radius-md); background: color-mix(in oklab, var(--color-surface) 88%, transparent); backdrop-filter: blur(var(--nav-blur)); font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                    <span style="width: 7px; height: 7px; flex: none; border-radius: 50%; background: var(--color-border-strong);"></span>{{ selAuthor }}
+                  </span>
+                </sc-if>
+              </span>
+              <sc-if value="{{ dragging }}" hint-placeholder-val="{{ false }}">
+                <span style="position: absolute; left: 340px; top: 470px; width: 196px; height: 128px; border-radius: var(--radius-md); border: 1.5px dashed var(--color-border-strong);"></span>
+                <span style="position: absolute; left: 340px; top: 606px; font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-secondary);">было здесь · ⌘Z вернёт</span>
+              </sc-if>
+            </sc-if>
+
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isEmpty }}" hint-placeholder-val="{{ false }}">
+          <!-- ПУСТОЙ ХОЛСТ. Не карточка и не диалог: подпись на самом холсте, у левого верхнего
+               угла — там, где начнут писать. Три горячие клавиши, и больше ничего. -->
+          <div style="position: absolute; left: 96px; top: 96px; display: grid; gap: var(--space-3); max-width: 46ch;">
+            <span style="font-family: var(--font-heading); font-size: var(--text-h2); font-weight: 600; letter-spacing: var(--tracking-snug); line-height: var(--leading-heading);">Доска пустая — и это норма</span>
+            <span style="font-size: var(--text-body); color: var(--color-text-secondary); line-height: var(--leading-body); text-wrap: pretty;">Щёлкните где угодно и пишите: курсор встанет туда, куда вы нажали. Холст бесконечный в обе стороны, места хватит на всё занятие.</span>
+            <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-secondary); line-height: var(--leading-body);">выделить — V · ладошка — H · перо — P · фигура — R · связь — L · текст — T · наклейка — S<br>вставить картинку — ⌘V · масштаб — ⌘+ и ⌘− · вернуть 100 % — ⌘0 · панорама — пробел</span>
+          </div>
+        </sc-if>
+
+        <!-- Про захват холста сказано в строке настроек инструмента — там же, где живут все
+             остальные его настройки. Плашки посреди холста нет: §58 запрещает карточки поверх
+             холста, а плашка по центру накрывала четыре объекта сразу (прибор `textUnderLayer`). -->
+      </div>
+
+      <!-- ПАНЕЛЬ ИНСТРУМЕНТОВ. Порядок — по тому, что делает рука: сначала «взять и передвинуть»
+           (выделить, ладошка), потом «нарисовать» (перо, фигура, связь), потом «положить»
+           (текст, наклейка, картинка). Выбранный — заливка поверхности и полный цвет текста;
+           остальные — вторичный цвет без фона. Прозрачностью ничего не гасится (ПРАВИЛА 12.1). -->
+      <div data-geo="панель инструментов" style="position: absolute; left: var(--space-5); top: 50%; transform: translateY(-50%); z-index: 3; display: grid; gap: 2px; padding: var(--space-2); border-radius: var(--radius-card); border: 1px solid var(--color-border); background: color-mix(in oklab, var(--color-surface) 92%, transparent); backdrop-filter: blur(var(--nav-blur)); box-shadow: var(--shadow-md);">
+        <sc-for list="{{ tools }}" as="t" hint-placeholder-count="8">
+          <button data-tool="{{ t.id }}" aria-label="{{ t.name }}" aria-pressed="{{ t.on }}" onClick="{{ onTool }}" style="width: var(--tap-min); height: var(--tap-min); display: grid; place-items: center; border: none; border-radius: var(--radius-control); background: none; color: var(--color-text-secondary); font: 500 15px var(--font-mono); font-variant-numeric: tabular-nums; cursor: pointer;" style-hover="background: var(--color-surface-subtle); color: var(--color-text);">{{ t.glyph }}</button>
+        </sc-for>
+        <span style="height: 1px; background: var(--color-border); margin: var(--space-1) var(--space-2);"></span>
+        <button aria-label="Вставить картинку" data-still="в продукте вставляет картинку из буфера · результат показан случаем «картинка»" onClick="{{ noop }}" style="width: var(--tap-min); height: var(--tap-min); display: grid; place-items: center; border: none; border-radius: var(--radius-control); background: none; color: var(--color-text-secondary); font: 400 20px var(--font-mono); cursor: pointer;" style-hover="background: var(--color-surface-subtle); color: var(--color-text);">+</button>
+      </div>
+
+      <div data-hud="top" style="position: absolute; left: var(--space-4); top: var(--space-4); z-index: 4; display: flex; align-items: center; gap: var(--space-3); padding: var(--space-2) var(--space-3); border-radius: var(--radius-pill); border: 1px solid var(--color-border); background: color-mix(in oklab, var(--color-surface) 84%, transparent); backdrop-filter: blur(var(--nav-blur)); box-shadow: var(--shadow-sm);">
+        <img src="design-assets/flamingo-bird.svg" alt="Flamingo" style="width: 20px; height: 20px; flex: none;">
+        <span style="display: grid; gap: 1px;">
+          <span style="font-size: var(--text-small); font-weight: 500; letter-spacing: var(--tracking-snug);">Доска · Unit 4 — Travel</span>
+          <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary);">{{ boardMeta }}</span>
+        </span>
+        <span style="width: 1px; height: 20px; background: var(--color-border);"></span>
+        <!-- Соавторы — здесь, один раз, а не подписью у каждого объекта. -->
+        <span style="display: flex; align-items: center; gap: var(--space-2);">
+          <sc-for list="{{ authors }}" as="a" hint-placeholder-count="3">
+            <span aria-label="{{ a.name }}" style="width: 26px; height: 26px; border-radius: 50%; background: var(--color-surface-subtle); border: 1px solid var(--color-border); display: grid; place-items: center; font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-secondary);">{{ a.ini }}</span>
+          </sc-for>
+          <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); white-space: nowrap;">{{ authorsNote }}</span>
+        </span>
+      </div>
+
+      <!-- Центрирование БЕЗ `left: 50%` + `translateX(-50%)`: такая пара оставляет плашке
+           shrink-to-fit ровно половину холста (639 px из 1280), и поясняющая строка получала
+           160 px вместо объявленных 343 — рвалась на четыре строки, а плашка раздувалась до
+           91 px при кнопках в 34. Тот же корень, что `rowWrap` на «Странице курса»: ряд,
+           который держится на переносе, рассыпается. -->
+      <div data-hud="bottom" style="position: absolute; left: 0; right: 0; bottom: var(--space-5); margin-inline: auto; width: max-content; max-width: calc(100% - 2 * var(--space-5)); z-index: 4; display: grid; gap: var(--space-2); padding: var(--space-2) var(--space-3); border-radius: var(--radius-card); border: 1px solid var(--color-border); background: color-mix(in oklab, var(--color-surface) 84%, transparent); backdrop-filter: blur(var(--nav-blur)); box-shadow: var(--shadow-sm);">
+        <!-- 🔴 НАСТРОЙКИ ИНСТРУМЕНТА ЖИВУТ ЗДЕСЬ, а не плавающей полосой в середине холста.
+             Прежде они стояли слева по вертикальному центру, и объекты холста расставлялись
+             «правее колонки инструментов» — но ширина этой строки зависит от числа чипов
+             выбранного инструмента и гуляет от 510 px (перо) до 707 px (ладошка), так что
+             постоянной колонки не существует: связь между объектами накрывало целиком.
+             В нижнем пульте место постоянно (6.6) и с холстом не сталкивается никогда. -->
+        <div data-geo="настройки инструмента" style="display: flex; align-items: center; gap: var(--space-3); min-height: var(--control-height-sm); padding-inline: var(--space-2);">
+          <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-secondary); white-space: nowrap;">{{ toolName }}</span>
+          <span style="width: 1px; height: 18px; background: var(--color-border);"></span>
+          <span style="display: flex; align-items: center; gap: var(--space-2);">
+            <sc-for list="{{ toolOpts }}" as="o" hint-placeholder-count="3">
+              <button data-still="в продукте меняет настройку инструмента · на листе показаны сами настройки" onClick="{{ noop }}" style="min-height: var(--control-height-sm); padding: 0 var(--space-3); border-radius: var(--radius-pill); border: 1px solid {{ o.border }}; background: {{ o.bg }}; color: {{ o.color }}; font: 400 var(--text-caption) var(--font-mono); cursor: pointer; white-space: nowrap;">{{ o.label }}</button>
+            </sc-for>
+          </span>
+          <!-- Подсказка — ТЕКСТ, а не кнопка: без рамки, фона и `cursor: pointer`. -->
+          <sc-if value="{{ hasToolNote }}" hint-placeholder-val="{{ true }}">
+            <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-secondary); white-space: nowrap;">{{ toolNote }}</span>
+          </sc-if>
+        </div>
+        <span style="height: 1px; background: var(--color-border);"></span>
+        <div style="display: flex; align-items: center; gap: var(--space-3);">
+        <!-- Доска закрыта / открыта ученикам — ДВА состояния одной кнопки. Открытие показывает
+             написанное другим людям, поэтому по ПРАВИЛА 11.1 действие зелёное; закрытие
+             ничего не разрушает и остаётся обводкой. -->
+        <sc-if value="{{ accessOpen }}" hint-placeholder-val="{{ true }}">
+          <button data-pick="access" data-val="closed" onClick="{{ onSw }}" style="display: inline-flex; align-items: center; gap: var(--space-2); min-height: var(--control-height-sm); padding: 0 var(--space-4); border-radius: var(--radius-pill); border: 1px solid var(--color-go-line); background: var(--color-go-bg); color: var(--color-go-text); font-size: var(--text-small); font-family: var(--font-body); cursor: pointer; white-space: nowrap;">
+            <span style="width: 7px; height: 7px; border-radius: 50%; background: var(--color-go-solid);"></span>Ученики пишут — закрыть доску
+          </button>
+        </sc-if>
+        <sc-if value="{{ accessClosed }}" hint-placeholder-val="{{ false }}">
+          <button data-pick="access" data-val="open" onClick="{{ onSw }}" style="display: inline-flex; align-items: center; gap: var(--space-2); min-height: var(--control-height-sm); padding: 0 var(--space-4); border-radius: var(--radius-pill); border: 1px solid var(--color-go-solid); background: var(--color-go-solid); color: var(--color-on-go); font-size: var(--text-small); font-weight: 500; font-family: var(--font-body); cursor: pointer; white-space: nowrap;" style-hover="background: var(--color-go-solid-hover);">Открыть доску ученикам</button>
+        </sc-if>
+        <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-secondary); max-width: 44ch; line-height: var(--leading-snug); text-wrap: pretty;">{{ accessNote }}</span>
+        <span style="width: 1px; height: 20px; background: var(--color-border);"></span>
+        <button data-still="в продукте раскладывает объекты ровнее · содержимое от этого не меняется" onClick="{{ noop }}" style="min-height: var(--control-height-sm); padding: 0 var(--space-4); border-radius: var(--radius-pill); border: 1px solid var(--color-border); background: none; color: var(--color-text); font-size: var(--text-small); font-family: var(--font-body); cursor: pointer; white-space: nowrap;" style-hover="border-color: var(--color-border-strong);">Прибрать холст</button>
+        </div>
+      </div>
+
+      <!-- Масштаб. 100 % написано всегда, а не появляется при изменении: место постоянно (6.6).
+           Стоит СВЕРХУ, а не внизу: нижнюю полосу занимает пульт, ширина которого зависит от
+           подсказки выбранного инструмента (у ладошки он дорастает до x=1152) — два плавающих
+           блока в одной полосе неизбежно наезжают друг на друга. -->
+      <div style="position: absolute; right: var(--space-4); top: var(--space-4); z-index: 4; display: flex; align-items: center; gap: 2px; padding: 3px; border-radius: var(--radius-pill); border: 1px solid var(--color-border); background: color-mix(in oklab, var(--color-surface) 84%, transparent); backdrop-filter: blur(var(--nav-blur)); box-shadow: var(--shadow-sm);">
+        <button aria-label="Уменьшить" data-still="в продукте отдаляет холст · другой масштаб показан случаем «панорама»" onClick="{{ noop }}" style="width: var(--control-height-sm); height: var(--control-height-sm); border: none; border-radius: var(--radius-pill); background: none; color: var(--color-text-secondary); font: 400 15px var(--font-mono); cursor: pointer;" style-hover="background: var(--color-surface-subtle); color: var(--color-text);">−</button>
+        <button data-still="в продукте возвращает масштаб к 100 % · на листе холст уже в 100 %" onClick="{{ noop }}" style="min-height: var(--control-height-sm); padding: 0 var(--space-3); border: none; border-radius: var(--radius-pill); background: none; color: var(--color-text); font: 500 var(--text-caption) var(--font-mono); cursor: pointer; font-variant-numeric: tabular-nums; white-space: nowrap;" style-hover="background: var(--color-surface-subtle);">{{ zoomLabel }}</button>
+        <button aria-label="Увеличить" data-still="в продукте приближает холст · другой масштаб показан случаем «панорама»" onClick="{{ noop }}" style="width: var(--control-height-sm); height: var(--control-height-sm); border: none; border-radius: var(--radius-pill); background: none; color: var(--color-text-secondary); font: 400 15px var(--font-mono); cursor: pointer;" style-hover="background: var(--color-surface-subtle); color: var(--color-text);">+</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;: {&quot;width&quot;: 1400, &quot;height&quot;: 900}}">
+class Component extends DCLogic {
+  // ДОСКА ЦЕЛИКОМ (задача владельца §61.1). В продукте объявлено семь инструментов, а работает
+  // одно перо: поведение чинит разработчик, лист даёт вид и правила.
+  //
+  // Скопировано ПОВЕДЕНИЕ, а не оформление: щелчок ставит курсор сразу, объект берётся за
+  // рамку и тянется целиком, ручки за углы и середины сторон, панорама пробелом, ⌘0 возвращает
+  // 100 %. Вид — наш, по токенам; ни одного заимствованного оформления.
+  //
+  // 🔴 ГЛАВНОЕ РЕШЕНИЕ ЛИСТА — ПОДПИСЬ АВТОРА. В продукте она стоит у каждого объекта и налезает
+  // на него. Здесь три уровня, и подписи у каждого нет ни на одном:
+  //   1. соавторы — один раз, в шапке доски (кто вообще писал);
+  //   2. чужой объект — точка с инициалами в углу рамки, СНАРУЖИ содержимого;
+  //   3. выделенный объект — полное имя и время, ПОД рамкой.
+  // Свои объекты подписи не носят вовсе: своё авторство человек знает, а подпись у каждого
+  // превращает доску в список фамилий.
+  // 🔴 ИНСТРУМЕНТ — СВОЙ КЛЮЧ, а не производное от случая. Прежде он вычислялся как
+  // CASE_TOOL[case], а «наклейка», «фигура» и «связь» вели в один случай `draw`, чей инструмент
+  // перо: три из семи объявленных инструментов были невыбираемы, и их настройки (жёлтая/белая,
+  // рамка/круг/линия, со стрелкой/без) не достигались ни человеком, ни прогоном. То есть лист
+  // обещал семь и давал четыре — буквальное повторение дефекта продукта, ради которого его
+  // и заказывали (ПРАВИЛА 6.7в: подпись есть, за ней ничего; 6.5г: экран обещает невозможное).
+  state = { case: 'draw', tool: 'pen', access: 'open', theme: 'light' };
+
+  // Случай холста → инструмент, которым этот случай сделан: переключая СЛУЧАЙ, подсветка идёт
+  // за ним. Обратно (инструмент → случай) ведёт TOOL_CASE: у наклейки, фигуры и связи своего
+  // вида холста нет, они рисуют в том же `draw`, но инструмент при этом остаётся своим.
+  CASE_TOOL = { empty: 'pen', draw: 'pen', typing: 'text', typed: 'select', selected: 'select', dragging: 'select', image: 'select', pan: 'hand' };
+  TOOL_CASE = { select: 'selected', hand: 'pan', pen: 'draw', text: 'typing', sticker: 'draw', shape: 'draw', link: 'draw' };
+
+  componentDidMount() {
+    this.onResize = () => this.fit();
+    window.addEventListener('resize', this.onResize);
+    this.settle();
+    this.probe = setInterval(() => {
+      const el = this.root && this.root.querySelector('[data-scroll-probe]');
+      if (el) el.textContent = 'прокрутка страницы: ' + Math.max(0, document.documentElement.scrollHeight - window.innerHeight) + ' px';
+    }, 1000);
+  }
+  componentDidUpdate() { this.settle(); }
+  componentWillUnmount() { window.removeEventListener('resize', this.onResize); clearInterval(this.probe); }
+
+  settle() { this.fit(); this.applyChrome(); requestAnimationFrame(() => this.fit()); }
+
+  fit() {
+    const host = this.host, f = this.frame;
+    if (!host || !f) return;
+    const s = Math.min(1, (host.clientWidth - 40) / 1280, (host.clientHeight - 40) / 800);
+    host.style.position = 'relative';
+    f.style.position = 'absolute';
+    f.style.left = '50%'; f.style.top = '50%';
+    f.style.transform = 'translate(-50%, -50%) scale(' + s.toFixed(4) + ')';
+  }
+
+  applyChrome() {
+    const root = this.root; if (!root) return;
+    const cur = { case: this.state.case, access: this.state.access };
+    root.querySelectorAll('[data-sw]').forEach((b) => {
+      const k = b.dataset.sw;
+      if (!(k in cur)) return;
+      // Служебное имя и продуктовое РАЗВЕДЕНЫ (ПРАВИЛА 6.7д): в полосе `data-sw`, в кадре
+      // `data-pick`. Прежде имя было общим, а раскраска отсекалась проверкой на кадр —
+      // прибор 19 показал, что проверка лечила следствие: `querySelector` по-прежнему
+      // брал первое совпадение, и стенд мог щёлкать по кнопке внутри доски вместо полосы.
+      const on = cur[k] === b.dataset.val;
+      b.style.color = on ? 'var(--color-text)' : 'var(--color-text-secondary)';
+      b.style.borderColor = on ? 'var(--color-border-strong)' : 'var(--color-border)';
+      b.style.background = on ? 'var(--color-surface)' : 'none';
+    });
+    // Выбранный инструмент — заливкой и полным цветом, остальные вторичным без фона.
+    const tool = this.state.tool;
+    root.querySelectorAll('[data-tool]').forEach((b) => {
+      const on = b.dataset.tool === tool;
+      b.style.background = on ? 'var(--color-surface-subtle)' : 'none';
+      b.style.color = on ? 'var(--color-text)' : 'var(--color-text-secondary)';
+      b.style.boxShadow = on ? 'inset 0 0 0 1px var(--color-border-strong)' : 'none';
+    });
+  }
+
+  onSw = (e) => {
+    const ds = e.currentTarget.dataset;
+    const sw = ds.sw || ds.pick, val = ds.val;
+    if (sw === 'theme') return this.setState((s) => ({ theme: s.theme === 'dark' ? 'light' : 'dark' }));
+    // Переключая случай холста, ведём за ним и подсветку инструмента: показанное на холсте
+    // и выбранный инструмент не расходятся.
+    if (sw === 'case') return this.setState({ case: val, tool: this.CASE_TOOL[val] || 'pen' });
+    this.setState({ [sw]: val });
+  };
+
+  // Щелчок по инструменту меняет ОБА ключа: инструмент — всегда тот, по которому щёлкнули,
+  // случай — тот вид холста, в котором этот инструмент работает.
+  onTool = (e) => {
+    const t = e.currentTarget.dataset.tool;
+    this.setState({ tool: t, case: this.TOOL_CASE[t] || 'draw' });
+  };
+
+  renderVals() {
+    const s = this.state;
+    const c = s.case;
+    const tool = s.tool;
+    const open = s.access === 'open';
+    const dragging = c === 'dragging';
+    const pan = c === 'pan';
+
+    const opts = {
+      pen: [{ label: 'тонко' }, { label: 'средне', on: true }, { label: 'толсто' }, { label: 'чёрный', on: true }, { label: 'коралловый' }],
+      text: [{ label: '16' }, { label: '22', on: true }, { label: '30' }, { label: 'обычный', on: true }, { label: 'полужирный' }],
+      select: [{ label: 'вперёд' }, { label: 'назад' }, { label: 'дублировать' }, { label: 'удалить' }],
+      // 🔴 У ладошки НАСТОЯЩИЕ варианты, а не проза в кнопках. Прежде здесь стояли «холст
+      // захвачен», «отпустите пробел» и «⌘0 вернёт 100 %» — повествование, одетое в контрол
+      // с `cursor: pointer`: подпись есть, нажатие ничего не меняет (ПРАВИЛА 6.7в, тот самый
+      // класс, про который написан весь этот лист). Подсказки ушли в текст рядом.
+      hand: [{ label: 'по содержимому' }, { label: '100 %', on: true }, { label: 'к выделенному' }],
+      sticker: [{ label: 'жёлтая', on: true }, { label: 'белая' }, { label: 'большая' }],
+      shape: [{ label: 'рамка', on: true }, { label: 'круг' }, { label: 'линия' }],
+      link: [{ label: 'со стрелкой', on: true }, { label: 'без стрелки' }],
+    }[tool] || [];
+
+    const handles = [
+      { x: '0', y: '0', cur: 'nwse-resize' }, { x: '50%', y: '0', cur: 'ns-resize' }, { x: '100%', y: '0', cur: 'nesw-resize' },
+      { x: '100%', y: '50%', cur: 'ew-resize' }, { x: '100%', y: '100%', cur: 'nwse-resize' },
+      { x: '50%', y: '100%', cur: 'ns-resize' }, { x: '0', y: '100%', cur: 'nesw-resize' }, { x: '0', y: '50%', cur: 'ew-resize' },
+    ];
+
+    return {
+      setRoot: (el) => { this.root = el; },
+      setHost: (el) => { this.host = el; },
+      setFrame: (el) => { this.frame = el; },
+      theme: s.theme === 'dark' ? 'dark' : 'light',
+
+      hasWork: c !== 'empty',
+      isEmpty: c === 'empty',
+      // Свежий след пером рисуется только когда в руке ПЕРО: наклейка, фигура и связь живут
+      // в том же виде холста, но следа пера в них нет.
+      inking: c === 'draw' && tool === 'pen',
+      typing: c === 'typing',
+      typed: c === 'typed',
+      showImage: c === 'image',
+      selection: c === 'selected' || dragging,
+      dragging: dragging,
+      panning: pan,
+
+      // Перетаскивание — сдвиг и приподнятость, размер не меняется; на прежнем месте
+      // остаётся пунктирный след, и рядом сказано, чем вернуть.
+      showStaticNote: !(c === 'selected' || dragging),
+      // Новое место — свободная зона левее наклеек и ниже написанного пером: на прежнем
+      // месте остаётся только пунктирный контур, а сосед справа не задевается.
+      selLeft: dragging ? '120px' : '340px',
+      selTop: dragging ? '336px' : '470px',
+      selShadow: dragging ? 'var(--shadow-lg)' : 'none',
+      selLift: dragging ? 'rotate(-1deg)' : 'none',
+      selAuthor: 'написала Аня Коваль · 12:07',
+      showSelAuthor: !dragging,
+
+      // Панорама сдвигает и объекты, и точечную сетку: холст едет целиком, а не содержимое
+      // внутри рамки.
+      // Сдвиг ВНУТРЬ кадра, а не наружу: панорама показывает, что холст поехал целиком вместе
+      // с сеткой, и при этом ни один объект не уезжает за край (прибор `frameBleed`).
+      panX: pan ? '48px' : '0',
+      panY: pan ? '26px' : '0',
+      dotShift: pan ? '48px 26px' : '0 0',
+      canvasCursor: pan ? 'grabbing' : c === 'typing' ? 'text' : c === 'draw' ? 'crosshair' : 'default',
+
+      // 🔴 ПАНЕЛЬ НАБРАНА БУКВАМИ ГОРЯЧИХ КЛАВИШ, а не значками. Прежде шесть инструментов
+      // несли типографские глифы, а ладошка — цветной эмодзи `✋`: он отдаётся эмодзи-шрифту,
+      // рисуется жёлтым независимо от `color`, и правило «выбранный — полный цвет текста»
+      // для седьмой кнопки молча не работало; заодно ширина 17 px против 10,2 px сбивала ряд.
+      // Иконок в `design-assets/` нет (там только логотип), эмодзи проекту запрещены — значит
+      // знаки берутся из ОДНОЙ гарнитуры фиксированной ширины. Буквы честнее любых значков:
+      // они монохромные, одной ширины, и одновременно учат клавише (имя инструмента —
+      // в `aria-label` и в строке настроек).
+      tools: [
+        { id: 'select', name: 'Выделить — V', glyph: 'V', on: tool === 'select' ? 'true' : 'false' },
+        { id: 'hand', name: 'Ладошка, панорама — H', glyph: 'H', on: tool === 'hand' ? 'true' : 'false' },
+        { id: 'pen', name: 'Перо — P', glyph: 'P', on: tool === 'pen' ? 'true' : 'false' },
+        { id: 'shape', name: 'Фигура — R', glyph: 'R', on: tool === 'shape' ? 'true' : 'false' },
+        { id: 'link', name: 'Связь — L', glyph: 'L', on: tool === 'link' ? 'true' : 'false' },
+        { id: 'text', name: 'Текст — T', glyph: 'T', on: tool === 'text' ? 'true' : 'false' },
+        { id: 'sticker', name: 'Наклейка — S', glyph: 'S', on: tool === 'sticker' ? 'true' : 'false' },
+      ],
+      toolName: { select: 'выделить', hand: 'ладошка', pen: 'перо', text: 'текст', sticker: 'наклейка', shape: 'фигура', link: 'связь' }[tool],
+      // Подсказка инструмента — обычный текст без рамки и фона: она объясняет, а не предлагает.
+      toolNote: tool === 'hand'
+        ? (pan ? 'холст захвачен · отпустите пробел — вернётесь к перу · ⌘0 вернёт 100 %' : 'держите пробел или тяните двумя пальцами · ⌘0 вернёт 100 %')
+        : tool === 'text' ? 'щёлкните где угодно — курсор встанет туда'
+        : tool === 'select' ? 'тяните за рамку целиком, за ручки — размер'
+        : tool === 'pen' ? 'рисует от руки · ⌘Z отменяет последний штрих'
+        : '',
+      hasToolNote: tool === 'hand' || tool === 'text' || tool === 'select' || tool === 'pen',
+      toolOpts: opts.map((o) => ({
+        label: o.label,
+        bg: o.on ? 'var(--color-surface-subtle)' : 'none',
+        border: o.on ? 'var(--color-border-strong)' : 'var(--color-border)',
+        color: o.on ? 'var(--color-text)' : 'var(--color-text-secondary)',
+      })),
+      handles: handles,
+
+      authors: [{ ini: 'ЛВ', name: 'Люция Валерьевна · ведёт' }, { ini: 'АК', name: 'Аня Коваль' }, { ini: 'ПК', name: 'Петя Ковалёв' }],
+      authorsNote: open ? 'пишут трое' : 'пишете только вы',
+      boardMeta: c === 'empty' ? 'новая доска · ничего не написано' : 'сохраняется сама · последняя правка 12:14',
+
+      accessOpen: open,
+      accessClosed: !open,
+      accessNote: open
+        ? 'ученики пишут на этой же доске · их объекты помечены инициалами автора'
+        : 'ученики видят доску, но не пишут · написанное ими раньше остаётся на месте',
+
+      // Панорама — не масштаб: она двигает холст, а не приближает его, поэтому 100 % остаётся.
+      zoomLabel: '100 %',
+
+      onSw: this.onSw,
+      onTool: this.onTool,
+      noop: () => {},
+    };
+  }
+}
+</script>
+</body>
+</html>

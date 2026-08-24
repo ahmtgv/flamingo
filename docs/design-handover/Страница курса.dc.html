@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="tokens.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  html, body { height: 100%; overflow: hidden; }
+  a { color: var(--color-link); text-decoration: none; }
+  a:hover { color: var(--color-accent-text); }
+</style>
+</helmet>
+<div ref="{{ setRoot }}" data-theme="{{ theme }}" data-mode="{{ mode }}" style="height: 100vh; display: grid; grid-template-rows: auto minmax(0, 1fr); background: var(--color-bg); color: var(--color-text); font-family: var(--font-body); overflow: hidden;">
+
+  <div style="display: flex; align-items: center; gap: var(--space-2); padding: var(--space-3) var(--space-4); border-bottom: 1px solid var(--color-border); flex-wrap: wrap;">
+    <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .08em; text-transform: uppercase;">курс</span>
+    <button data-sw="pub" data-val="draft" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">черновик</button>
+    <button data-sw="pub" data-val="live" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">опубликован</button>
+
+    <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .08em; text-transform: uppercase; margin-left: var(--space-4);">состояние</span>
+    <button data-sw="st" data-val="filled" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">наполнено</button>
+    <button data-sw="st" data-val="empty" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">разделов нет</button>
+    <button data-sw="st" data-val="loading" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">загружается</button>
+    <button data-sw="st" data-val="partial" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">расписание молчит</button>
+    <button data-sw="st" data-val="failed" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">курс не открылся</button>
+
+    <span style="margin-left: auto; display: flex; gap: var(--space-2); align-items: center;">
+      <span data-scroll-probe style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary);">прокрутка страницы: 0 px</span>
+      <button data-sw="w" data-val="1280" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">1280</button>
+      <button data-sw="w" data-val="1512" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">1512</button>
+      <button data-sw="theme" data-val="toggle" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">тема</button>
+    </span>
+  </div>
+
+  <div ref="{{ setHost }}" style="display: grid; place-items: center; overflow: hidden; min-height: 0;">
+    <div data-audit-scope ref="{{ setFrame }}" style="width: 1280px; height: 800px; position: relative; border-radius: var(--radius-card); overflow: hidden; background: var(--color-bg); box-shadow: var(--shadow-lg); border: 1px solid var(--color-border); display: grid; grid-template-rows: auto minmax(0, 1fr);">
+
+      <div data-geo="шапка продукта" style="display: flex; align-items: center; gap: var(--space-5); padding: 0 var(--space-6); height: 56px; border-bottom: 1px solid var(--color-border); background: var(--color-surface);">
+        <img src="design-assets/flamingo-bird.svg" alt="Flamingo" style="width: 22px; height: 22px; flex: none;">
+        <span style="display: flex; gap: var(--space-4);">
+          <a href="Кабинет и учёба.dc.html" style="font-size: var(--text-small); color: var(--color-text-secondary); min-height: var(--control-height-sm); display: flex; align-items: center;">Кабинет</a>
+          <span style="font-size: var(--text-small); color: var(--color-text); font-weight: 500; min-height: var(--control-height-sm); display: flex; align-items: center;">Курсы</span>
+          <a href="Задания и конспект.dc.html" style="font-size: var(--text-small); color: var(--color-text-secondary); min-height: var(--control-height-sm); display: flex; align-items: center;">Проверка</a>
+          <a href="Чат.dc.html" style="font-size: var(--text-small); color: var(--color-text-secondary); min-height: var(--control-height-sm); display: flex; align-items: center;">Чат</a>
+        </span>
+        <span style="margin-left: auto; display: flex; align-items: center; gap: var(--space-3);">
+          <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary);">Люция Валерьевна · преподаватель</span>
+          <span style="width: 28px; height: 28px; border-radius: 50%; background: var(--color-surface-subtle); display: grid; place-items: center; font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-secondary);">ЛВ</span>
+        </span>
+      </div>
+
+      <div style="min-height: 0; overflow: auto; padding: var(--space-7) var(--space-8) var(--space-8);">
+        <div style="max-width: var(--content-max-wide); margin-inline: auto; display: grid; gap: var(--space-6);">
+
+          <div data-geo="заголовок курса" style="display: grid; gap: var(--space-3);">
+            <a href="Кабинет и учёба.dc.html" style="font-size: var(--text-small); color: var(--color-text-secondary); min-height: var(--control-height-sm); display: inline-flex; align-items: center; width: max-content;">← Курсы</a>
+            <span style="display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap;">
+              <span style="font: 500 var(--text-caption) var(--font-mono); color: {{ stateColor }}; border: 1px solid {{ stateBorder }}; border-radius: var(--radius-xs); padding: 3px var(--space-2);">{{ stateLabel }}</span>
+              <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-secondary);">{{ metaLine }}</span>
+            </span>
+            <span style="font-family: var(--font-heading); font-size: var(--text-h1); font-weight: 600; letter-spacing: var(--tracking-tight); line-height: var(--leading-heading);">Астрономия для начинающих</span>
+            <span style="font-size: var(--text-body); color: var(--color-text-secondary); line-height: var(--leading-body); max-width: 70ch; text-wrap: pretty;">{{ courseLead }}</span>
+          </div>
+
+          <!-- Действия и строка под ними — ДВЕ строки грида, а не один flex с `flex-basis: 100%`:
+               перенос строки внутри ряда прибор `rowWrap` честно считает развалившимся рядом,
+               и он прав — ряд, который держится на переносе, рассыпается на первом длинном слове. -->
+          <div data-geo="действия курса" style="display: grid; gap: var(--space-3);">
+          <div style="display: flex; gap: var(--space-2); align-items: center;">
+            <sc-if value="{{ isDraft }}" hint-placeholder-val="{{ true }}">
+              <!-- Заливку берёт главное действие ТОГО ЖЕ экрана (ПРАВИЛА 11.4: одна заливка).
+                   Пока программа на месте, главное — опубликовать. В пустом и в отказе главное
+                   другое («Добавить первый раздел», «Открыть снова»), и публикация уступает
+                   обводку — слова те же, вес разный по смыслу состояния. -->
+              <sc-if value="{{ publishLoud }}" hint-placeholder-val="{{ true }}">
+                <button onClick="{{ noop }}" style="min-height: var(--control-height-md); font-size: var(--text-small); font-weight: 500; font-family: var(--font-body); color: var(--color-on-go); background: var(--color-go-solid); border: none; border-radius: var(--radius-control); padding: 0 var(--space-6); cursor: pointer;" style-hover="background: var(--color-go-solid-hover);">Опубликовать курс</button>
+              </sc-if>
+              <sc-if value="{{ publishQuiet }}" hint-placeholder-val="{{ false }}">
+                <button onClick="{{ noop }}" style="min-height: var(--control-height-md); font-size: var(--text-small); font-weight: 500; font-family: var(--font-body); color: var(--color-go-text); background: none; border: 1px solid var(--color-go-line); border-radius: var(--radius-control); padding: 0 var(--space-6); cursor: pointer;" style-hover="background: var(--color-go-bg);">Опубликовать курс</button>
+              </sc-if>
+            </sc-if>
+            <button onClick="{{ noop }}" style="min-height: var(--control-height-md); font-size: var(--text-small); font-family: var(--font-body); color: var(--color-text); background: none; border: 1px solid var(--color-border-strong); border-radius: var(--radius-control); padding: 0 var(--space-5); cursor: pointer;" style-hover="background: var(--color-surface-subtle);">Позвать ученика</button>
+            <button onClick="{{ noop }}" style="min-height: var(--control-height-md); font-size: var(--text-small); font-family: var(--font-body); color: var(--color-text); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-control); padding: 0 var(--space-5); cursor: pointer;" style-hover="border-color: var(--color-border-strong);">Описание и обложка</button>
+            <sc-if value="{{ isLive }}" hint-placeholder-val="{{ false }}">
+              <button onClick="{{ noop }}" style="margin-left: auto; min-height: var(--control-height-md); font-size: var(--text-small); font-family: var(--font-body); color: var(--color-accent-text); background: none; border: 1px solid var(--color-accent); border-radius: var(--radius-control); padding: 0 var(--space-5); cursor: pointer;">Снять с публикации</button>
+            </sc-if>
+            </div>
+            <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-secondary); line-height: var(--leading-snug); text-wrap: pretty;">{{ actionsNote }}</span>
+          </div>
+
+          <!-- Программа и её частичный отказ — ОДНО место с одним именем: полоса про молчащее
+               расписание живёт внутри него, а не над ним, поэтому программа не съезжает вниз
+               на 260 px при её появлении (прибор `jumpStates`). -->
+          <sc-if value="{{ showSections }}" hint-placeholder-val="{{ true }}">
+          <div data-geo="программа курса" style="display: grid; gap: var(--space-5);">
+          <sc-if value="{{ showPartial }}" hint-placeholder-val="{{ false }}">
+            <!-- Частичный отказ расписания не должен менять ни положение, ни высоту программы:
+                 карточка над списком двигала его на 260 px, карточка внутри — растила место на 277 px.
+                 Оба раза прибор `jumpStates` был прав. Сломанное — столбец времён, и он уже говорит
+                 за себя в каждой строке («время не пришло»). Объяснение встаёт В СТРОКУ с заголовком
+                 программы, справа, и не трогает каркас вовсе (ПРАВИЛА 6.5в и 6.6 вместе). -->
+          </sc-if>
+
+          <sc-if value="{{ showSections }}" hint-placeholder-val="{{ true }}">
+            <div style="display: grid; gap: var(--space-4);">
+              <span style="display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--space-4); align-items: center; height: 56px;">
+                <span style="display: flex; align-items: baseline; gap: var(--space-3); flex-wrap: wrap; min-width: 0;">
+                  <span style="font-family: var(--font-heading); font-size: var(--text-h2); font-weight: 600; letter-spacing: var(--tracking-snug);">Программа</span>
+                  <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-secondary);">{{ programMeta }}</span>
+                </span>
+                <sc-if value="{{ showPartial }}" hint-placeholder-val="{{ false }}">
+                  <span style="display: flex; align-items: center; gap: var(--space-3); max-height: 56px; padding: var(--space-2) var(--space-3); border: 1px solid var(--color-border); border-inline-start: 2px solid var(--color-border-strong); border-radius: var(--radius-control); background: var(--color-surface);">
+                    <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-secondary); letter-spacing: .06em; text-transform: uppercase; white-space: nowrap;">частичный отказ · расписание</span>
+                    <button onClick="{{ noop }}" style="min-height: var(--control-height-sm); font-size: var(--text-caption); font-family: var(--font-body); color: var(--color-text); background: none; border: 1px solid var(--color-border-strong); border-radius: var(--radius-pill); padding: 0 var(--space-4); cursor: pointer; white-space: nowrap;" style-hover="background: var(--color-surface-subtle);">Запросить снова</button>
+                  </span>
+                </sc-if>
+              </span>
+
+              <sc-for list="{{ sections }}" as="sec" hint-placeholder-count="3">
+                <div style="border: 1px solid var(--color-border); border-radius: var(--radius-card); background: var(--color-surface); overflow: hidden;">
+                  <div style="display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: var(--space-4); align-items: center; padding: var(--space-4) var(--space-5); border-bottom: 1px solid var(--color-border);">
+                    <span aria-hidden="true" style="font: 400 var(--text-body) var(--font-mono); color: var(--color-text-tertiary); cursor: grab;">⠿</span>
+                    <span style="display: grid; gap: 2px; min-width: 0;">
+                      <span style="font-size: var(--text-body); font-weight: 500;">{{ sec.name }}</span>
+                      <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-secondary);">{{ sec.meta }}</span>
+                    </span>
+                    <button onClick="{{ noop }}" style="min-height: var(--control-height-sm); font-size: var(--text-caption); font-family: var(--font-body); color: var(--color-text-secondary); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 0 var(--space-4); cursor: pointer; white-space: nowrap;" style-hover="color: var(--color-text); border-color: var(--color-border-strong);">Переименовать</button>
+                  </div>
+                  <sc-for list="{{ sec.lessons }}" as="l" hint-placeholder-count="2">
+                    <div style="display: grid; grid-template-columns: auto minmax(0, 1fr) 210px auto; gap: var(--space-4); align-items: center; padding: var(--space-3) var(--space-5); border-bottom: 1px solid var(--color-border);">
+                      <span aria-hidden="true" style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); cursor: grab;">⠿</span>
+                      <span style="display: grid; gap: 2px; min-width: 0;">
+                        <span style="font-size: var(--text-small); color: var(--color-text);">{{ l.name }}</span>
+                        <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-secondary);">{{ l.sub }}</span>
+                      </span>
+                      <span style="font: 400 var(--text-caption) var(--font-mono); color: {{ l.whenColor }}; line-height: var(--leading-snug); text-wrap: pretty;">{{ l.when }}</span>
+                      <!-- Действие внутри списка — обычным текстом с приглушённым подчёркиванием
+                           (ПРАВИЛА 5.3): семь коралловых ссылок в столбце съедают единственный акцент. -->
+                      <a href="Создание курса и занятия.dc.html" style="min-height: var(--control-height-sm); display: inline-flex; align-items: center; font-size: var(--text-caption); color: var(--color-text-secondary); text-decoration: underline; text-decoration-color: var(--color-border-strong); text-underline-offset: 3px; white-space: nowrap;">{{ l.act }}</a>
+                    </div>
+                  </sc-for>
+                  <button onClick="{{ noop }}" style="width: 100%; min-height: var(--tap-min); font-size: var(--text-caption); font-family: var(--font-body); color: var(--color-text-secondary); background: none; border: none; cursor: pointer; text-align: start; padding: 0 var(--space-5);" style-hover="background: var(--color-surface-subtle); color: var(--color-text);">+ Урок в этот раздел</button>
+                </div>
+              </sc-for>
+
+              <div style="display: grid; gap: var(--space-3);">
+                <span style="display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--space-2); align-items: center;">
+                  <input placeholder="Название нового раздела" style="min-width: 0; min-height: var(--control-height-md); padding: 0 var(--space-4); font-size: var(--text-small); font-family: var(--font-body); color: var(--color-text); background: var(--color-bg); border: 1px solid var(--color-border); border-radius: var(--radius-control);" />
+                  <button onClick="{{ noop }}" style="min-height: var(--control-height-md); font-size: var(--text-small); font-family: var(--font-body); color: var(--color-text); background: none; border: 1px solid var(--color-border-strong); border-radius: var(--radius-control); padding: 0 var(--space-5); cursor: pointer; white-space: nowrap;" style-hover="background: var(--color-surface-subtle);">Добавить раздел</button>
+                </span>
+                <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-secondary); line-height: var(--leading-snug); text-wrap: pretty;">порядок разделов и уроков меняется перетаскиванием за ⠿ · ученики видят программу в этом же порядке</span>
+              </div>
+            </div>
+          </sc-if>
+          </div>
+          </sc-if>
+
+          <!-- Имени `data-geo` у пустого и у отказа НЕТ намеренно (ПРАВИЛА 6.7а): это другие
+               композиции, а не то же место в другом состоянии. Имя носят только программа
+               и её заглушка — они обязаны совпадать. -->
+          <sc-if value="{{ showEmpty }}" hint-placeholder-val="{{ false }}">
+            <div style="display: grid; gap: var(--space-4); padding: var(--space-8) var(--space-8); border: 1px solid var(--color-border); border-radius: var(--radius-card); background: var(--color-surface); justify-items: start;">
+              <span style="font-family: var(--font-heading); font-size: var(--text-h2); font-weight: 600; letter-spacing: var(--tracking-snug); line-height: var(--leading-heading);">Программы пока нет — соберите первый раздел</span>
+              <span style="font-size: var(--text-body); color: var(--color-text-secondary); line-height: var(--leading-body); max-width: 62ch; text-wrap: pretty;">Раздел — это тема, внутри неё уроки. Занятие ставится у урока: время задаётся в вашем поясе, ученики увидят его в своём. Пока разделов нет, курс можно опубликовать, но записавшимся будет нечего открыть.</span>
+              <span style="width: 100%; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--space-2); align-items: center;">
+                <input placeholder="Например: Небо невооружённым глазом" style="min-width: 0; min-height: var(--control-height-md); padding: 0 var(--space-4); font-size: var(--text-small); font-family: var(--font-body); color: var(--color-text); background: var(--color-bg); border: 1px solid var(--color-border); border-radius: var(--radius-control);" />
+                <button onClick="{{ noop }}" style="min-height: var(--control-height-md); font-size: var(--text-small); font-weight: 500; font-family: var(--font-body); color: var(--color-on-go); background: var(--color-go-solid); border: none; border-radius: var(--radius-control); padding: 0 var(--space-5); cursor: pointer; white-space: nowrap;" style-hover="background: var(--color-go-solid-hover);">Добавить первый раздел</button>
+              </span>
+              <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-secondary); line-height: var(--leading-snug); text-wrap: pretty;">разделы можно менять и после публикации: записавшиеся увидят изменения сразу, а перенос занятия попросит причину</span>
+            </div>
+          </sc-if>
+
+          <!-- Заглушка занимает ТО ЖЕ место, что программа (ПРАВИЛА 6.6): те же три карточки,
+               в каждой шапка раздела и строки уроков. Прежде заглушка была втрое ниже списка,
+               и прибор `jump` честно намерил скачок в 659 px — каркас съезжал на две трети экрана. -->
+          <sc-if value="{{ showLoading }}" hint-placeholder-val="{{ false }}">
+            <div data-geo="программа курса" style="display: grid; gap: var(--space-4);">
+              <span style="display: flex; align-items: center; gap: var(--space-3); height: 56px;">
+                <span style="font-family: var(--font-heading); font-size: var(--text-h2); font-weight: 600; letter-spacing: var(--tracking-snug);">Программа</span>
+                <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-secondary);">открываем курс · первыми придут разделы, времена занятий за ними</span>
+              </span>
+              <sc-for list="{{ skeleton }}" as="s" hint-placeholder-count="3">
+                <span style="display: grid; border: 1px solid var(--color-border); border-radius: var(--radius-card); background: var(--color-surface); overflow: hidden;">
+                  <span style="display: grid; gap: var(--space-2); padding: var(--space-4) var(--space-5); border-bottom: 1px solid var(--color-border);">
+                    <span style="height: 15px; width: {{ s.a }}; border-radius: var(--radius-sm); background: var(--color-surface-subtle);"></span>
+                    <span style="height: 12px; width: {{ s.b }}; border-radius: var(--radius-sm); background: var(--color-surface-subtle);"></span>
+                  </span>
+                  <sc-for list="{{ s.rows }}" as="r" hint-placeholder-count="2">
+                    <span style="display: grid; gap: var(--space-2); padding: var(--space-3) var(--space-5); border-bottom: 1px solid var(--color-border); min-height: 49px; align-content: center;">
+                      <span style="height: 12px; width: {{ r.a }}; border-radius: var(--radius-sm); background: var(--color-surface-subtle);"></span>
+                      <span style="height: 11px; width: {{ r.b }}; border-radius: var(--radius-sm); background: var(--color-surface-subtle);"></span>
+                    </span>
+                  </sc-for>
+                  <span style="min-height: var(--tap-min);"></span>
+                </span>
+              </sc-for>
+              <!-- Хвост заглушки повторяет строку «Добавить раздел» с подписью: без него место
+                   программы было на 141 px короче собранной (прибор `jump`). -->
+              <span style="display: grid; gap: var(--space-2);">
+                <span style="min-height: var(--control-height-md); border-radius: var(--radius-control); background: var(--color-surface-subtle);"></span>
+                <span style="height: 20px; width: 58%; border-radius: var(--radius-sm); background: var(--color-surface-subtle);"></span>
+              </span>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ showFailed }}" hint-placeholder-val="{{ false }}">
+            <div style="display: grid; gap: var(--space-4); padding: var(--space-7) var(--space-8); border: 1px solid var(--color-border); border-inline-start: 2px solid var(--color-accent); border-radius: var(--radius-card); background: var(--color-surface); justify-items: start;">
+              <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-accent-text); letter-spacing: .08em; text-transform: uppercase;">отказ · служба курса</span>
+              <span style="font-family: var(--font-heading); font-size: var(--text-h2); font-weight: 600; letter-spacing: var(--tracking-snug); line-height: var(--leading-heading);">Курс не открылся</span>
+              <span style="font-size: var(--text-body); color: var(--color-text-secondary); line-height: var(--leading-body); max-width: 62ch; text-wrap: pretty;">Служба курсов не отвечает с 09:40. Программа на сервере цела — не пришла только эта страница.</span>
+              <span style="display: grid; gap: var(--space-2); padding-inline-start: var(--space-4); border-inline-start: 2px solid var(--color-border);">
+                <sc-for list="{{ failFacts }}" as="f" hint-placeholder-count="3">
+                  <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-secondary); line-height: var(--leading-snug); text-wrap: pretty;">{{ f.text }}</span>
+                </sc-for>
+              </span>
+              <button onClick="{{ noop }}" style="min-height: var(--control-height-md); font-size: var(--text-small); font-weight: 500; font-family: var(--font-body); color: var(--color-on-go); background: var(--color-go-solid); border: none; border-radius: var(--radius-control); padding: 0 var(--space-5); cursor: pointer;" style-hover="background: var(--color-go-solid-hover);">Открыть снова</button>
+            </div>
+          </sc-if>
+
+          <!-- Приглушённые двери: ПРАВИЛА 12. Журнал и повторение существуют в продукте, но листов
+               у них нет и в этом заходе не будет (решение владельца §59.3). Дверь видна, названа,
+               не нажимается, и рядом сказано почему — цветом и весом, не прозрачностью. -->
+          <div style="display: grid; gap: var(--space-3); padding-top: var(--space-4); border-top: 1px solid var(--color-border);">
+            <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .08em; text-transform: uppercase;">рядом с курсом</span>
+            <span style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-3);">
+              <sc-for list="{{ doors }}" as="d" hint-placeholder-count="2">
+                <span data-door="{{ d.id }}" aria-disabled="true" tabindex="-1" style="min-width: 0; display: grid; gap: 3px; min-height: var(--tap-min); align-content: center; padding: var(--space-3) var(--space-4); border: 1px solid var(--color-border); border-radius: var(--radius-control); background: var(--color-surface-subtle); cursor: default;">
+                  <span style="font-size: var(--text-small); font-weight: 400; color: var(--color-text-secondary);">{{ d.name }}</span>
+                  <span style="font-size: var(--text-caption); color: var(--color-text-secondary); line-height: var(--leading-snug); text-wrap: pretty;">{{ d.why }}</span>
+                </span>
+              </sc-for>
+            </span>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;: {&quot;width&quot;: 1400, &quot;height&quot;: 900}}">
+class Component extends DCLogic {
+  // Страница курса с разделами — экран, который в продукте собрали на глаз (сверка §4).
+  // Отсюда преподаватель ставит занятия, поэтому лист нужен раньше остальных семи (§59.3).
+  //
+  // Три вещи, которые этот лист чинит по живому проходу 23 августа:
+  // 1. «Опубликовать» — ЗЕЛЁНАЯ (ПРАВИЛА 11.1): после нажатия курс видят другие люди.
+  //    В продукте она коралловая, как и всякий «следующий шаг», — от этого коралловый
+  //    перестал значить что-либо.
+  // 2. Пустое состояние говорит СМОТРЯЩЕМУ, что сделать (13.3). В продукте стояло
+  //    «Разделы появятся, когда преподаватель их добавит» — в третьем лице тому самому
+  //    преподавателю, который на них смотрит.
+  // 3. Каркас продукта на месте: шапка с навигацией, а не логотип и две иконки.
+  state = { pub: 'draft', st: 'filled', w: 1280, theme: 'light' };
+
+  // Опубликованный курс не бывает «без разделов»: публикуют то, что собрано. Пустая
+  // программа — состояние черновика (карта допустимости заводится вместе с ключом).
+  PUB_STATES = {
+    draft: ['filled', 'empty', 'loading', 'partial', 'failed'],
+    live: ['filled', 'loading', 'partial', 'failed'],
+  };
+
+  componentDidMount() {
+    this.onResize = () => this.fit();
+    window.addEventListener('resize', this.onResize);
+    this.settle();
+    this.probe = setInterval(() => {
+      const el = this.root && this.root.querySelector('[data-scroll-probe]');
+      if (el) el.textContent = 'прокрутка страницы: ' + Math.max(0, document.documentElement.scrollHeight - window.innerHeight) + ' px';
+    }, 1000);
+  }
+  componentDidUpdate() { this.settle(); }
+  componentWillUnmount() { window.removeEventListener('resize', this.onResize); clearInterval(this.probe); }
+
+  settle() { this.fit(); this.applyChrome(); requestAnimationFrame(() => this.fit()); }
+
+  fit() {
+    const host = this.host, f = this.frame;
+    if (!host || !f) return;
+    const w = this.state.w, h = w === 1512 ? 944 : 800;
+    f.style.width = w + 'px';
+    f.style.height = h + 'px';
+    const s = Math.min(1, (host.clientWidth - 40) / w, (host.clientHeight - 40) / h);
+    host.style.position = 'relative';
+    f.style.position = 'absolute';
+    f.style.left = '50%'; f.style.top = '50%';
+    f.style.transform = 'translate(-50%, -50%) scale(' + s.toFixed(4) + ')';
+  }
+
+  applyChrome() {
+    const root = this.root; if (!root) return;
+    const cur = { pub: this.state.pub, st: this.state.st, w: String(this.state.w) };
+    const allowed = this.PUB_STATES[this.state.pub] || ['filled'];
+    root.querySelectorAll('[data-sw]').forEach((b) => {
+      const k = b.dataset.sw, v = b.dataset.val;
+      if (!(k in cur)) return;
+      if (k === 'st') {
+        // ПРАВИЛА 6.8: помним display шаблона и возвращаем именно его
+        if (!b.dataset.disp) b.dataset.disp = getComputedStyle(b).display;
+        b.style.display = allowed.indexOf(v) < 0 ? 'none' : b.dataset.disp;
+      }
+      const on = cur[k] === v;
+      b.style.color = on ? 'var(--color-text)' : 'var(--color-text-secondary)';
+      b.style.borderColor = on ? 'var(--color-border-strong)' : 'var(--color-border)';
+      b.style.background = on ? 'var(--color-surface)' : 'none';
+    });
+  }
+
+  onSw = (e) => {
+    const { sw, val } = e.currentTarget.dataset;
+    if (sw === 'st' && (this.PUB_STATES[this.state.pub] || ['filled']).indexOf(val) < 0) return;
+    if (sw === 'theme') return this.setState((s) => ({ theme: s.theme === 'dark' ? 'light' : 'dark' }));
+    if (sw === 'w') return this.setState({ w: Number(val) });
+    if (sw === 'pub') {
+      const allowed = this.PUB_STATES[val] || ['filled'];
+      return this.setState((s) => ({ pub: val, st: allowed.indexOf(s.st) < 0 ? 'filled' : s.st }));
+    }
+    this.setState({ [sw]: val });
+  };
+
+  renderVals() {
+    const s = this.state;
+    const draft = s.pub === 'draft';
+    const partial = s.st === 'partial';
+    const filled = s.st === 'filled' || partial;
+
+    const when = (t, near) => ({ text: t, color: near ? 'var(--color-accent-text)' : 'var(--color-text-secondary)' });
+
+    return {
+      setRoot: (el) => { this.root = el; },
+      setHost: (el) => { this.host = el; },
+      setFrame: (el) => { this.frame = el; },
+      theme: s.theme === 'dark' ? 'dark' : 'light',
+      mode: 'default',
+
+      publishLoud: draft && (filled || s.st === 'loading'),
+      publishQuiet: draft && (s.st === 'empty' || s.st === 'failed'),
+      isDraft: draft,
+      isLive: !draft,
+      stateLabel: draft ? 'черновик' : 'опубликован',
+      stateColor: draft ? 'var(--color-text-secondary)' : 'var(--color-go-text)',
+      stateBorder: draft ? 'var(--color-border)' : 'var(--color-go-line)',
+      metaLine: draft ? 'учеников 0 · обновлён сегодня' : 'записаны 14 из 20 · обновлён сегодня',
+      courseLead: draft
+        ? 'Курс виден только вам. Пока он черновик, его нет ни в каталоге, ни у кого в расписании.'
+        : 'Курс в каталоге. Изменения в программе видят 14 записавшихся — сразу, без отдельного объявления.',
+      actionsNote: draft
+        ? 'публикация ставит курс в каталог: после неё его увидят все, кто ищет предмет'
+        : 'снятие с публикации убирает курс из каталога, но не отменяет занятия и не выписывает записавшихся',
+
+      showSections: filled,
+      showEmpty: s.st === 'empty',
+      showLoading: s.st === 'loading',
+      showFailed: s.st === 'failed',
+      showPartial: partial,
+
+      // Три вещи по 6.5а — в строке метаданных программы, а не отдельной карточкой: карточка
+      // растила именованное место, и прибор `jumpStates` был прав. Строки уроков говорят
+      // «время не пришло» каждая — сломанное названо там, где оно живёт (6.5в).
+      programMeta: partial
+        ? '3 раздела · 7 уроков · времена молчат с 09:40, поставленные занятия в силе'
+        : '3 раздела · 7 уроков · 4 занятия поставлены',
+      sections: [
+        {
+          name: 'Небо невооружённым глазом', meta: '3 урока · 2 занятия поставлены',
+          lessons: [
+            { name: 'Что видно без телескопа', sub: 'методичка · 9 страниц', when: partial ? 'время не пришло' : 'вт 26 августа, 18:00', whenColor: partial ? 'var(--color-text-secondary)' : 'var(--color-text-secondary)', act: partial ? 'поставить' : 'перенести' },
+            { name: 'Созвездия и как их искать', sub: 'методичка · карта неба', when: partial ? 'время не пришло' : 'чт 28 августа, 18:00', whenColor: 'var(--color-text-secondary)', act: partial ? 'поставить' : 'перенести' },
+            { name: 'Фазы Луны', sub: 'занятие не поставлено', when: 'без времени', whenColor: 'var(--color-text-secondary)', act: 'поставить занятие' },
+          ],
+        },
+        {
+          name: 'Солнечная система', meta: '2 урока · 1 занятие поставлено',
+          lessons: [
+            { name: 'Планеты и их размеры', sub: 'методичка · таблица', when: partial ? 'время не пришло' : 'вт 2 сентября, 18:00', whenColor: 'var(--color-text-secondary)', act: partial ? 'поставить' : 'перенести' },
+            { name: 'Почему у Марса два спутника', sub: 'занятие не поставлено', when: 'без времени', whenColor: 'var(--color-text-secondary)', act: 'поставить занятие' },
+          ],
+        },
+        {
+          name: 'Телескоп в руках', meta: '2 урока · 1 занятие поставлено',
+          lessons: [
+            { name: 'Как устроен телескоп', sub: 'методичка · схема', when: partial ? 'время не пришло' : 'чт 4 сентября, 18:00', whenColor: 'var(--color-text-secondary)', act: partial ? 'поставить' : 'перенести' },
+            { name: 'Первое наблюдение', sub: 'нужна ясная погода', when: 'без времени', whenColor: 'var(--color-text-secondary)', act: 'поставить занятие' },
+          ],
+        },
+      ],
+
+      // Три вещи по 6.5а одной строкой: она стоит в строку с заголовком и не двигает каркас.
+      partialLine: 'разделы и уроки работают · времена молчат с 09:40 · поставленные занятия в силе',
+      partialFacts: [
+        { text: 'работает: разделы, уроки, порядок, методички, приглашение учеников' },
+        { text: 'не работает: времена занятий — служба расписания молчит с 09:40' },
+        { text: 'с данными: поставленные занятия в силе, ученики видят их в своём расписании' },
+      ],
+      failFacts: [
+        { text: 'работает: кабинет, расписание, проверка работ, чат' },
+        { text: 'не работает: страница этого курса — значит и постановка занятий' },
+        { text: 'с данными: ничего не потеряно, черновики разделов сохранены' },
+      ],
+      // Три карточки и в них 3 + 2 + 2 строки — ровно столько же, сколько в собранной программе.
+      skeleton: [
+        { a: '46%', b: '28%', rows: [{ a: '38%', b: '22%' }, { a: '44%', b: '25%' }, { a: '30%', b: '20%' }] },
+        { a: '38%', b: '26%', rows: [{ a: '42%', b: '19%' }, { a: '48%', b: '24%' }, { a: '34%', b: '21%' }] },
+        { a: '52%', b: '27%', rows: [{ a: '36%', b: '21%' }, { a: '40%', b: '23%' }] },
+      ],
+
+      doors: [
+        { id: 'journal', name: 'Журнал курса', why: 'Этой части пока нет. Присутствие и оценки за занятие видны в проверке работ и в карточке ученика.' },
+        { id: 'repetition', name: 'Повторение слов', why: 'Этой части пока нет. Слова с занятий собираются в конспекте урока, оттуда их можно забрать.' },
+      ],
+
+      onSw: this.onSw,
+      noop: () => {},
+    };
+  }
+}
+</script>
+</body>
+</html>
