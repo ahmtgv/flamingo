@@ -101,7 +101,16 @@ export async function registerTestPupil(): Promise<TestPupil> {
         firstName: 'Аня',
         lastName: 'Коваль',
         role: 'STUDENT',
-        student: { birthDate: '2011-05-01' },
+        /*
+         * 🔴 ШЕСТНАДЦАТЬ, А НЕ ПЯТНАДЦАТЬ (наряд 53 §1, конфликт нового со старым).
+         *
+         * Здесь стоял 2011 год. С наряда 48 действует §51: до шестнадцати согласие даёт
+         * законный представитель, и зачисление ждёт его (`PENDING_CONSENT`) — а принять
+         * за родителя не может даже преподаватель. Ученик прогона переставал попадать на
+         * курс вовсе, комната прятала от него урок, и красным становился живой слой —
+         * там, где сломалась не подписка, а право доступа.
+         */
+        student: { birthDate: '2009-05-01' },
         consent152fz: true,
       },
     },
@@ -132,9 +141,22 @@ export async function aLiveLesson(
   );
   await gql('mutation($l:ID!){ publishLesson(id:$l){ id } }', { l: lesson.createLesson.id }, auth);
   await gql('mutation($c:ID!){ publishCourse(id:$c){ id } }', { c: course.createCourse.id }, auth);
-  await gql(
-    'mutation($c:ID!){ enroll(courseId:$c){ id } }',
+  /*
+   * 🔴 НА КУРС — ПРИГЛАШЕНИЕМ, А НЕ ЗАЯВКОЙ (наряд 53 §1).
+   *
+   * `enroll` с наряда 48 — это ЗАЯВКА (§54.1): она висит, пока преподаватель не примет,
+   * и до тех пор ученик на курс не попал. Прогон этого не знал и продолжал считать, что
+   * зачислил. Приглашение — решение преподавателя, второго подтверждения над ним не надо:
+   * это тот же путь, которым сегодня зовут постороннего.
+   */
+  const invite = await gql<{ courseInvite: { code: string } }>(
+    'query($c:ID!){ courseInvite(courseId:$c){ code } }',
     { c: course.createCourse.id },
+    auth,
+  );
+  await gql(
+    'mutation($c:String!){ redeemCourseInvite(code:$c){ id status } }',
+    { c: invite.courseInvite.code },
     `Bearer ${pupilToken}`,
   );
   const session = await gql<{ scheduleSession: { id: string } }>(

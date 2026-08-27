@@ -43,7 +43,50 @@ function env(): NodeJS.ProcessEnv {
     POSTGRES_DB: CIRCUIT_DB,
     PYTHONPATH: BACKEND,
     DJANGO_SETTINGS_MODULE: 'config.settings',
+    /*
+     * 🔴 ХРАНИЛИЩЕ В КОНТУРЕ (наряд 53 §2). Без него `requestUpload` уходит в никуда, и
+     * ЛЮБАЯ проверка картинки на доске красная по причине, к продукту не относящейся:
+     * наряд 52 упёрся ровно в это и честно записал «не измерено».
+     *
+     * Поднимаем `moto` — он уже стоит в том же окружении, что и сервер, и говорит на языке
+     * S3. Отдельная служба (MinIO из compose) требует докера, которого на машине нет.
+     */
+    S3_ENDPOINT: `http://127.0.0.1:${STORAGE_PORT}`,
+    S3_BUCKET: 'flamingo',
+    S3_ACCESS_KEY: 'flamingo',
+    S3_SECRET_KEY: 'flamingo-secret',
   };
+}
+
+/** Порт хранилища контура — рядом с портом сервера, чтобы не пересечься с рабочим. */
+export const STORAGE_PORT = 9105;
+
+/** Поднять хранилище и завести корзину. Возвращает функцию остановки. */
+async function startStorage(): Promise<() => void> {
+  const proc = spawn(PYTHON, ['-m', 'moto.server', '-p', String(STORAGE_PORT)], {
+    cwd: BACKEND,
+    env: env(),
+    stdio: 'ignore',
+  });
+  for (let i = 0; i < 40; i += 1) {
+    try {
+      const res = await fetch(`http://127.0.0.1:${STORAGE_PORT}/`);
+      if (res.status) break;
+    } catch {
+      // ещё не поднялось
+    }
+    await new Promise((r) => setTimeout(r, 250));
+  }
+  // Корзина заводится тем же питоном: без неё загрузка отвечает «нет такой корзины».
+  execFileSync(
+    PYTHON,
+    [
+      '-c',
+      `import boto3; boto3.client('s3', endpoint_url='http://127.0.0.1:${STORAGE_PORT}', aws_access_key_id='flamingo', aws_secret_access_key='flamingo-secret', region_name='us-east-1').create_bucket(Bucket='flamingo')`,
+    ],
+    { cwd: BACKEND, env: env(), stdio: 'ignore' },
+  );
+  return () => proc.kill();
 }
 
 /** Есть ли вообще из чего поднимать контур на этой машине. */
@@ -65,6 +108,7 @@ function psql(sql: string): void {
  * прошлого. Это и есть «сносит за собой»: следующий запуск начинает с пустого места.
  */
 export async function startCircuit(): Promise<() => void> {
+  const stopStorage = await startStorage();
   psql(`DROP DATABASE IF EXISTS ${CIRCUIT_DB}`);
   psql(`CREATE DATABASE ${CIRCUIT_DB} OWNER flamingo`);
   execFileSync(PYTHON, ['manage.py', 'migrate', '--noinput'], {
@@ -96,6 +140,7 @@ export async function startCircuit(): Promise<() => void> {
   }
 
   return () => {
+    stopStorage();
     server.kill();
     try {
       psql(`DROP DATABASE IF EXISTS ${CIRCUIT_DB}`);

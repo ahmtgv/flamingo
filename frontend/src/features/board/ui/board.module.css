@@ -1,20 +1,36 @@
 /* The lesson board — atlas sheet 02. An infinite canvas: no page, only a viewport. */
 
+/* Панель стала абсолютной (см. `.toolbar`), поэтому обёртке нужна точка отсчёта, а ряд
+   под панель — больше нет: холст занимает освободившееся место. */
 .wrap {
+  position: relative;
   display: grid;
-  grid-template-rows: auto 1fr auto auto;
+  grid-template-rows: 1fr auto auto;
   gap: var(--space-2);
   min-height: 420px;
 }
 
+/*
+ * 🔴 ПАНЕЛЬ ПО ЛИСТУ «ДОСКА» (наряд 53 §3): вертикальная, у левого края, по середине
+ * высоты. Была горизонтальной полосой поверх верха холста — и накрывала его: замером
+ * наряда 51 нажатия в этой полосе уходили ей, а не доске.
+ *
+ * Выбранный инструмент — заливка поверхности и полный цвет текста; остальные — вторичный
+ * цвет без фона. Прозрачностью ничего не гасится (ПРАВИЛА 12.1 и 4.7).
+ */
 .toolbar {
-  display: flex;
-  align-items: center;
+  position: absolute;
+  inset-inline-start: var(--space-5);
+  inset-block-start: 50%;
+  transform: translateY(-50%);
+  z-index: 3;
+  display: grid;
   gap: 2px;
   padding: var(--space-2);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-control);
+  border-radius: var(--radius-card);
   background: var(--color-surface);
+  box-shadow: var(--shadow-md);
 }
 .tool {
   width: var(--tap-min);

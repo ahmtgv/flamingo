@@ -35,7 +35,8 @@ import styles from './board.module.css';
 type Element = BoardQuery['board']['elements'][number];
 type Tool = 'select' | 'pen' | 'text' | 'sticker' | 'shape' | 'link' | 'hand';
 
-const TOOLS: Tool[] = ['select', 'pen', 'text', 'sticker', 'shape', 'link', 'hand'];
+// Порядок листа «Доска»: сначала «взять и передвинуть», потом «нарисовать», потом «положить».
+const TOOLS: Tool[] = ['select', 'hand', 'pen', 'shape', 'link', 'text', 'sticker'];
 
 /**
  * The lesson board — atlas sheet 02.
@@ -132,6 +133,17 @@ export function BoardCanvas({ lessonId }: { lessonId: string }) {
   const [unsent, setUnsent] = useState(0);
   const drag = useRef<{ id: string; corner?: Corner; dx: number; dy: number } | null>(null);
   const panning = useRef<{ x: number; y: number } | null>(null);
+  /**
+   * 🔴 КУДА ЛОЖИТСЯ КАРТИНКА ИЗ БУФЕРА (наряд 53 §2, измерено).
+   *
+   * `paste` висит на `window` — у события нет координат, и картинка уходила в постоянную
+   * точку `view + 80`. Замер: три вставки подряд легли в одно место (101,233) и накрыли
+   * друг друга. Человек видит «вставилось не туда» или «не вставилось вовсе» — это и есть
+   * «делает через раз».
+   *
+   * Помним последнюю точку указателя НАД ХОЛСТОМ (в мировых координатах) и кладём туда.
+   */
+  const lastPointer = useRef<{ x: number; y: number } | null>(null);
   /*
    * 🔴 НАДПИСЬ БЫЛО НЕВОЗМОЖНО НАПИСАТЬ (наряд 51 §2, замер владельца и прибор
    * `board-tools`). Инструмент «Текст» клал на холст слово-заглушку `t('newText')` и на этом
@@ -549,6 +561,7 @@ export function BoardCanvas({ lessonId }: { lessonId: string }) {
   }
 
   function onPointerMove(e: React.PointerEvent) {
+    lastPointer.current = pointerWorld(e);
     if (e.pointerType === 'touch' && pinch.current.has(e.pointerId)) {
       pinch.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
       if (pinch.current.size === 2 && pinchStart.current) {
@@ -639,13 +652,42 @@ export function BoardCanvas({ lessonId }: { lessonId: string }) {
     [commit, t, upload, view.x, view.y],
   );
 
+  /*
+   * 🔴 БУКВА НА КНОПКЕ БЕЗ КЛАВИШИ — ОБЕЩАНИЕ, КОТОРОГО НЕТ (наряд 53 §3).
+   *
+   * Лист рисует инструменты буквами горячих клавиш. Нарисовать букву и не привязать
+   * клавишу — соврать на самом видном месте.
+   *
+   * ⚠️ Пока человек печатает (надпись на доске, чат, поле поиска), клавиши инструментов
+   * молчат: иначе буква «T» посреди слова меняла бы инструмент.
+   */
+  useEffect(() => {
+    if (!canWrite) return undefined;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      const node = document.activeElement;
+      const typing =
+        node instanceof HTMLInputElement ||
+        node instanceof HTMLTextAreaElement ||
+        (node instanceof HTMLElement && node.isContentEditable);
+      if (typing) return;
+      const next = TOOL_KEY[e.key.toLowerCase()];
+      if (!next) return;
+      setTool(next);
+      setLinkFrom(null);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [canWrite]);
+
   useEffect(() => {
     if (!canWrite) return undefined;
     const onPaste = (e: ClipboardEvent) => {
       const file = [...(e.clipboardData?.items ?? [])]
         .find((i) => i.type.startsWith('image/'))
         ?.getAsFile();
-      if (file) void putImage(file);
+      // Туда, где человек держит указатель; если он ни разу не был над холстом — как раньше.
+      if (file) void putImage(file, lastPointer.current ?? undefined);
     };
     window.addEventListener('paste', onPaste);
     return () => window.removeEventListener('paste', onPaste);
@@ -707,7 +749,8 @@ export function BoardCanvas({ lessonId }: { lessonId: string }) {
             disabled={!canWrite || uploading}
             onChange={(e) => {
               const file = e.target.files?.[0];
-              if (file) void putImage(file);
+              // Туда, где человек держит указатель; если он ни разу не был над холстом — как раньше.
+      if (file) void putImage(file, lastPointer.current ?? undefined);
               e.target.value = '';
             }}
           />
@@ -914,7 +957,8 @@ export function BoardCanvas({ lessonId }: { lessonId: string }) {
             disabled={!canWrite || uploading}
             onChange={(e) => {
               const file = e.target.files?.[0];
-              if (file) void putImage(file);
+              // Туда, где человек держит указатель; если он ни разу не был над холстом — как раньше.
+      if (file) void putImage(file, lastPointer.current ?? undefined);
               e.target.value = '';
             }}
           />
@@ -968,14 +1012,34 @@ export function BoardCanvas({ lessonId }: { lessonId: string }) {
   );
 }
 
+/**
+ * Буквы горячих клавиш вместо значков — лист «Доска» (наряд 53 §3).
+ *
+ * 🔴 Значки (↖ ✎ ▣ ▭ ↗ ✋) не сообщали ни имени, ни клавиши: человек угадывал по картинке,
+ * а клавиша не была видна нигде. Буква говорит обе вещи разом, а имя инструмента живёт в
+ * `aria-label` — там, где его прочтёт и читалка, и прибор.
+ *
+ * Порядок панели — по тому, что делает рука: взять и передвинуть · нарисовать · положить.
+ */
 const TOOL_GLYPH: Record<Tool, string> = {
-  select: '↖',
-  pen: '✎',
+  select: 'V',
+  hand: 'H',
+  pen: 'P',
+  shape: 'R',
+  link: 'L',
   text: 'T',
-  sticker: '▣',
-  shape: '▭',
-  link: '↗',
-  hand: '✋',
+  sticker: 'S',
+};
+
+/** Клавиша → инструмент. Ровно те буквы, что нарисованы на кнопках. */
+const TOOL_KEY: Record<string, Tool> = {
+  v: 'select',
+  h: 'hand',
+  p: 'pen',
+  r: 'shape',
+  l: 'link',
+  t: 'text',
+  s: 'sticker',
 };
 
 /** One element, drawn in world coordinates. Authorship is always on it (sheet 02). */
