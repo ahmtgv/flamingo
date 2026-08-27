@@ -49,14 +49,14 @@
 
       <div style="display: flex; align-items: center; gap: var(--space-4); padding: 0 var(--space-5); height: 60px; border-bottom: 1px solid var(--color-border); background: var(--color-surface);">
         <img src="design-assets/flamingo-bird.svg" alt="Flamingo" style="width: 22px; height: 22px; flex: none;">
-        <button onClick="{{ noop }}" style="min-height: var(--control-height-sm); font-size: var(--text-small); font-family: var(--font-body); color: var(--color-text-secondary); background: none; border: none; cursor: pointer; padding: 0 var(--space-2);" style-hover="color: var(--color-text);">{{ backLabel }}</button>
+        <button onClick="{{ noop }}" style="min-height: var(--control-height-sm); font-size: var(--text-small); font-family: var(--font-body); color: var(--color-text-secondary); background: none; border: none; cursor: pointer; padding: 0 var(--space-2);" style-hover="color: var(--color-text);" data-still="в продукте ведёт на шаг назад по пути · на листе путь показан служебной полосой «экран»">{{ backLabel }}</button>
         <span style="font-size: var(--text-small); font-weight: 500;">{{ topTitle }}</span>
         <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary);">{{ topMeta }}</span>
         <span style="margin-left: auto; display: flex; gap: var(--space-2); align-items: center;">
           <sc-if value="{{ isGuest }}" hint-placeholder-val="{{ true }}">
             <span style="display: flex; gap: var(--space-2);">
-              <button onClick="{{ noop }}" style="min-height: var(--control-height-sm); font-size: var(--text-caption); font-family: var(--font-body); color: var(--color-text); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-control); padding: 0 var(--space-4); cursor: pointer;" style-hover="border-color: var(--color-border-strong);">Войти</button>
-              <button onClick="{{ noop }}" style="min-height: var(--control-height-sm); font-size: var(--text-caption); font-family: var(--font-body); color: var(--color-on-accent); background: var(--color-accent-solid); border: none; border-radius: var(--radius-control); padding: 0 var(--space-4); cursor: pointer;" style-hover="background: var(--color-accent-solid-hover);">Завести учётную запись</button>
+              <button onClick="{{ noop }}" style="min-height: var(--control-height-sm); font-size: var(--text-caption); font-family: var(--font-body); color: var(--color-text); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-control); padding: 0 var(--space-4); cursor: pointer;" style-hover="border-color: var(--color-border-strong);" data-still="в продукте ведёт на вход · соседний лист «Вход и регистрация»">Войти</button>
+              <button onClick="{{ noop }}" style="min-height: var(--control-height-sm); font-size: var(--text-caption); font-family: var(--font-body); color: var(--color-on-go); background: var(--color-go-solid); border: none; border-radius: var(--radius-control); padding: 0 var(--space-4); cursor: pointer;" style-hover="background: var(--color-go-solid-hover);" data-still="в продукте ведёт на регистрацию · соседний лист «Вход и регистрация», случай «регистрация»">Завести учётную запись</button>
             </span>
           </sc-if>
           <sc-if value="{{ isMember }}" hint-placeholder-val="{{ false }}">
@@ -80,7 +80,7 @@
                     <span style="font-size: var(--text-caption); font-weight: 500;">{{ f.name }}</span>
                     <span data-wrap-ok style="display: flex; flex-wrap: wrap; gap: var(--space-2);">
                       <sc-for list="{{ f.opts }}" as="o" hint-placeholder-count="4">
-                        <button onClick="{{ noop }}" style="min-height: var(--control-height-sm); font: 400 var(--text-caption) var(--font-mono); color: {{ o.color }}; background: {{ o.bg }}; border: 1px solid {{ o.border }}; border-radius: var(--radius-pill); padding: 0 var(--space-3); cursor: pointer;">{{ o.label }}</button>
+                        <button onClick="{{ noop }}" style="min-height: var(--control-height-sm); font: 400 var(--text-caption) var(--font-mono); color: {{ o.color }}; background: {{ o.bg }}; border: 1px solid {{ o.border }}; border-radius: var(--radius-pill); padding: 0 var(--space-3); cursor: pointer;" data-still="в продукте включает отбор по этому значению · выбранные и невыбранные виды показаны рядом в том же списке">{{ o.label }}</button>
                       </sc-for>
                     </span>
                   </span>
@@ -115,13 +115,13 @@
                       <span style="display: flex; align-items: baseline; gap: var(--space-3); margin-top: var(--space-1);">
                         <span style="font: 500 var(--text-small) var(--font-mono);">{{ c.rhythm }}</span>
                         <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary);">{{ c.size }}</span>
-                        <button onClick="{{ noop }}" style="margin-left: auto; min-height: var(--control-height-sm); padding: 0 var(--space-2); text-decoration: underline; text-decoration-color: var(--color-border-strong); text-underline-offset: 3px; font-size: var(--text-caption); font-family: var(--font-body); color: var(--color-text); background: none; border: none; cursor: pointer;">{{ c.act }}</button>
+                        <button onClick="{{ noop }}" style="margin-left: auto; min-height: var(--control-height-sm); padding: 0 var(--space-2); text-decoration: underline; text-decoration-color: var(--color-border-strong); text-underline-offset: 3px; font-size: var(--text-caption); font-family: var(--font-body); color: var(--color-text); background: none; border: none; cursor: pointer;" data-still="в продукте открывает карточку курса · этот же лист, служебный случай «курс»">{{ c.act }}</button>
                       </span>
                     </span>
                   </span>
                 </sc-for>
                 <span style="grid-column: 1 / -1; display: flex; align-items: center; gap: var(--space-3); padding-bottom: var(--space-2);">
-                  <button onClick="{{ noop }}" style="min-height: var(--control-height-md); font-size: var(--text-small); font-family: var(--font-body); color: var(--color-text); background: none; border: 1px solid var(--color-border-strong); border-radius: var(--radius-control); padding: 0 var(--space-5); cursor: pointer;" style-hover="background: var(--color-surface-hover);">Показать ещё 12</button>
+                  <button onClick="{{ noop }}" style="min-height: var(--control-height-md); font-size: var(--text-small); font-family: var(--font-body); color: var(--color-text); background: none; border: 1px solid var(--color-border-strong); border-radius: var(--radius-control); padding: 0 var(--space-5); cursor: pointer;" style-hover="background: var(--color-surface-hover);" data-still="в продукте добавляет в список следующие двенадцать курсов · прокрутка списка уже показана">Показать ещё 12</button>
                   <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary);">список длинный — это нормально; прокрутка живёт внутри него, страница не двигается</span>
                 </span>
               </div>
@@ -220,8 +220,8 @@
                   <span style="font-family: var(--font-heading); font-size: var(--text-h2); font-weight: 600;">{{ priceBig }}</span>
                   <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary);">{{ priceNote }}</span>
                 </span>
-                <button onClick="{{ noop }}" style="min-height: var(--control-height-lg); font-size: var(--text-small); font-family: var(--font-body); color: var(--color-on-accent); background: var(--color-accent-solid); border: none; border-radius: var(--radius-control); padding: 0 var(--space-5); cursor: pointer;" style-hover="background: var(--color-accent-solid-hover);">{{ mainAction }}</button>
-                <button onClick="{{ noop }}" style="min-height: var(--control-height-md); font-size: var(--text-small); font-family: var(--font-body); color: var(--color-text); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-control); padding: 0 var(--space-5); cursor: pointer;" style-hover="border-color: var(--color-border-strong);">{{ secondAction }}</button>
+                <button onClick="{{ noop }}" style="min-height: var(--control-height-lg); font-size: var(--text-small); font-family: var(--font-body); color: var(--color-on-go); background: var(--color-go-solid); border: none; border-radius: var(--radius-control); padding: 0 var(--space-5); cursor: pointer;" style-hover="background: var(--color-go-solid-hover);" data-still="в продукте главное действие курса: записаться или продолжить · оба случая показаны служебной полосой «кто смотрит»">{{ mainAction }}</button>
+                <button onClick="{{ noop }}" style="min-height: var(--control-height-md); font-size: var(--text-small); font-family: var(--font-body); color: var(--color-text); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-control); padding: 0 var(--space-5); cursor: pointer;" style-hover="border-color: var(--color-border-strong);" data-still="в продукте второе действие курса · что именно, написано в надписи и в строке под ней">{{ secondAction }}</button>
                 <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); line-height: var(--leading-snug);">{{ actionNote }}</span>
               </div>
 
@@ -253,8 +253,8 @@
               <span style="font-family: var(--font-heading); font-size: var(--text-h1); font-weight: 600; letter-spacing: var(--tracking-tight); line-height: var(--leading-heading);">{{ emptyTitle }}</span>
               <span style="font-size: var(--text-lead); color: var(--color-text-secondary); line-height: var(--leading-body); max-width: 60ch; text-wrap: pretty;">{{ emptyBody }}</span>
               <span style="display: flex; gap: var(--space-2); flex-wrap: wrap; margin-top: var(--space-2);">
-                <button onClick="{{ noop }}" style="min-height: var(--control-height-md); font-size: var(--text-small); font-family: var(--font-body); color: var(--color-on-accent); background: var(--color-accent-solid); border: none; border-radius: var(--radius-control); padding: 0 var(--space-5); cursor: pointer;" style-hover="background: var(--color-accent-solid-hover);">{{ emptyAction }}</button>
-                <button onClick="{{ noop }}" style="min-height: var(--control-height-md); font-size: var(--text-small); font-family: var(--font-body); color: var(--color-text); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-control); padding: 0 var(--space-5); cursor: pointer;" style-hover="border-color: var(--color-border-strong);">{{ emptySecond }}</button>
+                <button onClick="{{ noop }}" style="min-height: var(--control-height-md); font-size: var(--text-small); font-family: var(--font-body); color: var(--color-on-go); background: var(--color-go-solid); border: none; border-radius: var(--radius-control); padding: 0 var(--space-5); cursor: pointer;" style-hover="background: var(--color-go-solid-hover);" data-still="в продукте снимает отбор или ведёт к ближайшему курсу · что именно, написано в надписи">{{ emptyAction }}</button>
+                <button onClick="{{ noop }}" style="min-height: var(--control-height-md); font-size: var(--text-small); font-family: var(--font-body); color: var(--color-text); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-control); padding: 0 var(--space-5); cursor: pointer;" style-hover="border-color: var(--color-border-strong);" data-still="в продукте второй, необязательный выход из пустого поиска · что именно, написано в надписи">{{ emptySecond }}</button>
               </span>
             </div>
           </div>
@@ -283,8 +283,8 @@
               <span style="font-family: var(--font-heading); font-size: var(--text-h2); font-weight: 600; letter-spacing: var(--tracking-snug);">{{ failTitle }}</span>
               <span style="font-size: var(--text-body); color: var(--color-text-secondary); line-height: var(--leading-body); text-wrap: pretty;">{{ failBody }}</span>
               <span style="display: flex; gap: var(--space-2);">
-                <button onClick="{{ noop }}" style="min-height: var(--control-height-md); font-size: var(--text-small); font-family: var(--font-body); color: var(--color-on-accent); background: var(--color-accent-solid); border: none; border-radius: var(--radius-control); padding: 0 var(--space-5); cursor: pointer;" style-hover="background: var(--color-accent-solid-hover);">Попробовать снова</button>
-                <button onClick="{{ noop }}" style="min-height: var(--control-height-md); font-size: var(--text-small); font-family: var(--font-body); color: var(--color-text); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-control); padding: 0 var(--space-5); cursor: pointer;" style-hover="border-color: var(--color-border-strong);">{{ failSecond }}</button>
+                <button onClick="{{ noop }}" style="min-height: var(--control-height-md); font-size: var(--text-small); font-family: var(--font-body); color: var(--color-on-go); background: var(--color-go-solid); border: none; border-radius: var(--radius-control); padding: 0 var(--space-5); cursor: pointer;" style-hover="background: var(--color-go-solid-hover);" data-still="в продукте пробует запросить каталог заново · успех показан состоянием «наполнено»">Попробовать снова</button>
+                <button onClick="{{ noop }}" style="min-height: var(--control-height-md); font-size: var(--text-small); font-family: var(--font-body); color: var(--color-text); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-control); padding: 0 var(--space-5); cursor: pointer;" style-hover="border-color: var(--color-border-strong);" data-still="в продукте второй выход из отказа · что именно, написано в надписи">{{ failSecond }}</button>
               </span>
               <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary);">{{ failFoot }}</span>
             </div>

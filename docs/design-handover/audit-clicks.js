@@ -122,7 +122,7 @@
     const o = opts || {};
     const root = scope();
     const settle = o.settle == null ? SETTLE : o.settle;
-    const dead = [], zombie = [], noisy = [], still = [], live = [], skipped = [], gone = [];
+    const dead = [], zombie = [], noisy = [], still = [], live = [], skipped = [], gone = [], mislabeled = [];
 
     const swInside = Array.from(root.querySelectorAll('[data-sw]')).map(name);
     const links = [];
@@ -173,15 +173,33 @@
         if (el.getAttribute('tabindex') !== '-1') noisy.push({ el: name(el), why: 'aria-disabled без tabindex="-1" — дверь берёт фокус (ПРАВИЛА 12.5)' });
         continue;
       }
-      if (d > 0) { live.push(rec); continue; }
+      if (d > 0) {
+        // 🔴 ОБЪЯВЛЕНИЕ, ПОДЛОЖЕННОЕ ЖИВОЙ КНОПКЕ, — ТОТ ЖЕ ОБМАН НАОБОРОТ (ПРАВИЛА 14.2).
+        // Правило было записано в ПРАВИЛА раньше, чем проверка появилась здесь: отвечающая
+        // кнопка уходила в `live` до того, как читался `declared`, и `data-still` на живой
+        // кнопке проходил прибор молча на всех 22 листах. Документ, обещающий проверку,
+        // которой нет, опаснее отсутствия правила: по нему верят, не глядя.
+        if (declared) mislabeled.push(Object.assign({ объявлено: declared }, rec));
+        live.push(rec);
+        continue;
+      }
       // 🔴 УЖЕ ВЫБРАННЫЙ СЛУЧАЙ МОЛЧИТ ЗАКОННО. Первый прогон назвал мёртвой вкладку «Доска»,
       // которая открыта: нажатие на включённое ничего не меняет и менять не должно.
       // Проверяется соседом: если другой случай той же группы кадр меняет — группа живая,
       // а молчание было ответом «я и так открыт».
-      const gk = el.dataset.pick || el.dataset.sw;
-      if (gk && el.dataset.val) {
-        const sib = Array.from(root.querySelectorAll('[data-pick="' + gk + '"], [data-sw="' + gk + '"]'))
-          .find((x) => x !== el && vis(x) && x.dataset.val !== el.dataset.val);
+      //
+      // Группа ищется по ЛЮБОМУ data-имени, а не по двум служебным. Первая версия знала только
+      // `data-pick`/`data-sw`, и выбранная сортировка `data-sort="soon"` в каталоге, выбранная
+      // вкладка `data-tab` в кабинете предмета попадали в дефекты — прибор требовал отклика
+      // от кнопки, которая правильно молчит. Имя группы у каждого листа своё; прибор не должен
+      // знать их наперёд.
+      const ds = el.dataset || {};
+      const gkey = Object.keys(ds).find((k) => k !== 'still' && k !== 'dcTpl' && ds[k]
+        && root.querySelectorAll('[data-' + k.replace(/[A-Z]/g, (c) => '-' + c.toLowerCase()) + ']').length > 1);
+      if (gkey) {
+        const attr = 'data-' + gkey.replace(/[A-Z]/g, (c) => '-' + c.toLowerCase());
+        const sib = Array.from(root.querySelectorAll('[' + attr + ']'))
+          .find((x) => x !== el && vis(x) && x.getAttribute(attr) !== el.getAttribute(attr));
         if (sib) {
           sib.click();
           await sleep(settle);
@@ -189,7 +207,7 @@
           el.click();
           await sleep(settle);
           cur = digest(root);
-          if (dSib > 0) { live.push(Object.assign({ вид: 'случай был выбран — молчание законно', сосед: dSib }, rec)); continue; }
+          if (dSib > 0) { live.push(Object.assign({ вид: 'случай был выбран — молчание законно', группа: attr, сосед: dSib }, rec)); continue; }
         }
       }
       if (declared) { still.push(Object.assign({ вид: 'объявлено: ' + declared }, rec)); continue; }
@@ -206,13 +224,14 @@
       ожил: нажато > 0,
       всего: total, нажато: нажато, ссылок: links.length,
       отвечают: live.length, объявлено_немых: still.length, не_проверено: gone.length + skipped.length,
-      dead, zombie, noisy, swInside, gone, skipped, links,
+      dead, zombie, noisy, swInside, gone, skipped, links, mislabeled,
       живых_примеров: live.slice(0, 4),
     };
     rep.verdict = {
       clicks: !нажато ? 'НЕ ИЗМЕРЕНО · нажимаемых элементов нет' + (links.length ? ', только ссылки (' + links.length + ')' : '')
         : dead.length ? 'ДЕФЕКТ · молчат и не объявлены: ' + dead.length : 'ok · нажато ' + нажато + ', отвечают ' + live.length + ', объявлено немых ' + still.length,
       zombie: zombie.length ? 'ДЕФЕКТ · приглушённая дверь отвечает: ' + zombie.length : 'ok',
+      still: mislabeled.length ? 'ДЕФЕКТ · объявлено молчание, а кнопка отвечает: ' + mislabeled.length + ' (ПРАВИЛА 14.2)' : 'ok',
       swInside: swInside.length ? 'ДЕФЕКТ · служебное имя внутри кадра: ' + swInside.length + ' (ПРАВИЛА 6.7д)' : 'ok',
       links: links.length ? 'ссылок ' + links.length + ', ведут ' + links.filter((l) => l.ведёт).length : 'ссылок нет',
       focus: noisy.length ? 'ДЕФЕКТ · дверь берёт фокус: ' + noisy.length : 'ok',
@@ -337,16 +356,22 @@
     const bStill = mk('<button data-still="кнопка продукта, на листе показом" style="height:44px">немая, объявлена</button>');
     const bLive = mk('<button style="height:44px">живая</button>');
     const bZombie = mk('<button aria-disabled="true" tabindex="-1" style="height:44px">дверь</button>');
+    // Пятая кнопка: ЖИВАЯ, НО С ОБЪЯВЛЕННЫМ МОЛЧАНИЕМ. Без неё проверка ПРАВИЛ 14.2
+    // снова не была бы доказана провалом (ПРАВИЛА 14.8) — а именно так она и пропала:
+    // была записана в ПРАВИЛА и не написана в коде.
+    const bMis = mk('<button data-still="объявлено молчание, но кнопка живая" style="height:44px">объявлена и живая</button>');
     // Два флажка, а не один: в первом заходе самопроверки живая кнопка и дверь делили один,
     // и к очереди двери он уже был поднят — «изменение» не отличалось от нуля. Прибор
     // провалил собственную проверку тем самым дефектом, который ищет, и это его лучшая
     // рекомендация: проверка была написана до того, как её результат стал известен.
     const flag = mk('<span style="display:none;height:20px">появился от живой</span>');
     const flagZ = mk('<span style="display:none;height:20px">появился от двери</span>');
+    const flagM = mk('<span style="display:none;height:20px">появился от объявленной</span>');
     bLive.addEventListener('click', () => { flag.style.display = 'block'; });
     bZombie.addEventListener('click', () => { flagZ.style.display = 'block'; });
+    bMis.addEventListener('click', () => { flagM.style.display = 'block'; });
 
-    host.append(bDead, bStill, bLive, bZombie, flag, flagZ);
+    host.append(bDead, bStill, bLive, bZombie, bMis, flag, flagZ, flagM);
     root.append(host);
     const r1 = await window.flClicks({ label: 'selftest', quiet: true });
     host.remove();
@@ -357,6 +382,8 @@
       не_ругает_объявленную: !has(r1.dead, 'немая, объявлена'),
       не_ругает_живую: !has(r1.dead, 'живая'),
       ловит_живую_дверь: has(r1.zombie, 'дверь'),
+      ловит_объявленную_живую: has(r1.mislabeled, 'объявлена и живая'),
+      не_ругает_объявленную_немую: !has(r1.mislabeled, 'немая, объявлена'),
     };
     out.ok = Object.values(out).every(Boolean);
     console.log('[flClicksSelfTest]', out);

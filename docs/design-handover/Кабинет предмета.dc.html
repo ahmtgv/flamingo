@@ -52,11 +52,11 @@
 
       <div style="display: flex; align-items: center; gap: var(--space-4); padding: 0 var(--space-5); height: 60px; border-bottom: 1px solid var(--color-border); background: var(--color-surface);">
         <img src="design-assets/flamingo-bird.svg" alt="Flamingo" style="width: 22px; height: 22px; flex: none;">
-        <button onClick="{{ noop }}" style="min-height: var(--control-height-sm); font-size: var(--text-small); font-family: var(--font-body); color: var(--color-text-secondary); background: none; border: none; cursor: pointer; padding: var(--space-2);" style-hover="color: var(--color-text);">← в кабинет</button>
+        <button onClick="{{ noop }}" style="min-height: var(--control-height-sm); font-size: var(--text-small); font-family: var(--font-body); color: var(--color-text-secondary); background: none; border: none; cursor: pointer; padding: var(--space-2);" style-hover="color: var(--color-text);" data-still="в продукте ведёт в общий кабинет · соседний лист «Кабинет и учёба»">← в кабинет</button>
         <span style="font-size: var(--text-small); font-weight: 500;">English A2 · подростки</span>
         <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary);">{{ topMeta }}</span>
         <span style="margin-left: auto; display: flex; align-items: center; gap: var(--space-3);">
-          <button onClick="{{ noop }}" style="min-height: var(--control-height-sm); font-size: var(--text-caption); font-family: var(--font-body); color: var(--color-text); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-control); padding: 0 var(--space-4); cursor: pointer;" style-hover="border-color: var(--color-border-strong);">Чат предмета</button>
+          <button onClick="{{ noop }}" style="min-height: var(--control-height-sm); font-size: var(--text-caption); font-family: var(--font-body); color: var(--color-text); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-control); padding: 0 var(--space-4); cursor: pointer;" style-hover="border-color: var(--color-border-strong);" data-still="в продукте открывает переписку по предмету · соседний лист «Чат»">Чат предмета</button>
           <span style="display: flex; align-items: center; gap: var(--space-2); padding: var(--space-1) var(--space-3) var(--space-1) var(--space-2); border: 1px solid var(--color-border); border-radius: var(--radius-pill);">
             <span style="width: 24px; height: 24px; border-radius: 50%; background: var(--color-surface-subtle); display: grid; place-items: center; font: 500 10px var(--font-mono); color: var(--color-text-secondary);">{{ meIni }}</span>
             <span style="font-size: var(--text-caption);">{{ meName }}</span>
@@ -99,7 +99,7 @@
                       <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary);">{{ r.sub }}</span>
                     </span>
                     <span style="font: 400 var(--text-caption) var(--font-mono); color: {{ r.tagColor }}; white-space: nowrap;">{{ r.tag }}</span>
-                    <button onClick="{{ noop }}" style="min-height: var(--control-height-sm); padding: 0 var(--space-2); text-decoration: underline; text-decoration-color: var(--color-border-strong); text-underline-offset: 3px; font-size: var(--text-caption); font-family: var(--font-body); color: var(--color-text); background: none; border: none; cursor: pointer; white-space: nowrap; min-height: var(--tap-min); padding: 0 var(--space-2);">{{ r.act }}</button>
+                    <button onClick="{{ noop }}" style="min-height: var(--control-height-sm); padding: 0 var(--space-2); text-decoration: underline; text-decoration-color: var(--color-border-strong); text-underline-offset: 3px; font-size: var(--text-caption); font-family: var(--font-body); color: var(--color-text); background: none; border: none; cursor: pointer; white-space: nowrap; min-height: var(--tap-min); padding: 0 var(--space-2);" data-still="в продукте открывает строку списка · что именно, написано в надписи: открыть · разбор · работа · подробно · повторить · проверить">{{ r.act }}</button>
                   </span>
                 </sc-for>
               </div>
@@ -110,7 +110,7 @@
                 <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .08em; text-transform: uppercase;">ближайшее занятие</span>
                 <span style="font-size: var(--text-body); font-weight: 500;">Unit 5 · Shopping</span>
                 <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary);">понедельник, 25 августа, 18:00 · в вашем поясе</span>
-                <button onClick="{{ noop }}" style="min-height: var(--control-height-md); font-size: var(--text-small); font-family: var(--font-body); color: var(--color-on-accent); background: var(--color-accent-solid); border: none; border-radius: var(--radius-control); padding: 0 var(--space-5); cursor: pointer;" style-hover="background: var(--color-accent-solid-hover);">{{ railAction }}</button>
+                <button onClick="{{ noop }}" style="min-height: var(--control-height-md); font-size: var(--text-small); font-family: var(--font-body); color: var(--color-on-go); background: var(--color-go-solid); border: none; border-radius: var(--radius-control); padding: 0 var(--space-5); cursor: pointer;" style-hover="background: var(--color-go-solid-hover);" data-still="в продукте готовит занятие или открывает его материалы · соседние листы «Создание курса и занятия» и «Задания и конспект»">{{ railAction }}</button>
               </div>
 
               <div style="display: grid; gap: var(--space-2);">
@@ -122,7 +122,7 @@
               <div style="display: grid; gap: var(--space-3); align-content: start; overflow: auto; min-height: 0; border-top: 1px solid var(--color-border); padding-top: var(--space-4);">
                 <span style="display: flex; align-items: baseline; gap: var(--space-2);">
                   <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .08em; text-transform: uppercase;">источники по предмету</span>
-                  <button onClick="{{ noop }}" style="margin-left: auto; min-height: var(--control-height-sm); padding: 0 var(--space-2); text-decoration: underline; text-decoration-color: var(--color-border-strong); text-underline-offset: 3px; font-size: var(--text-caption); font-family: var(--font-body); color: var(--color-text); background: none; border: none; cursor: pointer;">все →</button>
+                  <button onClick="{{ noop }}" style="margin-left: auto; min-height: var(--control-height-sm); padding: 0 var(--space-2); text-decoration: underline; text-decoration-color: var(--color-border-strong); text-underline-offset: 3px; font-size: var(--text-caption); font-family: var(--font-body); color: var(--color-text); background: none; border: none; cursor: pointer;" data-still="в продукте открывает все источники предмета · соседний лист «Источники мира»">все →</button>
                 </span>
                 <sc-if value="{{ srcDown }}" hint-placeholder-val="{{ false }}">
                   <span style="display: grid; gap: var(--space-2); padding: var(--space-4); border: 1px solid var(--color-border); border-radius: var(--radius-control);">
@@ -154,7 +154,7 @@
               <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .08em; text-transform: uppercase;">{{ emptyKicker }}</span>
               <span style="font-family: var(--font-heading); font-size: var(--text-h1); font-weight: 600; letter-spacing: var(--tracking-tight); line-height: var(--leading-heading);">{{ emptyTitle }}</span>
               <span style="font-size: var(--text-lead); color: var(--color-text-secondary); line-height: var(--leading-body); max-width: 60ch; text-wrap: pretty;">{{ emptyBody }}</span>
-              <button onClick="{{ noop }}" style="min-height: var(--control-height-md); font-size: var(--text-small); font-family: var(--font-body); color: var(--color-on-accent); background: var(--color-accent-solid); border: none; border-radius: var(--radius-control); padding: 0 var(--space-5); cursor: pointer; margin-top: var(--space-2);" style-hover="background: var(--color-accent-solid-hover);">{{ emptyAction }}</button>
+              <button onClick="{{ noop }}" style="min-height: var(--control-height-md); font-size: var(--text-small); font-family: var(--font-body); color: var(--color-on-go); background: var(--color-go-solid); border: none; border-radius: var(--radius-control); padding: 0 var(--space-5); cursor: pointer; margin-top: var(--space-2);" style-hover="background: var(--color-go-solid-hover);" data-still="в продукте начинает то, чего не хватает разделу · что именно, написано в надписи">{{ emptyAction }}</button>
             </div>
           </div>
         </sc-if>
@@ -183,7 +183,7 @@
               <span style="font-family: var(--font-heading); font-size: var(--text-h2); font-weight: 600; letter-spacing: var(--tracking-snug);">Этот предмет вам больше не открыт</span>
               <span style="font-size: var(--text-body); color: var(--color-text-secondary); line-height: var(--leading-body); text-wrap: pretty;">Курс закончился 30 июня, и группа закрыта. Но учёба осталась вашей: конспекты, доски, работы и оценки по этому предмету открываются в «Моей учёбе» и после закрытия группы.</span>
               <span style="display: flex; gap: var(--space-2);">
-                <button onClick="{{ noop }}" style="min-height: var(--control-height-md); font-size: var(--text-small); font-family: var(--font-body); color: var(--color-on-accent); background: var(--color-accent-solid); border: none; border-radius: var(--radius-control); padding: 0 var(--space-5); cursor: pointer;" style-hover="background: var(--color-accent-solid-hover);">Открыть в «Моей учёбе»</button>
+                <button onClick="{{ noop }}" style="min-height: var(--control-height-md); font-size: var(--text-small); font-family: var(--font-body); color: var(--color-on-go); background: var(--color-go-solid); border: none; border-radius: var(--radius-control); padding: 0 var(--space-5); cursor: pointer;" style-hover="background: var(--color-go-solid-hover);">Открыть в «Моей учёбе»</button>
                 <button onClick="{{ noop }}" style="min-height: var(--control-height-md); font-size: var(--text-small); font-family: var(--font-body); color: var(--color-text); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-control); padding: 0 var(--space-5); cursor: pointer;" style-hover="border-color: var(--color-border-strong);">Записаться снова</button>
               </span>
               <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary);">если группа должна быть открыта — напишите преподавателю, он вернёт доступ</span>

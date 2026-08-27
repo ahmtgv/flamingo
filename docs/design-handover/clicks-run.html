@@ -71,8 +71,19 @@ async function open(file) {
   fr.src = encodeURI(file);
   document.getElementById('stage').append(fr);
   await Promise.race([new Promise((res) => { fr.onload = res; }), sleep(12000)]);
-  const d = fr.contentDocument, w = fr.contentWindow;
-  for (let i = 0; i < 60 && !(d && d.querySelector('[data-audit-scope]')); i++) await sleep(200);
+  // 🔴 `contentDocument` ПЕРЕЧИТЫВАЕТСЯ КАЖДУЮ ИТЕРАЦИЮ. Прежде он брался один раз до цикла
+  // ожидания, и если к тому моменту кадр ещё сидел на about:blank, цикл ждал `[data-audit-scope]`
+  // в СТАРОМ документе, который его не получит никогда. Оттуда «Кабинет предмета · кадра
+  // нет вовсе» в полном прогоне при том, что одиночный проход того же листа мерился без жалоб:
+  // гонка загрузки, а не свойство листа. Стенд, врущий про лист, хуже отсутствия стенда.
+  let d = null;
+  for (let i = 0; i < 90; i++) {
+    d = fr.contentDocument;
+    if (d && d.querySelector('[data-audit-scope]')) break;
+    await sleep(200);
+  }
+  d = fr.contentDocument;
+  const w = fr.contentWindow;
   await sleep(1100);
   const s = d.createElement('script');
   s.src = './audit-clicks.js';
@@ -82,9 +93,12 @@ async function open(file) {
 }
 
 // Лист без кадра или без единого живого элемента — не «ok», а «не запустился» (ПРАВИЛА 6.7е).
-function aliveOf(d) {
+// Вместе с причиной отдаётся состояние загрузки: без него гонку стенда невозможно отличить
+// от мёртвого листа — ровно на этом «Кабинет предмета» два дня числился нерисующимся.
+function aliveOf(d, fr) {
+  const st = fr ? ' (загрузка: ' + ((d && d.readyState) || '?') + ', адрес: ' + (((d && d.location && d.location.pathname) || '?').split('/').pop() || 'about:blank') + ')' : '';
   const root = d && d.querySelector('[data-audit-scope]');
-  if (!root) return 'кадра нет вовсе: [data-audit-scope] не появился';
+  if (!root) return 'кадра нет вовсе: [data-audit-scope] не появился' + st;
   const n = root.querySelectorAll('button, [role="button"], a[href], input, select, textarea').length;
   if (!n) return 'в кадре ни одного интерактивного элемента — щёлкать нечего';
   return null;
@@ -101,7 +115,7 @@ async function runSheet(file) {
   const name = file.replace('.dc.html', '');
   const rows = [];
   let a = await open(file);
-  const notAlive = aliveOf(a.d);
+  const notAlive = aliveOf(a.d, a.fr);
   if (notAlive || !a.w.flClicks) {    a.fr.remove();
     return [{ name: name + ' · ЛИСТ НЕ ЗАПУСТИЛСЯ', dead: true, detail: { причина: notAlive || 'прибор не подключился к листу' } }];
   }
@@ -134,13 +148,14 @@ function cell(tr, text, cls) {
   const out = document.getElementById('out');
   const table = document.createElement('table');
   table.innerHTML = '<tr><th>лист</th><th>элементов</th><th>нажато</th><th>ссылок</th><th>отвечают</th><th>объявлено немых</th>'
-    + '<th>молчат необъявленно</th><th>не проверено</th><th>дверь отвечает</th><th>служебное имя в кадре</th>'
+    + '<th>молчат необъявленно</th><th>объявлено, а отвечает</th><th>не проверено</th><th>дверь отвечает</th><th>служебное имя в кадре</th>'
     + '<th>снимков случаев</th><th>имя без снимка</th></tr>';
   out.append(table);
 
   // Проверка самого прибора — до листов. Прибор, который не видел дефекта, ничем не доказан.
   const self = await window.flClicksSelfTest();
   const details = [];
+  const md = [];   // строки таблицы для ПРОГОН-НАЖАТИЙ.md
 
   const only = new URLSearchParams(location.search).get('only');
   const list = only ? SHEETS.filter((f) => only.split(',').some((q) => f.indexOf(q) >= 0)) : SHEETS;
@@ -156,9 +171,10 @@ function cell(tr, text, cls) {
       cell(tr, r.name);
       if (r.dead) {
         const td = document.createElement('td');
-        td.colSpan = 11; td.className = 'bad'; td.textContent = 'ЛИСТ НЕ ИЗМЕРЕН · ' + Object.values(r.detail)[0];
+        td.colSpan = 12; td.className = 'bad'; td.textContent = 'ЛИСТ НЕ ИЗМЕРЕН · ' + Object.values(r.detail)[0];
         tr.append(td);
         details.push({ name: r.name, data: r.detail });
+        md.push('| ' + r.name + ' | — | — | — | — | — | ЛИСТ НЕ ИЗМЕРЕН | — | — | — | — |');
       } else {
         const c = r.clicks, k = r.cases;
         cell(tr, String(c.всего), 'num');
@@ -169,6 +185,8 @@ function cell(tr, text, cls) {
         // Клетка не бывает зелёной, когда не нажали ни одного элемента.
         cell(tr, !c.нажато ? 'НЕ ИЗМЕРЕНО · только ссылки'
           : c.dead.length ? 'ДЕФЕКТ · ' + c.dead.length : 'ok', !c.нажато || c.dead.length ? 'bad' : 'ok');
+        // ПРАВИЛА 14.2: объявление на живой кнопке — тот же обман наоборот.
+        cell(tr, c.mislabeled.length ? 'ДЕФЕКТ · ' + c.mislabeled.length : 'ok', c.mislabeled.length ? 'bad' : 'ok');
         // Сумма по строке обязана сходиться: элементов = нажато + ссылок + не проверено.
         // Без этого столбца «ok» стояло над листом, часть которого прибор не трогал.
         cell(tr, String(c.не_проверено), c.не_проверено ? 'num bad' : 'num');
@@ -178,6 +196,7 @@ function cell(tr, text, cls) {
         cell(tr, k && k.twins.length ? 'ДЕФЕКТ · ' + k.twins.length : 'ok', k && k.twins.length ? 'bad' : 'ok');
         const d = {};
         if (c.dead.length) d.молчат = c.dead;
+        if (c.mislabeled.length) d.объявлено_а_отвечает = c.mislabeled;
         if (c.zombie.length) d.дверь_отвечает = c.zombie;
         if (c.noisy.length) d.фокус_на_двери = c.noisy;
         if (c.swInside.length) d.служебное_имя_в_кадре = c.swInside;
@@ -187,6 +206,11 @@ function cell(tr, text, cls) {
         if (k && k.unnamed.length) d.имя_не_подтверждено = k.unnamed;
         if (Object.keys(d).length) details.push({ name: r.name, data: d });
         if (!c.нажато) details.push({ name: r.name + ' · НЕ ИЗМЕРЕНО', data: { причина: c.verdict.clicks, ссылки: c.links } });
+        md.push('| ' + r.name + ' | ' + c.всего + ' | ' + c.нажато + ' | ' + c.ссылок + ' | ' + c.отвечают + ' | '
+          + c.объявлено_немых + ' | ' + (!c.нажато ? 'не измерено' : c.dead.length ? '**' + c.dead.length + '**' : '0') + ' | '
+          + (c.не_проверено || 0) + ' | ' + (c.mislabeled.length ? '**' + c.mislabeled.length + '**' : '0') + ' | '
+          + (c.swInside.length ? '**' + c.swInside.length + '**' : '0') + ' | '
+          + (k ? (k.twins.length ? '**' + k.twins.length + '**' : '0') + ' из ' + k.снимков : '—') + ' |');
       }
       table.append(tr);
     });
@@ -196,7 +220,7 @@ function cell(tr, text, cls) {
   let fixture = 'не проверено';
   try {
     const f = await open('выгрузка/проверка-мёртвого-листа.dc.html');
-    const why = aliveOf(f.d);
+    const why = aliveOf(f.d, f.fr);
     let r = null;
     if (!why && f.w.flClicks) r = await f.w.flClicks({ label: 'мёртвый лист', quiet: true });
     f.fr.remove();
@@ -207,7 +231,7 @@ function cell(tr, text, cls) {
       : 'НЕТ — прибор назвал мёртвый лист живым (элементов ' + r.всего + ', отвечают ' + r.отвечают + ', объявлено немых ' + r.объявлено_немых + ')';
   } catch (e) { fixture = 'НЕТ — образец не открылся: ' + String(e).slice(0, 120); }
 
-  st.textContent = 'готово · самопроверка прибора: ' + (self.ok ? 'ok, 4 из 4' : 'ПРОВАЛ — ' + JSON.stringify(self))
+  st.textContent = 'готово · самопроверка прибора: ' + (self.ok ? 'ok, 6 из 6' : 'ПРОВАЛ — ' + JSON.stringify(self))
     + ' · мёртвый лист ловится: ' + fixture;
 
   details.forEach((d) => {
@@ -219,6 +243,35 @@ function cell(tr, text, cls) {
     el.append(s, pre);
     document.getElementById('out').append(el);
   });
+
+  // ГОТОВЫЙ ТЕКСТ ДЛЯ `ПРОГОН-НАЖАТИЙ.md`. Просьба владельца: результат прогона
+  // ездит с листами, а не читается со снимка экрана. Стенд в браузере писать в папку
+  // не может, поэтому отдаёт готовый кусок: кнопка кладёт его в буфер, дальше он встаёт
+  // в файл без единого переписанного числа — перенос глазами был бы девятнадцатой слепотой.
+  const дата = new Date().toISOString().slice(0, 10);
+  const текст = ['# ПРОГОН НАЖАТИЙ (прибор 19)', '',
+    'Дата прогона: ' + дата + ' · листов в пуле: ' + list.length,
+    'Самопроверка прибора: ' + (self.ok ? 'ok, 6 из 6' : 'ПРОВАЛ — ' + JSON.stringify(self)),
+    'Мёртвый лист ловится: ' + fixture, '',
+    '| лист | элементов | нажато | ссылок | отвечают | объявлено немых | молчат необъявленно | не проверено | объявлено, а отвечает | служебные имена | имя без снимка |',
+    '|---|---|---|---|---|---|---|---|---|---|---|', ...md, '',
+    'Сумма по строке обязана сходиться: элементов = нажато + ссылок + не проверено.',
+    'Ссылки прибор не нажимает: они меняют адрес, а не кадр, и проверяются адресом.'].join('\n');
+
+  const box = document.createElement('div');
+  box.style.cssText = 'margin: 24px 16px;';
+  const btn = document.createElement('button');
+  btn.textContent = 'скопировать таблицу для ПРОГОН-НАЖАТИЙ.md';
+  btn.style.cssText = 'font: 500 12px system-ui; padding: 7px 13px; border: 1px solid #bbb; border-radius: 6px; background: #fff; cursor: pointer;';
+  btn.onclick = () => {
+    navigator.clipboard.writeText(текст).then(() => { btn.textContent = 'скопировано'; }, () => { btn.textContent = 'буфер недоступен — выделите текст ниже'; });
+  };
+  const pre = document.createElement('pre');
+  pre.id = 'md';
+  pre.textContent = текст;
+  box.append(btn, pre);
+  document.getElementById('out').append(box);
+  window.__progonMd = текст;
 })();
 </script>
 </body>
