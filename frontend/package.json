@@ -17,7 +17,8 @@
     "test:watch": "vitest",
     "e2e": "playwright test",
     "e2e:wizard": "playwright test e2e/wizard.spec.ts",
-    "e2e:site": "playwright test e2e/site.spec.ts"
+    "e2e:site": "playwright test e2e/site.spec.ts",
+    "check": "tsc -b && vitest run && playwright test"
   },
   "dependencies": {
     "@apollo/client": "^3.12.3",

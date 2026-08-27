@@ -194,7 +194,7 @@ g[data-linking] rect {
 .hintBtn {
   background: none;
   border: 0;
-  color: var(--color-go);
+  color: var(--color-go-text);
   cursor: pointer;
   font: inherit;
   padding: 0;

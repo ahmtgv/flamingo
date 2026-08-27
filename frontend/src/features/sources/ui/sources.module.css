@@ -118,7 +118,7 @@
 .liveTag {
   font-family: var(--font-mono);
   font-size: var(--text-caption);
-  color: var(--color-go);
+  color: var(--color-go-text);
   border: 1px solid var(--color-go);
   border-radius: var(--radius-pill);
   padding: 0 var(--space-2);
@@ -142,7 +142,7 @@
   margin-top: auto;
 }
 .permission[data-kind='reuse'] { color: var(--color-success-text); }
-.permission[data-kind='yours'] { color: var(--color-go); }
+.permission[data-kind='yours'] { color: var(--color-go-text); }
 
 .region { display: flex; flex-direction: column; gap: var(--space-3); }
 .regionTitle { margin: 0; font-size: var(--text-h3); color: var(--color-text); }

@@ -32,7 +32,7 @@ export default defineConfig({
   timeout: 180_000,
   // Прогон ходит на боевой сервер: параллельные попытки связывания мешают друг другу.
   workers: 1,
-  reporter: [['list']],
+  reporter: [['line'], ['./e2e/reporter.ts']],
   use: {
     baseURL: 'http://localhost:4180',
     ...devices['Desktop Safari'],

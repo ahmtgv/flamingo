@@ -707,7 +707,48 @@ export function BoardCanvas({ lessonId }: { lessonId: string }) {
   const byId = new Map(local.map((e) => [e.id, e]));
 
   return (
-    <div className={styles.wrap} ref={wrap} data-fullscreen={fullscreen || undefined}>
+    <div
+      className={styles.wrap}
+      ref={wrap}
+      data-fullscreen={fullscreen || undefined}
+      /*
+       * 🔴 ПЕРЕТАСКИВАНИЕ НИЖЕ ХОЛСТА (наряд 54 §3, замер наряда 53).
+       *
+       * Обработчики висели на самом холсте, и файл, отпущенный чуть ниже, принимала сцена
+       * комнаты — то есть никто: картинка не появлялась, и человек не понимал, почему.
+       * Тот же корень, что панель поверх холста: чужой слой забирает предназначенное доске.
+       *
+       * Теперь ловит вся область доски, а точка вычисляется относительно холста и
+       * ПРИЖИМАЕТСЯ к нему, если отпустили за краем: «положить рядом» честнее, чем «никуда».
+       *
+       * `preventDefault` на dragOver обязателен — без него браузер откроет файл вместо того,
+       * чтобы отдать его нам.
+       */
+      onDragOver={(e) => {
+        if (!canWrite) return;
+        e.preventDefault();
+        setDropping(true);
+      }}
+      onDragLeave={() => setDropping(false)}
+      onDrop={(e) => {
+        if (!canWrite) return;
+        e.preventDefault();
+        setDropping(false);
+        const file = e.dataTransfer.files[0];
+        if (!file) return;
+        const box = surface.current?.getBoundingClientRect();
+        const at = box
+          ? toWorld(
+              {
+                x: Math.min(Math.max(e.clientX - box.left, 0), box.width),
+                y: Math.min(Math.max(e.clientY - box.top, 0), box.height),
+              },
+              view,
+            )
+          : undefined;
+        void putImage(file, at);
+      }}
+    >
       <div className={styles.toolbar} role="toolbar" aria-label={t('title')}>
         {TOOLS.map((id) => (
           <button
@@ -800,29 +841,6 @@ export function BoardCanvas({ lessonId }: { lessonId: string }) {
         onPointerUp={onPointerUp}
         onPointerLeave={onPointerUp}
         onPointerCancel={onPointerUp}
-        /* Вторая дверь для картинки (§28.2 п.3): перетащить файл прямо на холст.
-           `preventDefault` на dragOver обязателен — без него браузер откроет файл вместо
-           того, чтобы отдать его нам. */
-        onDragOver={(e) => {
-          if (!canWrite) return;
-          e.preventDefault();
-          setDropping(true);
-        }}
-        onDragLeave={() => setDropping(false)}
-        onDrop={(e) => {
-          if (!canWrite) return;
-          e.preventDefault();
-          setDropping(false);
-          const file = e.dataTransfer.files[0];
-          if (!file) return;
-          // Кладём туда, куда отпустили, а не в угол: холст бесконечный, и «где-то там»
-          // означает «ищи сам».
-          const box = surface.current?.getBoundingClientRect();
-          const at = box
-            ? toWorld({ x: e.clientX - box.left, y: e.clientY - box.top }, view)
-            : undefined;
-          void putImage(file, at);
-        }}
       >
         {editing &&
           (() => {

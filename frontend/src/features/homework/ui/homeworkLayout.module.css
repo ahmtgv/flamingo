@@ -46,7 +46,7 @@
   border: none;
   border-radius: var(--radius-control);
   background: none;
-  color: var(--color-go);
+  color: var(--color-go-text);
   cursor: pointer;
 }
 
