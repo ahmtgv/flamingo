@@ -106,7 +106,13 @@ export function useRoom(code: string, name: string) {
         const ticket = await fetchTicket(code, name)
         if (!alive) return
         await room.connect(ticket.url, ticket.token)
-        if (!alive) return
+        // Экран мог уйти, пока поднималась связь (в разработке React делает это нарочно).
+        // Просто выйти мало: комната осталась бы подключённой, а человек — вторым лицом
+        // в списке участников, которого нет.
+        if (!alive) {
+          room.disconnect().catch(() => undefined)
+          return
+        }
         setPhase('live')
         snapshot()
         try {
