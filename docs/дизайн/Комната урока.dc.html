@@ -1,0 +1,914 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="tokens.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  html, body { height: 100%; overflow: hidden; }
+  a { color: var(--color-link); text-decoration: none; }
+  a:hover { color: var(--color-accent-text); }
+  @keyframes flPulse { 50% { opacity: .3; } }
+</style>
+</helmet>
+<div ref="{{ setRoot }}" data-theme="{{ theme }}" data-mode="{{ mode }}" style="height: 100vh; display: grid; grid-template-rows: auto minmax(0, 1fr); background: var(--color-bg); color: var(--color-text); font-family: var(--font-body); overflow: hidden;">
+
+  <div style="display: flex; align-items: center; gap: var(--space-2); padding: var(--space-3) var(--space-4); border-bottom: 1px solid var(--color-border); flex-wrap: wrap;">
+    <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .08em; text-transform: uppercase;">вид</span>
+    <button data-sw="view" data-val="room" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">комната</button>
+    <button data-sw="view" data-val="rules" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">правила</button>
+
+    <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .08em; text-transform: uppercase; margin-left: var(--space-4);">роль</span>
+    <button data-sw="role" data-val="teacher" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">преподаватель</button>
+    <button data-sw="role" data-val="pupil" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">ученик</button>
+
+    <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .08em; text-transform: uppercase; margin-left: var(--space-4);">участников</span>
+    <button data-sw="count" data-val="1" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">1</button>
+    <button data-sw="count" data-val="2" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">2</button>
+    <button data-sw="count" data-val="20" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">20</button>
+    <button data-sw="count" data-val="30" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">30</button>
+
+    <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .08em; text-transform: uppercase; margin-left: var(--space-4);">занятие</span>
+    <button data-sw="phase" data-val="before" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">не началось</button>
+    <button data-sw="phase" data-val="live" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">идёт</button>
+    <button data-sw="phase" data-val="after" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">закончилось</button>
+
+    <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .08em; text-transform: uppercase; margin-left: var(--space-4);">состояние</span>
+    <button data-sw="st" data-val="filled" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">наполнено</button>
+    <button data-sw="st" data-val="empty" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">пусто</button>
+    <button data-sw="st" data-val="loading" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">загружается</button>
+    <button data-sw="st" data-val="failed" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">эфир не поднялся</button>
+    <button data-sw="st" data-val="partial" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">доска не пришла</button>
+
+    <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .08em; text-transform: uppercase; margin-left: var(--space-4);">кадр</span>
+    <button data-sw="w" data-val="1280" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">1280×800</button>
+    <button data-sw="w" data-val="1512" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">1512×944</button>
+
+    <span style="margin-left: auto; display: flex; gap: var(--space-2); align-items: center;">
+      <span data-scroll-probe style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary);">прокрутка страницы: 0 px</span>
+      <button data-sw="theme" data-val="toggle" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">тема</button>
+      <button data-sw="kids" data-val="toggle" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">kids</button>
+    </span>
+  </div>
+
+  <div ref="{{ setHost }}" style="display: grid; place-items: center; overflow: hidden; min-height: 0;">
+    <div data-audit-scope ref="{{ setFrame }}" style="width: 1280px; height: 800px; transform-origin: center center; position: relative; border-radius: var(--radius-card); overflow: hidden; background: var(--color-bg); box-shadow: var(--shadow-lg); border: 1px solid var(--color-border);">
+
+      <sc-if value="{{ isRoom }}" hint-placeholder-val="{{ true }}">
+        <div onPointerMove="{{ wake }}" style="position: absolute; inset: 0; display: flex; min-width: 0;">
+
+          <div data-board-pane data-geo="доска" style="flex: 1 1 auto; min-width: 0; position: relative; background-color: var(--color-surface); background-image: radial-gradient(circle, var(--color-border) 1px, transparent 1px); background-size: 24px 24px; overflow: hidden;">
+
+            <sc-if value="{{ winBoard }}" hint-placeholder-val="{{ true }}">
+              <div style="position: absolute; inset: 0;">
+                <svg viewBox="0 0 900 560" preserveAspectRatio="none" aria-hidden="true" style="position: absolute; inset: 0; width: 100%; height: 100%;">
+                  <path d="M300 150 C 250 150 230 110 186 104" fill="none" stroke="var(--color-border-strong)" stroke-width="1.6"></path>
+                  <path d="M300 168 C 250 180 240 226 196 236" fill="none" stroke="var(--color-border-strong)" stroke-width="1.6"></path>
+                  <path d="M410 158 C 470 158 500 120 556 112" fill="none" stroke="var(--color-border-strong)" stroke-width="1.6"></path>
+                  <path d="M410 176 C 470 190 490 250 548 262" fill="none" stroke="var(--color-border-strong)" stroke-width="1.6"></path>
+                  <path d="M604 372 c 18 -22 40 -18 44 2 c 4 20 -22 30 -34 18 c -12 -12 6 -30 30 -26 c 24 4 36 26 60 18" fill="none" stroke="var(--color-text)" stroke-width="2.2" stroke-linecap="round"></path>
+                </svg>
+
+                <sc-if value="{{ boardHasWork }}" hint-placeholder-val="{{ true }}">
+                  <div style="position: absolute; top: 0; right: 0; bottom: 0; left: var(--space-10);">
+                    <div style="position: absolute; left: 33%; top: 25%; background: var(--color-surface-subtle); border: 1px solid var(--color-border-strong); color: var(--color-text); border-radius: var(--radius-md); padding: var(--space-3) var(--space-4); font-size: var(--text-small); font-weight: 600; max-width: 220px;">Asking for directions<span style="display: block; font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-secondary); margin-top: 2px;">тема урока</span></div>
+                    <div style="position: absolute; left: 6%; top: 15%; background: var(--color-surface); border: 1px solid var(--color-border-strong); border-radius: var(--radius-md); padding: var(--space-2) var(--space-3); font-size: var(--text-caption); max-width: 200px; box-shadow: var(--shadow-xs);">Excuse me, how do I get to…?<span style="display: block; font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); margin-top: 2px;">вежливо, к незнакомому</span></div>
+                    <div style="position: absolute; left: 6%; top: 40%; background: var(--color-surface); border: 1px solid var(--color-border-strong); border-radius: var(--radius-md); padding: var(--space-2) var(--space-3); font-size: var(--text-caption); max-width: 200px; box-shadow: var(--shadow-xs);">Is it far from here?<span style="display: block; font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); margin-top: 2px;">уточняем расстояние</span></div>
+                    <div style="position: absolute; left: 62%; top: 16%; background: var(--color-surface); border: 1px solid var(--color-border-strong); border-radius: var(--radius-md); padding: var(--space-2) var(--space-3); font-size: var(--text-caption); max-width: 190px; box-shadow: var(--shadow-xs);">turn left / right<span style="display: block; font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-secondary); margin-top: 2px;">добавил Петя</span></div>
+                    <div style="position: absolute; left: 60%; top: 46%; background: var(--color-surface-subtle); border: 1px solid var(--color-border-strong); border-radius: var(--radius-xs); padding: var(--space-3); font-size: var(--text-caption); max-width: 200px; transform: rotate(-1.2deg);">go straight ahead ≠ go straight <b style="font-weight: 600;">on</b><span style="display: block; font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-secondary); margin-top: 2px;">частая ошибка</span></div>
+                    <div style="position: absolute; left: 22%; top: 58%; border: 1px solid var(--color-border-strong); border-radius: var(--radius-md); overflow: hidden; background: var(--color-surface);">
+                      <span style="display: block; width: 190px; height: 108px; background-image: repeating-linear-gradient(135deg, var(--color-surface-subtle) 0 8px, var(--color-surface) 8px 16px); display: grid; place-content: center; font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary);">карта станции</span>
+                      <span style="display: block; padding: var(--space-2) var(--space-3); font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); border-top: 1px solid var(--color-border);">вставлено из буфера · ctrl+V</span>
+                    </div>
+                  </div>
+                </sc-if>
+
+                <sc-if value="{{ boardEmpty }}" hint-placeholder-val="{{ false }}">
+                  <div style="position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: var(--space-3); text-align: center; padding: var(--space-8);">
+                    <span style="font-size: var(--text-h3); font-family: var(--font-heading); font-weight: 500; letter-spacing: var(--tracking-snug);">Доска пустая — и это нормально</span>
+                    <span style="font-size: var(--text-small); color: var(--color-text-secondary); max-width: 46ch; line-height: var(--leading-snug);">Начните писать, или вставьте картинку из буфера прямо на холст. Всё, что появится здесь, останется у вас и у учеников после занятия.</span>
+                    <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary);">перо — P · текст — T · стикер — S · вставить — ctrl+V</span>
+                  </div>
+                </sc-if>
+
+                <div style="position: absolute; left: var(--space-4); top: 50%; transform: translateY(-50%); display: grid; gap: var(--space-1); padding: var(--space-2); background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-md); box-shadow: var(--shadow-sm);" style-hover="border-color: var(--color-border-strong);">
+                  <button aria-label="Выбрать" data-still="инструменты доски показаны листом «Доска» — здесь показом" style="width: 34px; height: 34px; border-radius: var(--radius-sm); border: none; background: var(--color-surface-subtle); color: var(--color-text); cursor: pointer; font: 500 13px var(--font-mono);">↖</button>
+                  <button aria-label="Перо" data-still="инструменты доски показаны листом «Доска» — здесь показом" style="width: 34px; height: 34px; border-radius: var(--radius-sm); border: none; background: none; color: var(--color-text-secondary); cursor: pointer; font: 500 13px var(--font-mono);">✎</button>
+                  <button aria-label="Текст" data-still="инструменты доски показаны листом «Доска» — здесь показом" style="width: 34px; height: 34px; border-radius: var(--radius-sm); border: none; background: none; color: var(--color-text-secondary); cursor: pointer; font: 500 13px var(--font-mono);">T</button>
+                  <button aria-label="Стикер" data-still="инструменты доски показаны листом «Доска» — здесь показом" style="width: 34px; height: 34px; border-radius: var(--radius-sm); border: none; background: none; color: var(--color-text-secondary); cursor: pointer; font: 500 13px var(--font-mono);">▭</button>
+                  <button aria-label="Фигура" data-still="инструменты доски показаны листом «Доска» — здесь показом" style="width: 34px; height: 34px; border-radius: var(--radius-sm); border: none; background: none; color: var(--color-text-secondary); cursor: pointer; font: 500 13px var(--font-mono);">◇</button>
+                  <span style="height: 1px; background: var(--color-border); margin: var(--space-1) 3px;"></span>
+                  <button aria-label="Ластик" data-still="инструменты доски показаны листом «Доска» — здесь показом" style="width: 34px; height: 34px; border-radius: var(--radius-sm); border: none; background: none; color: var(--color-text-secondary); cursor: pointer; font: 500 13px var(--font-mono);">⌫</button>
+                  <button aria-label="Отменить" data-still="инструменты доски показаны листом «Доска» — здесь показом" style="width: 34px; height: 34px; border-radius: var(--radius-sm); border: none; background: none; color: var(--color-text-secondary); cursor: pointer; font: 500 13px var(--font-mono);">↺</button>
+                </div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ winMaterial }}" hint-placeholder-val="{{ false }}">
+              <div style="position: absolute; inset: 0; padding: var(--space-11) var(--space-10) var(--space-9); background: var(--color-surface); display: grid; grid-template-rows: auto minmax(0, 1fr); gap: var(--space-5);">
+                <div style="display: flex; align-items: baseline; gap: var(--space-3); flex-wrap: wrap;">
+                  <span style="font-family: var(--font-heading); font-size: var(--text-h2); font-weight: 600; letter-spacing: var(--tracking-snug);">Unit 4 · Asking for directions</span>
+                  <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary);">методичка курса · стр. 3 из 9</span>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-8) var(--space-9); overflow: auto; align-content: start;">
+                  <div style="display: grid; gap: var(--space-2); align-content: start;">
+                    <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .08em; text-transform: uppercase;">цель занятия</span>
+                    <span style="font-size: var(--text-small); color: var(--color-text-secondary); line-height: var(--leading-body); text-wrap: pretty;">Научиться спрашивать дорогу и понимать ответ на слух. К концу урока ученик задаёт три типа вопроса и пересказывает маршрут из четырёх шагов.</span>
+                    <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .08em; text-transform: uppercase; margin-top: var(--space-4);">на что смотреть</span>
+                    <span style="font-size: var(--text-small); color: var(--color-text-secondary); line-height: var(--leading-body); text-wrap: pretty;">Частая ошибка — go straight on вместо go straight ahead. Второе — путают next to и near. Обе вынесены на доску заметками.</span>
+                  </div>
+                  <div style="display: grid; gap: var(--space-3); align-content: start;">
+                    <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .08em; text-transform: uppercase;">ход занятия</span>
+                    <sc-for list="{{ plan }}" as="p" hint-placeholder-count="5">
+                      <span style="display: grid; grid-template-columns: 62px minmax(0, 1fr); gap: var(--space-4); padding-bottom: var(--space-3); border-bottom: 1px solid var(--color-border);">
+                        <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); font-variant-numeric: tabular-nums;">{{ p.time }}</span>
+                        <span style="font-size: var(--text-small); color: var(--color-text); line-height: var(--leading-snug);">{{ p.text }}</span>
+                      </span>
+                    </sc-for>
+                  </div>
+                </div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ winTest }}" hint-placeholder-val="{{ false }}">
+              <div style="position: absolute; inset: 0; padding: var(--space-11) var(--space-10) var(--space-9); background: var(--color-surface); display: grid; grid-template-rows: auto minmax(0, 1fr); gap: var(--space-5);">
+                <div style="display: flex; align-items: baseline; gap: var(--space-3); flex-wrap: wrap;">
+                  <span style="font-family: var(--font-heading); font-size: var(--text-h2); font-weight: 600; letter-spacing: var(--tracking-snug);">Быстрый тест · directions</span>
+                  <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary);">{{ testMeta }}</span>
+                </div>
+                <div style="display: grid; gap: var(--space-4); align-content: start; max-width: var(--content-max-base); overflow: auto;">
+                  <div style="border: 1px solid var(--color-border); border-radius: var(--radius-card); padding: var(--space-5) var(--space-6);">
+                    <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary);">вопрос 1 · 6</span>
+                    <div style="font-size: var(--text-body); font-weight: 500; margin: var(--space-2) 0 var(--space-4);">Choose the natural phrase: «Excuse me, how do I ___ to the station?»</div>
+                    <div style="display: grid; gap: var(--space-2);">
+                      <button style="display: flex; gap: var(--space-3); align-items: center; text-align: start; border: 1px solid var(--color-border); border-radius: var(--radius-control); padding: var(--space-3) var(--space-4); background: none; color: var(--color-text); font-size: var(--text-small); font-family: var(--font-body); cursor: pointer; min-height: var(--tap-min);" style-hover="border-color: var(--color-border-strong);"><span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary);">A</span>come</button>
+                      <button style="display: flex; gap: var(--space-3); align-items: center; text-align: start; border: 1px solid var(--color-accent); border-radius: var(--radius-control); padding: var(--space-3) var(--space-4); background: var(--color-accent-subtle); color: var(--color-accent-text); font-size: var(--text-small); font-family: var(--font-body); cursor: pointer; min-height: var(--tap-min);"><span style="font: 500 var(--text-caption) var(--font-mono);">B</span>get</button>
+                      <button style="display: flex; gap: var(--space-3); align-items: center; text-align: start; border: 1px solid var(--color-border); border-radius: var(--radius-control); padding: var(--space-3) var(--space-4); background: none; color: var(--color-text); font-size: var(--text-small); font-family: var(--font-body); cursor: pointer; min-height: var(--tap-min);" style-hover="border-color: var(--color-border-strong);"><span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary);">C</span>arrive</button>
+                    </div>
+                    <div style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); margin-top: var(--space-4);">{{ testLive }}</div>
+                  </div>
+                  <div style="border: 1px solid var(--color-border); border-radius: var(--radius-card); padding: var(--space-5) var(--space-6);">
+                    <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary);">вопрос 2 · 6</span>
+                    <div style="font-size: var(--text-body); font-weight: 500; margin: var(--space-2) 0 var(--space-3);">Скажите вслух: «Is it far from here?»</div>
+                    <div style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary);">разбор идёт в браузере · звук никуда не отправляется, уходит только «совпало / нет»</div>
+                  </div>
+                </div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ winSummary }}" hint-placeholder-val="{{ false }}">
+              <div style="position: absolute; inset: 0; padding: var(--space-11) var(--space-10) var(--space-9); background: var(--color-surface); display: grid; grid-template-rows: auto minmax(0, 1fr); gap: var(--space-5);">
+                <div style="display: flex; align-items: baseline; gap: var(--space-3); flex-wrap: wrap;">
+                  <span style="font-family: var(--font-heading); font-size: var(--text-h2); font-weight: 600; letter-spacing: var(--tracking-snug);">Конспект занятия</span>
+                  <span style="display: inline-flex; align-items: center; gap: var(--space-2); font: 500 var(--text-caption) var(--font-mono); color: var(--color-accent-text); background: var(--color-accent-subtle); border-radius: var(--radius-xs); padding: 3px var(--space-2);">черновик · собирается сам</span>
+                  <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary);">записи занятия не существует — конспект и есть память об уроке</span>
+                </div>
+                <div style="display: grid; gap: 0; align-content: start; max-width: var(--content-max-wide); overflow: auto;">
+                  <sc-for list="{{ summary }}" as="s" hint-placeholder-count="6">
+                    <span style="display: grid; grid-template-columns: 74px minmax(0, 1fr); gap: var(--space-4); padding: var(--space-3) 0; border-bottom: 1px solid var(--color-border);">
+                      <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); font-variant-numeric: tabular-nums;">{{ s.time }}</span>
+                      <span style="display: grid; gap: 2px;">
+                        <span style="font-size: var(--text-small); color: var(--color-text); line-height: var(--leading-snug);">{{ s.text }}</span>
+                        <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary);">{{ s.src }}</span>
+                      </span>
+                    </span>
+                  </sc-for>
+                </div>
+              </div>
+            </sc-if>
+            <sc-if value="{{ boardDown }}" hint-placeholder-val="{{ false }}">
+              <div style="position: absolute; inset: 0; background: var(--color-surface); display: grid; align-content: center; justify-items: start; gap: var(--space-4); padding: var(--space-9) var(--space-10);">
+                <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .08em; text-transform: uppercase;">частичный отказ · доска</span>
+                <span style="font-family: var(--font-heading); font-size: var(--text-h2); font-weight: 600; letter-spacing: var(--tracking-snug); line-height: var(--leading-heading); max-width: 30ch;">Доска не открылась — урок идёт</span>
+                <span style="font-size: var(--text-body); color: var(--color-text-secondary); line-height: var(--leading-body); max-width: 52ch; text-wrap: pretty;">Хранилище доски не ответило. Последняя версия сохранена в 12:04 и не потеряна. Эфир, звук, методичка, тест, словарь и чат работают — занятие можно вести по методичке и вернуться к доске, когда она поднимется.</span>
+                <span style="display: grid; gap: var(--space-2); font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-secondary); border-inline-start: 2px solid var(--color-border-strong); padding-inline-start: var(--space-4);">
+                  <span>работает: эфир · звук · методичка · тест · словарь · чат</span>
+                  <span>не работает: только доска — и только на запись</span>
+                </span>
+                <span style="display: flex; gap: var(--space-2); flex-wrap: wrap; margin-top: var(--space-1);">
+                  <button onClick="{{ noop }}" style="min-height: var(--control-height-md); white-space: nowrap; font-size: var(--text-small); font-family: var(--font-body); color: var(--color-accent-text); background: none; border: 1px solid var(--color-accent); border-radius: var(--radius-control); padding: 0 var(--space-5); cursor: pointer;" data-still="в продукте пробует поднять доску заново · успех показан состоянием «наполнено»">Открыть доску заново</button>
+                  <button data-pick="win" data-val="material" onClick="{{ onSw }}" style="min-height: var(--control-height-md); white-space: nowrap; font-size: var(--text-small); font-family: var(--font-body); color: var(--color-text); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-control); padding: 0 var(--space-5); cursor: pointer;" style-hover="border-color: var(--color-border-strong);">Вести по методичке</button>
+                </span>
+                <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); line-height: var(--leading-snug);">если доска не поднимется до конца занятия — конспект соберётся из методички, теста и чата</span>
+              </div>
+            </sc-if>
+          </div>
+
+          <div data-divider onPointerDown="{{ onDrag }}" role="separator" aria-label="Соотношение доски и лиц" style="flex: 0 0 auto; width: 10px; cursor: col-resize; background: var(--color-surface-video); display: grid; place-items: center;">
+            <span style="width: 2px; height: 34px; border-radius: var(--radius-pill); background: var(--color-border-strong); opacity: .5;"></span>
+          </div>
+
+          <div data-class-pane data-geo="полоса лиц" style="flex: 0 0 auto; width: 22%; min-width: 0; background: var(--color-surface-video); color: var(--color-text-on-video); display: flex; flex-direction: column; overflow: hidden;">
+
+            <sc-if value="{{ showAttention }}" hint-placeholder-val="{{ true }}">
+              <div style="flex: 0 0 auto; display: flex; align-items: center; gap: var(--space-3); padding: calc(var(--space-4) + var(--control-height-sm) + var(--space-7)) var(--space-4) var(--space-3); border-bottom: 1px solid rgba(255, 255, 255, .08);">
+                <span style="font: 400 var(--text-caption) var(--font-mono); color: rgba(255, 255, 255, .5);">внимание класса</span>
+                <span style="font: 500 13px var(--font-mono); color: var(--color-text-on-video); font-variant-numeric: tabular-nums;">{{ attAvg }}</span>
+                <span style="display: flex; align-items: flex-end; gap: 2px; height: 18px; margin-left: auto;">
+                  <sc-for list="{{ spark }}" as="b" hint-placeholder-count="24">
+                    <span style="width: 3px; border-radius: 1px; background: rgba(255, 255, 255, .35); height: {{ b.h }};"></span>
+                  </sc-for>
+                </span>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ showTiles }}" hint-placeholder-val="{{ true }}">
+            <div data-tiles data-geo="решётка лиц" style="flex: 1 1 auto; display: grid; gap: var(--space-2); padding: var(--space-3); min-height: 0; overflow: hidden;">
+              <sc-for list="{{ tiles }}" as="t" hint-placeholder-count="6">
+                <div style="position: relative; min-width: 0; min-height: 0; border-radius: var(--radius-md); overflow: hidden; background: rgba(255, 255, 255, .04); border: 1px solid rgba(255, 255, 255, .08); display: grid; place-items: center;">
+                  <span style="font: 500 13px var(--font-mono); color: rgba(255, 255, 255, .38); letter-spacing: .04em;">{{ t.ini }}</span>
+                  <span style="position: absolute; left: var(--space-2); bottom: 7px; font: 400 var(--text-caption) var(--font-mono); color: rgba(255, 255, 255, .62);">{{ t.name }}</span>
+                  <sc-if value="{{ t.speaking }}" hint-placeholder-val="{{ false }}">
+                    <span style="position: absolute; inset: 0; border: 1.5px solid var(--color-accent); border-radius: var(--radius-md); pointer-events: none;"></span>
+                  </sc-if>
+                  <sc-if value="{{ t.hand }}" hint-placeholder-val="{{ false }}">
+                    <span style="position: absolute; right: var(--space-2); top: var(--space-2); font: 500 var(--text-caption) var(--font-mono); color: var(--color-on-accent); background: var(--color-accent-solid); border-radius: var(--radius-xs); padding: 2px var(--space-2);">рука</span>
+                  </sc-if>
+                  <sc-if value="{{ t.att }}" hint-placeholder-val="{{ false }}">
+                    <span style="position: absolute; left: 0; right: 0; bottom: 0; height: 2px; background: rgba(255, 255, 255, .1);">
+                      <span style="display: block; height: 2px; background: {{ t.attColor }}; width: {{ t.attW }};"></span>
+                    </span>
+                  </sc-if>
+                </div>
+              </sc-for>
+            </div>
+            </sc-if>
+
+            <!-- Состояние живёт В СВОЕЙ ОБЛАСТИ, а не карточкой поверх кадра (ПРАВИЛА 6.5в, 6.6).
+                 Эфир — работа этой полосы, поэтому «занятие не началось», «эфир не поднялся» и
+                 «занятие закончилось» говорятся здесь, а доска, методичка и пульты остаются
+                 на местах и работают. Прежде на их месте была карточка на весь кадр с
+                 размытием: продукт собрал её буквально, и преподаватель 23 августа увидел
+                 серую плашку посреди холста, за которой не было ни доски, ни выхода. -->
+            <sc-if value="{{ railState }}" hint-placeholder-val="{{ false }}">
+              <div data-geo="решётка лиц" style="flex: 1 1 auto; display: grid; align-content: start; gap: var(--space-3); padding: calc(var(--space-4) + var(--control-height-sm) + var(--space-7)) var(--space-4) var(--space-3); min-height: 0; overflow: auto;">
+                <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-on-video); opacity: .7; letter-spacing: .08em; text-transform: uppercase;">{{ railKicker }}</span>
+                <span style="font-family: var(--font-heading); font-size: var(--text-h3); font-weight: 500; color: var(--color-text-on-video); line-height: var(--leading-tight); letter-spacing: var(--tracking-snug); text-wrap: pretty;">{{ railTitle }}</span>
+                <span style="font-size: var(--text-caption); color: var(--color-text-on-video); opacity: .78; line-height: var(--leading-body); text-wrap: pretty;">{{ railBody }}</span>
+                <sc-if value="{{ railCode }}" hint-placeholder-val="{{ false }}">
+                  <span style="justify-self: start; font: 500 var(--text-body) var(--font-mono); color: var(--color-text-on-video); background: var(--color-surface-on-video); border-radius: var(--radius-control); padding: var(--space-2) var(--space-3); letter-spacing: .06em;">{{ railCode }}</span>
+                </sc-if>
+                <sc-for list="{{ railFacts }}" as="f" hint-placeholder-count="0">
+                  <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-on-video); opacity: .72; line-height: var(--leading-snug); padding-inline-start: var(--space-3); border-inline-start: 2px solid var(--color-surface-on-video); text-wrap: pretty;">{{ f.text }}</span>
+                </sc-for>
+                <button onClick="{{ noop }}" style="justify-self: start; min-height: var(--control-height-md); font-size: var(--text-small); font-family: var(--font-body); color: var(--color-text-on-video); background: none; border: 1px solid var(--color-text-on-video); border-radius: var(--radius-control); padding: 0 var(--space-5); cursor: pointer;" style-hover="background: var(--color-surface-on-video);" data-still="в продукте копирует ссылку или забирает материалы · отклик — системное сообщение">{{ railAction }}</button>
+                <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-on-video); opacity: .72; line-height: var(--leading-snug); text-wrap: pretty;">{{ railFoot }}</span>
+              </div>
+            </sc-if>
+
+            <!-- Когда в комнате один преподаватель, его камера берёт всю ширину полосы: делить
+                 её не с кем, а серый прямоугольник в 150 px рядом с пустотой — ровно то, что
+                 владелец увидел в продукте и назвал «размером с ноготь». -->
+            <div style="flex: 0 0 auto; display: grid; grid-template-columns: {{ selfCols }}; gap: var(--space-3); align-items: center; padding: var(--space-3) var(--space-3) calc(var(--control-height-md) + 2 * var(--space-5)); border-top: 1px solid rgba(255, 255, 255, .08);">
+              <div style="position: relative; border-radius: var(--radius-md); overflow: hidden; background: rgba(255, 255, 255, .05); border: 1px solid rgba(255, 255, 255, .1); aspect-ratio: 16 / 10; display: grid; place-items: center;">
+                <span style="font: 400 var(--text-caption) var(--font-mono); color: rgba(255, 255, 255, .45);">{{ selfLabel }}</span>
+                <span style="position: absolute; left: var(--space-2); bottom: 6px; font: 400 var(--text-caption) var(--font-mono); color: rgba(255, 255, 255, .6);">вы</span>
+              </div>
+              <span style="display: grid; gap: var(--space-2); min-width: 0;">
+              <span data-tiles-more style="display: none; font: 400 var(--text-caption) var(--font-mono); color: rgba(255, 255, 255, .5); line-height: var(--leading-snug);"></span>
+              <!-- Подсказка про порог 45 % живёт только там, где есть решётка: при одном
+                   участнике она объясняла то, чего на экране нет, и занимала больше места,
+                   чем предмет объяснения. -->
+              <sc-if value="{{ showPaneNote }}" hint-placeholder-val="{{ true }}">
+                <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-on-video); opacity: .72; line-height: var(--leading-snug);">{{ paneNote }}</span>
+              </sc-if>
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div data-hud="top" style="position: absolute; left: var(--space-4); top: var(--space-4); z-index: 3; max-width: calc(100% - 2 * var(--space-4)); display: flex; align-items: center; gap: var(--space-3); padding: var(--space-2) var(--space-3); border-radius: var(--radius-pill); border: 1px solid var(--color-border); background: color-mix(in oklab, var(--color-surface) 84%, transparent); backdrop-filter: blur(var(--nav-blur)); box-shadow: var(--shadow-sm); transition: opacity var(--duration-base) var(--ease-standard), transform var(--duration-base) var(--ease-standard);">
+          <img src="design-assets/flamingo-bird.svg" alt="Flamingo" style="width: 20px; height: 20px; flex: none;">
+          <button onClick="{{ noop }}" style="display: inline-flex; align-items: center; gap: var(--space-2); font-size: var(--text-small); font-family: var(--font-body); color: var(--color-text-secondary); background: none; border: none; cursor: pointer; padding: 0 var(--space-2); min-height: var(--control-height-sm); border-radius: var(--radius-control);" style-hover="color: var(--color-text);" data-still="в продукте ведёт из комнаты в кабинет · соседний лист «Кабинет и учёба»">← выйти из урока</button>
+          <span style="width: 1px; height: 20px; background: var(--color-border);"></span>
+          <span style="display: grid; gap: 1px;">
+            <span style="font-size: var(--text-small); font-weight: 500; letter-spacing: var(--tracking-snug);">English A2 · Unit 4 — Travel</span>
+            <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary);">{{ lessonMeta }}</span>
+          </span>
+          <!-- Коралловая метка с пульсирующей точкой — только когда эфир ИДЁТ: она говорит
+               «вас сейчас видно и слышно». До начала и после конца ничего не горит, и метка
+               становится обычной (ПРАВИЛА 5.7). -->
+          <sc-if value="{{ liveHot }}" hint-placeholder-val="{{ true }}">
+            <span style="display: inline-flex; align-items: center; gap: var(--space-2); font: 500 var(--text-caption) var(--font-mono); color: var(--color-accent-text); border: 1px solid var(--color-accent); border-radius: var(--radius-xs); padding: 3px var(--space-2);">
+              <span style="width: 5px; height: 5px; border-radius: 50%; background: var(--color-accent); animation: flPulse 2.4s ease-in-out infinite;"></span>{{ liveLabel }}
+            </span>
+          </sc-if>
+          <sc-if value="{{ liveCalm }}" hint-placeholder-val="{{ false }}">
+            <span style="display: inline-flex; align-items: center; gap: var(--space-2); font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-secondary); border: 1px solid var(--color-border); border-radius: var(--radius-xs); padding: 3px var(--space-2);">
+              <span style="width: 5px; height: 5px; border-radius: 50%; background: var(--color-text-tertiary);"></span>{{ liveLabel }}
+            </span>
+          </sc-if>
+          <span style="margin-left: auto; display: flex; gap: 2px; background: var(--color-surface-subtle); border-radius: var(--radius-control); padding: 3px;">
+            <button data-pick="win" data-val="board" onClick="{{ onSw }}" style="font-size: var(--text-caption); font-family: var(--font-body); border: none; background: none; color: var(--color-text-secondary); border-radius: var(--radius-sm); padding: 0 var(--space-3); min-height: var(--control-height-sm); cursor: pointer;">Доска</button>
+            <button data-pick="win" data-val="material" onClick="{{ onSw }}" style="font-size: var(--text-caption); font-family: var(--font-body); border: none; background: none; color: var(--color-text-secondary); border-radius: var(--radius-sm); padding: 0 var(--space-3); min-height: var(--control-height-sm); cursor: pointer;">Методичка</button>
+            <button data-pick="win" data-val="test" onClick="{{ onSw }}" style="font-size: var(--text-caption); font-family: var(--font-body); border: none; background: none; color: var(--color-text-secondary); border-radius: var(--radius-sm); padding: 0 var(--space-3); min-height: var(--control-height-sm); cursor: pointer;">Тест</button>
+            <button data-pick="win" data-val="summary" onClick="{{ onSw }}" style="font-size: var(--text-caption); font-family: var(--font-body); border: none; background: none; color: var(--color-text-secondary); border-radius: var(--radius-sm); padding: 0 var(--space-3); min-height: var(--control-height-sm); cursor: pointer;">Конспект</button>
+          </span>
+          <button onClick="{{ noop }}" style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 0 var(--space-3); min-height: var(--control-height-sm); cursor: pointer;" style-hover="color: var(--color-text); border-color: var(--color-border-strong);" data-still="в продукте открывает доску вторым окном · лист «Вокруг урока», экран проектора">отдельным окном ↗</button>
+        </div>
+
+        <div data-hud="bottom" style="position: absolute; left: var(--space-5); right: var(--space-5); bottom: var(--space-5); z-index: 3; width: max-content; max-width: calc(100% - 2 * var(--space-5)); margin-inline: auto; display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: var(--space-2); padding: var(--space-2) var(--space-3); border-radius: var(--radius-pill); border: 1px solid var(--color-border); background: color-mix(in oklab, var(--color-surface) 84%, transparent); backdrop-filter: blur(var(--nav-blur)); box-shadow: var(--shadow-md); transition: opacity var(--duration-base) var(--ease-standard), transform var(--duration-base) var(--ease-standard);">
+          <!-- Кнопка, которой урок начинается. В продукте её не было ни одной: преподаватель
+               попадал в комнату и не имел способа начать занятие. Место — здесь, в пульте,
+               первой слева: пульт и так собрал всё, чем человек управляет уроком.
+               Зелёная заливка по ПРАВИЛА 10.2 — после нажатия изменение видят другие люди:
+               двадцать учеников, у которых «ждём преподавателя» сменится на живой урок. -->
+          <sc-if value="{{ canStart }}" hint-placeholder-val="{{ false }}">
+            <button onClick="{{ noop }}" style="min-height: var(--control-height-sm); white-space: nowrap; flex: none; font-size: var(--text-small); font-weight: 500; font-family: var(--font-body); color: var(--color-on-go); background: var(--color-go-solid); border: 1px solid var(--color-go-solid); border-radius: var(--radius-pill); padding: 0 var(--space-5); cursor: pointer;" style-hover="background: var(--color-go-solid-hover);">Начать урок</button>
+          </sc-if>
+          <sc-if value="{{ isAfter }}" hint-placeholder-val="{{ false }}">
+            <button data-pick="win" data-val="summary" onClick="{{ onSw }}" style="min-height: var(--control-height-sm); white-space: nowrap; flex: none; font-size: var(--text-small); font-weight: 500; font-family: var(--font-body); color: var(--color-text); background: none; border: 1px solid var(--color-border-strong); border-radius: var(--radius-pill); padding: 0 var(--space-5); cursor: pointer;" style-hover="background: var(--color-surface-subtle);">Открыть конспект</button>
+          </sc-if>
+          <button onClick="{{ noop }}" style="min-height: var(--control-height-sm); white-space: nowrap; flex: none; font-size: var(--text-small); font-family: var(--font-body); color: var(--color-text); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 0 var(--space-4); cursor: pointer;" style-hover="border-color: var(--color-border-strong);" data-still="в продукте выключает микрофон · состояния «выключен» на листе нет">Микрофон</button>
+          <button onClick="{{ noop }}" style="min-height: var(--control-height-sm); white-space: nowrap; flex: none; font-size: var(--text-small); font-family: var(--font-body); color: var(--color-text); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 0 var(--space-4); cursor: pointer;" style-hover="border-color: var(--color-border-strong);" data-still="в продукте выключает камеру · состояния «выключена» на листе нет">Камера</button>
+          <sc-if value="{{ isTeacher }}" hint-placeholder-val="{{ true }}">
+            <span style="display: flex; gap: var(--space-2);">
+          <!-- «Показать экран» и «Поднять руку» живут только пока занятие идёт: показывать экран
+               некому, поднимать руку некому (ПРАВИЛА 6.5г). Освободившееся место занимает
+               «Начать урок»: пульт остаётся одной строкой и не накрывает полосу лиц. -->
+          <sc-if value="{{ isLiveTeacher }}" hint-placeholder-val="{{ true }}">
+              <button onClick="{{ noop }}" style="min-height: var(--control-height-sm); white-space: nowrap; flex: none; font-size: var(--text-small); font-family: var(--font-body); color: var(--color-text); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 0 var(--space-4); cursor: pointer;" style-hover="border-color: var(--color-border-strong);" data-still="в продукте отдаёт экран в комнату · отдельного состояния листа нет">Показать экран</button>
+          </sc-if>
+              <button onClick="{{ toggleBoardAccess }}" style="min-height: var(--control-height-sm); white-space: nowrap; flex: none; font-size: var(--text-small); font-family: var(--font-body); color: var(--color-text); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 0 var(--space-4); cursor: pointer;" style-hover="border-color: var(--color-border-strong);">{{ boardAccessLabel }}</button>
+            </span>
+          </sc-if>
+          <sc-if value="{{ isLivePupil }}" hint-placeholder-val="{{ false }}">
+            <button onClick="{{ noop }}" style="min-height: var(--control-height-sm); white-space: nowrap; flex: none; font-size: var(--text-small); font-family: var(--font-body); color: var(--color-text); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 0 var(--space-4); cursor: pointer;" style-hover="border-color: var(--color-border-strong);" data-still="в продукте поднимает руку · метка «рука» показана на плитке ученика">Поднять руку</button>
+          </sc-if>
+          <span style="width: 1px; height: 22px; background: var(--color-border);"></span>
+          <button data-pick="panel" data-val="people" onClick="{{ onSw }}" style="min-height: var(--control-height-sm); white-space: nowrap; flex: none; font-size: var(--text-small); font-family: var(--font-body); color: var(--color-text-secondary); background: none; border: none; border-radius: var(--radius-pill); padding: 0 var(--space-3); cursor: pointer;" style-hover="color: var(--color-text);">Участники</button>
+          <button data-pick="panel" data-val="dict" onClick="{{ onSw }}" style="min-height: var(--control-height-sm); white-space: nowrap; flex: none; font-size: var(--text-small); font-family: var(--font-body); color: var(--color-text-secondary); background: none; border: none; border-radius: var(--radius-pill); padding: 0 var(--space-3); cursor: pointer;" style-hover="color: var(--color-text);">Словарь</button>
+          <button data-pick="panel" data-val="mats" onClick="{{ onSw }}" style="min-height: var(--control-height-sm); white-space: nowrap; flex: none; font-size: var(--text-small); font-family: var(--font-body); color: var(--color-text-secondary); background: none; border: none; border-radius: var(--radius-pill); padding: 0 var(--space-3); cursor: pointer;" style-hover="color: var(--color-text);">Материалы</button>
+          <button data-pick="panel" data-val="chat" onClick="{{ onSw }}" style="min-height: var(--control-height-sm); white-space: nowrap; flex: none; font-size: var(--text-small); font-family: var(--font-body); color: var(--color-text-secondary); background: none; border: none; border-radius: var(--radius-pill); padding: 0 var(--space-3); cursor: pointer;" style-hover="color: var(--color-text);">Чат</button>
+          <span style="width: 1px; height: 22px; background: var(--color-border);"></span>
+          <button onClick="{{ noop }}" style="min-height: var(--control-height-sm); white-space: nowrap; flex: none; font-size: var(--text-small); font-family: var(--font-body); color: var(--color-accent-text); background: none; border: 1px solid var(--color-accent); border-radius: var(--radius-pill); padding: 0 var(--space-4); cursor: pointer;" data-still="в продукте завершает урок с подтверждением · подтверждение на листе не нарисовано">{{ leaveLabel }}</button>
+        </div>
+
+        <sc-if value="{{ panelOpen }}" hint-placeholder-val="{{ false }}">
+          <div data-panel data-overlay-ok style="position: absolute; right: var(--space-4); top: 76px; bottom: 84px; z-index: 4; width: 25%; min-width: 320px; max-width: 420px; border-radius: var(--radius-card); border: 1px solid var(--color-border); background: color-mix(in oklab, var(--color-surface) 88%, transparent); backdrop-filter: blur(var(--blur-frosted)); box-shadow: var(--shadow-lg); display: grid; grid-template-rows: auto minmax(0, 1fr) auto; overflow: hidden;">
+            <div style="display: flex; align-items: center; gap: var(--space-3); padding: var(--space-4) var(--space-5); border-bottom: 1px solid var(--color-border);">
+              <span style="font-family: var(--font-heading); font-size: var(--text-h3); font-weight: 500; letter-spacing: var(--tracking-snug);">{{ panelTitle }}</span>
+              <button onClick="{{ closePanel }}" aria-label="Закрыть панель" style="margin-left: auto; font: 400 13px var(--font-mono); color: var(--color-text-tertiary); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); width: var(--control-height-sm); height: var(--control-height-sm); cursor: pointer;" style-hover="color: var(--color-text);">×</button>
+            </div>
+
+            <div data-panel-body style="overflow: auto; padding: var(--space-4) var(--space-5); min-height: 0;">
+              <sc-if value="{{ panelPeople }}" hint-placeholder-val="{{ true }}">
+                <div style="display: grid;">
+                  <sc-for list="{{ people }}" as="p" hint-placeholder-count="6">
+                    <span style="display: grid; grid-template-columns: 28px minmax(0, 1fr) auto; gap: var(--space-3); align-items: center; padding: var(--space-3) 0; border-bottom: 1px solid var(--color-border);">
+                      <span style="width: 28px; height: 28px; border-radius: 50%; background: var(--color-surface-subtle); display: grid; place-items: center; font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-secondary);">{{ p.ini }}</span>
+                      <span style="display: grid; gap: 1px; min-width: 0;">
+                        <span style="font-size: var(--text-caption); font-weight: 500;">{{ p.name }}</span>
+                        <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary);">{{ p.role }}</span>
+                      </span>
+                      <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-secondary); white-space: nowrap;">{{ p.st }}</span>
+                    </span>
+                  </sc-for>
+                </div>
+              </sc-if>
+
+              <sc-if value="{{ panelDict }}" hint-placeholder-val="{{ false }}">
+                <div style="display: grid; gap: var(--space-4);">
+                  <div style="border: 1px solid var(--color-border); border-radius: var(--radius-card); padding: var(--space-4) var(--space-5); background: var(--color-surface);">
+                    <div style="display: flex; align-items: baseline; gap: var(--space-3);">
+                      <span style="font-family: var(--font-heading); font-size: var(--text-h3); font-weight: 600;">crossroads</span>
+                      <span style="font: 400 13px var(--font-mono); color: var(--color-text-tertiary);">/ˈkrɒs.rəʊdz/</span>
+                    </div>
+                    <div style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); margin-top: var(--space-3); letter-spacing: .06em; text-transform: uppercase;">существительное</div>
+                    <div style="font-size: var(--text-caption); margin-top: 3px;">место, где пересекаются две дороги; перекрёсток</div>
+                    <div style="font-size: var(--text-caption); color: var(--color-text-secondary); margin-top: var(--space-2); padding-inline-start: var(--space-3); border-inline-start: 2px solid var(--color-border);">Turn right at the crossroads and go straight ahead.</div>
+                    <div style="display: flex; gap: var(--space-2); margin-top: var(--space-4); flex-wrap: wrap;">
+                      <button style="font-size: var(--text-caption); font-family: var(--font-body); color: var(--color-text); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 7px var(--space-3); cursor: pointer;" style-hover="border-color: var(--color-border-strong);">В мои слова</button>
+                      <button style="font-size: var(--text-caption); font-family: var(--font-body); color: var(--color-text); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 7px var(--space-3); cursor: pointer;" style-hover="border-color: var(--color-border-strong);">На доску</button>
+                    </div>
+                    <div style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); margin-top: var(--space-4); padding-top: var(--space-3); border-top: 1px solid var(--color-border); line-height: var(--leading-snug);">только открытые базы: Open English WordNet · Tatoeba · Common Voice. Закрытые словари открываются ссылкой в новой вкладке</div>
+                  </div>
+                </div>
+              </sc-if>
+
+              <sc-if value="{{ panelMats }}" hint-placeholder-val="{{ false }}">
+                <div style="display: grid;">
+                  <sc-for list="{{ mats }}" as="m" hint-placeholder-count="5">
+                    <span style="display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--space-3); align-items: center; padding: var(--space-3) 0; border-bottom: 1px solid var(--color-border);">
+                      <span style="display: grid; gap: 1px; min-width: 0;">
+                        <span style="font-size: var(--text-caption); font-weight: 500;">{{ m.name }}</span>
+                        <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary);">{{ m.sub }}</span>
+                      </span>
+                      <button style="font-size: var(--text-caption); font-family: var(--font-body); color: var(--color-accent-text); background: none; border: none; cursor: pointer; white-space: nowrap;">{{ m.act }}</button>
+                    </span>
+                  </sc-for>
+                </div>
+              </sc-if>
+
+              <sc-if value="{{ panelChat }}" hint-placeholder-val="{{ false }}">
+                <div style="display: flex; flex-direction: column; height: 100%; min-height: 0; gap: var(--space-3);">
+                  <div style="flex: 1 1 auto; min-height: 0; overflow: auto; display: grid; gap: var(--space-3); align-content: start;">
+                    <sc-for list="{{ chat }}" as="c" hint-placeholder-count="4">
+                      <span style="display: grid; gap: 2px; padding-bottom: var(--space-3); border-bottom: 1px solid var(--color-border);">
+                        <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary);">{{ c.who }}</span>
+                        <span style="font-size: var(--text-caption); color: var(--color-text); line-height: var(--leading-snug);">{{ c.text }}</span>
+                      </span>
+                    </sc-for>
+                  </div>
+                  <span style="flex: 0 0 auto; display: flex; gap: var(--space-2);">
+                    <input placeholder="Написать в чат урока" style="flex: 1; min-width: 0; height: var(--control-height-md); border: 1px solid var(--color-border); border-radius: var(--radius-control); background: var(--color-surface); color: var(--color-text); font-family: var(--font-body); font-size: var(--text-caption); padding: 0 var(--space-3);">
+                    <button aria-label="Отправить" style="width: var(--control-height-md); height: var(--control-height-md); border: none; border-radius: var(--radius-control); background: var(--color-accent-solid); color: var(--color-on-accent); font: 500 14px var(--font-mono); cursor: pointer;">↑</button>
+                  </span>
+                </div>
+              </sc-if>
+            </div>
+
+            <div style="padding: var(--space-3) var(--space-5); border-top: 1px solid var(--color-border); font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); line-height: var(--leading-snug);">{{ panelFoot }}</div>
+          </div>
+        </sc-if>
+
+        <!-- 🔴 ЗДЕСЬ БЫЛА КАРТОЧКА НА ВЕСЬ КАДР. Она закрывала доску, полосу лиц и оба пульта
+             размытием и показывала одну плашку посередине — в трёх состояниях из пяти.
+             Продукт собрал её буквально, и 23 августа преподаватель вошёл в комнату, где занятие
+             не идёт, и увидел серую карточку посреди холста без единого выхода.
+             Это был дефект ЛИСТА, а не сборки: мои же 6.5в и 6.6 говорят, что состояние
+             принадлежит операции и называется внутри своей области, а каркас стоит.
+             Теперь: эфир говорит в полосе лиц, доска — в поле доски, пульты живут всегда. -->
+      </sc-if>
+
+      <sc-if value="{{ isRules }}" hint-placeholder-val="{{ false }}">
+        <div style="position: absolute; inset: 0; background: var(--color-surface); padding: var(--space-9) var(--space-10); display: grid; grid-template-rows: auto minmax(0, 1fr); gap: var(--space-6);">
+          <div style="display: grid; gap: var(--space-2);">
+            <span style="font-family: var(--font-heading); font-size: var(--text-h1); font-weight: 600; letter-spacing: var(--tracking-tight);">Правила комнаты — их можно проверить</span>
+            <span style="font-size: var(--text-small); color: var(--color-text-secondary); max-width: 80ch; line-height: var(--leading-snug);">Каждое правило — число, а не ощущение. Значения берутся из tokens.css; нового токена нет ни одного.</span>
+          </div>
+          <div style="display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: var(--space-8); overflow: hidden; min-height: 0;">
+          <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-3) var(--space-7); align-content: start; overflow-y: auto; overflow-x: hidden;">
+            <sc-for list="{{ rules }}" as="r" hint-placeholder-count="14">
+              <span style="display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: var(--space-4); padding-bottom: var(--space-3); border-bottom: 1px solid var(--color-border);">
+                <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); font-variant-numeric: tabular-nums;">{{ r.n }}</span>
+                <span style="display: grid; gap: 3px;">
+                  <span style="font-size: var(--text-small); font-weight: 500; line-height: var(--leading-snug);">{{ r.title }}</span>
+                  <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-secondary); line-height: var(--leading-snug);">{{ r.value }}</span>
+                </span>
+              </span>
+            </sc-for>
+          </div>
+
+          <div style="display: grid; align-content: start; gap: var(--space-5); border-inline-start: 1px solid var(--color-border); padding-inline-start: var(--space-7); min-height: 0; overflow: hidden;">
+            <div style="display: grid; gap: var(--space-3);">
+              <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .08em; text-transform: uppercase;">правило 13 · одно действие — цель вся строка</span>
+              <div style="border: 1px solid var(--color-border); border-radius: var(--radius-card); overflow: hidden;">
+                <sc-for list="{{ tapRows }}" as="t" hint-placeholder-count="3">
+                  <button onClick="{{ noop }}" style="width: 100%; height: var(--tap-min); display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: var(--space-3); padding: 0 var(--space-4); background: none; border: none; border-bottom: 1px solid var(--color-border); text-align: start; cursor: pointer;" style-hover="background: var(--color-surface-subtle);">
+                    <span style="font-size: var(--text-caption); color: var(--color-text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ t.name }}</span>
+                    <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); white-space: nowrap;">{{ t.act }}</span>
+                  </button>
+                </sc-for>
+              </div>
+              <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-secondary); line-height: var(--leading-snug);">действие одно — нажимается вся строка, высота --tap-min (44, в kids 48). Двенадцать строк журнала дают 528 px, и это правильная цена: палец не ищет кнопку.</span>
+            </div>
+            <div style="display: grid; gap: var(--space-3);">
+              <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .08em; text-transform: uppercase;">правило 13 · действий два — цель кнопка</span>
+              <div style="border: 1px solid var(--color-border); border-radius: var(--radius-card); overflow: hidden;">
+                <sc-for list="{{ tapRows }}" as="t" hint-placeholder-count="3">
+                  <span style="display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: var(--space-3); height: var(--tap-min); padding: 0 var(--space-3) 0 var(--space-4); border-bottom: 1px solid var(--color-border);">
+                    <span style="font-size: var(--text-caption); color: var(--color-text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ t.name }}</span>
+                    <span style="display: flex; gap: var(--space-2);">
+                      <button onClick="{{ noop }}" style="min-height: var(--control-height-sm); font: 400 var(--text-caption) var(--font-mono); color: var(--color-text); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 0 var(--space-3); white-space: nowrap; cursor: pointer;" style-hover="border-color: var(--color-border-strong);">{{ t.act }}</button>
+                      <button onClick="{{ noop }}" style="min-height: var(--control-height-sm); font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-secondary); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 0 var(--space-3); white-space: nowrap; cursor: pointer;" style-hover="color: var(--color-text);">{{ t.act2 }}</button>
+                    </span>
+                  </span>
+                </sc-for>
+              </div>
+              <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-secondary); line-height: var(--leading-snug);">действий два и больше — цель уже кнопка, --control-height-sm (34, в kids 40), между ними --space-2. Строка остаётся 44: плотность списка не растёт.</span>
+            </div>
+          </div>
+          </div>
+        </div>
+      </sc-if>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;: {&quot;width&quot;: 1400, &quot;height&quot;: 900}, &quot;autoHideSeconds&quot;: {&quot;editor&quot;: &quot;range&quot;, &quot;default&quot;: 5, &quot;min&quot;: 0, &quot;max&quot;: 15, &quot;step&quot;: 1, &quot;unit&quot;: &quot;с&quot;, &quot;tsType&quot;: &quot;number&quot;, &quot;section&quot;: &quot;Поведение&quot;}, &quot;splitDefault&quot;: {&quot;editor&quot;: &quot;range&quot;, &quot;default&quot;: 22, &quot;min&quot;: 12, &quot;max&quot;: 62, &quot;step&quot;: 1, &quot;unit&quot;: &quot;%&quot;, &quot;tsType&quot;: &quot;number&quot;, &quot;section&quot;: &quot;Поведение&quot;}, &quot;attentionRail&quot;: {&quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: true, &quot;tsType&quot;: &quot;boolean&quot;, &quot;section&quot;: &quot;Поведение&quot;}}">
+class Component extends DCLogic {
+  state = { view: 'room', role: 'teacher', count: 20, st: 'filled', w: 1280, theme: 'light', kids: false, win: 'board', panel: null, boardOpen: true, phase: 'live' };
+
+  // Фаза занятия и состояние служб — разные оси, но сочетаются не все пары: пока занятие
+  // не началось и после того, как оно кончилось, эфира нет вовсе — значит нет ни его
+  // отказа, ни его подключения. Карта допустимости заведена сразу с ключом: без неё
+  // полоса предлагает пары, которых продукт не допускает.
+  PHASE_STATES = {
+    before: ['filled', 'empty'],
+    live: ['filled', 'empty', 'loading', 'failed', 'partial'],
+    after: ['filled'],
+  };
+
+  componentDidMount() {
+    this.ratio = null;
+    this.onResize = () => { this.fit(); this.applyLayout(); };
+    this.onKey = (e) => { if (e.key === 'Escape' && this.state.panel) this.setState({ panel: null }); };
+    window.addEventListener('resize', this.onResize);
+    window.addEventListener('keydown', this.onKey);
+    this.settle();
+    this.probe = setInterval(() => {
+      const el = this.root && this.root.querySelector('[data-scroll-probe]');
+      if (el) el.textContent = 'прокрутка страницы: ' + Math.max(0, document.documentElement.scrollHeight - window.innerHeight) + ' px';
+    }, 1000);
+  }
+  componentDidUpdate() { this.settle(); }
+
+  settle() {
+    this.fit(); this.applyLayout(); this.applyChrome(); this.wakeHud();
+    requestAnimationFrame(() => { this.fit(); this.applyLayout(); });
+  }
+  componentWillUnmount() {
+    window.removeEventListener('resize', this.onResize);
+    window.removeEventListener('keydown', this.onKey);
+    clearTimeout(this.hudT); clearInterval(this.probe);
+  }
+
+  frameH() { return this.state.w === 1280 ? 800 : 944; }
+
+  fit() {
+    const host = this.host, f = this.frame;
+    if (!host || !f) return;
+    const W = this.state.w, H = this.frameH();
+    const s = Math.min(1, (host.clientWidth - 40) / W, (host.clientHeight - 40) / H);
+    this.frameScale = s;
+    host.style.position = 'relative';
+    f.style.position = 'absolute';
+    f.style.left = '50%'; f.style.top = '50%';
+    f.style.width = W + 'px'; f.style.height = H + 'px';
+    f.style.transformOrigin = 'center center';
+    f.style.transform = 'translate(-50%, -50%) scale(' + s.toFixed(4) + ')';
+  }
+
+  tileCount() { return this.state.role === 'pupil' ? 1 : this.state.count; }
+
+  defaultRatio() {
+    const base = this.props.splitDefault ?? 22;
+    if (this.state.role === 'pupil') return Math.max(base, 24);
+    // 20 участников не живут в узкой полосе: раскладка сразу решётка 5×4
+    return this.state.count >= 20 ? 52 : this.state.count === 2 ? Math.max(base, 26) : Math.max(base, 24);
+  }
+
+  applyLayout() {
+    const f = this.frame; if (!f) return;
+    const pane = f.querySelector('[data-class-pane]'), tiles = f.querySelector('[data-tiles]');
+    const r = Math.max(12, Math.min(62, this.ratio ?? this.defaultRatio()));
+    if (pane) pane.style.width = r + '%';
+    if (!tiles) return;
+    const n = this.tileCount(), grid = r > 45;
+    const availW = tiles.clientWidth || (this.state.w * r) / 100;
+    const availH = tiles.clientHeight || this.frameH() * 0.6;
+    let cols = 1;
+    if (n > 1) {
+      if (grid) cols = Math.min(5, Math.ceil(Math.sqrt(n * 1.25)));
+      else {
+        // правило 04/05: плитка не уже 104 px — сколько столбцов влезло, столько и есть
+        const maxCols = Math.max(1, Math.min(5, Math.floor(availW / 104), n));
+        cols = maxCols;
+        for (let c = 1; c <= maxCols; c++) {
+          if (availH / Math.ceil(n / c) >= 56) { cols = c; break; }
+        }
+      }
+    }
+    let rows = Math.ceil(n / cols);
+    // правило 05: плитка не бывает ниже 56 px — лишние уходят в подпись «ещё N»
+    const gap = 8;
+    const fitRows = Math.max(1, Math.floor((availH + gap) / (56 + gap)));
+    let shown = n;
+    // ИСКЛЮЧЕНИЕ (правило 08): больше 25 участников в кадр не влезают ни при какой раскладке —
+    // прокручивается ОДНА область, полоса лиц. Структура та же: та же решётка, те же плитки.
+    const scrollTiles = n > 25;
+    tiles.style.gridTemplateColumns = 'repeat(' + cols + ', minmax(0, 1fr))';
+    if (scrollTiles) {
+      const tileH = Math.max(56, Math.round(((availW - (cols - 1) * gap) / cols) * 0.62));
+      tiles.style.overflowY = 'auto';
+      tiles.style.gridTemplateRows = 'none';
+      tiles.style.gridAutoRows = tileH + 'px';
+      tiles.style.alignContent = 'start';
+    } else {
+      if (rows > fitRows) { rows = fitRows; shown = rows * cols; }
+      tiles.style.overflowY = 'hidden';
+      tiles.style.gridAutoRows = 'auto';
+      tiles.style.gridTemplateRows = 'repeat(' + rows + ', minmax(0, 1fr))';
+      tiles.style.alignContent = 'stretch';
+    }
+    Array.from(tiles.children).forEach((el, i) => { el.style.display = i < shown ? 'grid' : 'none'; });
+    // панель поверх видео не накрывает лица: она встаёт слева от полосы, над доской
+    const panel = f.querySelector('[data-panel]');
+    if (panel && pane) panel.style.right = (pane.getBoundingClientRect().width / (this.frameScale || 1) + 16) + 'px';
+    const more = f.querySelector('[data-tiles-more]');
+    if (more) {
+      const rest = n - shown;
+      const show = scrollTiles || rest > 0;
+      more.style.display = show ? 'block' : 'none';
+      more.textContent = scrollTiles
+        ? 'участников ' + n + ' — полоса лиц прокручивается, это единственная прокрутка в кадре'
+        : rest > 0 ? 'ещё ' + rest + ' — потяните полосу шире, раскладка станет решёткой' : '';
+    }
+  }
+
+  applyChrome() {
+    const root = this.root; if (!root) return;
+    const cur = { view: this.state.view, role: this.state.role, count: String(this.state.count), st: this.state.st, w: String(this.state.w), win: this.state.win, panel: this.state.panel || '', phase: this.state.phase };
+    const allowedSt = this.PHASE_STATES[this.state.phase] || ['filled'];
+    // Служебное имя и продуктовое разведены (ПРАВИЛА 6.7д): полоса стенда — `data-sw`,
+    // кнопка внутри кадра — `data-pick`. Прибор 19 нашёл в кадре восемь кнопок со служебным
+    // именем: раскраска работала, но `querySelector` по-прежнему брал первое совпадение —
+    // тот самый корень, что восемь дней заставлял прогон мерить не тот экран.
+    root.querySelectorAll('[data-sw], [data-pick]').forEach((b) => {
+      const k = b.dataset.sw || b.dataset.pick, v = b.dataset.val;
+      if (!(k in cur)) return;
+      if (k === 'st') {
+        // ПРАВИЛА 6.8: помним display шаблона и возвращаем именно его
+        if (!b.dataset.disp) b.dataset.disp = getComputedStyle(b).display;
+        b.style.display = allowedSt.indexOf(v) < 0 ? 'none' : b.dataset.disp;
+      }
+      const on = cur[k] === v;
+      if (k === 'win') {
+        b.style.background = on ? 'var(--color-surface)' : 'none';
+        b.style.color = on ? 'var(--color-text)' : 'var(--color-text-secondary)';
+        b.style.boxShadow = on ? 'var(--shadow-xs)' : 'none';
+      } else if (k === 'panel') {
+        b.style.color = on ? 'var(--color-accent-text)' : 'var(--color-text-secondary)';
+        b.style.background = on ? 'var(--color-accent-subtle)' : 'none';
+      } else {
+        b.style.color = on ? 'var(--color-text)' : 'var(--color-text-secondary)';
+        b.style.borderColor = on ? 'var(--color-border-strong)' : 'var(--color-border)';
+        b.style.background = on ? 'var(--color-surface)' : 'none';
+      }
+    });
+  }
+
+  hud(fn) {
+    const f = this.frame; if (!f) return;
+    f.querySelectorAll('[data-hud]').forEach(fn);
+  }
+  wakeHud() {
+    clearTimeout(this.hudT);
+    this.hud((el) => { el.style.opacity = '1'; el.style.visibility = 'visible'; el.style.pointerEvents = 'auto'; el.style.transform = 'none'; });
+    const secs = this.props.autoHideSeconds ?? 5;
+    // пульт прячется только когда урок идёт: в пустом, загрузке и отказе человек ищет дорогу
+    if (secs <= 0 || this.state.panel || this.state.st !== 'filled' || this.state.phase !== 'live') return;
+    this.hudT = setTimeout(() => {
+      // Прячем и `visibility`, а не только `opacity`: при opacity 0 элемент остаётся в обходе
+      // с точки зрения приборов и клавиатуры — прибор контраста честно мерил его текст
+      // и получал 1,0 на восемнадцати надписях (прогон 23 августа). Невидимый пульт,
+      // который всё ещё принимает фокус, — тот же мёртвый переключатель, только невидимый.
+      this.hud((el) => { el.style.opacity = '0'; el.style.visibility = 'hidden'; el.style.pointerEvents = 'none'; el.style.transform = el.dataset.hud === 'bottom' ? 'translateY(8px)' : 'translateY(-8px)'; });
+    }, secs * 1000);
+  }
+
+  onDrag = (e) => {
+    const f = this.frame; if (!f) return;
+    const stage = f.querySelector('[data-board-pane]').parentElement;
+    const rect = stage.getBoundingClientRect();
+    const move = (ev) => {
+      this.ratio = Math.max(12, Math.min(62, ((rect.right - ev.clientX) / rect.width) * 100));
+      this.applyLayout();
+    };
+    const up = () => {
+      window.removeEventListener('pointermove', move);
+      window.removeEventListener('pointerup', up);
+      this.forceUpdate();
+    };
+    window.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', up);
+    e.preventDefault();
+  };
+
+  onSw = (e) => {
+    const ds = e.currentTarget.dataset;
+    const sw = ds.sw || ds.pick, val = ds.val;
+    if (sw === 'st' && (this.PHASE_STATES[this.state.phase] || ['filled']).indexOf(val) < 0) return;
+    if (sw === 'phase') {
+      const allowed = this.PHASE_STATES[val] || ['filled'];
+      return this.setState((s) => ({ phase: val, st: allowed.indexOf(s.st) < 0 ? 'filled' : s.st }));
+    }
+    if (sw === 'theme') return this.setState((s) => ({ theme: s.theme === 'dark' ? 'light' : 'dark' }));
+    if (sw === 'kids') return this.setState((s) => ({ kids: !s.kids }));
+    if (sw === 'count') { this.ratio = null; return this.setState({ count: Number(val) }); }
+    if (sw === 'role') { this.ratio = null; return this.setState({ role: val }); }
+    if (sw === 'w') return this.setState({ w: Number(val) });
+    if (sw === 'panel') return this.setState((s) => ({ panel: s.panel === val ? null : val }));
+    this.setState({ [sw]: val });
+  };
+
+  people() {
+    const teacher = { ini: 'ЛВ', name: 'Люция Валерьевна', role: 'ведёт занятие', st: 'говорит' };
+    const src = [
+      ['АК', 'Аня Коваль', 'рука ↑'], ['ПК', 'Петя Ковалёв', 'пишет на доске'], ['ЛМ', 'Лена Морозова', 'в тесте'],
+      ['ДС', 'Дима Соколов', 'нет связи'], ['МН', 'Марина Нечаева', 'слушает'], ['ИГ', 'Игорь Гуров', 'без звука'],
+      ['ОБ', 'Оля Быкова', 'слушает'], ['РТ', 'Рома Тихонов', 'слушает'], ['КЖ', 'Катя Жарова', 'слушает'],
+      ['СЛ', 'Саша Лапин', 'слушает'], ['ВЕ', 'Вера Егорова', 'слушает'], ['НФ', 'Никита Фомин', 'слушает'],
+      ['ТМ', 'Таня Мельник', 'слушает'], ['ГП', 'Гриша Панов', 'без звука'], ['ЮР', 'Юля Раева', 'слушает'],
+      ['АЗ', 'Артём Зуев', 'слушает'], ['ДК', 'Даша Кот', 'слушает'], ['МЛ', 'Миша Лунёв', 'слушает'],
+      ['ЕС', 'Егор Сотов', 'слушает'], ['ПВ', 'Полина Вьюн', 'слушает'],
+      ['ЛГ', 'Лиза Гринь', 'слушает'], ['КБ', 'Кирилл Батов', 'без звука'], ['ЯД', 'Яна Дроздова', 'слушает'],
+      ['ФМ', 'Федя Марков', 'слушает'], ['УС', 'Уля Савина', 'нет связи'], ['ЗК', 'Зоя Кулик', 'слушает'],
+      ['ГТ', 'Глеб Титов', 'слушает'], ['ИЛ', 'Ира Лаврова', 'в тесте'], ['ВБ', 'Влад Бойко', 'слушает'],
+      ['НШ', 'Нина Шаль', 'слушает'],
+    ];
+    if (this.state.role === 'pupil') return [teacher, { ini: 'АК', name: 'Аня Коваль — вы', role: 'ученик', st: 'камера в эфире' }];
+    return [teacher].concat(src.slice(0, this.state.count).map((p) => ({ ini: p[0], name: p[1], role: 'ученик', st: p[2] })));
+  }
+
+  renderVals() {
+    const s = this.state;
+    const teacher = s.role === 'teacher', filled = s.st === 'filled', loading = s.st === 'loading', empty = s.st === 'empty', failed = s.st === 'failed';
+    // пятое состояние: часть урока пришла, часть нет. Сломанное названо внутри своей области,
+    // а не карточкой поверх всего — иначе экран врёт, что не работает ничего
+    const partial = s.st === 'partial';
+    const before = s.phase === 'before', after = s.phase === 'after', live = s.phase === 'live';
+    // ПОЛОСА ЛИЦ — область эфира, и всё, что с эфиром, говорится в ней. Три случая:
+    // занятие ещё не началось · эфир не поднялся, а доска работает · занятие закончилось.
+    // 🔴 «Урок идёт, учеников ещё нет» — самое частое состояние первых недель: преподаватель
+    // входит первым всегда (снимок владельца, §61.2). Прежде этот случай ничем не отличался
+    // от полного класса: шапка внимания с прочерком, решётка из нуля плиток на две трети
+    // высоты чёрным и подсказка про порог 45 % — при том что тянуть нечего.
+    const alone = teacher && live && Number(s.count) === 1 && !failed && !loading;
+    const railState = before || after || (live && failed) || alone;
+    // ПРАВИЛА 6.6: место шапки внимания занято во всех состояниях. Пока данных нет — прочерк
+    // и ровная полоска той же высоты. Иначе при их приезде вся полоса лиц прыгает на 112 px
+    // Шапка внимания стоит во всех состояниях ИДУЩЕГО занятия (6.6), но до начала и после конца
+    // внимания не существует вовсе — это не «ещё не пришло», а «нечего мерить». Прочерк
+    // в пустой комнате — ровно то, что владелец увидел в продукте и назвал дефектом.
+    const attention = teacher && live && !alone && (this.props.attentionRail ?? true);
+    // Внимание измеряется только пока идёт занятие и есть эфир: до начала и после конца
+    // мерить нечего, и число там было бы взято из воздуха. Место при этом стоит (6.6).
+    // Показатель, которому нечего показать, НЕ занимает место наравне с тем, у кого есть
+    // данные (§61.2). Прежде шапка внимания стояла всегда и в пустой комнате писала «—»:
+    // место держалось по 6.6, но 6.6 про КАРКАС, а не про измеритель без предмета измерения.
+    const attHasData = live && (filled || partial) && !alone;
+    const roster = this.people();
+
+    let tiles = [];
+    if (loading) {
+      const n = teacher ? Math.min(s.count, 6) : 1;
+      tiles = Array.from({ length: n }, (_, i) => ({ ini: '', name: '', att: false, attW: '0%', speaking: false, hand: false }));
+    } else if (!failed && !railState) {
+      if (teacher) {
+        tiles = roster.slice(1).map((p, i) => {
+          const att = 92 - ((i * 13) % 58);
+          return { ini: p.ini, name: p.name.split(' ')[0], att: true, attW: att + '%', attColor: 'rgba(255, 255, 255, .4)', speaking: i === 1, hand: i === 0 };
+        });
+      } else {
+        tiles = [{ ini: 'ЛВ', name: 'Люция Валерьевна · ведёт', att: false, attW: '0%', speaking: true, hand: false }];
+      }
+    } else if (failed) {
+      tiles = [];
+    }
+
+    // Тексты состояний полосы лиц. Ни один из них не закрывает доску и пульты.
+    const rail = alone
+      ? { kicker: 'урок идёт · учеников ещё нет', title: 'Вы в комнате один', body: 'Урок начат в 12:00, идёт 4 минуты. Ученики войдут по ссылке или по коду — комната их ждёт, обновлять ничего не нужно.',
+        code: 'FLM-4821', action: 'Скопировать ссылку',
+        facts: [
+          { text: 'работает: доска · методичка · тест · словарь · чат — можно готовить занятие' },
+          { text: 'вас уже видно и слышно: кто войдёт, попадёт в идущий урок' },
+          { text: 'внимание класса появится, когда появится класс' },
+        ],
+        foot: 'если ученики ждут в другом месте — напишите в чат предмета, ссылка там же' }
+      : before
+      ? (teacher
+        ? { kicker: 'учеников пока нет', title: 'Комната открыта, урок не начат', body: 'Доска, методичка и материалы уже работают — можно готовиться. Урок начнётся, когда вы нажмёте «Начать урок» внизу.',
+          code: 'FLM-4821', facts: [], action: 'Скопировать ссылку',
+          foot: 'камера и микрофон включатся по вашему нажатию, не раньше' }
+        : { kicker: 'занятие ещё не началось', title: 'Ждём преподавателя', body: 'Начало в 12:00 — осталось 6 минут. Это не поломка: урок начнётся сам, обновлять страницу не нужно.',
+          code: '', facts: [], action: 'Проверить камеру и звук',
+          foot: 'пока ждёте, можно открыть методичку и материалы прошлого занятия' })
+      : after
+        ? { kicker: 'занятие закончилось', title: 'Урок закончился в 12:45', body: 'Комната ещё открыта: можно дописать доску и забрать материалы. Через 10 минут она закроется сама.',
+          code: '', facts: [], action: teacher ? 'Закрыть комнату сейчас' : 'Забрать материалы',
+          foot: 'доска, конспект и чат остаются у всех, кто был на занятии · записи занятия не существует' }
+        // Не «отказ», а частичный (6.5б): комната собрана из нескольких независимых служб, и тут
+        // молчит ровно одна. Три вещи названы по 6.5а: что работает, что нет, что с данными.
+        : { kicker: 'частичный отказ · эфир', title: 'Видео и звук не поднялись', body: 'Сервер эфира не отвечает 40 секунд. Дело не в вашей сети — урок можно вести дальше.',
+          code: '', action: 'Переподключить эфир',
+          facts: [
+            { text: 'работает: доска · методичка · тест · словарь · чат' },
+            { text: 'не работает: только видео и звук' },
+            { text: 'с данными: всё написанное на доске сохраняется' },
+          ],
+          foot: 'если не поднимется за 2 минуты — напишите в чат предмета, ученики увидят' };
+
+    return {
+      setRoot: (el) => { this.root = el; },
+      setHost: (el) => { this.host = el; },
+      setFrame: (el) => { this.frame = el; },
+      theme: s.theme === 'dark' ? 'dark' : 'light',
+      mode: s.kids ? 'kids' : 'default',
+      isRoom: s.view === 'room',
+      isRules: s.view === 'rules',
+      isTeacher: teacher,
+      isPupil: !teacher,
+      winBoard: s.win === 'board' && !partial, winMaterial: s.win === 'material', winTest: s.win === 'test', winSummary: s.win === 'summary',
+      boardDown: partial && s.win === 'board',
+      boardHasWork: filled || failed || loading,
+      boardEmpty: empty,
+      showAttention: attention,
+      attAvg: attHasData ? '78' : '—',
+      spark: [34, 52, 40, 61, 74, 66, 58, 71, 80, 62, 49, 57, 68, 77, 84, 70, 55, 47, 60, 73, 81, 76, 64, 58]
+        .map((v) => ({ h: attHasData ? Math.round(v * 0.18) + 'px' : '2px' })),
+      tiles,
+      isLiveTeacher: teacher && live,
+      isLivePupil: !teacher && live,
+      selfLabel: before ? 'камера выключена' : after ? 'камера выключена' : loading ? 'камера включается' : 'ваша камера',
+      paneNote: teacher
+        ? 'полосу можно тянуть: за 45 % лица становятся решёткой'
+        : 'одноклассников не видно — так урок не рвётся на слабом канале',
+      lessonMeta: teacher ? 'урок 4 · ' + s.count + ' участников' : 'урок 4 · Люция Валерьевна',
+      // Пустых показателей подряд не бывает: пока учеников нет, «подключено 0 из 0» и
+      // «связь: не измерена» не пишутся вовсе — вместо трёх прочерков одна честная строка.
+      liveLabel: before ? 'не начат' : after ? 'закончился' : loading ? 'подключаемся' : failed ? 'без эфира' : alone ? 'идёт 4 минуты · учеников нет' : partial ? 'доска не пришла' : 'идёт 24 из 45 минут',
+      selfCols: alone ? 'minmax(0, 1fr)' : '150px minmax(0, 1fr)',
+      showPaneNote: !alone && tiles.length >= 3,
+      lessonPhaseMeta: before ? 'начало в 12:00' : after ? 'шло 45 минут' : '',
+      boardAccessLabel: s.boardOpen ? 'Доска открыта ученикам' : 'Доска закрыта ученикам',
+      toggleBoardAccess: () => this.setState((p) => ({ boardOpen: !p.boardOpen })),
+      leaveLabel: before ? (teacher ? 'Закрыть комнату' : 'Выйти') : after ? 'Выйти' : teacher ? 'Завершить урок' : 'Выйти',
+      panelOpen: !!s.panel,
+      panelPeople: s.panel === 'people', panelDict: s.panel === 'dict', panelMats: s.panel === 'mats', panelChat: s.panel === 'chat',
+      panelTitle: { people: 'Участники', dict: 'Словарь', mats: 'Материалы урока', chat: 'Чат занятия' }[s.panel] || '',
+      panelFoot: {
+        people: 'камера анализируется на устройстве ученика · наружу уходит одно число раз в две секунды',
+        dict: 'внутри — открытые базы; закрытые словари открываются ссылкой',
+        mats: 'материалы остаются у учеников после занятия',
+        chat: 'чат живёт во время урока · всё важное уходит в конспект',
+      }[s.panel] || '',
+      people: roster,
+      mats: [
+        { name: 'Методичка урока', sub: 'Unit 4 · 9 страниц', act: 'открыть' },
+        { name: 'Аудио «at the station»', sub: '2:14 · открытая лицензия', act: 'играть' },
+        { name: 'Карта станции', sub: 'вставлена на доску', act: 'на доске' },
+        { name: 'Быстрый тест · directions', sub: '6 вопросов · идёт сейчас', act: 'открыть' },
+        { name: 'Доска прошлого урока', sub: 'сохранена 5 августа', act: 'открыть' },
+      ],
+      chat: [
+        { who: 'Люция Валерьевна · 12:04', text: 'Открывайте методичку, страница 3' },
+        { who: 'Петя · 12:09', text: 'а «go straight on» тоже правильно?' },
+        { who: 'Люция Валерьевна · 12:10', text: 'В британском встречается, но на экзамене пишите ahead. Вынесла на доску' },
+        { who: 'Аня · 12:16', text: 'можно ссылку на аудио ещё раз?' },
+      ],
+      plan: [
+        { time: '5 мин', text: 'Разогрев: «когда ты последний раз терялся» — по кругу, одно предложение' },
+        { time: '10 мин', text: 'Ввод конструкций: три вопроса, три ответа, ветки достраивают ученики' },
+        { time: '10 мин', text: 'Слушаем «at the station», второе прослушивание с паузами' },
+        { time: '12 мин', text: 'Пары: один описывает маршрут, второй рисует его на доске' },
+        { time: '8 мин', text: 'Разбор ошибок стикерами на доске' },
+      ],
+      summary: [
+        { time: '00:00', text: 'Разогрев: «когда ты последний раз терялся»', src: 'из плана занятия' },
+        { time: '06:20', text: 'Три конструкции вопроса о дороге, разобраны на доске', src: 'с доски · 4 узла, добавил Петя' },
+        { time: '11:05', text: '«На экзамене пишите ahead, on — разговорный вариант»', src: 'из речи занятия · разобрано на лету, запись не велась' },
+        { time: '18:40', text: 'Аудирование «at the station», два прослушивания', src: 'из материалов урока' },
+        { time: '24:10', text: 'Быстрый тест: 4 из 6 верно по группе', src: 'из результатов теста' },
+        { time: 'до чт', text: 'Задано: описать дорогу от дома до школы, 5–7 предложений', src: 'уйдёт в «Задания» предмета' },
+      ],
+      testMeta: teacher ? '6 вопросов · отвечают 5 из 6' : '6 вопросов · без оценки, для себя',
+      testLive: teacher ? 'ответили 5 из 6 · верно 4 · один выбрал «come»' : 'ответ можно поменять до конца теста',
+      showTiles: !railState,
+      railState: railState,
+      railKicker: rail.kicker, railTitle: rail.title, railBody: rail.body, railCode: rail.code,
+      railFacts: rail.facts, railAction: rail.action, railFoot: rail.foot,
+      canStart: before && teacher,
+      isAfter: after,
+      liveHot: live && !failed && !loading,
+      liveCalm: !live || failed || loading,
+      wake: () => this.wakeHud(),
+      onDrag: this.onDrag,
+      onSw: this.onSw,
+      closePanel: () => this.setState({ panel: null }),
+      noop: () => this.wakeHud(),
+      rules: [
+        { n: '01', title: 'Сцена — весь кадр', value: 'доска + лица = 100 % высоты и ширины; ни одна полоса не отнимает высоту постоянно' },
+        { n: '02', title: 'Слои, а не полосы', value: 'шапка и пульт плавают поверх сцены, прячутся через 5 с, возвращаются на движение мыши' },
+        { n: '03', title: 'Полоса лиц', value: '12–62 % ширины · тянется мышью · за 45 % становится решёткой' },
+        { n: '04', title: 'Между превью', value: '--space-2 (8) при 1280, --space-3 (12) при 1512 — одно на весь ряд' },
+        { n: '05', title: 'Решётка на 20', value: '5 × 4, плитки равны и растут с окном; минимум 96 × 60' },
+        { n: '06', title: 'Панель поверх видео', value: '25 % ширины, 320–420 px · накрывает доску, но не лица · Esc закрывает' },
+        { n: '07', title: 'Внутри панели', value: 'край 20, строка 12, блок 24 — из --space-*' },
+        { n: '08', title: 'Прокрутка', value: 'страница — никогда; список в панели — да; полоса лиц — только больше 25 участников' },
+        { n: '09', title: 'Дорога назад', value: '«выйти из урока» слева сверху во всех состояниях и у обеих ролей' },
+        { n: '10', title: 'Пять состояний', value: 'наполнено · пусто · загружается · отказ · частичный отказ' },
+        { n: '11', title: 'Голоса набора', value: 'моно — числа и метки; кнопки и заголовки — SF/Inter, 13 минимум' },
+        { n: '12', title: 'Про камеру — один раз', value: 'при подключении и в «Участниках»; постоянной строки нет' },
+        { n: '13', title: 'Цель нажатия', value: 'одно действие — вся строка (44); два и больше — кнопка (34). Справа показано' },
+        { n: '14', title: 'Переход проверяется', value: 'слой уходит только по вертикали и не выходит за кадр' },
+      ],
+      tapRows: [
+        { name: 'Аня Коваль · описать дорогу', act: 'проверить', act2: 'вернуть' },
+        { name: 'Петя Ковалёв · описать дорогу', act: 'проверить', act2: 'вернуть' },
+        { name: 'Лена Морозова · описать дорогу', act: 'проверить', act2: 'вернуть' },
+      ],
+    };
+  }
+}
+</script>
+</body>
+</html>

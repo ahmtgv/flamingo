@@ -1,0 +1,114 @@
+.room {
+  height: 100%;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 22%;
+  background: var(--color-bg);
+  overflow: hidden;
+}
+
+.pane {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  min-width: 0;
+  min-height: 0;
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-5);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.sep {
+  width: 1px;
+  height: var(--space-5);
+  background: var(--color-border);
+}
+
+.code {
+  font: var(--weight-medium) var(--text-caption) var(--font-mono);
+  color: var(--color-text-detail);
+  letter-spacing: 0.06em;
+}
+
+.live {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font: var(--weight-medium) var(--text-caption) var(--font-mono);
+  color: var(--color-text-detail);
+}
+
+/* ПРАВИЛА 4.10: точка состояния — значащая графика, свой порог 3,0. */
+.dot {
+  width: var(--dot-size);
+  height: var(--dot-size);
+  border-radius: var(--radius-pill);
+  background: var(--color-accent);
+}
+
+.stage {
+  position: relative;
+  min-height: 0;
+  min-width: 0;
+  display: grid;
+}
+
+/* Отказ и загрузка называются ВНУТРИ своей области, не карточкой поверх всего кадра
+   (ПРАВИЛА 6.5): пульт остаётся на месте и продолжает работать. */
+.veil {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: var(--space-6);
+  background: color-mix(in oklab, var(--color-bg) 86%, transparent);
+  backdrop-filter: blur(var(--blur-frosted));
+}
+
+.card {
+  display: grid;
+  gap: var(--space-3);
+  justify-items: center;
+  text-align: center;
+  max-width: var(--content-max-narrow);
+  padding: var(--space-7);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-md);
+}
+
+.cardTitle {
+  font-family: var(--font-heading);
+  font-size: var(--text-h3);
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--tracking-snug);
+}
+
+.cardText {
+  font-size: var(--text-small);
+  color: var(--color-text-detail);
+  line-height: var(--leading-snug);
+  max-width: 52ch;
+}
+
+.pult {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-5);
+  border-top: 1px solid var(--color-border);
+}
+
+.divider {
+  width: 1px;
+  height: var(--space-5);
+  background: var(--color-border);
+  margin: 0 var(--space-2);
+}

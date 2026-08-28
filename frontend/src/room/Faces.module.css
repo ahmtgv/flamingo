@@ -1,0 +1,118 @@
+/* Экран, на который смотрят вдвоём, тёмный всегда: светлая видеостена слепит комнату.
+   Пара цветов для него отдельная (--color-*-on-video), служебные токены сюда не заходят
+   (ПРАВИЛА 6.7г). */
+.rail {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  background: var(--color-surface-video);
+  color: var(--color-text-on-video);
+  border-left: 1px solid var(--color-border);
+  overflow: hidden;
+}
+
+.tiles {
+  display: grid;
+  grid-auto-rows: minmax(0, 1fr);
+  gap: var(--space-2);
+  padding: var(--space-3);
+  min-height: 0;
+}
+
+.tile {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--color-surface-on-video);
+  border: 1px solid var(--color-border-on-video);
+  display: grid;
+  place-items: center;
+}
+
+.speaking {
+  border-color: var(--color-accent);
+}
+
+.video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scaleX(-1);
+}
+
+.ini {
+  font: var(--weight-medium) var(--text-h3) var(--font-mono);
+  color: var(--color-text-on-video-quiet);
+  letter-spacing: 0.04em;
+}
+
+.name {
+  position: absolute;
+  left: var(--space-2);
+  bottom: var(--space-2);
+  font: var(--weight-regular) var(--text-caption) var(--font-mono);
+  color: var(--color-text-on-video-quiet);
+}
+
+.muted {
+  position: absolute;
+  right: var(--space-2);
+  top: var(--space-2);
+  font: var(--weight-regular) var(--text-caption) var(--font-mono);
+  color: var(--color-text-on-video-quiet);
+  background: var(--color-surface-on-video);
+  border-radius: var(--radius-xs);
+  padding: 2px var(--space-2);
+}
+
+.alone {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border-top: 1px solid var(--color-border-on-video);
+  justify-items: start;
+}
+
+.aloneTitle {
+  font-family: var(--font-heading);
+  font-size: var(--text-body);
+  font-weight: var(--weight-medium);
+  color: var(--color-text-on-video);
+}
+
+.aloneText {
+  font-size: var(--text-caption);
+  line-height: var(--leading-snug);
+  color: var(--color-text-on-video-quiet);
+}
+
+.link {
+  font: var(--weight-regular) var(--text-caption) var(--font-mono);
+  color: var(--color-text-on-video);
+  background: var(--color-surface-on-video);
+  border: 1px solid var(--color-border-on-video);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2);
+  width: 100%;
+  overflow-wrap: anywhere;
+}
+
+.copy {
+  min-height: var(--control-height-sm);
+  padding: 0 var(--space-4);
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--color-border-on-video-strong);
+  background: none;
+  color: var(--color-text-on-video);
+  font-size: var(--text-small);
+  cursor: pointer;
+}
+
+.copy:hover {
+  background: var(--color-surface-on-video);
+}

@@ -1,0 +1,40 @@
+.wrap {
+  display: grid;
+  gap: var(--space-2);
+  text-align: left;
+}
+
+/* ПРАВИЛА 4.2: заголовок поля — не второй титул. */
+.label {
+  font: var(--weight-medium) var(--text-overline) / 1 var(--font-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-detail);
+}
+
+.input {
+  min-height: var(--control-height-lg);
+  padding: 0 var(--space-4);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-control);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  font-size: var(--text-body);
+  width: 100%;
+}
+
+.input::placeholder {
+  color: var(--color-text-hint);
+}
+
+.input:focus-visible {
+  outline: none;
+  border-color: var(--color-border-strong);
+  box-shadow: var(--focus-ring);
+}
+
+.hint {
+  font-size: var(--text-caption);
+  color: var(--color-text-detail);
+}

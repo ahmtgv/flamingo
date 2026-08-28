@@ -1,0 +1,155 @@
+/* ПРАВИЛА 3.10: на холсте не остаётся ничего плавающего. Инструменты и пульт живут
+   в раме — поэтому здесь сетка, а не слои поверх холста. */
+.frame {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  min-height: 0;
+  min-width: 0;
+}
+
+.tools {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  align-items: center;
+  padding: var(--space-3) var(--space-2);
+  border-right: 1px solid var(--color-border);
+  background: var(--color-bg);
+}
+
+.tool {
+  width: var(--control-height-sm);
+  height: var(--control-height-sm);
+  display: grid;
+  place-items: center;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  font: var(--weight-medium) var(--text-small) var(--font-mono);
+}
+
+.tool:hover {
+  background: var(--color-surface-hover);
+  color: var(--color-text);
+}
+
+/* ПРАВИЛА 5.7: выбранный инструмент отмечается НЕЙТРАЛЬНОЙ заливкой.
+   Акцент на экране урока принадлежит другому. */
+.toolOn {
+  background: var(--color-surface-subtle);
+  color: var(--color-text);
+}
+
+.sep {
+  width: 60%;
+  height: 1px;
+  background: var(--color-border);
+  margin: var(--space-1) 0;
+}
+
+.pen {
+  width: var(--control-height-sm);
+  height: var(--control-height-sm);
+  display: grid;
+  place-items: center;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: none;
+  cursor: pointer;
+}
+
+.pen:hover {
+  background: var(--color-surface-hover);
+}
+
+.penDot {
+  width: var(--space-4);
+  height: var(--space-4);
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--color-border-strong);
+}
+
+.penOn {
+  background: var(--color-surface-subtle);
+}
+
+.penOn .penDot {
+  box-shadow: 0 0 0 2px var(--color-surface), 0 0 0 3px var(--color-border-strong);
+}
+
+/* ПРАВИЛА 11.2/11.3: стереть всё — уход, значит обводка коралловым, не заливка. */
+.wipe {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  padding: var(--space-3) 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--color-text-secondary);
+  font-size: var(--text-caption);
+  cursor: pointer;
+}
+
+.wipe:hover {
+  border-color: var(--color-border-strong);
+  color: var(--color-text);
+}
+
+.wipeArmed {
+  border-color: var(--color-accent-text);
+  color: var(--color-accent-text);
+}
+
+.canvasWrap {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  background-color: var(--color-surface);
+  background-image: radial-gradient(circle, var(--color-border) 1px, transparent 1px);
+  background-size: var(--space-6) var(--space-6);
+  overflow: hidden;
+}
+
+.canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+  cursor: crosshair;
+}
+
+/* ПРАВИЛА 6.2: пусто объясняет словами, что здесь будет и что сделать сейчас. */
+.empty {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: var(--space-3);
+  text-align: center;
+  padding: var(--space-8);
+  pointer-events: none;
+}
+
+.emptyTitle {
+  font-family: var(--font-heading);
+  font-size: var(--text-h3);
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--tracking-snug);
+  color: var(--color-text);
+}
+
+.emptyText {
+  font-size: var(--text-small);
+  color: var(--color-text-detail);
+  max-width: 46ch;
+  line-height: var(--leading-snug);
+}
+
+.emptyKeys {
+  font: var(--weight-regular) var(--text-caption) var(--font-mono);
+  color: var(--color-text-hint);
+}

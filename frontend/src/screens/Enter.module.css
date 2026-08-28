@@ -1,0 +1,73 @@
+.screen {
+  height: 100%;
+  display: grid;
+  place-items: center;
+  padding: var(--space-6);
+  background: var(--color-bg);
+  overflow: hidden;
+}
+
+.card {
+  display: grid;
+  gap: var(--space-4);
+  justify-items: start;
+  width: 100%;
+  max-width: var(--content-max-narrow);
+  padding: var(--space-8);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-sm);
+}
+
+/* ПРАВИЛА 4.1: заголовок страницы один, --text-h1, вес 600. */
+.title {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: var(--text-h1);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-tight);
+  line-height: var(--leading-heading);
+  color: var(--color-text);
+}
+
+.lead {
+  margin: 0;
+  font-size: var(--text-body);
+  line-height: var(--leading-body);
+  color: var(--color-text-detail);
+  max-width: 52ch;
+}
+
+.code {
+  font: var(--weight-medium) var(--text-small) var(--font-mono);
+  letter-spacing: 0.08em;
+  color: var(--color-text);
+  background: var(--color-surface-subtle);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2) var(--space-3);
+}
+
+.form {
+  display: grid;
+  gap: var(--space-3);
+  justify-items: start;
+  width: 100%;
+  max-width: var(--content-max-narrow);
+}
+
+/* Место под сообщение занято всегда — ровно одна строка (ПРАВИЛА 6.6). */
+.say {
+  min-height: calc(var(--leading-snug) * 1em);
+  font-size: var(--text-caption);
+  color: var(--color-error-text);
+}
+
+.foot {
+  margin: 0;
+  font-size: var(--text-caption);
+  line-height: var(--leading-snug);
+  color: var(--color-text-detail);
+  max-width: 56ch;
+}

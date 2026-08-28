@@ -1,0 +1,15 @@
+.mark {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-family: var(--font-heading);
+  font-size: var(--text-body);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-snug);
+  color: var(--color-text);
+}
+
+.quiet {
+  font-size: var(--text-small);
+  color: var(--color-text-on-video);
+}

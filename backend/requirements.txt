@@ -1,0 +1,4 @@
+Django==5.1.4
+PyJWT==2.10.1
+django-cors-headers==4.6.0
+python-dotenv==1.0.1

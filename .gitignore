@@ -1,0 +1,11 @@
+node_modules/
+dist/
+.venv/
+__pycache__/
+*.pyc
+.env
+.env.local
+.env.production
+db.sqlite3
+.DS_Store
+_архив-прототип-2026-08/
