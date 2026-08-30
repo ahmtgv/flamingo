@@ -35,6 +35,7 @@ const I = {
   image: <path d="M4 5h16v14H4z M4 15l4.5-4.5L13 15l3-3 4 4 M9 9.5a1 1 0 11-2 0 1 1 0 012 0" />,
   video: <path d="M3 6h12v12H3z M15 10l6-3v10l-6-3z" />,
   undo: <path d="M9 7L4 12l5 5 M4 12h9a6 6 0 010 12h-1" />,
+  wipe: <path d="M4 20h16 M6 16l9-9 4 4-9 9z M13 6l4 4" />,
   redo: <path d="M15 7l5 5-5 5 M20 12h-9a6 6 0 000 12h1" />,
 }
 
@@ -133,13 +134,16 @@ export function Tools({
 
       <span className={s.sep} />
 
+      {/* Пока не спросили второй раз — это значок. Спросили — подпись словами:
+          необратимое действие обязано назвать себя (ПРАВИЛА 14.2). */}
       <button
         type="button"
-        className={`${s.wipe} ${armed ? s.wipeArmed : ''}`}
+        className={`${s.tool} ${armed ? s.wipeArmed : ''}`}
         onClick={wipe}
-        title="Стирает доску у всех, кто в комнате. Вернуть нельзя."
+        title="Стереть всё · стирает доску у всех, кто в комнате. Вернуть нельзя."
+        aria-label="Стереть всё"
       >
-        {armed ? 'Точно стереть?' : 'Стереть всё'}
+        {armed ? <span className={s.wipeAsk}>стереть?</span> : <Ico d="wipe" />}
       </button>
     </div>
   )

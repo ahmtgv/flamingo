@@ -1,14 +1,21 @@
+/* Полоса лиц появляется, только когда учитель что-то показывает: пока показывают
+   лица, класс и так на весь экран. Поэтому колонок ровно столько, сколько детей —
+   объявленный, но пустой столбец увёл бы раскладку (КТ2 §4). */
 .room {
   height: 100%;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 22%;
+  grid-template-columns: minmax(0, 1fr);
   background: var(--color-bg);
   overflow: hidden;
 }
 
+.room:has(> aside) {
+  grid-template-columns: minmax(0, 1fr) 22%;
+}
+
 .pane {
   display: grid;
-  grid-template-rows: auto minmax(0, 1fr) auto;
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
   min-width: 0;
   min-height: 0;
 }
@@ -112,4 +119,11 @@
   height: var(--space-5);
   background: var(--color-border);
   margin: 0 var(--space-2);
+}
+
+/* У ученика полки нет — но ряд под неё остаётся пустым, чтобы шапка и сцена
+   стояли там же, где у учителя, и класс не видел «дёрганый» экран. */
+.noShelf {
+  display: block;
+  height: 0;
 }

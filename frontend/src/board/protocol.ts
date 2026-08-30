@@ -52,6 +52,8 @@ export type Msg =
   | { t: 'sheetState'; sheet: Sheet }
   /** Список досок и какая открыта. Ведёт тот, кто переключил. */
   | { t: 'sheets'; sheets: { id: string; name: string }[]; active: string }
+  /** Что сейчас показывают классу. Ведёт тот, кто ведёт урок. */
+  | { t: 'stage'; source: 'faces' | 'board' }
   /** «Я только вошёл, покажите доску». */
   | { t: 'ask' }
   | { t: 'state'; sheets: Sheet[]; active: string }

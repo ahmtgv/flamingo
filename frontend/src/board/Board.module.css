@@ -5,8 +5,12 @@
   grid-template-columns: auto minmax(0, 1fr);
   min-height: 0;
   min-width: 0;
+  overflow: hidden;
 }
 
+/* 🔴 Столбец инструментов ПРОКРУЧИВАЕТСЯ, а не растит раму. Инструментов стало
+   больше, столбец перерос сцену на полсотни пикселей и накрыл собой нижний пульт
+   (поймано пробой 30.08). Прокрутка внутри названной области — ПРАВИЛА 1.2. */
 .tools {
   display: flex;
   flex-direction: column;
@@ -15,6 +19,13 @@
   padding: var(--space-3) var(--space-2);
   border-right: 1px solid var(--color-border);
   background: var(--color-bg);
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+
+.tools::-webkit-scrollbar {
+  display: none;
 }
 
 .tool {
@@ -166,6 +177,7 @@
   grid-template-rows: auto minmax(0, 1fr);
   min-width: 0;
   min-height: 0;
+  overflow: hidden;
 }
 
 .sheets {
@@ -480,4 +492,18 @@
 .tool:disabled {
   color: var(--color-text-disabled);
   cursor: default;
+}
+
+/* Подтверждение «стереть?» — единственное место, где коралловый в панели: это
+   аларм, вернуть нельзя (ПРАВИЛА 11а). */
+.wipeArmed {
+  border: 1px solid var(--color-accent-text);
+  color: var(--color-accent-text);
+  width: auto;
+  padding: 0 var(--space-2);
+}
+
+.wipeAsk {
+  font: var(--weight-medium) var(--text-caption) var(--font-body);
+  white-space: nowrap;
 }

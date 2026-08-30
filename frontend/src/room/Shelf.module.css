@@ -1,0 +1,63 @@
+.shelf {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-5);
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-bg);
+  overflow-x: auto;
+}
+
+.item {
+  flex: 0 0 auto;
+  min-height: var(--control-height-sm);
+  padding: 0 var(--space-5);
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--color-border);
+  background: none;
+  color: var(--color-text);
+  font-size: var(--text-small);
+  font-weight: var(--weight-medium);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.item:hover {
+  border-color: var(--color-border-strong);
+}
+
+/* Что показывают сейчас — «идёт, всё хорошо», а не тревога: зелёная заливка
+   (ПРАВИЛА 11а, решение владельца 30.08). */
+.on {
+  background: var(--color-go-solid);
+  border-color: var(--color-go-solid);
+  color: var(--color-on-go);
+}
+
+.gap {
+  flex: 1 1 auto;
+  min-width: var(--space-4);
+}
+
+/* Приглушённая дверь: видно, названо, не нажимается, рядом сказано когда оживёт. */
+.door {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  min-height: var(--control-height-sm);
+  padding: 0 var(--space-4);
+  border-radius: var(--radius-pill);
+  border: 1px dashed var(--color-border);
+  color: var(--color-text-disabled);
+  font-size: var(--text-small);
+  white-space: nowrap;
+}
+
+.when {
+  flex: 0 0 auto;
+  padding-left: var(--space-2);
+  font: var(--weight-regular) var(--text-caption) var(--font-mono);
+  color: var(--color-text-hint);
+  white-space: nowrap;
+}
