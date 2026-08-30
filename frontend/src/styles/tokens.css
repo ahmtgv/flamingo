@@ -161,6 +161,9 @@
   /* Точка-индикатор: 6 px по всем листам («идёт сейчас», «в эфире», «второй экран»).
      Токен нужен не ради экономии, а чтобы `rawValues` не ловил её как голое значение. */
   --dot-size: 6px;
+  /* Пол высоты видеоплитки. Рама делит полосу поровну, но плитка не может стать волоском:
+     30 августа на боевом ряды сошлись в две полоски — ряд объявлен, высоты ему не дано. */
+  --tile-min-height: 112px;
   --color-border-on-video:     rgba(255, 255, 255, .22);
   --color-border-on-video-strong: rgba(255, 255, 255, .5);
   --color-surface-on-video:    rgba(255, 255, 255, .12);
@@ -173,6 +176,7 @@
   --color-success-on-video: var(--fl-success-300);
   --color-warning-on-video: var(--fl-warning-300);
   --color-error-on-video:   var(--fl-error-300);
+  --color-go-on-video:      var(--fl-moss-300);
   /* Коралловый текст на тёмном — та же ступень, что берёт `--color-accent-text` в тёмной теме. */
   --color-accent-on-video:  var(--fl-coral-300);
 
@@ -426,6 +430,7 @@
   --color-on-go:         var(--fl-white);
   --color-go-bg:         var(--fl-leaf-50);
   --color-go-border:     var(--fl-leaf-300);
+  --color-go-on-video:   var(--fl-leaf-300);
 }
 
 [data-theme="dark"][data-mode="kids"],
@@ -438,6 +443,7 @@
   --color-on-go:         #1d1d1f;
   --color-go-bg:         var(--fl-leaf-950);
   --color-go-border:     var(--fl-leaf-700);
+  --color-go-on-video:   var(--fl-leaf-300);
 }
 
 /* ------------------------------------------------------------

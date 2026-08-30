@@ -38,12 +38,14 @@
   border-color: var(--color-border-strong);
 }
 
-/* ПРАВИЛА 11.3 — уход берёт обводку, а не заливку. */
+/* ПРАВИЛА 11.3 — уход берёт обводку, а не заливку.
+   ПРАВИЛА 11а — и не коралловую: закончить урок это не аларм, а «сделано, идём дальше»
+   (утверждённый лист «Комната урока», решение владельца 30.08). */
 .leave {
   background: none;
-  border-color: var(--color-accent-text);
-  color: var(--color-accent-text);
+  border-color: var(--color-go-text);
+  color: var(--color-go-text);
 }
 .leave:hover:not(:disabled) {
-  background: var(--color-accent-subtle);
+  background: var(--color-go-bg);
 }

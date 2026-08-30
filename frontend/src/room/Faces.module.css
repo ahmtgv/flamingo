@@ -12,12 +12,18 @@
   overflow: hidden;
 }
 
+/* 🔴 Полоса лиц ДЕЛИТ высоту, а не наследует её от содержимого. Без `flex: 1 1 auto`
+   решётка берёт высоту по содержимому, `1fr` разрешается в max-content, а внутри плитки
+   нет ничего высокого — видео лежит absolute. 30 августа на боевом это дало две полоски
+   вместо превью. Пол `--tile-min-height` держит плитку, даже если рамы не хватило. */
 .tiles {
+  flex: 1 1 auto;
   display: grid;
-  grid-auto-rows: minmax(0, 1fr);
+  grid-auto-rows: minmax(var(--tile-min-height), 1fr);
   gap: var(--space-2);
   padding: var(--space-3);
   min-height: 0;
+  overflow-y: auto;
 }
 
 .tile {
@@ -32,8 +38,10 @@
   place-items: center;
 }
 
+/* Кто говорит — не аларм: обводка зелёная (правило владельца 30.08, ПРАВИЛА 11а).
+   Коралловый в комнате остаётся поднятой руке и отказу техники. */
 .speaking {
-  border-color: var(--color-accent);
+  border-color: var(--color-go-on-video);
 }
 
 .video {

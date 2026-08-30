@@ -42,12 +42,13 @@
   color: var(--color-text-detail);
 }
 
-/* ПРАВИЛА 4.10: точка состояния — значащая графика, свой порог 3,0. */
+/* ПРАВИЛА 4.10: точка состояния — значащая графика, свой порог 3,0.
+   ПРАВИЛА 11а: «идёт» — это не аларм, а «всё хорошо, идём дальше»: точка зелёная. */
 .dot {
   width: var(--dot-size);
   height: var(--dot-size);
   border-radius: var(--radius-pill);
-  background: var(--color-accent);
+  background: var(--color-go);
 }
 
 .stage {
