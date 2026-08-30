@@ -38,7 +38,7 @@ const bad = (reason, status = 400) =>
     status, headers: { 'Content-Type': 'application/json; charset=utf-8' },
   });
 
-export async function onRequestPost({ request, env }) {
+async function mint({ request, env }) {
   let body;
   try {
     body = await request.json();
@@ -80,6 +80,14 @@ export async function onRequestPost({ request, env }) {
   });
 }
 
-/* Ловящий все методы `onRequest` здесь НЕ объявляется нарочно: в Pages он перехватывает
-   и POST тоже, а вернуть из него «пропусти дальше» нельзя. Метод, которого нет,
-   Pages сам отдаёт как 405. */
+/* 🔴 Замер на предпросмотре 30.08: GET на этот путь отдавал 200 и HTML-страницу.
+   Ожидалось 405. Причина: Pages вызывает файл функции только если для метода есть
+   обработчик; для остальных методов путь проваливается в статику и ловится
+   SPA-правилом `/* /index.html 200` из `public/_redirects`. То есть служебный путь
+   врал: на запрос не тем методом он отвечал «всё хорошо» и присылал страницу.
+
+   Поэтому здесь один ловящий все методы `onRequest`, который сам разбирает метод. */
+export const onRequest = (ctx) =>
+  ctx.request.method === 'POST'
+    ? mint(ctx)
+    : bad('Этот путь отвечает только на POST.', 405);
