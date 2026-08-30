@@ -31,11 +31,11 @@ export function Enter({ invited, initialName, onGo }: Props) {
       <div className={s.card}>
         <Mark />
 
-        <h1 className={s.title}>{invited ? 'Вас ждут в комнате' : 'Комната на двоих'}</h1>
+        <h1 className={s.title}>{invited ? 'Вас ждут в комнате' : 'Занятие по ссылке'}</h1>
         <p className={s.lead}>
           {invited
             ? 'Назовитесь — и входите. Ни регистрации, ни установки.'
-            : 'Создайте комнату и отправьте ссылку второму. Ни регистрации, ни установки: видео, звук и общая доска.'}
+            : 'Техническая проба, а не продукт Flamingo: комната на двоих без аккаунтов. Что такое Flamingo v1 — docs/FLAMINGO-V1.md.'}
         </p>
 
         {invited ? <code className={s.code}>{invited}</code> : null}
