@@ -136,12 +136,26 @@ body{
 .note.topic{background:var(--color-surface-subtle); max-width:230px}
 .ink{position:absolute; inset:0; width:100%; height:100%}
 
-/* панель инструментов — плавает над холстом, как на листе дизайнера */
+/* Панель инструментов и пульт СПЯТ и просыпаются при наведении на свою зону
+   (решение владельца 30.08). Холст остаётся холстом, пока рука не пошла к панели.
+   Прячем не прозрачностью-в-полтона, а полностью: приглушённый пульт с текстом —
+   это нечитаемый текст, а не «тише». */
+.hot{position:absolute; z-index:2}
+.hot-left{left:0; top:0; bottom:0; width:var(--space-10)}
+.hot-bottom{left:0; right:0; bottom:0; height:var(--space-10)}
+
 .tools{
-  position:absolute; left:var(--space-4); top:50%; transform:translateY(-50%); z-index:3;
+  position:absolute; left:var(--space-4); top:50%; z-index:3;
   display:grid; gap:var(--space-1); padding:var(--space-2);
   background:var(--color-surface); border:1px solid var(--color-border);
   border-radius:var(--radius-md); box-shadow:var(--shadow-sm);
+  opacity:0; visibility:hidden; pointer-events:none;
+  transform:translate(calc(-1 * var(--space-4)),-50%);
+  transition:opacity 160ms cubic-bezier(.2,0,0,1), transform 160ms cubic-bezier(.2,0,0,1), visibility 160ms;
+}
+.hot-left:hover ~ .tools, .tools:hover,
+.boardpane.awake .tools, .frame[data-pults="always"] .tools{
+  opacity:1; visibility:visible; pointer-events:auto; transform:translate(0,-50%);
 }
 .tools button{
   width:var(--control-height-sm); height:var(--control-height-sm);
@@ -203,7 +217,20 @@ body{
   border:1px solid var(--color-border);
   background:color-mix(in oklab,var(--color-surface) 84%,transparent);
   backdrop-filter:blur(var(--nav-blur)); box-shadow:var(--shadow-md);
+  opacity:0; visibility:hidden; pointer-events:none;
+  transform:translateY(var(--space-3));
+  transition:opacity 160ms cubic-bezier(.2,0,0,1), transform 160ms cubic-bezier(.2,0,0,1), visibility 160ms;
 }
+.hot-bottom:hover ~ .pult, .pult:hover,
+.boardpane.awake .pult, .frame[data-pults="always"] .pult{
+  opacity:1; visibility:visible; pointer-events:auto; transform:translateY(0);
+}
+/* Верхняя строка спит вместе с ними: она такой же пульт, только сверху. */
+.top{
+  opacity:0; visibility:hidden;
+  transition:opacity 160ms cubic-bezier(.2,0,0,1), visibility 160ms;
+}
+.boardpane.awake .top, .top:hover, .frame[data-pults="always"] .top{opacity:1; visibility:visible}
 .pult button{
   min-height:var(--control-height-sm); white-space:nowrap; flex:none;
   font-size:var(--text-small); font-family:var(--font-body); color:var(--color-text);
@@ -317,6 +344,9 @@ body{
     <span class="lbl">кадр</span>
     <span class="grp" data-sw="w"><button data-val="1280">1280×800</button><button data-val="1512">1512×944</button></span>
 
+    <span class="lbl">пульты</span>
+    <span class="grp" data-sw="pults"><button data-val="wake">по наведению</button><button data-val="always">всегда видны</button></span>
+
     <span class="lbl">вид</span>
     <span class="grp" data-sw="theme"><button data-val="light">светлая</button><button data-val="dark">тёмная</button></span>
     <span class="grp" data-sw="kids"><button data-val="off">взрослый</button><button data-val="on">kids</button></span>
@@ -347,7 +377,8 @@ body{
           <b id="bmT"></b><p id="bmP"></p><span class="keys" id="bmK"></span>
         </div>
 
-        <div class="tools" role="toolbar" aria-label="Инструменты доски">
+        <div class="hot hot-left" aria-hidden="true"></div>
+        <div class="tools" id="tools" role="toolbar" aria-label="Инструменты доски">
           <button aria-pressed="true" aria-label="Выбрать" title="Выбрать">↖</button>
           <button aria-label="Перо" title="Перо">✎</button>
           <button aria-label="Текст" title="Текст">T</button>
@@ -368,6 +399,7 @@ body{
           <button class="win">отдельным окном ↗</button>
         </div>
 
+        <div class="hot hot-bottom" aria-hidden="true"></div>
         <div class="pult" id="pult">
           <button class="go" id="bStart">Начать урок</button>
           <button id="bMic">Микрофон</button>
@@ -375,11 +407,11 @@ body{
           <button id="bScreen">Показать экран</button>
           <button id="bAccess">Доска открыта ученикам</button>
           <button id="bHand">Поднять руку</button>
-          <span class="sep"></span>
-          <button class="plain">Участники</button>
-          <button class="plain">Словарь</button>
-          <button class="plain door" aria-disabled="true" tabindex="-1">Материалы</button>
-          <button class="plain">Чат</button>
+          <span class="sep" id="pSep"></span>
+          <button class="plain" id="bPeople">Участники</button>
+          <button class="plain" id="bDict">Словарь</button>
+          <button class="plain door" id="bMats" aria-disabled="true" tabindex="-1">Материалы</button>
+          <button class="plain" id="bChat">Чат</button>
           <button class="leave" id="bLeave">Завершить урок</button>
         </div>
       </div>
@@ -404,9 +436,14 @@ body{
       Работают: чат, показ экрана, «отдельным окном». Полоса переключателей сверху —
       служебная, в продукте её нет.</p>
     <ul>
-      <li><b>Что не решено и я не решал:</b> <code>ПРАВИЛА 3.10</code> велят держать панель
-        инструментов и пульт в раме, а не над холстом. На листах дизайнера они плавают —
-        нарисовано как на листах.</li>
+      <li><b>Пульты спят.</b> Панель инструментов, верхняя строка и нижний пульт скрыты
+        и просыпаются, когда рука идёт к своей зоне, — и засыпают через 2,5 секунды покоя.
+        Холст остаётся холстом. Переключатель «пульты» в служебной полосе показывает оба
+        состояния сразу.</li>
+      <li><b>У ученика экран легче.</b> Ему не показываются выбор окна, «отдельным окном»,
+        список участников и «Материалы»; панель инструментов появляется, только пока
+        учитель держит доску открытой. Остаётся то, ради чего он пришёл: доска, лица,
+        микрофон, камера, рука, словарь, чат. Переключи роль и сравни.</li>
       <li><b>Чего тут ещё нет:</b> состояние «идёт показ экрана» и экран «Словарь» —
         их надо рисовать, они в очереди.</li>
     </ul>
@@ -415,7 +452,9 @@ body{
 
 <script>
 (function(){
-  var S = { role:'teacher', count:20, phase:'live', st:'filled', w:'1280', theme:'light', kids:'off' };
+  var S = { role:'teacher', count:20, phase:'live', st:'filled', w:'1280',
+            theme:'light', kids:'off', pults:'wake' };
+  var boardOpen = true;   // учитель открыл доску ученикам
 
   var NAMES = ['Аня Коваль','Петя Смирнов','Лиза Ким','Марк Т.','Соня В.','Илья Р.','Даша Н.','Тимур А.',
                'Вера С.','Гоша П.','Ника Л.','Рома Ж.','Юля Б.','Артём К.','Майя Д.','Лев Ф.',
@@ -447,6 +486,7 @@ body{
     root.setAttribute('data-theme', S.theme);
     if (S.kids === 'on') root.setAttribute('data-mode','kids'); else root.removeAttribute('data-mode');
     f.setAttribute('data-w', S.w);
+    f.setAttribute('data-pults', S.pults);
 
     var teacher = S.role === 'teacher',
         before  = S.phase === 'before', live = S.phase === 'live', after = S.phase === 'after',
@@ -463,11 +503,22 @@ body{
     document.getElementById('liveLabel').textContent = lbl;
     document.getElementById('live').className = 'live' + (live && !failed && !loading ? '' : ' calm');
 
+    // ── у ученика экран легче: он в основном смотрит то, что показывает учитель ──
+    // (решение владельца 30.08). Ученику не нужны выбор окна, второе окно, список
+    // участников и управление классом — они и есть та лишняя нагрузка.
+    document.querySelector('.shelf').hidden   = !teacher;
+    document.querySelector('.doorwhy').hidden = !teacher;
+    document.querySelector('.top .win').hidden = !teacher;
+    document.getElementById('tools').hidden   = !(teacher || boardOpen);
+
     // ── пульт ──
     document.getElementById('bStart').hidden  = !(before && teacher);
     document.getElementById('bScreen').hidden = !(live && teacher);
     document.getElementById('bAccess').hidden = !teacher;
+    document.getElementById('bAccess').textContent = boardOpen ? 'Доска открыта ученикам' : 'Доска закрыта ученикам';
     document.getElementById('bHand').hidden   = !(live && !teacher);
+    document.getElementById('bPeople').hidden = !teacher;
+    document.getElementById('bMats').hidden   = !teacher;
     document.getElementById('bLeave').textContent =
       before ? (teacher ? 'Закрыть комнату' : 'Выйти') : after ? 'Выйти' : teacher ? 'Завершить урок' : 'Выйти';
 
@@ -543,8 +594,22 @@ body{
     var b = e.target.closest('button'); if (!b || b.getAttribute('aria-disabled')) return;
     if (b.id === 'bMic')    b.textContent = b.textContent === 'Микрофон' ? 'Микрофон выключен' : 'Микрофон';
     if (b.id === 'bCam')    b.textContent = b.textContent === 'Камера' ? 'Камера выключена' : 'Камера';
-    if (b.id === 'bAccess') b.textContent = b.textContent.indexOf('открыта') > 0 ? 'Доска закрыта ученикам' : 'Доска открыта ученикам';
+    if (b.id === 'bAccess'){ boardOpen = !boardOpen; apply(); }
   });
+
+  // Пульты просыпаются от движения руки и снова засыпают. Наведение на свою зону
+  // держит их открытыми — это в CSS, здесь только общее пробуждение.
+  (function(){
+    var pane = document.getElementById('boardpane'), t = null;
+    function wake(){
+      pane.classList.add('awake');
+      clearTimeout(t);
+      t = setTimeout(function(){ pane.classList.remove('awake'); }, 2500);
+    }
+    pane.addEventListener('pointermove', wake);
+    pane.addEventListener('pointerdown', wake);
+    wake();
+  })();
 
   document.querySelector('.tools').addEventListener('click', function(e){
     var b = e.target.closest('button'); if (!b) return;
