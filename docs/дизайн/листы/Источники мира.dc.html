@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="tokens.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  html, body { height: 100%; overflow: hidden; }
+  a { color: var(--color-link); text-decoration: none; }
+  a:hover { color: var(--color-accent-text); }
+</style>
+</helmet>
+<div ref="{{ setRoot }}" data-theme="{{ theme }}" data-mode="{{ mode }}" style="height: 100vh; display: grid; grid-template-rows: auto minmax(0, 1fr); background: var(--color-bg); color: var(--color-text); font-family: var(--font-body); overflow: hidden;">
+
+  <div style="display: flex; align-items: center; gap: var(--space-2); padding: var(--space-3) var(--space-4); border-bottom: 1px solid var(--color-border); flex-wrap: wrap;">
+    <span style="font: 500 11px var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .08em; text-transform: uppercase;">состояние</span>
+    <button data-sw="st" data-val="filled" onClick="{{ onSw }}" style="font: 500 12px var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer; white-space: nowrap;">наполнено</button>
+    <button data-sw="st" data-val="partial" onClick="{{ onSw }}" style="font: 500 12px var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer; white-space: nowrap;">частичный</button>
+    <button data-sw="st" data-val="empty" onClick="{{ onSw }}" style="font: 500 12px var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer; white-space: nowrap;">пусто</button>
+    <button data-sw="st" data-val="loading" onClick="{{ onSw }}" style="font: 500 12px var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer; white-space: nowrap;">загружается</button>
+    <button data-sw="st" data-val="failed" onClick="{{ onSw }}" style="font: 500 12px var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer; white-space: nowrap;">отказ</button>
+
+    <span style="font: 500 11px var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .08em; text-transform: uppercase; margin-left: var(--space-4);">кадр</span>
+    <button data-sw="w" data-val="1280" onClick="{{ onSw }}" style="font: 500 12px var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer; white-space: nowrap;">1280×800</button>
+    <button data-sw="w" data-val="1512" onClick="{{ onSw }}" style="font: 500 12px var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer; white-space: nowrap;">1512×944</button>
+
+    <span style="margin-left: auto; display: flex; gap: var(--space-2); align-items: center;">
+      <span data-scroll-probe style="font: 400 11px var(--font-mono); color: var(--color-text-tertiary); white-space: nowrap;">прокрутка страницы: 0 px</span>
+      <button data-sw="mode" data-val="toggle" onClick="{{ onSw }}" style="font: 500 12px var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer; white-space: nowrap;">7–11</button>
+      <button data-sw="theme" data-val="toggle" onClick="{{ onSw }}" style="font: 500 12px var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer; white-space: nowrap;">тема</button>
+    </span>
+  </div>
+
+  <div ref="{{ setHost }}" style="display: grid; place-items: center; overflow: hidden; min-height: 0;">
+    <div data-audit-scope ref="{{ setFrame }}" style="width: 1280px; height: 800px; position: relative; border-radius: var(--radius-card); overflow: hidden; background: var(--color-bg); box-shadow: var(--shadow-lg); border: 1px solid var(--color-border); display: grid; grid-template-rows: auto minmax(0, 1fr);">
+
+      <div style="display: flex; align-items: center; gap: var(--space-4); padding: 0 var(--space-6); height: 64px; border-bottom: 1px solid var(--color-border); background: var(--color-surface);">
+        <a href="Первая страница.dc.html" style="display: flex; align-items: center; gap: var(--space-2); min-height: var(--tap-min); color: var(--color-text);" style-hover="color: var(--color-accent-text);">
+          <span style="font: 400 18px var(--font-mono);">‹</span>
+          <span style="font-size: var(--text-small);">Flamingo</span>
+        </a>
+        <span style="font: 400 12px var(--font-mono); color: var(--color-text-tertiary);">источники мира</span>
+        <a href="Каталог и курс.dc.html" style="margin-left: auto; display: flex; align-items: center; min-height: var(--control-height-md); font-size: var(--text-small); color: var(--color-text); border: 1px solid var(--color-border); border-radius: var(--radius-control); padding: 0 var(--space-4); white-space: nowrap;" style-hover="border-color: var(--color-border-strong);">Курсы</a>
+      </div>
+
+      <div data-body style="min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr) 344px; gap: var(--space-5); padding: var(--space-5) var(--space-5) var(--space-5) var(--space-5);">
+
+        <div style="min-height: 0; display: grid; grid-template-rows: auto auto minmax(0, 1fr); gap: var(--space-4);">
+
+          <div data-geo="src-head" style="display: grid; gap: var(--space-2);">
+            <span style="display: flex; align-items: baseline; gap: var(--space-3); flex-wrap: nowrap;">
+              <span style="font-family: var(--font-heading); font-size: var(--text-h1); font-weight: 600; letter-spacing: var(--tracking-tight); white-space: nowrap;">Источники мира</span>
+              <span style="font: 400 12px var(--font-mono); color: var(--color-text-tertiary); min-width: 0;">{{ headMeta }}</span>
+            </span>
+            <span style="font-size: var(--text-small); color: var(--color-text-secondary); line-height: var(--leading-snug); max-width: 88ch; text-wrap: pretty;">Каждый источник проверен руками: что он даёт, что с ним можно сделать и что будет, если он замолчит. Право написано словами — его читает ученик, а не только юрист.</span>
+          </div>
+
+          <div data-wrap-ok style="display: flex; align-items: center; gap: var(--space-2); flex-wrap: wrap;">
+            <sc-for list="{{ filters }}" as="f" hint-placeholder-count="6">
+              <button data-sw="filter" data-val="{{ f.id }}" onClick="{{ onSw }}" style="min-height: var(--control-height-sm); padding: 0 var(--space-3); font: 500 12px var(--font-mono); color: var(--color-text-secondary); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); cursor: pointer; white-space: nowrap;">{{ f.label }}</button>
+            </sc-for>
+          </div>
+
+          <sc-if value="{{ showList }}" hint-placeholder-val="{{ true }}">
+            <div data-list style="min-height: 0; overflow: auto; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-4); align-content: start; padding-inline-end: var(--space-1);">
+              <sc-if value="{{ partial }}" hint-placeholder-val="{{ false }}">
+                <div style="grid-column: 1 / -1; display: grid; gap: var(--space-2); padding: var(--space-4) var(--space-5); border: 1px solid var(--color-border); border-inline-start: 2px solid var(--color-border-strong); border-radius: var(--radius-card); background: var(--color-surface-subtle);">
+                  <span style="font: 500 11px var(--font-mono); color: var(--color-text-secondary); letter-spacing: .08em; text-transform: uppercase;">частичный отказ · опрос источников</span>
+                  <span style="font-size: var(--text-small); font-weight: 500;">Ответили 27 источников из 36. Остальные девять отмечены в списке</span>
+                  <span style="display: grid; gap: 2px; font: 400 11px var(--font-mono); color: var(--color-text-secondary); line-height: var(--leading-snug);">
+                    <span>работает: поиск · право · вставка в курс · 27 источников</span>
+                    <span>не работает: опрос девяти источников — они помечены «молчит»</span>
+                    <span>с данными: последняя удачная проверка 19 августа, 09:40 — она и показана</span>
+                  </span>
+                </div>
+              </sc-if>
+
+              <sc-for list="{{ sources }}" as="s" hint-placeholder-count="12">
+                <button data-src="{{ s.id }}" onClick="{{ onPick }}" style="display: grid; gap: var(--space-3); align-content: start; text-align: start; min-height: 132px; padding: var(--space-4); border: 1px solid {{ s.border }}; border-inline-start: 2px solid {{ s.stripe }}; border-radius: var(--radius-card); background: var(--color-surface); cursor: pointer; font-family: var(--font-body);" style-hover="border-color: var(--color-border-strong);">
+                  <span style="display: grid; gap: var(--space-1); min-width: 0;">
+                    <span style="font: 500 10px var(--font-mono); color: var(--color-text-secondary); letter-spacing: .08em; text-transform: uppercase;">{{ s.kind }}</span>
+                    <span style="font-size: var(--text-body); font-weight: 500; color: var(--color-text); line-height: var(--leading-snug); text-wrap: pretty;">{{ s.name }}</span>
+                    <span style="font-size: var(--text-caption); color: var(--color-text-secondary); line-height: var(--leading-snug); text-wrap: pretty;">{{ s.gives }}</span>
+                  </span>
+                  <span style="display: grid; gap: var(--space-1); border-top: 1px solid var(--color-border); padding-top: var(--space-2);">
+                    <span style="font: 400 11px var(--font-mono); color: var(--color-text-secondary); line-height: var(--leading-snug);">{{ s.right }}</span>
+                    <span style="font: 400 11px var(--font-mono); color: {{ s.stateColor }};">{{ s.state }}</span>
+                  </span>
+                </button>
+              </sc-for>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ showEmpty }}" hint-placeholder-val="{{ false }}">
+            <div style="min-height: 0; display: grid; align-content: start; gap: var(--space-4); padding: var(--space-6); border: 1px solid var(--color-border); border-radius: var(--radius-card); background: var(--color-surface);">
+              <span style="font: 500 11px var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .08em; text-transform: uppercase;">пусто · по этому отбору</span>
+              <span style="font-family: var(--font-heading); font-size: var(--text-h2); font-weight: 600; letter-spacing: var(--tracking-snug);">Живых трансляций с правом «брать в свою работу» нет</span>
+              <span style="font-size: var(--text-small); color: var(--color-text-secondary); line-height: var(--leading-body); max-width: 70ch; text-wrap: pretty;">И это не сбой отбора: трансляцию нельзя забрать себе — она идёт сейчас и принадлежит тому, кто её ведёт. Такие источники можно показывать классу внутри урока, и это написано у каждого из них.</span>
+              <button data-sw="filter" data-val="all" onClick="{{ onSw }}" style="justify-self: start; min-height: var(--tap-min); padding: 0 var(--space-5); font-size: var(--text-small); font-family: var(--font-body); color: var(--color-on-accent); background: var(--color-accent-solid); border: none; border-radius: var(--radius-control); cursor: pointer; white-space: nowrap;" style-hover="background: var(--color-accent-solid-hover);">Показать все 36 источников</button>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ showLoading }}" hint-placeholder-val="{{ false }}">
+            <div style="min-height: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-4); align-content: start;">
+              <span style="grid-column: 1 / -1; font: 400 12px var(--font-mono); color: var(--color-text-tertiary);">опрашиваем источники · первыми придут те, что уже отвечали сегодня</span>
+              <sc-for list="{{ skeleton }}" as="sk" hint-placeholder-count="9">
+                <span style="display: grid; gap: var(--space-3); align-content: start; min-height: 132px; padding: var(--space-4); border: 1px solid var(--color-border); border-radius: var(--radius-card); background: var(--color-surface);">
+                  <span style="display: grid; gap: var(--space-2);">
+                    <span style="height: 10px; width: 38%; border-radius: 2px; background: var(--color-surface-subtle);"></span>
+                    <span style="height: 15px; width: {{ sk.a }}; border-radius: 2px; background: var(--color-surface-subtle);"></span>
+                    <span style="height: 11px; width: {{ sk.b }}; border-radius: 2px; background: var(--color-surface-subtle);"></span>
+                  </span>
+                  <span style="display: grid; gap: var(--space-2); border-top: 1px solid var(--color-border); padding-top: var(--space-2);">
+                    <span style="height: 10px; width: 62%; border-radius: 2px; background: var(--color-surface-subtle);"></span>
+                    <span style="height: 10px; width: 44%; border-radius: 2px; background: var(--color-surface-subtle);"></span>
+                  </span>
+                </span>
+              </sc-for>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ showFailed }}" hint-placeholder-val="{{ false }}">
+            <div style="min-height: 0; display: grid; align-content: start; gap: var(--space-4); padding: var(--space-6); border: 1px solid var(--color-border); border-radius: var(--radius-card); background: var(--color-surface);">
+              <span style="font: 500 11px var(--font-mono); color: var(--color-error-text); letter-spacing: .08em; text-transform: uppercase;">отказ · наш собственный список</span>
+              <span style="font-family: var(--font-heading); font-size: var(--text-h2); font-weight: 600; letter-spacing: var(--tracking-snug);">Список источников не пришёл с нашего сервера</span>
+              <span style="font-size: var(--text-small); color: var(--color-text-secondary); line-height: var(--leading-body); max-width: 70ch; text-wrap: pretty;">Молчат не источники, а наш каталог: показать нечего, потому что мы не знаем, что показывать. Источники, уже вставленные в ваши курсы, работают — они не зависят от этого экрана.</span>
+              <span style="display: grid; gap: var(--space-2); padding-inline-start: var(--space-3); border-inline-start: 2px solid var(--color-border-strong); font: 400 11px var(--font-mono); color: var(--color-text-secondary); line-height: var(--leading-snug);">
+                <span>работает: источники внутри курсов и уроков</span>
+                <span>не работает: этот каталог и поиск по нему</span>
+                <span>с данными: ничего не потеряно, права и проверки на сервере</span>
+              </span>
+              <span style="display: flex; gap: var(--space-2); flex-wrap: wrap;">
+                <button onClick="{{ noop }}" style="min-height: var(--tap-min); padding: 0 var(--space-5); font-size: var(--text-small); font-family: var(--font-body); color: var(--color-on-accent); background: var(--color-accent-solid); border: none; border-radius: var(--radius-control); cursor: pointer; white-space: nowrap;" style-hover="background: var(--color-accent-solid-hover);">Загрузить список снова</button>
+                <a href="Каталог и курс.dc.html" style="display: flex; align-items: center; min-height: var(--tap-min); padding: 0 var(--space-5); font-size: var(--text-small); color: var(--color-text); border: 1px solid var(--color-border); border-radius: var(--radius-control); white-space: nowrap;" style-hover="border-color: var(--color-border-strong);">Открыть свои курсы</a>
+              </span>
+            </div>
+          </sc-if>
+        </div>
+
+        <div data-geo="src-rail" style="min-height: 0; display: grid; grid-template-rows: auto minmax(0, 1fr); gap: var(--space-4);">
+
+          <div style="display: grid; gap: var(--space-3); padding: var(--space-4) var(--space-5); border: 1px solid var(--color-border); border-radius: var(--radius-card); background: var(--color-surface);">
+            <span style="font: 500 11px var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .08em; text-transform: uppercase;">проверка</span>
+            <sc-for list="{{ stats }}" as="n" hint-placeholder-count="3">
+              <span style="display: flex; align-items: baseline; gap: var(--space-3);">
+                <span style="font: 500 15px var(--font-mono); color: var(--color-text); min-width: 56px;">{{ n.value }}</span>
+                <span style="font-size: var(--text-caption); color: var(--color-text-secondary); line-height: var(--leading-snug); text-wrap: pretty;">{{ n.label }}</span>
+              </span>
+            </sc-for>
+          </div>
+
+          <div style="min-height: 0; display: grid; grid-template-rows: auto minmax(0, 1fr) auto; gap: var(--space-4); padding: var(--space-5); border: 1px solid var(--color-border); border-radius: var(--radius-card); background: var(--color-surface);">
+            <span style="display: grid; gap: var(--space-2);">
+              <span style="font: 500 11px var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .08em; text-transform: uppercase;">{{ pick.kind }}</span>
+              <span style="font-family: var(--font-heading); font-size: var(--text-h3); font-weight: 600; letter-spacing: var(--tracking-snug); line-height: var(--leading-heading); text-wrap: pretty;">{{ pick.name }}</span>
+              <span style="font-size: var(--text-caption); color: var(--color-text-secondary); line-height: var(--leading-snug); text-wrap: pretty;">{{ pick.gives }}</span>
+            </span>
+
+            <span style="display: grid; gap: var(--space-3); align-content: start; min-height: 0;">
+              <span style="display: grid; gap: var(--space-2); padding-inline-start: var(--space-3); border-inline-start: 2px solid var(--color-border-strong);">
+                <span style="font: 500 11px var(--font-mono); color: var(--color-text); letter-spacing: .06em; text-transform: uppercase;">право словами</span>
+                <span style="font: 400 11px var(--font-mono); color: var(--color-text-secondary); line-height: var(--leading-snug);">{{ pick.can }}</span>
+                <span style="font: 400 11px var(--font-mono); color: var(--color-text-secondary); line-height: var(--leading-snug);">{{ pick.cant }}</span>
+              </span>
+              <span style="display: grid; gap: var(--space-2); padding-inline-start: var(--space-3); border-inline-start: 2px solid var(--color-border-strong);">
+                <span style="font: 500 11px var(--font-mono); color: var(--color-text); letter-spacing: .06em; text-transform: uppercase;">если замолчит</span>
+                <span style="font: 400 11px var(--font-mono); color: var(--color-text-secondary); line-height: var(--leading-snug);">{{ pick.silence }}</span>
+              </span>
+              <span style="display: grid; gap: var(--space-1);">
+                <span style="font: 400 11px var(--font-mono); color: var(--color-go-text);">{{ pick.checked }}</span>
+                <span style="font: 400 11px var(--font-mono); color: var(--color-text-tertiary);">{{ pick.who }}</span>
+              </span>
+            </span>
+
+            <span style="display: grid; gap: var(--space-2);">
+              <sc-if value="{{ goPrimary }}" hint-placeholder-val="{{ true }}">
+                <button onClick="{{ noop }}" style="min-height: var(--tap-min); font-size: var(--text-small); font-family: var(--font-body); font-weight: 500; color: var(--color-on-go); background: var(--color-go-solid); border: none; border-radius: var(--radius-control); cursor: pointer; white-space: nowrap;" style-hover="background: var(--color-go-solid-hover);">Вставить в свой курс</button>
+              </sc-if>
+              <sc-if value="{{ flatPrimary }}" hint-placeholder-val="{{ false }}">
+                <button onClick="{{ noop }}" style="min-height: var(--tap-min); font-size: var(--text-small); font-family: var(--font-body); font-weight: 500; color: var(--color-go-text); background: none; border: 1px solid var(--color-go-border); border-radius: var(--radius-control); cursor: pointer; white-space: nowrap;" style-hover="border-color: var(--color-go-line);">Вставить в свой курс</button>
+              </sc-if>
+              <button onClick="{{ noop }}" style="min-height: var(--control-height-sm); font-size: var(--text-caption); font-family: var(--font-body); color: var(--color-text); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-control); cursor: pointer; white-space: nowrap;" style-hover="border-color: var(--color-border-strong);">Посмотреть, как это выглядит на уроке</button>
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;: {&quot;width&quot;: 1400, &quot;height&quot;: 900}}">
+class Component extends DCLogic {
+  // «Источники мира» — витрина честности, а не каталог ссылок. Экран отвечает на три вопроса
+  // про каждый источник, и все три — словами: что он даёт, что с ним можно сделать, что будет,
+  // если он замолчит. Право — не значок лицензии: значок читает юрист, а показывать классу
+  // будет семиклассник (ПРАВИЛА 8.9).
+  // Экран собирается из ДВУХ независимых источников — наш каталог и опрос самих источников,
+  // поэтому частичный отказ обязателен (ПРАВИЛА 6.5б): каталог пришёл, опрос — не весь.
+  state = { st: 'filled', w: 1280, filter: 'all', pick: 'apod', theme: 'light', mode: 'default' };
+
+  componentDidMount() {
+    this.onResize = () => this.fit();
+    window.addEventListener('resize', this.onResize);
+    this.settle();
+    this.probe = setInterval(() => {
+      const el = this.root && this.root.querySelector('[data-scroll-probe]');
+      if (el) el.textContent = 'прокрутка страницы: ' + Math.max(0, document.documentElement.scrollHeight - window.innerHeight) + ' px';
+    }, 1000);
+  }
+  componentDidUpdate() { this.settle(); }
+  componentWillUnmount() { window.removeEventListener('resize', this.onResize); clearInterval(this.probe); }
+
+  settle() { this.fit(); this.applyChrome(); requestAnimationFrame(() => this.fit()); }
+
+  fit() {
+    const host = this.host, f = this.frame;
+    if (!host || !f) return;
+    const W = this.state.w, H = this.state.w === 1280 ? 800 : 944;
+    const s = Math.min(1, (host.clientWidth - 40) / W, (host.clientHeight - 40) / H);
+    host.style.position = 'relative';
+    f.style.position = 'absolute';
+    f.style.left = '50%'; f.style.top = '50%';
+    f.style.width = W + 'px'; f.style.height = H + 'px';
+    f.style.transform = 'translate(-50%, -50%) scale(' + s.toFixed(4) + ')';
+  }
+
+  applyChrome() {
+    const root = this.root; if (!root) return;
+    const cur = { st: this.state.st, w: String(this.state.w), filter: this.state.filter };
+    root.querySelectorAll('[data-sw]').forEach((b) => {
+      const k = b.dataset.sw, v = b.dataset.val;
+      if (!(k in cur)) return;
+      const on = cur[k] === v;
+      b.style.color = on ? 'var(--color-text)' : 'var(--color-text-secondary)';
+      b.style.borderColor = on ? 'var(--color-border-strong)' : 'var(--color-border)';
+      b.style.background = on ? 'var(--color-surface)' : 'none';
+    });
+    // ПРАВИЛА 3.4–3.5: рельс не тянется, а список получает четвёртую колонку на 1512
+    const list = root.querySelector('[data-list]');
+    if (list) list.style.gridTemplateColumns = 'repeat(' + (this.state.w >= 1512 ? 4 : 3) + ', minmax(0, 1fr))';
+    // выбранная карточка — сильная рамка, а не акцентная (ПРАВИЛА 3.2, 5.2)
+    root.querySelectorAll('[data-src]').forEach((b) => {
+      const on = b.dataset.src === this.state.pick;
+      b.style.borderColor = on ? 'var(--color-border-strong)' : 'var(--color-border)';
+      b.style.background = on ? 'var(--color-surface-subtle)' : 'var(--color-surface)';
+    });
+  }
+
+  onSw = (e) => {
+    const { sw, val } = e.currentTarget.dataset;
+    if (sw === 'theme') return this.setState((s) => ({ theme: s.theme === 'dark' ? 'light' : 'dark' }));
+    if (sw === 'mode') return this.setState((s) => ({ mode: s.mode === 'kids' ? 'default' : 'kids' }));
+    if (sw === 'filter') return this.setState({ filter: val, st: 'filled' });
+    this.setState({ [sw]: val });
+  };
+
+  onPick = (e) => this.setState({ pick: e.currentTarget.dataset.src });
+
+  // Право — четыре человеческие формулировки, а не четыре названия лицензий.
+  RIGHTS = {
+    own:  { short: 'можно брать в свою работу', can: 'можно: показывать, скачивать, вставлять в свою работу и публиковать её', cant: 'нельзя: выдавать за своё — источник называется рядом' },
+    attr: { short: 'можно, если назвать автора', can: 'можно: показывать и вставлять в работу, назвав автора и источник', cant: 'нельзя: продавать и убирать имя автора' },
+    show: { short: 'можно показывать классу', can: 'можно: открыть на уроке и на проекторе, читать вслух', cant: 'нельзя: копировать в свою работу и раздавать файлом' },
+    live: { short: 'только внутри урока, копий не остаётся', can: 'можно: вывести живой поток классу на время урока', cant: 'нельзя: записывать и пересматривать — записей у нас нет вообще' },
+  };
+
+  DATA = [
+    ['apod', 'снимки', 'NASA · снимок дня', 'Один астрономический снимок в сутки с объяснением на английском', 'own', 'ok'],
+    ['hubble', 'снимки', 'Телескоп «Хаббл» · архив', 'Тридцать лет снимков галактик, туманностей и планет', 'own', 'ok'],
+    ['jwst', 'снимки', 'Телескоп «Джеймс Уэбб»', 'Инфракрасные снимки: видно то, что не видно в обычный свет', 'own', 'ok'],
+    ['sdo', 'данные', 'NASA SDO · Солнце', 'Снимок Солнца каждые 12 секунд, десять длин волн', 'own', 'ok'],
+    ['earth', 'карты', 'NASA Earthdata', 'Спутниковые снимки Земли: пожары, лёд, облака, растительность', 'own', 'ok'],
+    ['iss', 'трансляции', 'МКС · внешняя камера', 'Живой вид Земли со станции, звук отсутствует', 'live', 'live'],
+    ['esa', 'снимки', 'ESA · Европейское космическое агентство', 'Снимки миссий и Земли из космоса, подписи на английском', 'attr', 'ok'],
+    ['eso', 'снимки', 'ESO · южная обсерватория', 'Снимки Чили: Млечный Путь, экзопланеты, телескопы', 'attr', 'ok'],
+    ['lapalma', 'трансляции', 'Обсерватория Ла-Пальма', 'Живая картинка с площадки телескопов, задержка около 8 секунд', 'live', 'live'],
+    ['noaa', 'данные', 'NOAA · погода и океан', 'Температура, ветер, ураганы — числа и карты за 40 лет', 'own', 'ok'],
+    ['usgs', 'данные', 'USGS · землетрясения', 'Все землетрясения мира, обновление каждые пять минут', 'own', 'ok'],
+    ['kvert', 'трансляции', 'Камчатка · камеры на вулканах', 'Живая картинка с вулканов, ночью почти ничего не видно', 'live', 'down'],
+    ['met', 'снимки', 'Метрополитен-музей · открытая коллекция', '490 тысяч изображений вещей и картин', 'own', 'ok'],
+    ['rijks', 'снимки', 'Рейксмузеум', 'Голландская живопись в очень высоком разрешении', 'own', 'ok'],
+    ['smith', 'снимки', 'Смитсоновский институт', 'Три миллиона предметов: от насекомых до самолётов', 'own', 'ok'],
+    ['loc', 'книги', 'Библиотека Конгресса', 'Карты, фотографии, газеты, звукозаписи XIX–XX веков', 'own', 'ok'],
+    ['gallica', 'книги', 'Gallica · Национальная библиотека Франции', 'Рукописи, атласы и газеты, оцифрованные страницами', 'show', 'ok'],
+    ['bl', 'книги', 'Британская библиотека', 'Средневековые рукописи и первые печатные книги', 'show', 'ok'],
+    ['bodleian', 'книги', 'Бодлианская библиотека', 'Оксфордские собрания: наука и география до XIX века', 'show', 'ok'],
+    ['cambridge', 'книги', 'Кембриджская цифровая библиотека', 'Тетради Ньютона его почерком, страница за страницей', 'show', 'down'],
+    ['gutenberg', 'книги', 'Проект «Гутенберг»', '70 тысяч книг, у которых кончился срок охраны', 'own', 'ok'],
+    ['archive', 'книги', 'Интернет-архив', 'Книги, звук, старое видео и копии исчезнувших сайтов', 'attr', 'ok'],
+    ['europeana', 'книги', 'Europeana', 'Собрания музеев и архивов Европы в одном поиске', 'attr', 'down'],
+    ['wiki', 'снимки', 'Викисклад', 'Сто миллионов файлов, право у каждого своё и указано', 'attr', 'ok'],
+    ['rumsey', 'карты', 'Карты Дэвида Румзи', 'Сто тысяч старых карт, наложенных на современную Землю', 'attr', 'ok'],
+    ['osm', 'карты', 'OpenStreetMap', 'Карта мира, которую можно разобрать на слои и данные', 'attr', 'ok'],
+    ['gbif', 'данные', 'GBIF · биоразнообразие', 'Где и когда каких животных и растений видели — два миллиарда записей', 'own', 'ok'],
+    ['inat', 'снимки', 'iNaturalist', 'Фотографии живого, снятые людьми и определённые сообществом', 'attr', 'ok'],
+    ['eol', 'книги', 'Энциклопедия жизни', 'Статья на каждый известный вид, с фотографиями', 'attr', 'down'],
+    ['pdb', 'данные', 'Банк белковых структур', 'Трёхмерные модели белков и вирусов, можно вертеть', 'own', 'ok'],
+    ['cern', 'данные', 'CERN · открытые данные', 'Настоящие данные столкновений частиц и инструменты к ним', 'own', 'down'],
+    ['arxiv', 'книги', 'arXiv', 'Свежие научные статьи по физике и математике до журнала', 'show', 'ok'],
+    ['pmc', 'книги', 'PubMed Central', 'Медицинские и биологические статьи в открытом доступе', 'show', 'down'],
+    ['wb', 'данные', 'Всемирный банк · открытые данные', 'Население, доходы, электричество — по странам и годам', 'own', 'ok'],
+    ['owid', 'данные', 'Our World in Data', 'Готовые графики по климату, здоровью, энергии с источниками', 'attr', 'ok'],
+    ['eurostat', 'данные', 'Eurostat', 'Статистика Европы: цены, работа, транспорт, учёба', 'own', 'down'],
+  ];
+
+  renderVals() {
+    const s = this.state;
+    const R = this.RIGHTS;
+    const partial = s.st === 'partial';
+
+    const states = {
+      ok:   { text: 'отвечает · проверено 19 августа', color: 'var(--color-go-text)', stripe: 'var(--color-go-line)' },
+      live: { text: 'идёт трансляция · звука нет', color: 'var(--color-accent-text)', stripe: 'var(--color-accent-solid)' },
+      down: { text: 'молчит с 09:40 · показываем последнюю проверку', color: 'var(--color-text-tertiary)', stripe: 'var(--color-border-strong)' },
+    };
+
+    const all = this.DATA.map((d) => {
+      const st = partial ? d[5] : (d[5] === 'down' ? 'ok' : d[5]);
+      return {
+        id: d[0], kind: d[1], name: d[2], gives: d[3], rightKey: d[4],
+        right: R[d[4]].short,
+        state: states[st].text, stateColor: states[st].color, stripe: states[st].stripe,
+        border: 'var(--color-border)',
+      };
+    });
+
+    const list = s.filter === 'all' ? all : all.filter((x) => x.kind === s.filter);
+    const picked = all.find((x) => x.id === s.pick) || all[0];
+    const pr = R[picked.rightKey];
+
+    const silence = {
+      live: 'экран скажет словами «источник замолчал» и предложит вернуться к доске — чёрного экрана класс не увидит',
+      own:  'останется наша копия снимка, вставленная в курс: урок не сломается',
+      attr: 'останется наша копия с именем автора, урок не сломается',
+      show: 'страница не откроется, но у вас останется своя выписка из неё',
+    }[picked.rightKey];
+
+    return {
+      setRoot: (el) => { this.root = el; },
+      setHost: (el) => { this.host = el; },
+      setFrame: (el) => { this.frame = el; },
+      theme: s.theme === 'dark' ? 'dark' : 'light',
+      mode: s.mode === 'kids' ? 'kids' : 'default',
+
+      headMeta: partial
+        ? '36 источников · 27 ответили · проверка 19 августа, 09:40'
+        : '36 источников · все ответили · проверка 19 августа, 09:40',
+
+      filters: [
+        { id: 'all', label: 'все 36' },
+        { id: 'снимки', label: 'снимки' },
+        { id: 'данные', label: 'данные' },
+        { id: 'книги', label: 'книги и статьи' },
+        { id: 'карты', label: 'карты' },
+        { id: 'трансляции', label: 'живые трансляции' },
+      ],
+
+      // ПРАВИЛА 5.11: где на экране появился коралловый шаг (перезагрузить, показать все),
+      // зелёное решение отдаёт заливку и берёт обводку. Двух заливок разного смысла рядом нет.
+      goPrimary: s.st === 'filled' || partial,
+      flatPrimary: !(s.st === 'filled' || partial),
+      showList: s.st === 'filled' || partial,
+      showEmpty: s.st === 'empty',
+      showLoading: s.st === 'loading',
+      showFailed: s.st === 'failed',
+      partial,
+      sources: list,
+      skeleton: [{ a: '78%', b: '90%' }, { a: '64%', b: '82%' }, { a: '86%', b: '70%' }, { a: '72%', b: '88%' }, { a: '80%', b: '76%' }, { a: '68%', b: '92%' }, { a: '84%', b: '74%' }, { a: '76%', b: '86%' }, { a: '70%', b: '80%' }],
+
+      stats: partial
+        ? [
+            { value: '27', label: 'источников ответили сейчас' },
+            { value: '9', label: 'молчат — показываем проверку от 09:40' },
+            { value: '4', label: 'формулировки права, и все словами' },
+          ]
+        : [
+            { value: '36', label: 'источников проверено руками' },
+            { value: '19.08', label: 'последняя проверка, 09:40' },
+            { value: '4', label: 'формулировки права, и все словами' },
+          ],
+
+      pick: {
+        kind: picked.kind,
+        name: picked.name,
+        gives: picked.gives,
+        can: pr.can,
+        cant: pr.cant,
+        silence: silence,
+        checked: 'проверено 19 августа, 09:40',
+        who: 'проверял человек из редакции курсов, не робот',
+      },
+
+      onSw: this.onSw,
+      onPick: this.onPick,
+      noop: () => {},
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="tokens.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  html, body { height: 100%; overflow: hidden; }
+  a { color: var(--color-link); text-decoration: none; }
+  a:hover { color: var(--color-accent-text); }
+  [data-sheet-scroll] { scrollbar-width: none; }
+  [data-sheet-scroll]::-webkit-scrollbar { width: 0; height: 0; }
+</style>
+</helmet>
+<div ref="{{ setRoot }}" data-theme="{{ theme }}" data-mode="{{ mode }}" style="height: 100vh; display: grid; grid-template-rows: auto minmax(0, 1fr); background: var(--color-bg); color: var(--color-text); font-family: var(--font-body); overflow: hidden;">
+
+  <div style="display: flex; align-items: center; gap: var(--space-2); padding: var(--space-3) var(--space-4); border-bottom: 1px solid var(--color-border); flex-wrap: wrap;">
+    <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .08em; text-transform: uppercase;">лист</span>
+    <button data-sw="screen" data-val="login" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer; white-space: nowrap;">вход</button>
+    <button data-sw="screen" data-val="reg" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer; white-space: nowrap;">регистрация</button>
+    <button data-sw="screen" data-val="reset" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer; white-space: nowrap;">забыли пароль</button>
+    <button data-sw="screen" data-val="catalog" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer; white-space: nowrap;">каталог</button>
+    <button data-sw="screen" data-val="course" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer; white-space: nowrap;">курс</button>
+    <button data-sw="screen" data-val="account" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer; white-space: nowrap;">мой аккаунт</button>
+
+    <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .08em; text-transform: uppercase; margin-left: var(--space-4);">состояние</span>
+    <button data-sw="st" data-val="filled" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer; white-space: nowrap;">наполнено</button>
+    <button data-sw="st" data-val="sent" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer; white-space: nowrap;">заявка отправлена</button>
+    <button data-sw="st" data-val="empty" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer; white-space: nowrap;">пусто</button>
+    <button data-sw="st" data-val="loading" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer; white-space: nowrap;">загружается</button>
+    <button data-sw="st" data-val="failed" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer; white-space: nowrap;">отказ</button>
+    <button data-sw="st" data-val="partial" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer; white-space: nowrap;">частичный</button>
+
+    <!-- Группа появляется и исчезает ЦЕЛИКОМ, вместе с подписью: прятать кнопки поштучно из
+         логики значит оставить в полосе имя без содержимого — ровно то, что было у проектора
+         в «Вокруг урока», когда список случаев опустел, а подпись «случай» осталась. -->
+    <sc-if value="{{ hasConsent }}" hint-placeholder-val="{{ false }}">
+      <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .08em; text-transform: uppercase; margin-left: var(--space-4);">согласие</span>
+      <button data-sw="consent" data-val="given" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer; white-space: nowrap;">подтверждено</button>
+      <button data-sw="consent" data-val="none" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer; white-space: nowrap;">ещё нет</button>
+    </sc-if>
+
+    <span style="margin-left: auto; display: flex; gap: var(--space-2); align-items: center;">
+      <span data-scroll-probe style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); white-space: nowrap;">прокрутка листа: 0 px</span>
+      <button data-sw="mode" data-val="toggle" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer; white-space: nowrap;">7–11</button>
+      <button data-sw="theme" data-val="toggle" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer; white-space: nowrap;">тема</button>
+    </span>
+  </div>
+
+  <div ref="{{ setHost }}" style="display: grid; place-items: center; overflow: hidden; min-height: 0;">
+    <div data-audit-scope data-mobile ref="{{ setFrame }}" style="width: 390px; height: 844px; position: relative; border-radius: 44px; border: 1px solid var(--color-border); background: var(--color-bg); box-shadow: var(--shadow-lg); overflow: hidden; display: grid; grid-template-rows: auto auto minmax(0, 1fr);">
+
+      <div style="display: flex; align-items: center; justify-content: space-between; padding: var(--space-3) var(--space-6) var(--space-1); font: 500 var(--text-caption) var(--font-mono); color: var(--color-text);">
+        <span>9:24</span>
+        <span style="color: var(--color-text-tertiary); white-space: nowrap;">5G · 68 %</span>
+      </div>
+
+      <div data-geo="phone-head" style="display: grid; gap: var(--space-2); padding: var(--space-3) var(--space-5) var(--space-4); border-bottom: 1px solid var(--color-border); background: var(--color-bg);">
+        <span style="display: flex; align-items: center; gap: var(--space-3); min-height: var(--tap-min);">
+          <sc-if value="{{ hasBack }}" hint-placeholder-val="{{ false }}">
+            <button onClick="{{ noop }}" aria-label="Назад" style="width: var(--tap-min); height: var(--tap-min); margin-inline-start: calc(var(--space-3) * -1); border: none; background: none; border-radius: var(--radius-control); color: var(--color-text); font: 400 20px var(--font-mono); cursor: pointer;" style-hover="background: var(--color-surface-subtle);">‹</button>
+          </sc-if>
+          <span style="font-family: var(--font-heading); font-size: var(--text-h1); font-weight: 600; letter-spacing: var(--tracking-tight); line-height: var(--leading-tight); min-width: 0;">{{ title }}</span>
+        </span>
+        <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); line-height: var(--leading-snug); text-wrap: pretty;">{{ subtitle }}</span>
+      </div>
+
+      <div data-sheet-scroll style="overflow: auto; min-height: 0; padding: var(--space-4) var(--space-5) var(--space-6); display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-5); align-content: start;">
+
+        <sc-if value="{{ isForm }}" hint-placeholder-val="{{ true }}">
+          <div style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-5);">
+            <sc-for list="{{ fields }}" as="f" hint-placeholder-count="2">
+              <label style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-2); min-width: 0;">
+                <span style="font-size: var(--text-small); color: var(--color-text-secondary);">{{ f.label }}</span>
+                <input type="{{ f.type }}" defaultValue="{{ f.value }}" placeholder="{{ f.placeholder }}" style="width: 100%; min-width: 0; min-height: var(--tap-min); padding: 0 var(--space-4); font-size: var(--text-body); font-family: var(--font-body); color: var(--color-text); background: var(--color-bg); border: 1px solid {{ f.border }}; border-radius: var(--radius-control);" />
+                <span style="font: 400 var(--text-caption) var(--font-mono); color: {{ f.hintColor }}; line-height: var(--leading-snug); text-wrap: pretty;">{{ f.hint }}</span>
+              </label>
+            </sc-for>
+
+            <sc-if value="{{ hasFormNote }}" hint-placeholder-val="{{ false }}">
+              <span style="display: grid; gap: var(--space-2); padding: var(--space-4); border: 1px solid var(--color-border); border-inline-start: 2px solid var(--color-border-strong); border-radius: var(--radius-card); background: var(--color-surface);">
+                <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .08em; text-transform: uppercase;">{{ formNoteKicker }}</span>
+                <span style="font-size: var(--text-small); color: var(--color-text-secondary); line-height: var(--leading-body); text-wrap: pretty;">{{ formNote }}</span>
+              </span>
+            </sc-if>
+
+            <button onClick="{{ noop }}" style="min-height: var(--tap-min); width: 100%; border: 1px solid var(--color-go-solid); border-radius: var(--radius-control); background: var(--color-go-solid); color: var(--color-on-go); font-size: var(--text-body); font-weight: 500; font-family: var(--font-body); cursor: pointer;" style-hover="background: var(--color-go-solid-hover);">{{ action }}</button>
+            <span style="display: flex; flex-wrap: wrap; gap: var(--space-3);">
+              <sc-for list="{{ links }}" as="l" hint-placeholder-count="2">
+                <button onClick="{{ noop }}" style="min-height: var(--tap-min); padding: 0 var(--space-3); margin-inline-start: calc(var(--space-3) * -1); border: none; background: none; font-size: var(--text-small); font-family: var(--font-body); color: var(--color-link); cursor: pointer; text-align: start;">{{ l.text }}</button>
+              </sc-for>
+            </span>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isCatalog }}" hint-placeholder-val="{{ false }}">
+          <div style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-4);">
+            <!-- Полоса предметов НЕ переносится, а прокручивается по горизонтали (data-strip-ok,
+                 как полоса дней в «Телефоне»): на 390 четыре чипа в строку не встают, а перенос
+                 разваливает ряд — прибор rowWrap поймал это на прогоне 22 августа. -->
+            <span data-strip-ok style="display: flex; gap: var(--space-2); overflow-x: auto; margin-inline: calc(var(--space-5) * -1); padding-inline: var(--space-5);">
+              <sc-for list="{{ subjects }}" as="s" hint-placeholder-count="4">
+                <button data-pick="subject" data-val="{{ s.id }}" onClick="{{ onPick }}" style="min-height: var(--tap-min); padding: 0 var(--space-4); font-size: var(--text-small); font-family: var(--font-body); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); color: var(--color-text-secondary); cursor: pointer; white-space: nowrap;">{{ s.label }}</button>
+              </sc-for>
+            </span>
+            <sc-for list="{{ cards }}" as="c" hint-placeholder-count="3">
+              <button onClick="{{ noop }}" style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-3); min-width: 0; padding: var(--space-5); text-align: start; border: 1px solid var(--color-border); border-radius: var(--radius-card); background: var(--color-surface); cursor: pointer;" style-hover="border-color: var(--color-border-strong);">
+                <span style="display: flex; align-items: center; gap: var(--space-3); min-width: 0;">
+                  <span style="width: 40px; height: 40px; flex: none; border-radius: var(--radius-control); background: {{ c.tint }};"></span>
+                  <span style="display: grid; gap: 2px; min-width: 0;">
+                    <span style="font-size: var(--text-body); font-weight: 500; color: var(--color-text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ c.name }}</span>
+                    <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary);">{{ c.teacher }}</span>
+                  </span>
+                </span>
+                <span style="font-size: var(--text-small); color: var(--color-text-secondary); line-height: var(--leading-snug); text-wrap: pretty;">{{ c.rhythm }}</span>
+                <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary);">{{ c.seats }}</span>
+              </button>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isCourse }}" hint-placeholder-val="{{ false }}">
+          <div style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-5);">
+            <span style="display: grid; gap: var(--space-3); padding: var(--space-5); border: 1px solid var(--color-border); border-radius: var(--radius-card); background: var(--color-surface);">
+              <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .08em; text-transform: uppercase;">о курсе</span>
+              <sc-for list="{{ courseFacts }}" as="f" hint-placeholder-count="4">
+                <span style="display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--space-3); align-items: baseline; border-top: 1px solid var(--color-border); padding-top: var(--space-3);">
+                  <span style="font-size: var(--text-small); color: var(--color-text-secondary);">{{ f.what }}</span>
+                  <span style="font: 500 var(--text-small) var(--font-mono); color: var(--color-text); text-align: end;">{{ f.value }}</span>
+                </span>
+              </sc-for>
+            </span>
+
+            <sc-if value="{{ requestSent }}" hint-placeholder-val="{{ false }}">
+              <span style="display: grid; gap: var(--space-3); padding: var(--space-5); border: 1px solid var(--color-border); border-inline-start: 2px solid var(--color-go-border); border-radius: var(--radius-card); background: var(--color-go-bg);">
+                <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-go-text); letter-spacing: .08em; text-transform: uppercase;">заявка отправлена</span>
+                <span style="font-size: var(--text-small); color: var(--color-text); line-height: var(--leading-body); text-wrap: pretty;">Преподаватель решает, кто сидит на его уроке, — поэтому запись подтверждает он, а не кнопка. Заявка ушла 22 августа, 9:24.</span>
+                <span style="font-size: var(--text-small); color: var(--color-text-secondary); line-height: var(--leading-body); text-wrap: pretty;">{{ noNotifyLine }}</span>
+              </span>
+            </sc-if>
+
+            <sc-if value="{{ canRequest }}" hint-placeholder-val="{{ true }}">
+              <div style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-3);">
+                <span style="font-size: var(--text-small); color: var(--color-text-secondary); line-height: var(--leading-body); text-wrap: pretty;">{{ requestNote }}</span>
+                <sc-if value="{{ requestOpen }}" hint-placeholder-val="{{ true }}">
+                  <button onClick="{{ noop }}" style="min-height: var(--tap-min); width: 100%; border: 1px solid var(--color-border-strong); border-radius: var(--radius-control); background: none; color: var(--color-text); font-size: var(--text-body); font-weight: 500; font-family: var(--font-body); cursor: pointer;" style-hover="background: var(--color-surface-subtle);">Отправить заявку преподавателю</button>
+                </sc-if>
+                <!-- Пока согласия взрослого нет, запись на курс закрыта — значит кнопка не просто
+                     серая, а НЕ НАЖИМАЕТСЯ, и рядом сказано, чего ждать. Включённая кнопка здесь
+                     была бы тем же ложным обещанием, которое убрано с регистрации (ПРАВИЛА 6.5г). -->
+                <sc-if value="{{ requestBlocked }}" hint-placeholder-val="{{ false }}">
+                  <button disabled="{{ true }}" style="min-height: var(--tap-min); width: 100%; border: 1px solid var(--color-border); border-radius: var(--radius-control); background: var(--color-surface); color: var(--color-text-tertiary); font-size: var(--text-body); font-weight: 500; font-family: var(--font-body); cursor: not-allowed;">Сначала согласие взрослого</button>
+                </sc-if>
+              </div>
+            </sc-if>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isAccount }}" hint-placeholder-val="{{ false }}">
+          <div style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-5);">
+            <sc-for list="{{ rows }}" as="r" hint-placeholder-count="4">
+              <button onClick="{{ noop }}" style="display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--space-3); align-items: center; min-height: var(--tap-min); min-width: 0; padding: var(--space-3) var(--space-4); text-align: start; border: 1px solid var(--color-border); border-radius: var(--radius-control); background: none; cursor: pointer;" style-hover="background: var(--color-surface-subtle);">
+                <span style="display: grid; gap: 2px; min-width: 0;">
+                  <span style="font-size: var(--text-small); color: var(--color-text-tertiary);">{{ r.what }}</span>
+                  <span style="font-size: var(--text-body); color: var(--color-text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ r.value }}</span>
+                </span>
+                <!-- Подписи «изменить/сменить» НЕ коралловые: коралловый на этом листе принадлежит
+                     одному месту — блоку удаления. Шесть коралловых подписей без единой заливки
+                     прибор accents назвал дефектом, и он прав: акцент, который стоит везде,
+                     не указывает ни на что (ПРАВИЛА 5.7). -->
+                <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-secondary); white-space: nowrap;">{{ r.action }}</span>
+              </button>
+            </sc-for>
+
+            <span style="display: grid; gap: var(--space-2); padding: var(--space-4); border: 1px solid var(--color-border); border-inline-start: 2px solid var(--color-border-strong); border-radius: var(--radius-card); background: var(--color-surface);">
+              <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .08em; text-transform: uppercase;">камера и микрофон</span>
+              <span style="font-size: var(--text-small); color: var(--color-text-secondary); line-height: var(--leading-body); text-wrap: pretty;">Кадры камеры разбираются на этом телефоне. Наружу уходит одно число — показатель внимания. Разрешение спрашивает сам телефон, и его можно забрать в его настройках.</span>
+            </span>
+
+            <span style="display: grid; gap: var(--space-2); padding: var(--space-4); border: 1px solid var(--color-border); border-inline-start: 2px solid var(--color-accent); border-radius: var(--radius-card); background: var(--color-surface);">
+              <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-accent-text); letter-spacing: .08em; text-transform: uppercase;">удалить учётную запись</span>
+              <span style="font-size: var(--text-small); color: var(--color-text); line-height: var(--leading-body); text-wrap: pretty;">Кнопки здесь пока нет намеренно: действие ещё не построено, а кнопка, которая ничего не делает, читается как «удалить нельзя».</span>
+              <span style="font-size: var(--text-small); color: var(--color-text-secondary); line-height: var(--leading-body); text-wrap: pretty;">Напишите на <a href="mailto:udalit@flamingo.school">udalit@flamingo.school</a> с адреса учётной записи. Отвечаем словами, что именно удаляется: профиль, работы, конспекты и история чатов.</span>
+            </span>
+
+            <button onClick="{{ noop }}" style="min-height: var(--tap-min); width: 100%; border: 1px solid var(--color-border-strong); border-radius: var(--radius-control); background: none; color: var(--color-text); font-size: var(--text-body); font-weight: 500; font-family: var(--font-body); cursor: pointer;" style-hover="background: var(--color-surface-subtle);">Выйти на этом телефоне</button>
+            <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); line-height: var(--leading-snug); text-wrap: pretty;">Выход не удаляет ничего: работы, конспекты и история чатов останутся и откроются при следующем входе.</span>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isLoading }}" hint-placeholder-val="{{ false }}">
+          <div style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-4);">
+            <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); line-height: var(--leading-snug); text-wrap: pretty;">{{ loadingSays }}</span>
+            <sc-for list="{{ skeleton }}" as="s" hint-placeholder-count="3">
+              <span style="display: grid; gap: var(--space-2); padding: var(--space-5); border: 1px solid var(--color-border); border-radius: var(--radius-card); background: var(--color-surface);">
+                <span style="height: 12px; width: {{ s.a }}; border-radius: var(--radius-sm); background: var(--color-surface-subtle);"></span>
+                <span style="height: 12px; width: {{ s.b }}; border-radius: var(--radius-sm); background: var(--color-surface-subtle);"></span>
+              </span>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isEmpty }}" hint-placeholder-val="{{ false }}">
+          <div style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-4); padding: var(--space-5); border: 1px solid var(--color-border); border-radius: var(--radius-card); background: var(--color-surface);">
+            <span style="font-family: var(--font-heading); font-size: var(--text-h3); font-weight: 600; line-height: var(--leading-tight); text-wrap: pretty;">{{ emptyTitle }}</span>
+            <span style="font-size: var(--text-small); color: var(--color-text-secondary); line-height: var(--leading-body); text-wrap: pretty;">{{ emptyBody }}</span>
+            <button onClick="{{ noop }}" style="min-height: var(--tap-min); width: 100%; border: 1px solid var(--color-border-strong); border-radius: var(--radius-control); background: none; color: var(--color-text); font-size: var(--text-body); font-weight: 500; font-family: var(--font-body); cursor: pointer;" style-hover="background: var(--color-surface-subtle);">{{ emptyAction }}</button>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isPartial }}" hint-placeholder-val="{{ false }}">
+          <div style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-3); padding: var(--space-5); border: 1px solid var(--color-border); border-inline-start: 2px solid var(--color-warning); border-radius: var(--radius-card); background: var(--color-surface);">
+            <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-warning-text); letter-spacing: .08em; text-transform: uppercase;">{{ partialKicker }}</span>
+            <span style="font-family: var(--font-heading); font-size: var(--text-h3); font-weight: 600; line-height: var(--leading-tight); text-wrap: pretty;">{{ partialTitle }}</span>
+            <sc-for list="{{ partialFacts }}" as="f" hint-placeholder-count="3">
+              <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-secondary); line-height: var(--leading-snug); text-wrap: pretty;">{{ f.text }}</span>
+            </sc-for>
+            <button onClick="{{ noop }}" style="min-height: var(--tap-min); width: 100%; border: 1px solid var(--color-border-strong); border-radius: var(--radius-control); background: none; color: var(--color-text); font-size: var(--text-body); font-weight: 500; font-family: var(--font-body); cursor: pointer;" style-hover="background: var(--color-surface-subtle);">{{ partialAction }}</button>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isFailed }}" hint-placeholder-val="{{ false }}">
+          <div style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-3); padding: var(--space-5); border: 1px solid var(--color-border); border-inline-start: 2px solid var(--color-accent); border-radius: var(--radius-card); background: var(--color-surface);">
+            <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-accent-text); letter-spacing: .08em; text-transform: uppercase;">{{ failKicker }}</span>
+            <span style="font-family: var(--font-heading); font-size: var(--text-h3); font-weight: 600; line-height: var(--leading-tight); text-wrap: pretty;">{{ failTitle }}</span>
+            <span style="font-size: var(--text-small); color: var(--color-text-secondary); line-height: var(--leading-body); text-wrap: pretty;">{{ failBody }}</span>
+            <span style="display: grid; gap: var(--space-2); padding-inline-start: var(--space-3); border-inline-start: 2px solid var(--color-border);">
+              <sc-for list="{{ failFacts }}" as="f" hint-placeholder-count="3">
+                <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-secondary); line-height: var(--leading-snug); text-wrap: pretty;">{{ f.text }}</span>
+              </sc-for>
+            </span>
+            <button onClick="{{ noop }}" style="min-height: var(--tap-min); width: 100%; border: 1px solid var(--color-border-strong); border-radius: var(--radius-control); background: none; color: var(--color-text); font-size: var(--text-body); font-weight: 500; font-family: var(--font-body); cursor: pointer;" style-hover="background: var(--color-surface-subtle);">{{ failAction }}</button>
+            <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); line-height: var(--leading-snug); text-wrap: pretty;">{{ failAlt }}</span>
+          </div>
+        </sc-if>
+
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;: {&quot;width&quot;: 1200, &quot;height&quot;: 940}}">
+class Component extends DCLogic {
+  // Мобильный путь постороннего человека: скачал → вход или регистрация → каталог → курс →
+  // заявка → «Мой аккаунт». Пять листов этого пути на 390 не были нарисованы, и ребёнок
+  // с телефона не мог даже завести учётную запись (найдено 22 августа).
+  //
+  // Три решения, зафиксированные здесь:
+  // 1. **Полки вкладок на этом листе нет.** До входа её показывать нельзя — она ведёт туда,
+  //    куда человек ещё не имеет права; после входа она живёт в `Телефон.dc.html`. Нарисовать
+  //    её здесь значило бы поставить мёртвую навигацию.
+  // 2. **Запись на курс — заявка, а не мгновенная запись** (решение владельца 22 августа):
+  //    преподаватель отвечает за то, кто сидит на его уроке, тем более когда сидят дети.
+  //    Поэтому у курса есть состояние `sent`.
+  // 3. **Оповещений в продукте нет** — и на экране заявки это сказано словами. Иначе человек
+  //    будет ждать письма, которого не будет (ПРАВИЛА 6.5г: экран не обещает того, чего
+  //    продукт сделать не может).
+  // Согласие взрослого — СОСТОЯНИЕ ученика, а не правило на все случаи. Пока оно было двумя
+  // безусловными текстами, один и тот же Петя 13 лет имел на «Моём аккаунте» подтверждённое
+  // согласие, а на курсе — неподтверждённое (нашёл ревьюер 22 августа). Имя ключа и значения
+  // те же, что в `Мой аккаунт.dc.html`: data-sw="consent", given / none.
+  state = { screen: 'login', st: 'filled', subject: 'chem', consent: 'given', theme: 'light', mode: 'default' };
+
+  // «Пусто» бывает только у каталога: у формы входа пустоты не существует, у курса и аккаунта
+  // тоже. «Заявка отправлена» — только у курса. Состояние вне списка не принимается даже
+  // программным щелчком (ПРАВИЛА 6.7в).
+  // Экраны, которые ЧИТАЮТ согласие. На входе, регистрации и новом пароле учётной записи ещё
+  // нет — согласие там не существует; в каталоге оно ничего не меняет (каталог смотрят и без
+  // согласия). Переключатель, который не меняет ни байта, — мёртвый переключатель, и он хуже
+  // отсутствующего: подпись есть, ключ отдаётся, за ключом ничего (ПРАВИЛА 6.7в).
+  CONSENT_SCREENS = ['course', 'account'];
+
+  STATES = {
+    login:   ['filled', 'loading', 'failed'],
+    reg:     ['filled', 'loading', 'failed'],
+    reset:   ['filled', 'loading', 'failed'],
+    catalog: ['filled', 'empty', 'loading', 'failed', 'partial'],
+    course:  ['filled', 'sent', 'loading', 'failed'],
+    account: ['filled', 'loading', 'failed'],
+  };
+
+  componentDidMount() {
+    this.onResize = () => this.fit();
+    window.addEventListener('resize', this.onResize);
+    this.settle();
+    this.probe = setInterval(() => {
+      const el = this.root && this.root.querySelector('[data-scroll-probe]');
+      const sc = this.frame && this.frame.querySelector('[data-sheet-scroll]');
+      if (el) el.textContent = 'прокрутка листа: ' + (sc ? Math.max(0, sc.scrollHeight - sc.clientHeight) : 0) + ' px · страницы: '
+        + Math.max(0, document.documentElement.scrollHeight - window.innerHeight) + ' px';
+    }, 1000);
+  }
+  componentDidUpdate() { this.settle(); }
+  componentWillUnmount() { window.removeEventListener('resize', this.onResize); clearInterval(this.probe); }
+
+  settle() { this.fit(); this.applyChrome(); requestAnimationFrame(() => this.fit()); }
+
+  fit() {
+    const host = this.host, f = this.frame;
+    if (!host || !f) return;
+    const s = Math.min(1, (host.clientWidth - 40) / 390, (host.clientHeight - 40) / 844);
+    host.style.position = 'relative';
+    f.style.position = 'absolute';
+    f.style.left = '50%'; f.style.top = '50%';
+    f.style.transform = 'translate(-50%, -50%) scale(' + s.toFixed(4) + ')';
+  }
+
+  applyChrome() {
+    const root = this.root; if (!root) return;
+    const cur = { screen: this.state.screen, st: this.state.st, consent: this.state.consent };
+    const allowed = this.STATES[this.state.screen] || ['filled'];
+    root.querySelectorAll('[data-sw]').forEach((b) => {
+      const k = b.dataset.sw, v = b.dataset.val;
+      if (!(k in cur)) return;
+      if (k === 'st') {
+        // ПРАВИЛА 6.8: скрывая элемент, помним его display и возвращаем именно его
+        if (!b.dataset.disp) b.dataset.disp = getComputedStyle(b).display;
+        // «Заявка отправлена» невозможна, пока согласие не подтверждено: отправить её нечем,
+        // кнопка отправки заблокирована. Состояние, которого продукт не допускает, не должно
+        // быть достижимо ни человеку, ни прибору.
+        const noSent = v === 'sent' && this.state.consent !== 'given';
+        b.style.display = (allowed.indexOf(v) < 0 || noSent) ? 'none' : b.dataset.disp;
+      }
+      // Поштучного скрытия кнопок согласия здесь НЕТ: группу целиком снимает `sc-if hasConsent`
+      // в шаблоне. Прятать по одной значило оставлять подпись группы без контролов.
+      const on = cur[k] === v;
+      b.style.color = on ? 'var(--color-text)' : 'var(--color-text-secondary)';
+      b.style.borderColor = on ? 'var(--color-border-strong)' : 'var(--color-border)';
+      b.style.background = on ? 'var(--color-surface)' : 'none';
+    });
+    // Продуктовый выбор предмета — своё имя (ПРАВИЛА 6.7д), и отмечается нейтрально.
+    root.querySelectorAll('[data-pick="subject"]').forEach((b) => {
+      const on = this.state.subject === b.dataset.val;
+      b.setAttribute('aria-pressed', on ? 'true' : 'false');
+      b.style.color = on ? 'var(--color-text)' : 'var(--color-text-secondary)';
+      b.style.borderColor = on ? 'var(--color-border-strong)' : 'var(--color-border)';
+      b.style.background = on ? 'var(--color-surface-subtle)' : 'none';
+    });
+  }
+
+  onSw = (e) => {
+    const { sw, val } = e.currentTarget.dataset;
+    if (sw === 'st' && (this.STATES[this.state.screen] || ['filled']).indexOf(val) < 0) return;
+    // Ключ, которого у экрана нет, и пара состояний, которой продукт не допускает, не
+    // принимаются даже программным щелчком: display:none не мешает .click(), а прогон
+    // щёлкает именно так.
+    if (sw === 'consent' && this.CONSENT_SCREENS.indexOf(this.state.screen) < 0) return;
+    if (sw === 'st' && val === 'sent' && this.state.consent !== 'given') return;
+    // Согласие можно отозвать, и тогда уже отправленная заявка перестаёт быть отправленной:
+    // лист не остаётся в состоянии, которое стало невозможным.
+    if (sw === 'consent' && val !== 'given' && this.state.st === 'sent') {
+      return this.setState({ consent: val, st: 'filled' });
+    }
+    if (sw === 'theme') return this.setState((s) => ({ theme: s.theme === 'dark' ? 'light' : 'dark' }));
+    if (sw === 'mode') return this.setState((s) => ({ mode: s.mode === 'kids' ? 'default' : 'kids' }));
+    if (sw === 'screen') {
+      const allowed = this.STATES[val] || ['filled'];
+      return this.setState((s) => ({ screen: val, st: allowed.indexOf(s.st) < 0 ? 'filled' : s.st }));
+    }
+    this.setState({ [sw]: val });
+  };
+
+  onPick = (e) => this.setState({ subject: e.currentTarget.dataset.val });
+
+  head() {
+    const s = this.state.screen;
+    if (s === 'login') return { t: 'Вход', b: 'Flamingo · живые занятия с преподавателем', back: false };
+    if (s === 'reg') return { t: 'Регистрация', b: 'нужны имя, почта и пароль — больше ничего', back: true };
+    if (s === 'reset') return { t: 'Новый пароль', b: 'пришлём ссылку на почту учётной записи', back: true };
+    if (s === 'catalog') return { t: 'Каталог', b: 'живые курсы с занятиями по расписанию', back: false };
+    if (s === 'course') return { t: 'Химия · неорганика', b: 'Ирина Соколова · 8–9 класс', back: true };
+    return { t: 'Мой аккаунт', b: 'Петя Ковалёв · 13 лет · Москва, UTC+3', back: false };
+  }
+
+  formCopy() {
+    const s = this.state.screen;
+    const failed = this.state.st === 'failed';
+    if (s === 'login') return {
+      fields: [
+        { label: 'Почта', type: 'email', value: 'petya@example.ru', placeholder: 'вы@почта.ру',
+          hint: failed ? 'такой почты у нас нет — проверьте буквы или зарегистрируйтесь' : 'та, на которую пришло письмо',
+          err: failed },
+        { label: 'Пароль', type: 'password', value: '', placeholder: 'ваш пароль',
+          hint: 'не меньше восьми знаков', err: false },
+      ],
+      action: 'Войти',
+      links: [{ text: 'Забыли пароль?' }, { text: 'Зарегистрироваться' }],
+      note: null,
+    };
+    if (s === 'reg') return {
+      fields: [
+        { label: 'Как вас зовут', type: 'text', value: 'Петя Ковалёв', placeholder: 'имя и фамилия',
+          hint: 'это имя увидят преподаватель и класс', err: false },
+        { label: 'Почта', type: 'email', value: 'petya@example.ru', placeholder: 'вы@почта.ру',
+          hint: failed ? 'на эту почту уже есть учётная запись — войдите или восстановите пароль' : 'на неё придут письма о занятиях',
+          err: failed },
+        { label: 'Пароль', type: 'password', value: '', placeholder: 'придумайте пароль',
+          hint: 'не меньше восьми знаков', err: false },
+        { label: 'Сколько вам лет', type: 'text', value: '13', placeholder: 'полных лет',
+          hint: 'от этого зависит вид приложения: до 12 лет набор крупнее', err: false },
+      ],
+      action: 'Создать учётную запись',
+      links: [{ text: 'У меня уже есть вход' }],
+      // 🔴 Список закрытого взят СЛОВО В СЛОВО из листа «Согласие взрослого» («Закроется: запись
+      // на новые курсы, сдача работ, чат урока и оценки»). Прежде здесь стояло «учиться можно —
+      // нельзя только выходить в общий чат курса», и это было ложное обещание: мобильный путь
+      // ведёт ребёнка следующим шагом в каталог и на «Отправить заявку», то есть ровно туда,
+      // что до согласия закрыто. Нашёл ревьюер 22 августа; приборы такого не ловят по природе
+      // (ПРАВИЛА 6.5г: экран не обещает того, чего продукт в этом состоянии сделать не может).
+      note: 'Вам меньше 18, поэтому сразу после регистрации мы попросим почту взрослого: он подтвердит согласие по ссылке из письма. До подтверждения закрыты запись на курсы, сдача работ, чат урока и оценки — открыты каталог, расписание и «Моя учёба». Смотреть можно, записываться нельзя.',
+      noteKicker: 'что будет дальше'
+    };
+    return {
+      fields: [
+        { label: 'Почта учётной записи', type: 'email', value: 'petya@example.ru', placeholder: 'вы@почта.ру',
+          // Срок взят из письма о смене пароля (`Письма.dc.html`: «ссылка работает 2 часа и
+          // только один раз») — на экране стоял «час», и человек видел два разных обещания
+          // в одном деле. Нашёл ревьюер 22 августа. Одноразовость названа здесь же: без неё
+          // человек, открывший ссылку дважды, решит, что сломалось приложение.
+          hint: failed ? 'письмо не ушло — служба почты молчит с 9:12' : 'ссылка работает 2 часа и только один раз',
+          err: failed },
+      ],
+      action: 'Отправить ссылку',
+      links: [{ text: 'Вернуться ко входу' }],
+      note: 'Пароль мы не знаем и не показываем: в письме только ссылка на смену. Если письма нет через пять минут, проверьте папку «Спам».',
+      noteKicker: 'почему письмом',
+    };
+  }
+
+  failCopy() {
+    const s = this.state.screen;
+    if (s === 'login') return {
+      k: 'отказ · служба входа',
+      t: 'Войти сейчас нельзя',
+      b: 'Дело не в пароле: служба входа не отвечает с 9:12. Пароль правильный или нет — мы пока не можем проверить.',
+      f: [
+        { text: 'работает: каталог курсов — его можно смотреть без входа' },
+        { text: 'не работает: вход, регистрация, смена пароля' },
+        { text: 'с данными: ничего не потеряно, введённая почта сохранена' },
+      ],
+      a: 'Попробовать снова',
+      alt: 'если урок уже начался — откройте ссылку из письма о занятии, она ведёт в комнату',
+    };
+    if (s === 'reg') return {
+      k: 'отказ · служба входа',
+      t: 'Учётную запись сейчас не создать',
+      b: 'Служба входа не отвечает. Ничего не создано наполовину: повторная попытка не сделает вторую запись на ту же почту.',
+      f: [
+        { text: 'работает: каталог курсов без входа' },
+        { text: 'не работает: создание записи и вход' },
+        { text: 'с данными: имя, почта и возраст сохранены в этом телефоне' },
+      ],
+      a: 'Попробовать снова',
+      alt: 'ничего не отправлено на сервер — введённое лежит только у вас',
+    };
+    if (s === 'reset') return {
+      k: 'отказ · служба почты',
+      t: 'Письмо со ссылкой не ушло',
+      b: 'Служба почты молчит с 9:12. Пароль остался прежним — им можно войти, если вы его вспомните.',
+      f: [
+        { text: 'работает: вход прежним паролем' },
+        { text: 'не работает: письма о смене пароля' },
+        { text: 'с данными: ничего не изменилось' },
+      ],
+      a: 'Отправить снова',
+      alt: 'ссылка из прежнего письма, если оно дошло, работает 2 часа с момента отправки и только один раз',
+    };
+    if (s === 'catalog') return {
+      k: 'отказ · каталог',
+      t: 'Каталог не открылся',
+      b: 'Служба каталога не отвечает. Ваши курсы это не задевает: расписание и занятия открываются отдельно.',
+      f: [
+        { text: 'работает: расписание, задания, чат, вход в урок' },
+        { text: 'не работает: поиск новых курсов и запись на них' },
+        { text: 'с данными: заявки, отправленные раньше, в силе' },
+      ],
+      a: 'Загрузить каталог снова',
+      alt: 'если у вас есть код от преподавателя — вход по коду работает и без каталога',
+    };
+    if (s === 'course') return {
+      k: 'отказ · курс не открылся',
+      t: 'Страница курса не читается',
+      b: 'Служба курса не отвечает. Возможно, курс сняли с публикации — тогда он исчезнет и из каталога.',
+      f: [
+        { text: 'работает: остальной каталог и ваши курсы' },
+        { text: 'не работает: этот курс — значит и заявка на него' },
+        { text: 'с данными: если заявка была отправлена, она в силе' },
+      ],
+      a: 'Открыть снова',
+      alt: 'заявка не отправляется молча: пока экран не открылся, ничего не ушло',
+    };
+    return {
+      k: 'отказ · профиль',
+      t: 'Профиль не открылся',
+      b: 'Служба профиля не отвечает. Учиться это не мешает: расписание, урок и задания живут отдельно от профиля.',
+      f: [
+        { text: 'работает: расписание, урок, задания, чат' },
+        { text: 'не работает: смена имени, почты и пароля' },
+        { text: 'с данными: ничего не изменено' },
+      ],
+      a: 'Открыть снова',
+      alt: 'выход работает всегда — он не спрашивает сервер',
+    };
+  }
+
+  renderVals() {
+    const s = this.state;
+    const h = this.head();
+    const form = s.screen === 'login' || s.screen === 'reg' || s.screen === 'reset';
+    const isFilled = s.st === 'filled';
+    const sent = s.st === 'sent';
+    const fc = this.failCopy();
+    const f = form ? this.formCopy() : { fields: [], links: [] };
+
+    const subjects = [
+      { id: 'chem', label: 'Химия' }, { id: 'eng', label: 'Английский' },
+      { id: 'math', label: 'Математика' }, { id: 'astr', label: 'Астрономия' },
+    ];
+    const bySubject = {
+      chem: [
+        { name: 'Химия · неорганика', teacher: 'Ирина Соколова', rhythm: 'вт и чт, 11:30 · 45 минут · 12 занятий', seats: '14 записаны · 6 мест', tint: 'var(--color-surface-subtle)' },
+        { name: 'Химия с нуля', teacher: 'Марат Хайруллин', rhythm: 'сб, 10:00 · час · 8 занятий', seats: '9 записаны · 11 мест', tint: 'var(--color-go-bg)' },
+      ],
+      eng: [
+        { name: 'English A2 · разговор', teacher: 'Люция Валерьевна', rhythm: 'пн, ср, пт, 18:00 · 45 минут · 24 занятия', seats: '11 записаны · 9 мест', tint: 'var(--color-surface-subtle)' },
+      ],
+      math: [
+        { name: 'Алгебра · 8 класс', teacher: 'Дмитрий Ерохин', rhythm: 'вт и пт, 17:00 · час · 16 занятий', seats: '20 записаны · мест нет', tint: 'var(--color-surface-subtle)' },
+      ],
+      astr: [
+        { name: 'Астрономия · небо этой недели', teacher: 'Аня Коваль', rhythm: 'чт, 20:00 · час · 6 занятий', seats: '7 записаны · 13 мест', tint: 'var(--color-go-bg)' },
+      ],
+    };
+
+    return {
+      setRoot: (el) => { this.root = el; },
+      setHost: (el) => { this.host = el; },
+      setFrame: (el) => { this.frame = el; },
+      theme: s.theme === 'dark' ? 'dark' : 'light',
+      mode: s.mode === 'kids' ? 'kids' : 'default',
+
+      title: h.t, subtitle: h.b, hasBack: h.back,
+
+      isForm: form && isFilled,
+      isCatalog: s.screen === 'catalog' && isFilled,
+      isCourse: s.screen === 'course' && (isFilled || sent),
+      isAccount: s.screen === 'account' && isFilled,
+      isLoading: s.st === 'loading',
+      isEmpty: s.st === 'empty',
+      isFailed: s.st === 'failed',
+      isPartial: s.st === 'partial',
+
+      fields: (f.fields || []).map((x) => ({
+        label: x.label, type: x.type, value: x.value, placeholder: x.placeholder, hint: x.hint,
+        border: x.err ? 'var(--color-accent)' : 'var(--color-border)',
+        hintColor: x.err ? 'var(--color-accent-text)' : 'var(--color-text-tertiary)',
+      })),
+      action: f.action, links: f.links || [],
+      hasFormNote: !!f.note, formNote: f.note, formNoteKicker: f.noteKicker,
+
+      subjects: subjects,
+      cards: bySubject[s.subject] || [],
+
+      courseFacts: [
+        { what: 'Занятия', value: 'вт и чт, 11:30' },
+        { what: 'Длина занятия', value: '45 минут' },
+        { what: 'Сколько занятий', value: '12' },
+        { what: 'Класс', value: '8–9' },
+        { what: 'Записаны', value: '14 из 20' },
+      ],
+      requestSent: sent,
+      canRequest: isFilled,
+      hasConsent: this.CONSENT_SCREENS.indexOf(s.screen) >= 0,
+      requestOpen: isFilled && s.consent === 'given',
+      requestBlocked: isFilled && s.consent !== 'given',
+      // Тот же порядок, что назван на регистрации: пока согласие взрослого не подтверждено,
+      // запись на курс закрыта — значит и заявку отправлять некуда. Без этой строки экран
+      // предлагал бы кнопку, которая для тринадцатилетнего не работает.
+      requestNote: s.consent === 'given'
+        ? 'Запись подтверждает преподаватель: он решает, кто сидит на его уроке. Заявка ни к чему не обязывает и её можно отозвать. Согласие взрослого у вас подтверждено 12 августа — заявка уйдёт сразу.'
+        : 'Вам меньше 18, и согласие взрослого пока не подтверждено: до этого запись на курсы закрыта. Мы отправили письмо Марии Ковалёвой — как только она подтвердит по ссылке, заявку можно будет отправить. Смотреть курс и расписание можно сейчас.',
+      // Обязательная честная строка (решение владельца 22 августа): оповещений в продукте нет,
+      // и человек должен знать это ДО того, как начнёт ждать письма.
+      noNotifyLine: 'Писем и уведомлений у нас нет: ответ преподавателя вы увидите, когда сами откроете приложение. Курс появится в «Моей учёбе», а занятия — в расписании.',
+
+      rows: [
+        { what: 'Имя', value: 'Петя Ковалёв', action: 'изменить' },
+        { what: 'Почта', value: 'petya@example.ru', action: 'изменить' },
+        { what: 'Пароль', value: 'сменён 14 августа', action: 'сменить' },
+        { what: 'Часовой пояс', value: 'Москва, UTC+3', action: 'изменить' },
+        { what: 'Согласие взрослого', value: s.consent === 'given' ? 'подтвердила Мария Ковалёва, 12 августа' : 'письмо ушло Марии Ковалёвой, ответа ещё нет', action: 'открыть' },
+      ],
+
+      loadingSays: s.screen === 'catalog'
+        ? 'открываем каталог · первыми придут предметы, курсы за ними'
+        : (s.screen === 'course'
+          ? 'открываем курс · первыми придут название и расписание, за ними число записанных'
+          : (s.screen === 'account'
+            ? 'открываем профиль · первыми придут имя и почта'
+            : 'проверяем · это одна секунда, пароль не отправляется в открытом виде')),
+      skeleton: [{ a: '62%', b: '38%' }, { a: '48%', b: '56%' }, { a: '70%', b: '30%' }],
+
+      emptyTitle: 'По этому предмету курсов пока нет',
+      emptyBody: 'Каталог показывает только живые курсы с занятиями по расписанию — записей и видеокурсов у нас нет. Выберите другой предмет или зайдите позже: курсы открываются к началу четверти.',
+      emptyAction: 'Посмотреть другие предметы',
+
+      partialKicker: 'частичный отказ · число мест',
+      partialTitle: 'Курсы пришли, число записанных — нет',
+      partialFacts: [
+        { text: 'работает: названия, преподаватели, расписание, заявка' },
+        { text: 'не работает: сколько мест осталось — служба групп молчит' },
+        { text: 'с данными: заявку можно отправить, преподаватель увидит её и место найдёт' },
+      ],
+      partialAction: 'Запросить число мест снова',
+
+      failKicker: fc.k, failTitle: fc.t, failBody: fc.b, failFacts: fc.f, failAction: fc.a, failAlt: fc.alt,
+
+      onSw: this.onSw,
+      onPick: this.onPick,
+      noop: () => {},
+    };
+  }
+}
+</script>
+</body>
+</html>

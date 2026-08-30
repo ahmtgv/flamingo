@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="tokens.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  html, body { height: 100%; overflow: hidden; }
+  a { color: var(--color-link); text-decoration: none; }
+  a:hover { color: var(--color-accent-text); }
+  [data-sheet-scroll] { scrollbar-width: none; }
+  [data-sheet-scroll]::-webkit-scrollbar { width: 0; height: 0; }
+  [data-strip-ok]::-webkit-scrollbar { height: 0; }
+</style>
+</helmet>
+<div ref="{{ setRoot }}" data-theme="{{ theme }}" data-mode="{{ mode }}" style="height: 100vh; display: grid; grid-template-rows: auto minmax(0, 1fr); background: var(--color-bg); color: var(--color-text); font-family: var(--font-body); overflow: hidden;">
+
+  <div style="display: flex; align-items: center; gap: var(--space-2); padding: var(--space-3) var(--space-4); border-bottom: 1px solid var(--color-border); flex-wrap: wrap;">
+    <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .08em; text-transform: uppercase;">лист</span>
+    <button data-sw="screen" data-val="sched" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer; white-space: nowrap;">расписание</button>
+    <button data-sw="screen" data-val="tasks" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer; white-space: nowrap;">задания</button>
+    <button data-sw="screen" data-val="learn" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer; white-space: nowrap;">моя учёба</button>
+    <button data-sw="screen" data-val="start" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer; white-space: nowrap;">урок</button>
+    <button data-sw="screen" data-val="chat" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer; white-space: nowrap;">чат</button>
+
+    <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .08em; text-transform: uppercase; margin-left: var(--space-4);">состояние</span>
+    <button data-sw="st" data-val="filled" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer; white-space: nowrap;">наполнено</button>
+    <button data-sw="st" data-val="empty" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer; white-space: nowrap;">пусто</button>
+    <button data-sw="st" data-val="loading" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer; white-space: nowrap;">загружается</button>
+    <button data-sw="st" data-val="failed" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer; white-space: nowrap;">отказ</button>
+    <button data-sw="st" data-val="partial" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer; white-space: nowrap;">частичный</button>
+
+    <span style="margin-left: auto; display: flex; gap: var(--space-2); align-items: center;">
+      <span data-scroll-probe style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); white-space: nowrap;">прокрутка листа: 0 px</span>
+      <button data-sw="mode" data-val="toggle" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer; white-space: nowrap;">7–11</button>
+      <button data-sw="theme" data-val="toggle" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer; white-space: nowrap;">тема</button>
+    </span>
+  </div>
+
+  <div ref="{{ setHost }}" style="display: grid; place-items: center; overflow: hidden; min-height: 0;">
+    <div data-audit-scope data-mobile ref="{{ setFrame }}" style="width: 390px; height: 844px; position: relative; border-radius: 44px; border: 1px solid var(--color-border); background: var(--color-bg); box-shadow: var(--shadow-lg); overflow: hidden; display: grid; grid-template-rows: auto auto minmax(0, 1fr) auto;">
+
+      <div style="display: flex; align-items: center; justify-content: space-between; padding: var(--space-3) var(--space-6) var(--space-1); font: 500 var(--text-caption) var(--font-mono); color: var(--color-text);">
+        <span>{{ clock }}</span>
+        <span style="color: var(--color-text-tertiary); white-space: nowrap;">5G · 68 %</span>
+      </div>
+
+      <div data-geo="phone-head" style="display: grid; gap: var(--space-2); padding: var(--space-3) var(--space-5) var(--space-4); border-bottom: 1px solid var(--color-border); background: var(--color-bg);">
+        <span style="display: flex; align-items: center; gap: var(--space-3); min-height: var(--tap-min);">
+          <sc-if value="{{ hasBack }}" hint-placeholder-val="{{ false }}">
+            <button onClick="{{ noop }}" aria-label="Назад" style="width: var(--tap-min); height: var(--tap-min); margin-inline-start: calc(var(--space-3) * -1); border: none; background: none; border-radius: var(--radius-control); color: var(--color-text); font: 400 20px var(--font-mono); cursor: pointer;" style-hover="background: var(--color-surface-subtle);">‹</button>
+          </sc-if>
+          <span style="font-family: var(--font-heading); font-size: var(--text-h1); font-weight: 600; letter-spacing: var(--tracking-tight); line-height: var(--leading-tight); min-width: 0;">{{ title }}</span>
+        </span>
+        <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); line-height: var(--leading-snug);">{{ subtitle }}</span>
+      </div>
+
+      <div data-sheet-scroll style="overflow: auto; min-height: 0; padding: var(--space-4) var(--space-5) var(--space-6);">
+
+        <sc-if value="{{ schedFilled }}" hint-placeholder-val="{{ true }}">
+          <div style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-4);">
+            <span style="display: flex; gap: var(--space-1); padding: 3px; border: 1px solid var(--color-border); border-radius: var(--radius-control); background: var(--color-surface);">
+              <button data-sw="view" data-val="day" onClick="{{ onSw }}" style="flex: 1 1 0; min-height: var(--control-height-sm); border: none; background: none; border-radius: var(--radius-sm); font-size: var(--text-caption); font-family: var(--font-body); color: var(--color-text-secondary); cursor: pointer;">День</button>
+              <button data-sw="view" data-val="week" onClick="{{ onSw }}" style="flex: 1 1 0; min-height: var(--control-height-sm); border: none; background: none; border-radius: var(--radius-sm); font-size: var(--text-caption); font-family: var(--font-body); color: var(--color-text-secondary); cursor: pointer;">Неделя</button>
+            </span>
+
+            <div data-strip-ok style="display: flex; gap: var(--space-2); overflow-x: auto; padding-bottom: var(--space-1);">
+              <sc-for list="{{ days }}" as="d" hint-placeholder-count="7">
+                <button onClick="{{ noop }}" style="flex: 0 0 auto; width: 48px; min-height: 62px; display: grid; gap: 2px; justify-items: center; align-content: center; border: 1px solid {{ d.border }}; background: {{ d.bg }}; border-radius: var(--radius-control); cursor: pointer;">
+                  <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-secondary);">{{ d.dow }}</span>
+                  <span style="font: 500 15px var(--font-mono); color: {{ d.numColor }};">{{ d.num }}</span>
+                  <span style="width: 4px; height: 4px; border-radius: 50%; background: {{ d.dot }};"></span>
+                </button>
+              </sc-for>
+            </div>
+
+            <div style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-3);">
+              <span style="display: flex; align-items: baseline; gap: var(--space-3);">
+                <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .08em; text-transform: uppercase;">{{ dayLabel }}</span>
+                <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary);">{{ dayMeta }}</span>
+              </span>
+
+              <sc-for list="{{ lessons }}" as="l" hint-placeholder-count="4">
+                <button onClick="{{ noop }}" style="display: grid; grid-template-columns: 52px minmax(0, 1fr); gap: var(--space-3); text-align: start; min-width: 0; min-height: var(--tap-min); padding: var(--space-4); border: 1px solid var(--color-border); border-inline-start: 2px solid {{ l.stripe }}; border-radius: var(--radius-card); background: var(--color-surface); cursor: pointer; font-family: var(--font-body);" style-hover="border-color: var(--color-border-strong);">
+                  <span style="display: grid; gap: 2px;">
+                    <span style="font: 500 14px var(--font-mono); color: var(--color-text);">{{ l.time }}</span>
+                    <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary);">{{ l.dur }}</span>
+                  </span>
+                  <span style="display: grid; gap: var(--space-1); min-width: 0;">
+                    <span style="font-size: var(--text-body); font-weight: 500; color: var(--color-text); line-height: var(--leading-snug); text-wrap: pretty;">{{ l.title }}</span>
+                    <span style="font-size: var(--text-caption); color: var(--color-text-secondary);">{{ l.who }}</span>
+                    <span style="font: 400 var(--text-caption) var(--font-mono); color: {{ l.stateColor }};">{{ l.state }}</span>
+                  </span>
+                </button>
+              </sc-for>
+
+              <sc-if value="{{ hasLive }}" hint-placeholder-val="{{ true }}">
+                <button onClick="{{ noop }}" style="display: grid; gap: 3px; align-content: center; min-height: var(--tap-min); padding: var(--space-3) var(--space-4); border: none; border-radius: var(--radius-control); background: var(--color-accent-solid); color: var(--color-on-accent); cursor: pointer; font-family: var(--font-body); text-align: start;" style-hover="background: var(--color-accent-solid-hover);">
+                  <span style="font-size: var(--text-body); font-weight: 500; line-height: var(--leading-snug);">Войти в урок химии</span>
+                  <span style="font: 400 var(--text-caption) var(--font-mono); line-height: var(--leading-snug);">идёт 12 минут из 45 · преподаватель в комнате</span>
+                </button>
+              </sc-if>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ schedWeek }}" hint-placeholder-val="{{ false }}">
+          <div style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-4);">
+            <span style="display: flex; gap: var(--space-1); padding: 3px; border: 1px solid var(--color-border); border-radius: var(--radius-control); background: var(--color-surface);">
+              <button data-sw="view" data-val="day" onClick="{{ onSw }}" style="flex: 1 1 0; min-height: var(--control-height-sm); border: none; background: none; border-radius: var(--radius-sm); font-size: var(--text-caption); font-family: var(--font-body); color: var(--color-text-secondary); cursor: pointer;">День</button>
+              <button data-sw="view" data-val="week" onClick="{{ onSw }}" style="flex: 1 1 0; min-height: var(--control-height-sm); border: none; background: none; border-radius: var(--radius-sm); font-size: var(--text-caption); font-family: var(--font-body); color: var(--color-text-secondary); cursor: pointer;">Неделя</button>
+            </span>
+            <sc-for list="{{ weekRows }}" as="w" hint-placeholder-count="7">
+              <div style="display: grid; gap: var(--space-2); padding-bottom: var(--space-3); border-bottom: 1px solid var(--color-border);">
+                <span style="display: flex; align-items: baseline; gap: var(--space-2);">
+                  <span style="font: 500 var(--text-caption) var(--font-mono); color: {{ w.color }}; letter-spacing: .04em; white-space: nowrap;">{{ w.label }}</span>
+                  <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); white-space: nowrap;">{{ w.count }}</span>
+                </span>
+                <sc-for list="{{ w.items }}" as="it" hint-placeholder-count="2">
+                  <button onClick="{{ noop }}" style="display: grid; grid-template-columns: 46px minmax(0, 1fr); gap: var(--space-3); align-items: center; text-align: start; min-width: 0; min-height: var(--tap-min); padding: var(--space-2) var(--space-3); border: 1px solid var(--color-border); border-inline-start: 2px solid {{ it.stripe }}; border-radius: var(--radius-sm); background: var(--color-surface); cursor: pointer; font-family: var(--font-body);" style-hover="border-color: var(--color-border-strong);">
+                    <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-secondary);">{{ it.time }}</span>
+                    <span style="font-size: var(--text-caption); font-weight: 500; color: var(--color-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ it.title }}</span>
+                  </button>
+                </sc-for>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ tasksFilled }}" hint-placeholder-val="{{ false }}">
+          <div style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-4);">
+            <sc-if value="{{ tasksPartial }}" hint-placeholder-val="{{ false }}">
+              <div style="display: grid; gap: var(--space-2); padding: var(--space-4); border: 1px solid var(--color-border); border-inline-start: 2px solid var(--color-border-strong); border-radius: var(--radius-card); background: var(--color-surface-subtle);">
+                <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-secondary); letter-spacing: .08em; text-transform: uppercase;">частичный отказ · оценки</span>
+                <span style="font-size: var(--text-small); font-weight: 500;">Список работ пришёл, оценки — нет</span>
+                <span style="display: grid; gap: 2px; font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-secondary); line-height: var(--leading-snug);">
+                  <span>работает: список работ · сроки · отправка</span>
+                  <span>не работает: журнал оценок (сервер оценок молчит)</span>
+                  <span>с данными: черновик от 12:04 сохранён на устройстве</span>
+                </span>
+                <button onClick="{{ noop }}" style="justify-self: start; min-height: var(--control-height-sm); padding: 0 var(--space-3); font-size: var(--text-caption); font-family: var(--font-body); color: var(--color-text); background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-control); cursor: pointer; white-space: nowrap;">Запросить оценки</button>
+              </div>
+            </sc-if>
+
+            <sc-for list="{{ tasks }}" as="t" hint-placeholder-count="5">
+              <div style="display: grid; gap: var(--space-3); padding: var(--space-4); border: 1px solid var(--color-border); border-inline-start: 2px solid {{ t.stripe }}; border-radius: var(--radius-card); background: var(--color-surface);">
+                <span style="display: grid; gap: var(--space-1);">
+                  <span style="font: 500 var(--text-caption) var(--font-mono); color: {{ t.dueColor }}; letter-spacing: .04em;">{{ t.due }}</span>
+                  <span style="font-size: var(--text-body); font-weight: 500; line-height: var(--leading-snug); text-wrap: pretty;">{{ t.title }}</span>
+                  <span style="font-size: var(--text-caption); color: var(--color-text-secondary);">{{ t.course }}</span>
+                </span>
+                <sc-if value="{{ t.showAction }}" hint-placeholder-val="{{ true }}">
+                  <button data-sw="sheet" data-val="open" onClick="{{ onSw }}" style="min-height: var(--tap-min); border: 1px solid var(--color-go-border); border-radius: var(--radius-control); background: var(--color-go-bg); color: var(--color-go-text); font-size: var(--text-small); font-family: var(--font-body); font-weight: 500; cursor: pointer;" style-hover="border-color: var(--color-go-line);">{{ t.action }}</button>
+                </sc-if>
+                <sc-if value="{{ t.showMark }}" hint-placeholder-val="{{ false }}">
+                  <span style="display: flex; align-items: center; gap: var(--space-2); font: 500 var(--text-caption) var(--font-mono); color: var(--color-go-text);">
+                    <span style="width: 18px; height: 2px; background: var(--color-go-line);"></span>
+                    <span style="white-space: nowrap;">{{ t.mark }}</span>
+                  </span>
+                </sc-if>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ learnFilled }}" hint-placeholder-val="{{ false }}">
+          <div style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-5);">
+            <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-3); min-width: 0;">
+              <sc-for list="{{ metrics }}" as="m" hint-placeholder-count="4">
+                <span style="display: grid; gap: var(--space-1); min-width: 0; padding: var(--space-4); border: 1px solid var(--color-border); border-radius: var(--radius-card); background: var(--color-surface);">
+                  <span style="font-family: var(--font-mono); font-size: var(--text-h2); font-weight: 500; color: var(--color-text); line-height: var(--leading-tight);">{{ m.value }}</span>
+                  <span style="font-size: var(--text-caption); color: var(--color-text-secondary); line-height: var(--leading-snug);">{{ m.label }}</span>
+                </span>
+              </sc-for>
+            </div>
+
+            <div style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-3);">
+              <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .08em; text-transform: uppercase;">Курсы · путь пройден</span>
+              <sc-for list="{{ courses }}" as="c" hint-placeholder-count="4">
+                <button onClick="{{ noop }}" style="display: grid; gap: var(--space-2); text-align: start; min-width: 0; min-height: var(--tap-min); padding: var(--space-4); border: 1px solid var(--color-border); border-radius: var(--radius-card); background: var(--color-surface); cursor: pointer; font-family: var(--font-body);" style-hover="border-color: var(--color-border-strong);">
+                  <span style="font-size: var(--text-body); font-weight: 500; color: var(--color-text); line-height: var(--leading-snug); text-wrap: pretty;">{{ c.title }}</span>
+                  <span style="height: 4px; border-radius: var(--radius-pill); background: var(--color-surface-subtle); overflow: hidden;">
+                    <span style="display: block; height: 4px; width: {{ c.pct }}; background: var(--color-go-line);"></span>
+                  </span>
+                  <span style="display: flex; align-items: baseline; gap: var(--space-3); min-width: 0; font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary);">
+                    <span style="flex: 1 1 0; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ c.next }}</span>
+                    <span style="margin-inline-start: auto; font-weight: 500; color: var(--color-go-text); white-space: nowrap;">{{ c.done }}</span>
+                  </span>
+                </button>
+              </sc-for>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ startFilled }}" hint-placeholder-val="{{ false }}">
+          <div style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-4);">
+            <div style="position: relative; height: 220px; border-radius: var(--radius-card); background-color: var(--color-surface-video); overflow: hidden; display: grid; place-items: center;">
+              <span style="position: absolute; inset: 0; background-image: repeating-linear-gradient(135deg, rgba(255, 255, 255, .05) 0 14px, transparent 14px 28px);"></span>
+              <span style="position: relative; font: 400 var(--text-caption) var(--font-mono); color: rgba(255, 255, 255, .55); text-align: center; padding: 0 var(--space-5); line-height: var(--leading-snug);">ваша камера · кадры остаются на устройстве и не уходят на сервер</span>
+              <span style="position: absolute; left: var(--space-3); bottom: var(--space-3); display: flex; gap: var(--space-2);">
+                <button onClick="{{ noop }}" style="min-height: var(--control-height-sm); padding: 0 var(--space-3); border: 1px solid rgba(255, 255, 255, .25); border-radius: var(--radius-control); background: rgba(0, 0, 0, .35); color: var(--color-text-on-video); font: 500 var(--text-caption) var(--font-mono); cursor: pointer;">камера</button>
+                <button onClick="{{ noop }}" style="min-height: var(--control-height-sm); padding: 0 var(--space-3); border: 1px solid rgba(255, 255, 255, .25); border-radius: var(--radius-control); background: rgba(0, 0, 0, .35); color: var(--color-text-on-video); font: 500 var(--text-caption) var(--font-mono); cursor: pointer;">микрофон</button>
+              </span>
+            </div>
+
+            <div style="display: grid; gap: var(--space-3); padding: var(--space-4); border: 1px solid var(--color-border); border-radius: var(--radius-card); background: var(--color-surface);">
+              <sc-for list="{{ checks }}" as="c" hint-placeholder-count="4">
+                <span style="display: grid; grid-template-columns: 20px minmax(0, 1fr) auto; gap: var(--space-3); align-items: baseline;">
+                  <span style="font: 500 var(--text-caption) var(--font-mono); color: {{ c.color }};">{{ c.glyph }}</span>
+                  <span style="font-size: var(--text-small); color: var(--color-text);">{{ c.label }}</span>
+                  <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-secondary); white-space: nowrap;">{{ c.value }}</span>
+                </span>
+              </sc-for>
+            </div>
+
+            <button onClick="{{ noop }}" style="min-height: var(--tap-min); border: none; border-radius: var(--radius-control); background: var(--color-accent-solid); color: var(--color-on-accent); font-size: var(--text-body); font-family: var(--font-body); font-weight: 500; cursor: pointer;" style-hover="background: var(--color-accent-solid-hover);">Войти в урок · начнётся через 6 минут</button>
+            <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); text-align: center; line-height: var(--leading-snug);">преподаватель уже в комнате · вас будет 14</span>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ chatFilled }}" hint-placeholder-val="{{ false }}">
+          <div style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-3);">
+            <div style="display: grid; gap: var(--space-2); padding: var(--space-4); border: 1px solid var(--color-border); border-inline-start: 2px solid var(--color-border-strong); border-radius: var(--radius-card); background: var(--color-surface-subtle);">
+              <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-secondary); letter-spacing: .08em; text-transform: uppercase;">закреплено преподавателем</span>
+              <span style="font-size: var(--text-small); color: var(--color-text); line-height: var(--leading-snug);">К четвергу принесите три примера окисления из дома. Фотографии — в задание, не в чат.</span>
+            </div>
+            <sc-for list="{{ messages }}" as="m" hint-placeholder-count="6">
+              <span style="display: grid; gap: var(--space-1); justify-items: {{ m.align }};">
+                <span style="display: flex; gap: var(--space-2); align-items: baseline;">
+                  <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary);">{{ m.who }}</span>
+                  <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary);">{{ m.at }}</span>
+                </span>
+                <span style="max-width: 84%; padding: var(--space-3) var(--space-4); border: 1px solid {{ m.border }}; border-radius: var(--radius-card); background: {{ m.bg }}; font-size: var(--text-small); color: var(--color-text); line-height: var(--leading-snug); text-wrap: pretty;">{{ m.text }}</span>
+              </span>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isEmpty }}" hint-placeholder-val="{{ false }}">
+          <div style="display: grid; gap: var(--space-4); align-content: start; padding-top: var(--space-6);">
+            <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .08em; text-transform: uppercase;">пусто</span>
+            <span style="font-family: var(--font-heading); font-size: var(--text-h2); font-weight: 600; letter-spacing: var(--tracking-snug); line-height: var(--leading-heading); text-wrap: pretty;">{{ emptyTitle }}</span>
+            <span style="font-size: var(--text-small); color: var(--color-text-secondary); line-height: var(--leading-body); text-wrap: pretty;">{{ emptyBody }}</span>
+            <button onClick="{{ noop }}" style="min-height: var(--tap-min); border: none; border-radius: var(--radius-control); background: var(--color-accent-solid); color: var(--color-on-accent); font-size: var(--text-body); font-family: var(--font-body); font-weight: 500; cursor: pointer;" style-hover="background: var(--color-accent-solid-hover);">{{ emptyAction }}</button>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isLoading }}" hint-placeholder-val="{{ false }}">
+          <div style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-4);">
+            <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); line-height: var(--leading-snug);">{{ loadingSays }}</span>
+            <sc-for list="{{ skeleton }}" as="sk" hint-placeholder-count="5">
+              <span style="display: grid; grid-template-columns: 52px minmax(0, 1fr); gap: var(--space-3); padding: var(--space-4); border: 1px solid var(--color-border); border-radius: var(--radius-card); background: var(--color-surface);">
+                <span style="display: grid; gap: var(--space-2); align-content: start;">
+                  <span style="height: 12px; border-radius: 2px; background: var(--color-surface-subtle);"></span>
+                  <span style="height: 10px; width: 70%; border-radius: 2px; background: var(--color-surface-subtle);"></span>
+                </span>
+                <span style="display: grid; gap: var(--space-2); align-content: start;">
+                  <span style="height: 14px; width: {{ sk.a }}; border-radius: 2px; background: var(--color-surface-subtle);"></span>
+                  <span style="height: 11px; width: {{ sk.b }}; border-radius: 2px; background: var(--color-surface-subtle);"></span>
+                  <span style="height: 11px; width: 40%; border-radius: 2px; background: var(--color-surface-subtle);"></span>
+                </span>
+              </span>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isFailed }}" hint-placeholder-val="{{ false }}">
+          <div style="display: grid; gap: var(--space-4); align-content: start; padding-top: var(--space-4);">
+            <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-error-text); letter-spacing: .08em; text-transform: uppercase;">{{ failKicker }}</span>
+            <span style="font-family: var(--font-heading); font-size: var(--text-h2); font-weight: 600; letter-spacing: var(--tracking-snug); line-height: var(--leading-heading); text-wrap: pretty;">{{ failTitle }}</span>
+            <span style="font-size: var(--text-small); color: var(--color-text-secondary); line-height: var(--leading-body); text-wrap: pretty;">{{ failBody }}</span>
+            <span style="display: grid; gap: var(--space-2); padding-inline-start: var(--space-3); border-inline-start: 2px solid var(--color-border-strong); font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-secondary); line-height: var(--leading-snug);">
+              <sc-for list="{{ failFacts }}" as="f" hint-placeholder-count="3">
+                <span>{{ f.text }}</span>
+              </sc-for>
+            </span>
+            <button onClick="{{ noop }}" style="min-height: var(--tap-min); border: none; border-radius: var(--radius-control); background: var(--color-accent-solid); color: var(--color-on-accent); font-size: var(--text-body); font-family: var(--font-body); font-weight: 500; cursor: pointer;" style-hover="background: var(--color-accent-solid-hover);">{{ failAction }}</button>
+            <button onClick="{{ noop }}" style="min-height: var(--tap-min); border: 1px solid var(--color-border); border-radius: var(--radius-control); background: none; color: var(--color-text); font-size: var(--text-small); font-family: var(--font-body); cursor: pointer;" style-hover="border-color: var(--color-border-strong);">{{ failAlt }}</button>
+          </div>
+        </sc-if>
+      </div>
+
+      <sc-if value="{{ showComposer }}" hint-placeholder-val="{{ false }}">
+        <div style="display: flex; gap: var(--space-2); align-items: center; padding: var(--space-3) var(--space-4); border-top: 1px solid var(--color-border); background: var(--color-bg);">
+          <span style="flex: 1 1 auto; min-width: 0; display: flex; align-items: center; min-height: var(--tap-min); padding: 0 var(--space-4); border: 1px solid var(--color-border); border-radius: var(--radius-pill); background: var(--color-surface); font-size: var(--text-small); color: var(--color-text-tertiary);">Написать в чат урока</span>
+          <button onClick="{{ noop }}" aria-label="Поднять руку" style="width: var(--tap-min); height: var(--tap-min); border: 1px solid var(--color-accent-subtle-border); border-radius: var(--radius-pill); background: var(--color-accent-subtle); color: var(--color-accent-text); font: 500 14px var(--font-mono); cursor: pointer;">рука</button>
+        </div>
+      </sc-if>
+
+      <div data-geo="phone-tabs" style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border-top: 1px solid var(--color-border); background: var(--color-bg); padding-bottom: var(--space-3);">
+        <sc-for list="{{ tabs }}" as="t" hint-placeholder-count="4">
+          <button data-sw="screen" data-val="{{ t.id }}" onClick="{{ onSw }}" style="display: grid; gap: 3px; justify-items: center; align-content: center; min-width: 0; min-height: var(--tap-min); padding: var(--space-2) 0; border: none; background: none; cursor: pointer;">
+            <span style="width: 18px; height: 18px; border: 1.5px solid {{ t.color }}; border-radius: {{ t.radius }}; flex: none;"></span>
+            <span style="font-family: var(--font-body); font-size: var(--text-caption); font-weight: 500; letter-spacing: var(--tracking-tight); color: {{ t.color }}; white-space: nowrap;">{{ t.label }}</span>
+          </button>
+        </sc-for>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;: {&quot;width&quot;: 1200, &quot;height&quot;: 940}}">
+class Component extends DCLogic {
+  // Мобильный лист — не «настольный экран в узком кадре». Три отличия зафиксированы здесь:
+  // 1. Прокрутка листа РАЗРЕШЕНА (ПРАВИЛА 8.6а): неделя и список работ физически не влезают
+  //    в 844 px, а запрет породил бы две вложенные прокрутки — ровно то, что он запрещает.
+  //    Прокручивается один слой (data-sheet-scroll), шапка и полка вкладок стоят на месте.
+  // 2. Горизонтально не прокручивается ничего, кроме полосы дней (data-strip-ok).
+  // 3. Одно действие на экран, и это самая нижняя крупная кнопка: до неё дотягивается палец.
+  state = { screen: 'sched', st: 'filled', view: 'day', theme: 'light', mode: 'default' };
+
+  STATES = {
+    sched: ['filled', 'empty', 'loading', 'failed'],
+    tasks: ['filled', 'partial', 'empty', 'loading'],
+    learn: ['filled', 'empty', 'loading'],
+    start: ['filled', 'failed'],
+    chat:  ['filled', 'loading', 'empty'],
+  };
+
+  componentDidMount() {
+    this.onResize = () => this.fit();
+    window.addEventListener('resize', this.onResize);
+    this.settle();
+    this.probe = setInterval(() => {
+      const el = this.root && this.root.querySelector('[data-scroll-probe]');
+      const sc = this.frame && this.frame.querySelector('[data-sheet-scroll]');
+      if (el) el.textContent = 'прокрутка листа: ' + (sc ? Math.max(0, sc.scrollHeight - sc.clientHeight) : 0) + ' px · страницы: '
+        + Math.max(0, document.documentElement.scrollHeight - window.innerHeight) + ' px';
+    }, 1000);
+  }
+  componentDidUpdate() { this.settle(); }
+  componentWillUnmount() { window.removeEventListener('resize', this.onResize); clearInterval(this.probe); }
+
+  settle() { this.fit(); this.applyChrome(); requestAnimationFrame(() => this.fit()); }
+
+  fit() {
+    const host = this.host, f = this.frame;
+    if (!host || !f) return;
+    const s = Math.min(1, (host.clientWidth - 40) / 390, (host.clientHeight - 40) / 844);
+    host.style.position = 'relative';
+    f.style.position = 'absolute';
+    f.style.left = '50%'; f.style.top = '50%';
+    f.style.transform = 'translate(-50%, -50%) scale(' + s.toFixed(4) + ')';
+  }
+
+  applyChrome() {
+    const root = this.root; if (!root) return;
+    const cur = { screen: this.state.screen, st: this.state.st, view: this.state.view };
+    const allowed = this.STATES[this.state.screen] || ['filled'];
+    root.querySelectorAll('[data-sw]').forEach((b) => {
+      const k = b.dataset.sw, v = b.dataset.val;
+      if (!(k in cur)) return;
+      // ПРАВИЛА 6.6: скрывая элемент, помним его display и возвращаем именно его
+      if (k === 'st' && b.closest('[data-sw="screen"]') === null && !b.closest('[data-audit-scope]')) {
+        if (!b.dataset.disp) b.dataset.disp = getComputedStyle(b).display;
+        b.style.display = allowed.indexOf(v) < 0 ? 'none' : b.dataset.disp;
+      }
+      const on = cur[k] === v;
+      if (b.closest('[data-audit-scope]')) {
+        b.style.color = on ? 'var(--color-text)' : 'var(--color-text-secondary)';
+        b.style.background = on ? 'var(--color-surface-subtle)' : 'none';
+      } else {
+        b.style.color = on ? 'var(--color-text)' : 'var(--color-text-secondary)';
+        b.style.borderColor = on ? 'var(--color-border-strong)' : 'var(--color-border)';
+        b.style.background = on ? 'var(--color-surface)' : 'none';
+      }
+    });
+  }
+
+  onSw = (e) => {
+    const { sw, val } = e.currentTarget.dataset;
+    if (sw === 'theme') return this.setState((s) => ({ theme: s.theme === 'dark' ? 'light' : 'dark' }));
+    if (sw === 'mode') return this.setState((s) => ({ mode: s.mode === 'kids' ? 'default' : 'kids' }));
+    if (sw === 'sheet') return this.setState({ st: 'filled' });
+    if (sw === 'screen') {
+      const allowed = this.STATES[val] || ['filled'];
+      return this.setState((s) => ({ screen: val, st: allowed.indexOf(s.st) < 0 ? 'filled' : s.st }));
+    }
+    this.setState({ [sw]: val });
+  };
+
+  head() {
+    const tz = 'время в вашем поясе: Москва, UTC+3';
+    switch (this.state.screen) {
+      case 'sched': return { title: 'Расписание', sub: '17–23 августа 2026 · ' + tz, back: false };
+      case 'tasks': return { title: 'Задания', sub: '4 работы · ближайший срок сегодня · ' + tz, back: false };
+      case 'learn': return { title: 'Моя учёба', sub: 'остаётся вам, даже если преподаватель ушёл', back: false };
+      case 'start': return { title: 'Химия', sub: 'Почему горит магний · Ирина Соколова · ' + tz, back: true };
+      default:      return { title: 'Чат', sub: 'Химия · 14 человек · история остаётся у вас', back: false };
+    }
+  }
+
+  emptyCopy() {
+    switch (this.state.screen) {
+      case 'sched': return {
+        t: 'На этой неделе занятий нет',
+        b: 'Расписание пустое не по ошибке: у вас пока нет курса с занятиями. Занятие живёт внутри курса — выберите курс, и неделя заполнится сама.',
+        a: 'Открыть каталог курсов' };
+      case 'tasks': return {
+        t: 'Работ к сдаче нет',
+        b: 'Всё сданное лежит в «Моей учёбе» и никуда не денется. Новая работа появится здесь сразу после занятия — уведомление придёт.',
+        a: 'Посмотреть, что уже сдано' };
+      case 'learn': return {
+        t: 'Здесь появится ваш путь',
+        b: 'После первого занятия здесь будут пройденные уроки, выученные слова и принятые работы — по курсам и по неделям.',
+        a: 'Выбрать первый курс' };
+      default: return {
+        t: 'В чате пока ничего',
+        b: 'Чат открывается вместе с уроком и остаётся у вас после него. Первым сообщением обычно идёт план занятия от преподавателя.',
+        a: 'Открыть расписание' };
+    }
+  }
+
+  loadingCopy() {
+    switch (this.state.screen) {
+      case 'sched': return 'собираем неделю · первыми придут занятия на сегодня, затем остальные дни';
+      case 'tasks': return 'собираем работы · первыми придут сроки, оценки подтянутся следом';
+      case 'learn': return 'собираем путь · первыми придут курсы, числа появятся за ними';
+      default: return 'открываем чат · первыми придут последние 20 сообщений';
+    }
+  }
+
+  failCopy() {
+    if (this.state.screen === 'start') return {
+      k: 'отказ · нет доступа к камере',
+      t: 'Браузер не отдаёт камеру',
+      b: 'Доступ к камере запрещён в настройках телефона для этого сайта. Урок начнётся без вас только если вы не войдёте — войти можно и без камеры, вас будет слышно.',
+      f: [
+        { text: 'работает: микрофон · сеть 24 Мбит/с · чат' },
+        { text: 'не работает: показ вашего видео' },
+        { text: 'с данными: ничего не потеряно, урок ещё не начался' },
+      ],
+      a: 'Войти без камеры',
+      alt: 'Как разрешить камеру на телефоне' };
+    return {
+      k: 'отказ · расписание',
+      t: 'Расписание не пришло',
+      b: 'Сервер расписания не отвечает — это единственный источник этого экрана, поэтому показать нечего. Остальное приложение работает: задания, «Моя учёба» и чат открываются.',
+      f: [
+        { text: 'работает: задания · моя учёба · чат' },
+        { text: 'не работает: показ расписания' },
+        { text: 'с данными: ничего не потеряно, занятия не отменены' },
+      ],
+      a: 'Загрузить снова',
+      alt: 'Открыть задания' };
+  }
+
+  renderVals() {
+    const s = this.state;
+    const h = this.head();
+    const acc = 'var(--color-accent-solid)';
+    const go = 'var(--color-go-line)';
+    const none = 'var(--color-border)';
+    const emp = this.emptyCopy();
+    const fail = this.failCopy();
+
+    // Календарь настоящий: 20 августа 2026 — ЧЕТВЕРГ, неделя пн 17 — вс 23. Демо-числа
+    // уезжают в засев данных, а «срок сутками вместо календарных дней» начинается ровно
+    // с такого расхождения: на листе пятница 22-е — и в сиде она тоже станет 22-м.
+    const days = [
+      { dow: 'пн', num: '17', dot: go,   done: true },
+      { dow: 'вт', num: '18', dot: go,   done: true },
+      { dow: 'ср', num: '19', dot: go,   done: true },
+      { dow: 'чт', num: '20', dot: acc,  today: true },
+      { dow: 'пт', num: '21', dot: 'var(--color-border-strong)' },
+      { dow: 'сб', num: '22', dot: 'transparent' },
+      { dow: 'вс', num: '23', dot: 'transparent' },
+    ].map((d) => ({
+      dow: d.dow, num: d.num, dot: d.dot,
+      border: d.today ? 'var(--color-border-strong)' : 'var(--color-border)',
+      bg: d.today ? 'var(--color-surface-subtle)' : 'var(--color-surface)',
+      numColor: d.today ? 'var(--color-text)' : 'var(--color-text-secondary)',
+    }));
+
+    return {
+      setRoot: (el) => { this.root = el; },
+      setHost: (el) => { this.host = el; },
+      setFrame: (el) => { this.frame = el; },
+      theme: s.theme === 'dark' ? 'dark' : 'light',
+      mode: s.mode === 'kids' ? 'kids' : 'default',
+      clock: '9:41',
+      title: h.title,
+      subtitle: h.sub,
+      hasBack: h.back,
+
+      schedFilled: s.screen === 'sched' && s.st === 'filled' && s.view === 'day',
+      schedWeek: s.screen === 'sched' && s.st === 'filled' && s.view === 'week',
+      tasksFilled: s.screen === 'tasks' && (s.st === 'filled' || s.st === 'partial'),
+      tasksPartial: s.screen === 'tasks' && s.st === 'partial',
+      learnFilled: s.screen === 'learn' && s.st === 'filled',
+      startFilled: s.screen === 'start' && s.st === 'filled',
+      chatFilled: s.screen === 'chat' && s.st === 'filled',
+      isEmpty: s.st === 'empty',
+      isLoading: s.st === 'loading',
+      isFailed: s.st === 'failed',
+      showComposer: s.screen === 'chat' && s.st === 'filled',
+      hasLive: true,
+
+      days,
+      dayLabel: 'четверг, 20 августа',
+      dayMeta: '3 занятия · 2 часа 15 минут',
+      lessons: [
+        { time: '09:00', dur: '45 минут', title: 'Математика · Синус в жизни', who: 'Пётр Дьяков', state: 'пройдено', stateColor: 'var(--color-go-text)', stripe: go },
+        { time: '11:30', dur: '45 минут', title: 'Химия · Почему горит магний', who: 'Ирина Соколова', state: 'идёт сейчас · 12 минут из 45', stateColor: 'var(--color-accent-text)', stripe: acc },
+        { time: '15:00', dur: '45 минут', title: 'Астрономия · Как звучит чёрная дыра', who: 'Марк Лебедев', state: 'начнётся через 3 часа 30 минут', stateColor: 'var(--color-text-tertiary)', stripe: none },
+      ],
+      weekRows: [
+        { label: 'пн · 17', count: '2 занятия', color: 'var(--color-text-secondary)', items: [
+          { time: '09:00', title: 'Математика · Синус в жизни', stripe: go },
+          { time: '13:00', title: 'История · Документ, который перекроил карту', stripe: go } ] },
+        { label: 'вт · 18', count: '1 занятие', color: 'var(--color-text-secondary)', items: [
+          { time: '11:30', title: 'Химия · Кислоты дома', stripe: go } ] },
+        { label: 'ср · 19', count: '1 занятие', color: 'var(--color-text-secondary)', items: [
+          { time: '10:00', title: 'Биология · Клетка под микроскопом', stripe: go } ] },
+        { label: 'чт · 20 · сегодня', count: '3 занятия', color: 'var(--color-text)', items: [
+          { time: '09:00', title: 'Математика · Синус в жизни', stripe: go },
+          { time: '11:30', title: 'Химия · Почему горит магний', stripe: acc },
+          { time: '15:00', title: 'Астрономия · Как звучит чёрная дыра', stripe: none } ] },
+        { label: 'пт · 21', count: '2 занятия', color: 'var(--color-text-secondary)', items: [
+          { time: '12:00', title: 'Физика · Почему самолёт держится', stripe: none },
+          { time: '16:00', title: 'Математика · Разбор работ', stripe: none } ] },
+        { label: 'сб · 22', count: 'занятий нет', color: 'var(--color-text-tertiary)', items: [] },
+        { label: 'вс · 23', count: 'занятий нет', color: 'var(--color-text-tertiary)', items: [] },
+      ],
+
+      tasks: [
+        { due: 'сегодня до 18:00 · осталось 4 часа', dueColor: 'var(--color-accent-text)', stripe: acc,
+          title: 'Три примера окисления из дома — фотографии', course: 'Химия · Ирина Соколова',
+          showAction: true, action: 'Сдать работу', showMark: false },
+        { due: 'до пятницы, 21 августа', dueColor: 'var(--color-text-tertiary)', stripe: none,
+          title: 'Построить график синуса по своим измерениям', course: 'Математика · Пётр Дьяков',
+          showAction: true, action: 'Открыть черновик', showMark: false },
+        { due: 'принято 19 августа', dueColor: 'var(--color-text-tertiary)', stripe: none,
+          title: 'Конспект по кислотам', course: 'Химия · Ирина Соколова',
+          showAction: false, showMark: true, mark: 'принято · 5 из 5' },
+        { due: 'принято 18 августа', dueColor: 'var(--color-text-tertiary)', stripe: none,
+          title: 'Пересказ документа своими словами', course: 'История · Анна Верес',
+          showAction: false, showMark: true, mark: 'принято · 4 из 5' },
+      ],
+
+      metrics: [
+        { value: '11 из 17', label: 'уроков курса «Химия» пройдено' },
+        { value: '48', label: 'слов выучено за месяц' },
+        { value: '9', label: 'работ принято из 10 сданных' },
+        { value: '6 ч 20 м', label: 'на занятиях за эту неделю' },
+      ],
+      courses: [
+        { title: 'Химия · неорганика', done: '11 из 17', pct: '65%', next: 'дальше: окисление и восстановление' },
+        { title: 'Математика · тригонометрия', done: '7 из 12', pct: '58%', next: 'дальше: график синуса' },
+        { title: 'История · XX век', done: '4 из 20', pct: '20%', next: 'дальше: 1914 год' },
+        { title: 'Астрономия · звёзды', done: '2 из 9', pct: '22%', next: 'дальше: спектры' },
+      ],
+
+      checks: [
+        { glyph: '✓', color: 'var(--color-go-text)', label: 'Камера', value: 'фронтальная' },
+        { glyph: '✓', color: 'var(--color-go-text)', label: 'Микрофон', value: 'слышно вас' },
+        { glyph: '✓', color: 'var(--color-go-text)', label: 'Сеть', value: '24 Мбит/с' },
+        { glyph: '—', color: 'var(--color-text-tertiary)', label: 'Наушники', value: 'не найдены · будет эхо' },
+      ],
+
+      messages: [
+        { who: 'Ирина Соколова', at: '11:31', text: 'Открыли доску. Пишите вопросы сюда — я читаю между опытами.', align: 'start', bg: 'var(--color-surface)', border: 'var(--color-border)' },
+        { who: 'Даня', at: '11:34', text: 'А магний можно тушить водой?', align: 'start', bg: 'var(--color-surface)', border: 'var(--color-border)' },
+        { who: 'Ирина Соколова', at: '11:35', text: 'Нельзя — и это как раз то, что мы сейчас увидим. Смотрите на доску.', align: 'start', bg: 'var(--color-surface)', border: 'var(--color-border)' },
+        { who: 'вы', at: '11:36', text: 'Значит, песком?', align: 'end', bg: 'var(--color-surface-subtle)', border: 'var(--color-border)' },
+        { who: 'Ирина Соколова', at: '11:37', text: 'Да. Запишите в конспект: песок, а не вода.', align: 'start', bg: 'var(--color-surface)', border: 'var(--color-border)' },
+      ],
+
+      emptyTitle: emp.t, emptyBody: emp.b, emptyAction: emp.a,
+      loadingSays: this.loadingCopy(),
+      skeleton: [{ a: '86%', b: '60%' }, { a: '72%', b: '48%' }, { a: '90%', b: '55%' }, { a: '64%', b: '42%' }],
+      failKicker: fail.k, failTitle: fail.t, failBody: fail.b, failFacts: fail.f, failAction: fail.a, failAlt: fail.alt,
+
+      // ПРАВИЛА 4.9: у экрана одно имя во всех местах. Полка вкладок говорит теми же
+      // словами, что заголовок листа и служебная полоса: «работы» против «заданий» через
+      // месяц превращаются в вопрос, один это экран или два.
+      // Вкладок четыре, а не пять: «Урок» — не место, куда ходят, а то, куда входят из
+      // расписания в свой час. Пятая вкладка не только не влезала словом в kids, но и врала:
+      // урока в остальные 23 часа суток там нет. Лист запуска остаётся, но приходит с
+      // возвратом, как всякий вложенный экран.
+      tabs: [
+        { id: 'sched', label: 'Расписание', radius: 'var(--radius-xs)' },
+        { id: 'tasks', label: 'Задания', radius: 'var(--radius-xs)' },
+        { id: 'learn', label: 'Моя учёба', radius: 'var(--radius-pill)' },
+        { id: 'chat', label: 'Чат', radius: 'var(--radius-sm)' },
+      ].map((t) => ({ ...t, color: t.id === s.screen ? 'var(--color-text)' : 'var(--color-text-tertiary)' })),
+
+      onSw: this.onSw,
+      noop: () => {},
+    };
+  }
+}
+</script>
+</body>
+</html>

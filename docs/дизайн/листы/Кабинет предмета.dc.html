@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="tokens.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  html, body { height: 100%; overflow: hidden; }
+  a { color: var(--color-link); text-decoration: none; }
+  a:hover { color: var(--color-accent-text); }
+</style>
+</helmet>
+<div ref="{{ setRoot }}" data-theme="{{ theme }}" data-mode="{{ mode }}" style="height: 100vh; display: grid; grid-template-rows: auto minmax(0, 1fr); background: var(--color-bg); color: var(--color-text); font-family: var(--font-body); overflow: hidden;">
+
+  <div style="display: flex; align-items: center; gap: var(--space-2); padding: var(--space-3) var(--space-4); border-bottom: 1px solid var(--color-border); flex-wrap: wrap;">
+    <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .08em; text-transform: uppercase;">роль</span>
+    <button data-sw="role" data-val="pupil" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">ученик</button>
+    <button data-sw="role" data-val="teacher" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">преподаватель</button>
+
+    <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .08em; text-transform: uppercase; margin-left: var(--space-4);">вкладка</span>
+    <button data-sw="tab" data-val="lessons" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">уроки</button>
+    <button data-sw="tab" data-val="materials" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">материалы</button>
+    <button data-sw="tab" data-val="tasks" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">задания</button>
+    <button data-sw="tab" data-val="progress" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">прогресс</button>
+
+    <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .08em; text-transform: uppercase; margin-left: var(--space-4);">состояние</span>
+    <button data-sw="st" data-val="filled" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">наполнено</button>
+    <button data-sw="st" data-val="empty" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">пусто</button>
+    <button data-sw="st" data-val="loading" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">загружается</button>
+    <button data-sw="st" data-val="failed" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">отказ</button>
+    <button data-sw="st" data-val="partial" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">частичный отказ</button>
+
+    <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .08em; text-transform: uppercase; margin-left: var(--space-4);">кадр</span>
+    <button data-sw="w" data-val="1280" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">1280×800</button>
+    <button data-sw="w" data-val="1512" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">1512×944</button>
+
+    <span style="margin-left: auto; display: flex; gap: var(--space-2); align-items: center;">
+      <span data-scroll-probe style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary);">прокрутка страницы: 0 px</span>
+      <button data-sw="theme" data-val="toggle" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">тема</button>
+      <button data-sw="kids" data-val="toggle" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer;">kids</button>
+    </span>
+  </div>
+
+  <div ref="{{ setHost }}" style="display: grid; place-items: center; overflow: hidden; min-height: 0;">
+    <div data-audit-scope ref="{{ setFrame }}" style="width: 1280px; height: 800px; transform-origin: center center; position: relative; border-radius: var(--radius-card); overflow: hidden; background: var(--color-bg); box-shadow: var(--shadow-lg); border: 1px solid var(--color-border); display: grid; grid-template-rows: auto minmax(0, 1fr);">
+
+      <div style="display: flex; align-items: center; gap: var(--space-4); padding: 0 var(--space-5); height: 60px; border-bottom: 1px solid var(--color-border); background: var(--color-surface);">
+        <img src="design-assets/flamingo-bird.svg" alt="Flamingo" style="width: 22px; height: 22px; flex: none;">
+        <button onClick="{{ noop }}" style="min-height: var(--control-height-sm); font-size: var(--text-small); font-family: var(--font-body); color: var(--color-text-secondary); background: none; border: none; cursor: pointer; padding: var(--space-2);" style-hover="color: var(--color-text);" data-still="в продукте ведёт в общий кабинет · соседний лист «Кабинет и учёба»">← в кабинет</button>
+        <span style="font-size: var(--text-small); font-weight: 500;">English A2 · подростки</span>
+        <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary);">{{ topMeta }}</span>
+        <span style="margin-left: auto; display: flex; align-items: center; gap: var(--space-3);">
+          <button onClick="{{ noop }}" style="min-height: var(--control-height-sm); font-size: var(--text-caption); font-family: var(--font-body); color: var(--color-text); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-control); padding: 0 var(--space-4); cursor: pointer;" style-hover="border-color: var(--color-border-strong);" data-still="в продукте открывает переписку по предмету · соседний лист «Чат»">Чат предмета</button>
+          <span style="display: flex; align-items: center; gap: var(--space-2); padding: var(--space-1) var(--space-3) var(--space-1) var(--space-2); border: 1px solid var(--color-border); border-radius: var(--radius-pill);">
+            <span style="width: 24px; height: 24px; border-radius: 50%; background: var(--color-surface-subtle); display: grid; place-items: center; font: 500 10px var(--font-mono); color: var(--color-text-secondary);">{{ meIni }}</span>
+            <span style="font-size: var(--text-caption);">{{ meName }}</span>
+          </span>
+        </span>
+      </div>
+
+      <div style="min-height: 0; position: relative; overflow: hidden;">
+        <sc-if value="{{ showBody }}" hint-placeholder-val="{{ true }}">
+          <div data-geo="рабочая область" style="position: absolute; inset: 0; display: grid; grid-template-columns: minmax(0, 1fr) 344px; min-height: 0;">
+            <div style="display: grid; grid-template-rows: auto auto minmax(0, 1fr); min-height: 0; padding: var(--space-5) var(--space-5) 0;">
+              <div style="display: grid; gap: var(--space-3);">
+                <span style="display: flex; align-items: baseline; gap: var(--space-4); flex-wrap: wrap;">
+                  <span style="font-family: var(--font-heading); font-size: var(--text-h1); font-weight: 600; letter-spacing: var(--tracking-tight);">Английский A2</span>
+                  <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary);">{{ subjectMeta }}</span>
+                </span>
+                <span style="display: flex; align-items: center; gap: var(--space-3);">
+                  <span style="flex: 1; height: 4px; border-radius: 2px; background: var(--color-surface-subtle);"><span style="display: block; height: 4px; border-radius: 2px; background: var(--color-accent); width: 64%;"></span></span>
+                  <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-secondary);">64 %</span>
+                </span>
+              </div>
+
+              <div style="display: flex; gap: var(--space-1); margin-top: var(--space-5); border-bottom: 1px solid var(--color-border);">
+                <sc-for list="{{ tabs }}" as="t" hint-placeholder-count="4">
+                  <button data-tab="{{ t.id }}" onClick="{{ onTab }}" style="display: flex; align-items: center; gap: var(--space-2); font-size: var(--text-small); font-family: var(--font-body); background: none; border: none; border-bottom: 2px solid transparent; color: var(--color-text-secondary); padding: var(--space-3) var(--space-4); cursor: pointer; min-height: var(--tap-min);">
+                    <span>{{ t.label }}</span>
+                    <sc-if value="{{ t.count }}" hint-placeholder-val="{{ false }}">
+                      <span style="font: 500 10px var(--font-mono); color: var(--color-text-secondary); background: var(--color-surface-subtle); border-radius: var(--radius-sm); padding: 2px var(--space-2);">{{ t.count }}</span>
+                    </sc-if>
+                  </button>
+                </sc-for>
+              </div>
+
+              <div style="overflow: auto; min-height: 0; padding: var(--space-5) var(--space-4) var(--space-5) 0; display: grid; gap: var(--space-3); align-content: start; grid-auto-rows: max-content;">
+                <sc-for list="{{ rows }}" as="r" hint-placeholder-count="8">
+                  <span style="display: grid; grid-template-columns: 52px minmax(0, 1fr) auto auto; gap: var(--space-4); align-items: center; padding: var(--space-3) 0; border-bottom: 1px solid var(--color-border);">
+                    <span style="font: 500 var(--text-caption) var(--font-mono); color: {{ r.leadColor }}; font-variant-numeric: tabular-nums;">{{ r.lead }}</span>
+                    <span style="display: grid; gap: 2px; min-width: 0;">
+                      <span style="font-size: var(--text-small); font-weight: 500;">{{ r.name }}</span>
+                      <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary);">{{ r.sub }}</span>
+                    </span>
+                    <span style="font: 400 var(--text-caption) var(--font-mono); color: {{ r.tagColor }}; white-space: nowrap;">{{ r.tag }}</span>
+                    <button onClick="{{ noop }}" style="min-height: var(--control-height-sm); padding: 0 var(--space-2); text-decoration: underline; text-decoration-color: var(--color-border-strong); text-underline-offset: 3px; font-size: var(--text-caption); font-family: var(--font-body); color: var(--color-text); background: none; border: none; cursor: pointer; white-space: nowrap; min-height: var(--tap-min); padding: 0 var(--space-2);" data-still="в продукте открывает строку списка · что именно, написано в надписи: открыть · разбор · работа · подробно · повторить · проверить">{{ r.act }}</button>
+                  </span>
+                </sc-for>
+              </div>
+            </div>
+
+            <div style="border-inline-start: 1px solid var(--color-border); background: var(--color-surface); padding: var(--space-5); display: grid; grid-template-rows: auto auto minmax(0, 1fr) auto; gap: var(--space-4); min-height: 0;">
+              <div style="display: grid; gap: var(--space-2); padding-bottom: var(--space-4); border-bottom: 1px solid var(--color-border);">
+                <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .08em; text-transform: uppercase;">ближайшее занятие</span>
+                <span style="font-size: var(--text-body); font-weight: 500;">Unit 5 · Shopping</span>
+                <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary);">понедельник, 25 августа, 18:00 · в вашем поясе</span>
+                <button onClick="{{ noop }}" style="min-height: var(--control-height-md); font-size: var(--text-small); font-family: var(--font-body); color: var(--color-on-go); background: var(--color-go-solid); border: none; border-radius: var(--radius-control); padding: 0 var(--space-5); cursor: pointer;" style-hover="background: var(--color-go-solid-hover);" data-still="в продукте готовит занятие или открывает его материалы · соседние листы «Создание курса и занятия» и «Задания и конспект»">{{ railAction }}</button>
+              </div>
+
+              <div style="display: grid; gap: var(--space-2);">
+                <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .08em; text-transform: uppercase;">{{ whoTitle }}</span>
+                <span style="font-size: var(--text-small); font-weight: 500;">{{ whoName }}</span>
+                <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); line-height: var(--leading-snug);">{{ whoSub }}</span>
+              </div>
+
+              <div style="display: grid; gap: var(--space-3); align-content: start; overflow: auto; min-height: 0; border-top: 1px solid var(--color-border); padding-top: var(--space-4);">
+                <span style="display: flex; align-items: baseline; gap: var(--space-2);">
+                  <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .08em; text-transform: uppercase;">источники по предмету</span>
+                  <button onClick="{{ noop }}" style="margin-left: auto; min-height: var(--control-height-sm); padding: 0 var(--space-2); text-decoration: underline; text-decoration-color: var(--color-border-strong); text-underline-offset: 3px; font-size: var(--text-caption); font-family: var(--font-body); color: var(--color-text); background: none; border: none; cursor: pointer;" data-still="в продукте открывает все источники предмета · соседний лист «Источники мира»">все →</button>
+                </span>
+                <sc-if value="{{ srcDown }}" hint-placeholder-val="{{ false }}">
+                  <span style="display: grid; gap: var(--space-2); padding: var(--space-4); border: 1px solid var(--color-border); border-radius: var(--radius-control);">
+                    <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-secondary); letter-spacing: .08em; text-transform: uppercase;">частичный отказ · источники</span>
+                    <span style="font-size: var(--text-caption); font-weight: 500;">Список источников не ответил</span>
+                    <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-secondary); line-height: var(--leading-snug);">работает: уроки · материалы · словарь · ближайшее занятие</span>
+                    <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-secondary); line-height: var(--leading-snug);">не работает: только список чужих сайтов. Сохранённое из уроков лежит в «Моей учёбе» и открывается</span>
+                    <button onClick="{{ noop }}" style="justify-self: start; min-height: var(--control-height-sm); font-size: var(--text-caption); font-family: var(--font-body); color: var(--color-text); background: none; border: 1px solid var(--color-border-strong); border-radius: var(--radius-control); padding: 0 var(--space-4); cursor: pointer; white-space: nowrap;">Проверить ещё раз</button>
+                  </span>
+                </sc-if>
+                <sc-if value="{{ srcOk }}" hint-placeholder-val="{{ true }}">
+                <sc-for list="{{ sources }}" as="src" hint-placeholder-count="4">
+                  <span style="display: grid; gap: 3px; padding-bottom: var(--space-3); border-bottom: 1px solid var(--color-border);">
+                    <span style="font-size: var(--text-caption); font-weight: 500;">{{ src.name }}</span>
+                    <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); line-height: var(--leading-snug);">{{ src.right }}</span>
+                  </span>
+                </sc-for>
+                </sc-if>
+              </div>
+
+              <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); line-height: var(--leading-snug); border-top: 1px solid var(--color-border); padding-top: var(--space-3);">{{ railFoot }}</span>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ showEmpty }}" hint-placeholder-val="{{ false }}">
+          <div style="position: absolute; inset: 0; background: var(--color-bg); display: grid; place-items: center; padding: var(--space-9);">
+            <div style="width: min(680px, 92%); display: grid; gap: var(--space-4); justify-items: start;">
+              <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .08em; text-transform: uppercase;">{{ emptyKicker }}</span>
+              <span style="font-family: var(--font-heading); font-size: var(--text-h1); font-weight: 600; letter-spacing: var(--tracking-tight); line-height: var(--leading-heading);">{{ emptyTitle }}</span>
+              <span style="font-size: var(--text-lead); color: var(--color-text-secondary); line-height: var(--leading-body); max-width: 60ch; text-wrap: pretty;">{{ emptyBody }}</span>
+              <button onClick="{{ noop }}" style="min-height: var(--control-height-md); font-size: var(--text-small); font-family: var(--font-body); color: var(--color-on-go); background: var(--color-go-solid); border: none; border-radius: var(--radius-control); padding: 0 var(--space-5); cursor: pointer; margin-top: var(--space-2);" style-hover="background: var(--color-go-solid-hover);" data-still="в продукте начинает то, чего не хватает разделу · что именно, написано в надписи">{{ emptyAction }}</button>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ showLoading }}" hint-placeholder-val="{{ false }}">
+          <div data-geo="рабочая область" style="position: absolute; inset: 0; background: var(--color-bg); padding: var(--space-5); display: grid; grid-template-columns: minmax(0, 1fr) 344px; gap: var(--space-5); align-content: start;">
+            <span style="display: grid; gap: var(--space-4); align-content: start;">
+              <span style="height: 30px; width: 40%; border-radius: 4px; background: var(--color-surface-subtle);"></span>
+              <span style="height: 4px; width: 100%; border-radius: 2px; background: var(--color-surface-subtle);"></span>
+              <sc-for list="{{ skeletons }}" as="k" hint-placeholder-count="6">
+                <span style="height: 44px; border-radius: var(--radius-control); background: var(--color-surface); border: 1px solid var(--color-border);"></span>
+              </sc-for>
+            </span>
+            <span style="display: grid; gap: var(--space-3); align-content: start;">
+              <span style="height: 120px; border-radius: var(--radius-card); background: var(--color-surface); border: 1px solid var(--color-border);"></span>
+              <span style="height: 90px; border-radius: var(--radius-card); background: var(--color-surface); border: 1px solid var(--color-border);"></span>
+              <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary);">собираем предмет · уроки приходят первыми</span>
+            </span>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ showFailed }}" hint-placeholder-val="{{ false }}">
+          <div style="position: absolute; inset: 0; background: var(--color-bg); display: grid; place-items: center; padding: var(--space-9);">
+            <div style="width: min(620px, 92%); border: 1px solid var(--color-border); border-radius: var(--radius-card); background: var(--color-surface); box-shadow: var(--shadow-md); padding: var(--space-8); display: grid; gap: var(--space-4); justify-items: start;">
+              <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-error-text); letter-spacing: .08em; text-transform: uppercase;">отказ · нет права</span>
+              <span style="font-family: var(--font-heading); font-size: var(--text-h2); font-weight: 600; letter-spacing: var(--tracking-snug);">Этот предмет вам больше не открыт</span>
+              <span style="font-size: var(--text-body); color: var(--color-text-secondary); line-height: var(--leading-body); text-wrap: pretty;">Курс закончился 30 июня, и группа закрыта. Но учёба осталась вашей: конспекты, доски, работы и оценки по этому предмету открываются в «Моей учёбе» и после закрытия группы.</span>
+              <span style="display: flex; gap: var(--space-2);">
+                <button onClick="{{ noop }}" style="min-height: var(--control-height-md); font-size: var(--text-small); font-family: var(--font-body); color: var(--color-on-go); background: var(--color-go-solid); border: none; border-radius: var(--radius-control); padding: 0 var(--space-5); cursor: pointer;" style-hover="background: var(--color-go-solid-hover);">Открыть в «Моей учёбе»</button>
+                <button onClick="{{ noop }}" style="min-height: var(--control-height-md); font-size: var(--text-small); font-family: var(--font-body); color: var(--color-text); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-control); padding: 0 var(--space-5); cursor: pointer;" style-hover="border-color: var(--color-border-strong);">Записаться снова</button>
+              </span>
+              <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary);">если группа должна быть открыта — напишите преподавателю, он вернёт доступ</span>
+            </div>
+          </div>
+        </sc-if>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;: {&quot;width&quot;: 1400, &quot;height&quot;: 900}}">
+class Component extends DCLogic {
+  state = { role: 'pupil', tab: 'lessons', st: 'filled', w: 1280, theme: 'light', kids: false };
+
+  componentDidMount() {
+    this.onResize = () => this.fit();
+    window.addEventListener('resize', this.onResize);
+    this.settle();
+    this.probe = setInterval(() => {
+      const el = this.root && this.root.querySelector('[data-scroll-probe]');
+      if (el) el.textContent = 'прокрутка страницы: ' + Math.max(0, document.documentElement.scrollHeight - window.innerHeight) + ' px';
+    }, 1000);
+  }
+  componentDidUpdate() { this.settle(); }
+  componentWillUnmount() { window.removeEventListener('resize', this.onResize); clearInterval(this.probe); }
+
+  settle() { this.fit(); this.applyChrome(); requestAnimationFrame(() => this.fit()); }
+
+  fit() {
+    const host = this.host, f = this.frame;
+    if (!host || !f) return;
+    const W = this.state.w, H = this.state.w === 1280 ? 800 : 944;
+    const s = Math.min(1, (host.clientWidth - 40) / W, (host.clientHeight - 40) / H);
+    host.style.position = 'relative';
+    f.style.position = 'absolute';
+    f.style.left = '50%'; f.style.top = '50%';
+    f.style.width = W + 'px'; f.style.height = H + 'px';
+    f.style.transform = 'translate(-50%, -50%) scale(' + s.toFixed(4) + ')';
+  }
+
+  applyChrome() {
+    const root = this.root; if (!root) return;
+    const cur = { role: this.state.role, tab: this.state.tab, st: this.state.st, w: String(this.state.w) };
+    root.querySelectorAll('[data-sw]').forEach((b) => {
+      const k = b.dataset.sw, v = b.dataset.val;
+      if (!(k in cur)) return;
+      const on = cur[k] === v;
+      b.style.color = on ? 'var(--color-text)' : 'var(--color-text-secondary)';
+      b.style.borderColor = on ? 'var(--color-border-strong)' : 'var(--color-border)';
+      b.style.background = on ? 'var(--color-surface)' : 'none';
+    });
+    root.querySelectorAll('[data-tab]').forEach((b) => {
+      const on = b.dataset.tab === this.state.tab;
+      b.style.color = on ? 'var(--color-text)' : 'var(--color-text-secondary)';
+      b.style.borderBottomColor = on ? 'var(--color-accent)' : 'transparent';
+      b.style.fontWeight = on ? '500' : '400';
+    });
+  }
+
+  onSw = (e) => {
+    const { sw, val } = e.currentTarget.dataset;
+    if (sw === 'theme') return this.setState((s) => ({ theme: s.theme === 'dark' ? 'light' : 'dark' }));
+    if (sw === 'kids') return this.setState((s) => ({ kids: !s.kids }));
+    if (sw === 'w') return this.setState({ w: Number(val) });
+    this.setState({ [sw]: val });
+  };
+  onTab = (e) => this.setState({ tab: e.currentTarget.dataset.tab });
+
+  renderVals() {
+    const s = this.state;
+    const teacher = s.role === 'teacher';
+    const t = (lead, name, sub, tag, act, hot) => ({
+      lead, name, sub, tag, act,
+      // ПРАВИЛА 5.1: близость срока несёт обычный цвет текста, а не акцент — иначе
+      // на экране девять коралловых надписей и ни одна не главная.
+      // ПРАВИЛА 5.8/5.10: пройденное и сданное — зелёное, и весь столбец красится однородно.
+      // Оценка за принятую работу тоже зелёная: это результат решения, а не срок
+      leadColor: /^(пройдено|сдано|прошло)/.test(lead) ? 'var(--color-go-text)' : hot ? 'var(--color-text)' : 'var(--color-text-tertiary)',
+      // в уроках «пройдено» стоит в столбце состояния, а не в левой метке — зелёные оба случая
+      tagColor: /^(\d|зачёт|пройдено|сдано|прошло)/.test(String(tag)) ? 'var(--color-go-text)' : hot ? 'var(--color-text)' : 'var(--color-text-tertiary)',
+    });
+
+    const rows = {
+      lessons: [
+        t('01', 'Meeting people', 'знакомство, вежливые обороты', 'пройдено', 'конспект', false),
+        t('02', 'City', 'предлоги места, дорога до дома', 'пройдено', 'конспект', false),
+        t('03', 'Food', 'заказать еду и не растеряться', 'пройдено', 'конспект', false),
+        t('04', 'Travel', 'спросить дорогу и понять ответ', 'прошло 20 августа', 'конспект', false),
+        t('05', 'Shopping', 'цена, размер, обмен', 'в понедельник', teacher ? 'подготовить' : 'материалы', true),
+        t('06', 'Health', 'объяснить, что болит', 'в четверг', teacher ? 'подготовить' : 'материалы', false),
+        t('07', 'Work and school', 'рассказать про свой день', 'впереди', '', false),
+        t('08', 'Free time', 'говорить о привычках', 'впереди', '', false),
+        t('09', 'Weather and plans', 'будущее время без страха', 'впереди', '', false),
+      ],
+      materials: [
+        t('pdf', 'Методичка курса', '9 страниц · обновлена 18 августа', 'от преподавателя', 'открыть', false),
+        t('mp3', 'Аудио «at the station»', '2:14 · открытая лицензия', 'по программе', 'играть', false),
+        t('доска', 'Asking for directions · майндмап', '9 узлов · с урока 20 августа', 'сохранена', 'открыть', false),
+        t('png', 'Карта станции', 'вставлена на доску Люцией', 'с урока', 'открыть', false),
+        t('слова', 'Словарь курса', '84 слова · 6 новых после Unit 4', 'по программе', 'открыть', false),
+        t('своё', 'Мои заметки к Unit 3', 'вы сохранили 18 августа', teacher ? 'ваше' : 'ваше', 'открыть', false),
+      ],
+      tasks: teacher
+        ? [
+            t('2 дня', 'Описать дорогу от дома до школы', 'Аня Коваль · попытка 2', 'ждёт проверки', 'проверить', true),
+            t('2 дня', 'Описать дорогу от дома до школы', 'Петя Ковалёв · попытка 1', 'ждёт проверки', 'проверить', true),
+            t('вчера', 'Тест · предлоги места', 'Лена Морозова · автопроверка', 'посмотреть', 'открыть', false),
+            t('сегодня', 'Пересказ «My city»', 'Дима Соколов · попытка 1', 'ждёт проверки', 'проверить', false),
+            t('до чт', 'Описать дорогу от дома до школы', 'не сдали: Марина, Игорь', 'срок идёт', 'напомнить', false),
+          ]
+        : [
+            t('до чт', 'Описать дорогу от дома до школы', '5–7 предложений, три конструкции урока', 'сдать', 'открыть', true),
+            t('до пт', 'Тест · предлоги места', '8 вопросов · попытки не ограничены', 'сдать', 'открыть', false),
+            t('сдано', 'Аудирование · at the station', 'проверено · 5 из 6', '5', 'разбор', false),
+            t('сдано', 'Пересказ «My city»', '«структура хорошая, следи за ahead»', '4', 'работа', false),
+          ],
+      progress: teacher
+        ? [
+            t('78', 'Усвоение темы по группе', 'directions · слабее всего предлоги места', 'за неделю +4', 'разбор', false),
+            t('21', 'Ученика в группе', '19 были на прошлом занятии', 'два пропуска', 'журнал', false),
+            t('11', 'Работ на проверке', '7 старше двух дней', 'очередь', 'проверить', true),
+            t('4/6', 'Быстрый тест по группе', 'верных ответов в среднем', 'после Unit 4', 'вопросы', false),
+          ]
+        : [
+            t('64', 'Процент курса', '11 из 17 занятий · один пропуск', 'растёт', 'подробно', false),
+            t('5', 'Последняя оценка', 'Описать дорогу от дома до школы', '19 августа', 'работа', false),
+            t('12', 'Слов ждут повторения', 'интервал подошёл · 6 минут', 'сегодня', 'повторить', true),
+            t('2', 'Слабых места', 'предлоги места · go straight ahead', 'по тестам', 'разбор', false),
+          ],
+    }[s.tab];
+
+    const empties = {
+      lessons: { kicker: 'программа пустая', title: teacher ? 'В курсе ещё нет уроков' : 'Программа пока не открыта', body: teacher ? 'Добавьте первый урок — дальше можно наполнять по ходу: материалы, тест и домашняя работа привязываются к уроку, а не к дате.' : 'Преподаватель ещё выкладывает программу. Ближайшее занятие уже стоит в расписании — материалы появятся до него.', action: teacher ? 'Добавить урок' : 'В расписание' },
+      materials: { kicker: 'материалов нет', title: 'К предмету ещё ничего не прикреплено', body: teacher ? 'Прикрепите методичку, аудио или доску прошлого урока — ученики увидят их здесь, и всё это останется у них после курса.' : 'Преподаватель не выкладывал материалы. Доска и конспект появятся здесь сами после первого занятия.', action: teacher ? 'Прикрепить материал' : 'Открыть конспекты' },
+      tasks: { kicker: 'заданий нет', title: teacher ? 'Ничего не задано и нечего проверять' : 'По этому предмету ничего не задано', body: teacher ? 'Домашняя работа из конспекта попадает сюда сама. Можно выдать задание вручную — например, разбор ошибок после теста.' : 'Домашняя работа приходит сюда после занятия, со сроком. Ближайшее занятие — в понедельник.', action: teacher ? 'Выдать задание' : 'В расписание' },
+      progress: { kicker: 'считать пока нечего', title: 'Прогресс появится после первого занятия', body: 'Показатели считаются по работам, тестам и присутствию. Пока ни одного занятия не прошло, честнее показать пустоту, чем нули.', action: 'В расписание' },
+    }[s.tab];
+
+    return {
+      setRoot: (el) => { this.root = el; },
+      setHost: (el) => { this.host = el; },
+      setFrame: (el) => { this.frame = el; },
+      theme: s.theme === 'dark' ? 'dark' : 'light',
+      mode: s.kids ? 'kids' : 'default',
+      // ПРАВИЛА 6.5б: список источников — отдельная служба и чужие сайты; он отваливается
+      // сам по себе, а уроки, материалы и словарь при этом работают
+      showBody: s.st === 'filled' || s.st === 'partial',
+      srcOk: s.st !== 'partial',
+      srcDown: s.st === 'partial',
+      showEmpty: s.st === 'empty',
+      showLoading: s.st === 'loading',
+      showFailed: s.st === 'failed',
+      topMeta: teacher ? 'ваш курс · 21 ученик' : 'преподаватель Люция Валерьевна',
+      subjectMeta: teacher ? '17 уроков · 11 проведено · 21 ученик' : '17 уроков · 11 пройдено · дважды в неделю',
+      meIni: teacher ? 'ЛВ' : 'АК',
+      meName: teacher ? 'Люция Валерьевна' : 'Аня Коваль',
+      tabs: [
+        { id: 'lessons', label: 'Уроки', count: '17' },
+        { id: 'materials', label: 'Материалы', count: '14' },
+        { id: 'tasks', label: teacher ? 'На проверке' : 'Задания', count: teacher ? '11' : '2' },
+        { id: 'progress', label: teacher ? 'Усвоение темы' : 'Мой прогресс', count: '' },
+      ],
+      rows,
+      railAction: teacher ? 'Подготовить занятие' : 'Открыть материалы урока',
+      whoTitle: teacher ? 'группа' : 'кто ведёт',
+      whoName: teacher ? '21 ученик · 19 были на прошлом' : 'Люция Валерьевна Орлова',
+      whoSub: teacher ? 'двое пропустили два занятия подряд — видно в журнале' : 'английский · 11 лет практики · диплом проверен · отвечает в чате предмета',
+      sources: [
+        { name: 'Open English WordNet', right: 'можно взять в свою работу' },
+        { name: 'Tatoeba · примеры фраз', right: 'можно взять в свою работу' },
+        { name: 'Common Voice · записи носителей', right: 'только послушать' },
+        { name: 'Cambridge Dictionary', right: 'только посмотреть · откроется в новой вкладке' },
+      ],
+      railFoot: teacher
+        ? 'чат предмета — в верхней строке · вкладкой он не становится, чтобы не крал внимание у учёбы'
+        : 'всё по этому предмету остаётся у вас и после курса — в «Моей учёбе»',
+      skeletons: [1, 2, 3, 4, 5, 6].map((n) => ({ n })),
+      emptyKicker: empties.kicker,
+      emptyTitle: empties.title,
+      emptyBody: empties.body,
+      emptyAction: empties.action,
+      onSw: this.onSw,
+      onTab: this.onTab,
+      noop: () => {},
+    };
+  }
+}
+</script>
+</body>
+</html>

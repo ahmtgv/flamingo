@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="tokens.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  html, body { height: 100%; overflow: hidden; }
+  a { color: var(--color-link); text-decoration: none; }
+  a:hover { color: var(--color-accent-text); }
+  [data-sheet-scroll] { scrollbar-width: none; }
+  [data-sheet-scroll]::-webkit-scrollbar { width: 0; height: 0; }
+</style>
+</helmet>
+<div ref="{{ setRoot }}" data-theme="{{ theme }}" data-mode="{{ mode }}" style="height: 100vh; display: grid; grid-template-rows: auto minmax(0, 1fr); background: var(--color-bg); color: var(--color-text); font-family: var(--font-body); overflow: hidden;">
+
+  <div style="display: flex; align-items: center; gap: var(--space-2); padding: var(--space-3) var(--space-4); border-bottom: 1px solid var(--color-border); flex-wrap: wrap;">
+    <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-hint); letter-spacing: .08em; text-transform: uppercase;">письмо</span>
+    <button data-sw="mail" data-val="pass" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer; white-space: nowrap;">смена пароля</button>
+    <button data-sw="mail" data-val="consent" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer; white-space: nowrap;">согласие взрослому</button>
+    <button data-sw="mail" data-val="moved" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer; white-space: nowrap;">занятие перенесли</button>
+    <button data-sw="mail" data-val="cancelled" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer; white-space: nowrap;">занятие отменили</button>
+    <button data-sw="mail" data-val="mailcheck" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer; white-space: nowrap;">подтвердить почту</button>
+
+    <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-hint); letter-spacing: .08em; text-transform: uppercase; margin-left: var(--space-4);">кадр</span>
+    <button data-sw="w" data-val="390" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer; white-space: nowrap;">390 · телефон</button>
+    <button data-sw="w" data-val="720" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer; white-space: nowrap;">720 · почтовик</button>
+
+    <span style="margin-left: auto; display: flex; gap: var(--space-2); align-items: center;">
+      <span data-scroll-probe style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-hint); white-space: nowrap;">прокрутка листа: 0 px</span>
+      <button data-sw="plain" data-val="toggle" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer; white-space: nowrap;">без картинок</button>
+      <button data-sw="theme" data-val="toggle" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer; white-space: nowrap;">тема</button>
+    </span>
+  </div>
+
+  <div ref="{{ setHost }}" style="display: grid; place-items: center; overflow: hidden; min-height: 0;">
+    <div data-audit-scope data-mobile="{{ mobileAttr }}" ref="{{ setFrame }}" style="width: 390px; height: 844px; position: relative; border-radius: 44px; border: 1px solid var(--color-border); background: var(--color-bg); box-shadow: var(--shadow-lg); overflow: hidden; display: grid; grid-template-rows: auto auto minmax(0, 1fr);">
+
+      <div style="display: flex; align-items: center; justify-content: space-between; padding: var(--space-3) var(--space-6) var(--space-1); font: 500 var(--text-caption) var(--font-mono); color: var(--color-text);">
+        <span>9:41</span>
+        <span style="color: var(--color-text-hint); white-space: nowrap;">почта</span>
+      </div>
+
+      <div data-geo="mail-head" style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-2); padding: var(--space-3) var(--space-5) var(--space-4); border-bottom: 1px solid var(--color-border); background: var(--color-surface);">
+        <span style="display: grid; grid-template-columns: 36px minmax(0, 1fr); gap: var(--space-3); align-items: center;">
+          <span style="width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--color-border-strong); background: var(--color-surface-subtle); display: grid; place-items: center;">
+            <img src="design-assets/flamingo-bird.svg" alt="" style="width: 20px; height: 20px;">
+          </span>
+          <span style="display: grid; gap: 2px; min-width: 0;">
+            <span style="display: flex; align-items: baseline; gap: var(--space-2); min-width: 0;">
+              <span style="font-size: var(--text-small); font-weight: 600; white-space: nowrap;">Flamingo</span>
+              <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-detail); min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ fromAddr }}</span>
+            </span>
+            <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-hint); white-space: nowrap;">кому: {{ toAddr }} · {{ when }}</span>
+          </span>
+        </span>
+        <span style="font-family: var(--font-heading); font-size: var(--text-h3); font-weight: 600; letter-spacing: var(--tracking-snug); line-height: var(--leading-heading); text-wrap: pretty;">{{ subject }}</span>
+      </div>
+
+      <div data-sheet-scroll style="overflow: auto; min-height: 0; padding: var(--space-5); display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-4); align-content: start;">
+
+        <span style="font-size: var(--text-body); color: var(--color-text); line-height: var(--leading-body); text-wrap: pretty;">{{ hello }}</span>
+
+        <span style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-3);">
+          <sc-for list="{{ body }}" as="p" hint-placeholder-count="3">
+            <span style="font-size: var(--text-small); color: var(--color-text); line-height: var(--leading-body); text-wrap: pretty;">{{ p.text }}</span>
+          </sc-for>
+        </span>
+
+        <sc-if value="{{ hasFacts }}" hint-placeholder-val="{{ false }}">
+          <span style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-2); padding: var(--space-4); border: 1px solid var(--color-border); border-inline-start: 2px solid {{ factsStripe }}; border-radius: var(--radius-card); background: var(--color-surface);">
+            <span style="font: 500 var(--text-caption) var(--font-mono); color: {{ factsColor }}; letter-spacing: .06em; text-transform: uppercase;">{{ factsKicker }}</span>
+            <sc-for list="{{ facts }}" as="f" hint-placeholder-count="3">
+              <span style="display: grid; grid-template-columns: 92px minmax(0, 1fr); gap: var(--space-3); align-items: baseline;">
+                <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-hint);">{{ f.k }}</span>
+                <span style="font-size: var(--text-caption); color: var(--color-text); text-wrap: pretty;">{{ f.v }}</span>
+              </span>
+            </sc-for>
+          </span>
+        </sc-if>
+
+        <sc-if value="{{ hasAction }}" hint-placeholder-val="{{ true }}">
+          <span style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-2);">
+            <a href="{{ actionHref }}" style="display: flex; align-items: center; justify-content: center; min-height: var(--tap-min); padding: 0 var(--space-5); border-radius: var(--radius-control); background: {{ actionBg }}; border: 1px solid {{ actionBorder }}; color: {{ actionColor }}; font-size: var(--text-small); font-weight: 500; text-align: center;">{{ actionLabel }}</a>
+            <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-detail); line-height: var(--leading-snug); text-wrap: pretty;">{{ actionNote }}</span>
+            <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-hint); line-height: var(--leading-snug); word-break: break-all;">{{ actionUrl }}</span>
+          </span>
+        </sc-if>
+
+        <span style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-2); padding-top: var(--space-3); border-top: 1px solid var(--color-border);">
+          <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-detail); letter-spacing: .06em; text-transform: uppercase;">почему это письмо не подделка</span>
+          <sc-for list="{{ trust }}" as="t" hint-placeholder-count="3">
+            <span style="display: grid; grid-template-columns: 14px minmax(0, 1fr); gap: var(--space-3); align-items: baseline;">
+              <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-hint);">·</span>
+              <span style="font-size: var(--text-caption); color: var(--color-text-detail); line-height: var(--leading-snug); text-wrap: pretty;">{{ t.text }}</span>
+            </span>
+          </sc-for>
+        </span>
+
+        <span style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-1); padding-top: var(--space-3); border-top: 1px solid var(--color-border);">
+          <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-hint); line-height: var(--leading-snug); text-wrap: pretty;">{{ footer }}</span>
+          <span style="display: flex; gap: var(--space-3); flex-wrap: wrap;">
+            <a href="Мой аккаунт.dc.html" style="display: flex; align-items: center; min-height: var(--tap-min); font-size: var(--text-caption); color: var(--color-text-detail); text-decoration: underline; text-decoration-color: var(--color-border-strong); white-space: nowrap;">Настройки писем</a>
+            <a href="Первая страница.dc.html" style="display: flex; align-items: center; min-height: var(--tap-min); font-size: var(--text-caption); color: var(--color-text-detail); text-decoration: underline; text-decoration-color: var(--color-border-strong); white-space: nowrap;">flamingo.school</a>
+          </span>
+        </span>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;: {&quot;width&quot;: 1200, &quot;height&quot;: 940}}">
+class Component extends DCLogic {
+  // Письма. Когда почта появится, продукт начнёт писать людям — и для родителя это будет
+  // ПЕРВЫЙ экран Flamingo, увиденный раньше самого продукта. Отсюда пять решений:
+  //
+  // 1. **Письмо — не рассылка, а служебное сообщение об одном событии.** Одна тема, один
+  //    шаг, один адрес. Ничего «а также посмотрите наши курсы».
+  // 2. **Отправитель понятен без разгадывания:** имя «Flamingo», адрес на своём домене,
+  //    и рядом «кому» — человек сразу видит, на какой ящик это пришло.
+  // 3. **Против фишинга — не значок, а четыре факта, которые подделать труднее письма:**
+  //    мы никогда не просим пароль в ответ, ссылка ведёт только на flamingo.school, у
+  //    ссылки свой срок, и **рядом с кнопкой напечатан сам адрес** — чтобы можно было
+  //    сверить глазами и не нажимать вслепую. Это же и делает письмо читаемым, когда
+  //    почтовик отключил картинки: смысл живёт в тексте, а не в кнопке.
+  // 4. **Без юридического языка.** Ни «уведомляем вас», ни «настоящим подтверждается».
+  //    Родитель читает то же, что ученик: короткими предложениями и по делу.
+  // 5. **Отмена и перенос называют причину преподавателя** и говорят, где смотреть
+  //    расписание. Оповещений в продукте нет — письмо и есть оповещение (ПРАВИЛА 8.2а).
+  state = { mail: 'consent', w: 390, theme: 'light', plain: false, mode: 'default' };
+
+  componentDidMount() {
+    this.onResize = () => this.fit();
+    window.addEventListener('resize', this.onResize);
+    this.settle();
+    this.probe = setInterval(() => {
+      const el = this.root && this.root.querySelector('[data-scroll-probe]');
+      const sc = this.frame && this.frame.querySelector('[data-sheet-scroll]');
+      if (el) el.textContent = 'прокрутка листа: ' + (sc ? Math.max(0, sc.scrollHeight - sc.clientHeight) : 0)
+        + ' px · страницы: ' + Math.max(0, document.documentElement.scrollHeight - window.innerHeight) + ' px';
+    }, 1000);
+  }
+  componentDidUpdate() { this.settle(); }
+  componentWillUnmount() { window.removeEventListener('resize', this.onResize); clearInterval(this.probe); }
+
+  settle() { this.fit(); this.applyChrome(); requestAnimationFrame(() => this.fit()); }
+
+  fit() {
+    const host = this.host, f = this.frame;
+    if (!host || !f) return;
+    const W = this.state.w, H = W === 390 ? 844 : 900;
+    const s = Math.min(1, (host.clientWidth - 40) / W, (host.clientHeight - 40) / H);
+    host.style.position = 'relative';
+    f.style.position = 'absolute';
+    f.style.left = '50%'; f.style.top = '50%';
+    f.style.width = W + 'px'; f.style.height = H + 'px';
+    f.style.borderRadius = W === 390 ? '44px' : 'var(--radius-card)';
+    f.style.transform = 'translate(-50%, -50%) scale(' + s.toFixed(4) + ')';
+  }
+
+  applyChrome() {
+    const root = this.root; if (!root) return;
+    const s = this.state;
+    const cur = { mail: s.mail, w: String(s.w) };
+    root.querySelectorAll('[data-sw]').forEach((b) => {
+      const k = b.dataset.sw, v = b.dataset.val;
+      if (!(k in cur)) return;
+      const on = cur[k] === v;
+      b.style.color = on ? 'var(--color-text)' : 'var(--color-text-secondary)';
+      b.style.borderColor = on ? 'var(--color-border-strong)' : 'var(--color-border)';
+      b.style.background = on ? 'var(--color-surface)' : 'none';
+    });
+    // «Без картинок» — не украшение переключателя: половина почтовиков режет изображения,
+    // и письмо обязано читаться целиком без них.
+    const logo = this.frame && this.frame.querySelector('img');
+    if (logo) logo.style.visibility = s.plain ? 'hidden' : 'visible';
+    // колонка чтения на кадре почтовика — из токена, не из голого числа
+    const sc = this.frame && this.frame.querySelector('[data-sheet-scroll]');
+    const head = this.frame && this.frame.querySelector('[data-geo="mail-head"]');
+    const pad = s.w === 390 ? 'var(--space-5)' : 'calc((100% - var(--content-max-narrow)) / 2)';
+    if (sc) sc.style.paddingInline = pad;
+    if (head) head.style.paddingInline = pad;
+  }
+
+  onSw = (e) => {
+    const { sw, val } = e.currentTarget.dataset;
+    if (sw === 'theme') return this.setState((s) => ({ theme: s.theme === 'dark' ? 'light' : 'dark' }));
+    if (sw === 'plain') return this.setState((s) => ({ plain: !s.plain }));
+    if (sw === 'w') return this.setState({ w: Number(val) });
+    this.setState({ [sw]: val });
+  };
+
+  renderVals() {
+    const s = this.state;
+    const go = { bg: 'var(--color-go-solid)', border: 'var(--color-go-solid)', color: 'var(--color-on-go)' };
+    const flat = { bg: 'none', border: 'var(--color-border-strong)', color: 'var(--color-text)' };
+
+    const M = {
+      pass: {
+        subj: 'Смена пароля в Flamingo',
+        to: 'dasha@example.com',
+        hello: 'Здравствуйте, Даша.',
+        body: [
+          { text: 'Кто-то попросил сменить пароль для этой почты. Если это вы — нажмите кнопку ниже и придумайте новый.' },
+          { text: 'Если это не вы, ничего делать не нужно: пароль остался прежним, войти по этому письму нельзя. Но если такие письма приходят часто, напишите нам — посмотрим, кто пробует.' },
+        ],
+        facts: null,
+        action: 'Придумать новый пароль',
+        note: 'ссылка работает 2 часа и только один раз',
+        url: 'https://flamingo.school/password/8f2a…',
+        act: go,
+        foot: 'Это письмо пришло, потому что кто-то ввёл вашу почту на странице входа. Мы пишем только по делу: пароль, согласие, изменения в расписании.',
+      },
+      consent: {
+        subj: 'Даша просит вас подтвердить согласие',
+        to: 'mama@example.com',
+        hello: 'Здравствуйте, Мария.',
+        body: [
+          { text: 'Даша Королёва записалась на курс химии в Flamingo — это школа онлайн-занятий. Ей 13 лет, поэтому согласие на обработку её данных даёт взрослый.' },
+          { text: 'Мы не просим ничего подписывать вслепую. По ссылке — одна страница: что о Даше хранится, что не хранится никогда, кто это видит и как всё удалить. Прочитать можно и не подтверждая.' },
+        ],
+        facts: [
+          { k: 'ученик', v: 'Даша Королёва, 13 лет' },
+          { k: 'курс', v: 'Химия · неорганика, преподаватель Ирина Соколова' },
+          { k: 'что решаете', v: 'дать согласие или отказаться — и то и другое обратимо' },
+        ],
+        factsKicker: 'о чём речь',
+        action: 'Прочитать и решить',
+        note: 'ссылка живёт 7 дней и открывается на вашем устройстве — этим ваша подпись и отличается от детской',
+        url: 'https://flamingo.school/consent/4c71…',
+        act: go,
+        foot: 'Это письмо пришло, потому что Даша указала вашу почту как почту взрослого. Если это ошибка — не открывайте ссылку, и мы больше не напишем.',
+      },
+      moved: {
+        subj: 'Занятие по химии перенесли на вторник, 18 августа',
+        to: 'dasha@example.com',
+        hello: 'Здравствуйте, Даша.',
+        body: [
+          { text: 'Ирина Соколова перенесла занятие «Почему горит магний». Новое время уже стоит у вас в расписании.' },
+          { text: 'Причина преподавателя: «Перенос из-за школьной олимпиады: в 11:30 половина класса на туре».' },
+          { text: 'Занятие переехало целиком — материалы, конспект и чат остались при нём. Ничего заново открывать не нужно.' },
+        ],
+        facts: [
+          { k: 'было', v: 'четверг, 20 августа, 11:30' },
+          { k: 'стало', v: 'вторник, 18 августа, 15:00' },
+          { k: 'ваше время', v: 'показано в вашем поясе: Москва, UTC+3' },
+        ],
+        factsKicker: 'что изменилось',
+        action: 'Открыть расписание',
+        note: 'если новое время не подходит, напишите преподавателю в чат курса',
+        url: 'https://flamingo.school/schedule',
+        act: flat,
+        foot: 'Мы пишем об изменениях в расписании, потому что вы записаны на этот курс. Отписаться от таких писем нельзя — иначе можно прийти на занятие, которого нет.',
+      },
+      cancelled: {
+        subj: 'Занятие по химии 20 августа отменили',
+        to: 'dasha@example.com',
+        hello: 'Здравствуйте, Даша.',
+        body: [
+          { text: 'Ирина Соколова отменила занятие «Почему горит магний» в четверг, 20 августа. Приходить не нужно.' },
+          { text: 'Причина преподавателя: «Заболела, восстановлю занятие на следующей неделе».' },
+          { text: 'Остальные занятия курса идут по расписанию. Всё, что вы уже прошли и сдали, осталось в «Моей учёбе».' },
+        ],
+        facts: [
+          { k: 'отменено', v: 'четверг, 20 августа, 11:30' },
+          { k: 'курс', v: 'Химия · неорганика — продолжается' },
+          { k: 'следующее', v: 'пятница, 21 августа, 12:00' },
+        ],
+        factsKicker: 'что произошло',
+        action: 'Посмотреть расписание',
+        note: 'чат отменённого занятия остался — вопросы и ответы из него никуда не делись',
+        url: 'https://flamingo.school/schedule',
+        act: flat,
+        foot: 'Мы пишем об отменах, потому что вы записаны на этот курс. Отписаться от таких писем нельзя — иначе можно прийти на занятие, которого нет.',
+      },
+      mailcheck: {
+        subj: 'Подтвердите почту в Flamingo',
+        to: 'dasha@example.com',
+        hello: 'Здравствуйте, Даша.',
+        body: [
+          { text: 'Вы указали эту почту в своём аккаунте. Нажмите кнопку, чтобы мы знали, что ящик ваш — тогда сможем писать об изменениях в расписании и восстанавливать пароль.' },
+          { text: 'Пока почта не подтверждена, учиться это не мешает: занятия, задания и уроки работают.' },
+        ],
+        facts: null,
+        action: 'Подтвердить почту',
+        note: 'ссылка работает 3 дня',
+        url: 'https://flamingo.school/email/1d90…',
+        act: go,
+        foot: 'Если вы не заводили аккаунт в Flamingo, просто удалите это письмо: без подтверждения почта ни к чему не привязана.',
+      },
+    };
+
+    const m = M[s.mail] || M.consent;
+    const danger = s.mail === 'cancelled';
+
+    return {
+      setRoot: (el) => { this.root = el; },
+      setHost: (el) => { this.host = el; },
+      setFrame: (el) => { this.frame = el; },
+      theme: s.theme === 'dark' ? 'dark' : 'light',
+      mode: 'default',
+      mobileAttr: s.w === 390 ? '' : null,
+
+      fromAddr: 'no-reply@flamingo.school',
+      toAddr: m.to,
+      when: 'сегодня, 9:38',
+      subject: m.subj,
+      hello: m.hello,
+      body: m.body,
+
+      hasFacts: !!m.facts,
+      facts: m.facts || [],
+      factsKicker: m.factsKicker || '',
+      factsStripe: danger ? 'var(--color-accent-solid)' : 'var(--color-border-strong)',
+      factsColor: danger ? 'var(--color-accent-text)' : 'var(--color-text-detail)',
+
+      hasAction: true,
+      actionLabel: m.action,
+      actionNote: m.note,
+      actionUrl: m.url,
+      actionHref: s.mail === 'consent' ? 'Согласие взрослого.dc.html' : (s.mail === 'moved' || s.mail === 'cancelled' ? 'Телефон.dc.html' : 'Вход и регистрация.dc.html'),
+      actionBg: m.act.bg,
+      actionBorder: m.act.border,
+      actionColor: m.act.color,
+
+      // Четыре факта против фишинга. Не «мы серьёзная компания», а проверяемые вещи.
+      trust: [
+        { text: 'мы никогда не просим пароль в ответном письме и не звоним по этому поводу' },
+        { text: 'все наши ссылки ведут на flamingo.school — адрес напечатан выше, сверьте глазами' },
+        { text: 'у ссылки есть срок: просроченная не работает даже с верным адресом' },
+        { text: 'внутри продукта то же самое видно в аккаунте — можно ничего не нажимать в письме' },
+      ],
+      footer: m.foot,
+
+      onSw: this.onSw,
+      noop: () => {},
+    };
+  }
+}
+</script>
+</body>
+</html>

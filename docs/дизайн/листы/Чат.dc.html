@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="tokens.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  html, body { height: 100%; overflow: hidden; }
+  a { color: var(--color-link); text-decoration: none; }
+  a:hover { color: var(--color-accent-text); }
+  input::placeholder { color: var(--color-text-tertiary); }
+  input:focus-visible, button:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+  [data-list] { scrollbar-width: thin; }
+</style>
+</helmet>
+<div ref="{{ setRoot }}" data-theme="{{ theme }}" data-mode="{{ mode }}" style="height: 100vh; display: grid; grid-template-rows: auto minmax(0, 1fr); background: var(--color-bg); color: var(--color-text); font-family: var(--font-body); overflow: hidden;">
+
+  <div style="display: flex; align-items: center; gap: var(--space-2); padding: var(--space-3) var(--space-4); border-bottom: 1px solid var(--color-border); flex-wrap: wrap;">
+    <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .08em; text-transform: uppercase;">роль</span>
+    <button data-sw="role" data-val="pupil" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer; white-space: nowrap;">ученик</button>
+    <button data-sw="role" data-val="teacher" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer; white-space: nowrap;">преподаватель</button>
+
+    <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .08em; text-transform: uppercase; margin-left: var(--space-4);">состояние</span>
+    <button data-sw="st" data-val="filled" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer; white-space: nowrap;">наполнено</button>
+    <button data-sw="st" data-val="empty" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer; white-space: nowrap;">пусто</button>
+    <button data-sw="st" data-val="loading" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer; white-space: nowrap;">загружается</button>
+    <button data-sw="st" data-val="failed" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer; white-space: nowrap;">отказ</button>
+    <button data-sw="st" data-val="partial" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer; white-space: nowrap;">частичный</button>
+    <button data-sw="st" data-val="closed" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer; white-space: nowrap;">занятие отменено</button>
+
+    <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .08em; text-transform: uppercase; margin-left: var(--space-4);">кадр</span>
+    <button data-sw="w" data-val="1280" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer; white-space: nowrap;">1280×800</button>
+    <button data-sw="w" data-val="1512" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer; white-space: nowrap;">1512×944</button>
+
+    <span style="margin-left: auto; display: flex; gap: var(--space-2); align-items: center;">
+      <span data-scroll-probe style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); white-space: nowrap;">прокрутка страницы: 0 px</span>
+      <button data-sw="mode" data-val="toggle" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer; white-space: nowrap;">7–11</button>
+      <button data-sw="theme" data-val="toggle" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer; white-space: nowrap;">тема</button>
+    </span>
+  </div>
+
+  <div ref="{{ setHost }}" style="display: grid; place-items: center; overflow: hidden; min-height: 0;">
+    <div data-audit-scope ref="{{ setFrame }}" style="width: 1280px; height: 800px; position: relative; border-radius: var(--radius-card); overflow: hidden; background: var(--color-bg); box-shadow: var(--shadow-lg); border: 1px solid var(--color-border); display: grid; grid-template-columns: 300px minmax(0, 1fr) 300px;">
+
+      <div data-geo="chat-rooms" style="min-height: 0; display: grid; grid-template-rows: auto minmax(0, 1fr); border-inline-end: 1px solid var(--color-border); background: var(--color-surface);">
+        <div style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-2); padding: var(--space-4) var(--space-5); border-bottom: 1px solid var(--color-border);">
+          <span style="font-family: var(--font-heading); font-size: var(--text-h3); font-weight: 600; letter-spacing: var(--tracking-snug);">Чаты</span>
+          <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); line-height: var(--leading-snug); text-wrap: pretty;">{{ roomsNote }}</span>
+        </div>
+        <div data-list style="min-height: 0; overflow: auto; display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-1); align-content: start; padding: var(--space-3);">
+          <sc-for list="{{ groups }}" as="g" hint-placeholder-count="3">
+            <div style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-1); padding-bottom: var(--space-2);">
+              <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .06em; text-transform: uppercase; padding: var(--space-2) var(--space-3) var(--space-1);">{{ g.title }}</span>
+              <sc-for list="{{ g.rooms }}" as="r" hint-placeholder-count="3">
+                <button data-room="{{ r.id }}" onClick="{{ onRoom }}" style="display: grid; grid-template-columns: minmax(0, 1fr); gap: 3px; text-align: start; min-width: 0; min-height: var(--tap-min); padding: var(--space-3); border: 1px solid transparent; border-radius: var(--radius-control); background: none; cursor: pointer; font-family: var(--font-body);">
+                  <span style="display: flex; align-items: baseline; gap: var(--space-2); min-width: 0;">
+                    <span style="font-size: var(--text-small); font-weight: 500; color: var(--color-text); min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ r.name }}</span>
+                    <span style="margin-inline-start: auto; font: 400 var(--text-caption) var(--font-mono); color: {{ r.metaColor }}; white-space: nowrap;">{{ r.meta }}</span>
+                  </span>
+                  <span style="font-size: var(--text-caption); color: var(--color-text-secondary); min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ r.last }}</span>
+                </button>
+              </sc-for>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+
+      <div style="min-height: 0; display: grid; grid-template-rows: auto minmax(0, 1fr) auto;">
+
+        <div data-geo="chat-head" style="display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--space-4); align-items: center; padding: var(--space-4) var(--space-6); border-bottom: 1px solid var(--color-border); background: var(--color-surface);">
+          <span style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-1); min-width: 0;">
+            <span style="font-family: var(--font-heading); font-size: var(--text-h3); font-weight: 600; letter-spacing: var(--tracking-snug); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ title }}</span>
+            <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); line-height: var(--leading-snug); text-wrap: pretty;">{{ subtitle }}</span>
+          </span>
+          <span style="font: 400 var(--text-caption) var(--font-mono); color: {{ kindColor }}; white-space: nowrap;">{{ kindLabel }}</span>
+        </div>
+
+        <div data-list data-thread style="min-height: 0; overflow: auto; display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-3); align-content: start; padding: var(--space-5) var(--space-6);">
+
+          <sc-if value="{{ showPinned }}" hint-placeholder-val="{{ true }}">
+            <div style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-2); padding: var(--space-4); border: 1px solid var(--color-border); border-inline-start: 2px solid var(--color-border-strong); border-radius: var(--radius-card); background: var(--color-surface-subtle);">
+              <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-secondary); letter-spacing: .06em; text-transform: uppercase;">закреплено преподавателем</span>
+              <span style="font-size: var(--text-small); color: var(--color-text); line-height: var(--leading-snug); text-wrap: pretty;">{{ pinned }}</span>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ showClosed }}" hint-placeholder-val="{{ false }}">
+            <div style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-2); padding: var(--space-4); border: 1px solid var(--color-border); border-inline-start: 2px solid var(--color-accent-solid); border-radius: var(--radius-card); background: var(--color-surface);">
+              <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-accent-text); letter-spacing: .06em; text-transform: uppercase;">занятие отменено 20 августа</span>
+              <span style="font-size: var(--text-small); color: var(--color-text); line-height: var(--leading-snug); text-wrap: pretty;">Чат остался — писать в него больше нельзя, читать можно всегда</span>
+              <span style="font-size: var(--text-caption); color: var(--color-text-secondary); line-height: var(--leading-body); max-width: 74ch; text-wrap: pretty;">В нём остались вопросы и ответы того занятия: это часть учёбы, и удалять её вместе с занятием было бы неправильно. Новые вопросы задавайте в чате курса — он открыт всегда.</span>
+              <a href="Чат.dc.html" style="justify-self: start; display: flex; align-items: center; min-height: var(--tap-min); padding: 0 var(--space-4); font-size: var(--text-small); color: var(--color-text); border: 1px solid var(--color-border-strong); border-radius: var(--radius-control); white-space: nowrap;">Открыть чат курса</a>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ showThread }}" hint-placeholder-val="{{ true }}">
+            <sc-for list="{{ messages }}" as="m" hint-placeholder-count="7">
+              <span style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-1); justify-items: {{ m.align }};">
+                <span style="display: flex; gap: var(--space-2); align-items: baseline;">
+                  <span style="font: 500 var(--text-caption) var(--font-mono); color: {{ m.whoColor }};">{{ m.who }}</span>
+                  <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary);">{{ m.at }}</span>
+                </span>
+                <span style="max-width: 62ch; padding: var(--space-3) var(--space-4); border: 1px solid {{ m.border }}; border-radius: var(--radius-card); background: {{ m.bg }}; font-size: var(--text-small); color: var(--color-text); line-height: var(--leading-body); text-wrap: pretty;">{{ m.text }}</span>
+              </span>
+            </sc-for>
+          </sc-if>
+
+          <sc-if value="{{ showEmpty }}" hint-placeholder-val="{{ false }}">
+            <div style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-4); align-content: start; padding-top: var(--space-5); max-width: 70ch;">
+              <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .08em; text-transform: uppercase;">пусто</span>
+              <span style="font-family: var(--font-heading); font-size: var(--text-h2); font-weight: 600; letter-spacing: var(--tracking-snug); line-height: var(--leading-heading); text-wrap: pretty;">{{ emptyTitle }}</span>
+              <span style="font-size: var(--text-small); color: var(--color-text-secondary); line-height: var(--leading-body); text-wrap: pretty;">{{ emptyBody }}</span>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ showLoading }}" hint-placeholder-val="{{ false }}">
+            <div style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-4);">
+              <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary);">открываем чат · первыми придут последние двадцать сообщений</span>
+              <sc-for list="{{ skeleton }}" as="sk" hint-placeholder-count="5">
+                <span style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-2); justify-items: {{ sk.align }};">
+                  <span style="height: 11px; width: 90px; border-radius: 2px; background: var(--color-surface-subtle);"></span>
+                  <span style="height: 44px; width: {{ sk.w }}; border-radius: var(--radius-card); background: var(--color-surface-subtle);"></span>
+                </span>
+              </sc-for>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ showFailed }}" hint-placeholder-val="{{ false }}">
+            <div style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-4); align-content: start; padding-top: var(--space-5); max-width: 74ch;">
+              <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-error-text); letter-spacing: .08em; text-transform: uppercase;">отказ · служба чата</span>
+              <span style="font-family: var(--font-heading); font-size: var(--text-h2); font-weight: 600; letter-spacing: var(--tracking-snug); line-height: var(--leading-heading); text-wrap: pretty;">Сообщения не пришли</span>
+              <span style="font-size: var(--text-small); color: var(--color-text-secondary); line-height: var(--leading-body); text-wrap: pretty;">Служба чата не отвечает. Написанное вами не потеряно: черновик остался в поле ввода и уйдёт, когда связь вернётся. Урок, расписание и задания работают.</span>
+              <span style="display: grid; gap: var(--space-2); padding-inline-start: var(--space-3); border-inline-start: 2px solid var(--color-border-strong); font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-secondary); line-height: var(--leading-snug);">
+                <span>работает: урок, доска, расписание, задания, «Моя учёба»</span>
+                <span>не работает: показ и отправка сообщений во всех чатах</span>
+                <span>с данными: история на сервере, ничего не удалено</span>
+              </span>
+              <button onClick="{{ noop }}" style="justify-self: start; min-height: var(--tap-min); padding: 0 var(--space-5); font-size: var(--text-small); font-family: var(--font-body); color: var(--color-on-accent); background: var(--color-accent-solid); border: none; border-radius: var(--radius-control); cursor: pointer; white-space: nowrap;" style-hover="background: var(--color-accent-solid-hover);">Загрузить снова</button>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ showPartial }}" hint-placeholder-val="{{ false }}">
+            <div style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-2); padding: var(--space-4); border: 1px solid var(--color-border); border-inline-start: 2px solid var(--color-border-strong); border-radius: var(--radius-card); background: var(--color-surface-subtle);">
+              <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-secondary); letter-spacing: .06em; text-transform: uppercase;">частичный отказ · старые сообщения</span>
+              <span style="font-size: var(--text-small); font-weight: 500;">Последние двадцать пришли, история глубже — нет</span>
+              <span style="display: grid; gap: 2px; font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-secondary); line-height: var(--leading-snug);">
+                <span>работает: чтение новых сообщений и отправка</span>
+                <span>не работает: подгрузка истории старше 20 августа</span>
+                <span>с данными: ничего не потеряно, история вернётся сама</span>
+              </span>
+            </div>
+          </sc-if>
+        </div>
+
+        <div data-geo="chat-composer" style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-2); padding: var(--space-4) var(--space-6); border-top: 1px solid var(--color-border); background: var(--color-surface);">
+          <sc-if value="{{ canWrite }}" hint-placeholder-val="{{ true }}">
+            <span style="display: flex; gap: var(--space-2); align-items: center;">
+              <span style="flex: 1 1 auto; min-width: 0; display: flex; align-items: center; min-height: var(--tap-min); padding: 0 var(--space-4); border: 1px solid var(--color-border); border-radius: var(--radius-control); background: var(--color-bg); font-size: var(--text-small); color: var(--color-text-tertiary);">{{ placeholder }}</span>
+              <button onClick="{{ noop }}" style="flex: none; min-height: var(--tap-min); padding: 0 var(--space-5); font-size: var(--text-small); font-family: var(--font-body); font-weight: 500; color: {{ sendColor }}; background: {{ sendBg }}; border: 1px solid {{ sendBorder }}; border-radius: var(--radius-control); cursor: pointer; white-space: nowrap;">Отправить</button>
+            </span>
+          </sc-if>
+          <sc-if value="{{ cantWrite }}" hint-placeholder-val="{{ false }}">
+            <span style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-2); padding: var(--space-3) var(--space-4); border: 1px solid var(--color-border); border-radius: var(--radius-control); background: var(--color-bg);">
+              <span style="font-size: var(--text-small); color: var(--color-text); line-height: var(--leading-snug); text-wrap: pretty;">{{ cantTitle }}</span>
+              <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-secondary); line-height: var(--leading-snug); text-wrap: pretty;">{{ cantWhy }}</span>
+            </span>
+          </sc-if>
+          <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); line-height: var(--leading-snug); text-wrap: pretty;">{{ composerNote }}</span>
+        </div>
+      </div>
+
+      <div data-geo="chat-rail" style="min-height: 0; display: grid; grid-template-rows: minmax(0, 1fr); border-inline-start: 1px solid var(--color-border); background: var(--color-surface);">
+        <div style="min-height: 0; overflow: hidden; display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); gap: var(--space-4); padding: var(--space-5);">
+          <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .08em; text-transform: uppercase;">Кто это видит</span>
+          <span style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-3); align-content: start; min-height: 0;">
+            <span style="font-size: var(--text-caption); color: var(--color-text-secondary); line-height: var(--leading-body); text-wrap: pretty;">{{ railLead }}</span>
+            <span style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-2); border-top: 1px solid var(--color-border); padding-top: var(--space-3);">
+              <sc-for list="{{ railRows }}" as="r" hint-placeholder-count="4">
+                <span style="display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--space-3); align-items: baseline;">
+                  <span style="font-size: var(--text-caption); color: var(--color-text); min-width: 0; text-wrap: pretty;">{{ r.what }}</span>
+                  <span style="font: 500 var(--text-caption) var(--font-mono); color: {{ r.color }}; white-space: nowrap;">{{ r.who }}</span>
+                </span>
+              </sc-for>
+            </span>
+            <span style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-2); border-top: 1px solid var(--color-border); padding-top: var(--space-3);">
+              <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .06em; text-transform: uppercase;">кто пишет первым</span>
+              <span style="font-size: var(--text-caption); color: var(--color-text-secondary); line-height: var(--leading-body); text-wrap: pretty;">{{ firstRule }}</span>
+            </span>
+            <span style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-2); border-top: 1px solid var(--color-border); padding-top: var(--space-3);">
+              <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-tertiary); letter-spacing: .06em; text-transform: uppercase;">если занятие отменят</span>
+              <span style="font-size: var(--text-caption); color: var(--color-text-secondary); line-height: var(--leading-body); text-wrap: pretty;">{{ closedRule }}</span>
+            </span>
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;: {&quot;width&quot;: 1400, &quot;height&quot;: 900}}">
+class Component extends DCLogic {
+  // Чат на настольном кадре. В пуле он был только на телефоне, а чатов в продукте ТРИ, и
+  // они разные по смыслу — значит разные и по правам, и по тому, кто может начать:
+  //
+  // 1. **Предметный (класс)** — все, кто записан на курс, плюс преподаватель. Писать может
+  //    любой, читают все. Это учебное место, а не переписка: сюда идут вопросы по теме.
+  // 2. **Занятие** — тот же класс, но привязан к одному занятию: там вопросы «по ходу».
+  //    Отменённое занятие чат НЕ удаляет: вопросы и ответы — часть учёбы. Читать можно
+  //    всегда, писать нельзя (ПРАВИЛА 6.7).
+  // 3. **Ученик ↔ преподаватель** — двое. Первым может написать любой из них: у ученика
+  //    есть право спросить, у преподавателя — предупредить.
+  // 4. **Ученик ↔ ученик** — двое, и здесь единственное ограничение, которое нужно вслух:
+  //    первым пишет только тот, кому написали, либо оба уже в одном курсе. Незнакомый
+  //    взрослый не может начать переписку с ребёнком, и это не настройка, а устройство.
+  state = { role: 'pupil', st: 'filled', w: 1280, theme: 'light', mode: 'default', room: 'course' };
+
+  ROOM_STATES = {
+    course: ['filled', 'empty', 'loading', 'failed', 'partial'],
+    lesson: ['filled', 'closed', 'loading', 'failed'],
+    teacher: ['filled', 'empty', 'loading', 'failed'],
+    mate: ['filled', 'empty', 'loading', 'failed'],
+    stranger: ['filled'],
+  };
+
+  componentDidMount() {
+    this.onResize = () => this.fit();
+    window.addEventListener('resize', this.onResize);
+    this.settle();
+    this.probe = setInterval(() => {
+      const el = this.root && this.root.querySelector('[data-scroll-probe]');
+      if (el) el.textContent = 'прокрутка страницы: ' + Math.max(0, document.documentElement.scrollHeight - window.innerHeight) + ' px';
+    }, 1000);
+  }
+  componentDidUpdate() { this.settle(); }
+  componentWillUnmount() { window.removeEventListener('resize', this.onResize); clearInterval(this.probe); }
+
+  settle() { this.fit(); this.applyChrome(); requestAnimationFrame(() => this.fit()); }
+
+  fit() {
+    const host = this.host, f = this.frame;
+    if (!host || !f) return;
+    const W = this.state.w, H = this.state.w === 1280 ? 800 : 944;
+    const s = Math.min(1, (host.clientWidth - 40) / W, (host.clientHeight - 40) / H);
+    host.style.position = 'relative';
+    f.style.position = 'absolute';
+    f.style.left = '50%'; f.style.top = '50%';
+    f.style.width = W + 'px'; f.style.height = H + 'px';
+    f.style.transform = 'translate(-50%, -50%) scale(' + s.toFixed(4) + ')';
+  }
+
+  applyChrome() {
+    const root = this.root; if (!root) return;
+    const s = this.state;
+    const cur = { role: s.role, st: s.st, w: String(s.w) };
+    const allowed = this.ROOM_STATES[s.room] || ['filled'];
+    root.querySelectorAll('[data-sw]').forEach((b) => {
+      const k = b.dataset.sw, v = b.dataset.val;
+      if (!(k in cur)) return;
+      // ПРАВИЛА 6.6: состояния, которых у этой комнаты не бывает, скрыты — с памятью display
+      if (k === 'st') {
+        if (!b.dataset.disp) b.dataset.disp = getComputedStyle(b).display;
+        b.style.display = allowed.indexOf(v) < 0 ? 'none' : b.dataset.disp;
+      }
+      const on = cur[k] === v;
+      b.style.color = on ? 'var(--color-text)' : 'var(--color-text-secondary)';
+      b.style.borderColor = on ? 'var(--color-border-strong)' : 'var(--color-border)';
+      b.style.background = on ? 'var(--color-surface)' : 'none';
+    });
+    root.querySelectorAll('[data-room]').forEach((b) => {
+      const on = b.dataset.room === s.room;
+      b.style.borderColor = on ? 'var(--color-border-strong)' : 'transparent';
+      b.style.background = on ? 'var(--color-surface-subtle)' : 'none';
+    });
+    // рельс и список чатов не тянутся, растёт только середина (ПРАВИЛА 3.5)
+    if (this.frame) this.frame.style.gridTemplateColumns = (s.w >= 1512 ? '320px' : '300px') + ' minmax(0, 1fr) ' + (s.w >= 1512 ? '320px' : '300px');
+  }
+
+  onSw = (e) => {
+    const { sw, val } = e.currentTarget.dataset;
+    if (sw === 'theme') return this.setState((s) => ({ theme: s.theme === 'dark' ? 'light' : 'dark' }));
+    if (sw === 'mode') return this.setState((s) => ({ mode: s.mode === 'kids' ? 'default' : 'kids' }));
+    if (sw === 'w') return this.setState({ w: Number(val) });
+    this.setState({ [sw]: val });
+  };
+
+  onRoom = (e) => {
+    const room = e.currentTarget.dataset.room;
+    const allowed = this.ROOM_STATES[room] || ['filled'];
+    this.setState((s) => ({ room, st: allowed.indexOf(s.st) < 0 ? 'filled' : s.st }));
+  };
+
+  renderVals() {
+    const s = this.state;
+    const teacher = s.role === 'teacher';
+    const room = s.room;
+    const closed = s.st === 'closed';
+    const empty = s.st === 'empty';
+    const thread = s.st === 'filled' || s.st === 'partial' || closed;
+
+    const kinds = {
+      course:   { label: 'предметный · весь класс', color: 'var(--color-text-secondary)' },
+      lesson:   { label: closed ? 'занятие отменено · только чтение' : 'занятие · весь класс', color: closed ? 'var(--color-accent-text)' : 'var(--color-text-secondary)' },
+      teacher:  { label: teacher ? 'ученик ↔ вы' : 'вы ↔ преподаватель', color: 'var(--color-text-secondary)' },
+      mate:     { label: 'ученик ↔ ученик', color: 'var(--color-text-secondary)' },
+      // ПРАВИЛА 5.9: акцентных надписей до трёх. В комнате незнакомого «нельзя» звучало
+      // четыре раза кораллом — цвет перестаёт значить, когда им набран весь экран.
+      // Горит одна строка: «написать первым — нельзя». Остальное сказано словами.
+      stranger: { label: 'общего курса нет', color: 'var(--color-text-secondary)' },
+    };
+
+    const heads = {
+      course:   { t: 'Химия · неорганика', s: '14 учеников и преподаватель · открыт всегда, пока идёт курс' },
+      lesson:   { t: 'Занятие 12 · Почему горит магний', s: '20 августа · тот же класс, но вопросы по этому занятию' },
+      teacher:  { t: teacher ? 'Даша Королёва' : 'Ирина Соколова', s: teacher ? 'ученица курса «Химия · неорганика»' : 'преподаватель курса «Химия · неорганика»' },
+      mate:     { t: 'Артём Веденеев', s: 'вы вместе на курсе «Химия · неорганика»' },
+      stranger: { t: 'Никита Фомин', s: 'вы не пересекаетесь ни на одном курсе' },
+    };
+
+    const roomsPupil = [
+      { title: 'предметные', rooms: [
+        { id: 'course', name: 'Химия · неорганика', meta: '14 человек', metaColor: 'var(--color-text-secondary)', last: 'Ирина Соколова: песок, а не вода — запишите' },
+        { id: 'lesson', name: 'Занятие 12 · магний', meta: 'отменено', metaColor: 'var(--color-accent-text)', last: 'Даня: а магний можно тушить водой?' },
+      ] },
+      { title: 'с преподавателем', rooms: [
+        { id: 'teacher', name: 'Ирина Соколова', meta: 'химия', metaColor: 'var(--color-text-secondary)', last: 'Работу принял, разберём в четверг' },
+      ] },
+      { title: 'с одноклассниками', rooms: [
+        { id: 'mate', name: 'Артём Веденеев', meta: 'ваш курс', metaColor: 'var(--color-text-secondary)', last: 'скинь конспект по кислотам' },
+        { id: 'stranger', name: 'Никита Фомин', meta: 'не ваш курс', metaColor: 'var(--color-text-secondary)', last: 'написать нельзя' },
+      ] },
+    ];
+    const roomsTeacher = [
+      { title: 'мои курсы', rooms: [
+        { id: 'course', name: 'Химия · неорганика', meta: '14 человек', metaColor: 'var(--color-text-secondary)', last: 'вы: песок, а не вода — запишите' },
+        { id: 'lesson', name: 'Занятие 12 · магний', meta: 'отменено', metaColor: 'var(--color-accent-text)', last: 'Даня: а магний можно тушить водой?' },
+      ] },
+      { title: 'с учениками', rooms: [
+        { id: 'teacher', name: 'Даша Королёва', meta: 'химия', metaColor: 'var(--color-text-secondary)', last: 'вы: работу принял, разберём в четверг' },
+      ] },
+    ];
+
+    const msgs = {
+      course: [
+        { who: 'Ирина Соколова', at: '11:31', text: 'Открыли доску. Пишите вопросы сюда — я читаю между опытами.', mine: false, tag: 'teacher' },
+        { who: 'Даня', at: '11:34', text: 'А магний можно тушить водой?', mine: false, tag: 'pupil' },
+        { who: 'Ирина Соколова', at: '11:35', text: 'Нельзя — и это как раз то, что мы сейчас увидим. Смотрите на доску.', mine: false, tag: 'teacher' },
+        { who: teacher ? 'Даша' : 'вы', at: '11:36', text: 'Значит, песком?', mine: !teacher, tag: 'pupil' },
+        { who: 'Ирина Соколова', at: '11:37', text: 'Да. Запишите в конспект: песок, а не вода.', mine: teacher, tag: 'teacher' },
+        { who: 'Лиза', at: '11:41', text: 'А почему тогда в кино водой тушат всё подряд?', mine: false, tag: 'pupil' },
+      ],
+      lesson: [
+        { who: 'Ирина Соколова', at: '19 авг, 20:10', text: 'К занятию посмотрите, как выглядит горение магния — ссылка в материалах.', mine: teacher, tag: 'teacher' },
+        { who: 'Даня', at: '19 авг, 21:02', text: 'А защитные очки нужны? У меня нет.', mine: false, tag: 'pupil' },
+        { who: 'Ирина Соколова', at: '19 авг, 21:05', text: 'Не нужны: опыт показываю я, вы смотрите. Ничего дома делать не надо.', mine: teacher, tag: 'teacher' },
+      ],
+      teacher: [
+        { who: teacher ? 'Даша' : 'вы', at: '18 авг, 17:40', text: 'Ирина Николаевна, я не успею сдать работу к сроку — заболела. Можно позже?', mine: !teacher, tag: 'pupil' },
+        { who: teacher ? 'вы' : 'Ирина Соколова', at: '18 авг, 18:12', text: 'Конечно. Сдай, когда сможешь, я продлила срок до пятницы. Выздоравливай.', mine: teacher, tag: 'teacher' },
+        { who: teacher ? 'вы' : 'Ирина Соколова', at: '19 авг, 09:30', text: 'Работу принял, разберём в четверг на занятии.', mine: teacher, tag: 'teacher' },
+      ],
+      mate: [
+        { who: 'Артём', at: '10:02', text: 'Скинь конспект по кислотам, я болел', mine: false, tag: 'pupil' },
+        { who: 'вы', at: '10:15', text: 'Держи, там две страницы. Формулы в конце', mine: true, tag: 'pupil' },
+        { who: 'Артём', at: '10:16', text: 'спасибо', mine: false, tag: 'pupil' },
+      ],
+      stranger: [],
+    };
+
+    const rails = {
+      course: {
+        lead: 'Предметный чат — учебное место, а не переписка. Всё, что здесь написано, видит весь класс.',
+        rows: [
+          { what: 'сообщения', who: 'весь класс', color: 'var(--color-text-secondary)' },
+          { what: 'кто писал', who: 'по имени', color: 'var(--color-text-secondary)' },
+          { what: 'преподаватель', who: 'читает всё', color: 'var(--color-text-secondary)' },
+          { what: 'история после курса', who: 'остаётся у вас', color: 'var(--color-go-text)' },
+        ],
+        first: 'Писать может любой, кто записан на курс, и преподаватель. Разрешения спрашивать не нужно — за этим сюда и приходят.',
+        closed: 'Чат курса не закрывается: он живёт, пока идёт курс, и остаётся читаемым после.',
+      },
+      lesson: {
+        lead: 'Тот же класс, но привязан к одному занятию: сюда идут вопросы по ходу, чтобы не мешались с общими.',
+        rows: [
+          { what: 'сообщения', who: 'весь класс', color: 'var(--color-text-secondary)' },
+          { what: 'после занятия', who: 'только чтение', color: 'var(--color-text-secondary)' },
+          { what: 'преподаватель', who: 'читает всё', color: 'var(--color-text-secondary)' },
+          { what: 'вопросы и ответы', who: 'часть учёбы', color: 'var(--color-go-text)' },
+        ],
+        first: 'Пишет любой из класса, пока занятие идёт или готовится. После занятия чат становится только для чтения — сам, без чьего-то решения.',
+        closed: 'Отмена занятия чат не удаляет: вопросы и ответы остаются, писать нельзя. Новое спрашивайте в чате курса.',
+      },
+      teacher: {
+        lead: 'Разговор двоих. Класс его не видит, и преподаватель не может переслать его в общий чат одним нажатием.',
+        rows: [
+          { what: 'сообщения', who: 'только вы двое', color: 'var(--color-go-text)' },
+          { what: 'класс', who: 'не видит', color: 'var(--color-go-text)' },
+          { what: 'история', who: 'остаётся у обоих', color: 'var(--color-text-secondary)' },
+          { what: 'жалоба на переписку', who: 'открывает надзор', color: 'var(--color-text-secondary)' },
+        ],
+        first: 'Первым может написать любой: у ученика есть право спросить, у преподавателя — предупредить. Это единственный чат, где взрослый пишет ребёнку первым.',
+        closed: 'От занятий не зависит: разговор с преподавателем остаётся, пока вы на курсе, и читается после.',
+      },
+      mate: {
+        lead: 'Двое учеников, которые вместе на курсе. Ни преподаватель, ни класс переписку не видят.',
+        rows: [
+          { what: 'сообщения', who: 'только вы двое', color: 'var(--color-go-text)' },
+          { what: 'преподаватель', who: 'не видит', color: 'var(--color-go-text)' },
+          { what: 'общий курс', who: 'условие чата', color: 'var(--color-text-secondary)' },
+          { what: 'жалоба', who: 'открывает надзор', color: 'var(--color-text-secondary)' },
+        ],
+        first: 'Написать первым можно только тому, с кем вы на одном курсе. Ушли с курса — чат остаётся читаемым, новые сообщения писать нельзя.',
+        closed: 'От занятий не зависит.',
+      },
+      stranger: {
+        lead: 'Вы не пересекаетесь ни на одном курсе, поэтому переписки нет и начать её нельзя.',
+        rows: [
+          { what: 'написать первым', who: 'нельзя', color: 'var(--color-accent-text)' },
+          { what: 'найти по имени', who: 'нельзя', color: 'var(--color-text-secondary)' },
+          { what: 'общий курс', who: 'откроет чат', color: 'var(--color-text-secondary)' },
+        ],
+        first: 'Никто не может начать переписку с человеком, с которым не учится вместе. Это устройство продукта, а не настройка приватности: выключить её нельзя, значит и обойти нельзя.',
+        closed: 'От занятий не зависит.',
+      },
+    };
+
+    const emptyCopy = {
+      course: { t: 'В чате курса пока ничего', b: 'Первым сообщением обычно идёт план занятия от преподавателя. Писать можно и до него: вопрос по теме здесь уместен всегда.' },
+      teacher: { t: 'Переписки с преподавателем ещё нет', b: teacher ? 'Вы можете написать первым — например, если работа сдана с ошибкой и это лучше сказать не при классе.' : 'Вы можете написать первым: спросить про срок, попросить объяснить ещё раз или предупредить, что не успеваете.' },
+      mate: { t: 'С Артёмом вы ещё не переписывались', b: 'Вы вместе на курсе «Химия · неорганика», поэтому написать можно. Преподаватель эту переписку не видит.' },
+      lesson: { t: 'По этому занятию вопросов ещё не было', b: 'Здесь спрашивают по ходу — чтобы не мешалось с общим чатом курса.' },
+      stranger: { t: '', b: '' },
+    };
+
+    // Подвал с полем ввода — именованное место (data-geo): прибор транзиций поймал, что в
+    // отказе и в пустом чате он съезжал, потому что поле пропадало совсем. Хуже геометрии
+    // был смысл: карточка отказа обещает «черновик остался в поле ввода», а поля не было.
+    // Поле есть всегда, где писать разрешено; в отказе оно неактивно и так и подписано.
+    // В пустом чате поле тоже нужно: пусто — это «ещё не переписывались», а не «нельзя».
+    // Без него подвал терял 52 px, а экран терял смысл: писать первым как раз и предлагается.
+    const canWrite = (thread || empty) && !closed && room !== 'stranger';
+    const writeOff = s.st === 'failed' || s.st === 'loading';
+    const ec = emptyCopy[room] || emptyCopy.course;
+
+    return {
+      setRoot: (el) => { this.root = el; },
+      setHost: (el) => { this.host = el; },
+      setFrame: (el) => { this.frame = el; },
+      theme: s.theme === 'dark' ? 'dark' : 'light',
+      mode: s.mode === 'kids' ? 'kids' : 'default',
+
+      roomsNote: teacher
+        ? 'у преподавателя нет чатов с чужими учениками: только свои курсы и свои ученики'
+        : 'написать можно тому, с кем вы на одном курсе, и своему преподавателю',
+      groups: teacher ? roomsTeacher : roomsPupil,
+
+      title: heads[room].t,
+      subtitle: heads[room].s,
+      kindLabel: kinds[room].label,
+      kindColor: kinds[room].color,
+
+      showPinned: room === 'course' && (s.st === 'filled' || s.st === 'partial'),
+      pinned: 'К четвергу принесите три примера окисления из дома. Фотографии — в задание, не в чат.',
+      showClosed: closed,
+      showThread: thread && (msgs[room] || []).length > 0,
+      showEmpty: empty || (room === 'stranger'),
+      showLoading: s.st === 'loading',
+      showFailed: s.st === 'failed',
+      showPartial: s.st === 'partial',
+
+      messages: (msgs[room] || []).map((m) => ({
+        who: m.who,
+        at: m.at,
+        text: m.text,
+        align: m.mine ? 'end' : 'start',
+        whoColor: m.tag === 'teacher' ? 'var(--color-text)' : 'var(--color-text-tertiary)',
+        bg: m.mine ? 'var(--color-surface-subtle)' : 'var(--color-surface)',
+        border: 'var(--color-border)',
+      })),
+      skeleton: [
+        { align: 'start', w: '62%' }, { align: 'start', w: '44%' }, { align: 'end', w: '38%' },
+        { align: 'start', w: '56%' }, { align: 'end', w: '48%' },
+      ],
+      emptyTitle: ec.t, emptyBody: ec.b,
+
+      // ПРАВИЛА 5.11: пока отправить нельзя, кнопка не держит зелёную заливку — она обводкой
+      sendBg: writeOff ? 'none' : 'var(--color-go-solid)',
+      sendColor: writeOff ? 'var(--color-text-secondary)' : 'var(--color-on-go)',
+      sendBorder: writeOff ? 'var(--color-border)' : 'var(--color-go-solid)',
+      canWrite: canWrite || (writeOff && room !== 'stranger'),
+      cantWrite: !canWrite && !writeOff && (closed || room === 'stranger'),
+      cantTitle: closed ? 'Писать в этот чат больше нельзя' : 'Написать этому человеку нельзя',
+      cantWhy: closed
+        ? 'занятие отменено 20 августа — чат остался только для чтения. Вопросы по курсу пишите в чате курса.'
+        : 'вы не учитесь вместе ни на одном курсе. Появится общий курс — чат откроется сам.',
+      placeholder: writeOff ? (s.st === 'failed' ? 'Черновик сохранён — уйдёт, когда связь вернётся' : 'Ждём сообщения')
+        : room === 'course' ? 'Вопрос по теме — его увидит весь класс'
+        : (room === 'lesson' ? 'Вопрос по этому занятию'
+          : (room === 'teacher' ? (teacher ? 'Написать Даше' : 'Написать преподавателю') : 'Написать Артёму')),
+      // ПРАВИЛА 6.5г: подпись под полем не обещает того, чего в этом состоянии не бывает.
+      // Там, где писать нельзя, «это увидят все 14 человек» — обещание отправки.
+      composerNote: writeOff
+        // Подпись держится в одну строку во всех состояниях: подвал — именованное место,
+        // и вторая строка поднимала его на 18 px (поймано прибором транзиций).
+        ? (s.st === 'failed'
+          ? 'служба чата молчит · черновик уйдёт, когда связь вернётся'
+          : 'чат ещё открывается · поле заработает с приходом сообщений')
+        : closed
+        ? 'читать могут все 14 человек и преподаватель — новых сообщений здесь больше не будет'
+        : (room === 'stranger'
+        ? 'общий курс откроет чат сам — до этого написать нельзя'
+        : room === 'course' || room === 'lesson'
+        ? 'это увидят все 14 человек и преподаватель'
+        : (room === 'teacher'
+          ? 'это увидите только вы двое · на грубость и давление можно жаловаться — жалоба открывает надзор'
+          : 'это увидите только вы двое · преподаватель переписку не читает')),
+
+      railLead: rails[room].lead,
+      railRows: rails[room].rows,
+      firstRule: rails[room].first,
+      closedRule: rails[room].closed,
+
+      onSw: this.onSw,
+      onRoom: this.onRoom,
+      noop: () => {},
+    };
+  }
+}
+</script>
+</body>
+</html>

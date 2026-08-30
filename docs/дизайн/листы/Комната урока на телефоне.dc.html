@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="tokens.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  html, body { height: 100%; overflow: hidden; }
+  a { color: var(--color-link); text-decoration: none; }
+  a:hover { color: var(--color-accent-text); }
+  [data-sheet-scroll] { scrollbar-width: none; }
+  [data-sheet-scroll]::-webkit-scrollbar { width: 0; height: 0; }
+  [data-strip-ok]::-webkit-scrollbar { height: 0; }
+</style>
+</helmet>
+<div ref="{{ setRoot }}" data-theme="{{ theme }}" data-mode="{{ mode }}" style="height: 100vh; display: grid; grid-template-rows: auto minmax(0, 1fr); background: var(--color-bg); color: var(--color-text); font-family: var(--font-body); overflow: hidden;">
+
+  <div style="display: flex; align-items: center; gap: var(--space-2); padding: var(--space-3) var(--space-4); border-bottom: 1px solid var(--color-border); flex-wrap: wrap;">
+    <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-hint); letter-spacing: .08em; text-transform: uppercase;">вид</span>
+    <button data-sw="view" data-val="board" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer; white-space: nowrap;">доска</button>
+    <button data-sw="view" data-val="faces" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer; white-space: nowrap;">лица</button>
+    <button data-sw="view" data-val="chat" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer; white-space: nowrap;">чат с клавиатурой</button>
+    <button data-sw="view" data-val="shown" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer; white-space: nowrap;">вас вывели</button>
+    <button data-sw="view" data-val="draw" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer; white-space: nowrap;">дали писать</button>
+
+    <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-hint); letter-spacing: .08em; text-transform: uppercase; margin-left: var(--space-4);">состояние</span>
+    <button data-sw="st" data-val="filled" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer; white-space: nowrap;">идёт урок</button>
+    <button data-sw="st" data-val="loading" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer; white-space: nowrap;">входим</button>
+    <button data-sw="st" data-val="failed" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer; white-space: nowrap;">связь потеряна</button>
+    <button data-sw="st" data-val="partial" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer; white-space: nowrap;">частичный</button>
+
+    <span style="margin-left: auto; display: flex; gap: var(--space-2); align-items: center;">
+      <span data-scroll-probe style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-hint); white-space: nowrap;">прокрутка листа: 0 px</span>
+      <button data-sw="hand" data-val="toggle" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer; white-space: nowrap;">рука</button>
+      <button data-sw="mode" data-val="toggle" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer; white-space: nowrap;">7–11</button>
+      <button data-sw="theme" data-val="toggle" onClick="{{ onSw }}" style="font: 500 var(--text-caption) var(--font-mono); background: none; border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; color: var(--color-text-secondary); cursor: pointer; white-space: nowrap;">тема</button>
+    </span>
+  </div>
+
+  <div ref="{{ setHost }}" style="display: grid; place-items: center; overflow: hidden; min-height: 0;">
+    <div data-audit-scope data-mobile ref="{{ setFrame }}" style="width: 390px; height: 844px; position: relative; border-radius: 44px; border: 1px solid var(--color-border); background: var(--color-surface-video); box-shadow: var(--shadow-lg); overflow: hidden; display: grid; grid-template-rows: auto auto minmax(0, 1fr) auto;">
+
+      <div style="display: flex; align-items: center; justify-content: space-between; padding: var(--space-3) var(--space-6) var(--space-1); font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-on-video);">
+        <span>{{ clock }}</span>
+        <span style="color: var(--color-text-on-video-quiet); white-space: nowrap;">5G · 68 %</span>
+      </div>
+
+      <div data-geo="phone-privacy" style="display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--space-3); align-items: center; padding: var(--space-2) var(--space-5) var(--space-3); border-bottom: 1px solid var(--color-border-on-video);">
+        <span style="display: grid; grid-template-columns: minmax(0, 1fr); gap: 2px; min-width: 0;">
+          <span style="display: flex; align-items: center; gap: var(--space-2); min-width: 0;">
+            <span style="width: var(--dot-size); height: var(--dot-size); border-radius: 50%; background: {{ camDot }}; flex: none;"></span>
+            <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-on-video); white-space: nowrap;">{{ privacyLine }}</span>
+          </span>
+          <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-on-video-quiet); line-height: var(--leading-snug); text-wrap: pretty;">кадры разбираются на телефоне и на сервер не уходят</span>
+        </span>
+        <span style="display: flex; gap: var(--space-2); flex: none;">
+          <button onClick="{{ noop }}" aria-label="Камера" style="width: var(--tap-min); height: var(--tap-min); border: 1px solid {{ camBorder }}; border-radius: var(--radius-pill); background: {{ camBg }}; color: var(--color-text-on-video); font: 500 var(--text-caption) var(--font-mono); cursor: pointer;">кам</button>
+          <button onClick="{{ noop }}" aria-label="Микрофон" style="width: var(--tap-min); height: var(--tap-min); border: 1px solid {{ micBorder }}; border-radius: var(--radius-pill); background: {{ micBg }}; color: var(--color-text-on-video); font: 500 var(--text-caption) var(--font-mono); cursor: pointer;">мик</button>
+        </span>
+      </div>
+
+      <div style="min-height: 0; position: relative; display: grid; grid-template-rows: minmax(0, 1fr);">
+
+        <sc-if value="{{ isBoard }}" hint-placeholder-val="{{ true }}">
+          <div style="position: relative; min-height: 0; display: grid; grid-template-rows: minmax(0, 1fr) auto;">
+            <span style="position: relative; min-height: 0; background-image: repeating-linear-gradient(135deg, rgba(255, 255, 255, .05) 0 16px, transparent 16px 32px); display: grid; place-items: center;">
+              <span style="display: grid; gap: var(--space-3); justify-items: center; padding: 0 var(--space-6);">
+                <span style="font-family: var(--font-heading); font-size: var(--text-h1); font-weight: 600; color: var(--color-text-on-video); text-align: center; line-height: var(--leading-heading); text-wrap: pretty;">{{ boardTitle }}</span>
+                <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-on-video-quiet); text-align: center; line-height: var(--leading-snug); text-wrap: pretty;">{{ boardNote }}</span>
+              </span>
+              <span style="position: absolute; left: var(--space-4); top: var(--space-4); font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-on-video-quiet);">{{ boardTag }}</span>
+            </span>
+
+            <div data-strip-ok style="display: flex; gap: var(--space-2); overflow-x: auto; padding: var(--space-3) var(--space-4); border-top: 1px solid var(--color-border-on-video);">
+              <sc-for list="{{ faces }}" as="f" hint-placeholder-count="6">
+                <span style="flex: 0 0 auto; width: 52px; display: grid; gap: 3px; justify-items: center;">
+                  <span style="width: 52px; height: 52px; border-radius: var(--radius-md); border: 1px solid {{ f.border }}; background: rgba(255, 255, 255, .06); display: grid; place-items: center; font: 500 var(--text-small) var(--font-mono); color: var(--color-text-on-video-quiet);">{{ f.ini }}</span>
+                  <span style="font: 400 var(--text-caption) var(--font-mono); color: {{ f.color }}; white-space: nowrap;">{{ f.name }}</span>
+                </span>
+              </sc-for>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isFaces }}" hint-placeholder-val="{{ false }}">
+          <div data-sheet-scroll style="min-height: 0; overflow: auto; padding: var(--space-4);">
+            <span style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-3);">
+              <sc-for list="{{ facesBig }}" as="f" hint-placeholder-count="8">
+                <span style="display: grid; gap: var(--space-2); justify-items: center; padding: var(--space-3); border: 1px solid {{ f.border }}; border-radius: var(--radius-card); background: rgba(255, 255, 255, .05);">
+                  <span style="width: 100%; aspect-ratio: 4 / 3; border-radius: var(--radius-sm); background: rgba(255, 255, 255, .07); display: grid; place-items: center; font: 500 var(--text-h3) var(--font-mono); color: var(--color-text-on-video-quiet);">{{ f.ini }}</span>
+                  <span style="display: grid; gap: 2px; justify-items: center; min-width: 0;">
+                    <span style="font-size: var(--text-caption); font-weight: 500; color: var(--color-text-on-video); white-space: nowrap;">{{ f.name }}</span>
+                    <span style="font: 400 var(--text-caption) var(--font-mono); color: {{ f.color }}; white-space: nowrap;">{{ f.state }}</span>
+                  </span>
+                </span>
+              </sc-for>
+            </span>
+            <span style="display: block; margin-top: var(--space-4); font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-on-video-quiet); line-height: var(--leading-snug); text-wrap: pretty;">лица открыты по вашему касанию и закроются сами, когда преподаватель начнёт писать на доске: на телефоне рядом они не помещаются</span>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isChat }}" hint-placeholder-val="{{ false }}">
+          <div style="min-height: 0; display: grid; grid-template-rows: 84px minmax(0, 1fr);">
+            <span style="position: relative; border-bottom: 1px solid var(--color-border-on-video); background-image: repeating-linear-gradient(135deg, rgba(255, 255, 255, .05) 0 12px, transparent 12px 24px); display: grid; align-content: center; padding: 0 var(--space-4);">
+              <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-on-video-quiet);">доска · то, о чём спрашиваете</span>
+              <span style="font-size: var(--text-small); font-weight: 500; color: var(--color-text-on-video); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ boardTitle }}</span>
+            </span>
+            <div data-sheet-scroll style="min-height: 0; overflow: auto; padding: var(--space-3) var(--space-4); display: grid; gap: var(--space-2); align-content: start;">
+              <sc-for list="{{ messages }}" as="m" hint-placeholder-count="5">
+                <span style="display: grid; gap: 2px; justify-items: {{ m.align }};">
+                  <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-on-video-quiet);">{{ m.who }}</span>
+                  <span style="max-width: 84%; padding: var(--space-2) var(--space-3); border: 1px solid var(--color-border-on-video); border-radius: var(--radius-card); background: rgba(255, 255, 255, .06); font-size: var(--text-caption); color: var(--color-text-on-video); line-height: var(--leading-snug); text-wrap: pretty;">{{ m.text }}</span>
+                </span>
+              </sc-for>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isShown }}" hint-placeholder-val="{{ false }}">
+          <div style="position: relative; min-height: 0; display: grid; place-items: center; border: 2px solid var(--color-accent-solid);">
+            <span style="position: absolute; inset: 0; background-image: repeating-linear-gradient(135deg, rgba(255, 255, 255, .06) 0 14px, transparent 14px 28px);"></span>
+            <span style="position: relative; display: grid; gap: var(--space-3); justify-items: center; padding: 0 var(--space-6);">
+              <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-on-accent); background: var(--color-accent-solid); border-radius: var(--radius-xs); padding: var(--space-2) var(--space-3); letter-spacing: .08em; text-transform: uppercase; white-space: nowrap;">вас видит класс</span>
+              <span style="font-family: var(--font-heading); font-size: var(--text-h2); font-weight: 600; color: var(--color-text-on-video); text-align: center; line-height: var(--leading-heading); text-wrap: pretty;">Вы на большом экране</span>
+              <span style="font-size: var(--text-caption); color: var(--color-text-on-video-quiet); text-align: center; line-height: var(--leading-body); text-wrap: pretty;">Преподаватель вывел вас на проектор: сейчас вас видят все, кто в классе. Это видно и по рамке — она не исчезнет, пока вы на экране.</span>
+            </span>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isDraw }}" hint-placeholder-val="{{ false }}">
+          <div style="position: relative; min-height: 0; display: grid; grid-template-rows: minmax(0, 1fr) auto;">
+            <span style="position: relative; background-image: repeating-linear-gradient(135deg, rgba(255, 255, 255, .05) 0 16px, transparent 16px 32px); display: grid; place-items: center;">
+              <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-on-video-quiet); text-align: center; padding: 0 var(--space-6); line-height: var(--leading-snug); text-wrap: pretty;">пишите пальцем — то, что вы рисуете, видит класс на большом экране</span>
+              <span style="position: absolute; left: var(--space-4); top: var(--space-4); font: 500 var(--text-caption) var(--font-mono); color: var(--color-on-accent); background: var(--color-accent-solid); border-radius: var(--radius-xs); padding: var(--space-1) var(--space-3); white-space: nowrap;">вам дали писать</span>
+            </span>
+            <div data-strip-ok style="display: flex; gap: var(--space-2); padding: var(--space-3) var(--space-4); border-top: 1px solid var(--color-border-on-video); overflow-x: auto;">
+              <sc-for list="{{ tools }}" as="t" hint-placeholder-count="4">
+                <button onClick="{{ noop }}" style="flex: 0 0 auto; min-height: var(--tap-min); padding: 0 var(--space-4); border: 1px solid {{ t.border }}; border-radius: var(--radius-control); background: {{ t.bg }}; color: var(--color-text-on-video); font: 500 var(--text-caption) var(--font-mono); cursor: pointer; white-space: nowrap;">{{ t.label }}</button>
+              </sc-for>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isLoading }}" hint-placeholder-val="{{ false }}">
+          <div style="min-height: 0; display: grid; place-items: center; padding: var(--space-6);">
+            <span style="display: grid; gap: var(--space-3); justify-items: center;">
+              <span style="font-family: var(--font-heading); font-size: var(--text-h3); font-weight: 600; color: var(--color-text-on-video); text-align: center;">Входим в урок</span>
+              <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-on-video-quiet); text-align: center; line-height: var(--leading-snug); text-wrap: pretty;">первой придёт доска, за ней лица · камера включится, когда всё готово — раньше она не снимает</span>
+            </span>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isFailed }}" hint-placeholder-val="{{ false }}">
+          <div data-sheet-scroll style="min-height: 0; overflow: auto; display: grid; align-content: start; gap: var(--space-4); padding: var(--space-6) var(--space-5);">
+            <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-accent); letter-spacing: .08em; text-transform: uppercase;">связь потеряна · 12 секунд</span>
+            <span style="font-family: var(--font-heading); font-size: var(--text-h2); font-weight: 600; color: var(--color-text-on-video); line-height: var(--leading-heading); text-wrap: pretty;">Урок идёт без вас — вы вернётесь на то же место</span>
+            <span style="font-size: var(--text-small); color: var(--color-text-on-video-quiet); line-height: var(--leading-body); text-wrap: pretty;">Дело в вашей сети: сервер отвечает, а данные не идут. Доска и чат догрузятся сами, ничего переспрашивать не придётся.</span>
+            <span style="display: grid; gap: var(--space-2); padding-inline-start: var(--space-3); border-inline-start: 2px solid var(--color-border-on-video); font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-on-video-quiet); line-height: var(--leading-snug);">
+              <span>камера и микрофон выключены — вас не видно и не слышно</span>
+              <span>последний кадр доски получен 12 секунд назад</span>
+              <span>вопрос, который вы начали писать, сохранён</span>
+            </span>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isPartial }}" hint-placeholder-val="{{ false }}">
+          <div style="position: relative; min-height: 0; display: grid; grid-template-rows: auto minmax(0, 1fr);">
+            <span style="display: grid; gap: var(--space-1); padding: var(--space-3) var(--space-4); border-bottom: 1px solid var(--color-border-on-video); background: rgba(255, 255, 255, .06);">
+              <span style="font: 500 var(--text-caption) var(--font-mono); color: var(--color-text-on-video); letter-spacing: .06em; text-transform: uppercase;">частичный отказ · видео класса</span>
+              <span style="font-size: var(--text-caption); color: var(--color-text-on-video-quiet); line-height: var(--leading-snug); text-wrap: pretty;">работает: доска, звук, чат · не работает: лица · с данными: ничего не потеряно</span>
+            </span>
+            <span style="position: relative; background-image: repeating-linear-gradient(135deg, rgba(255, 255, 255, .05) 0 16px, transparent 16px 32px); display: grid; place-items: center; padding: 0 var(--space-6);">
+              <span style="font-family: var(--font-heading); font-size: var(--text-h2); font-weight: 600; color: var(--color-text-on-video); text-align: center; line-height: var(--leading-heading); text-wrap: pretty;">{{ boardTitle }}</span>
+            </span>
+          </div>
+        </sc-if>
+      </div>
+
+      <div data-geo="phone-lesson-bar" style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-2); padding: var(--space-3) var(--space-4) var(--space-5); border-top: 1px solid var(--color-border-on-video); background: var(--color-surface-video);">
+
+        <sc-if value="{{ showKeyboard }}" hint-placeholder-val="{{ false }}">
+          <span style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-2);">
+            <span style="display: flex; gap: var(--space-2); align-items: center;">
+              <span style="flex: 1 1 auto; min-width: 0; display: flex; align-items: center; min-height: var(--tap-min); padding: 0 var(--space-4); border: 1px solid var(--color-border-on-video); border-radius: var(--radius-pill); background: rgba(255, 255, 255, .07); font-size: var(--text-caption); color: var(--color-text-on-video-quiet);">Вопрос по уроку</span>
+              <button onClick="{{ noop }}" style="flex: none; min-height: var(--tap-min); padding: 0 var(--space-4); border: none; border-radius: var(--radius-control); background: var(--color-go-solid); color: var(--color-on-go); font-size: var(--text-caption); font-family: var(--font-body); font-weight: 500; cursor: pointer; white-space: nowrap;">Отправить</button>
+            </span>
+            <span style="display: grid; grid-template-rows: repeat(4, var(--control-height-md)); gap: var(--space-1); padding-top: var(--space-1);">
+              <sc-for list="{{ keyRows }}" as="k" hint-placeholder-count="4">
+                <span style="display: flex; gap: var(--space-1); justify-content: center; align-items: center; font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-on-video-quiet); letter-spacing: .12em; white-space: nowrap;">{{ k.row }}</span>
+              </sc-for>
+            </span>
+          </span>
+        </sc-if>
+
+        <sc-if value="{{ showBar }}" hint-placeholder-val="{{ true }}">
+          <span style="display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-2);">
+            <sc-if value="{{ handUp }}" hint-placeholder-val="{{ false }}">
+              <button data-sw="hand" data-val="toggle" onClick="{{ onSw }}" style="display: grid; gap: 2px; align-content: center; min-height: var(--tap-min); padding: var(--space-2) var(--space-4); border: none; border-radius: var(--radius-control); background: var(--color-accent-solid); color: var(--color-on-accent); cursor: pointer; font-family: var(--font-body); text-align: start;">
+                <span style="font-size: var(--text-small); font-weight: 500; line-height: var(--leading-snug);">Рука поднята · третий в очереди</span>
+                <span style="font: 400 var(--text-caption) var(--font-mono); line-height: var(--leading-snug);">преподаватель видит вас в списке · нажмите, чтобы опустить</span>
+              </button>
+            </sc-if>
+            <sc-if value="{{ handDown }}" hint-placeholder-val="{{ true }}">
+              <button data-sw="hand" data-val="toggle" onClick="{{ onSw }}" style="display: grid; gap: 2px; align-content: center; min-height: var(--tap-min); padding: var(--space-2) var(--space-4); border: 1px solid var(--color-border-on-video-strong); border-radius: var(--radius-control); background: rgba(255, 255, 255, .07); color: var(--color-text-on-video); cursor: pointer; font-family: var(--font-body); text-align: start;">
+                <span style="font-size: var(--text-small); font-weight: 500; line-height: var(--leading-snug);">Поднять руку</span>
+                <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-on-video-quiet); line-height: var(--leading-snug);">спросить, не перебивая · вас поставят в очередь</span>
+              </button>
+            </sc-if>
+
+            <span style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-2);">
+              <sc-for list="{{ tabs }}" as="t" hint-placeholder-count="3">
+                <button data-sw="view" data-val="{{ t.id }}" onClick="{{ onSw }}" style="display: grid; gap: 2px; justify-items: center; align-content: center; min-width: 0; min-height: var(--tap-min); padding: var(--space-2) 0; border: 1px solid {{ t.border }}; border-radius: var(--radius-control); background: {{ t.bg }}; cursor: pointer;">
+                  <span style="font-size: var(--text-caption); font-weight: 500; color: {{ t.color }}; white-space: nowrap;">{{ t.label }}</span>
+                  <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-on-video-quiet); white-space: nowrap;">{{ t.meta }}</span>
+                </button>
+              </sc-for>
+            </span>
+          </span>
+        </sc-if>
+
+        <span style="font: 400 var(--text-caption) var(--font-mono); color: var(--color-text-on-video-quiet); line-height: var(--leading-snug); text-wrap: pretty;">{{ barNote }}</span>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;: {&quot;width&quot;: 1200, &quot;height&quot;: 940}}">
+class Component extends DCLogic {
+  // Комната урока НА ТЕЛЕФОНЕ. Кнопка «Войти в урок» на мобильном листе вела в комнату,
+  // нарисованную под 1280 — то есть в никуда. Здесь решения, которых на широком кадре нет:
+  //
+  // 1. **Доска и лица рядом на 390 не помещаются, поэтому главное — одно в каждый момент.**
+  //    По умолчанию доска: урок про то, что на ней, а не про то, кто как сидит. Лица живут
+  //    полосой под доской (маленькие, но видно, кто в классе) и раскрываются решёткой по
+  //    касанию — и сами закрываются, когда преподаватель начинает писать. Двух панелей,
+  //    как на настольном кадре, здесь нет вовсе: на телефоне это два экрана, а не один.
+  // 2. **Показатель приватности стоит выше всего и не уезжает никогда** — правило сильнее
+  //    любого листа (ПРАВИЛА 8.2). Строка «камера включена · кадры не уходят на сервер»
+  //    и две крупные цели: камера и микрофон. Их видно и в отказе, и в чате, и когда вывели
+  //    на большой экран.
+  // 3. **«Вас вывели на экран» — не значок, а рамка вокруг всего кадра.** Ученик обязан
+  //    узнать это мгновенно и без сомнений: коралловая рамка не исчезает, пока он на
+  //    проекторе, и это единственное коралловое место экрана.
+  // 4. **Чат при клавиатуре не съедает доску целиком:** доска сжимается в полоску сверху
+  //    с темой занятия. Иначе ученик, дописывая вопрос, забывает, о чём спрашивал.
+  // 5. **Пульта доски у ученика нет, пока ему не дали писать.** Появился — занял низ, и
+  //    рядом сказано, что нарисованное видит класс.
+  state = { view: 'board', st: 'filled', hand: false, theme: 'dark', mode: 'default' };
+
+  VIEW_STATES = {
+    board: ['filled', 'loading', 'failed', 'partial'],
+    faces: ['filled', 'partial'],
+    chat:  ['filled', 'failed'],
+    shown: ['filled'],
+    draw:  ['filled'],
+  };
+
+  componentDidMount() {
+    this.onResize = () => this.fit();
+    window.addEventListener('resize', this.onResize);
+    this.settle();
+    this.probe = setInterval(() => {
+      const el = this.root && this.root.querySelector('[data-scroll-probe]');
+      const sc = this.frame && this.frame.querySelector('[data-sheet-scroll]');
+      if (el) el.textContent = 'прокрутка листа: ' + (sc ? Math.max(0, sc.scrollHeight - sc.clientHeight) : 0)
+        + ' px · страницы: ' + Math.max(0, document.documentElement.scrollHeight - window.innerHeight) + ' px';
+    }, 1000);
+  }
+  componentDidUpdate() { this.settle(); }
+  componentWillUnmount() { window.removeEventListener('resize', this.onResize); clearInterval(this.probe); }
+
+  settle() { this.fit(); this.applyChrome(); requestAnimationFrame(() => this.fit()); }
+
+  fit() {
+    const host = this.host, f = this.frame;
+    if (!host || !f) return;
+    const s = Math.min(1, (host.clientWidth - 40) / 390, (host.clientHeight - 40) / 844);
+    host.style.position = 'relative';
+    f.style.position = 'absolute';
+    f.style.left = '50%'; f.style.top = '50%';
+    f.style.transform = 'translate(-50%, -50%) scale(' + s.toFixed(4) + ')';
+  }
+
+  applyChrome() {
+    const root = this.root; if (!root) return;
+    const s = this.state;
+    const cur = { view: s.view, st: s.st };
+    const allowed = this.VIEW_STATES[s.view] || ['filled'];
+    root.querySelectorAll('[data-sw]').forEach((b) => {
+      const k = b.dataset.sw, v = b.dataset.val;
+      if (!(k in cur)) return;
+      // ПРАВИЛА 6.7г: служебная раскраска не заходит внутрь кадра — там тёмный фон
+      if (b.closest('[data-audit-scope]')) return;
+      if (k === 'st') {
+        if (!b.dataset.disp) b.dataset.disp = getComputedStyle(b).display;
+        b.style.display = allowed.indexOf(v) < 0 ? 'none' : b.dataset.disp;
+      }
+      const on = cur[k] === v;
+      b.style.color = on ? 'var(--color-text)' : 'var(--color-text-secondary)';
+      b.style.borderColor = on ? 'var(--color-border-strong)' : 'var(--color-border)';
+      b.style.background = on ? 'var(--color-surface)' : 'none';
+    });
+  }
+
+  onSw = (e) => {
+    const { sw, val } = e.currentTarget.dataset;
+    if (sw === 'theme') return this.setState((st) => ({ theme: st.theme === 'dark' ? 'light' : 'dark' }));
+    if (sw === 'mode') return this.setState((st) => ({ mode: st.mode === 'kids' ? 'default' : 'kids' }));
+    if (sw === 'hand') return this.setState((st) => ({ hand: !st.hand }));
+    if (sw === 'view') {
+      const allowed = this.VIEW_STATES[val] || ['filled'];
+      return this.setState((st) => ({ view: val, st: allowed.indexOf(st.st) < 0 ? 'filled' : st.st }));
+    }
+    this.setState({ [sw]: val });
+  };
+
+  renderVals() {
+    const s = this.state;
+    const failed = s.st === 'failed';
+    const loading = s.st === 'loading';
+    const partial = s.st === 'partial';
+    const live = s.st === 'filled';
+    const chat = s.view === 'chat' && live;
+    const shown = s.view === 'shown' && live;
+    const draw = s.view === 'draw' && live;
+
+    const go = 'var(--color-go-line)';
+    const acc = 'var(--color-accent-solid)';
+    const quiet = 'var(--color-border-on-video)';
+
+    return {
+      setRoot: (el) => { this.root = el; },
+      setHost: (el) => { this.host = el; },
+      setFrame: (el) => { this.frame = el; },
+      theme: s.theme === 'dark' ? 'dark' : 'light',
+      mode: s.mode === 'kids' ? 'kids' : 'default',
+      clock: '11:42',
+
+      // Приватность: в отказе камера и микрофон выключены, и строка говорит это первой.
+      privacyLine: failed ? 'камера и микрофон выключены' : (loading ? 'камера ещё не включена' : 'камера включена · вас слышно'),
+      camDot: failed || loading ? 'var(--color-border-on-video-strong)' : go,
+      camBg: failed || loading ? 'none' : 'var(--color-surface-on-video)',
+      camBorder: failed || loading ? quiet : 'var(--color-border-on-video-strong)',
+      micBg: failed || loading ? 'none' : 'var(--color-surface-on-video)',
+      micBorder: failed || loading ? quiet : 'var(--color-border-on-video-strong)',
+
+      isBoard: s.view === 'board' && live,
+      isFaces: s.view === 'faces' && live,
+      isChat: chat,
+      isShown: shown,
+      isDraw: draw,
+      isLoading: loading,
+      isFailed: failed,
+      isPartial: partial,
+
+      boardTitle: 'Почему горит магний',
+      boardNote: 'преподаватель пишет на доске · крупно, потому что смотрят с телефона',
+      boardTag: 'химия · 12 минут из 45',
+
+      faces: [
+        { ini: 'ИС', name: 'Ирина', color: 'var(--color-text-on-video)', border: 'var(--color-border-on-video-strong)' },
+        { ini: 'ДК', name: 'вы', color: 'var(--color-text-on-video)', border: 'var(--color-border-on-video-strong)' },
+        { ini: 'АВ', name: 'Артём', color: 'var(--color-text-on-video-quiet)', border: quiet },
+        { ini: 'ЛП', name: 'Лиза', color: 'var(--color-text-on-video-quiet)', border: quiet },
+        { ini: 'ДН', name: 'Даня', color: 'var(--color-accent)', border: acc },
+        { ini: 'МК', name: 'Марк', color: 'var(--color-text-on-video-quiet)', border: quiet },
+        { ini: 'ОБ', name: 'Оля', color: 'var(--color-text-on-video-quiet)', border: quiet },
+      ],
+      facesBig: [
+        { ini: 'ИС', name: 'Ирина Соколова', state: 'ведёт урок', color: 'var(--color-text-on-video-quiet)', border: 'var(--color-border-on-video-strong)' },
+        { ini: 'ДК', name: 'вы', state: 'слышно', color: 'var(--color-text-on-video-quiet)', border: 'var(--color-border-on-video-strong)' },
+        { ini: 'ДН', name: 'Даня', state: 'поднял руку', color: 'var(--color-accent)', border: acc },
+        { ini: 'АВ', name: 'Артём', state: 'микрофон выключен', color: 'var(--color-text-on-video-quiet)', border: quiet },
+        { ini: 'ЛП', name: 'Лиза', state: 'слышно', color: 'var(--color-text-on-video-quiet)', border: quiet },
+        { ini: 'МК', name: 'Марк', state: 'камера выключена', color: 'var(--color-text-on-video-quiet)', border: quiet },
+      ],
+
+      messages: [
+        { who: 'Ирина Соколова · 11:35', text: 'Нельзя — и это как раз то, что мы сейчас увидим.', align: 'start' },
+        { who: 'Даня · 11:36', text: 'А песком можно?', align: 'start' },
+        { who: 'вы · 11:41', text: 'А почему нельзя водой?', align: 'end' },
+      ],
+      keyRows: [
+        { row: 'й ц у к е н г ш щ з х ъ' },
+        { row: 'ф ы в а п р о л д ж э' },
+        { row: '↑ я ч с м и т ь б ю ⌫' },
+        { row: '123   пробел   ↵' },
+      ],
+
+      tools: [
+        { label: 'перо', bg: 'var(--color-surface-on-video)', border: 'var(--color-border-on-video-strong)' },
+        { label: 'стрелка', bg: 'none', border: quiet },
+        { label: 'стереть', bg: 'none', border: quiet },
+        { label: 'убрать всё', bg: 'none', border: quiet },
+      ],
+
+      showKeyboard: chat,
+      showBar: !chat,
+      handUp: s.hand,
+      handDown: !s.hand,
+
+      tabs: [
+        { id: 'faces', label: 'Лица', meta: '14 в классе' },
+        { id: 'chat', label: 'Чат', meta: '3 новых' },
+        { id: 'board', label: 'Доска', meta: 'что пишут' },
+      ].map((t) => ({
+        ...t,
+        color: 'var(--color-text-on-video)',
+        bg: t.id === s.view ? 'var(--color-surface-on-video)' : 'none',
+        border: t.id === s.view ? 'var(--color-border-on-video-strong)' : quiet,
+      })),
+
+      barNote: chat
+        ? 'доска не пропала — она полоской сверху, чтобы не забыть, о чём спрашиваете'
+        : (shown
+          ? 'рамка не исчезнет, пока вы на большом экране · камеру можно выключить в любой момент'
+          : (draw
+            ? 'то, что вы рисуете, видит класс · право писать преподаватель забирает так же, как дал'
+            : (failed
+              ? 'вернётесь на то же место · ничего переспрашивать не придётся'
+              : (loading
+                ? 'камера включится, когда урок откроется — раньше она не снимает'
+                : (partial
+                  ? 'лица не пришли, доска и звук идут · это не ваша сеть, а видео класса'
+                  : 'выйти из урока — свайп вниз от края, чтобы не нажать случайно'))))),
+
+      onSw: this.onSw,
+      noop: () => {},
+    };
+  }
+}
+</script>
+</body>
+</html>
