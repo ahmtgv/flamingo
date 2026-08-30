@@ -1,0 +1,133 @@
+/* Чат лежит ПОВЕРХ холста справа: доска под ним остаётся целой, а панель уходит
+   по кнопке. Тёмная пара цветов — как у всего, что стоит над видео и холстом. */
+.chat {
+  position: absolute;
+  right: var(--space-4);
+  top: var(--space-4);
+  bottom: var(--space-4);
+  width: 22rem;
+  max-width: calc(100% - var(--space-8));
+  z-index: 3;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  border-radius: var(--radius-card);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.title {
+  font-family: var(--font-heading);
+  font-size: var(--text-body);
+  font-weight: var(--weight-medium);
+  color: var(--color-text);
+}
+
+.close {
+  margin-left: auto;
+  width: var(--control-height-sm);
+  height: var(--control-height-sm);
+  display: grid;
+  place-items: center;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+}
+
+.close:hover {
+  background: var(--color-surface-hover);
+  color: var(--color-text);
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.empty {
+  margin: 0;
+  font-size: var(--text-small);
+  line-height: var(--leading-snug);
+  color: var(--color-text-detail);
+}
+
+.line {
+  margin: 0;
+  display: grid;
+  gap: var(--space-1);
+}
+
+.who {
+  font: var(--weight-medium) var(--text-caption) var(--font-mono);
+  color: var(--color-text-detail);
+}
+
+.mine .who {
+  color: var(--color-go-text);
+}
+
+.text {
+  font-size: var(--text-small);
+  line-height: var(--leading-snug);
+  color: var(--color-text);
+  overflow-wrap: anywhere;
+}
+
+.form {
+  display: flex;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border-top: 1px solid var(--color-border);
+}
+
+.input {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: var(--control-height-md);
+  padding: 0 var(--space-4);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-control);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: var(--text-small);
+}
+
+.input:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.send {
+  flex: 0 0 auto;
+  min-height: var(--control-height-md);
+  padding: 0 var(--space-4);
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--color-go-solid);
+  background: var(--color-go-solid);
+  color: var(--color-on-go);
+  font-size: var(--text-small);
+  font-weight: var(--weight-medium);
+  cursor: pointer;
+}
+
+.send:disabled {
+  background: none;
+  border-color: var(--color-border);
+  color: var(--color-text-disabled);
+  cursor: default;
+}

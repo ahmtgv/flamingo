@@ -1,0 +1,138 @@
+/* Полоса лиц лежит ПОВЕРХ холста: доска под ней бесконечная и не обрезана колонкой. */
+.rail {
+  position: absolute;
+  right: var(--rail-right);
+  top: var(--space-4);
+  z-index: 2;
+  width: 13rem;
+  max-height: calc(100% - var(--space-8));
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+
+.rail::-webkit-scrollbar {
+  display: none;
+}
+
+.hide,
+.show {
+  flex: 0 0 auto;
+  align-self: flex-end;
+  min-height: var(--control-height-sm);
+  padding: 0 var(--space-4);
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+  font-size: var(--text-caption);
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+}
+
+.hide:hover,
+.show:hover {
+  color: var(--color-text);
+  border-color: var(--color-border-strong);
+}
+
+.show {
+  position: absolute;
+  right: var(--rail-right);
+  top: var(--space-4);
+  z-index: 2;
+}
+
+.tile {
+  position: relative;
+  flex: 0 0 auto;
+  aspect-ratio: 4 / 3;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--color-surface-video);
+  border: 1px solid var(--color-border-on-video);
+  box-shadow: var(--shadow-md);
+  display: grid;
+  place-items: center;
+}
+
+/* Ведущий крупнее: на него смотрит класс (решение владельца 30.08). */
+.lead {
+  aspect-ratio: 16 / 10;
+  min-height: var(--tile-min-height);
+}
+
+.speaking {
+  border-color: var(--color-go-on-video);
+}
+
+.pupils {
+  flex: 0 0 auto;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-2);
+}
+
+.video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.ini {
+  font: var(--weight-medium) var(--text-small) var(--font-mono);
+  color: var(--color-text-on-video-quiet);
+  letter-spacing: var(--tracking-wide);
+}
+
+.lead .ini {
+  font-size: var(--text-h3);
+}
+
+.mark {
+  position: absolute;
+  left: var(--space-2);
+  top: var(--space-2);
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-xs);
+  background: var(--color-surface-on-video);
+  color: var(--color-go-on-video);
+  font: var(--weight-medium) var(--text-caption) var(--font-mono);
+}
+
+.name {
+  position: absolute;
+  left: var(--space-2);
+  bottom: var(--space-1);
+  max-width: calc(100% - var(--space-4));
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font: var(--weight-regular) var(--text-caption) var(--font-mono);
+  color: var(--color-text-on-video-quiet);
+}
+
+.muted {
+  position: absolute;
+  right: var(--space-1);
+  top: var(--space-1);
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-xs);
+  background: var(--color-surface-on-video);
+  color: var(--color-text-on-video-quiet);
+  font: var(--weight-regular) var(--text-caption) var(--font-mono);
+}
+
+.more {
+  flex: 0 0 auto;
+  margin: 0;
+  text-align: right;
+  padding: 0 var(--space-2);
+  font: var(--weight-regular) var(--text-caption) var(--font-mono);
+  color: var(--color-text-secondary);
+}

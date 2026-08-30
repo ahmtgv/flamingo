@@ -5,6 +5,8 @@ import { makeHistory } from './history'
 import { Objects } from './Objects'
 import { Selection } from './Selection'
 import { Sheets } from './Sheets'
+import { Sleepy } from '../room/Sleepy'
+import { useEdge } from '../room/useEdge'
 import { Tools, type Tool } from './Tools'
 import { useSheets } from './useSheets'
 import { imageObj, openFile, pickFile, saveFile } from './files'
@@ -29,8 +31,10 @@ type Props = {
 }
 
 export function Board({ bus, peers }: Props) {
+  const frameRef = useRef<HTMLDivElement>(null)
   const wrapRef = useRef<HTMLDivElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
+  const edge = useEdge(frameRef)
   const st = useSheets(bus, peers)
 
   const [tool, setTool] = useState<Tool>('pen')
@@ -672,19 +676,85 @@ export function Board({ bus, peers }: Props) {
   const box = selBox()
 
   return (
-    <div className={s.frame}>
-      <Tools
-        tool={tool} setTool={setTool}
-        pen={pen} setPen={setPen}
-        thick={thick} setThick={setThick}
-        armed={armed} wipe={wipe}
-        addImage={addImage} addVideo={addVideo}
-        undo={undo} redo={redo}
-        canUndo={hist.current.canUndo} canRedo={hist.current.canRedo}
-        histTick={histTick}
-      />
+    <div className={s.frame} ref={frameRef}>
+      {/* 🔴 Холст занимает ВЕСЬ кадр и безграничен влево, вправо и вниз.
+          Управление лежит поверх него и просыпается под рукой (решение владельца). */}
+      <div
+        className={`${s.canvasWrap} ${space || tool === 'hand' ? s.grab : ''} ${tool === 'pick' ? s.pointer : ''}`}
+        ref={wrapRef}
+        onPointerDown={onDown}
+        onPointerMove={onMove}
+        onPointerUp={onUp}
+        onPointerCancel={onUp}
+        onDoubleClick={(e) => {
+          if (tool === 'pick' && e.target === e.currentTarget) home()
+        }}
+        style={{ backgroundSize: `${24 * view.k}px ${24 * view.k}px`, backgroundPosition: `${view.x}px ${view.y}px` }}
+      >
+        <canvas ref={canvasRef} className={s.canvas} />
 
-      <div className={s.stack}>
+        <div
+          className={s.layer}
+          style={{ transform: `translate(${view.x}px, ${view.y}px) scale(${view.k})` }}
+        >
+          <Objects
+            objs={st.sheet.objs}
+            k={view.k}
+            selected={sel}
+            editing={editing}
+            onPick={onPick}
+            onText={onText}
+            onDoneEdit={() => setEditing(null)}
+          />
+        </div>
+
+        {marq ? (
+          <div
+            className={s.marquee}
+            style={{
+              left: marq.x1 * view.k + view.x,
+              top: marq.y1 * view.k + view.y,
+              width: (marq.x2 - marq.x1) * view.k,
+              height: (marq.y2 - marq.y1) * view.k,
+            }}
+          />
+        ) : null}
+
+        {box && !editing ? (
+          <Selection box={box} view={view} onGrab={grabHandle} count={sel.length} />
+        ) : null}
+
+        {empty ? (
+          <div className={s.empty}>
+            <span className={s.emptyTitle}>Доска пустая — и это нормально</span>
+            <span className={s.emptyText}>
+              Начните писать: остальные увидят штрих сразу. Можно вставить картинку или текст
+              прямо из буфера — Ctrl+V. Доска бесконечная: её двигают пробелом, масштаб —
+              Cmd/Ctrl и колесо.
+            </span>
+            <span className={s.emptyKeys}>
+              перо — P · ластик — E · рука — H · текст — T · заметка — N · стрелка — A · выбрать — V
+            </span>
+          </div>
+        ) : null}
+      </div>
+
+      {/* Инструменты доски просыпаются слева. */}
+      <Sleepy side="left" label="инструменты" open={edge === 'left'}>
+        <Tools
+          tool={tool} setTool={setTool}
+          pen={pen} setPen={setPen}
+          thick={thick} setThick={setThick}
+          armed={armed} wipe={wipe}
+          addImage={addImage} addVideo={addVideo}
+          undo={undo} redo={redo}
+          canUndo={hist.current.canUndo} canRedo={hist.current.canRedo}
+          histTick={histTick}
+        />
+      </Sleepy>
+
+      {/* Доски и сохранение — сверху, тоже под рукой. */}
+      <Sleepy side="top" label={`доски · ${st.sheets.length}`} open={edge === 'top'}>
         <Sheets
           sheets={st.sheets}
           active={st.active}
@@ -696,81 +766,21 @@ export function Board({ bus, peers }: Props) {
             if (list) st.loadAll(list)
           }}
         />
+      </Sleepy>
 
-        <div
-          className={`${s.canvasWrap} ${space || tool === 'hand' ? s.grab : ''} ${tool === 'pick' ? s.pointer : ''}`}
-          ref={wrapRef}
-          onPointerDown={onDown}
-          onPointerMove={onMove}
-          onPointerUp={onUp}
-          onPointerCancel={onUp}
-          onDoubleClick={(e) => {
-            if (tool === 'pick' && e.target === e.currentTarget) home()
-          }}
-          style={{ backgroundSize: `${24 * view.k}px ${24 * view.k}px`, backgroundPosition: `${view.x}px ${view.y}px` }}
-        >
-          <canvas ref={canvasRef} className={s.canvas} />
-
-          <div
-            className={s.layer}
-            style={{ transform: `translate(${view.x}px, ${view.y}px) scale(${view.k})` }}
-          >
-            <Objects
-              objs={st.sheet.objs}
-              k={view.k}
-              selected={sel}
-              editing={editing}
-              onPick={onPick}
-              onText={onText}
-              onDoneEdit={() => setEditing(null)}
-            />
-          </div>
-
-          {marq ? (
-            <div
-              className={s.marquee}
-              style={{
-                left: marq.x1 * view.k + view.x,
-                top: marq.y1 * view.k + view.y,
-                width: (marq.x2 - marq.x1) * view.k,
-                height: (marq.y2 - marq.y1) * view.k,
-              }}
-            />
-          ) : null}
-
-          {box && !editing ? (
-            <Selection box={box} view={view} onGrab={grabHandle} count={sel.length} />
-          ) : null}
-
-          {empty ? (
-            <div className={s.empty}>
-              <span className={s.emptyTitle}>Доска пустая — и это нормально</span>
-              <span className={s.emptyText}>
-                Начните писать: остальные увидят штрих сразу. Можно вставить картинку или текст
-                прямо из буфера — Ctrl+V. Доска живёт, пока в комнате есть хоть один человек;
-                чтобы она осталась после урока, сохраните её в файл.
-              </span>
-              <span className={s.emptyKeys}>
-                перо — P · ластик — E · рука — H · текст — T · заметка — N · стрелка — A · выбрать — V
-              </span>
-            </div>
-          ) : null}
-
-          {/* Пульт масштаба: одна кнопка «Показать всё» — она меняет и масштаб, и положение.
-              К 100 % возвращает щелчок по самой цифре или двойной щелчок по пустому месту. */}
-          <div className={s.zoom} data-pult="масштаб">
-            <button type="button" className={s.zoomBtn} onClick={() => zoomBy(1 / 1.25)}
-                    disabled={view.k <= K_MIN} title="Отдалить">−</button>
-            <button type="button" className={s.zoomNum} onClick={home} title="Вернуть 100 %">
-              {Math.round(view.k * 100)} %
-            </button>
-            <button type="button" className={s.zoomBtn} onClick={() => zoomBy(1.25)}
-                    disabled={view.k >= K_MAX} title="Приблизить">+</button>
-            <span className={s.zoomSep} />
-            <button type="button" className={s.zoomFit} onClick={showAll}
-                    disabled={empty} title="Уместить всё написанное">Показать всё</button>
-          </div>
-        </div>
+      {/* Пульт масштаба: одна кнопка «Показать всё» — она меняет и масштаб, и положение.
+          К 100 % возвращает щелчок по самой цифре или двойной щелчок по пустому месту. */}
+      <div className={s.zoom} data-pult="масштаб">
+        <button type="button" className={s.zoomBtn} onClick={() => zoomBy(1 / 1.25)}
+                disabled={view.k <= K_MIN} title="Отдалить">−</button>
+        <button type="button" className={s.zoomNum} onClick={home} title="Вернуть 100 %">
+          {Math.round(view.k * 100)} %
+        </button>
+        <button type="button" className={s.zoomBtn} onClick={() => zoomBy(1.25)}
+                disabled={view.k >= K_MAX} title="Приблизить">+</button>
+        <span className={s.zoomSep} />
+        <button type="button" className={s.zoomFit} onClick={showAll}
+                disabled={empty} title="Уместить всё написанное">Показать всё</button>
       </div>
     </div>
   )

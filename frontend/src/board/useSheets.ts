@@ -58,8 +58,8 @@ export function useSheets(bus: Bus, peers: number) {
         touch()
         return
       }
-      // Что показывают классу — не дело доски: этим ведает комната.
-      if (m.t === 'stage') return
+      // Что показывают классу и чат — не дело доски: этим ведает комната.
+      if (m.t === 'stage' || m.t === 'chat') return
       const sh = sheet(m.sheet)
       if (!sh) return
       if (m.t === 'seg') {

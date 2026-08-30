@@ -55,3 +55,34 @@
 .act:hover {
   background: var(--color-surface-on-video);
 }
+
+/* Тот же смысл на светлой поверхности: доска под карточкой белая. */
+.light {
+  background: var(--color-surface);
+  border-color: var(--color-border);
+  color: var(--color-text);
+  box-shadow: var(--shadow-lg);
+}
+
+.light .text {
+  color: var(--color-text-detail);
+}
+
+.light .warn {
+  color: var(--color-error-text);
+}
+
+.light .code {
+  background: var(--color-surface-subtle);
+  border-color: var(--color-border);
+  color: var(--color-text);
+}
+
+.light .act {
+  border-color: var(--color-go-text);
+  color: var(--color-go-text);
+}
+
+.light .act:hover {
+  background: var(--color-go-bg);
+}

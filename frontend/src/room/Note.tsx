@@ -8,7 +8,7 @@ import s from './Note.module.css'
  *  что работает, что нет, что с данными.
  */
 export function Note({
-  title, text, warn = false, code, action, onAction,
+  title, text, warn = false, code, action, onAction, light = false,
 }: {
   title: string
   text: string
@@ -16,9 +16,12 @@ export function Note({
   code?: string
   action?: string
   onAction?: () => void
+  /** Карточка лежит на светлом холсте, а не на тёмном видео: пара цветов другая.
+   *  Тёмная карточка на белой доске читалась как выцветшая (проба 30.08). */
+  light?: boolean
 }) {
   return (
-    <div className={s.note} role="status">
+    <div className={`${s.note} ${light ? s.light : ''}`} role="status">
       <span className={s.title}>{title}</span>
       <span className={`${s.text} ${warn ? s.warn : ''}`}>{text}</span>
       {code ? <code className={s.code}>{code}</code> : null}

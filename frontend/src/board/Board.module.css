@@ -1,8 +1,8 @@
-/* ПРАВИЛА 3.10: на холсте не остаётся ничего плавающего. Инструменты и пульт живут
-   в раме — поэтому здесь сетка, а не слои поверх холста. */
+/* 🔴 Холст безграничен и занимает ВЕСЬ кадр; управление лежит слоями поверх и
+   просыпается под рукой (решение владельца 30.08). Прежняя рама с колонкой
+   инструментов обрезала доску слева на полсотни пикселей — теперь не обрезает. */
 .frame {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
+  position: relative;
   min-height: 0;
   min-width: 0;
   overflow: hidden;
@@ -12,6 +12,8 @@
    больше, столбец перерос сцену на полсотни пикселей и накрыл собой нижний пульт
    (поймано пробой 30.08). Прокрутка внутри названной области — ПРАВИЛА 1.2. */
 .tools {
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-md);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -125,7 +127,8 @@
 /* Указатель ловит РАМА, а не холст: поверх холста лежит слой объектов, и рисование,
    сдвиг и выбор должны приходить в одно место. */
 .canvasWrap {
-  position: relative;
+  position: absolute;
+  inset: 0;
   touch-action: none;
   cursor: crosshair;
   min-width: 0;
@@ -193,9 +196,12 @@
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  padding: var(--space-2) var(--space-3);
-  border-bottom: 1px solid var(--color-border);
-  background: var(--color-bg);
+  padding: var(--space-2);
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-md);
+  max-width: 100%;
   overflow-x: auto;
 }
 
