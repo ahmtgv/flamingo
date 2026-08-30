@@ -33,8 +33,12 @@
   --color-accent:var(--fl-coral-500); --color-accent-solid:var(--fl-coral-600);
   --color-accent-text:var(--fl-coral-700); --color-on-accent:var(--fl-white);
   --color-accent-subtle:var(--fl-coral-50);
+  --color-go:var(--fl-moss-500); --color-go-text:var(--fl-moss-700);
   --color-go-solid:var(--fl-moss-700); --color-go-solid-hover:var(--fl-moss-500);
-  --color-on-go:var(--fl-white);
+  --color-on-go:var(--fl-white); --color-go-border:var(--fl-moss-300);
+  /* Зелёный на тёмном экране — своя ступень, как у прочих --color-*-on-video.
+     Заведён 30.08 вместе с правилом «коралловый только на аларм». */
+  --color-go-on-video:var(--fl-moss-300);
 
   --font-heading:'Inter',-apple-system,system-ui,sans-serif;
   --font-body:'Inter',-apple-system,system-ui,sans-serif;
@@ -64,7 +68,9 @@
   --color-accent:var(--fl-coral-400); --color-accent-solid:var(--fl-coral-400);
   --color-accent-text:var(--fl-coral-300); --color-on-accent:#1d1d1f;
   --color-accent-subtle:#33201a;
+  --color-go:var(--fl-moss-300); --color-go-text:var(--fl-moss-300);
   --color-go-solid:var(--fl-moss-300); --color-go-solid-hover:#a3e2c1; --color-on-go:#1d1d1f;
+  --color-go-border:var(--fl-moss-700); --color-go-on-video:var(--fl-moss-300);
   --shadow-sm:0 2px 6px rgba(0,0,0,.45); --shadow-md:0 8px 24px rgba(0,0,0,.45);
   --shadow-lg:0 16px 40px rgba(0,0,0,.55);
 }
@@ -178,7 +184,9 @@ body{
   border:1px solid var(--color-border); border-radius:var(--radius-xs);
   padding:5px var(--space-2); background:var(--color-surface);
 }
-.live .dot{width:var(--dot-size); height:var(--dot-size); border-radius:var(--radius-pill); background:var(--color-accent)}
+/* Правило владельца 30.08: коралловый — ТОЛЬКО аларм. Урок, который идёт, — не аларм,
+   это нормальный ход вещей, поэтому точка зелёная. */
+.live .dot{width:var(--dot-size); height:var(--dot-size); border-radius:var(--radius-pill); background:var(--color-go)}
 .live.calm .dot{background:var(--color-text-hint)}
 .shelf{
   margin-left:auto; display:flex; gap:2px;
@@ -241,7 +249,9 @@ body{
   background:var(--color-go-solid); border-color:var(--color-go-solid);
   color:var(--color-on-go); font-weight:var(--weight-medium); padding:0 var(--space-5);
 }
-.pult button.leave{border-color:var(--color-accent-text); color:var(--color-accent-text)}
+/* Выход из урока — не аларм. Коралловым он был по старому правилу «тревога И уход»;
+   с 30.08 уход коралловым не красится. */
+.pult button.leave{border-color:var(--color-go-text); color:var(--color-go-text)}
 .pult button.plain{border-color:transparent; color:var(--color-text-secondary); padding:0 var(--space-3)}
 .pult .sep{width:1px; height:22px; background:var(--color-border)}
 
@@ -255,10 +265,25 @@ body{
   flex:0 0 auto; width:22%; min-width:0; display:flex; flex-direction:column; overflow:hidden;
   background:var(--color-surface-video); color:var(--color-text-on-video);
 }
+/* Превью ведущего крупнее остальных (решение владельца 30.08): на него смотрит класс,
+   и в решётке равных плиток учитель терялся. Он всегда первый и во всю ширину полосы. */
 .tiles{
-  flex:1 1 auto; display:grid; gap:var(--space-2);
+  flex:1 1 auto; display:flex; flex-direction:column; gap:var(--space-2);
   padding:calc(var(--space-4) + var(--control-height-sm) + var(--space-7)) var(--space-3) var(--space-3);
   min-height:0; overflow:hidden;
+}
+.tile-lead{flex:0 0 auto; aspect-ratio:16/10; min-height:112px}
+.tile-lead .ini{font-size:var(--text-h3)}
+.pupils{
+  flex:1 1 auto; display:grid; gap:var(--space-2);
+  grid-template-columns:repeat(2,minmax(0,1fr)); grid-auto-rows:minmax(0,1fr);
+  min-height:0; overflow:hidden;
+}
+.lead-mark{
+  position:absolute; left:var(--space-2); top:var(--space-2);
+  font:var(--weight-medium) var(--text-caption)/1 var(--font-mono);
+  color:var(--color-go-on-video); background:var(--color-surface-on-video);
+  border-radius:var(--radius-xs); padding:3px var(--space-2);
 }
 .tile{
   position:relative; min-width:0; min-height:0; border-radius:var(--radius-md); overflow:hidden;
@@ -271,7 +296,9 @@ body{
   font:400 var(--text-caption)/1 var(--font-mono); color:var(--color-text-on-video-quiet);
   max-width:calc(100% - var(--space-4)); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
 }
-.tile.speaking{border-color:var(--color-accent)}
+/* Кто говорит — не аларм: зелёная обводка. Коралловая осталась ровно одному —
+   поднятой руке, единственному, что портится от ожидания. */
+.tile.speaking{border-color:var(--color-go-on-video)}
 .tile .hand{
   position:absolute; right:var(--space-2); top:var(--space-2);
   font:var(--weight-medium) var(--text-caption)/1 var(--font-mono);
@@ -444,6 +471,11 @@ body{
         список участников и «Материалы»; панель инструментов появляется, только пока
         учитель держит доску открытой. Остаётся то, ради чего он пришёл: доска, лица,
         микрофон, камера, рука, словарь, чат. Переключи роль и сравни.</li>
+      <li><b>Ведущий крупнее.</b> Превью преподавателя стоит первым и во всю ширину полосы,
+        ученики — решёткой под ним. В решётке равных плиток учитель терялся среди тридцати.</li>
+      <li><b>Коралловый — только аларм.</b> Правило владельца 30.08. В комнате осталось
+        ровно два красных места: метка «рука» и «эфир не поднялся». Позеленели: точка
+        «идёт», обводка говорящего и кнопка «Завершить урок» — уход не аларм.</li>
       <li><b>Чего тут ещё нет:</b> состояние «идёт показ экрана» и экран «Словарь» —
         их надо рисовать, они в очереди.</li>
     </ul>
@@ -463,21 +495,35 @@ body{
 
   function ini(n){ return n.split(/\s+/).slice(0,2).map(function(w){return w[0]||'';}).join('').toUpperCase(); }
 
+  var TEACHER = 'Люция Валерьевна';
+
+  function tile(name, cls, extra){
+    return '<div class="tile ' + cls + '">' +
+      '<span class="ini">' + ini(name) + '</span>' +
+      (extra || '') +
+      '<span class="nm">' + name + '</span></div>';
+  }
+
   function tilesFor(){
     var host = document.getElementById('tiles'), more = document.getElementById('more');
-    host.innerHTML = '';
-    var n = S.count, cap = 12, shown = Math.min(n, cap);
-    var cols = n <= 2 ? 1 : 2;
-    host.style.gridTemplateColumns = 'repeat(' + cols + ', minmax(0,1fr))';
+    var n = S.count, teacher = S.role === 'teacher', live = S.phase === 'live';
+    var pupils = Math.max(0, n - 1), cap = 11, shown = Math.min(pupils, cap);
+
+    // Ведущий — всегда первый и во всю ширину: на него смотрит класс.
+    var html = tile(TEACHER + (teacher ? ' · вы' : ''), 'tile-lead' + (live && !teacher ? ' speaking' : ''),
+                    '<span class="lead-mark">ведёт занятие</span>');
+
+    var p = '<div class="pupils">';
     for (var i = 0; i < shown; i++){
-      var t = document.createElement('div');
-      t.className = 'tile' + (S.phase === 'live' && i === 1 && n > 1 ? ' speaking' : '');
-      t.innerHTML = '<span class="ini">' + ini(NAMES[i]) + '</span><span class="nm">' + NAMES[i] +
-        (i === 0 ? ' · вы' : '') + '</span>' +
-        (S.phase === 'live' && i === 3 && n > 3 ? '<span class="hand">рука</span>' : '');
-      host.appendChild(t);
+      var nm = NAMES[i] + (!teacher && i === 0 ? ' · вы' : '');
+      // Поднятая рука — единственная коралловая заливка в комнате.
+      p += tile(nm, live && i === 2 && pupils > 2 ? 'speaking' : '',
+                live && i === 0 ? '<span class="hand">рука</span>' : '');
     }
-    if (n > cap){ more.hidden = false; more.textContent = 'ещё ' + (n - cap) + ' · всего ' + n; }
+    p += '</div>';
+    host.innerHTML = html + (pupils > 0 ? p : '');
+
+    if (pupils > cap){ more.hidden = false; more.textContent = 'ещё ' + (pupils - cap) + ' · всего ' + n; }
     else more.hidden = true;
   }
 
