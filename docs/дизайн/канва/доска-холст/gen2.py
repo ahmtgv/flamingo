@@ -5,7 +5,9 @@ CARD = ('background:var(--color-surface);border:1px solid var(--color-border);'
         'border-radius:14px;padding:20px')
 H = ('font-family:var(--font-heading);font-size:1.1875rem;font-weight:500;'
      'letter-spacing:-.01em;color:var(--color-text);margin:0')
+H2 = H.replace('1.1875rem', '1.5rem')
 SUB = 'font-size:.875rem;line-height:1.4;color:var(--color-text-detail);margin:0'
+CARD_TIGHT = CARD.replace('padding:20px', 'padding:4px 20px')
 KEY = ('display:inline-grid;place-items:center;min-width:28px;height:28px;padding:0 8px;'
        'border:1px solid var(--color-border-strong);border-radius:8px;background:var(--color-surface);'
        'font:500 .8125rem var(--font-mono);color:var(--color-text)')
@@ -42,6 +44,13 @@ def twofinger():
       <path d="M8 21h8"></path>
     </svg>'''
 
+def fit():
+    return '''<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#1d1d1f"
+      stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M4 9V5a1 1 0 0 1 1-1h4M20 9V5a1 1 0 0 0-1-1h-4M4 15v4a1 1 0 0 0 1 1h4M20 15v4a1 1 0 0 1-1 1h-4"></path>
+      <rect x="9" y="9" width="6" height="6" rx="1"></rect>
+    </svg>'''
+
 def dbl():
     return '''<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#1d1d1f"
       stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -61,23 +70,26 @@ def row(icon, keys, title, note):
         <span style="display:block;font-size:.8125rem;line-height:1.4;color:var(--color-text-detail);margin-top:2px">{note}</span></span>
     </div>'''
 
-zahvat = f'''<div style="width:900px;height:740px;padding:32px;background:var(--color-bg);display:flex;flex-direction:column;gap:20px">
+zahvat = f'''<div style="width:900px;height:820px;padding:32px;background:var(--color-bg);display:flex;flex-direction:column;gap:20px">
   <div>
-    <h1 style="{H};font-size:1.5rem">Чем берут холст</h1>
+    <h1 style="{H2}">Чем берут холст</h1>
     <p style="{SUB};margin-top:6px;max-width:60ch">Перо рисует при перетаскивании, поэтому холст нельзя
       двигать тем же движением. У сдвига должен быть свой захват — и он должен работать и без клавиатуры.</p>
   </div>
-  <div style="{CARD};padding:4px 20px">
+  <div style="{CARD_TIGHT}">
     {row(hand(), ['Пробел', '+', 'тянуть'], 'Сдвинуть холст',
          'Пока клавиша нажата, перо не рисует, курсор — рука. Отпустил — снова перо.')}
     {row(mouse(), ['средняя кнопка'], 'Сдвинуть холст',
          'Для мыши с колесом. Ничего не нажимать на клавиатуре.')}
     {row(twofinger(), ['два пальца'], 'Сдвинуть холст',
          'Трекпад и сенсорный экран. Одним пальцем по-прежнему рисует перо.')}
-    {row(pinch(), ['Cmd', '+', 'колесо'], 'Приблизить и отдалить',
-         'И щипок двумя пальцами. Масштаб растёт от точки под курсором, а не от центра экрана.')}
-    {row(dbl(), ['двойной щелчок'], 'Вернуться к 100 %',
-         'По пустому месту холста. То же делает «Вернуть 100 %» в пульте масштаба.')}
+    {row(pinch(), ['Cmd / Ctrl', '+', 'колесо'], 'Приблизить и отдалить',
+         'И щипок двумя пальцами. Масштаб меняется вокруг точки под курсором, а не вокруг центра экрана.')}
+    {row(dbl(), ['двойной щелчок'], 'Вернуть 100 %',
+         'По пустому месту холста. То же делает щелчок по самой цифре масштаба в пульте.')}
+    {row(fit(), ['Показать всё'], 'Уместить всё написанное',
+         'Единственная кнопка в пульте масштаба. Меняет и масштаб, и положение — '
+         'поэтому находит написанное, даже если холст уехал далеко.')}
   </div>
   <div style="display:flex;gap:12px;align-items:flex-start;padding:16px 20px;border-radius:14px;
       background:var(--color-go-bg);border:1px solid var(--color-go-border)">
@@ -85,8 +97,9 @@ zahvat = f'''<div style="width:900px;height:740px;padding:32px;background:var(--
       background:var(--color-surface);border:1px solid var(--color-border);flex:0 0 auto">{hand()}</span>
     <span><b style="font-size:.875rem;font-weight:500;color:var(--color-go-text)">Вопрос владельцу: нужна ли «Рука» кнопкой в панели</b>
       <span style="display:block;font-size:.8125rem;line-height:1.4;color:var(--color-text-detail);margin-top:4px;max-width:70ch">
-      Клавиатура есть не у всех: планшет, доска в классе, ученик с телефона. Отдельная кнопка — постоянный
-      режим «двигать, не рисовать». Это новая кнопка в панели инструментов, поэтому решаете вы.</span></span>
+      Все способы выше надо знать заранее: про пробел и среднюю кнопку не догадываются, их нигде не видно.
+      Кнопка в панели — единственное место, где видно, что холст вообще двигается, и единственный способ
+      двигать его мышью без клавиатуры. Это новая кнопка на экране, поэтому решаете вы.</span></span>
   </div>
 </div>'''
 io.open('Zahvat.dc.html','w',encoding='utf-8').write(head('Zahvat')+zahvat+TAIL)
@@ -135,7 +148,7 @@ def variant(name, sub, t_box, p_box, plus, minus, badge=''):
     <span style="display:flex;gap:10px;font-size:.875rem;line-height:1.4;color:var(--color-text)">
       <b style="color:var(--color-go-text);font-weight:500;flex:0 0 auto">За</b><span>{plus}</span></span>
     <span style="display:flex;gap:10px;font-size:.875rem;line-height:1.4;color:var(--color-text)">
-      <b style="color:var(--color-accent-text);font-weight:500;flex:0 0 auto">Цена</b><span>{minus}</span></span>
+      <b style="color:var(--color-text-secondary);font-weight:500;flex:0 0 auto">Цена</b><span>{minus}</span></span>
   </div>
 </div>'''
 
@@ -143,22 +156,22 @@ io.open('VidA.dc.html','w',encoding='utf-8').write(head('VidA') + variant(
   'А · У каждого свой холст',
   'Учитель двигает и приближает у себя, ученик — у себя. Написанное общее, вид — нет.',
   ('видит учитель', 10, 8, 150, 90), ('видит ученик', 96, 46, 150, 90),
-  'Ученик может уйти в свой угол и разобрать то, что не успел. Так работают взрослые доски.',
-  'Учитель говорит «смотрите сюда», а ученик смотрит в другое место и не знает об этом.') + TAIL)
+  'Ученик может отойти назад и разобрать то, что не успел, никому не мешая.',
+  'Учитель говорит «смотрите сюда», ученик смотрит в другое место — и ни один из двоих об этом не знает.') + TAIL)
 
 io.open('VidB.dc.html','w',encoding='utf-8').write(head('VidB') + variant(
   'Б · Вид ведёт учитель',
-  'Что видит учитель, то видят все. Ученик не двигает холст вовсе.',
+  'Что видит учитель, то видят все. Ученик холст не двигает.',
   ('видит учитель', 10, 8, 150, 90), ('то же самое', 10, 8, 150, 90),
-  'Класс всегда смотрит в одно место. Объяснять нечего и настраивать нечего.',
-  'Ученик не может задержаться на предыдущем куске: у него отняли собственный взгляд.') + TAIL)
+  'Класс всегда смотрит в одно место: ни объяснять, ни настраивать нечего.',
+  'Ученик не может задержаться на предыдущем куске — своего взгляда у него нет.') + TAIL)
 
 io.open('VidC.dc.html','w',encoding='utf-8').write(head('VidC') + variant(
-  'В · Ученик идёт за учителем, пока сам не отойдёт',
+  'В · Идёт за учителем, пока сам не отойдёт',
   'По умолчанию вид ученика повторяет учительский. Тронул холст — отвязался, и на холсте'
-  ' появляется одна кнопка «Вернуться к учителю».',
+  ' появляется кнопка «Вернуться к учителю».',
   ('видит учитель', 10, 8, 150, 90), ('отошёл сам', 96, 46, 150, 90, False, True),
-  'Никто не теряется по умолчанию, и никого не держат силой. Возврат — один щелчок.',
-  'Нужны состояние «отвязан» и кнопка возврата — это единственный вариант, который добавляет'
-  ' элемент на экран ученика.', badge='предлагаю') + TAIL)
+  'Ученик может отойти, как в А, но по умолчанию смотрит туда же, куда весь класс.',
+  'Цена А остаётся: отошедший ученик всё так же смотрит не туда, и учитель об этом не знает.'
+  ' Сверху — новый элемент на его экране: состояние «отвязан» и кнопка возврата.', badge='предлагаю') + TAIL)
 print('ok')

@@ -53,7 +53,8 @@ def zoompult(pct, state, hint=''):
         padding:6px;border-radius:999px;background:var(--color-surface);border:1px solid var(--color-border);
         box-shadow:var(--shadow-md)">
       <span style="{btn}">−</span>
-      <span style="min-width:52px;text-align:center;font:500 .8125rem var(--font-mono);color:var(--color-text)">{pct}%</span>
+      <span style="min-width:64px;height:28px;display:grid;place-items:center;border-radius:999px;
+        border:1px solid var(--color-border);font:500 .8125rem var(--font-mono);color:var(--color-text)">{pct} %</span>
       <span style="{btn}">+</span>
       <span style="width:1px;height:20px;background:var(--color-border);margin:0 2px"></span>
       <span style="padding:0 12px;height:28px;display:grid;place-items:center;border-radius:999px;

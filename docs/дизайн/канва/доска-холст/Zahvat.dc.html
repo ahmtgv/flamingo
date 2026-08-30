@@ -42,13 +42,13 @@
     a{color:var(--color-accent-text)} a:hover{color:var(--color-accent)}
   </style>
 </helmet>
-<div style="width:900px;height:740px;padding:32px;background:var(--color-bg);display:flex;flex-direction:column;gap:20px">
+<div style="width:900px;height:820px;padding:32px;background:var(--color-bg);display:flex;flex-direction:column;gap:20px">
   <div>
-    <h1 style="font-family:var(--font-heading);font-size:1.1875rem;font-weight:500;letter-spacing:-.01em;color:var(--color-text);margin:0;font-size:1.5rem">Чем берут холст</h1>
+    <h1 style="font-family:var(--font-heading);font-size:1.5rem;font-weight:500;letter-spacing:-.01em;color:var(--color-text);margin:0">Чем берут холст</h1>
     <p style="font-size:.875rem;line-height:1.4;color:var(--color-text-detail);margin:0;margin-top:6px;max-width:60ch">Перо рисует при перетаскивании, поэтому холст нельзя
       двигать тем же движением. У сдвига должен быть свой захват — и он должен работать и без клавиатуры.</p>
   </div>
-  <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:14px;padding:20px;padding:4px 20px">
+  <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:14px;padding:4px 20px">
     <div style="display:grid;grid-template-columns:28px 210px minmax(0,1fr);align-items:center;
         gap:16px;padding:14px 0;border-bottom:1px solid var(--color-border)">
       <span style="display:grid;place-items:center"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#1d1d1f"
@@ -93,9 +93,9 @@
       <path d="M4 12h5M20 12h-5"></path>
       <path d="M7 9l-3 3 3 3M17 9l3 3-3 3"></path>
     </svg></span>
-      <span style="display:flex;align-items:center;gap:6px;flex-wrap:wrap"><span style="display:inline-grid;place-items:center;min-width:28px;height:28px;padding:0 8px;border:1px solid var(--color-border-strong);border-radius:8px;background:var(--color-surface);font:500 .8125rem var(--font-mono);color:var(--color-text)">Cmd</span><span style="color:var(--color-text-hint);font-size:.8125rem">+</span><span style="display:inline-grid;place-items:center;min-width:28px;height:28px;padding:0 8px;border:1px solid var(--color-border-strong);border-radius:8px;background:var(--color-surface);font:500 .8125rem var(--font-mono);color:var(--color-text)">колесо</span></span>
+      <span style="display:flex;align-items:center;gap:6px;flex-wrap:wrap"><span style="display:inline-grid;place-items:center;min-width:28px;height:28px;padding:0 8px;border:1px solid var(--color-border-strong);border-radius:8px;background:var(--color-surface);font:500 .8125rem var(--font-mono);color:var(--color-text)">Cmd / Ctrl</span><span style="color:var(--color-text-hint);font-size:.8125rem">+</span><span style="display:inline-grid;place-items:center;min-width:28px;height:28px;padding:0 8px;border:1px solid var(--color-border-strong);border-radius:8px;background:var(--color-surface);font:500 .8125rem var(--font-mono);color:var(--color-text)">колесо</span></span>
       <span><b style="font-size:.875rem;font-weight:500;color:var(--color-text)">Приблизить и отдалить</b>
-        <span style="display:block;font-size:.8125rem;line-height:1.4;color:var(--color-text-detail);margin-top:2px">И щипок двумя пальцами. Масштаб растёт от точки под курсором, а не от центра экрана.</span></span>
+        <span style="display:block;font-size:.8125rem;line-height:1.4;color:var(--color-text-detail);margin-top:2px">И щипок двумя пальцами. Масштаб меняется вокруг точки под курсором, а не вокруг центра экрана.</span></span>
     </div>
     <div style="display:grid;grid-template-columns:28px 210px minmax(0,1fr);align-items:center;
         gap:16px;padding:14px 0;border-bottom:1px solid var(--color-border)">
@@ -105,8 +105,19 @@
       <path d="M12 4v2M12 18v2M4 12h2M18 12h2"></path>
     </svg></span>
       <span style="display:flex;align-items:center;gap:6px;flex-wrap:wrap"><span style="display:inline-grid;place-items:center;min-width:28px;height:28px;padding:0 8px;border:1px solid var(--color-border-strong);border-radius:8px;background:var(--color-surface);font:500 .8125rem var(--font-mono);color:var(--color-text)">двойной щелчок</span></span>
-      <span><b style="font-size:.875rem;font-weight:500;color:var(--color-text)">Вернуться к 100 %</b>
-        <span style="display:block;font-size:.8125rem;line-height:1.4;color:var(--color-text-detail);margin-top:2px">По пустому месту холста. То же делает «Вернуть 100 %» в пульте масштаба.</span></span>
+      <span><b style="font-size:.875rem;font-weight:500;color:var(--color-text)">Вернуть 100 %</b>
+        <span style="display:block;font-size:.8125rem;line-height:1.4;color:var(--color-text-detail);margin-top:2px">По пустому месту холста. То же делает щелчок по самой цифре масштаба в пульте.</span></span>
+    </div>
+    <div style="display:grid;grid-template-columns:28px 210px minmax(0,1fr);align-items:center;
+        gap:16px;padding:14px 0;border-bottom:1px solid var(--color-border)">
+      <span style="display:grid;place-items:center"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#1d1d1f"
+      stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M4 9V5a1 1 0 0 1 1-1h4M20 9V5a1 1 0 0 0-1-1h-4M4 15v4a1 1 0 0 0 1 1h4M20 15v4a1 1 0 0 1-1 1h-4"></path>
+      <rect x="9" y="9" width="6" height="6" rx="1"></rect>
+    </svg></span>
+      <span style="display:flex;align-items:center;gap:6px;flex-wrap:wrap"><span style="display:inline-grid;place-items:center;min-width:28px;height:28px;padding:0 8px;border:1px solid var(--color-border-strong);border-radius:8px;background:var(--color-surface);font:500 .8125rem var(--font-mono);color:var(--color-text)">Показать всё</span></span>
+      <span><b style="font-size:.875rem;font-weight:500;color:var(--color-text)">Уместить всё написанное</b>
+        <span style="display:block;font-size:.8125rem;line-height:1.4;color:var(--color-text-detail);margin-top:2px">Единственная кнопка в пульте масштаба. Меняет и масштаб, и положение — поэтому находит написанное, даже если холст уехал далеко.</span></span>
     </div>
   </div>
   <div style="display:flex;gap:12px;align-items:flex-start;padding:16px 20px;border-radius:14px;
@@ -121,8 +132,9 @@
     </svg></span>
     <span><b style="font-size:.875rem;font-weight:500;color:var(--color-go-text)">Вопрос владельцу: нужна ли «Рука» кнопкой в панели</b>
       <span style="display:block;font-size:.8125rem;line-height:1.4;color:var(--color-text-detail);margin-top:4px;max-width:70ch">
-      Клавиатура есть не у всех: планшет, доска в классе, ученик с телефона. Отдельная кнопка — постоянный
-      режим «двигать, не рисовать». Это новая кнопка в панели инструментов, поэтому решаете вы.</span></span>
+      Все способы выше надо знать заранее: про пробел и среднюю кнопку не догадываются, их нигде не видно.
+      Кнопка в панели — единственное место, где видно, что холст вообще двигается, и единственный способ
+      двигать его мышью без клавиатуры. Это новая кнопка на экране, поэтому решаете вы.</span></span>
   </div>
 </div></x-dc>
 </body>
