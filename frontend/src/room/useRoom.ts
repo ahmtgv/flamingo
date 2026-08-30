@@ -22,6 +22,10 @@ export type Face = {
   speaking: boolean
   camOn: boolean
   micOn: boolean
+  /** Момент входа в комнату. Ноль значит «сервер ещё не сказал». */
+  joinedAt: number
+  /** Ведёт занятие. В куске 1 это тот, кто открыл комнату: аккаунтов и ролей нет. */
+  lead: boolean
 }
 
 /** Пять состояний экрана начинаются здесь (ПРАВИЛА 6.1): комната знает про себя ровно
@@ -45,7 +49,20 @@ function faceOf(p: any, isLocal: boolean): Face {
     speaking: Boolean(p.isSpeaking),
     camOn: Boolean(cam && !cam.isMuted),
     micOn: Boolean(mic && !mic.isMuted),
+    joinedAt: p.joinedAt instanceof Date ? p.joinedAt.getTime() : 0,
+    lead: false,
   }
+}
+
+/** 🔴 Ведущего в куске 1 взять неоткуда: аккаунтов нет, ролей в пропуске нет.
+ *  Считаем ведущим того, кто вошёл раньше всех — по листу это и есть «тот, кто
+ *  открыл комнату». Пока сервер не сказал время входа хоть про одного, порядок
+ *  НЕ трогаем: полоса, которая переставляется на каждом кадре, хуже, чем один
+ *  кадр с не тем ведущим. Настоящая роль придёт с учётной записью (кусок 3). */
+function withLead(list: Face[]): Face[] {
+  const known = list.every((f) => f.joinedAt > 0)
+  const ordered = known ? [...list].sort((a, b) => a.joinedAt - b.joinedAt) : list
+  return ordered.map((f, i) => (i === 0 ? { ...f, lead: true } : f))
 }
 
 export function useRoom(code: string, name: string) {
@@ -67,7 +84,7 @@ export function useRoom(code: string, name: string) {
       if (!alive) return
       const list: Face[] = [faceOf(room.localParticipant, true)]
       room.remoteParticipants.forEach((p: RemoteParticipant) => list.push(faceOf(p, false)))
-      setFaces(list)
+      setFaces(withLead(list))
     }
 
     const onData = (payload: Uint8Array, _p?: unknown, _k?: unknown, topic?: string) => {

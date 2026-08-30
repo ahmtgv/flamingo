@@ -13,17 +13,65 @@
 }
 
 /* 🔴 Полоса лиц ДЕЛИТ высоту, а не наследует её от содержимого. Без `flex: 1 1 auto`
-   решётка берёт высоту по содержимому, `1fr` разрешается в max-content, а внутри плитки
+   колонка берёт высоту по содержимому, `1fr` разрешается в max-content, а внутри плитки
    нет ничего высокого — видео лежит absolute. 30 августа на боевом это дало две полоски
    вместо превью. Пол `--tile-min-height` держит плитку, даже если рамы не хватило. */
 .tiles {
   flex: 1 1 auto;
-  display: grid;
-  grid-auto-rows: minmax(var(--tile-min-height), 1fr);
+  display: flex;
+  flex-direction: column;
   gap: var(--space-2);
   padding: var(--space-3);
   min-height: 0;
+  overflow: hidden;
+}
+
+/* Ведущий первым и во всю ширину полосы (решение владельца 30.08): на него смотрит класс,
+   в решётке равных плиток он терялся среди тридцати. */
+.lead {
+  flex: 0 0 auto;
+  aspect-ratio: 16 / 10;
+  min-height: var(--tile-min-height);
+}
+
+.leadMark {
+  position: absolute;
+  left: var(--space-2);
+  top: var(--space-2);
+  font: var(--weight-medium) var(--text-caption) var(--font-mono);
+  color: var(--color-go-on-video);
+  background: var(--color-surface-on-video);
+  border-radius: var(--radius-xs);
+  padding: 2px var(--space-2);
+}
+
+/* Ученики решёткой по двое: при одном столбце плитка выходит 3,7 к 1 и режет лицо
+   по глазам — это и было видно на боевом 30 августа. Пол ряда тот же; когда рамы
+   на всех не хватает, прокручивается ПОЛОСА, а не страница (ПРАВИЛА 1.2). */
+.pupils {
+  flex: 1 1 auto;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-auto-rows: min-content;
+  align-content: start;
+  gap: var(--space-2);
+  min-height: 0;
   overflow-y: auto;
+}
+
+/* Плитка ученика держит пропорцию, а не тянется по свободному месту: с одним учеником
+   ряд `1fr` давал колбасу 142 на 686, с одиннадцатью — полоску. Пропорция одна и та же
+   при любом числе лиц, растёт только вместе с шириной полосы. */
+.pupils .tile {
+  aspect-ratio: 4 / 3;
+  min-height: var(--tile-min-height);
+}
+
+.more {
+  margin: 0;
+  padding: 0 var(--space-3) var(--space-3);
+  font: var(--weight-regular) var(--text-caption) var(--font-mono);
+  color: var(--color-text-on-video-quiet);
 }
 
 .tile {

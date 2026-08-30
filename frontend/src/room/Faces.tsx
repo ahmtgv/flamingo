@@ -4,6 +4,10 @@ import type { Track } from 'livekit-client'
 import s from './Faces.module.css'
 import type { Face } from './useRoom'
 
+/** Сколько учеников полоса показывает лицами. Дальше — счётчик словами:
+ *  тридцать плиток по 60 пикселей это не лица, а мозаика (утверждённый лист). */
+const CAP = 11
+
 function initials(name: string): string {
   return name
     .split(/\s+/)
@@ -40,28 +44,54 @@ function Sound({ track }: { track?: Track }) {
   return <audio ref={ref} autoPlay />
 }
 
+function Tile({ face, lead }: { face: Face; lead: boolean }) {
+  return (
+    <div className={`${s.tile} ${lead ? s.lead : ''} ${face.speaking ? s.speaking : ''}`}>
+      <Media track={face.video} muted />
+      <Sound track={face.audio} />
+      {!face.camOn || !face.video ? <span className={s.ini}>{initials(face.name)}</span> : null}
+      {lead ? <span className={s.leadMark}>ведёт занятие</span> : null}
+      <span className={s.name}>
+        {face.name}
+        {face.isLocal ? ' · вы' : ''}
+      </span>
+      {!face.micOn ? <span className={s.muted}>без звука</span> : null}
+    </div>
+  )
+}
+
 export function Faces({ faces, alone, link, onCopy }: {
   faces: Face[]
   alone: boolean
   link: string
   onCopy: () => void
 }) {
+  // Ведущий стоит первым и во всю ширину полосы: на него смотрит класс, и в решётке
+  // равных плиток среди тридцати он терялся (решение владельца 30.08).
+  const lead = faces.find((f) => f.lead) ?? faces[0]
+  const pupils = faces.filter((f) => f !== lead)
+  const shown = pupils.slice(0, CAP)
+  const rest = pupils.length - shown.length
+
   return (
     <aside className={s.rail} aria-label="Участники">
       <div className={s.tiles}>
-        {faces.map((f) => (
-          <div key={f.identity} className={`${s.tile} ${f.speaking ? s.speaking : ''}`}>
-            <Media track={f.video} muted />
-            <Sound track={f.audio} />
-            {!f.camOn || !f.video ? <span className={s.ini}>{initials(f.name)}</span> : null}
-            <span className={s.name}>
-              {f.name}
-              {f.isLocal ? ' · вы' : ''}
-            </span>
-            {!f.micOn ? <span className={s.muted}>без звука</span> : null}
+        {lead ? <Tile key={lead.identity} face={lead} lead /> : null}
+        {shown.length > 0 ? (
+          <div className={s.pupils}>
+            {shown.map((f) => (
+              <Tile key={f.identity} face={f} lead={false} />
+            ))}
           </div>
-        ))}
+        ) : null}
       </div>
+
+      {/* ПРАВИЛА 6.4: спрятанное называется числом, а не многоточием. */}
+      {rest > 0 ? (
+        <p className={s.more}>
+          ещё {rest} · всего {faces.length}
+        </p>
+      ) : null}
 
       {/* ПРАВИЛА 6.2: пусто объясняет словами и всегда даёт одно действие. */}
       {alone ? (
