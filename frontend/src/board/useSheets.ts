@@ -37,6 +37,13 @@ export function useSheets(bus: Bus, peers: number) {
         touch()
         return
       }
+      if (m.t === 'sheetState') {
+        const i = sheets.current.findIndex((x) => x.id === m.sheet.id)
+        if (i >= 0) sheets.current[i] = m.sheet
+        else sheets.current.push(m.sheet)
+        touch()
+        return
+      }
       if (m.t === 'sheets') {
         // Список досок ведёт тот, кто переключил. Содержимое чужих досок не трогаем:
         // оно приедет с их автором, а пустая заглушка нужна, чтобы вкладка была видна.
@@ -165,6 +172,18 @@ export function useSheets(bus: Bus, peers: number) {
     bus.send({ t: 'clear', sheet: sh.id })
   }, [bus, sheet, touch])
 
+  /** Заменить лист целиком — этим уезжает отмена и возврат. */
+  const replaceSheet = useCallback(
+    (next: Sheet, quiet = false) => {
+      const i = sheets.current.findIndex((x) => x.id === next.id)
+      if (i >= 0) sheets.current[i] = next
+      else sheets.current.push(next)
+      touch()
+      if (!quiet) bus.send({ t: 'sheetState', sheet: next })
+    },
+    [bus, touch],
+  )
+
   /** Открыть сохранённый файл: он заменяет ВСЕ доски у всех, кто в комнате. */
   const loadAll = useCallback(
     (list: Sheet[]) => {
@@ -191,6 +210,7 @@ export function useSheets(bus: Bus, peers: number) {
     eraseIds,
     wipe,
     loadAll,
+    replaceSheet,
     touch,
   }
 }

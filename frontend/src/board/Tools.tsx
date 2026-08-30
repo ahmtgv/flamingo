@@ -14,6 +14,12 @@ type Props = {
   wipe: () => void
   addImage: () => void
   addVideo: () => void
+  undo: () => void
+  redo: () => void
+  canUndo: boolean
+  canRedo: boolean
+  /** Меняется на каждое действие: без этого React не узнаёт, что стопка отмены ожила. */
+  histTick: number
 }
 
 /** Значки рисованные, а не глифы шрифта: глиф «▯» на части машин не отрисовывается
@@ -28,6 +34,8 @@ const I = {
   note: <path d="M5 4h14v10l-5 6H5z M19 14h-5v6" />,
   image: <path d="M4 5h16v14H4z M4 15l4.5-4.5L13 15l3-3 4 4 M9 9.5a1 1 0 11-2 0 1 1 0 012 0" />,
   video: <path d="M3 6h12v12H3z M15 10l6-3v10l-6-3z" />,
+  undo: <path d="M9 7L4 12l5 5 M4 12h9a6 6 0 010 12h-1" />,
+  redo: <path d="M15 7l5 5-5 5 M20 12h-9a6 6 0 000 12h1" />,
 }
 
 function Ico({ d }: { d: keyof typeof I }) {
@@ -39,7 +47,10 @@ function Ico({ d }: { d: keyof typeof I }) {
   )
 }
 
-export function Tools({ tool, setTool, pen, setPen, thick, setThick, armed, wipe, addImage, addVideo }: Props) {
+export function Tools({
+  tool, setTool, pen, setPen, thick, setThick, armed, wipe, addImage, addVideo,
+  undo, redo, canUndo, canRedo,
+}: Props) {
   const btn = (t: Tool, d: keyof typeof I, title: string) => (
     <button
       type="button"
@@ -72,6 +83,19 @@ export function Tools({ tool, setTool, pen, setPen, thick, setThick, armed, wipe
       <button type="button" className={s.tool} title="Добавить видео по ссылке" aria-label="Добавить видео"
               onClick={addVideo}>
         <Ico d="video" />
+      </button>
+
+      <span className={s.sep} />
+
+      {/* Отмена и возврат. ПРАВИЛА 14.1: пока отменять нечего, кнопка не притворяется
+          живой — она выключена, и это видно. */}
+      <button type="button" className={s.tool} onClick={undo} disabled={!canUndo}
+              title="Отменить · Ctrl+Z" aria-label="Отменить">
+        <Ico d="undo" />
+      </button>
+      <button type="button" className={s.tool} onClick={redo} disabled={!canRedo}
+              title="Вернуть · Ctrl+Shift+Z" aria-label="Вернуть">
+        <Ico d="redo" />
       </button>
 
       <span className={s.sep} />

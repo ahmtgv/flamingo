@@ -262,6 +262,13 @@
   width: 0;
   height: 0;
   transform-origin: 0 0;
+  /* Пока текст не правят, его нельзя выделять мышью: перетаскивание группы
+     подсвечивало буквы синим вместо того, чтобы двигать элементы. */
+  user-select: none;
+}
+
+.layer [contenteditable='true'] {
+  user-select: text;
 }
 
 .obj {
@@ -421,4 +428,56 @@
 .objNote:empty::before {
   content: attr(data-hint);
   color: var(--color-text-hint);
+}
+
+/* Рамка выделения и ручки живут в экранных координатах: ручка одного размера
+   при любом масштабе, иначе на 30 % в неё не попасть, а на 400 % она закрывает
+   половину рисунка. */
+.selBox {
+  position: absolute;
+  border: 1px solid var(--color-go);
+  border-radius: var(--radius-xs);
+  pointer-events: none;
+}
+
+.selCount {
+  position: absolute;
+  left: 0;
+  top: calc(-1 * var(--space-6));
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-xs);
+  background: var(--color-go-solid);
+  color: var(--color-on-go);
+  font: var(--weight-medium) var(--text-caption) var(--font-mono);
+  white-space: nowrap;
+}
+
+.selHandle {
+  position: absolute;
+  width: var(--space-3);
+  height: var(--space-3);
+  border-radius: var(--radius-xs);
+  background: var(--color-surface);
+  border: 1px solid var(--color-go);
+  pointer-events: auto;
+}
+
+.h_nw { left: calc(-1 * var(--space-2)); top: calc(-1 * var(--space-2)); cursor: nwse-resize; }
+.h_ne { right: calc(-1 * var(--space-2)); top: calc(-1 * var(--space-2)); cursor: nesw-resize; }
+.h_sw { left: calc(-1 * var(--space-2)); bottom: calc(-1 * var(--space-2)); cursor: nesw-resize; }
+.h_se { right: calc(-1 * var(--space-2)); bottom: calc(-1 * var(--space-2)); cursor: nwse-resize; }
+
+/* Рамка, которой обводят несколько элементов сразу. */
+.marquee {
+  position: absolute;
+  border: 1px dashed var(--color-go);
+  background: var(--color-go-bg);
+  opacity: .5;
+  border-radius: var(--radius-xs);
+  pointer-events: none;
+}
+
+.tool:disabled {
+  color: var(--color-text-disabled);
+  cursor: default;
 }

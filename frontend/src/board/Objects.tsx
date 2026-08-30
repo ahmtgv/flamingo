@@ -11,7 +11,7 @@ import type { Obj } from './protocol'
 type Props = {
   objs: Obj[]
   k: number
-  selected: string | null
+  selected: string[]
   editing: string | null
   onPick: (id: string, e: React.PointerEvent) => void
   onText: (id: string, text: string) => void
@@ -110,7 +110,7 @@ export function Objects({ objs, k, selected, editing, onPick, onText, onDoneEdit
   return (
     <>
       {objs.map((o) => {
-        const sel = selected === o.id
+        const sel = selected.includes(o.id)
         const ed = editing === o.id
         const common = {
           onPointerDown: (e: React.PointerEvent) => onPick(o.id, e),
