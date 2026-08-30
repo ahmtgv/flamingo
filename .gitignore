@@ -8,4 +8,5 @@ __pycache__/
 .env.production
 db.sqlite3
 .DS_Store
-_архив-прототип-2026-08/
+УДАЛИТЬ-*/
+.git/мусор-от-монтирования/
