@@ -5,8 +5,9 @@
       --fl-info-500:#2f6fa8; --fl-dark-bg:#101012;
       --color-bg:#f1f1ef; --color-surface:#ffffff; --color-surface-subtle:#e9e9e6;
       --color-surface-hover:#e9e9e6; --color-border:#d9d9d6; --color-border-strong:#c4c4c1;
-      --color-text:#1d1d1f; --color-text-secondary:#646469; --color-text-hint:#6b6b75;
+      --color-text:#1d1d1f; --color-text-secondary:#646469; --color-text-hint:#6b6b75; --color-text-disabled:#a8a8ad;
       --color-text-detail:#646469; --color-accent:#e14e1f; --color-accent-text:#a83610;
+      --color-accent-solid:#c23f14; --color-on-accent:#ffffff;
       --color-go:#2f8a56; --color-go-text:#226741; --color-go-solid:#226741; --color-go-bg:#e7f2ea;
       --color-go-border:#7fd3a3; --color-on-go:#ffffff;
       --color-surface-video:#101012; --color-text-on-video:#f2f2f0;

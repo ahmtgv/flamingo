@@ -8,7 +8,7 @@ HEAD_H, SHELF_H, PULT_H = 47, 53, 67
 NAMES = ['Артём В.','Даша К.','Лев М.','Соня П.','Ника Р.','Тимур А.','Мия Л.','Егор Ш.',
          'Алиса Д.','Марк Т.','Вера С.','Кира Н.','Гоша Б.','Юля Ф.','Рома З.','Ася Г.',
          'Илья О.','Поля Е.','Слава Ч.','Ева Х.','Женя И.','Лада У.','Тася Я.','Ким Ц.',
-         'Ося Ж.','Рита Щ.','Фёдор Ю.','Инга Э.','Влад Ъ.','Нина Ы.']
+         'Ося Ж.','Рита Щ.','Фёдор Ю.','Инга Э.','Влад Кос.','Нина Лай.']
 
 def ini(name):
     p = name.split()
@@ -16,12 +16,14 @@ def ini(name):
 
 # ── мелкие детали ────────────────────────────────────────────────────────
 def header(code='k4np-7tqm-bz3d', label='идёт 12 минут'):
+    codepart = ('' if code is None else
+      f'<span style="width:1px;height:20px;background:var(--color-border)"></span>'
+      f'<span style="font:500 .8125rem var(--font-mono);color:var(--color-text-detail);letter-spacing:.06em">{code}</span>')
     return f'''<header style="display:flex;align-items:center;gap:12px;padding:12px 20px;
       border-bottom:1px solid var(--color-border);height:{HEAD_H}px;background:var(--color-bg)">
       <span style="display:inline-flex;align-items:center;gap:8px;font-family:var(--font-heading);
         font-size:1.0625rem;font-weight:600;letter-spacing:-.01em;color:var(--color-text)">{BIRD}Flamingo</span>
-      <span style="width:1px;height:20px;background:var(--color-border)"></span>
-      <span style="font:500 .8125rem var(--font-mono);color:var(--color-text-detail);letter-spacing:.06em">{code}</span>
+      {codepart}
       <span style="margin-left:auto;display:inline-flex;align-items:center;gap:8px;
         font:500 .8125rem var(--font-mono);color:var(--color-text-detail)">
         <span style="width:6px;height:6px;border-radius:999px;background:var(--color-go)"></span>{label}</span>
@@ -41,14 +43,18 @@ def shelf(active=None, second=None):
         if on:
             style += 'background:var(--color-go-solid);border:1px solid var(--color-go-solid);color:var(--color-on-go)'
         elif dim:
-            style += ('background:none;border:1px dashed var(--color-border);color:var(--color-text-disabled)')
+            style += 'background:none;border:1px dashed var(--color-border);color:var(--color-text-disabled)'
         else:
             style += 'background:none;border:1px solid var(--color-border);color:var(--color-text)'
-        mark = ('<span style="width:6px;height:6px;border-radius:999px;background:var(--color-go)"></span>'
-                if name == second else '')
-        out.append(f'<span style="{style}">{name}{mark}</span>')
+        # Точка «ушло на второй экран» — белая на залитой пилюле: зелёная по зелёному не видна.
+        mark = ('<span style="width:6px;height:6px;border-radius:999px;background:'
+                + ('var(--color-on-go)' if on else 'var(--color-go)') + '"></span>') if name == second else ''
+        # Отправить на второй экран можно только то, что сейчас показывают.
+        arrow = ('<span style="margin-left:2px;display:grid;place-items:center;width:20px;height:20px;'
+                 'border-radius:999px;background:rgba(255,255,255,.18);font-size:.75rem">↗</span>') if on else ''
+        out.append(f'<span style="{style}">{name}{mark}{arrow}</span>')
     hint = ('<span style="margin-left:auto;font:400 .8125rem var(--font-mono);color:var(--color-text-hint)">'
-            'пунктиром — появится вместе с курсом</span>')
+            'пунктиром — появятся вместе с курсом</span>')
     return f'''<div style="display:flex;align-items:center;gap:8px;padding:10px 20px;height:{SHELF_H}px;
       border-bottom:1px solid var(--color-border);background:var(--color-bg)">{''.join(out)}{hint}</div>'''
 
@@ -60,6 +66,7 @@ def pult(role='teacher', extra=''):
     div = '<span style="width:1px;height:20px;background:var(--color-border);margin:0 8px"></span>'
     if role == 'teacher':
         body = (f'<span style="{q}">Микрофон</span><span style="{q}">Камера</span>{div}{extra}'
+                f'<span style="{q}">Участники</span>'
                 f'<span style="{q}">Ссылка на комнату</span><span style="{leave}">Завершить урок</span>')
     else:
         body = (f'<span style="{q}">Микрофон</span><span style="{q}">Камера</span>{div}'
@@ -68,7 +75,7 @@ def pult(role='teacher', extra=''):
       padding:12px 20px;border-top:1px solid var(--color-border);height:{PULT_H}px;background:var(--color-bg)">{body}</footer>'''
 
 # ── плитки ───────────────────────────────────────────────────────────────
-def tile(name, w, h, lead=False, badge='', speaking=False, dim_name=False):
+def tile(name, w, h, lead=False, badge='', speaking=False, hand=False, arrow=False):
     border = 'var(--color-go-on-video)' if speaking else 'var(--color-border-on-video)'
     fs = '1.5rem' if lead else ('1.1875rem' if h > 150 else ('.875rem' if h > 100 else '.75rem'))
     nm = ('' if h < 70 else
@@ -78,10 +85,18 @@ def tile(name, w, h, lead=False, badge='', speaking=False, dim_name=False):
     bd = (f'''<span style="position:absolute;left:8px;top:8px;font:500 .8125rem var(--font-mono);
           color:var(--color-go-on-video);background:var(--color-surface-on-video);border-radius:4px;
           padding:2px 8px">{badge}</span>''' if badge else '')
+    # Поднятая рука — единственная коралловая заливка в комнате (ПРАВИЛА 11а).
+    hd = ('''<span style="position:absolute;right:6px;top:6px;font:500 .75rem var(--font-mono);
+          color:var(--color-on-accent);background:var(--color-accent-solid);border-radius:4px;
+          padding:2px 6px">рука</span>''' if hand else '')
+    ar = ('''<span style="position:absolute;right:6px;top:6px;display:grid;place-items:center;width:22px;
+          height:22px;border-radius:999px;background:var(--color-surface-on-video);
+          border:1px solid var(--color-border-on-video);color:var(--color-text-on-video);
+          font-size:.75rem">↗</span>''' if arrow else '')
     return f'''<div style="position:relative;flex:0 0 auto;width:{w:.0f}px;height:{h:.0f}px;border-radius:12px;
       overflow:hidden;background:var(--color-surface-on-video);border:1px solid {border};display:grid;place-items:center">
       <span style="font:500 {fs} var(--font-mono);color:var(--color-text-on-video-quiet);letter-spacing:.04em">{ini(name)}</span>
-      {bd}{nm}</div>'''
+      {bd}{hd}{ar}{nm}</div>'''
 
 def best_grid(n, bw, bh, gap=8, ratio=4/3):
     """Подобрать сетку, при которой плитка 4:3 максимальна."""
@@ -94,7 +109,7 @@ def best_grid(n, bw, bh, gap=8, ratio=4/3):
         if side <= 0:
             continue
         if best is None or side > best[0]:
-            best = (side, cols, rows)
+            best = (float(int(side)), cols, rows)
     return best[1], best[2], best[0]
 
 def pupil_grid(n, bw, bh, first_is_you=False):
@@ -117,10 +132,10 @@ def nachalo(n_pupils, role='teacher', lead='Наталья Ким'):
     lw, lh = half, inner_h
     grid, tw, th = pupil_grid(n_pupils, half, inner_h, first_is_you=(role == 'pupil'))
     return f'''<div style="width:{W}px;height:{H}px;display:flex;flex-direction:column;background:var(--color-bg)">
-  {header()}
+  {header(code=None if role == 'pupil' else 'k4np-7tqm-bz3d')}
   {shelf() if role == 'teacher' else ''}
   <div style="flex:1 1 auto;display:flex;gap:{pad}px;padding:{pad}px;background:var(--color-surface-video)">
-    {tile(lead + (' · вы' if role == 'teacher' else ''), lw, lh, lead=True, badge='ведёт занятие')}
+    {tile(lead + (' · вы' if role == 'teacher' else ''), lw, lh, lead=True, badge='ведёт урок')}
     {grid}
   </div>
   {pult(role)}
@@ -168,26 +183,30 @@ def tools_col():
 
 def rail(n_pupils, cap=11, lead='Наталья Ким', role='teacher', note=''):
     inner_w = RAIL_W - 24
-    lh = inner_w / (16 / 10)
+    lh = int(inner_w / (16 / 10))
     shown = min(n_pupils, cap)
-    cw = (inner_w - 8) / 2
-    ch = cw / (4 / 3)
-    cells = ''.join(tile(NAMES[i], cw, ch, speaking=(i == 2)) for i in range(shown))
+    cw = int((inner_w - 8) / 2)
+    ch = int(cw / (4 / 3))
+    cells = ''.join(tile(NAMES[i] + (' · вы' if role == 'pupil' and i == 0 else ''), cw, ch,
+                         speaking=(i == 2), hand=(i == 1 and role == 'teacher'),
+                         arrow=(i == 4 and role == 'teacher'))
+                    for i in range(shown))
     more = ('' if n_pupils <= cap else
             f'''<p style="margin:0;padding:0 12px 12px;font:400 .8125rem var(--font-mono);
-              color:var(--color-text-on-video-quiet)">ещё {n_pupils - cap} · всего {n_pupils + 1}</p>''')
+              color:var(--color-text-on-video-quiet)">ещё {n_pupils - cap} · всего {n_pupils + 1} в комнате</p>''')
     return f'''<aside style="width:{RAIL_W}px;display:flex;flex-direction:column;overflow:hidden;
       background:var(--color-surface-video);border-left:1px solid var(--color-border)">
       <div style="flex:1 1 auto;display:flex;flex-direction:column;gap:8px;padding:12px;min-height:0;overflow:hidden">
-        {tile(lead + (' · вы' if role == 'teacher' else ''), inner_w, lh, lead=True, badge='ведёт занятие')}
-        <div style="display:grid;grid-template-columns:repeat(2,{cw:.0f}px);gap:8px;align-content:start">{cells}</div>
+        {tile(lead + (' · вы' if role == 'teacher' else ''), inner_w - 2, lh, lead=True, badge='ведёт урок')}
+        <div style="display:grid;grid-template-columns:repeat(2,{cw:.0f}px);gap:8px;align-content:start;
+          min-height:0;overflow-y:auto">{cells}</div>
       </div>{more}{note}</aside>'''
 
 def pokaz(n_pupils, role='teacher', second=None, extra_pult=''):
     stage_h = H - HEAD_H - SHELF_H - PULT_H if role == 'teacher' else H - HEAD_H - PULT_H
     src_w = W - RAIL_W - (51 if role == 'teacher' else 0)
     return f'''<div style="width:{W}px;height:{H}px;display:flex;flex-direction:column;background:var(--color-bg)">
-  {header()}
+  {header(code=None if role == 'pupil' else 'k4np-7tqm-bz3d')}
   {shelf(active='Доска', second=second) if role == 'teacher' else ''}
   <div style="flex:1 1 auto;display:flex;min-height:0">
     {tools_col() if role == 'teacher' else ''}
@@ -204,13 +223,12 @@ def write(name, body):
 
 
 # ── второй экран ─────────────────────────────────────────────────────────
-def vtoroy_screen(kind='Доска', who=None):
-    """Что показывает второй экран: источник целиком, без пультов и лиц."""
-    label = who or kind
-    body = (istochnik_board(W, H - 40) if who is None else
+def vtoroy_screen(kind='Доска', pupil=None):
+    """Второй экран показывает то, что учитель туда отправил: источник или одного ученика."""
+    label = f'{pupil} · крупно' if pupil else kind
+    body = (istochnik_board(W, H - 40) if pupil is None else
             f'''<div style="width:{W}px;height:{H-40}px;background:var(--color-surface-video);
-              display:grid;place-items:center">
-              {tile(who, 900, 675, lead=True, badge='у доски')}</div>''')
+              display:grid;place-items:center">{tile(pupil, 1146, 860, lead=True)}</div>''')
     return f'''<div style="width:{W}px;height:{H}px;display:flex;flex-direction:column;background:var(--color-bg)">
       <div style="display:flex;align-items:center;gap:12px;padding:0 20px;height:40px;
         border-bottom:1px solid var(--color-border)">
