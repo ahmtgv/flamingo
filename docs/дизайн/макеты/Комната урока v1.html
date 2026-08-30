@@ -1,0 +1,558 @@
+<title>Комната урока v1</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ═══ ТОКЕНЫ — перенесены из docs/дизайн/tokens.css без изменения значений ═══ */
+:root{
+  --fl-white:#ffffff;
+  --fl-warm-100:#f1f1ef; --fl-warm-150:#e9e9e6; --fl-warm-200:#d9d9d6; --fl-warm-300:#c4c4c1;
+  --fl-warm-400:#a8a8ad; --fl-warm-900:#1d1d1f;
+  --fl-coral-50:#fdeee7; --fl-coral-100:#fad9c9; --fl-coral-300:#ff8a5f; --fl-coral-400:#ff7040;
+  --fl-coral-500:#e14e1f; --fl-coral-600:#c23f14; --fl-coral-700:#a83610;
+  --fl-moss-500:#2f8a56; --fl-moss-300:#7fd3a3; --fl-moss-700:#226741;
+  --fl-error-300:#ff9c8f; --fl-warning-300:#e3c463;
+  --fl-dark-bg:#101012; --fl-dark-surface:#1a1a1c; --fl-dark-surface-2:#242426;
+  --fl-dark-border:#2e2e31; --fl-dark-text:#f2f2f0; --fl-dark-text-2:#98989e;
+
+  --color-bg:var(--fl-warm-100); --color-surface:var(--fl-white);
+  --color-surface-subtle:var(--fl-warm-150); --color-surface-hover:var(--fl-warm-150);
+  --color-border:var(--fl-warm-200); --color-border-strong:var(--fl-warm-300);
+  --color-text:var(--fl-warm-900); --color-text-secondary:#646469;
+  --color-text-hint:#6b6b75; --color-text-detail:#646469; --color-text-disabled:var(--fl-warm-400);
+
+  --color-surface-video:var(--fl-dark-bg); --color-text-on-video:var(--fl-dark-text);
+  --color-text-on-video-quiet:rgba(255,255,255,.72);
+  --color-border-on-video:rgba(255,255,255,.22);
+  --color-border-on-video-strong:rgba(255,255,255,.5);
+  --color-surface-on-video:rgba(255,255,255,.12);
+  --color-error-on-video:var(--fl-error-300);
+  --color-warning-on-video:var(--fl-warning-300);
+  --dot-size:6px;
+
+  --color-accent:var(--fl-coral-500); --color-accent-solid:var(--fl-coral-600);
+  --color-accent-text:var(--fl-coral-700); --color-on-accent:var(--fl-white);
+  --color-accent-subtle:var(--fl-coral-50);
+  --color-go-solid:var(--fl-moss-700); --color-go-solid-hover:var(--fl-moss-500);
+  --color-on-go:var(--fl-white);
+
+  --font-heading:'Inter',-apple-system,system-ui,sans-serif;
+  --font-body:'Inter',-apple-system,system-ui,sans-serif;
+  --font-mono:'JetBrains Mono','SF Mono',ui-monospace,monospace;
+  --weight-medium:500; --weight-semibold:600;
+  --text-h2:1.5rem; --text-h3:1.1875rem; --text-body:1.0625rem;
+  --text-small:.875rem; --text-caption:.8125rem; --text-overline:.75rem;
+  --leading-snug:1.4; --leading-body:1.6; --tracking-snug:-.01em;
+
+  --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px; --space-5:20px;
+  --space-6:24px; --space-7:32px; --space-8:40px; --space-9:48px; --space-10:64px;
+  --radius-xs:4px; --radius-sm:8px; --radius-md:12px; --radius-card:14px;
+  --radius-control:10px; --radius-pill:999px;
+  --control-height-sm:34px; --control-height-md:42px;
+  --shadow-xs:0 1px 2px rgba(0,0,0,.03);
+  --shadow-sm:0 1px 2px rgba(0,0,0,.03),0 2px 6px rgba(0,0,0,.04);
+  --shadow-md:0 1px 2px rgba(0,0,0,.03),0 8px 24px rgba(0,0,0,.05);
+  --shadow-lg:0 2px 8px rgba(0,0,0,.06),0 16px 40px rgba(0,0,0,.10);
+  --nav-blur:20px;
+}
+:root[data-theme="dark"]{
+  --color-bg:var(--fl-dark-bg); --color-surface:var(--fl-dark-surface);
+  --color-surface-subtle:var(--fl-dark-surface-2); --color-surface-hover:var(--fl-dark-surface-2);
+  --color-border:var(--fl-dark-border); --color-border-strong:#3f3f43;
+  --color-text:var(--fl-dark-text); --color-text-secondary:var(--fl-dark-text-2);
+  --color-text-hint:#92929a; --color-text-detail:var(--fl-dark-text-2); --color-text-disabled:#4a4a4e;
+  --color-accent:var(--fl-coral-400); --color-accent-solid:var(--fl-coral-400);
+  --color-accent-text:var(--fl-coral-300); --color-on-accent:#1d1d1f;
+  --color-accent-subtle:#33201a;
+  --color-go-solid:var(--fl-moss-300); --color-go-solid-hover:#a3e2c1; --color-on-go:#1d1d1f;
+  --shadow-sm:0 2px 6px rgba(0,0,0,.45); --shadow-md:0 8px 24px rgba(0,0,0,.45);
+  --shadow-lg:0 16px 40px rgba(0,0,0,.55);
+}
+:root[data-mode="kids"]{
+  --text-body:1.1875rem; --text-small:1rem; --text-caption:.9375rem; --text-h3:1.375rem;
+  --control-height-sm:40px; --control-height-md:50px; --radius-card:20px; --radius-control:14px;
+}
+*,*::before,*::after{box-sizing:border-box}
+
+/* ═══ СТРАНИЦА ═══ */
+body{
+  background:var(--color-bg); color:var(--color-text);
+  font-family:var(--font-body); margin:0; overflow-x:hidden;
+}
+.wrap{display:flex; flex-direction:column; min-height:100vh}
+
+.bar{
+  display:flex; align-items:center; gap:var(--space-2); flex-wrap:wrap;
+  padding:var(--space-3) var(--space-4);
+  border-bottom:1px solid var(--color-border); background:var(--color-surface);
+}
+.bar .grp{display:flex; align-items:center; gap:var(--space-1)}
+.bar .lbl{
+  font:var(--weight-medium) var(--text-overline)/1 var(--font-mono);
+  letter-spacing:.08em; text-transform:uppercase; color:var(--color-text-hint);
+  margin-right:var(--space-1); margin-left:var(--space-3);
+}
+.bar .lbl:first-child{margin-left:0}
+.bar button{
+  font:var(--weight-medium) var(--text-caption)/1 var(--font-mono);
+  background:none; border:1px solid var(--color-border); border-radius:var(--radius-pill);
+  padding:6px 11px; color:var(--color-text-secondary); cursor:pointer;
+}
+.bar button[aria-pressed="true"]{
+  background:var(--color-surface-subtle); color:var(--color-text);
+  border-color:var(--color-border-strong);
+}
+.stagewrap{flex:1; display:grid; place-items:center; padding:var(--space-6); overflow:hidden}
+
+/* ═══ КАДР ═══ */
+.frame{
+  width:1280px; height:800px; position:relative; flex:none;
+  transform-origin:center center;
+  border-radius:var(--radius-card); overflow:hidden;
+  background:var(--color-bg); box-shadow:var(--shadow-lg);
+  border:1px solid var(--color-border);
+  display:flex; min-width:0;
+}
+.frame[data-w="1512"]{width:1512px; height:944px}
+
+/* ── доска ── */
+.boardpane{
+  flex:1 1 auto; min-width:0; position:relative; overflow:hidden;
+  background-color:var(--color-surface);
+  background-image:radial-gradient(circle,var(--color-border) 1px,transparent 1px);
+  background-size:var(--space-6) var(--space-6);
+}
+.notes{position:absolute; inset:0}
+.note{
+  position:absolute; background:var(--color-surface); border:1px solid var(--color-border-strong);
+  border-radius:var(--radius-md); padding:var(--space-2) var(--space-3);
+  font-size:var(--text-caption); max-width:210px; box-shadow:var(--shadow-xs); color:var(--color-text);
+}
+.note b{display:block; font-weight:var(--weight-semibold); font-size:var(--text-small)}
+.note i{
+  display:block; font:400 var(--text-caption)/1.3 var(--font-mono);
+  color:var(--color-text-detail); margin-top:2px; font-style:normal;
+}
+.note.topic{background:var(--color-surface-subtle); max-width:230px}
+.ink{position:absolute; inset:0; width:100%; height:100%}
+
+/* панель инструментов — плавает над холстом, как на листе дизайнера */
+.tools{
+  position:absolute; left:var(--space-4); top:50%; transform:translateY(-50%); z-index:3;
+  display:grid; gap:var(--space-1); padding:var(--space-2);
+  background:var(--color-surface); border:1px solid var(--color-border);
+  border-radius:var(--radius-md); box-shadow:var(--shadow-sm);
+}
+.tools button{
+  width:var(--control-height-sm); height:var(--control-height-sm);
+  border:none; border-radius:var(--radius-sm); background:none;
+  color:var(--color-text-secondary); cursor:pointer;
+  font:var(--weight-medium) 13px var(--font-mono);
+}
+.tools button[aria-pressed="true"]{background:var(--color-surface-subtle); color:var(--color-text)}
+.tools .rule{height:1px; background:var(--color-border); margin:var(--space-1) 3px}
+
+/* верхняя строка */
+.top{
+  position:absolute; left:var(--space-5); right:var(--space-5); top:var(--space-4); z-index:4;
+  display:flex; align-items:center; gap:var(--space-3);
+}
+.live{
+  display:inline-flex; align-items:center; gap:var(--space-2);
+  font:var(--weight-medium) var(--text-caption)/1 var(--font-mono);
+  color:var(--color-text-secondary);
+  border:1px solid var(--color-border); border-radius:var(--radius-xs);
+  padding:5px var(--space-2); background:var(--color-surface);
+}
+.live .dot{width:var(--dot-size); height:var(--dot-size); border-radius:var(--radius-pill); background:var(--color-accent)}
+.live.calm .dot{background:var(--color-text-hint)}
+.shelf{
+  margin-left:auto; display:flex; gap:2px;
+  background:var(--color-surface-subtle); border-radius:var(--radius-control); padding:3px;
+}
+.shelf button{
+  font-size:var(--text-caption); font-family:var(--font-body); border:none; background:none;
+  color:var(--color-text-secondary); border-radius:var(--radius-sm);
+  padding:0 var(--space-3); min-height:var(--control-height-sm); cursor:pointer;
+}
+.shelf button[aria-pressed="true"]{background:var(--color-surface); color:var(--color-text); box-shadow:var(--shadow-xs)}
+.win{
+  font:400 var(--text-caption)/1 var(--font-mono); color:var(--color-text-hint);
+  background:var(--color-surface); border:1px solid var(--color-border);
+  border-radius:var(--radius-pill); padding:0 var(--space-3);
+  min-height:var(--control-height-sm); cursor:pointer;
+}
+
+/* приглушённая дверь — ПРАВИЛА 12: цвет и вес, не прозрачность */
+.door{
+  color:var(--color-text-secondary)!important; font-weight:400!important;
+  background:var(--color-surface-subtle)!important; box-shadow:none!important;
+  cursor:default!important;
+}
+.doorwhy{
+  font:400 var(--text-caption)/1 var(--font-mono); color:var(--color-text-secondary);
+  align-self:center;
+}
+
+/* нижний пульт */
+.pult{
+  position:absolute; left:var(--space-5); right:var(--space-5); bottom:var(--space-5); z-index:3;
+  width:max-content; max-width:calc(100% - 2*var(--space-5)); margin-inline:auto;
+  display:flex; flex-wrap:wrap; justify-content:center; align-items:center; gap:var(--space-2);
+  padding:var(--space-2) var(--space-3); border-radius:var(--radius-pill);
+  border:1px solid var(--color-border);
+  background:color-mix(in oklab,var(--color-surface) 84%,transparent);
+  backdrop-filter:blur(var(--nav-blur)); box-shadow:var(--shadow-md);
+}
+.pult button{
+  min-height:var(--control-height-sm); white-space:nowrap; flex:none;
+  font-size:var(--text-small); font-family:var(--font-body); color:var(--color-text);
+  background:none; border:1px solid var(--color-border); border-radius:var(--radius-pill);
+  padding:0 var(--space-4); cursor:pointer;
+}
+.pult button.go{
+  background:var(--color-go-solid); border-color:var(--color-go-solid);
+  color:var(--color-on-go); font-weight:var(--weight-medium); padding:0 var(--space-5);
+}
+.pult button.leave{border-color:var(--color-accent-text); color:var(--color-accent-text)}
+.pult button.plain{border-color:transparent; color:var(--color-text-secondary); padding:0 var(--space-3)}
+.pult .sep{width:1px; height:22px; background:var(--color-border)}
+
+/* ── полоса лиц ── */
+.split{
+  flex:0 0 auto; width:10px; background:var(--color-surface-video);
+  display:grid; place-items:center; cursor:col-resize;
+}
+.split span{width:2px; height:34px; border-radius:var(--radius-pill); background:var(--color-border-strong); opacity:.5}
+.rail{
+  flex:0 0 auto; width:22%; min-width:0; display:flex; flex-direction:column; overflow:hidden;
+  background:var(--color-surface-video); color:var(--color-text-on-video);
+}
+.tiles{
+  flex:1 1 auto; display:grid; gap:var(--space-2);
+  padding:calc(var(--space-4) + var(--control-height-sm) + var(--space-7)) var(--space-3) var(--space-3);
+  min-height:0; overflow:hidden;
+}
+.tile{
+  position:relative; min-width:0; min-height:0; border-radius:var(--radius-md); overflow:hidden;
+  background:var(--color-surface-on-video); border:1px solid var(--color-border-on-video);
+  display:grid; place-items:center;
+}
+.tile .ini{font:var(--weight-medium) 13px var(--font-mono); color:rgba(255,255,255,.38); letter-spacing:.04em}
+.tile .nm{
+  position:absolute; left:var(--space-2); bottom:6px;
+  font:400 var(--text-caption)/1 var(--font-mono); color:var(--color-text-on-video-quiet);
+  max-width:calc(100% - var(--space-4)); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+}
+.tile.speaking{border-color:var(--color-accent)}
+.tile .hand{
+  position:absolute; right:var(--space-2); top:var(--space-2);
+  font:var(--weight-medium) var(--text-caption)/1 var(--font-mono);
+  color:var(--color-on-accent); background:var(--color-accent-solid);
+  border-radius:var(--radius-xs); padding:3px var(--space-2);
+}
+.more{
+  padding:0 var(--space-3) var(--space-3);
+  font:400 var(--text-caption)/1 var(--font-mono); color:var(--color-text-on-video-quiet);
+}
+.railmsg{
+  padding:calc(var(--space-4) + var(--control-height-sm) + var(--space-7)) var(--space-4) var(--space-4);
+  display:grid; gap:var(--space-3); justify-items:start; align-content:start;
+}
+.railmsg b{font-family:var(--font-heading); font-size:var(--text-body); font-weight:var(--weight-medium)}
+.railmsg p{margin:0; font-size:var(--text-caption); line-height:var(--leading-snug); color:var(--color-text-on-video-quiet)}
+.railmsg .warn{color:var(--color-error-on-video)}
+.railmsg code{
+  font:400 var(--text-caption)/1.4 var(--font-mono); color:var(--color-text-on-video);
+  background:var(--color-surface-on-video); border:1px solid var(--color-border-on-video);
+  border-radius:var(--radius-sm); padding:var(--space-2); width:100%; overflow-wrap:anywhere;
+}
+.railmsg .act{
+  min-height:var(--control-height-sm); padding:0 var(--space-4); border-radius:var(--radius-pill);
+  border:1px solid var(--color-border-on-video-strong); background:none;
+  color:var(--color-text-on-video); font-size:var(--text-small); cursor:pointer;
+}
+
+/* ── состояния доски ── */
+.boardmsg{
+  position:absolute; inset:0; display:grid; place-content:center; justify-items:center;
+  gap:var(--space-3); text-align:center; padding:var(--space-8); z-index:2; pointer-events:none;
+}
+.boardmsg b{
+  font-family:var(--font-heading); font-size:var(--text-h3);
+  font-weight:var(--weight-medium); letter-spacing:var(--tracking-snug);
+}
+.boardmsg p{margin:0; font-size:var(--text-small); color:var(--color-text-detail); max-width:48ch; line-height:var(--leading-snug)}
+.boardmsg .keys{font:400 var(--text-caption)/1 var(--font-mono); color:var(--color-text-hint)}
+.skel{background:var(--color-surface-subtle); border-radius:var(--radius-md)}
+
+/* ── подпись под кадром ── */
+.caption{
+  max-width:1280px; margin:var(--space-4) auto 0; padding:0 var(--space-4) var(--space-8);
+  color:var(--color-text-secondary); font-size:var(--text-small); line-height:var(--leading-body);
+}
+.caption b{color:var(--color-text)}
+.caption ul{margin:var(--space-2) 0 0; padding-left:var(--space-5)}
+.caption li{margin-bottom:4px}
+[hidden]{display:none!important}
+</style>
+
+<div class="wrap">
+
+  <!-- Служебная полоса. ПРАВИЛА 6.7д: служебное — data-sw, продуктовое — data-pick.
+       Внутрь кадра эти переключатели не заходят. -->
+  <div class="bar" id="bar">
+    <span class="lbl">роль</span>
+    <span class="grp" data-sw="role"><button data-val="teacher">преподаватель</button><button data-val="pupil">ученик</button></span>
+
+    <span class="lbl">участников</span>
+    <span class="grp" data-sw="count"><button data-val="1">1</button><button data-val="2">2</button><button data-val="20">20</button><button data-val="30">30</button></span>
+
+    <span class="lbl">занятие</span>
+    <span class="grp" data-sw="phase"><button data-val="before">не началось</button><button data-val="live">идёт</button><button data-val="after">закончилось</button></span>
+
+    <span class="lbl">состояние</span>
+    <span class="grp" data-sw="st"><button data-val="filled">наполнено</button><button data-val="empty">пусто</button><button data-val="loading">загружается</button><button data-val="failed">эфир не поднялся</button><button data-val="partial">доска не пришла</button></span>
+
+    <span class="lbl">кадр</span>
+    <span class="grp" data-sw="w"><button data-val="1280">1280×800</button><button data-val="1512">1512×944</button></span>
+
+    <span class="lbl">вид</span>
+    <span class="grp" data-sw="theme"><button data-val="light">светлая</button><button data-val="dark">тёмная</button></span>
+    <span class="grp" data-sw="kids"><button data-val="off">взрослый</button><button data-val="on">kids</button></span>
+  </div>
+
+  <div class="stagewrap" id="stagewrap">
+    <div class="frame" id="frame" data-w="1280">
+
+      <div class="boardpane" id="boardpane">
+        <!-- содержимое доски -->
+        <div class="notes" id="notes">
+          <svg class="ink" viewBox="0 0 900 560" preserveAspectRatio="none" aria-hidden="true">
+            <path d="M300 150 C 250 150 230 110 186 104" fill="none" stroke="var(--color-border-strong)" stroke-width="1.6"></path>
+            <path d="M300 168 C 250 180 240 226 196 236" fill="none" stroke="var(--color-border-strong)" stroke-width="1.6"></path>
+            <path d="M410 158 C 470 158 500 120 556 112" fill="none" stroke="var(--color-border-strong)" stroke-width="1.6"></path>
+            <path d="M410 176 C 470 190 490 250 548 262" fill="none" stroke="var(--color-border-strong)" stroke-width="1.6"></path>
+            <path d="M604 372 c 18 -22 40 -18 44 2 c 4 20 -22 30 -34 18 c -12 -12 6 -30 30 -26 c 24 4 36 26 60 18" fill="none" stroke="var(--color-text)" stroke-width="2.2" stroke-linecap="round"></path>
+          </svg>
+          <div class="note topic" style="left:33%; top:25%"><b>Asking for directions</b><i>тема урока</i></div>
+          <div class="note" style="left:8%; top:15%">Excuse me, how do I get to…?<i>вежливо, к незнакомому</i></div>
+          <div class="note" style="left:8%; top:40%">Is it far from here?<i>уточняем расстояние</i></div>
+          <div class="note" style="left:62%; top:16%">turn left / right<i>добавил Петя</i></div>
+          <div class="note" style="left:60%; top:46%">go straight ahead ≠ go straight <b style="display:inline">on</b><i>частая ошибка</i></div>
+        </div>
+
+        <!-- пусто / загружается / доска не пришла -->
+        <div class="boardmsg" id="boardmsg" hidden>
+          <b id="bmT"></b><p id="bmP"></p><span class="keys" id="bmK"></span>
+        </div>
+
+        <div class="tools" role="toolbar" aria-label="Инструменты доски">
+          <button aria-pressed="true" aria-label="Выбрать" title="Выбрать">↖</button>
+          <button aria-label="Перо" title="Перо">✎</button>
+          <button aria-label="Текст" title="Текст">T</button>
+          <button aria-label="Стикер" title="Стикер">▭</button>
+          <button aria-label="Фигура" title="Фигура">◇</button>
+          <span class="rule"></span>
+          <button aria-label="Ластик" title="Ластик">⌫</button>
+          <button aria-label="Отменить" title="Отменить">↺</button>
+        </div>
+
+        <div class="top">
+          <span class="live" id="live"><span class="dot"></span><span id="liveLabel">идёт 12 минут</span></span>
+          <span class="shelf">
+            <button data-pick="win" data-val="board" aria-pressed="true">Доска</button>
+            <button data-pick="win" data-val="summary" class="door" aria-disabled="true" tabindex="-1">Конспект</button>
+          </span>
+          <span class="doorwhy">конспект появится вместе с куском 2</span>
+          <button class="win">отдельным окном ↗</button>
+        </div>
+
+        <div class="pult" id="pult">
+          <button class="go" id="bStart">Начать урок</button>
+          <button id="bMic">Микрофон</button>
+          <button id="bCam">Камера</button>
+          <button id="bScreen">Показать экран</button>
+          <button id="bAccess">Доска открыта ученикам</button>
+          <button id="bHand">Поднять руку</button>
+          <span class="sep"></span>
+          <button class="plain">Участники</button>
+          <button class="plain">Словарь</button>
+          <button class="plain door" aria-disabled="true" tabindex="-1">Материалы</button>
+          <button class="plain">Чат</button>
+          <button class="leave" id="bLeave">Завершить урок</button>
+        </div>
+      </div>
+
+      <div class="split" role="separator" aria-label="Соотношение доски и лиц"><span></span></div>
+
+      <aside class="rail" aria-label="Участники">
+        <div class="tiles" id="tiles"></div>
+        <div class="more" id="more" hidden></div>
+        <div class="railmsg" id="railmsg" hidden>
+          <b id="rmT"></b><p id="rmP"></p><code id="rmC" hidden></code>
+          <button class="act" id="rmB" hidden></button>
+        </div>
+      </aside>
+
+    </div>
+  </div>
+
+  <div class="caption">
+    <p><b>Комната урока v1</b> — по утверждённому 30.08 составу. Снято: окно «Тест»,
+      «внимание класса» целиком, окно «Методичка». Приглушены: «Конспект» и «Материалы».
+      Работают: чат, показ экрана, «отдельным окном». Полоса переключателей сверху —
+      служебная, в продукте её нет.</p>
+    <ul>
+      <li><b>Что не решено и я не решал:</b> <code>ПРАВИЛА 3.10</code> велят держать панель
+        инструментов и пульт в раме, а не над холстом. На листах дизайнера они плавают —
+        нарисовано как на листах.</li>
+      <li><b>Чего тут ещё нет:</b> состояние «идёт показ экрана» и экран «Словарь» —
+        их надо рисовать, они в очереди.</li>
+    </ul>
+  </div>
+</div>
+
+<script>
+(function(){
+  var S = { role:'teacher', count:20, phase:'live', st:'filled', w:'1280', theme:'light', kids:'off' };
+
+  var NAMES = ['Аня Коваль','Петя Смирнов','Лиза Ким','Марк Т.','Соня В.','Илья Р.','Даша Н.','Тимур А.',
+               'Вера С.','Гоша П.','Ника Л.','Рома Ж.','Юля Б.','Артём К.','Майя Д.','Лев Ф.',
+               'Кира М.','Саша Ю.','Настя З.','Егор Ч.','Милана О.','Влад И.','Полина Э.','Женя Х.',
+               'Алиса Г.','Костя Щ.','Ева Ц.','Марат Ш.','Дина Я.','Олег У.'];
+
+  function ini(n){ return n.split(/\s+/).slice(0,2).map(function(w){return w[0]||'';}).join('').toUpperCase(); }
+
+  function tilesFor(){
+    var host = document.getElementById('tiles'), more = document.getElementById('more');
+    host.innerHTML = '';
+    var n = S.count, cap = 12, shown = Math.min(n, cap);
+    var cols = n <= 2 ? 1 : 2;
+    host.style.gridTemplateColumns = 'repeat(' + cols + ', minmax(0,1fr))';
+    for (var i = 0; i < shown; i++){
+      var t = document.createElement('div');
+      t.className = 'tile' + (S.phase === 'live' && i === 1 && n > 1 ? ' speaking' : '');
+      t.innerHTML = '<span class="ini">' + ini(NAMES[i]) + '</span><span class="nm">' + NAMES[i] +
+        (i === 0 ? ' · вы' : '') + '</span>' +
+        (S.phase === 'live' && i === 3 && n > 3 ? '<span class="hand">рука</span>' : '');
+      host.appendChild(t);
+    }
+    if (n > cap){ more.hidden = false; more.textContent = 'ещё ' + (n - cap) + ' · всего ' + n; }
+    else more.hidden = true;
+  }
+
+  function apply(){
+    var root = document.documentElement, f = document.getElementById('frame');
+    root.setAttribute('data-theme', S.theme);
+    if (S.kids === 'on') root.setAttribute('data-mode','kids'); else root.removeAttribute('data-mode');
+    f.setAttribute('data-w', S.w);
+
+    var teacher = S.role === 'teacher',
+        before  = S.phase === 'before', live = S.phase === 'live', after = S.phase === 'after',
+        loading = S.st === 'loading', failed = S.st === 'failed',
+        partial = S.st === 'partial', empty = S.st === 'empty';
+
+    // ── верхняя строка ──
+    var lbl = before ? 'урок не начат'
+            : after  ? 'урок закончился'
+            : loading ? 'подключаемся'
+            : failed ? 'без эфира'
+            : S.count === 1 ? 'идёт 4 минуты · учеников нет'
+            : 'идёт 12 минут · ' + S.count + ' в комнате';
+    document.getElementById('liveLabel').textContent = lbl;
+    document.getElementById('live').className = 'live' + (live && !failed && !loading ? '' : ' calm');
+
+    // ── пульт ──
+    document.getElementById('bStart').hidden  = !(before && teacher);
+    document.getElementById('bScreen').hidden = !(live && teacher);
+    document.getElementById('bAccess').hidden = !teacher;
+    document.getElementById('bHand').hidden   = !(live && !teacher);
+    document.getElementById('bLeave').textContent =
+      before ? (teacher ? 'Закрыть комнату' : 'Выйти') : after ? 'Выйти' : teacher ? 'Завершить урок' : 'Выйти';
+
+    // ── доска ──
+    var notes = document.getElementById('notes'), bm = document.getElementById('boardmsg');
+    var showNotes = !(empty || loading || partial);
+    notes.hidden = !showNotes;
+    bm.hidden = showNotes;
+    if (!showNotes){
+      var T = document.getElementById('bmT'), P = document.getElementById('bmP'), K = document.getElementById('bmK');
+      K.textContent = '';
+      if (empty){
+        T.textContent = 'Доска пустая — и это нормально';
+        P.textContent = 'Начните писать, или вставьте картинку из буфера прямо на холст. Всё, что появится здесь, останется в занятии.';
+        K.textContent = 'перо — P · текст — T · стикер — S · вставить — ctrl+V';
+      } else if (loading){
+        T.textContent = 'Открываем доску';
+        P.textContent = 'Первыми придут заметки и штрихи прошлого захода, потом лица. Инструменты уже работают.';
+      } else {
+        T.textContent = 'Доска не пришла';
+        P.textContent = 'Эфир идёт, вас слышно и видно. Доска не отвечает — её содержимое не потеряно, версия 12:04 сохранена. Обновить доску, не выходя из урока.';
+      }
+    }
+
+    // ── полоса лиц ──
+    var rm = document.getElementById('railmsg'), tiles = document.getElementById('tiles');
+    var alone = S.count === 1;
+    var railTakeover = failed || loading || alone;
+    tiles.hidden = railTakeover;
+    document.getElementById('more').hidden = railTakeover || S.count <= 12;
+    rm.hidden = !railTakeover;
+    if (railTakeover){
+      var rT = document.getElementById('rmT'), rP = document.getElementById('rmP'),
+          rC = document.getElementById('rmC'), rB = document.getElementById('rmB');
+      rC.hidden = true; rB.hidden = true; rP.className = '';
+      if (failed){
+        rT.textContent = 'Эфир не поднялся';
+        rP.className = 'warn';
+        rP.textContent = 'Медиасервер не отвечает. Доска работает, всё написанное на месте. Класс видит то же сообщение.';
+        rB.hidden = false; rB.textContent = 'Поднять эфир заново';
+      } else if (loading){
+        rT.textContent = 'Поднимаем эфир';
+        rP.textContent = 'Первым появится ваш кадр, потом остальные — по мере входа.';
+      } else {
+        rT.textContent = 'Вы пока один';
+        rP.textContent = 'Отправьте ссылку тем, кого ждёте. Пока никто не вошёл, урок начинать не обязательно.';
+        rC.hidden = false; rC.textContent = 'flamingo.plus/r/k4np-7tqm-bz3d';
+        rB.hidden = false; rB.textContent = 'Скопировать ссылку';
+      }
+    } else tilesFor();
+
+    // подгонка кадра под окно
+    var pad = 48, sw = document.getElementById('stagewrap');
+    var k = Math.min((sw.clientWidth - pad) / f.offsetWidth, (sw.clientHeight - pad) / f.offsetHeight, 1);
+    f.style.transform = 'scale(' + k + ')';
+
+    document.querySelectorAll('#bar .grp').forEach(function(g){
+      var key = g.getAttribute('data-sw');
+      g.querySelectorAll('button').forEach(function(b){
+        b.setAttribute('aria-pressed', String(S[key]) === b.getAttribute('data-val'));
+      });
+    });
+  }
+
+  document.getElementById('bar').addEventListener('click', function(e){
+    var b = e.target.closest('button'); if (!b) return;
+    var key = b.parentElement.getAttribute('data-sw'), val = b.getAttribute('data-val');
+    S[key] = (key === 'count') ? Number(val) : val;
+    apply();
+  });
+
+  document.getElementById('pult').addEventListener('click', function(e){
+    var b = e.target.closest('button'); if (!b || b.getAttribute('aria-disabled')) return;
+    if (b.id === 'bMic')    b.textContent = b.textContent === 'Микрофон' ? 'Микрофон выключен' : 'Микрофон';
+    if (b.id === 'bCam')    b.textContent = b.textContent === 'Камера' ? 'Камера выключена' : 'Камера';
+    if (b.id === 'bAccess') b.textContent = b.textContent.indexOf('открыта') > 0 ? 'Доска закрыта ученикам' : 'Доска открыта ученикам';
+  });
+
+  document.querySelector('.tools').addEventListener('click', function(e){
+    var b = e.target.closest('button'); if (!b) return;
+    this.querySelectorAll('button').forEach(function(x){ x.setAttribute('aria-pressed','false'); });
+    b.setAttribute('aria-pressed','true');
+  });
+
+  window.addEventListener('resize', apply);
+  apply();
+})();
+</script>
