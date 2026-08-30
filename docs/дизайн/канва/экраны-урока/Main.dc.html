@@ -1,0 +1,117 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+    :root{
+      --fl-white:#ffffff; --fl-warm-100:#f1f1ef; --fl-warm-150:#e9e9e6; --fl-warm-200:#d9d9d6;
+      --fl-warm-300:#c4c4c1; --fl-warm-900:#1d1d1f; --fl-coral-500:#e14e1f; --fl-coral-700:#a83610;
+      --fl-moss-500:#2f8a56; --fl-moss-700:#226741; --fl-moss-300:#7fd3a3; --fl-moss-50:#e7f2ea;
+      --fl-info-500:#2f6fa8; --fl-dark-bg:#101012;
+      --color-bg:#f1f1ef; --color-surface:#ffffff; --color-surface-subtle:#e9e9e6;
+      --color-surface-hover:#e9e9e6; --color-border:#d9d9d6; --color-border-strong:#c4c4c1;
+      --color-text:#1d1d1f; --color-text-secondary:#646469; --color-text-hint:#6b6b75;
+      --color-text-detail:#646469; --color-accent:#e14e1f; --color-accent-text:#a83610;
+      --color-go:#2f8a56; --color-go-text:#226741; --color-go-solid:#226741; --color-go-bg:#e7f2ea;
+      --color-go-border:#7fd3a3; --color-on-go:#ffffff;
+      --color-surface-video:#101012; --color-text-on-video:#f2f2f0;
+      --color-text-on-video-quiet:rgba(255,255,255,.72); --color-border-on-video:rgba(255,255,255,.22);
+      --color-surface-on-video:rgba(255,255,255,.12); --color-go-on-video:#7fd3a3;
+      --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px; --space-5:20px;
+      --space-6:24px; --space-7:32px; --space-8:40px;
+      --radius-xs:4px; --radius-sm:8px; --radius-md:12px; --radius-card:14px; --radius-pill:999px;
+      --text-h3:1.1875rem; --text-body:1.0625rem; --text-small:.875rem; --text-caption:.8125rem;
+      --font-heading:-apple-system,'SF Pro Display','Inter',system-ui,sans-serif;
+      --font-body:-apple-system,'SF Pro Text','Inter',system-ui,sans-serif;
+      --font-mono:'JetBrains Mono','SF Mono','IBM Plex Mono',ui-monospace,monospace;
+      --weight-regular:400; --weight-medium:500; --weight-semibold:600;
+      --leading-snug:1.4; --tracking-snug:-.01em;
+      --control-height-sm:34px; --control-height-md:42px;
+      --shadow-sm:0 1px 2px rgba(0,0,0,.03),0 2px 6px rgba(0,0,0,.04);
+      --shadow-md:0 1px 2px rgba(0,0,0,.03),0 8px 24px rgba(0,0,0,.05);
+      --tile-min-height:112px;
+    }
+
+    *{box-sizing:border-box}
+    body{margin:0;font-family:var(--font-body);color:var(--color-text);background:var(--color-bg)}
+    a{color:var(--color-accent-text)} a:hover{color:var(--color-accent)}
+  </style>
+</helmet>
+<div style="width:1440px;height:900px;display:flex;flex-direction:column;background:var(--color-bg)">
+  <header style="display:flex;align-items:center;gap:12px;padding:12px 20px;
+      border-bottom:1px solid var(--color-border);height:47px;background:var(--color-bg)">
+      <span style="display:inline-flex;align-items:center;gap:8px;font-family:var(--font-heading);
+        font-size:1.0625rem;font-weight:600;letter-spacing:-.01em;color:var(--color-text)"><svg viewBox="0 0 120 110" width="20" height="20" aria-hidden="true">
+        <g fill="none" stroke="#e14e1f" stroke-linecap="round">
+          <path d="M28 55 L7 44" stroke-width="5.4"></path>
+          <path d="M26 61 L3 59" stroke-width="7"></path>
+          <path d="M28 66 L10 74" stroke-width="5.8"></path>
+          <path d="M44 80 L39 92 L36 103" stroke-width="5.6"></path>
+          <path d="M57 78 L59 90 L56 102" stroke-width="5"></path>
+        </g>
+        <path d="M58 52 C70 44 60 28 74 16" fill="none" stroke="#e14e1f" stroke-width="10" stroke-linecap="round"></path>
+        <ellipse cx="48" cy="63" rx="26" ry="21" fill="#e14e1f" transform="rotate(-6 48 63)"></ellipse>
+        <circle cx="78" cy="13" r="8.5" fill="#e14e1f"></circle>
+        <path d="M85 7 L108 14 L86 19 Z" fill="#1d1d1f"></path>
+        <circle cx="77" cy="8" r="2.2" fill="#fff"></circle>
+      </svg>Flamingo</span>
+      <span style="width:1px;height:20px;background:var(--color-border)"></span>
+      <span style="font:500 .8125rem var(--font-mono);color:var(--color-text-detail);letter-spacing:.06em">k4np-7tqm-bz3d</span>
+      <span style="margin-left:auto;display:inline-flex;align-items:center;gap:8px;
+        font:500 .8125rem var(--font-mono);color:var(--color-text-detail)">
+        <span style="width:6px;height:6px;border-radius:999px;background:var(--color-go)"></span>идёт 12 минут</span>
+    </header>
+  <div style="display:flex;align-items:center;gap:8px;padding:10px 20px;height:53px;
+      border-bottom:1px solid var(--color-border);background:var(--color-bg)"><span style="display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 14px;border-radius:999px;font-size:.875rem;font-weight:500;background:none;border:1px solid var(--color-border);color:var(--color-text)">Доска</span><span style="display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 14px;border-radius:999px;font-size:.875rem;font-weight:500;background:none;border:1px solid var(--color-border);color:var(--color-text)">Картинка</span><span style="display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 14px;border-radius:999px;font-size:.875rem;font-weight:500;background:none;border:1px solid var(--color-border);color:var(--color-text)">Видео</span><span style="display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 14px;border-radius:999px;font-size:.875rem;font-weight:500;background:none;border:1px dashed var(--color-border);color:var(--color-text-disabled)">Презентация</span><span style="display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 14px;border-radius:999px;font-size:.875rem;font-weight:500;background:none;border:1px dashed var(--color-border);color:var(--color-text-disabled)">Учебник</span><span style="margin-left:auto;font:400 .8125rem var(--font-mono);color:var(--color-text-hint)">пунктиром — появится вместе с курсом</span></div>
+  <div style="flex:1 1 auto;display:flex;gap:16px;padding:16px;background:var(--color-surface-video)">
+    <div style="position:relative;flex:0 0 auto;width:696px;height:701px;border-radius:12px;
+      overflow:hidden;background:var(--color-surface-on-video);border:1px solid var(--color-border-on-video);display:grid;place-items:center">
+      <span style="font:500 1.5rem var(--font-mono);color:var(--color-text-on-video-quiet);letter-spacing:.04em">НК</span>
+      <span style="position:absolute;left:8px;top:8px;font:500 .8125rem var(--font-mono);
+          color:var(--color-go-on-video);background:var(--color-surface-on-video);border-radius:4px;
+          padding:2px 8px">ведёт занятие</span><span style="position:absolute;left:8px;bottom:6px;font:400 .75rem var(--font-mono);
+            color:var(--color-text-on-video-quiet);max-width:calc(100% - 16px);overflow:hidden;
+            text-overflow:ellipsis;white-space:nowrap">Наталья Ким · вы</span></div>
+    <div style="display:grid;grid-template-columns:repeat(2,304px);
+      gap:8px;justify-content:center;align-content:center;width:696.0px;height:701px"><div style="position:relative;flex:0 0 auto;width:304px;height:228px;border-radius:12px;
+      overflow:hidden;background:var(--color-surface-on-video);border:1px solid var(--color-border-on-video);display:grid;place-items:center">
+      <span style="font:500 1.1875rem var(--font-mono);color:var(--color-text-on-video-quiet);letter-spacing:.04em">АВ</span>
+      <span style="position:absolute;left:8px;bottom:6px;font:400 .75rem var(--font-mono);
+            color:var(--color-text-on-video-quiet);max-width:calc(100% - 16px);overflow:hidden;
+            text-overflow:ellipsis;white-space:nowrap">Артём В.</span></div><div style="position:relative;flex:0 0 auto;width:304px;height:228px;border-radius:12px;
+      overflow:hidden;background:var(--color-surface-on-video);border:1px solid var(--color-border-on-video);display:grid;place-items:center">
+      <span style="font:500 1.1875rem var(--font-mono);color:var(--color-text-on-video-quiet);letter-spacing:.04em">ДК</span>
+      <span style="position:absolute;left:8px;bottom:6px;font:400 .75rem var(--font-mono);
+            color:var(--color-text-on-video-quiet);max-width:calc(100% - 16px);overflow:hidden;
+            text-overflow:ellipsis;white-space:nowrap">Даша К.</span></div><div style="position:relative;flex:0 0 auto;width:304px;height:228px;border-radius:12px;
+      overflow:hidden;background:var(--color-surface-on-video);border:1px solid var(--color-go-on-video);display:grid;place-items:center">
+      <span style="font:500 1.1875rem var(--font-mono);color:var(--color-text-on-video-quiet);letter-spacing:.04em">ЛМ</span>
+      <span style="position:absolute;left:8px;bottom:6px;font:400 .75rem var(--font-mono);
+            color:var(--color-text-on-video-quiet);max-width:calc(100% - 16px);overflow:hidden;
+            text-overflow:ellipsis;white-space:nowrap">Лев М.</span></div><div style="position:relative;flex:0 0 auto;width:304px;height:228px;border-radius:12px;
+      overflow:hidden;background:var(--color-surface-on-video);border:1px solid var(--color-border-on-video);display:grid;place-items:center">
+      <span style="font:500 1.1875rem var(--font-mono);color:var(--color-text-on-video-quiet);letter-spacing:.04em">СП</span>
+      <span style="position:absolute;left:8px;bottom:6px;font:400 .75rem var(--font-mono);
+            color:var(--color-text-on-video-quiet);max-width:calc(100% - 16px);overflow:hidden;
+            text-overflow:ellipsis;white-space:nowrap">Соня П.</span></div><div style="position:relative;flex:0 0 auto;width:304px;height:228px;border-radius:12px;
+      overflow:hidden;background:var(--color-surface-on-video);border:1px solid var(--color-border-on-video);display:grid;place-items:center">
+      <span style="font:500 1.1875rem var(--font-mono);color:var(--color-text-on-video-quiet);letter-spacing:.04em">НР</span>
+      <span style="position:absolute;left:8px;bottom:6px;font:400 .75rem var(--font-mono);
+            color:var(--color-text-on-video-quiet);max-width:calc(100% - 16px);overflow:hidden;
+            text-overflow:ellipsis;white-space:nowrap">Ника Р.</span></div><div style="position:relative;flex:0 0 auto;width:304px;height:228px;border-radius:12px;
+      overflow:hidden;background:var(--color-surface-on-video);border:1px solid var(--color-border-on-video);display:grid;place-items:center">
+      <span style="font:500 1.1875rem var(--font-mono);color:var(--color-text-on-video-quiet);letter-spacing:.04em">ТА</span>
+      <span style="position:absolute;left:8px;bottom:6px;font:400 .75rem var(--font-mono);
+            color:var(--color-text-on-video-quiet);max-width:calc(100% - 16px);overflow:hidden;
+            text-overflow:ellipsis;white-space:nowrap">Тимур А.</span></div></div>
+  </div>
+  <footer style="display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:8px;
+      padding:12px 20px;border-top:1px solid var(--color-border);height:67px;background:var(--color-bg)"><span style="min-height:42px;padding:0 20px;border-radius:999px;border:1px solid var(--color-border);background:none;color:var(--color-text);font-size:.875rem;font-weight:500;display:grid;place-items:center">Микрофон</span><span style="min-height:42px;padding:0 20px;border-radius:999px;border:1px solid var(--color-border);background:none;color:var(--color-text);font-size:.875rem;font-weight:500;display:grid;place-items:center">Камера</span><span style="width:1px;height:20px;background:var(--color-border);margin:0 8px"></span><span style="min-height:42px;padding:0 20px;border-radius:999px;border:1px solid var(--color-border);background:none;color:var(--color-text);font-size:.875rem;font-weight:500;display:grid;place-items:center">Ссылка на комнату</span><span style="min-height:42px;padding:0 20px;border-radius:999px;border:1px solid var(--color-go-text);background:none;color:var(--color-go-text);font-size:.875rem;font-weight:500;display:grid;place-items:center">Завершить урок</span></footer>
+</div></x-dc>
+</body>
+</html>
