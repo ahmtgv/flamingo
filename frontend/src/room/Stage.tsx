@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { Track } from 'livekit-client'
 
+import { Note } from './Note'
 import s from './Stage.module.css'
 import type { Face } from './useRoom'
 
@@ -72,11 +73,13 @@ function grid(n: number, w: number, h: number): number {
   return best.cols
 }
 
-export function Stage({ faces, alone, link, onCopy }: {
+export function Stage({ faces, alone, link, onCopy, phase, error }: {
   faces: Face[]
   alone: boolean
   link: string
   onCopy: () => void
+  phase: 'connecting' | 'live' | 'failed'
+  error: string
 }) {
   const boxRef = useRef<HTMLDivElement>(null)
   const [cols, setCols] = useState(2)
@@ -90,6 +93,31 @@ export function Stage({ faces, alone, link, onCopy }: {
     ro.observe(el)
     return () => ro.disconnect()
   }, [pupils.length])
+
+  // ПРАВИЛА 6.5: эфир — своя область, и говорит она за себя, а не за всю комнату.
+  if (phase !== 'live') {
+    return (
+      <div className={s.stage}>
+        <div className={s.whole}>
+          {phase === 'connecting' ? (
+            <Note
+              title="Поднимаем эфир"
+              text="Первым появится ваш собственный кадр — браузер спросит разрешение на камеру
+                и микрофон. Остальные появятся, когда откроют ссылку. Доска в это время уже работает."
+            />
+          ) : (
+            <Note
+              title="Эфир не поднялся"
+              warn
+              text={`${error} Доска работает, и всё написанное на ней цело.`}
+              action="Поднять эфир заново"
+              onAction={() => window.location.reload()}
+            />
+          )}
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className={s.stage}>
@@ -108,16 +136,13 @@ export function Stage({ faces, alone, link, onCopy }: {
       {/* ПРАВИЛА 6.2: пусто объясняет словами и всегда даёт одно действие. */}
       {alone ? (
         <div className={s.half}>
-          <div className={s.alone}>
-            <span className={s.aloneTitle}>Класс ещё не собрался</span>
-            <span className={s.aloneText}>
-              Отправьте ссылку тем, кого ждёте. Пока никто не вошёл, урок начинать не обязательно.
-            </span>
-            <code className={s.link}>{link}</code>
-            <button type="button" className={s.copy} onClick={onCopy}>
-              Скопировать ссылку
-            </button>
-          </div>
+          <Note
+            title="Класс ещё не собрался"
+            text="Отправьте ссылку тем, кого ждёте. Пока никто не вошёл, урок начинать не обязательно."
+            code={link}
+            action="Скопировать ссылку"
+            onAction={onCopy}
+          />
         </div>
       ) : null}
     </div>

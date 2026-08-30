@@ -19,6 +19,16 @@
   display: grid;
 }
 
+/* Когда говорит одно сообщение, оно занимает всю сцену: половинки делят между
+   собой ЛИЦА, а не текст. */
+.whole {
+  flex: 1 1 100%;
+  display: grid;
+  place-items: center;
+  min-width: 0;
+  min-height: 0;
+}
+
 .grid {
   display: grid;
   grid-auto-rows: minmax(0, 1fr);

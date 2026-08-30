@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import type { Track } from 'livekit-client'
 
+import { Note } from './Note'
 import s from './Faces.module.css'
 import type { Face } from './useRoom'
 
@@ -60,11 +61,13 @@ function Tile({ face, lead }: { face: Face; lead: boolean }) {
   )
 }
 
-export function Faces({ faces, alone, link, onCopy }: {
+export function Faces({ faces, alone, link, onCopy, phase, error }: {
   faces: Face[]
   alone: boolean
   link: string
   onCopy: () => void
+  phase: 'connecting' | 'live' | 'failed'
+  error: string
 }) {
   // Ведущий стоит первым и во всю ширину полосы: на него смотрит класс, и в решётке
   // равных плиток среди тридцати он терялся (решение владельца 30.08).
@@ -72,6 +75,28 @@ export function Faces({ faces, alone, link, onCopy }: {
   const pupils = faces.filter((f) => f !== lead)
   const shown = pupils.slice(0, CAP)
   const rest = pupils.length - shown.length
+
+  // Эфир упал — об этом говорит ПОЛОСА ЛИЦ, а не карточка поверх урока:
+  // доска в это время работает, и написанное на ней цело (ПРАВИЛА 6.5).
+  if (phase !== 'live') {
+    return (
+      <aside className={s.rail} aria-label="Участники">
+        <div className={s.whole}>
+          {phase === 'connecting' ? (
+            <Note title="Поднимаем эфир" text="Первым появится ваш кадр, потом остальные — по мере входа." />
+          ) : (
+            <Note
+              title="Эфир не поднялся"
+              warn
+              text={`${error} Доска работает, всё написанное на месте.`}
+              action="Поднять эфир заново"
+              onAction={() => window.location.reload()}
+            />
+          )}
+        </div>
+      </aside>
+    )
+  }
 
   return (
     <aside className={s.rail} aria-label="Участники">

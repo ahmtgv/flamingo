@@ -65,7 +65,10 @@ export function Room({ code, name, onLeave }: Props) {
           <span className={s.sep} />
           <span className={s.code}>{code}</span>
           <span className={s.live}>
-            <span className={s.dot} />
+            {/* ПРАВИЛА 11а: «идёт» — зелёное, «связи нет» — аларм и портится от
+                ожидания, поэтому коралловое. «Подключаемся» пока ничем не грозит. */}
+            <span className={`${s.dot} ${phase === 'failed' ? s.dotAlarm : ''}
+              ${phase === 'connecting' ? s.dotWait : ''}`} />
             {phase === 'live' ? 'идёт' : phase === 'connecting' ? 'подключаемся' : 'связи нет'}
           </span>
         </header>
@@ -76,33 +79,9 @@ export function Room({ code, name, onLeave }: Props) {
           {source === 'board' ? (
             <Board bus={bus} peers={peers} />
           ) : (
-            <Stage faces={faces} alone={alone} link={link} onCopy={copy} />
+            <Stage faces={faces} alone={alone} link={link} onCopy={copy} phase={phase} error={error} />
           )}
 
-          {phase !== 'live' ? (
-            <div className={s.veil}>
-              <div className={s.card}>
-                {phase === 'connecting' ? (
-                  <>
-                    <span className={s.cardTitle}>Поднимаем эфир</span>
-                    <span className={s.cardText}>
-                      Первым появится ваш собственный кадр — браузер спросит разрешение на
-                      камеру и микрофон. Остальные появятся, когда откроют ссылку.
-                    </span>
-                  </>
-                ) : (
-                  <>
-                    {/* ПРАВИЛА 6.4: отказ называет причину, что уцелело и одно действие. */}
-                    <span className={s.cardTitle}>Эфир не поднялся</span>
-                    <span className={s.cardText}>{error}</span>
-                    <Button kind="go" onClick={() => window.location.reload()}>
-                      Попробовать снова
-                    </Button>
-                  </>
-                )}
-              </div>
-            </div>
-          ) : null}
         </div>
 
         <footer className={s.pult}>
@@ -129,7 +108,7 @@ export function Room({ code, name, onLeave }: Props) {
       {/* Полоса лиц стоит справа, только когда что-то показывают: пока показывают
           лица, класс и так на весь экран (правило владельца 30.08). */}
       {source === 'board' ? (
-        <Faces faces={faces} alone={alone} link={link} onCopy={copy} />
+        <Faces faces={faces} alone={alone} link={link} onCopy={copy} phase={phase} error={error} />
       ) : null}
     </div>
   )

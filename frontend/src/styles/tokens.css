@@ -312,7 +312,10 @@
 
   /* ---------- Focus ring (two-layer, brand) ---------- */
   --focus-ring-width: 3px;
-  --focus-ring-color: rgba(225, 78, 31, 0.4);
+  /* 🔴 Кольцо фокуса ЗЕЛЁНОЕ. Коралловое кольцо читается как ошибка ввода —
+     человек ищет, что он сделал не так, а он просто встал в поле.
+     ПРАВИЛА 11а: коралловый только там, где аларм. */
+  --focus-ring-color: rgba(47, 138, 86, 0.45);
   --focus-ring: 0 0 0 var(--focus-ring-width) var(--focus-ring-color);
   --focus-ring-inset: 0 0 0 2px var(--color-surface), 0 0 0 5px var(--focus-ring-color);
 
@@ -396,7 +399,7 @@
   --shadow-md: 0 8px 24px rgba(0,0,0,0.45);
   --shadow-lg: 0 16px 40px rgba(0,0,0,0.55);
 
-  --focus-ring-color: rgba(255, 112, 64, 0.45);
+  --focus-ring-color: rgba(127, 211, 163, 0.5);
 }
 
 /* ------------------------------------------------------------

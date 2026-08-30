@@ -58,6 +58,14 @@
   background: var(--color-go);
 }
 
+.dotAlarm {
+  background: var(--color-accent);
+}
+
+.dotWait {
+  background: var(--color-text-hint);
+}
+
 .stage {
   position: relative;
   min-height: 0;

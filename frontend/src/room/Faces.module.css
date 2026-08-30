@@ -172,3 +172,13 @@
 .copy:hover {
   background: var(--color-surface-on-video);
 }
+
+/* Сообщение занимает полосу целиком: плиток в этом состоянии нет. */
+.whole {
+  flex: 1 1 auto;
+  display: grid;
+  place-items: center;
+  padding: var(--space-3);
+  min-height: 0;
+  overflow-y: auto;
+}
