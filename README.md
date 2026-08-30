@@ -7,25 +7,34 @@
 
 ## Запуск
 
+🔴 **Обе команды — с полным путём.** На `5173`, `5174` и `8000` поднимается СТАРЫЙ
+монорепозиторий из `~/Downloads/flamingo`; 30.08 он дважды был принят за новый проект.
+У нового проекта свои закреплённые порты: **фронт 5180, бэкенд 8080**, и `--strictPort`
+не даст ему тихо уехать на соседний.
+
 ```bash
-# фронт
-cd frontend
-npm install
-npm run dev            # http://localhost:5173
+# окно 1 — бэкенд
+cd "/Users/piu/Claude/Projects/flamigo coworck/backend" && ./.venv/bin/python manage.py runserver 8080
 
-# бэкенд (в другом окне)
-cd backend
-python3 -m venv .venv && source .venv/bin/activate
-pip install -r requirements.txt
-cp .env.example .env   # вписать три строки LIVEKIT_*
-python manage.py runserver 8000
+# окно 2 — фронт
+cd "/Users/piu/Claude/Projects/flamigo coworck/frontend" && npm run dev
 ```
 
-Фронту нужен адрес медиасервера — `frontend/.env`:
+Открывать **http://localhost:5180**. Проверить, что это новый проект, можно одним взглядом:
+на первом экране написано «Комната на двоих» и одно поле — имя. Если видите лендинг
+«Наука, на которую хочется смотреть» или кабинет преподавателя — это старый проект.
 
+Что должно ответить, если всё поднялось:
+
+```bash
+curl http://localhost:8080/api/room/healthz     # {"ok": true, "livekit": true}
 ```
-VITE_LIVEKIT_URL=wss://<ваш-livekit>
-VITE_API_URL=http://localhost:8000
+
+Окружение бэкенда, если его ещё нет:
+
+```bash
+cd "/Users/piu/Claude/Projects/flamigo coworck/backend"
+python3 -m venv .venv && ./.venv/bin/pip install -r requirements.txt
 ```
 
 ## Что где
