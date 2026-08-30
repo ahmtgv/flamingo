@@ -102,8 +102,12 @@
   color: var(--color-accent-text);
 }
 
+/* Указатель ловит РАМА, а не холст: поверх холста лежит слой объектов, и рисование,
+   сдвиг и выбор должны приходить в одно место. */
 .canvasWrap {
   position: relative;
+  touch-action: none;
+  cursor: crosshair;
   min-width: 0;
   min-height: 0;
   background-color: var(--color-surface);
@@ -117,8 +121,7 @@
   inset: 0;
   width: 100%;
   height: 100%;
-  touch-action: none;
-  cursor: crosshair;
+  pointer-events: none;
 }
 
 /* ПРАВИЛА 6.2: пусто объясняет словами, что здесь будет и что сделать сейчас. */
@@ -151,5 +154,271 @@
 
 .emptyKeys {
   font: var(--weight-regular) var(--text-caption) var(--font-mono);
+  color: var(--color-text-hint);
+}
+
+/* ───────────────────────────────────────────────────────────────────────────
+   Бесконечный холст: полоса досок, слой объектов, пульт масштаба.
+   ─────────────────────────────────────────────────────────────────────────── */
+
+.stack {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  min-width: 0;
+  min-height: 0;
+}
+
+.sheets {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-bg);
+  overflow-x: auto;
+}
+
+.sheet {
+  flex: 0 0 auto;
+  min-height: var(--control-height-sm);
+  padding: 0 var(--space-4);
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--color-border);
+  background: none;
+  color: var(--color-text-secondary);
+  font-size: var(--text-caption);
+  cursor: pointer;
+}
+
+.sheet:hover {
+  border-color: var(--color-border-strong);
+  color: var(--color-text);
+}
+
+/* Открытая доска — не аларм и не «главное действие», поэтому нейтральная
+   заливка, а не цвет (ПРАВИЛА 5.7). */
+.sheetOn {
+  background: var(--color-surface-subtle);
+  border-color: var(--color-border-strong);
+  color: var(--color-text);
+}
+
+.sheetAdd {
+  flex: 0 0 auto;
+  min-height: var(--control-height-sm);
+  padding: 0 var(--space-3);
+  border-radius: var(--radius-pill);
+  border: 1px dashed var(--color-border-strong);
+  background: none;
+  color: var(--color-text-secondary);
+  font-size: var(--text-caption);
+  cursor: pointer;
+}
+
+.sheetAdd:hover {
+  color: var(--color-text);
+  border-color: var(--color-text-secondary);
+}
+
+.sheetsGap {
+  flex: 1 1 auto;
+}
+
+.sheetAct {
+  flex: 0 0 auto;
+  min-height: var(--control-height-sm);
+  padding: 0 var(--space-4);
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--color-border);
+  background: none;
+  color: var(--color-text);
+  font-size: var(--text-caption);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.sheetAct:hover {
+  border-color: var(--color-border-strong);
+}
+
+.grab {
+  cursor: grab;
+}
+
+.grab:active {
+  cursor: grabbing;
+}
+
+.pointer {
+  cursor: default;
+}
+
+/* Слой объектов живёт в мировых координатах: один transform на весь слой,
+   каждый объект стоит на своём месте мира и не пересчитывается при зуме. */
+.layer {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 0;
+  height: 0;
+  transform-origin: 0 0;
+}
+
+.obj {
+  position: absolute;
+  cursor: default;
+}
+
+.objOn {
+  outline: 2px solid var(--color-go);
+  outline-offset: var(--space-1);
+  border-radius: var(--radius-xs);
+}
+
+.objText {
+  outline: none;
+  line-height: var(--leading-snug);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-family: var(--font-body);
+}
+
+.objNote {
+  width: 100%;
+  height: 100%;
+  padding: var(--space-4);
+  border-radius: var(--radius-sm);
+  background: var(--color-warning-bg);
+  border: 1px solid var(--color-warning-bg);
+  box-shadow: var(--shadow-sm);
+  color: var(--color-text);
+  font-size: var(--text-body);
+  line-height: var(--leading-snug);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  outline: none;
+}
+
+.objImg {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: var(--radius-xs);
+  user-select: none;
+}
+
+.objArrow {
+  position: absolute;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.objPickArrow,
+.objPickArrowQuiet {
+  position: absolute;
+  pointer-events: auto;
+}
+
+.objPickArrow {
+  outline: 2px solid var(--color-go);
+  outline-offset: var(--space-2);
+}
+
+.objVideo {
+  display: grid;
+  gap: var(--space-2);
+  align-content: start;
+  width: 100%;
+  height: 100%;
+  padding: var(--space-4);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-sm);
+}
+
+.objVideoTitle {
+  font-family: var(--font-heading);
+  font-size: var(--text-body);
+  font-weight: var(--weight-medium);
+  color: var(--color-text);
+}
+
+.objVideoLink {
+  font: var(--weight-regular) var(--text-small) var(--font-mono);
+  color: var(--color-link);
+  overflow-wrap: anywhere;
+}
+
+.objVideoHint {
+  font-size: var(--text-caption);
+  color: var(--color-text-hint);
+}
+
+/* Пульт масштаба спит вместе с остальными пультами и просыпается, когда рука
+   пошла в его угол: на холсте ничего не висит, пока его не позвали (ПРАВИЛА 3.10). */
+.zoom {
+  position: absolute;
+  right: var(--space-4);
+  bottom: var(--space-4);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-md);
+  opacity: 0;
+  transition: opacity var(--duration-fast) var(--ease-standard);
+}
+
+.canvasWrap:hover .zoom,
+.zoom:focus-within {
+  opacity: 1;
+}
+
+.zoomBtn,
+.zoomNum,
+.zoomFit {
+  min-height: var(--space-7);
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--color-border);
+  background: none;
+  color: var(--color-text);
+  cursor: pointer;
+  font: var(--weight-medium) var(--text-caption) var(--font-mono);
+}
+
+.zoomBtn {
+  width: var(--space-7);
+}
+
+.zoomNum {
+  min-width: var(--space-11);
+}
+
+.zoomFit {
+  padding: 0 var(--space-4);
+  font: var(--weight-regular) var(--text-caption) var(--font-body);
+}
+
+.zoomBtn:hover:not(:disabled),
+.zoomNum:hover,
+.zoomFit:hover:not(:disabled) {
+  border-color: var(--color-border-strong);
+  background: var(--color-surface-hover);
+}
+
+.zoomBtn:disabled,
+.zoomFit:disabled {
+  color: var(--color-text-disabled);
+  cursor: default;
+}
+
+/* Пустой текст и пустая заметка объясняют, что в них класть (ПРАВИЛА 6.2). */
+.objText:empty::before,
+.objNote:empty::before {
+  content: attr(data-hint);
   color: var(--color-text-hint);
 }

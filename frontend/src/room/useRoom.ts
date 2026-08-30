@@ -10,6 +10,7 @@ import {
 
 import { fetchTicket, RoomError } from '../lib/api'
 import type { Bus, Msg } from '../board/protocol'
+import { joiner, split } from '../board/chunk'
 
 const TOPIC = 'board'
 
@@ -87,11 +88,14 @@ export function useRoom(code: string, name: string) {
       setFaces(withLead(list))
     }
 
+    // Длинные сообщения (картинка из буфера) приезжают частями — здесь их собирают.
+    const join = joiner()
     const onData = (payload: Uint8Array, _p?: unknown, _k?: unknown, topic?: string) => {
       if (topic !== TOPIC) return
       try {
-        const m = JSON.parse(new TextDecoder().decode(payload)) as Msg
-        listeners.current.forEach((fn) => fn(m))
+        const whole = join(JSON.parse(new TextDecoder().decode(payload)))
+        if (whole === null) return
+        listeners.current.forEach((fn) => fn(whole as Msg))
       } catch {
         /* чужой мусор в канале не должен ронять доску */
       }
@@ -166,12 +170,11 @@ export function useRoom(code: string, name: string) {
       send: (m: Msg) => {
         const room = roomRef.current
         if (!room || room.state !== ConnectionState.Connected) return
-        room.localParticipant
-          .publishData(new TextEncoder().encode(JSON.stringify(m)), {
-            reliable: true,
-            topic: TOPIC,
-          })
-          .catch(() => undefined)
+        for (const part of split(JSON.stringify(m))) {
+          room.localParticipant
+            .publishData(new TextEncoder().encode(part), { reliable: true, topic: TOPIC })
+            .catch(() => undefined)
+        }
       },
       subscribe: (fn) => {
         listeners.current.add(fn)
