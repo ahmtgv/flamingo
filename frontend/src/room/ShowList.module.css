@@ -103,13 +103,17 @@
   background: var(--color-surface-subtle);
 }
 
+/* 🔴 Миниатюра показывает страницу ЦЕЛИКОМ, а не её середину. С `cover` из листа
+   1000 x 700 в коробку 96 x 48 попадала горизонтальная полоса из середины — заголовка
+   не видно, и все показы в списке выглядели одинаково пустыми. Лицо показа — это его
+   первая страница, а не её кусок. Поймано живым проходом по бою 01.09. */
 .thumb {
   width: var(--space-12);
-  height: var(--space-9);
-  object-fit: cover;
+  height: var(--space-10);
+  object-fit: contain;
+  background: var(--fl-white);
   border-radius: var(--radius-sm);
   border: 1px solid var(--color-border);
-  background: var(--color-surface-subtle);
   flex: none;
 }
 

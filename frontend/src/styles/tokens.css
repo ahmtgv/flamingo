@@ -179,7 +179,7 @@
   --color-success-on-video: var(--fl-success-300);
   --color-warning-on-video: var(--fl-warning-300);
   --color-error-on-video:   var(--fl-error-300);
-  --color-go-on-video:      var(--fl-moss-300);
+  --color-go-on-video:      var(--fl-leaf-300);
   /* Коралловый текст на тёмном — та же ступень, что берёт `--color-accent-text` в тёмной теме. */
   --color-accent-on-video:  var(--fl-coral-300);
 
@@ -214,14 +214,19 @@
 
   /* Go (решение / перспектива). Замеры на светлой поверхности: текст 5,93 · белое на
      заливке 6,81 · линия к фону 4,29 — все пороги пройдены. */
-  --color-go:            var(--fl-moss-500);  /* графика: линия, точка, полоса */
-  --color-go-line:       var(--fl-moss-500);
-  --color-go-text:       var(--fl-moss-700);  /* подписи и ссылки на светлом */
-  --color-go-solid:      var(--fl-moss-700);  /* заливка под белым текстом */
-  --color-go-solid-hover: var(--fl-moss-500);
+  /* 🔴 ЗЕЛЁНЫЙ — ЛИСТ, А НЕ МОХ (решение владельца 01.09.2026). Мох был спокойнее и
+     ровнее ложился в тёмную тему, но владелец выбрал лист, и продукт живёт с ОДНИМ
+     зелёным: два зелёных в одном продукте — это будущая путаница, а не оттенок.
+     Семья `--fl-moss-*` остаётся заведённой: она нужна тёмной теме под видео и может
+     вернуться, если лист не выдержит проверку контрастом на каком-нибудь экране. */
+  --color-go:            var(--fl-leaf-500);  /* графика: линия, точка, полоса */
+  --color-go-line:       var(--fl-leaf-500);
+  --color-go-text:       var(--fl-leaf-800);  /* подписи и ссылки на светлом */
+  --color-go-solid:      var(--fl-leaf-700);  /* заливка под белым текстом */
+  --color-go-solid-hover: var(--fl-leaf-500);
   --color-on-go:         var(--fl-white);
-  --color-go-bg:         var(--fl-moss-50);
-  --color-go-border:     var(--fl-moss-300);
+  --color-go-bg:         var(--fl-leaf-50);
+  --color-go-border:     var(--fl-leaf-300);
 
   /* Overlay / scrim */
   --color-overlay: rgba(var(--fl-shadow-rgb), 0.4);
@@ -385,14 +390,14 @@
 
   /* Go в тёмной теме: светлая ступень как заливка, тёмный текст на ней — тот же приём,
      что у кораллового (Б1). Замеры на near-black: текст 7,93 · тёмное на заливке 9,42. */
-  --color-go:            var(--fl-moss-300);
-  --color-go-line:       var(--fl-moss-300);
-  --color-go-text:       var(--fl-moss-300);
-  --color-go-solid:      var(--fl-moss-300);
-  --color-go-solid-hover: #a3e2c1;
+  --color-go:            var(--fl-leaf-300);
+  --color-go-line:       var(--fl-leaf-300);
+  --color-go-text:       var(--fl-leaf-300);
+  --color-go-solid:      var(--fl-leaf-300);
+  --color-go-solid-hover: #bde48a;
   --color-on-go:         #1d1d1f;
-  --color-go-bg:         var(--fl-moss-950);
-  --color-go-border:     var(--fl-moss-700);
+  --color-go-bg:         var(--fl-leaf-950);
+  --color-go-border:     var(--fl-leaf-700);
 
   --color-overlay: rgba(0, 0, 0, 0.6);
   --nav-material: rgba(16, 16, 18, 0.72);
