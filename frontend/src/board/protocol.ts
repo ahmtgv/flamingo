@@ -17,6 +17,9 @@ export type Stroke = {
   /** Имя токена цвета, а не значение: цвет считается на месте, из темы (ПРАВИЛА 2.8). */
   color: string
   width: number
+  /** Пунктир. Едет вместе со штрихом: иначе у второго участника линия сплошная,
+   *  и «обведите пунктиром то, что неточно» перестаёт что-либо значить. */
+  dash?: boolean
   pts: Point[]
 }
 
@@ -40,7 +43,7 @@ export type Sheet = {
 
 export type Msg =
   /** Кусок штриха: первый приходит вместе с цветом и толщиной, следующие — только точками. */
-  | { t: 'seg'; sheet: string; id: string; color: string; width: number; pts: Point[] }
+  | { t: 'seg'; sheet: string; id: string; color: string; width: number; dash?: boolean; pts: Point[] }
   | { t: 'erase'; sheet: string; ids: string[] }
   | { t: 'clear'; sheet: string }
   /** Объект появился или изменился. Одно сообщение на объект целиком: они маленькие,

@@ -34,8 +34,11 @@ async function fromImage(file: File): Promise<string | null> {
 }
 
 /** PDF разбирается на страницы прямо в браузере: сервера у комнаты нет,
- *  и файл никуда не уезжает целиком. */
-async function fromPdf(file: File): Promise<string[]> {
+ *  и файл никуда не уезжает целиком.
+ *
+ *  Тем же кодом пользуется доска («Вложить · документ»): двух разборщиков PDF
+ *  в одном продукте быть не должно — они разойдутся в первый же месяц. */
+export async function pagesOfPdf(file: File): Promise<string[]> {
   const pdfjs = await import('pdfjs-dist')
   const workerUrl = new URL('pdfjs-dist/build/pdf.worker.min.mjs', import.meta.url)
   pdfjs.GlobalWorkerOptions.workerSrc = workerUrl.toString()
@@ -60,7 +63,7 @@ export async function deckFrom(files: File[]): Promise<Deck | null> {
   const pages: string[] = []
   for (const f of files) {
     if (f.type === 'application/pdf' || f.name.toLowerCase().endsWith('.pdf')) {
-      pages.push(...(await fromPdf(f)))
+      pages.push(...(await pagesOfPdf(f)))
     } else if (f.type.startsWith('image/')) {
       const src = await fromImage(f)
       if (src) pages.push(src)

@@ -11,22 +11,46 @@
 /* 🔴 Столбец инструментов ПРОКРУЧИВАЕТСЯ, а не растит раму. Инструментов стало
    больше, столбец перерос сцену на полсотни пикселей и накрыл собой нижний пульт
    (поймано пробой 30.08). Прокрутка внутри названной области — ПРАВИЛА 1.2. */
+/* 🔴 Панель перенесена с листа `docs/дизайн/от-дизайна-31.08/Доска.dc.html`
+   один в один: она стоит СВОИМ кадром в левом верхнем углу холста, кнопки — 44 px
+   каждая в своей рамке, между группами волосяная черта.
+   Прежняя панель липла к краю рамы столбцом безрамочных значков 34 px: цель нажатия
+   была на грани ПРАВИЛА 7.2, а глазом инструмент от цвета не отделялся.
+   Правило 3.10 (ничего плавающего на холсте) снято решением владельца 01.09 —
+   см. docs/РЕШЕНИЯ-ВЛАДЕЛЬЦА-01.09.md. Это не дефект, не чинить. */
 .tools {
-  border-radius: var(--radius-card);
-  box-shadow: var(--shadow-md);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  position: absolute;
+  left: var(--space-4);
+  top: var(--space-4);
+  z-index: 2;
+  display: grid;
+  grid-template-columns: var(--tap-min);
+  gap: var(--space-1);
   padding: var(--space-2);
-  /* Без зазора между кнопками: на кадре 1280×800 девять инструментов, четыре цвета
-     и «Стереть всё» иначе не помещаются, и последняя кнопка уезжает под прокрутку.
-     Форму кнопке держит её собственный радиус, а не воздух между ними. */
-  gap: 0;
-  border-right: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  border: 1px solid var(--color-border);
+  /* Непрозрачный фон — условие, на котором владелец снял запрет: сквозь панель
+     не должно быть видно холст, иначе непонятно, где кончается одно и начинается
+     другое. `--shadow-sm`, а не `md`: тень не ложится на рабочую зону. */
   background: var(--color-bg);
-  min-height: 0;
-  overflow-y: auto;
-  scrollbar-width: none;
+  box-shadow: var(--shadow-sm);
+  /* 🔴 Прокрутки у панели НЕТ, и это не забывчивость. `overflow-y: auto` делает
+     из панели обрезающий кадр, и выпадашка «Вложить», выезжающая вбок, пропадала
+     целиком: кнопка нажималась, а меню не показывалось. Поймано своим же прогоном.
+     Вместо прокрутки — вторая колонка на низком экране (ниже). */
+}
+
+/* На кадре ниже 820 px пятнадцать кнопок в один столбец не помещаются: последняя
+   уходит за нижний край. Складываем панель в две колонки — она становится 104 px
+   в ширину и вдвое ниже, и ничего не обрезается. */
+@media (max-height: 820px) {
+  .tools {
+    grid-template-columns: var(--tap-min) var(--tap-min);
+  }
+
+  .tools .sep {
+    grid-column: 1 / -1;
+  }
 }
 
 .tools::-webkit-scrollbar {
@@ -37,12 +61,12 @@
   /* 🔴 Столбец прокручивается, а значит сжимает детей: без `flex: 0 0 auto`
      кнопки садились с 34 до 29 px и уходили ниже порога ПРАВИЛА 7.2. */
   flex: 0 0 auto;
-  width: var(--control-height-sm);
-  height: var(--control-height-sm);
+  width: var(--tap-min);
+  height: var(--tap-min);
   display: grid;
   place-items: center;
-  border: none;
-  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
   background: none;
   color: var(--color-text-secondary);
   cursor: pointer;
@@ -58,6 +82,7 @@
    Акцент на экране урока принадлежит другому. */
 .toolOn {
   background: var(--color-surface-subtle);
+  border-color: var(--color-border-strong);
   color: var(--color-text);
 }
 
@@ -65,19 +90,62 @@
    выталкивает «Стереть всё» за край столбца на кадре 1280×800. */
 .sep {
   flex: 0 0 auto;
-  width: 60%;
   height: 1px;
   background: var(--color-border);
+  margin: var(--space-1) var(--space-2);
+}
+
+/* «Вложить»: одна кнопка, три способа положить что-то на холст. Список
+   выезжает вбок, а не вниз, — вниз он закрыл бы половину панели. */
+.attachBox {
+  position: relative;
+  display: grid;
+}
+
+.attachMenu {
+  position: absolute;
+  left: calc(100% + var(--space-2));
+  top: 0;
+  z-index: 3;
+  display: grid;
+  gap: var(--space-1);
+  padding: var(--space-2);
+  min-width: var(--space-13);
+  border-radius: var(--radius-card);
+  border: 1px solid var(--color-border);
+  background: var(--color-bg);
+  box-shadow: var(--shadow-md);
+}
+
+.attachItem {
+  display: grid;
+  grid-template-columns: var(--space-6) 1fr;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--tap-min);
+  padding: 0 var(--space-3);
+  border: none;
+  border-radius: var(--radius-control);
+  background: none;
+  color: var(--color-text);
+  font: var(--weight-regular) var(--text-small) var(--font-body);
+  text-align: left;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.attachItem:hover {
+  background: var(--color-surface-subtle);
 }
 
 .pen {
   flex: 0 0 auto;
-  width: var(--control-height-sm);
-  height: var(--control-height-sm);
+  width: var(--tap-min);
+  height: var(--tap-min);
   display: grid;
   place-items: center;
-  border: none;
-  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
   background: none;
   cursor: pointer;
 }
@@ -95,6 +163,7 @@
 
 .penOn {
   background: var(--color-surface-subtle);
+  border-color: var(--color-border-strong);
 }
 
 .penOn .penDot {
@@ -193,6 +262,13 @@
 }
 
 .sheets {
+  /* Плашка стоит всегда, сверху по центру (лист «Доска», 01.09): раньше она
+     пряталась за спящий ярлык «доски · N», и вторую доску никто не находил. */
+  position: absolute;
+  left: 50%;
+  top: var(--space-4);
+  transform: translateX(-50%);
+  z-index: 2;
   display: flex;
   align-items: center;
   gap: var(--space-2);
@@ -200,8 +276,8 @@
   border-radius: var(--radius-pill);
   border: 1px solid var(--color-border);
   background: var(--color-surface);
-  box-shadow: var(--shadow-md);
-  max-width: 100%;
+  box-shadow: var(--shadow-sm);
+  max-width: calc(100% - var(--space-13));
   overflow-x: auto;
 }
 

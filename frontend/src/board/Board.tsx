@@ -5,8 +5,6 @@ import { makeHistory } from './history'
 import { Objects } from './Objects'
 import { Selection } from './Selection'
 import { Sheets } from './Sheets'
-import { Sleepy } from '../room/Sleepy'
-import { useEdge } from '../room/useEdge'
 import { Tools, type Tool } from './Tools'
 import { useSheets } from './useSheets'
 import { imageObj, openFile, pickFile, saveFile } from './files'
@@ -34,7 +32,7 @@ export function Board({ bus, peers }: Props) {
   const frameRef = useRef<HTMLDivElement>(null)
   const wrapRef = useRef<HTMLDivElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
-  const edge = useEdge(frameRef)
+  // Спящие пульты доски сняты 01.09: панель и плашка стоят всегда.
   const st = useSheets(bus, peers)
 
   const [tool, setTool] = useState<Tool>('pen')
@@ -117,11 +115,15 @@ export function Board({ bus, peers }: Props) {
       if (stroke.pts.length === 0) return
       ctx.strokeStyle = colorOf(stroke.color)
       ctx.lineWidth = stroke.width
+      // Длина штриха считается от толщины пера: у толстого пунктир из коротких
+      // рисок слипается в сплошную линию.
+      ctx.setLineDash(stroke.dash ? [stroke.width * 3, stroke.width * 2.5] : [])
       ctx.beginPath()
       ctx.moveTo(stroke.pts[0][0], stroke.pts[0][1])
       for (let i = 1; i < stroke.pts.length; i += 1) ctx.lineTo(stroke.pts[i][0], stroke.pts[i][1])
       if (stroke.pts.length === 1) ctx.lineTo(stroke.pts[0][0] + 0.1, stroke.pts[0][1])
       ctx.stroke()
+      ctx.setLineDash([])
       // Выбранный штрих обводится своей же линией пошире и зелёным: рамка вокруг
       // закорючки ничего не говорит о том, ЧТО именно выбрано.
       if (chosen.has(stroke.id)) {
@@ -224,7 +226,7 @@ export function Board({ bus, peers }: Props) {
     if (!d || d.unsent.length === 0) return
     const stroke = st.sheet.strokes.find((x) => x.id === d.id)
     if (!stroke) return
-    bus.send({ t: 'seg', sheet: st.sheet.id, id: stroke.id, color: stroke.color, width: stroke.width, pts: d.unsent })
+    bus.send({ t: 'seg', sheet: st.sheet.id, id: stroke.id, color: stroke.color, width: stroke.width, dash: stroke.dash, pts: d.unsent })
     d.unsent = []
   }, [bus, st.sheet])
 
@@ -327,6 +329,7 @@ export function Board({ bus, peers }: Props) {
       id,
       color: PENS[pen].token,
       width: thick ? PEN_WIDTHS.thick : PEN_WIDTHS.thin,
+      dash: t === 'dash' || undefined,
       pts: [p],
     }
     st.addStroke(stroke)
@@ -621,6 +624,7 @@ export function Board({ bus, peers }: Props) {
       if (k === 'e' || k === 'у') setTool('eraser')
       if (k === 'h' || k === 'р') setTool('hand')
       if (k === 'a' || k === 'ф') setTool('arrow')
+      if (k === 'd' || k === 'в') setTool('dash')
       if (k === 't' || k === 'е') setTool('text')
       if (k === 'n' || k === 'т') setTool('note')
       if (e.key === 'Escape') setSel([])
@@ -664,6 +668,24 @@ export function Board({ bus, peers }: Props) {
     const f = await pickFile('image/*')
     if (f) await pasteImage(f)
   }
+  /** Документ на холст. PDF разбирается тем же кодом, что и показ, и ложится
+   *  страницами сверху вниз: доска бесконечная, обрезать нечего. */
+  const addDoc = async () => {
+    const f = await pickFile('application/pdf')
+    if (!f) return
+    const { pagesOfPdf } = await import('../room/deck')
+    const pages = await pagesOfPdf(f)
+    if (pages.length === 0) return
+    const p0 = centerWorld()
+    mark()
+    pages.forEach((src, i) => {
+      st.putObj({
+        id: newId(), kind: 'image', src, name: `${f.name} · ${i + 1}`,
+        x: p0[0], y: p0[1] + i * 620, w: 840, h: 594,
+      })
+    })
+  }
+
   const addVideo = () => {
     const url = window.prompt('Ссылка на видео — YouTube, Rutube или прямой файл:')
     if (!url) return
@@ -733,40 +755,38 @@ export function Board({ bus, peers }: Props) {
               Cmd/Ctrl и колесо.
             </span>
             <span className={s.emptyKeys}>
-              перо — P · ластик — E · рука — H · текст — T · заметка — N · стрелка — A · выбрать — V
+              перо — P · ластик — E · стрелка — A · пунктир — D · текст — T · выбрать — V
             </span>
           </div>
         ) : null}
       </div>
 
-      {/* Инструменты доски просыпаются слева. */}
-      <Sleepy side="left" label="инструменты" open={edge === 'left'}>
-        <Tools
-          tool={tool} setTool={setTool}
-          pen={pen} setPen={setPen}
-          thick={thick} setThick={setThick}
-          armed={armed} wipe={wipe}
-          addImage={addImage} addVideo={addVideo}
-          undo={undo} redo={redo}
-          canUndo={hist.current.canUndo} canRedo={hist.current.canRedo}
-          histTick={histTick}
-        />
-      </Sleepy>
+      {/* 🔴 Панель стоит ВСЕГДА, а не просыпается у края (лист «Доска», 01.09).
+          Спящий ярлык был шириной 30 px — цель нажатия ниже порога ПРАВИЛА 7.2,
+          и до инструмента приходилось добираться в два движения посреди урока. */}
+      <Tools
+        tool={tool} setTool={setTool}
+        pen={pen} setPen={setPen}
+        thick={thick} setThick={setThick}
+        armed={armed} wipe={wipe}
+        addImage={addImage} addVideo={addVideo} addDoc={addDoc}
+        undo={undo} redo={redo}
+        canUndo={hist.current.canUndo} canRedo={hist.current.canRedo}
+        histTick={histTick}
+      />
 
-      {/* Доски и сохранение — сверху, тоже под рукой. */}
-      <Sleepy side="top" label={`доски · ${st.sheets.length}`} open={edge === 'top'}>
-        <Sheets
-          sheets={st.sheets}
-          active={st.active}
-          onOpen={st.openSheet}
-          onAdd={st.addSheet}
-          onSave={() => saveFile(st.sheets)}
-          onLoad={async () => {
-            const list = await openFile()
-            if (list) st.loadAll(list)
-          }}
-        />
-      </Sleepy>
+      {/* Доски и сохранение — плашка сверху, тоже всегда на месте. */}
+      <Sheets
+        sheets={st.sheets}
+        active={st.active}
+        onOpen={st.openSheet}
+        onAdd={st.addSheet}
+        onSave={() => saveFile(st.sheets)}
+        onLoad={async () => {
+          const list = await openFile()
+          if (list) st.loadAll(list)
+        }}
+      />
 
       {/* Пульт масштаба: одна кнопка «Показать всё» — она меняет и масштаб, и положение.
           К 100 % возвращает щелчок по самой цифре или двойной щелчок по пустому месту. */}
