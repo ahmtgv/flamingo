@@ -170,5 +170,26 @@ console.log('\nSESSION_SECRET из панели:')
     r.data.person === null, JSON.stringify(r.data))
 }
 
+// ── 8. Поломка внутри функции — всё равно НАШ ответ словами ──────────────
+// Раньше любая неожиданная ошибка отдавалась HTML-страницей Cloudflare, и человек
+// видел «Сервер ответил не по-нашему (500)». Владелец это и увидел на боевом 31.08.
+console.log('\nЕсли внутри что-то сломалось:')
+{
+  const brokenDb = { prepare() { throw new Error('база вдруг отвалилась') } }
+  // guard() пишет причину в журнал — здесь она ожидаема, глушим, чтобы не пугала.
+  const wasErr = console.error
+  console.error = () => {}
+  for (const [name, mod, method, body] of [
+    ['register', register, 'POST', { email: 'a@b.ru', name: 'Аня', password: 'четыре обычных слова' }],
+    ['login', login, 'POST', { email: 'a@b.ru', password: 'четыре обычных слова' }],
+    ['me', me, 'GET', undefined],
+  ]) {
+    const r = await read(await call(mod, method, { env: { DB: brokenDb }, body }))
+    ok(`${name}: 500 нашим JSON, а не страницей Cloudflare`,
+      r.status === 500 && String(r.data.error).includes('споткнулся'), JSON.stringify(r.data))
+  }
+  console.error = wasErr
+}
+
 console.log(bad ? `\n❌ провалов: ${bad}\n` : '\n✅ всё сходится\n')
 process.exit(bad ? 1 : 0)

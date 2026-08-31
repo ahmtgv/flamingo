@@ -1,4 +1,4 @@
-import { hashPass, makeCookie, no, noDb, ready, say, secretOf } from '../_people.js'
+import { guard, hashPass, makeCookie, no, noDb, ready, say, secretOf } from '../_people.js'
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/
 
@@ -34,5 +34,5 @@ async function make({ request, env }) {
   return say({ id, name, role }, 200, await makeCookie(id, secret))
 }
 
-export const onRequest = (ctx) =>
-  ctx.request.method === 'POST' ? make(ctx) : no('Этот путь отвечает только на POST.', 405)
+export const onRequest = guard((ctx) =>
+  ctx.request.method === 'POST' ? make(ctx) : no('Этот путь отвечает только на POST.', 405))

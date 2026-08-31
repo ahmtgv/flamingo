@@ -1,4 +1,4 @@
-import { checkPass, makeCookie, no, noDb, ready, say, secretOf } from '../_people.js'
+import { checkPass, guard, makeCookie, no, noDb, ready, say, secretOf } from '../_people.js'
 
 async function enter({ request, env }) {
   if (!env.DB) return noDb()
@@ -31,5 +31,5 @@ async function enter({ request, env }) {
     await makeCookie(row.id, secret))
 }
 
-export const onRequest = (ctx) =>
-  ctx.request.method === 'POST' ? enter(ctx) : no('Этот путь отвечает только на POST.', 405)
+export const onRequest = guard((ctx) =>
+  ctx.request.method === 'POST' ? enter(ctx) : no('Этот путь отвечает только на POST.', 405))
