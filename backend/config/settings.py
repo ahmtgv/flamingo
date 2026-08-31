@@ -69,6 +69,24 @@ LANGUAGE_CODE = "ru-ru"
 TIME_ZONE = "UTC"
 USE_TZ = True
 
+# ── Почта: нужна только для «забыли пароль» ───────────────────────────────────
+#
+# 🔴 Пока EMAIL_HOST пуст, письма не уходят — ссылка пишется в журнал сервера.
+# Вход и регистрация от этого не страдают: почта нужна ровно одному пути.
+EMAIL_HOST = os.getenv("EMAIL_HOST", "")
+EMAIL_PORT = int(os.getenv("EMAIL_PORT", "587"))
+EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "")
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "")
+EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", "1") == "1"
+DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "Flamingo <no-reply@flamingo.plus>")
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {"console": {"class": "logging.StreamHandler"}},
+    "loggers": {"flamingo.mail": {"handlers": ["console"], "level": "INFO"}},
+}
+
 # common/livekit.py читает именно этот словарь.
 LIVEKIT = {
     "url": os.getenv("LIVEKIT_URL", ""),

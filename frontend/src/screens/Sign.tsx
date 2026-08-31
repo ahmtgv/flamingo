@@ -1,6 +1,6 @@
 import { useState } from 'react'
 
-import { AuthError, login, register, type Person } from '../lib/auth'
+import { AuthError, forgot, login, register, type Person } from '../lib/auth'
 import { Button } from '../ui/Button'
 import { Field } from '../ui/Field'
 import { Mark } from '../ui/Mark'
@@ -13,18 +13,26 @@ import s from './Sign.module.css'
  *  живёт ровно столько, сколько в ней есть люди.
  */
 export function Sign({ onDone, onBack }: { onDone: (p: Person) => void; onBack: () => void }) {
-  const [mode, setMode] = useState<'in' | 'new'>('in')
+  const [mode, setMode] = useState<'in' | 'new' | 'forgot'>('in')
   const [email, setEmail] = useState('')
   const [name, setName] = useState('')
   const [role, setRole] = useState<Person['role']>('teacher')
   const [pass, setPass] = useState('')
   const [said, setSaid] = useState('')
+  /* Спокойный ответ отдельно от отказа: коралловый только когда аларм. */
+  const [calm, setCalm] = useState('')
   const [busy, setBusy] = useState(false)
 
   const go = async () => {
     setSaid('')
+    setCalm('')
     setBusy(true)
     try {
+      if (mode === 'forgot') {
+        const r = await forgot(email.trim())
+        setCalm(r.said)
+        return
+      }
       const person = mode === 'in'
         ? await login(email.trim(), pass)
         : await register(email.trim(), name, role, pass)
@@ -44,11 +52,15 @@ export function Sign({ onDone, onBack }: { onDone: (p: Person) => void; onBack: 
         </button>
         <Mark />
 
-        <h1 className={s.title}>{mode === 'in' ? 'Вход' : 'Новая учётная запись'}</h1>
+        <h1 className={s.title}>
+          {mode === 'in' ? 'Вход' : mode === 'new' ? 'Новая учётная запись' : 'Забыли пароль'}
+        </h1>
         <p className={s.lead}>
           {mode === 'in'
             ? 'Войдите, чтобы уроки, доски и записи оставались за вами.'
-            : 'Учётная запись нужна, чтобы урок оставался после урока: доски, конспект и оценки перестают исчезать вместе с комнатой.'}
+            : mode === 'new'
+              ? 'Учётная запись нужна, чтобы урок оставался после урока: доски, конспект и оценки перестают исчезать вместе с комнатой.'
+              : 'Пришлём на почту ссылку, по которой можно задать новый пароль. Ссылка живёт час и срабатывает один раз.'}
         </p>
 
         {/* 🔴 noValidate. С родной проверкой браузера отказ приходил ПО-АНГЛИЙСКИ
@@ -66,7 +78,9 @@ export function Sign({ onDone, onBack }: { onDone: (p: Person) => void; onBack: 
         >
           <Field
             label="Почта"
-            hint="Нужна, чтобы вас узнали при следующем входе"
+            hint={mode === 'forgot'
+              ? 'Та, на которую заводили учётную запись — письмо уйдёт на неё'
+              : 'Нужна, чтобы вас узнали при следующем входе'}
             placeholder="имя@почта.рф"
             type="email"
             autoComplete="email"
@@ -110,6 +124,7 @@ export function Sign({ onDone, onBack }: { onDone: (p: Person) => void; onBack: 
             </>
           ) : null}
 
+          {mode === 'forgot' ? null : (
           <Field
             label="Пароль"
             hint={mode === 'new'
@@ -120,25 +135,52 @@ export function Sign({ onDone, onBack }: { onDone: (p: Person) => void; onBack: 
             value={pass}
             onChange={(e) => setPass(e.target.value)}
           />
+          )}
 
           {/* ПРАВИЛА 6.6: строка сообщения стоит всегда — макет не прыгает. */}
           <span className={s.say} role="status">{said}</span>
+          {calm ? <span className={s.calm} role="status">{calm}</span> : null}
 
           <Button kind="go" type="submit" disabled={busy}>
-            {busy ? 'Проверяем…' : mode === 'in' ? 'Войти' : 'Завести учётную запись'}
+            {busy
+              ? 'Ждём…'
+              : mode === 'in' ? 'Войти'
+              : mode === 'new' ? 'Завести учётную запись'
+              : 'Прислать ссылку'}
           </Button>
         </form>
 
-        <button
-          type="button"
-          className={s.swap}
-          onClick={() => {
-            setMode(mode === 'in' ? 'new' : 'in')
-            setSaid('')
-          }}
-        >
-          {mode === 'in' ? 'Учётной записи ещё нет — завести' : 'Учётная запись уже есть — войти'}
-        </button>
+        <div className={s.swaps}>
+          <button
+            type="button"
+            className={s.swap}
+            onClick={() => {
+              setMode(mode === 'in' ? 'new' : 'in')
+              setSaid('')
+              setCalm('')
+            }}
+          >
+            {mode === 'in'
+              ? 'Учётной записи ещё нет — завести'
+              : mode === 'forgot'
+                ? 'Вспомнил пароль — войти'
+                : 'Учётная запись уже есть — войти'}
+          </button>
+          {/* Дверь «забыли пароль» стоит только на входе: в регистрации забывать нечего. */}
+          {mode === 'in' ? (
+            <button
+              type="button"
+              className={s.swap}
+              onClick={() => {
+                setMode('forgot')
+                setSaid('')
+                setCalm('')
+              }}
+            >
+              Забыли пароль
+            </button>
+          ) : null}
+        </div>
 
         <p className={s.foot}>
           Пароль хранится не как пароль: у нас лежит только его отпечаток, по которому

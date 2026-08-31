@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { Enter } from './screens/Enter'
 import { Hub } from './screens/Hub'
 import { Sign } from './screens/Sign'
+import { NewPass } from './screens/NewPass'
 import { Room } from './screens/Room'
 import { codeFromPath } from './lib/code'
 import { rememberName, rememberedName } from './lib/name'
@@ -67,6 +68,27 @@ export function App() {
   }, [go])
 
   if (path === '/hub') return <Hub onBack={() => go('/')} />
+  if (path === '/новый-пароль') {
+    /* Ключ из письма живёт только в адресе. Забираем его и НЕ кладём в состояние
+       надолго: экран им пользуется один раз и больше он не нужен. */
+    let ключ = ''
+    try {
+      ключ = new URLSearchParams(window.location.search).get('ключ') ?? ''
+    } catch {
+      ключ = ''
+    }
+    return (
+      <NewPass
+        ключ={ключ}
+        onDone={(p) => {
+          setPerson(p)
+          rememberName(p.name)
+          go('/')
+        }}
+        onBack={() => go('/')}
+      />
+    )
+  }
   if (path === '/вход') {
     return (
       <Sign

@@ -47,3 +47,12 @@ export const login = (email: string, password: string) =>
 export const whoAmI = () => talk<{ person: Person | null }>('me')
 
 export const logout = () => talk<{ ok: boolean }>('me', { method: 'DELETE' })
+
+/** «Забыли пароль». Ответ ОДИН И ТОТ ЖЕ, есть такая почта или нет: иначе форма
+ *  становится способом проверить, зарегистрирован ли человек у нас. */
+export const forgot = (email: string) =>
+  talk<{ ok: boolean; said: string }>('forgot', { method: 'POST', body: JSON.stringify({ email }) })
+
+/** Смена пароля по ключу из письма. Ключ одноразовый и живёт час. */
+export const resetPass = (key: string, password: string) =>
+  talk<Person>('reset', { method: 'POST', body: JSON.stringify({ key, password }) })

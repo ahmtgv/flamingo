@@ -14,8 +14,11 @@ Workers Free даёт 10 мс на запрос: PBKDF2 даже на 100 000 п
 """
 from __future__ import annotations
 
+import hashlib
 import json
 import re
+import secrets
+from datetime import timedelta
 
 from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError
@@ -23,9 +26,12 @@ from django.conf import settings
 from django.core import signing
 from django.db import IntegrityError
 from django.http import HttpRequest, JsonResponse
+from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 
-from .models import Person
+from . import guard
+from .mail import send_reset
+from .models import Person, Reset
 
 #: argon2id с настройками по умолчанию argon2-cffi: 3 прохода, 64 МБ памяти, 4 потока.
 #: Память здесь — главное: перебор на видеокарте упирается не в такты, а в неё.
@@ -36,6 +42,10 @@ HASHER = PasswordHasher()
 EMPTY_HASH = HASHER.hash("пароль, которого ни у кого нет")
 
 EMAIL = re.compile(r"^[^\s@]+@[^\s@]+\.[^\s@]{2,}$")
+#: Ключ на смену пароля живёт час. Дольше — он становится вторым паролем,
+#: который лежит в почтовом ящике и которого никто не помнит.
+RESET_LIFE = timedelta(hours=1)
+SITE = "https://flamingo.plus"
 COOKIE = "fl_ses"
 DAYS = 30
 SALT = "flamingo.session"
@@ -117,6 +127,17 @@ def login(request: HttpRequest) -> JsonResponse:
     body = _body(request)
     email = str(body.get("email", "")).strip().lower()
     password = str(body.get("password", ""))
+    ip = guard.who_from(request)
+
+    # 🔴 Проверка ДО того, как считать отпечаток: иначе запертый вход всё равно
+    # съедает 140 мс на попытку, и запрет перестаёт быть запретом для машины.
+    wait = guard.locked_for(email, ip)
+    if wait:
+        return _no(
+            f"Слишком много попыток. Попробуйте через {wait} мин. "
+            f"Если это не вы пробовали — пароль всё ещё цел, но лучше его сменить.",
+            429,
+        )
 
     person = Person.objects.filter(email=email).first()
     # 🔴 Один и тот же отказ на «нет такой почты» и «пароль не тот»: разные ответы
@@ -127,13 +148,18 @@ def login(request: HttpRequest) -> JsonResponse:
             HASHER.verify(EMPTY_HASH, password)
         except Exception:
             pass
+        guard.missed(email, ip)
         return wrong
     try:
         HASHER.verify(person.pass_hash, password)
     except VerifyMismatchError:
+        guard.missed(email, ip)
         return wrong
     except Exception:
+        guard.missed(email, ip)
         return wrong
+
+    guard.hit(email, ip)
 
     # Настройки argon2 со временем крепчают. Если отпечаток сделан по старым —
     # перезаписываем на новые прямо сейчас, пока пароль в руках и его можно хешировать.
@@ -157,3 +183,80 @@ def me(request: HttpRequest) -> JsonResponse:
     if person is None:
         return JsonResponse({"person": None})
     return JsonResponse({"person": {"id": person.id, "name": person.name, "role": person.role}})
+
+
+# ── Забыли пароль ─────────────────────────────────────────────────────────────
+
+
+def _key_hash(key: str) -> str:
+    """Быстрый SHA-256, и этого достаточно: ключ случайный на 32 байта."""
+    return hashlib.sha256(key.encode()).hexdigest()
+
+
+#: Один и тот же ответ, есть такая почта или нет. Иначе форма «забыли пароль»
+#: становится способом проверить, зарегистрирован ли человек у нас.
+SENT = "Если такая почта у нас есть, письмо со ссылкой уже ушло. Ссылка живёт час."
+
+
+@csrf_exempt
+def forgot(request: HttpRequest) -> JsonResponse:
+    if request.method != "POST":
+        return _no("Этот путь отвечает только на POST.", 405)
+
+    email = str(_body(request).get("email", "")).strip().lower()
+    ip = guard.who_from(request)
+
+    # Считаем и здесь: иначе этой формой засыпают чужой ящик письмами от нас.
+    wait = guard.locked_for(f"забыл:{email}", f"забыл:{ip}")
+    if wait:
+        return _no(f"Слишком много запросов. Попробуйте через {wait} мин.", 429)
+    guard.missed(f"забыл:{email}", f"забыл:{ip}")
+
+    if not EMAIL.match(email):
+        return _no("Почта написана не полностью — нужен адрес вида имя@почта.рф.")
+
+    person = Person.objects.filter(email=email).first()
+    if person is not None:
+        key = secrets.token_urlsafe(32)
+        Reset.objects.create(token_hash=_key_hash(key), person=person)
+        send_reset(person.email, person.name, f"{SITE}/новый-пароль?ключ={key}")
+    return JsonResponse({"ok": True, "said": SENT})
+
+
+@csrf_exempt
+def reset(request: HttpRequest) -> JsonResponse:
+    """Смена пароля по ключу из письма. Ключ одноразовый и живёт час."""
+    if request.method != "POST":
+        return _no("Этот путь отвечает только на POST.", 405)
+
+    body = _body(request)
+    key = str(body.get("key", ""))
+    password = str(body.get("password", ""))
+
+    if len(password) < 8:
+        return _no("Пароль короче восьми знаков. Длина надёжнее сложности: возьмите четыре слова.")
+
+    row = Reset.objects.filter(token_hash=_key_hash(key)).select_related("person").first()
+    stale = row is None or row.used_at is not None or row.made_at < timezone.now() - RESET_LIFE
+    if stale:
+        return _no(
+            "Ссылка больше не работает: она живёт час и срабатывает один раз. "
+            "Попросите новую на экране входа.",
+            410,
+        )
+
+    person = row.person
+    person.pass_hash = HASHER.hash(password)
+    person.save(update_fields=["pass_hash"])
+
+    row.used_at = timezone.now()
+    row.save(update_fields=["used_at"])
+    # 🔴 Гасим и все остальные ключи этого человека: если писем было заказано
+    # несколько, старые ссылки не должны пережить смену пароля.
+    Reset.objects.filter(person=person, used_at__isnull=True).update(used_at=timezone.now())
+    # 🔴 Снимаем запрет И по почте, И по адресу того, кто сейчас меняет пароль.
+    # Только по почте — и человек, сам же исчерпавший пять попыток, меняет пароль
+    # и всё равно стоит под запертой дверью двадцать минут. Поймано проходом.
+    guard.hit(person.email, guard.who_from(request))
+
+    return _said(person)

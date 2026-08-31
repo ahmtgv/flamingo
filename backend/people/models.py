@@ -37,3 +37,44 @@ class Person(models.Model):
 
     def __str__(self) -> str:
         return f"{self.name} <{self.email}>"
+
+
+class Tries(models.Model):
+    """Счётчик неудачных попыток. Пять — и двадцать минут отдыха.
+
+    🔴 Считаем ДВА раза: по почте и по адресу, откуда стучат.
+
+    Только по почте — и любой желающий запирает чужой вход, стуча наугад пять раз:
+    защита превращается в оружие против нашего же ученика.
+    Только по адресу — и перебор с десяти адресов проходит насквозь.
+    Вместе они закрывают оба случая, и цена — одна лишняя строка в таблице.
+
+    Запирание НЕ говорит, есть такая почта или нет: считаем и незнакомые тоже,
+    иначе сам факт «вас заперли» становится ответом на вопрос «я угадал почту?».
+    """
+
+    KEY_MAX = 254
+
+    key = models.CharField(primary_key=True, max_length=KEY_MAX)
+    fails = models.PositiveIntegerField(default=0)
+    until = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        db_table = "tries"
+
+
+class Reset(models.Model):
+    """Одноразовый ключ на смену пароля.
+
+    🔴 В базе лежит ОТПЕЧАТОК ключа, а не он сам. Утёкшая база тогда не даёт войти
+    ни в одну учётную запись: по отпечатку письмо не подделать. Быстрый SHA-256
+    здесь достаточен — ключ случайный на 32 байта, перебирать нечего.
+    """
+
+    token_hash = models.CharField(primary_key=True, max_length=64)
+    person = models.ForeignKey(Person, on_delete=models.CASCADE, related_name="resets")
+    made_at = models.DateTimeField(auto_now_add=True)
+    used_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        db_table = "resets"
