@@ -8,7 +8,29 @@
  *  поэтому чужой скрипт не сможет унести чужой урок.
  */
 
-const ITER = 210000
+/** 🔴 Число повторов упирается не в криптографию, а в тариф Cloudflare.
+ *
+ *  Замер на настоящем движке Cloudflare (workerd, локально):
+ *
+ *      20 000 повторов  ≈ 10 мс      100 000 ≈ 46 мс
+ *      30 000 повторов  ≈ 15 мс      210 000 ≈ 99 мс
+ *
+ *  Тариф Workers Free даёт 10 мс процессорного времени НА ЗАПРОС. Стояло 210 000 —
+ *  вдесятеро мимо. Каждая регистрация и каждый вход с существующей почтой падали;
+ *  человек читал «сервер споткнулся». Поймано владельцем на боевом 31.08.
+ *
+ *  Прибор этого увидеть не мог: он гоняет код в Node, а лимит живёт на площадке.
+ *  Локальный wrangler его тоже не применяет — сюда смотрят только на боевом.
+ *
+ *  100 000 — временное значение: оно всё ещё не влезает в 10 мс. Настоящих выходов
+ *  два, и оба стоят решения владельца (записано в docs/УЧЁТНЫЕ-ЗАПИСИ.md):
+ *    • платный Workers, $5/мес — 5 минут вместо 10 мс, и тогда сюда ставится 600 000
+ *      по нынешней рекомендации OWASP;
+ *    • учётные записи на свой сервер, где нет лимита и доступен argon2id.
+ *  Ослаблять хеш до 15 000, чтобы влезть в бесплатный тариф, — плохой третий путь:
+ *  украденную базу переберут в разы дешевле. Молча так делать нельзя.
+ */
+const ITER = 100000
 
 const b64url = (bytes) => {
   let s = ''
@@ -24,12 +46,12 @@ const unb64url = (s) => {
   return out
 }
 
-export async function hashPass(pass, saltRaw) {
+export async function hashPass(pass, saltRaw, iter = ITER) {
   const salt = saltRaw ?? crypto.getRandomValues(new Uint8Array(16))
   const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(pass), 'PBKDF2', false, ['deriveBits'])
   const bits = await crypto.subtle.deriveBits(
-    { name: 'PBKDF2', salt, iterations: ITER, hash: 'SHA-256' }, key, 256)
-  return `pbkdf2$${ITER}$${b64url(salt)}$${b64url(bits)}`
+    { name: 'PBKDF2', salt, iterations: iter, hash: 'SHA-256' }, key, 256)
+  return `pbkdf2$${iter}$${b64url(salt)}$${b64url(bits)}`
 }
 
 /** Сравнение постоянного времени: по скорости ответа хеш не подбирают. */
@@ -40,10 +62,16 @@ function same(a, b) {
   return diff === 0
 }
 
+/** 🔴 Число повторов берётся ИЗ ОТПЕЧАТКА, а не из ITER.
+ *  Иначе в день, когда ITER меняется, все старые пароли перестают подходить молча:
+ *  человек вводит верный пароль и слышит «не подошли». Отпечаток носит своё число
+ *  с собой — значит старые проверяются по-старому, новые пишутся по-новому. */
 export async function checkPass(pass, stored) {
   const parts = String(stored).split('$')
   if (parts.length !== 4 || parts[0] !== 'pbkdf2') return false
-  const again = await hashPass(pass, unb64url(parts[2]))
+  const iter = Number(parts[1])
+  if (!Number.isInteger(iter) || iter < 1 || iter > 100000) return false
+  const again = await hashPass(pass, unb64url(parts[2]), iter)
   return same(again, stored)
 }
 

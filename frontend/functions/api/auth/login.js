@@ -22,7 +22,7 @@ async function enter({ request, env }) {
   const wrong = () => no('Почта или пароль не подошли.', 401)
   if (!row) {
     // Считаем пароль впустую, чтобы ответ занял столько же времени.
-    await checkPass(pass, 'pbkdf2$210000$AAAAAAAAAAAAAAAAAAAAAA$AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA')
+    await checkPass(pass, 'pbkdf2$100000$AAAAAAAAAAAAAAAAAAAAAA$AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA')
     return wrong()
   }
   if (!(await checkPass(pass, row.pass))) return wrong()
