@@ -82,7 +82,7 @@ export function Hub({ onBack }: { onBack: () => void }) {
       <div className={s.body}>
         <ul className={s.list}>
           {list.map((x) => (
-            <li key={x.id}>
+            <li key={x.id} className={s.item}>
               <button
                 type="button"
                 className={`${s.card} ${pick?.id === x.id ? s.cardOn : ''} ${s[`st_${x.state}`]}`}
@@ -94,6 +94,10 @@ export function Hub({ onBack }: { onBack: () => void }) {
                 <span className={s.gives}>{x.gives}</span>
                 <span className={s.state}>{STATE_TEXT[x.state]}</span>
               </button>
+              <a className={s.cardGo} href={x.home} target="_blank" rel="noreferrer"
+                 onClick={(e) => e.stopPropagation()}>
+                открыть ↗
+              </a>
             </li>
           ))}
         </ul>
@@ -111,6 +115,13 @@ export function Hub({ onBack }: { onBack: () => void }) {
 
               <span className={s.label}>если замолчит</span>
               <p className={s.detailText}>{IF_SILENT[pick.kind]}</p>
+
+              {/* 🔴 Главное действие каталога — попасть В источник. Без него каталог
+                  остаётся витриной имён: человек выбрал строку и упёрся в тупик. */}
+              <a className={s.open} href={pick.home} target="_blank" rel="noreferrer">
+                Открыть источник ↗
+              </a>
+              <span className={s.openWhy}>{new URL(pick.home).host}</span>
 
               {/* ПРАВИЛА 12: дверь видна, названа, не нажимается, сказано когда откроется. */}
               <span className={s.door} aria-disabled="true" tabIndex={-1}>

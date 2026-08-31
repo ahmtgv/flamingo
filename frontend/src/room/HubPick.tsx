@@ -48,7 +48,13 @@ export function HubPick({ onGo, onClose }: {
         {list.map((x) => (
           <li key={x.id}>
             <button type="button" className={`${s.row} ${pick === x.id ? s.rowOn : ''}`}
-                    aria-pressed={pick === x.id} onClick={() => setPick(x.id)}>
+                    aria-pressed={pick === x.id}
+                    onClick={() => {
+                      setPick(x.id)
+                      // Адрес источника подставляем сразу: чаще всего показывают
+                      // именно его, а правку никто не запрещает.
+                      if (!url.trim()) setUrl(x.home)
+                    }}>
               <span className={s.rowName}>{x.name}</span>
               <span className={s.rowGives}>{x.gives}</span>
               {x.state === 'down' ? <span className={s.silent}>молчит · показываем последнюю проверку</span> : null}
