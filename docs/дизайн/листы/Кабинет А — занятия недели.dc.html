@@ -1,0 +1,166 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+    :root{
+      --fl-white:#ffffff; --fl-warm-100:#f1f1ef; --fl-warm-150:#e9e9e6; --fl-warm-200:#d9d9d6;
+      --fl-warm-300:#c4c4c1; --fl-warm-900:#1d1d1f; --fl-coral-500:#e14e1f; --fl-coral-700:#a83610;
+      --fl-moss-500:#2f8a56; --fl-moss-700:#226741; --fl-moss-300:#7fd3a3; --fl-moss-50:#e7f2ea;
+      --fl-info-500:#2f6fa8; --fl-dark-bg:#101012;
+      --color-bg:#f1f1ef; --color-surface:#ffffff; --color-surface-subtle:#e9e9e6;
+      --color-surface-hover:#e9e9e6; --color-border:#d9d9d6; --color-border-strong:#c4c4c1;
+      --color-text:#1d1d1f; --color-text-secondary:#646469; --color-text-hint:#6b6b75; --color-text-disabled:#a8a8ad;
+      --color-text-detail:#646469; --color-accent:#e14e1f; --color-accent-text:#a83610;
+      --color-accent-solid:#c23f14; --color-on-accent:#ffffff;
+      --color-go:#2f8a56; --color-go-text:#226741; --color-go-solid:#226741; --color-go-bg:#e7f2ea;
+      --color-go-border:#7fd3a3; --color-on-go:#ffffff;
+      --color-surface-video:#101012; --color-text-on-video:#f2f2f0;
+      --color-text-on-video-quiet:rgba(255,255,255,.72); --color-border-on-video:rgba(255,255,255,.22);
+      --color-surface-on-video:rgba(255,255,255,.12); --color-go-on-video:#7fd3a3;
+      --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px; --space-5:20px;
+      --space-6:24px; --space-7:32px; --space-8:40px;
+      --radius-xs:4px; --radius-sm:8px; --radius-md:12px; --radius-card:14px; --radius-pill:999px;
+      --text-h3:1.1875rem; --text-body:1.0625rem; --text-small:.875rem; --text-caption:.8125rem;
+      --font-heading:-apple-system,'SF Pro Display','Inter',system-ui,sans-serif;
+      --font-body:-apple-system,'SF Pro Text','Inter',system-ui,sans-serif;
+      --font-mono:'JetBrains Mono','SF Mono','IBM Plex Mono',ui-monospace,monospace;
+      --weight-regular:400; --weight-medium:500; --weight-semibold:600;
+      --leading-snug:1.4; --tracking-snug:-.01em;
+      --control-height-sm:34px; --control-height-md:42px;
+      --shadow-sm:0 1px 2px rgba(0,0,0,.03),0 2px 6px rgba(0,0,0,.04);
+      --shadow-md:0 1px 2px rgba(0,0,0,.03),0 8px 24px rgba(0,0,0,.05);
+      --text-h1:2rem; --text-h2:1.5rem; --text-overline:.75rem;
+      --tracking-tight:-.025em; --radius-control:10px; --tap-min:44px;
+      --color-go-line:#2f8a56; --color-accent-bg:#fbeae3; --color-accent-border:#f0b49a;
+      --space-9:48px; --space-10:64px; --control-height-lg:50px;
+      --leading-normal:1.55; --shadow-none:none;
+      --tile-min-height:112px;
+    }
+
+    *{box-sizing:border-box}
+    body{margin:0;font-family:var(--font-body);color:var(--color-text);background:var(--color-bg)}
+    a{color:var(--color-accent-text)} a:hover{color:var(--color-accent)}
+  </style>
+</helmet>
+<div style="width:1440px;height:900px;display:grid;grid-template-rows:auto auto minmax(0,1fr);
+      background:var(--color-bg);overflow:hidden">
+      <header style="display:flex;align-items:center;gap:var(--space-3);
+      padding:var(--space-3) var(--space-5);border-bottom:1px solid var(--color-border);background:var(--color-bg)">
+      <span style="display:inline-flex;align-items:center;gap:var(--space-2);font-family:var(--font-heading);
+        font-size:var(--text-body);font-weight:600;letter-spacing:var(--tracking-snug);color:var(--color-text)"><svg viewBox="0 0 120 110" width="20" height="20" aria-hidden="true">
+        <g fill="none" stroke="#e14e1f" stroke-linecap="round">
+          <path d="M28 55 L7 44" stroke-width="5.4"></path>
+          <path d="M26 61 L3 59" stroke-width="7"></path>
+          <path d="M28 66 L10 74" stroke-width="5.8"></path>
+          <path d="M44 80 L39 92 L36 103" stroke-width="5.6"></path>
+          <path d="M57 78 L59 90 L56 102" stroke-width="5"></path>
+        </g>
+        <path d="M58 52 C70 44 60 28 74 16" fill="none" stroke="#e14e1f" stroke-width="10" stroke-linecap="round"></path>
+        <ellipse cx="48" cy="63" rx="26" ry="21" fill="#e14e1f" transform="rotate(-6 48 63)"></ellipse>
+        <circle cx="78" cy="13" r="8.5" fill="#e14e1f"></circle>
+        <path d="M85 7 L108 14 L86 19 Z" fill="#1d1d1f"></path>
+        <circle cx="77" cy="8" r="2.2" fill="#fff"></circle>
+      </svg>Flamingo</span>
+      <span style="width:1px;height:var(--space-5);background:var(--color-border)"></span>
+      <span style="display:flex;gap:var(--space-2)"><span style="min-height:var(--control-height-sm);display:inline-grid;place-items:center;padding:0 var(--space-4);border-radius:var(--radius-pill);font-size:var(--text-small);background:var(--color-surface-subtle);border:1px solid var(--color-border-strong);color:var(--color-text)">Занятия</span><span style="min-height:var(--control-height-sm);display:inline-grid;place-items:center;padding:0 var(--space-4);border-radius:var(--radius-pill);font-size:var(--text-small);border:1px solid var(--color-border);color:var(--color-text-secondary)">Курсы</span><span style="min-height:var(--control-height-sm);display:inline-grid;place-items:center;padding:0 var(--space-4);border-radius:var(--radius-pill);font-size:var(--text-small);border:1px solid var(--color-border);color:var(--color-text-secondary)">Класс</span><span style="min-height:var(--control-height-sm);display:inline-grid;place-items:center;padding:0 var(--space-4);border-radius:var(--radius-pill);font-size:var(--text-small);border:1px solid var(--color-border);color:var(--color-text-secondary)">HUB</span></span>
+      <span style="margin-left:auto;display:flex;align-items:center;gap:var(--space-3)">
+        <span style="font:400 var(--text-caption) var(--font-mono);color:var(--color-text-secondary)">веду уроки</span>
+        <span style="display:grid;place-items:center;width:var(--control-height-sm);height:var(--control-height-sm);
+          border-radius:var(--radius-pill);background:var(--color-surface-subtle);
+          font:500 var(--text-caption) var(--font-mono);color:var(--color-text)">НК</span>
+      </span>
+    </header>
+      <div style="display:grid;gap:var(--space-2);padding:var(--space-5) var(--space-5) var(--space-4)">
+        <h1 style="margin:0;font-family:var(--font-heading);font-size:var(--text-h1);font-weight:600;letter-spacing:var(--tracking-tight);color:var(--color-text)">Занятия недели</h1>
+        <p style="font-size:var(--text-small);line-height:var(--leading-snug);color:var(--color-text-detail);max-width:92ch;margin:0">Кабинет собран вокруг расписания: всё, что вы ведёте, лежит по дням. Занятие — это то, что случится в такое-то время с таким-то классом; доска, материалы и задание живут внутри него.</p>
+      </div>
+      <div style="min-height:0;display:grid;padding:0 var(--space-5) var(--space-5)"><div style="display:grid;grid-template-columns:minmax(0,1fr) 22rem;gap:var(--space-5);min-height:0">
+  <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-card);padding:var(--space-5);display:grid;grid-template-columns:repeat(5,minmax(0,1fr));
+    gap:var(--space-4);min-height:0;height:100%;overflow:hidden"><div style="display:grid;gap:var(--space-2);align-content:start;min-height:0">
+      <span style="font:500 var(--text-overline) var(--font-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--color-text-detail)">пн · 2 сентября</span><div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-card);border-left:2px solid var(--color-go-line);padding:var(--space-3) var(--space-4);display:grid;gap:var(--space-2)">
+      <span style="font:400 var(--text-caption) var(--font-mono);color:var(--color-text-secondary)">09:00</span>
+      <span style="font-size:var(--text-small);font-weight:500;color:var(--color-text)">Площадь треугольника</span>
+      <span style="font:400 var(--text-caption) var(--font-mono);color:var(--color-text-secondary)">7-Б · 24 ученика</span>
+      <span style="font:400 var(--text-caption) var(--font-mono);color:var(--color-text-secondary);color:var(--color-go-text)">готово</span></div><div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-card);border-left:2px solid var(--color-border-strong);padding:var(--space-3) var(--space-4);display:grid;gap:var(--space-2)">
+      <span style="font:400 var(--text-caption) var(--font-mono);color:var(--color-text-secondary)">11:30</span>
+      <span style="font-size:var(--text-small);font-weight:500;color:var(--color-text)">Синус и косинус</span>
+      <span style="font:400 var(--text-caption) var(--font-mono);color:var(--color-text-secondary)">9-А · 28</span>
+      </div><div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-card);border-left:2px solid var(--color-border-strong);padding:var(--space-3) var(--space-4);display:grid;gap:var(--space-2)">
+      <span style="font:400 var(--text-caption) var(--font-mono);color:var(--color-text-secondary)">15:00</span>
+      <span style="font-size:var(--text-small);font-weight:500;color:var(--color-text)">Кружок: задачи</span>
+      <span style="font:400 var(--text-caption) var(--font-mono);color:var(--color-text-secondary)">7-Б · 9</span>
+      </div></div><div style="display:grid;gap:var(--space-2);align-content:start;min-height:0">
+      <span style="font:500 var(--text-overline) var(--font-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--color-text-detail)">вт · 3 сентября</span><div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-card);border-left:2px solid var(--color-accent-solid);padding:var(--space-3) var(--space-4);display:grid;gap:var(--space-2)">
+      <span style="font:400 var(--text-caption) var(--font-mono);color:var(--color-text-secondary)">10:00</span>
+      <span style="font-size:var(--text-small);font-weight:500;color:var(--color-text)">Разбор контрольной</span>
+      <span style="font:400 var(--text-caption) var(--font-mono);color:var(--color-text-secondary)">7-Б · 24</span>
+      </div><div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-card);border-left:2px solid var(--color-accent-solid);padding:var(--space-3) var(--space-4);display:grid;gap:var(--space-2)">
+      <span style="font:400 var(--text-caption) var(--font-mono);color:var(--color-text-secondary)">12:00</span>
+      <span style="font-size:var(--text-small);font-weight:500;color:var(--color-text)">Подготовка к экзамену</span>
+      <span style="font:400 var(--text-caption) var(--font-mono);color:var(--color-text-secondary)">9-А · 12</span>
+      </div><div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-card);border-left:2px solid var(--color-border-strong);padding:var(--space-3) var(--space-4);display:grid;gap:var(--space-2)">
+      <span style="font:400 var(--text-caption) var(--font-mono);color:var(--color-text-secondary)">14:00</span>
+      <span style="font-size:var(--text-small);font-weight:500;color:var(--color-text)">Векторы</span>
+      <span style="font:400 var(--text-caption) var(--font-mono);color:var(--color-text-secondary)">9-А · 28</span>
+      </div></div><div style="display:grid;gap:var(--space-2);align-content:start;min-height:0">
+      <span style="font:500 var(--text-overline) var(--font-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--color-text-detail)">ср · 4 сентября</span><div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-card);border-left:2px solid var(--color-go-line);padding:var(--space-3) var(--space-4);display:grid;gap:var(--space-2)">
+      <span style="font:400 var(--text-caption) var(--font-mono);color:var(--color-text-secondary)">09:00</span>
+      <span style="font-size:var(--text-small);font-weight:500;color:var(--color-text)">Площадь трапеции</span>
+      <span style="font:400 var(--text-caption) var(--font-mono);color:var(--color-text-secondary)">7-Б · 24</span>
+      <span style="font:400 var(--text-caption) var(--font-mono);color:var(--color-text-secondary);color:var(--color-go-text)">доска готова</span></div><div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-card);border-left:2px solid var(--color-border-strong);padding:var(--space-3) var(--space-4);display:grid;gap:var(--space-2)">
+      <span style="font:400 var(--text-caption) var(--font-mono);color:var(--color-text-secondary)">13:00</span>
+      <span style="font-size:var(--text-small);font-weight:500;color:var(--color-text)">Консультация</span>
+      <span style="font:400 var(--text-caption) var(--font-mono);color:var(--color-text-secondary)">9-А · 6</span>
+      </div></div><div style="display:grid;gap:var(--space-2);align-content:start;min-height:0">
+      <span style="font:500 var(--text-overline) var(--font-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--color-text-detail)">чт · 5 сентября</span><div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-card);border-left:2px solid var(--color-border-strong);padding:var(--space-3) var(--space-4);display:grid;gap:var(--space-2)">
+      <span style="font:400 var(--text-caption) var(--font-mono);color:var(--color-text-secondary)">11:30</span>
+      <span style="font-size:var(--text-small);font-weight:500;color:var(--color-text)">Повторение</span>
+      <span style="font:400 var(--text-caption) var(--font-mono);color:var(--color-text-secondary)">9-А · 28</span>
+      </div><div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-card);border-left:2px solid var(--color-border-strong);padding:var(--space-3) var(--space-4);display:grid;gap:var(--space-2)">
+      <span style="font:400 var(--text-caption) var(--font-mono);color:var(--color-text-secondary)">14:00</span>
+      <span style="font-size:var(--text-small);font-weight:500;color:var(--color-text)">Подобие</span>
+      <span style="font:400 var(--text-caption) var(--font-mono);color:var(--color-text-secondary)">7-Б · 24</span>
+      </div><div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-card);border-left:2px solid var(--color-border-strong);padding:var(--space-3) var(--space-4);display:grid;gap:var(--space-2)">
+      <span style="font:400 var(--text-caption) var(--font-mono);color:var(--color-text-secondary)">16:00</span>
+      <span style="font-size:var(--text-small);font-weight:500;color:var(--color-text)">Кружок: задачи</span>
+      <span style="font:400 var(--text-caption) var(--font-mono);color:var(--color-text-secondary)">7-Б · 9</span>
+      </div></div><div style="display:grid;gap:var(--space-2);align-content:start;min-height:0">
+      <span style="font:500 var(--text-overline) var(--font-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--color-text-detail)">пт · 6 сентября</span><div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-card);border-left:2px solid var(--color-border-strong);padding:var(--space-3) var(--space-4);display:grid;gap:var(--space-2)">
+      <span style="font:400 var(--text-caption) var(--font-mono);color:var(--color-text-secondary)">09:00</span>
+      <span style="font-size:var(--text-small);font-weight:500;color:var(--color-text)">Самостоятельная</span>
+      <span style="font:400 var(--text-caption) var(--font-mono);color:var(--color-text-secondary)">7-Б · 24</span>
+      </div><div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-card);border-left:2px solid var(--color-border-strong);padding:var(--space-3) var(--space-4);display:grid;gap:var(--space-2)">
+      <span style="font:400 var(--text-caption) var(--font-mono);color:var(--color-text-secondary)">11:30</span>
+      <span style="font-size:var(--text-small);font-weight:500;color:var(--color-text)">Контрольная</span>
+      <span style="font:400 var(--text-caption) var(--font-mono);color:var(--color-text-secondary)">9-А · 28</span>
+      </div></div></div>
+  <div style="display:grid;gap:var(--space-4);align-content:start">
+  <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-card);padding:var(--space-5);display:grid;gap:var(--space-3)">
+    <span style="font:500 var(--text-overline) var(--font-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--color-text-detail)">ближайшее занятие</span>
+    <h2 style="margin:0;font-family:var(--font-heading);font-size:var(--text-h3);font-weight:500;letter-spacing:var(--tracking-snug);color:var(--color-text)">Площадь треугольника</h2>
+    <span style="font-size:var(--text-small);line-height:var(--leading-snug);color:var(--color-text-detail)">7-Б · 24 ученика · сегодня в 09:00</span>
+    <span style="font:400 var(--text-caption) var(--font-mono);color:var(--color-text-secondary);color:var(--color-go-text)">доска и материалы готовы</span>
+    <span style="display:inline-grid;place-items:center;justify-self:start;min-height:var(--tap-min);padding:0 var(--space-5);border-radius:var(--radius-control);background:var(--color-go-solid);color:var(--color-on-go);font-size:var(--text-small);font-weight:500">Начать урок</span>
+    <span style="display:inline-grid;place-items:center;justify-self:start;min-height:var(--control-height-sm);padding:0 var(--space-4);border-radius:var(--radius-pill);border:1px solid var(--color-border);color:var(--color-text);font-size:var(--text-small)">Открыть занятие</span>
+  </div>
+  <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-card);padding:var(--space-5);display:grid;gap:var(--space-2)">
+    <span style="font:500 var(--text-overline) var(--font-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--color-text-detail)">требует внимания</span>
+    <span style="font-size:var(--text-small);line-height:var(--leading-snug);color:var(--color-text-detail)">Разбор контрольной 3 сентября — занятие пустое: ни доски, ни задания.</span>
+    <span style="font-size:var(--text-small);line-height:var(--leading-snug);color:var(--color-text-detail)">Подготовка к экзамену 3 сентября — то же самое.</span>
+    <span style="display:inline-grid;place-items:center;justify-self:start;min-height:var(--control-height-sm);padding:0 var(--space-4);border-radius:var(--radius-pill);border:1px solid var(--color-border);color:var(--color-text);font-size:var(--text-small)">Собрать занятия</span>
+  </div>
+  <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-card);padding:var(--space-5);display:grid;gap:var(--space-2)">
+    <span style="font:500 var(--text-overline) var(--font-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--color-text-detail)">за неделю</span>
+    <span style="font-size:var(--text-small);line-height:var(--leading-snug);color:var(--color-text-detail)">12 занятий · 3 класса · 64 ученика</span>
+    <span style="font:400 var(--text-caption) var(--font-mono);color:var(--color-text-secondary)">10 собрано, 2 ждут материалов</span>
+  </div>
+</div></div></div>
+    </div></x-dc>
+</body>
+</html>
