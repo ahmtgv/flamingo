@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+    :root{
+      --color-bg:#f1f1ef; --color-surface:#ffffff; --color-surface-subtle:#e9e9e6;
+      --color-border:#d9d9d6; --color-border-strong:#c4c4c1;
+      --color-text:#1d1d1f; --color-text-secondary:#646469; --color-text-detail:#646469;
+      --color-text-hint:#6b6b75; --color-text-disabled:#a8a8ad;
+      --color-accent:#e14e1f; --color-accent-text:#a83610; --color-accent-solid:#c23f14;
+      --color-accent-bg:#fbeae3; --color-accent-border:#f0b49a;
+      --color-go:#619b21; --color-go-text:#3d6412; --color-go-solid:#4a7a16;
+      --color-go-bg:#eef4e2; --color-go-border:#a8d96a; --color-on-go:#ffffff; --color-go-line:#619b21;
+      --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px; --space-5:20px;
+      --space-6:24px; --space-7:32px; --space-8:40px; --space-9:48px; --space-10:64px;
+      --radius-xs:4px; --radius-sm:8px; --radius-card:14px; --radius-pill:999px; --radius-control:10px;
+      --text-body:1.0625rem; --text-small:.875rem; --text-caption:.8125rem; --text-overline:.75rem;
+      --font-heading:-apple-system,'SF Pro Display','Inter',system-ui,sans-serif;
+      --font-body:-apple-system,'SF Pro Text','Inter',system-ui,sans-serif;
+      --font-mono:'JetBrains Mono','SF Mono','IBM Plex Mono',ui-monospace,monospace;
+      --leading-snug:1.4; --leading-normal:1.55; --tracking-snug:-.01em;
+      --control-height-sm:34px; --control-height-lg:50px; --tap-min:44px;
+      --shadow-sm:0 1px 2px rgba(0,0,0,.03),0 2px 6px rgba(0,0,0,.04);
+    }
+    [data-mode="kids"]{
+      --text-body:1.1875rem; --text-small:1rem; --text-caption:.875rem;
+      --control-height-sm:40px; --control-height-lg:58px; --tap-min:48px; --radius-control:14px;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:var(--font-body);color:var(--color-text);background:var(--color-bg)}
+    a{color:var(--color-accent-text)} a:hover{color:var(--color-accent)}
+  </style>
+</helmet>
+<div ref="{{ setRoot }}" style="height:100vh;display:grid;grid-template-rows:auto minmax(0,1fr);background:var(--color-surface-subtle)">
+  <div style="display:flex;align-items:center;gap:var(--space-2);padding:var(--space-3) var(--space-4);border-bottom:1px solid var(--color-border);flex-wrap:wrap;background:var(--color-bg)">
+    <span style="font:500 var(--text-caption) var(--font-mono);color:var(--color-text-detail);letter-spacing:.08em;text-transform:uppercase">Первая страница</span>
+    <span style="font:500 var(--text-caption) var(--font-mono);color:var(--color-text-detail);letter-spacing:.08em;text-transform:uppercase;margin-left:var(--space-4)">состояние</span>
+    <button data-sw="case" data-val="full" onClick="{{ onSw }}" style="font:500 var(--text-caption) var(--font-mono);background:none;border:1px solid var(--color-border);border-radius:var(--radius-pill);padding:6px 12px;color:var(--color-text-secondary);cursor:pointer">наполнено</button>
+    <button data-sw="case" data-val="empty" onClick="{{ onSw }}" style="font:500 var(--text-caption) var(--font-mono);background:none;border:1px solid var(--color-border);border-radius:var(--radius-pill);padding:6px 12px;color:var(--color-text-secondary);cursor:pointer">пусто</button>
+    <button data-sw="case" data-val="load" onClick="{{ onSw }}" style="font:500 var(--text-caption) var(--font-mono);background:none;border:1px solid var(--color-border);border-radius:var(--radius-pill);padding:6px 12px;color:var(--color-text-secondary);cursor:pointer">загружается</button>
+    <button data-sw="case" data-val="fail" onClick="{{ onSw }}" style="font:500 var(--text-caption) var(--font-mono);background:none;border:1px solid var(--color-border);border-radius:var(--radius-pill);padding:6px 12px;color:var(--color-text-secondary);cursor:pointer">отказ</button>
+    <button data-sw="case" data-val="part" onClick="{{ onSw }}" style="font:500 var(--text-caption) var(--font-mono);background:none;border:1px solid var(--color-border);border-radius:var(--radius-pill);padding:6px 12px;color:var(--color-text-secondary);cursor:pointer">частичный отказ</button>
+    <span style="font:500 var(--text-caption) var(--font-mono);color:var(--color-text-detail);letter-spacing:.08em;text-transform:uppercase;margin-left:var(--space-4)">кадр</span>
+    <button data-sw="frame" data-val="1440" onClick="{{ onSw }}" style="font:500 var(--text-caption) var(--font-mono);background:none;border:1px solid var(--color-border);border-radius:var(--radius-pill);padding:6px 12px;color:var(--color-text-secondary);cursor:pointer">1440</button>
+    <button data-sw="frame" data-val="1280" onClick="{{ onSw }}" style="font:500 var(--text-caption) var(--font-mono);background:none;border:1px solid var(--color-border);border-radius:var(--radius-pill);padding:6px 12px;color:var(--color-text-secondary);cursor:pointer">1280</button>
+    <span style="margin-left:auto;display:flex;gap:var(--space-2);align-items:center">
+      <span data-scroll-probe style="font:400 var(--text-caption) var(--font-mono);color:var(--color-text-detail)">прокрутка страницы: 0 px</span>
+      <button data-sw="kids" data-val="toggle" onClick="{{ onSw }}" style="font:500 var(--text-caption) var(--font-mono);background:none;border:1px solid var(--color-border);border-radius:var(--radius-pill);padding:6px 12px;color:var(--color-text-secondary);cursor:pointer">kids</button>
+    </span>
+  </div>
+
+  <div ref="{{ setHost }}" style="min-height:0;overflow:hidden;position:relative">
+    <div ref="{{ setFrame }}" data-audit-scope data-screen-label="Первая страница" data-mode="{{ kidsMode }}" style="width:{{ frameW }};height:900px;background:var(--color-surface);overflow:hidden;display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);border:1px solid var(--color-border)">
+
+      <div style="display:grid;grid-template-rows:auto minmax(0,1fr) auto;padding:var(--space-9) var(--space-10);background:var(--color-bg);border-right:1px solid var(--color-border)">
+        <span data-geo="знак" style="display:inline-flex;align-items:center;gap:var(--space-2);font-family:var(--font-heading);font-size:var(--text-body);font-weight:600;letter-spacing:var(--tracking-snug)">
+          <img src="./flamingo-bird.svg" width="22" height="22" alt="" style="display:block">Flamingo</span>
+
+        <div style="display:grid;align-content:center;gap:var(--space-5);max-width:31rem">
+          <h1 data-geo="заголовок" style="margin:0;font-family:var(--font-heading);font-size:3rem;line-height:1.06;font-weight:600;letter-spacing:-.025em;color:var(--color-text);text-wrap:balance">Занятие по ссылке</h1>
+          <p style="margin:0;font-size:var(--text-body);line-height:var(--leading-normal);color:var(--color-text-secondary);text-wrap:pretty">Комната для урока: доска, лица и голос. Вы открываете комнату и зовёте класс ссылкой — ученику ни регистрации, ни установки.</p>
+          <span style="display:inline-flex;align-items:center;gap:var(--space-3);padding-top:var(--space-3);border-top:1px solid var(--color-border);font:400 var(--text-caption) var(--font-mono);color:var(--color-text-detail)">лицо<span style="color:var(--color-border-strong)">·</span>голос<span style="color:var(--color-border-strong)">·</span>аналитика</span>
+        </div>
+
+        <p style="margin:0;max-width:30rem;font-size:var(--text-caption);line-height:var(--leading-normal);color:var(--color-text-hint);text-wrap:pretty">В комнате включаются камера и микрофон — браузер спросит разрешение. Урок не записывается, а доска живёт, пока в комнате есть хоть один человек: чтобы она осталась после урока, её сохраняют в файл.</p>
+      </div>
+
+      <div style="display:grid;align-content:center;padding:var(--space-9)">
+        <div style="display:grid;gap:var(--space-6);padding:var(--space-8) var(--space-7);border:1px solid var(--color-border);border-radius:var(--radius-card);background:var(--color-surface);box-shadow:var(--shadow-sm)">
+          <div style="display:grid;gap:var(--space-2)">
+            <span style="font:500 var(--text-overline) var(--font-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--color-text-detail)">как вас зовут</span>
+            <input data-geo="поле-имя" placeholder="Например, Аня" value="{{ nameValue }}" readOnly="{{ true }}" style="width:100%;height:var(--control-height-lg);padding:0 var(--space-4);border:1px solid {{ inputBd }};border-radius:var(--radius-control);background:var(--color-surface);font-family:var(--font-body);font-size:var(--text-body);color:var(--color-text)" />
+            <span style="font-size:var(--text-small);line-height:var(--leading-snug);color:var(--color-text-secondary)">Под этим именем вас увидит класс. Без него войти нельзя.</span>
+          </div>
+
+          <div data-geo="строка-сообщения" style="display:grid;gap:var(--space-2);min-height:calc(2 * var(--space-3) + 2px + var(--text-small) * var(--leading-snug) + var(--space-1) + 3 * var(--text-caption) * var(--leading-snug))">
+            <sc-if value="{{ hasMsg }}" hint-placeholder-val="{{ true }}">
+              <span style="display:grid;gap:var(--space-1);padding:var(--space-3) var(--space-4);border-radius:var(--radius-sm);border:1px solid {{ msgBd }};background:{{ msgBg }};border-left:2px solid {{ msgLine }}">
+                <span style="font-size:var(--text-small);font-weight:500;line-height:var(--leading-snug);color:{{ msgTitleColor }}">{{ msgTitle }}</span>
+                <span style="font-size:var(--text-caption);line-height:var(--leading-snug);color:var(--color-text-secondary)">{{ msgBody }}</span>
+              </span>
+            </sc-if>
+          </div>
+
+          <button data-geo="главное-действие" data-pick="create" data-val="go" onClick="{{ onCreate }}" aria-disabled="{{ ctaDisabledStr }}" style="display:grid;place-items:center;height:var(--control-height-lg);border:none;border-radius:var(--radius-control);background:{{ ctaBg }};color:{{ ctaColor }};font:500 var(--text-body) var(--font-body);cursor:{{ ctaCursor }}">{{ ctaLabel }}</button>
+
+          <div style="display:flex;align-items:baseline;gap:var(--space-3);padding-top:var(--space-5);border-top:1px solid var(--color-border);flex-wrap:wrap">
+            <span style="font-size:var(--text-small);color:var(--color-text-secondary)">Уже есть учётная запись?</span>
+            <button data-still="ведёт на экран входа и регистрации (Sign.tsx)" style="border:none;background:none;padding:0;color:var(--color-go-text);font:500 var(--text-small) var(--font-body);text-decoration:underline;text-decoration-color:var(--color-go-border);text-underline-offset:4px;cursor:pointer">Войти или завести учётную запись</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;: {&quot;width&quot;: 1512, &quot;height&quot;: 980}}">
+class Component extends DCLogic {
+  // ПЕРВАЯ СТРАНИЦА (Enter.tsx). Огранка по снимку 1-первая-страница.png.
+  // Блоки и их порядок — как в продукте, кроме кнопки Flamingo HUB: владелец убрал её
+  // с этого экрана 31.08 (уходит в верхнее меню).
+  state = { case: 'full', frame: '1440', kids: false };
+
+  MSG = {
+    full: null,
+    empty: {
+      title: 'Сначала имя',
+      body: 'Без имени класс не поймёт, кто открыл комнату. Одного слова достаточно.',
+      kind: 'quiet',
+    },
+    load: {
+      title: 'Поднимаем комнату',
+      body: 'Первой придёт ссылка для класса — её можно отправить сразу, не дожидаясь эфира.',
+      kind: 'quiet',
+    },
+    fail: {
+      title: 'Комната не поднялась',
+      body: 'Сервер комнат не ответил за десять секунд. Имя сохранено — нажмите ещё раз; если повторится, урок можно вести на доске без эфира.',
+      kind: 'alarm',
+    },
+    part: {
+      title: 'Комната откроется без камеры и микрофона',
+      body: 'Браузер не дал доступ к камере. Работает: доска, чат, ссылка для класса. Не работает: ваше лицо и голос. Разрешение можно дать в комнате из пульта.',
+      kind: 'alarm',
+    },
+  };
+
+  componentDidMount() {
+    this.onResize = () => this.fit();
+    window.addEventListener('resize', this.onResize);
+    this.ro = new ResizeObserver(() => this.fit());
+    if (this.host) this.ro.observe(this.host);
+    this.settle();
+    this.probe = setInterval(() => {
+      const el = this.root && this.root.querySelector('[data-scroll-probe]');
+      if (el) el.textContent = 'прокрутка страницы: ' + Math.max(0, document.documentElement.scrollHeight - window.innerHeight) + ' px';
+    }, 1000);
+  }
+  componentDidUpdate() { this.settle(); }
+  componentWillUnmount() {
+    window.removeEventListener('resize', this.onResize);
+    if (this.ro) this.ro.disconnect();
+    clearInterval(this.probe);
+  }
+
+  settle() { this.fit(); this.applyChrome(); requestAnimationFrame(() => this.fit()); }
+
+  fit() {
+    const host = this.host, f = this.frame;
+    if (!host || !f) return;
+    const w = host.clientWidth, h = host.clientHeight;
+    if (!(w > 0) || !(h > 0)) return;
+    const fw = this.state.frame === '1280' ? 1280 : 1440;
+    const s = Math.min(1, (w - 24) / fw, (h - 24) / 900);
+    if (!(s > 0)) return;
+    // Масштаб не трогает раскладку: только transform от центра (иначе margin меняет
+    // размер, ResizeObserver зовёт fit снова и страница не заканчивает загрузку).
+    f.style.position = 'absolute';
+    f.style.left = '50%';
+    f.style.top = '50%';
+    f.style.transformOrigin = 'center';
+    f.style.transform = 'translate(-50%, -50%) scale(' + s.toFixed(4) + ')';
+  }
+
+  applyChrome() {
+    const root = this.root; if (!root) return;
+    const cur = { case: this.state.case, frame: this.state.frame, kids: this.state.kids ? 'toggle' : '' };
+    root.querySelectorAll('[data-sw]').forEach((b) => {
+      const k = b.dataset.sw;
+      if (!(k in cur)) return;
+      const on = cur[k] === b.dataset.val;
+      b.style.color = on ? 'var(--color-text)' : 'var(--color-text-secondary)';
+      b.style.borderColor = on ? 'var(--color-border-strong)' : 'var(--color-border)';
+      b.style.background = on ? 'var(--color-surface)' : 'none';
+    });
+  }
+
+  onSw = (e) => {
+    const ds = e.currentTarget.dataset;
+    if (ds.sw === 'kids') return this.setState((s) => ({ kids: !s.kids }));
+    this.setState({ [ds.sw]: ds.val });
+  };
+
+  // Главное действие живёт: в «пусто» оно ничего не создаёт и говорит об этом строкой
+  // сообщения (которая стоит всегда), в остальных случаях переводит лист в загрузку.
+  onCreate = () => {
+    this.setState((s) => ({ case: s.case === 'load' ? 'full' : 'load' }));
+  };
+
+  renderVals() {
+    const s = this.state;
+    const c = s.case;
+    const msg = this.MSG[c];
+    const alarm = msg && msg.kind === 'alarm';
+    const loading = c === 'load';
+    const empty = c === 'empty';
+
+    return {
+      setRoot: (el) => { this.root = el; },
+      setHost: (el) => { this.host = el; if (el && this.ro) this.ro.observe(el); this.fit(); },
+      setFrame: (el) => { this.frame = el; this.fit(); },
+      kidsMode: s.kids ? 'kids' : '',
+      frameW: s.frame === '1280' ? '1280px' : '1440px',
+
+      nameValue: empty ? '' : 'Нина Кузьмина',
+      inputBd: empty ? 'var(--color-border-strong)' : 'var(--color-border-strong)',
+
+      hasMsg: Boolean(msg),
+      msgTitle: msg ? msg.title : '',
+      msgBody: msg ? msg.body : '',
+      msgTitleColor: alarm ? 'var(--color-accent-text)' : 'var(--color-text)',
+      msgBd: alarm ? 'var(--color-accent-border)' : 'var(--color-border)',
+      msgBg: alarm ? 'var(--color-accent-bg)' : 'var(--color-surface-subtle)',
+      msgLine: alarm ? 'var(--color-accent-solid)' : 'var(--color-border-strong)',
+
+      ctaLabel: loading ? 'Поднимаем комнату…' : 'Создать комнату',
+      ctaBg: empty || loading ? 'var(--color-surface-subtle)' : 'var(--color-go-solid)',
+      ctaColor: empty || loading ? 'var(--color-text-secondary)' : 'var(--color-on-go)',
+      ctaCursor: empty ? 'default' : 'pointer',
+      ctaDisabledStr: empty ? 'true' : 'false',
+
+      onSw: this.onSw,
+      onCreate: this.onCreate,
+    };
+  }
+}
+</script>
+</body>
+</html>

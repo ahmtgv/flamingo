@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+    :root{
+      --color-bg:#f1f1ef; --color-surface:#ffffff; --color-surface-subtle:#e9e9e6;
+      --color-border:#d9d9d6; --color-border-strong:#c4c4c1;
+      --color-text:#1d1d1f; --color-text-secondary:#646469; --color-text-detail:#646469;
+      --color-text-hint:#6b6b75;
+      --color-accent:#e14e1f; --color-accent-text:#a83610;
+      --color-go:#619b21; --color-go-text:#3d6412; --color-go-solid:#4a7a16;
+      --color-go-bg:#eef4e2; --color-go-border:#a8d96a; --color-on-go:#ffffff;
+      --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px; --space-5:20px;
+      --space-6:24px; --space-7:32px; --space-8:40px; --space-9:48px; --space-10:64px;
+      --radius-sm:8px; --radius-card:14px; --radius-pill:999px; --radius-control:10px;
+      --text-body:1.0625rem; --text-small:.875rem; --text-caption:.8125rem; --text-overline:.75rem;
+      --font-heading:-apple-system,'SF Pro Display','Inter',system-ui,sans-serif;
+      --font-body:-apple-system,'SF Pro Text','Inter',system-ui,sans-serif;
+      --font-mono:'JetBrains Mono','SF Mono','IBM Plex Mono',ui-monospace,monospace;
+      --leading-snug:1.4; --leading-normal:1.55; --tracking-snug:-.01em;
+      --control-height-lg:50px; --tap-min:44px;
+      --shadow-sm:0 1px 2px rgba(0,0,0,.03),0 2px 6px rgba(0,0,0,.04);
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:var(--font-body);color:var(--color-text);background:var(--color-bg)}
+    a{color:var(--color-accent-text)} a:hover{color:var(--color-accent)}
+  </style>
+</helmet>
+<div ref="{{ setHost }}" style="height:100vh;overflow:hidden;position:relative;background:var(--color-surface-subtle)">
+  <div ref="{{ setFrame }}" data-audit-scope data-screen-label="Первая страница · Б3" style="width:1440px;height:900px;background:var(--color-surface);overflow:hidden;display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr)">
+
+    <div style="display:grid;grid-template-rows:auto minmax(0,1fr) auto;padding:var(--space-9) var(--space-10);background:var(--color-bg);border-right:1px solid var(--color-border)">
+      <span style="display:inline-flex;align-items:center;gap:var(--space-2);font-family:var(--font-heading);font-size:var(--text-body);font-weight:600;letter-spacing:var(--tracking-snug)">
+        <img src="./flamingo-bird.svg" width="22" height="22" alt="" style="display:block">Flamingo</span>
+
+      <div style="display:grid;align-content:center;gap:var(--space-5);max-width:31rem">
+        <h1 style="margin:0;font-family:var(--font-heading);font-size:3rem;line-height:1.06;font-weight:600;letter-spacing:-.025em;color:var(--color-text);text-wrap:balance">Занятие по ссылке</h1>
+        <p style="margin:0;font-size:var(--text-body);line-height:var(--leading-normal);color:var(--color-text-secondary);text-wrap:pretty">Комната для урока: доска, лица и голос. Вы открываете комнату и зовёте класс ссылкой — ученику ни регистрации, ни установки.</p>
+        <span style="display:inline-flex;align-items:center;gap:var(--space-3);padding-top:var(--space-3);border-top:1px solid var(--color-border);font:400 var(--text-caption) var(--font-mono);color:var(--color-text-detail)">лицо<span style="color:var(--color-border-strong)">·</span>голос<span style="color:var(--color-border-strong)">·</span>аналитика</span>
+      </div>
+
+      <p style="margin:0;max-width:30rem;font-size:var(--text-caption);line-height:var(--leading-normal);color:var(--color-text-hint);text-wrap:pretty">В комнате включаются камера и микрофон — браузер спросит разрешение. Урок не записывается, а доска живёт, пока в комнате есть хоть один человек: чтобы она осталась после урока, её сохраняют в файл.</p>
+    </div>
+
+    <div style="display:grid;align-content:center;padding:var(--space-9) var(--space-9)">
+      <div style="display:grid;gap:var(--space-6);padding:var(--space-8) var(--space-7);border:1px solid var(--color-border);border-radius:var(--radius-card);background:var(--color-surface);box-shadow:var(--shadow-sm)">
+        <div style="display:grid;gap:var(--space-2)">
+          <span style="font:500 var(--text-overline) var(--font-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--color-text-detail)">как вас зовут</span>
+          <input placeholder="Например, Аня" style="width:100%;height:var(--control-height-lg);padding:0 var(--space-4);border:1px solid var(--color-border-strong);border-radius:var(--radius-control);background:var(--color-surface);font-family:var(--font-body);font-size:var(--text-body);color:var(--color-text)" />
+          <span style="font-size:var(--text-small);line-height:var(--leading-snug);color:var(--color-text-secondary)">Под этим именем вас увидит класс. Без него войти нельзя.</span>
+        </div>
+        <button data-still="создаёт комнату и переводит в комнату урока" style="display:grid;place-items:center;height:var(--control-height-lg);border:none;border-radius:var(--radius-control);background:var(--color-go-solid);color:var(--color-on-go);font:500 var(--text-body) var(--font-body);cursor:pointer">Создать комнату</button>
+        <div style="display:flex;align-items:baseline;gap:var(--space-3);padding-top:var(--space-5);border-top:1px solid var(--color-border)">
+          <span style="font-size:var(--text-small);color:var(--color-text-secondary)">Уже есть учётная запись?</span>
+          <button data-still="ведёт на экран входа и регистрации" style="border:none;background:none;padding:0;color:var(--color-go-text);font:500 var(--text-small) var(--font-body);text-decoration:underline;text-decoration-color:var(--color-go-border);text-underline-offset:4px;cursor:pointer">Войти или завести учётную запись</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;: {&quot;width&quot;: 1440, &quot;height&quot;: 900}}">
+class Component extends DCLogic {
+  componentDidMount() {
+    this.onResize = () => this.fit();
+    window.addEventListener('resize', this.onResize);
+    this.ro = new ResizeObserver(() => this.fit());
+    if (this.host) this.ro.observe(this.host);
+    this.fit();
+    requestAnimationFrame(() => this.fit());
+  }
+  componentWillUnmount() {
+    window.removeEventListener('resize', this.onResize);
+    if (this.ro) this.ro.disconnect();
+  }
+  fit() {
+    const host = this.host, f = this.frame;
+    if (!host || !f) return;
+    const w = host.clientWidth, h = host.clientHeight;
+    if (!(w > 0) || !(h > 0)) return;
+    const s = Math.min(1, (w - 24) / 1440, (h - 24) / 900);
+    if (!(s > 0)) return;
+    // Масштаб НЕ трогает раскладку: только transform от центра. Прежде fit писал
+    // marginLeft/marginTop, ResizeObserver получал новый размер и снова звал fit —
+    // страница не заканчивала загрузку.
+    f.style.position = 'absolute';
+    f.style.left = '50%';
+    f.style.top = '50%';
+    f.style.transformOrigin = 'center';
+    f.style.transform = 'translate(-50%, -50%) scale(' + s.toFixed(4) + ')';
+  }
+  renderVals() {
+    return {
+      setHost: (el) => { this.host = el; if (el && this.ro) this.ro.observe(el); this.fit(); },
+      setFrame: (el) => { this.frame = el; this.fit(); },
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+    :root{
+      --color-bg:#f1f1ef; --color-surface:#ffffff; --color-surface-subtle:#e9e9e6;
+      --color-border:#d9d9d6; --color-border-strong:#c4c4c1;
+      --color-text:#1d1d1f; --color-text-secondary:#646469; --color-text-detail:#646469;
+      --color-text-hint:#6b6b75; --color-text-disabled:#a8a8ad;
+      --color-accent:#e14e1f; --color-accent-text:#a83610; --color-accent-solid:#c23f14;
+      --color-accent-bg:#fbeae3; --color-accent-border:#f0b49a;
+      --color-go:#619b21; --color-go-text:#3d6412; --color-go-solid:#4a7a16;
+      --color-go-bg:#eef4e2; --color-go-border:#a8d96a; --color-on-go:#ffffff; --color-go-line:#619b21;
+      --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px; --space-5:20px;
+      --space-6:24px; --space-7:32px; --space-8:40px; --space-9:48px; --space-10:64px;
+      --radius-xs:4px; --radius-sm:8px; --radius-card:14px; --radius-pill:999px; --radius-control:10px;
+      --text-body:1.0625rem; --text-small:.875rem; --text-caption:.8125rem; --text-overline:.75rem;
+      --font-heading:-apple-system,'SF Pro Display','Inter',system-ui,sans-serif;
+      --font-body:-apple-system,'SF Pro Text','Inter',system-ui,sans-serif;
+      --font-mono:'JetBrains Mono','SF Mono','IBM Plex Mono',ui-monospace,monospace;
+      --leading-snug:1.4; --leading-normal:1.55; --tracking-snug:-.01em;
+      --control-height-sm:34px; --control-height-lg:50px; --tap-min:44px;
+      --shadow-sm:0 1px 2px rgba(0,0,0,.03),0 2px 6px rgba(0,0,0,.04);
+    }
+    [data-mode="kids"]{
+      --text-body:1.1875rem; --text-small:1rem; --text-caption:.875rem;
+      --control-height-sm:40px; --control-height-lg:58px; --tap-min:48px; --radius-control:14px;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:var(--font-body);color:var(--color-text);background:var(--color-bg)}
+    a{color:var(--color-accent-text)} a:hover{color:var(--color-accent)}
+  </style>
+</helmet>
+<div ref="{{ setRoot }}" style="height:100vh;display:grid;grid-template-rows:auto minmax(0,1fr);background:var(--color-surface-subtle)">
+  <div style="display:flex;align-items:center;gap:var(--space-2);padding:var(--space-3) var(--space-4);border-bottom:1px solid var(--color-border);flex-wrap:wrap;background:var(--color-bg)">
+    <span style="font:500 var(--text-caption) var(--font-mono);color:var(--color-text-detail);letter-spacing:.08em;text-transform:uppercase">Вход и регистрация</span>
+    <span style="font:500 var(--text-caption) var(--font-mono);color:var(--color-text-detail);letter-spacing:.08em;text-transform:uppercase;margin-left:var(--space-4)">режим</span>
+    <button data-sw="mode" data-val="in" onClick="{{ onSw }}" style="font:500 var(--text-caption) var(--font-mono);background:none;border:1px solid var(--color-border);border-radius:var(--radius-pill);padding:6px 12px;color:var(--color-text-secondary);cursor:pointer">вход</button>
+    <button data-sw="mode" data-val="new" onClick="{{ onSw }}" style="font:500 var(--text-caption) var(--font-mono);background:none;border:1px solid var(--color-border);border-radius:var(--radius-pill);padding:6px 12px;color:var(--color-text-secondary);cursor:pointer">новая запись</button>
+    <button data-sw="mode" data-val="lost" onClick="{{ onSw }}" style="font:500 var(--text-caption) var(--font-mono);background:none;border:1px solid var(--color-border);border-radius:var(--radius-pill);padding:6px 12px;color:var(--color-text-secondary);cursor:pointer">забыли пароль</button>
+    <span style="font:500 var(--text-caption) var(--font-mono);color:var(--color-text-detail);letter-spacing:.08em;text-transform:uppercase;margin-left:var(--space-4)">состояние</span>
+    <button data-sw="case" data-val="full" onClick="{{ onSw }}" style="font:500 var(--text-caption) var(--font-mono);background:none;border:1px solid var(--color-border);border-radius:var(--radius-pill);padding:6px 12px;color:var(--color-text-secondary);cursor:pointer">наполнено</button>
+    <button data-sw="case" data-val="empty" onClick="{{ onSw }}" style="font:500 var(--text-caption) var(--font-mono);background:none;border:1px solid var(--color-border);border-radius:var(--radius-pill);padding:6px 12px;color:var(--color-text-secondary);cursor:pointer">пусто</button>
+    <button data-sw="case" data-val="load" onClick="{{ onSw }}" style="font:500 var(--text-caption) var(--font-mono);background:none;border:1px solid var(--color-border);border-radius:var(--radius-pill);padding:6px 12px;color:var(--color-text-secondary);cursor:pointer">загружается</button>
+    <button data-sw="case" data-val="fail" onClick="{{ onSw }}" style="font:500 var(--text-caption) var(--font-mono);background:none;border:1px solid var(--color-border);border-radius:var(--radius-pill);padding:6px 12px;color:var(--color-text-secondary);cursor:pointer">отказ</button>
+    <button data-sw="case" data-val="part" onClick="{{ onSw }}" style="font:500 var(--text-caption) var(--font-mono);background:none;border:1px solid var(--color-border);border-radius:var(--radius-pill);padding:6px 12px;color:var(--color-text-secondary);cursor:pointer">частичный отказ</button>
+    <span style="margin-left:auto;display:flex;gap:var(--space-2);align-items:center">
+      <span data-scroll-probe style="font:400 var(--text-caption) var(--font-mono);color:var(--color-text-detail)">прокрутка страницы: 0 px</span>
+      <button data-sw="frame" data-val="1440" onClick="{{ onSw }}" style="font:500 var(--text-caption) var(--font-mono);background:none;border:1px solid var(--color-border);border-radius:var(--radius-pill);padding:6px 12px;color:var(--color-text-secondary);cursor:pointer">1440</button>
+      <button data-sw="frame" data-val="1280" onClick="{{ onSw }}" style="font:500 var(--text-caption) var(--font-mono);background:none;border:1px solid var(--color-border);border-radius:var(--radius-pill);padding:6px 12px;color:var(--color-text-secondary);cursor:pointer">1280</button>
+      <button data-sw="kids" data-val="toggle" onClick="{{ onSw }}" style="font:500 var(--text-caption) var(--font-mono);background:none;border:1px solid var(--color-border);border-radius:var(--radius-pill);padding:6px 12px;color:var(--color-text-secondary);cursor:pointer">kids</button>
+    </span>
+  </div>
+
+  <div ref="{{ setHost }}" style="min-height:0;overflow:hidden;position:relative">
+    <div ref="{{ setFrame }}" data-audit-scope data-screen-label="Вход и регистрация" data-mode="{{ kidsMode }}" style="width:{{ frameW }};height:900px;background:var(--color-surface);overflow:hidden;display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);border:1px solid var(--color-border)">
+
+      <div style="display:grid;grid-template-rows:auto minmax(0,1fr) auto;padding:var(--space-9) var(--space-10);background:var(--color-bg);border-right:1px solid var(--color-border)">
+        <div style="display:flex;align-items:center;gap:var(--space-5)">
+          <button data-still="возвращает на первую страницу (Enter.tsx)" style="display:inline-grid;place-items:center;min-height:var(--tap-min);padding:0 var(--space-4);border:1px solid var(--color-border-strong);border-radius:var(--radius-pill);background:var(--color-surface);color:var(--color-text);font:400 var(--text-small) var(--font-body);cursor:pointer">← Назад</button>
+          <span data-geo="знак" style="display:inline-flex;align-items:center;gap:var(--space-2);font-family:var(--font-heading);font-size:var(--text-body);font-weight:600;letter-spacing:var(--tracking-snug)">
+            <img src="./flamingo-bird.svg" width="22" height="22" alt="" style="display:block">Flamingo</span>
+        </div>
+
+        <div style="display:grid;align-content:center;gap:var(--space-5);max-width:31rem">
+          <h1 data-geo="заголовок" style="margin:0;font-family:var(--font-heading);font-size:3rem;line-height:1.06;font-weight:600;letter-spacing:-.025em;color:var(--color-text);text-wrap:balance">{{ title }}</h1>
+          <p data-geo="объяснение" style="margin:0;font-size:var(--text-body);line-height:var(--leading-normal);color:var(--color-text-secondary);text-wrap:pretty;min-height:calc(3 * var(--text-body) * var(--leading-normal))">{{ lead }}</p>
+        </div>
+
+        <p style="margin:0;max-width:30rem;font-size:var(--text-caption);line-height:var(--leading-normal);color:var(--color-text-hint);text-wrap:pretty">Пароль хранится не как пароль: у нас лежит только его отпечаток, по которому пароль не восстановить. Урок по ссылке работает и без учётной записи — она нужна, чтобы он оставался после урока.</p>
+      </div>
+
+      <div style="display:grid;align-content:center;padding:var(--space-8) var(--space-9)">
+        <div style="display:grid;gap:var(--space-5);padding:var(--space-7);border:1px solid var(--color-border);border-radius:var(--radius-card);background:var(--color-surface);box-shadow:var(--shadow-sm)">
+
+          <div data-geo="поля" style="display:grid;gap:var(--space-5)">
+            <sc-for list="{{ fields }}" as="f" hint-placeholder-count="2">
+              <div style="display:grid;gap:var(--space-2)">
+                <span style="font:500 var(--text-overline) var(--font-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--color-text-detail)">{{ f.label }}</span>
+                <input placeholder="{{ f.ph }}" value="{{ f.val }}" type="{{ f.type }}" readOnly="{{ true }}" style="width:100%;height:var(--control-height-lg);padding:0 var(--space-4);border:1px solid var(--color-border-strong);border-radius:var(--radius-control);background:var(--color-surface);font-family:var(--font-body);font-size:var(--text-body);color:var(--color-text)" />
+                <span style="font-size:var(--text-small);line-height:var(--leading-snug);color:var(--color-text-secondary)">{{ f.hint }}</span>
+              </div>
+            </sc-for>
+
+            <sc-if value="{{ needRole }}" hint-placeholder-val="{{ false }}">
+              <div style="display:grid;gap:var(--space-2)">
+                <span style="font:500 var(--text-overline) var(--font-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--color-text-detail)">кто вы в занятии</span>
+                <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:var(--space-3)">
+                  <sc-for list="{{ roles }}" as="r" hint-placeholder-count="2">
+                    <button data-pick="role" data-val="{{ r.id }}" onClick="{{ onRole }}" aria-pressed="{{ r.on }}" style="display:grid;gap:2px;justify-items:start;min-height:var(--tap-min);padding:var(--space-3) var(--space-4);border:1px solid {{ r.bd }};border-radius:var(--radius-control);background:{{ r.bg }};box-shadow:{{ r.sh }};cursor:pointer;text-align:left;min-width:0">
+                      <span style="font-size:var(--text-small);font-weight:500;color:var(--color-text)">{{ r.name }}</span>
+                      <span style="font:400 var(--text-caption) var(--font-mono);line-height:var(--leading-snug);color:var(--color-text-detail)">{{ r.note }}</span>
+                    </button>
+                  </sc-for>
+                </div>
+              </div>
+            </sc-if>
+          </div>
+
+          <div data-geo="строка-сообщения" style="display:grid;min-height:calc(2 * var(--space-3) + 2px + var(--text-small) * var(--leading-snug) + var(--space-1) + 3 * var(--text-caption) * var(--leading-snug))">
+            <sc-if value="{{ hasMsg }}" hint-placeholder-val="{{ true }}">
+              <span style="display:grid;gap:var(--space-1);align-content:start;padding:var(--space-3) var(--space-4);border-radius:var(--radius-sm);border:1px solid {{ msgBd }};background:{{ msgBg }};border-left:2px solid {{ msgLine }}">
+                <span style="font-size:var(--text-small);font-weight:500;line-height:var(--leading-snug);color:{{ msgTitleColor }}">{{ msgTitle }}</span>
+                <span style="font-size:var(--text-caption);line-height:var(--leading-snug);color:var(--color-text-secondary)">{{ msgBody }}</span>
+              </span>
+            </sc-if>
+          </div>
+
+          <button data-geo="главное-действие" data-pick="submit" data-val="go" onClick="{{ onSubmit }}" aria-disabled="{{ ctaDisabledStr }}" style="display:grid;place-items:center;height:var(--control-height-lg);border:none;border-radius:var(--radius-control);background:{{ ctaBg }};color:{{ ctaColor }};font:500 var(--text-body) var(--font-body);cursor:{{ ctaCursor }}">{{ ctaLabel }}</button>
+
+          <div data-geo="переключатель-режима" style="display:flex;align-items:baseline;gap:var(--space-3);padding-top:var(--space-5);border-top:1px solid var(--color-border);flex-wrap:wrap">
+            <span style="font-size:var(--text-small);color:var(--color-text-secondary)">{{ swapAsk }}</span>
+            <button data-pick="mode" data-val="{{ swapTo }}" onClick="{{ onMode }}" style="border:none;background:none;padding:0;color:var(--color-go-text);font:500 var(--text-small) var(--font-body);text-decoration:underline;text-decoration-color:var(--color-go-border);text-underline-offset:4px;cursor:pointer">{{ swapLabel }}</button>
+            <sc-if value="{{ showLost }}" hint-placeholder-val="{{ true }}">
+              <button data-pick="mode" data-val="lost" onClick="{{ onMode }}" style="margin-left:auto;border:none;background:none;padding:0;color:var(--color-text-secondary);font:400 var(--text-caption) var(--font-mono);text-decoration:underline;text-decoration-color:var(--color-border-strong);text-underline-offset:3px;cursor:pointer">Забыли пароль</button>
+            </sc-if>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;: {&quot;width&quot;: 1512, &quot;height&quot;: 980}}">
+class Component extends DCLogic {
+  // ВХОД И РЕГИСТРАЦИЯ (Sign.tsx) — один экран, три режима. Огранка по снимкам
+  // 2-вход.png и 3-регистрация.png. Блоки и порядок как в продукте; компоновка —
+  // две колонки, принятые владельцем на первой странице (вариант Б).
+  //
+  // Режим переключается ДВАЖДЫ: служебно (полоса, data-sw="mode") и продуктово
+  // (ссылка внизу карточки, data-pick="mode") — ПРАВИЛА 6.7д, имена разведены.
+  state = { mode: 'in', case: 'full', role: 'teacher', frame: '1440', kids: false };
+
+  TITLES = { in: 'Вход', new: 'Новая учётная запись', lost: 'Забыли пароль' };
+  LEADS = {
+    in: 'Войдите, чтобы уроки, доски и записи оставались за вами.',
+    new: 'Учётная запись нужна, чтобы урок оставался после урока: доски, конспект и оценки перестают исчезать вместе с комнатой.',
+    lost: 'Пришлём ссылку на смену пароля. Прежний пароль восстановить нельзя — у нас лежит только его отпечаток.',
+  };
+  CTA = { in: 'Войти', new: 'Завести учётную запись', lost: 'Прислать ссылку' };
+  CTA_LOAD = { in: 'Проверяем…', new: 'Заводим запись…', lost: 'Отправляем ссылку…' };
+
+  // Тексты состояний по режимам: состояние принадлежит ОПЕРАЦИИ, а не экрану
+  // (ПРАВИЛА 6.5в) — у входа, регистрации и восстановления свои три ветки.
+  MSG = {
+    in: {
+      empty: { t: 'Заполните почту и пароль', b: 'Без почты мы не поймём, кто входит; без пароля — что это вы.', k: 'quiet' },
+      load: { t: 'Проверяем пароль', b: 'Это одна-две секунды. Введённое остаётся на месте.', k: 'quiet' },
+      fail: { t: 'Такой пары почты и пароля нет', b: 'Почта записана верно, а пароль не совпал — или записи с этой почтой у нас нет. Пароль можно сменить по ссылке ниже.', k: 'alarm' },
+      part: { t: 'Вошли, но список уроков не пришёл', b: 'Работает: вход, доски, комнаты по ссылке. Не работает: справочник уроков — он молчит. Что с данными: ничего не потеряно, список появится сам.', k: 'alarm' },
+    },
+    new: {
+      empty: { t: 'Осталось имя и пароль', b: 'Имя увидит класс, пароль — от восьми знаков. Роль уже выбрана.', k: 'quiet' },
+      load: { t: 'Заводим запись', b: 'Сначала проверим, что почта свободна, потом сохраним пароль отпечатком.', k: 'quiet' },
+      fail: { t: 'Запись с такой почтой уже есть', b: 'Почта занята — войдите вместо регистрации или заведите запись на другую почту. Введённые имя и роль сохранены.', k: 'alarm' },
+      part: { t: 'Запись заведена, письмо не ушло', b: 'Работает: вход по паролю прямо сейчас. Не работает: подтверждение почты — почтовая служба молчит. Что с данными: запись создана, письмо уйдёт само.', k: 'alarm' },
+    },
+    lost: {
+      empty: { t: 'Нужна почта', b: 'Та, на которую заведена запись. Ссылка живёт сутки.', k: 'quiet' },
+      load: { t: 'Отправляем ссылку', b: 'Письмо приходит в течение минуты. Страницу можно закрыть.', k: 'quiet' },
+      fail: { t: 'Письмо не ушло', b: 'Почтовая служба не ответила. Пароль не менялся, запись цела — попробуйте ещё раз через минуту.', k: 'alarm' },
+      part: { t: 'Ссылка создана, письмо задерживается', b: 'Работает: смена пароля по ссылке. Не работает: доставка письма — служба отвечает через раз. Что с данными: прежний пароль пока действует.', k: 'alarm' },
+    },
+  };
+
+  FIELDS = {
+    in: [
+      { label: 'почта', ph: 'имя@почта.рф', val: 'nina@pochta.ru', hint: 'Нужна, чтобы вас узнали при следующем входе', type: 'text' },
+      { label: 'пароль', ph: '', val: '········', hint: 'Тот, что вы задали при регистрации', type: 'password' },
+    ],
+    new: [
+      { label: 'почта', ph: 'имя@почта.рф', val: 'nina@pochta.ru', hint: 'Нужна, чтобы вас узнали при следующем входе', type: 'text' },
+      { label: 'как вас зовут', ph: 'Например, Наталья Ким', val: 'Нина Кузьмина', hint: 'Это имя увидит класс', type: 'text' },
+      { label: 'пароль', ph: '', val: '············', hint: 'От восьми знаков. Длина надёжнее сложности: четыре обычных слова лучше, чем «Ху7!»', type: 'password' },
+    ],
+    lost: [
+      { label: 'почта', ph: 'имя@почта.рф', val: 'nina@pochta.ru', hint: 'На неё придёт ссылка на смену пароля', type: 'text' },
+    ],
+  };
+
+  componentDidMount() {
+    this.onResize = () => this.fit();
+    window.addEventListener('resize', this.onResize);
+    this.ro = new ResizeObserver(() => this.fit());
+    if (this.host) this.ro.observe(this.host);
+    this.settle();
+    this.probe = setInterval(() => {
+      const el = this.root && this.root.querySelector('[data-scroll-probe]');
+      if (el) el.textContent = 'прокрутка страницы: ' + Math.max(0, document.documentElement.scrollHeight - window.innerHeight) + ' px';
+    }, 1000);
+  }
+  componentDidUpdate() { this.settle(); }
+  componentWillUnmount() {
+    window.removeEventListener('resize', this.onResize);
+    if (this.ro) this.ro.disconnect();
+    clearInterval(this.probe);
+  }
+
+  settle() { this.fit(); this.applyChrome(); requestAnimationFrame(() => this.fit()); }
+
+  fit() {
+    const host = this.host, f = this.frame;
+    if (!host || !f) return;
+    const w = host.clientWidth, h = host.clientHeight;
+    if (!(w > 0) || !(h > 0)) return;
+    const fw = this.state.frame === '1280' ? 1280 : 1440;
+    const s = Math.min(1, (w - 24) / fw, (h - 24) / 900);
+    if (!(s > 0)) return;
+    f.style.position = 'absolute';
+    f.style.left = '50%';
+    f.style.top = '50%';
+    f.style.transformOrigin = 'center';
+    f.style.transform = 'translate(-50%, -50%) scale(' + s.toFixed(4) + ')';
+  }
+
+  applyChrome() {
+    const root = this.root; if (!root) return;
+    const cur = { mode: this.state.mode, case: this.state.case, frame: this.state.frame, kids: this.state.kids ? 'toggle' : '' };
+    root.querySelectorAll('[data-sw]').forEach((b) => {
+      const k = b.dataset.sw;
+      if (!(k in cur)) return;
+      const on = cur[k] === b.dataset.val;
+      b.style.color = on ? 'var(--color-text)' : 'var(--color-text-secondary)';
+      b.style.borderColor = on ? 'var(--color-border-strong)' : 'var(--color-border)';
+      b.style.background = on ? 'var(--color-surface)' : 'none';
+    });
+  }
+
+  onSw = (e) => {
+    const ds = e.currentTarget.dataset;
+    if (ds.sw === 'kids') return this.setState((s) => ({ kids: !s.kids }));
+    this.setState({ [ds.sw]: ds.val });
+  };
+  onMode = (e) => this.setState({ mode: e.currentTarget.dataset.val, case: 'full' });
+  onRole = (e) => this.setState({ role: e.currentTarget.dataset.val });
+  onSubmit = () => this.setState((s) => ({ case: s.case === 'load' ? 'full' : 'load' }));
+
+  renderVals() {
+    const s = this.state;
+    const m = s.mode;
+    const c = s.case;
+    const msg = c === 'full' ? null : this.MSG[m][c];
+    const alarm = Boolean(msg) && msg.k === 'alarm';
+    const empty = c === 'empty';
+    const loading = c === 'load';
+
+    // «Пусто» — форма, в которой заполнено не всё: показываем ровно это.
+    const fields = this.FIELDS[m].map((f, i) => ({
+      label: f.label, ph: f.ph, hint: f.hint, type: f.type,
+      val: empty && i > 0 ? '' : f.val,
+    }));
+
+    const roles = [
+      { id: 'teacher', name: 'Веду уроки', note: 'открываю комнату и зову класс' },
+      { id: 'student', name: 'Учусь', note: 'вхожу по ссылке преподавателя' },
+    ].map((r) => ({
+      id: r.id, name: r.name, note: r.note,
+      on: s.role === r.id ? 'true' : 'false',
+      // Выбор роли — нейтральный: сильная рамка и приглушённая заливка (ПРАВИЛА 5.7).
+      bd: s.role === r.id ? 'var(--color-border-strong)' : 'var(--color-border)',
+      bg: s.role === r.id ? 'var(--color-surface-subtle)' : 'none',
+      sh: s.role === r.id ? 'inset 0 0 0 1px var(--color-border-strong)' : 'none',
+    }));
+
+    return {
+      setRoot: (el) => { this.root = el; },
+      setHost: (el) => { this.host = el; if (el && this.ro) this.ro.observe(el); this.fit(); },
+      setFrame: (el) => { this.frame = el; this.fit(); },
+      kidsMode: s.kids ? 'kids' : '',
+      frameW: s.frame === '1280' ? '1280px' : '1440px',
+
+      title: this.TITLES[m],
+      lead: this.LEADS[m],
+      fields: fields,
+      needRole: m === 'new',
+      roles: roles,
+
+      hasMsg: Boolean(msg),
+      msgTitle: msg ? msg.t : '',
+      msgBody: msg ? msg.b : '',
+      msgTitleColor: alarm ? 'var(--color-accent-text)' : 'var(--color-text)',
+      msgBd: alarm ? 'var(--color-accent-border)' : 'var(--color-border)',
+      msgBg: alarm ? 'var(--color-accent-bg)' : 'var(--color-surface-subtle)',
+      msgLine: alarm ? 'var(--color-accent-solid)' : 'var(--color-border-strong)',
+
+      ctaLabel: loading ? this.CTA_LOAD[m] : this.CTA[m],
+      ctaBg: empty || loading ? 'var(--color-surface-subtle)' : 'var(--color-go-solid)',
+      ctaColor: empty || loading ? 'var(--color-text-secondary)' : 'var(--color-on-go)',
+      ctaCursor: empty ? 'default' : 'pointer',
+      ctaDisabledStr: empty ? 'true' : 'false',
+
+      swapAsk: m === 'in' ? 'Учётной записи ещё нет?' : m === 'new' ? 'Учётная запись уже есть?' : 'Вспомнили пароль?',
+      swapLabel: m === 'in' ? 'Завести' : m === 'new' ? 'Войти' : 'Вернуться к входу',
+      swapTo: m === 'in' ? 'new' : 'in',
+      showLost: m === 'in',
+
+      onSw: this.onSw,
+      onMode: this.onMode,
+      onRole: this.onRole,
+      onSubmit: this.onSubmit,
+    };
+  }
+}
+</script>
+</body>
+</html>

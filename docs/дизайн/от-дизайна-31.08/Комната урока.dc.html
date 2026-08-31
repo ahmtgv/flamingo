@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+    :root{
+      --color-bg:#f1f1ef; --color-surface:#ffffff; --color-surface-subtle:#e9e9e6;
+      --color-border:#d9d9d6; --color-border-strong:#c4c4c1;
+      --color-text:#1d1d1f; --color-text-secondary:#646469; --color-text-detail:#646469;
+      --color-text-hint:#6b6b75;
+      --color-accent:#e14e1f; --color-accent-text:#a83610; --color-accent-solid:#c23f14;
+      --color-accent-bg:#fbeae3; --color-accent-border:#f0b49a;
+      --color-go:#619b21; --color-go-text:#3d6412; --color-go-solid:#4a7a16;
+      --color-go-bg:#eef4e2; --color-go-border:#a8d96a; --color-on-go:#ffffff;
+      --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px; --space-5:20px;
+      --space-6:24px; --space-7:32px; --space-8:40px;
+      --radius-sm:8px; --radius-card:14px; --radius-pill:999px; --radius-control:10px;
+      --text-body:1.0625rem; --text-small:.875rem; --text-caption:.8125rem; --text-overline:.75rem;
+      --font-heading:-apple-system,'SF Pro Display','Segoe UI',system-ui,sans-serif;
+      --font-body:-apple-system,'SF Pro Text','Segoe UI',system-ui,sans-serif;
+      --font-mono:ui-monospace,'SF Mono','Cascadia Mono','Liberation Mono',monospace;
+      --leading-snug:1.4; --leading-normal:1.55; --tracking-snug:-.01em;
+      --control-height-sm:34px; --control-height-md:42px; --tap-min:44px;
+      --shadow-sm:0 1px 2px rgba(0,0,0,.03),0 2px 6px rgba(0,0,0,.04);
+      --shadow-lg:0 2px 8px rgba(0,0,0,.06),0 16px 40px rgba(0,0,0,.10);
+    }
+    /* НОЧНОЙ СЦЕНАРИЙ — единственное место, где сцена чёрная. */
+    [data-theme="dark"]{
+      --color-bg:#101012; --color-surface:#1a1a1d; --color-surface-subtle:#232327;
+      --color-border:rgba(255,255,255,.16); --color-border-strong:rgba(255,255,255,.32);
+      --color-text:#f2f2f0; --color-text-secondary:rgba(255,255,255,.72);
+      --color-text-detail:rgba(255,255,255,.72); --color-text-hint:rgba(255,255,255,.6);
+      --color-accent-text:#ff9d7e; --color-accent-bg:#351d19; --color-accent-border:#a83610;
+      --color-go:#a8d96a; --color-go-text:#a8d96a; --color-go-solid:#a8d96a;
+      --color-go-bg:#232c17; --color-go-border:#4a7a16; --color-on-go:#1d1d1f;
+      --shadow-lg:0 16px 40px rgba(0,0,0,.55);
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:var(--font-body);color:var(--color-text);background:#e9e9e6}
+    a{color:var(--color-accent-text)} a:hover{color:var(--color-accent)}
+  </style>
+</helmet>
+<div ref="{{ setRoot }}" style="height:100vh;display:grid;grid-template-rows:auto minmax(0,1fr);background:#e9e9e6">
+  <div style="display:flex;align-items:center;gap:var(--space-2);padding:var(--space-3) var(--space-4);border-bottom:1px solid #d9d9d6;flex-wrap:wrap;background:#f1f1ef;color:#1d1d1f">
+    <span style="font:500 var(--text-caption) var(--font-mono);color:#646469;letter-spacing:.08em;text-transform:uppercase">Комната урока · вариант А</span>
+    <span style="font:500 var(--text-caption) var(--font-mono);color:#646469;letter-spacing:.08em;text-transform:uppercase;margin-left:var(--space-4)">эфир</span>
+    <button data-sw="link" data-val="up" onClick="{{ onSw }}" style="font:500 var(--text-caption) var(--font-mono);background:none;border:1px solid #d9d9d6;border-radius:var(--radius-pill);padding:6px 12px;color:#646469;cursor:pointer">идёт</button>
+    <button data-sw="link" data-val="down" onClick="{{ onSw }}" style="font:500 var(--text-caption) var(--font-mono);background:none;border:1px solid #d9d9d6;border-radius:var(--radius-pill);padding:6px 12px;color:#646469;cursor:pointer">не поднялся</button>
+    <span style="font:500 var(--text-caption) var(--font-mono);color:#646469;letter-spacing:.08em;text-transform:uppercase;margin-left:var(--space-4)">сценарий</span>
+    <button data-sw="theme" data-val="light" onClick="{{ onSw }}" style="font:500 var(--text-caption) var(--font-mono);background:none;border:1px solid #d9d9d6;border-radius:var(--radius-pill);padding:6px 12px;color:#646469;cursor:pointer">день</button>
+    <button data-sw="theme" data-val="dark" onClick="{{ onSw }}" style="font:500 var(--text-caption) var(--font-mono);background:none;border:1px solid #d9d9d6;border-radius:var(--radius-pill);padding:6px 12px;color:#646469;cursor:pointer">ночь</button>
+  </div>
+
+  <div ref="{{ setHost }}" style="min-height:0;overflow:hidden;position:relative">
+    <div ref="{{ setFrame }}" data-audit-scope data-screen-label="Комната урока" data-theme="{{ theme }}" style="width:1440px;height:900px;background:var(--color-bg);color:var(--color-text);overflow:hidden;border:1px solid var(--color-border);display:grid;grid-template-rows:auto minmax(0,1fr)">
+
+      <div data-geo="верхняя-строка" style="display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:var(--space-5);padding:var(--space-3) var(--space-6);background:var(--color-bg);border-bottom:1px solid var(--color-border)">
+        <div style="display:flex;align-items:center;gap:var(--space-4);min-width:0">
+          <span style="display:inline-flex;align-items:center;gap:var(--space-2);font-family:var(--font-heading);font-size:var(--text-body);font-weight:600;letter-spacing:var(--tracking-snug);color:var(--color-text)">
+            <img src="./flamingo-bird.svg" width="20" height="20" alt="" style="display:block">Flamingo</span>
+          <span style="width:1px;height:var(--space-6);background:var(--color-border)"></span>
+          <span style="font:500 var(--text-small) var(--font-mono);letter-spacing:.02em;color:var(--color-text)">vdr9-ygd9-wgar</span>
+          <span style="display:inline-flex;align-items:center;gap:var(--space-2);font:400 var(--text-caption) var(--font-mono);color:{{ linkColor }};white-space:nowrap"><span style="width:8px;height:8px;border-radius:var(--radius-pill);background:{{ linkDot }}"></span>{{ linkWord }}</span>
+        </div>
+
+        <div style="display:flex;align-items:center;gap:var(--space-2);justify-self:center">
+          <sc-for list="{{ shelf }}" as="s" hint-placeholder-count="4">
+            <button data-pick="scene" data-val="{{ s.id }}" onClick="{{ onScene }}" aria-pressed="{{ s.on }}" style="display:inline-grid;place-items:center;min-height:var(--control-height-md);padding:0 var(--space-5);border:1px solid {{ s.bd }};border-radius:var(--radius-pill);background:{{ s.bg }};color:var(--color-text);font:{{ s.font }} var(--text-body) var(--font-body);cursor:pointer">{{ s.name }}</button>
+          </sc-for>
+          <span style="width:1px;height:var(--space-5);background:var(--color-border);margin:0 var(--space-1)"></span>
+          <span aria-disabled="true" tabindex="-1" style="display:inline-grid;place-items:center;min-height:var(--control-height-md);padding:0 var(--space-4);border:1px solid var(--color-border);border-radius:var(--radius-pill);background:var(--color-surface-subtle);color:var(--color-text-secondary);font:400 var(--text-small) var(--font-body);cursor:default">Учебник</span>
+          <span style="font:400 var(--text-caption) var(--font-mono);color:var(--color-text-secondary);white-space:nowrap">появится вместе с курсом</span>
+        </div>
+
+        <button data-pick="chat" data-val="toggle" onClick="{{ onChat }}" aria-pressed="{{ chatOn }}" style="justify-self:end;display:inline-grid;place-items:center;min-height:var(--control-height-md);padding:0 var(--space-5);border:1px solid {{ chatBd }};border-radius:var(--radius-pill);background:{{ chatBg }};color:var(--color-text);font:400 var(--text-body) var(--font-body);cursor:pointer">Чат</button>
+      </div>
+
+      <div style="position:relative;min-height:0;display:grid">
+        <div data-geo="сцена" style="position:relative;min-height:0;display:grid;place-items:center;padding:var(--space-6) var(--space-6) var(--space-8);background:var(--color-surface-subtle)">
+          <sc-if value="{{ isFaces }}" hint-placeholder-val="{{ true }}">
+            <div style="display:grid;grid-template-rows:minmax(0,1.15fr) minmax(0,1fr);gap:var(--space-3);width:100%;height:100%">
+              <div style="position:relative;border-radius:var(--radius-card);background:var(--color-surface);border:1px solid var(--color-border);display:grid;place-items:end start;padding:var(--space-4);min-height:0">
+                <span style="display:inline-flex;align-items:center;gap:var(--space-2);padding:var(--space-2) var(--space-3);border-radius:var(--radius-pill);background:var(--color-bg);border:1px solid var(--color-border);font:400 var(--text-caption) var(--font-mono);color:var(--color-text)"><span style="width:8px;height:8px;border-radius:var(--radius-pill);background:var(--color-go)"></span>Нина Кузьмина · ведёт</span>
+              </div>
+              <div style="display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:var(--space-3);min-height:0">
+                <sc-for list="{{ faces }}" as="f" hint-placeholder-count="5">
+                  <div style="position:relative;border-radius:var(--radius-sm);background:var(--color-surface);border:1px solid var(--color-border);display:grid;align-content:end;padding:var(--space-2) var(--space-3);min-height:0;min-width:0">
+                    <span style="font:400 var(--text-caption) var(--font-mono);color:var(--color-text-secondary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ f.name }}</span>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ isFail }}" hint-placeholder-val="{{ false }}">
+            <div style="display:grid;gap:var(--space-4);max-width:34rem;padding:var(--space-7);border-radius:var(--radius-card);background:var(--color-surface);border:1px solid var(--color-accent-border)">
+              <span style="font-family:var(--font-heading);font-size:1.5rem;font-weight:500;letter-spacing:var(--tracking-snug);color:var(--color-text)">Эфир не поднялся</span>
+              <span style="font-size:var(--text-body);line-height:var(--leading-normal);color:var(--color-accent-text)">Сервер ответил не по-нашему (200). Доска работает, и всё написанное на ней цело.</span>
+              <button data-still="повторяет попытку поднять эфир" style="justify-self:start;display:inline-grid;place-items:center;min-height:var(--tap-min);padding:0 var(--space-6);border:none;border-radius:var(--radius-control);background:var(--color-go-solid);color:var(--color-on-go);font:500 var(--text-body) var(--font-body);cursor:pointer">Поднять эфир заново</button>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ isOther }}" hint-placeholder-val="{{ false }}">
+            <span style="font:400 var(--text-small) var(--font-mono);color:var(--color-text-secondary);text-align:center">{{ otherWord }}</span>
+          </sc-if>
+
+          <div data-geo="пульт" style="position:absolute;left:50%;bottom:var(--space-5);transform:translateX(-50%);display:flex;align-items:center;gap:var(--space-1);padding:var(--space-2);border-radius:var(--radius-pill);background:var(--color-bg);border:1px solid var(--color-border);box-shadow:var(--shadow-lg)">
+            <sc-for list="{{ pult }}" as="p" hint-placeholder-count="4">
+              <button data-still="{{ p.still }}" style="display:inline-grid;place-items:center;min-height:var(--tap-min);padding:0 var(--space-5);border:none;border-radius:var(--radius-pill);background:none;color:{{ p.color }};font:400 var(--text-small) var(--font-body);cursor:pointer">{{ p.name }}</button>
+            </sc-for>
+          </div>
+        </div>
+
+        <sc-if value="{{ chatOpen }}" hint-placeholder-val="{{ false }}">
+          <aside aria-label="Чат занятия" style="position:absolute;right:var(--space-4);top:var(--space-4);bottom:var(--space-4);width:380px;display:grid;grid-template-rows:auto minmax(0,1fr) auto;background:var(--color-bg);border:1px solid var(--color-border);border-radius:var(--radius-card);box-shadow:var(--shadow-lg);z-index:3">
+            <header style="display:flex;align-items:center;gap:var(--space-3);padding:var(--space-4) var(--space-5);border-bottom:1px solid var(--color-border)">
+              <span style="font-family:var(--font-heading);font-size:var(--text-body);font-weight:600;color:var(--color-text)">Чат занятия</span>
+              <button data-pick="chat" data-val="close" onClick="{{ onChat }}" aria-label="Закрыть чат" style="margin-left:auto;display:inline-grid;place-items:center;width:var(--tap-min);height:var(--tap-min);border:none;background:none;color:var(--color-text-secondary);font-size:var(--text-body);cursor:pointer">✕</button>
+            </header>
+            <div style="min-height:0;overflow:auto;padding:var(--space-5)">
+              <p style="margin:0;font-size:var(--text-small);line-height:var(--leading-normal);color:var(--color-text-secondary);text-wrap:pretty">Здесь появятся вопросы класса. Пока учётных записей нет, переписка живёт только во время урока: все вышли — чат исчез.</p>
+            </div>
+            <form style="display:flex;gap:var(--space-2);padding:var(--space-4) var(--space-5);border-top:1px solid var(--color-border)">
+              <input placeholder="Спросить или ответить" style="flex:1;min-width:0;height:var(--tap-min);padding:0 var(--space-4);border:1px solid var(--color-border-strong);border-radius:var(--radius-control);background:var(--color-surface);font-family:var(--font-body);font-size:var(--text-small);color:var(--color-text)" />
+              <button data-still="отправляет сообщение в чат занятия" style="display:inline-grid;place-items:center;min-height:var(--tap-min);padding:0 var(--space-5);border:none;border-radius:var(--radius-control);background:var(--color-go-solid);color:var(--color-on-go);font:500 var(--text-small) var(--font-body);cursor:pointer">Отправить</button>
+            </form>
+          </aside>
+        </sc-if>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;: {&quot;width&quot;: 1512, &quot;height&quot;: 980}}">
+class Component extends DCLogic {
+  // КОМНАТА УРОКА, вариант А.
+  // 31.08, решения владельца: полка источников стоит ПО ЦЕНТРУ верхней строки;
+  // чёрный фон — только в ночном сценарии (data-theme="dark"), днём сцена светлая.
+  state = { scene: 'faces', chat: false, link: 'down', theme: 'light' };
+
+  componentDidMount() {
+    this.onResize = () => this.fit();
+    window.addEventListener('resize', this.onResize);
+    this.ro = new ResizeObserver(() => this.fit());
+    if (this.host) this.ro.observe(this.host);
+    this.settle();
+  }
+  componentDidUpdate() { this.settle(); }
+  componentWillUnmount() {
+    window.removeEventListener('resize', this.onResize);
+    if (this.ro) this.ro.disconnect();
+  }
+
+  settle() { this.fit(); this.applyChrome(); }
+
+  fit() {
+    const host = this.host, f = this.frame;
+    if (!host || !f) return;
+    const w = host.clientWidth, h = host.clientHeight;
+    if (!(w > 0) || !(h > 0)) return;
+    const s = Math.min(1, (w - 24) / 1440, (h - 24) / 900);
+    if (!(s > 0)) return;
+    // Только transform: раскладку масштаб не трогает, наблюдатель размеров не зацикливается.
+    f.style.position = 'absolute';
+    f.style.left = '50%';
+    f.style.top = '50%';
+    f.style.transformOrigin = 'center';
+    f.style.transform = 'translate(-50%, -50%) scale(' + s.toFixed(4) + ')';
+  }
+
+  applyChrome() {
+    const root = this.root; if (!root) return;
+    const cur = { link: this.state.link, theme: this.state.theme };
+    root.querySelectorAll('[data-sw]').forEach((b) => {
+      const k = b.dataset.sw;
+      if (!(k in cur)) return;
+      const on = cur[k] === b.dataset.val;
+      b.style.color = on ? '#1d1d1f' : '#646469';
+      b.style.borderColor = on ? '#c4c4c1' : '#d9d9d6';
+      b.style.background = on ? '#ffffff' : 'none';
+    });
+  }
+
+  onSw = (e) => { const ds = e.currentTarget.dataset; this.setState({ [ds.sw]: ds.val }); };
+  onScene = (e) => this.setState({ scene: e.currentTarget.dataset.val });
+  onChat = (e) => this.setState((s) => ({ chat: e.currentTarget.dataset.val === 'close' ? false : !s.chat }));
+
+  renderVals() {
+    const s = this.state;
+    const sc = s.scene;
+    const down = s.link === 'down';
+    const other = sc !== 'faces';
+
+    return {
+      setRoot: (el) => { this.root = el; },
+      setHost: (el) => { this.host = el; if (el && this.ro) this.ro.observe(el); this.fit(); },
+      setFrame: (el) => { this.frame = el; this.fit(); },
+      theme: s.theme === 'dark' ? 'dark' : 'light',
+
+      linkWord: down ? 'связи нет' : 'идёт',
+      linkColor: down ? 'var(--color-accent-text)' : 'var(--color-go-text)',
+      linkDot: down ? 'var(--color-accent-solid)' : 'var(--color-go)',
+
+      shelf: [
+        { id: 'faces', name: 'Лица' },
+        { id: 'board', name: 'Доска' },
+        { id: 'show', name: 'Показ' },
+        { id: 'hub', name: 'Из HUB' },
+      ].map((x) => ({
+        id: x.id, name: x.name,
+        on: sc === x.id ? 'true' : 'false',
+        bd: sc === x.id ? 'var(--color-border-strong)' : 'var(--color-border)',
+        bg: sc === x.id ? 'var(--color-surface)' : 'none',
+        font: sc === x.id ? '500' : '400',
+      })),
+
+      isFaces: sc === 'faces' && !down,
+      isFail: sc === 'faces' && down,
+      isOther: other,
+      otherWord: sc === 'board' ? 'здесь встаёт доска — отдельный лист'
+        : sc === 'show' ? 'здесь встаёт показ — отдельный лист'
+        : 'здесь встаёт источник из HUB — отдельный лист',
+
+      faces: [
+        { name: 'Аня Волкова' }, { name: 'Максим Реут' }, { name: 'Петя Ковалёв' },
+        { name: 'Соня Лапина' }, { name: 'ещё 20' },
+      ],
+
+      pult: [
+        { name: 'микрофон', still: 'включает и выключает микрофон', color: 'var(--color-text)' },
+        { name: 'камера', still: 'включает и выключает камеру', color: 'var(--color-text)' },
+        { name: 'ссылка', still: 'копирует ссылку на комнату для класса', color: 'var(--color-text)' },
+        { name: 'выход', still: 'выходит из комнаты; уход — не аларм, цвет нейтральный', color: 'var(--color-text-secondary)' },
+      ],
+
+      chatOpen: s.chat,
+      chatOn: s.chat ? 'true' : 'false',
+      chatBd: s.chat ? 'var(--color-border-strong)' : 'var(--color-border)',
+      chatBg: s.chat ? 'var(--color-surface)' : 'none',
+      chatCol: s.chat ? '400px' : '0px',
+
+      onSw: this.onSw,
+      onScene: this.onScene,
+      onChat: this.onChat,
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <script src="./image-slot.js"></script>
+  <style>
+    :root{
+      --color-bg:#f1f1ef; --color-surface:#ffffff; --color-surface-subtle:#e9e9e6;
+      --color-border:#d9d9d6; --color-border-strong:#c4c4c1;
+      --color-text:#1d1d1f; --color-text-secondary:#646469; --color-text-detail:#646469;
+      --color-text-hint:#6b6b75;
+      --color-accent:#e14e1f; --color-accent-text:#a83610; --color-accent-solid:#c23f14;
+      --color-go:#619b21; --color-go-text:#3d6412; --color-go-solid:#4a7a16;
+      --color-go-bg:#eef4e2; --color-go-border:#a8d96a; --color-on-go:#ffffff; --color-go-line:#619b21;
+      --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px; --space-5:20px;
+      --space-6:24px; --space-7:32px; --space-8:40px;
+      --radius-xs:4px; --radius-sm:8px; --radius-card:14px; --radius-pill:999px; --radius-control:10px;
+      --text-body:1.0625rem; --text-small:.875rem; --text-caption:.8125rem; --text-overline:.75rem;
+      --font-heading:-apple-system,'SF Pro Display','Inter',system-ui,sans-serif;
+      --font-body:-apple-system,'SF Pro Text','Inter',system-ui,sans-serif;
+      --font-mono:'JetBrains Mono','SF Mono','IBM Plex Mono',ui-monospace,monospace;
+      --leading-snug:1.4; --leading-normal:1.55; --tracking-snug:-.01em;
+      --control-height-sm:34px; --tap-min:44px;
+      --shadow-sm:0 1px 2px rgba(0,0,0,.03),0 2px 6px rgba(0,0,0,.04);
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:var(--font-body);color:var(--color-text);background:var(--color-bg)}
+    a{color:var(--color-accent-text)} a:hover{color:var(--color-accent)}
+  </style>
+</helmet>
+<div ref="{{ setHost }}" style="height:100vh;overflow:hidden;position:relative;background:var(--color-surface-subtle)">
+  <div ref="{{ setFrame }}" data-audit-scope data-screen-label="Flamingo HUB · А" style="width:1440px;height:900px;background:var(--color-bg);overflow:hidden;border:1px solid var(--color-border);display:grid;grid-template-rows:auto auto minmax(0,1fr)">
+
+    <div style="display:flex;align-items:center;gap:var(--space-5);padding:var(--space-3) var(--space-6);border-bottom:1px solid var(--color-border)">
+      <button data-still="возвращает на первую страницу" style="display:inline-grid;place-items:center;min-height:var(--tap-min);padding:0 var(--space-4);border:1px solid var(--color-border-strong);border-radius:var(--radius-pill);background:var(--color-surface);font:400 var(--text-small) var(--font-body);color:var(--color-text);cursor:pointer">← Назад</button>
+      <span style="display:inline-flex;align-items:center;gap:var(--space-2);font-family:var(--font-heading);font-size:var(--text-body);font-weight:600;letter-spacing:var(--tracking-snug)">
+        <img src="./flamingo-bird.svg" width="20" height="20" alt="" style="display:block">Flamingo</span>
+      <span style="font:400 var(--text-caption) var(--font-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--color-text-detail)">Flamingo HUB</span>
+    </div>
+
+    <div style="display:flex;align-items:center;gap:var(--space-5);padding:var(--space-6) var(--space-6) var(--space-5);flex-wrap:wrap">
+      <h1 style="margin:0;font-family:var(--font-heading);font-size:1.75rem;line-height:1.1;font-weight:600;letter-spacing:-.025em;color:var(--color-text);white-space:nowrap">Источники мира</h1>
+      <div style="display:flex;align-items:center;gap:var(--space-2);flex-wrap:wrap;min-width:0">
+        <sc-for list="{{ filters }}" as="f" hint-placeholder-count="6">
+          <button data-pick="filter" data-val="{{ f.id }}" onClick="{{ onFilter }}" aria-pressed="{{ f.on }}" style="display:inline-flex;align-items:baseline;gap:var(--space-2);min-height:var(--control-height-sm);padding:0 var(--space-4);border:1px solid {{ f.bd }};border-radius:var(--radius-pill);background:{{ f.bg }};box-shadow:{{ f.sh }};color:var(--color-text);font:400 var(--text-small) var(--font-body);cursor:pointer">{{ f.name }}<span style="font:500 var(--text-caption) var(--font-mono);color:var(--color-text-detail)">{{ f.n }}</span></button>
+        </sc-for>
+      </div>
+      <span style="margin-left:auto;display:inline-flex;align-items:center;gap:var(--space-2);font-size:var(--text-small);color:var(--color-text-detail);white-space:nowrap"><span style="width:8px;height:8px;border-radius:var(--radius-pill);background:var(--color-go)"></span>Ответили 29 из 36</span>
+    </div>
+
+    <div style="display:grid;padding:0 var(--space-6) var(--space-6);min-height:0">
+      <div style="min-height:0;overflow:auto;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));grid-auto-rows:max-content;gap:var(--space-4);align-content:start" aria-label="Список источников">
+        <sc-for list="{{ cards }}" as="s" hint-placeholder-count="6">
+          <div style="display:grid;grid-template-rows:132px auto;border:1px solid var(--color-border);border-radius:var(--radius-card);background:var(--color-surface);min-width:0">
+            <div style="position:relative;background:var(--color-surface-subtle);border-bottom:1px solid var(--color-border);border-radius:calc(var(--radius-card) - 1px) calc(var(--radius-card) - 1px) 0 0;overflow:hidden">
+              <image-slot id="{{ s.slot }}" shape="rect" fit="cover" placeholder="{{ s.slotHint }}"></image-slot>
+            </div>
+            <div style="display:grid;grid-template-rows:auto calc(2 * var(--text-body) * var(--leading-snug)) calc(2 * var(--text-small) * var(--leading-snug)) auto auto;gap:var(--space-2);padding:var(--space-4) var(--space-5) var(--space-4);min-height:0;min-width:0">
+              <span style="font:500 var(--text-overline) var(--font-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--color-text-detail)">{{ s.kind }}</span>
+              <span style="font-size:var(--text-body);font-weight:500;line-height:var(--leading-snug);color:var(--color-text);overflow:hidden">{{ s.name }}</span>
+              <span style="font-size:var(--text-small);line-height:var(--leading-snug);color:var(--color-text-secondary);overflow:hidden;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;text-overflow:ellipsis">{{ s.about }}</span>
+              <span style="display:flex;align-items:baseline;gap:var(--space-2);font:400 var(--text-caption) var(--font-mono);line-height:var(--leading-snug);color:{{ s.stateColor }};min-width:0"><span style="flex:none;width:8px;height:8px;border-radius:var(--radius-pill);background:{{ s.dot }};transform:translateY(-1px)"></span>{{ s.state }}</span>
+              <div style="display:flex;align-items:center;padding-top:var(--space-3);border-top:1px solid var(--color-border);min-width:0">
+                <button data-still="открывает витрину источника в рамке поверх страницы" style="display:inline-grid;place-items:center;min-height:var(--tap-min);padding:0 var(--space-5);border:1px solid var(--color-border);border-radius:var(--radius-pill);background:none;color:var(--color-text);font:400 var(--text-small) var(--font-body);cursor:pointer">открыть</button>
+              </div>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;: {&quot;width&quot;: 1440, &quot;height&quot;: 900}}">
+class Component extends DCLogic {
+  // HUB, вариант А. Решётка карточек с МЕСТОМ ПОД ПРЕВЬЮ источника: карточка без
+  // картинки — строка списка, притворяющаяся карточкой. Превью пустые: снимки
+  // источников кладёт владелец перетаскиванием.
+  // Цветных полос слева нет (решение владельца 31.08) — состояние говорит точка и надпись.
+  state = { filter: 'all' };
+
+  SRC = [
+    { id: 'apod', kind: 'снимки', name: 'NASA · снимок дня', about: 'Один астрономический снимок в сутки с объяснением на английском', ok: true },
+    { id: 'hubble', kind: 'снимки', name: 'Телескоп «Хаббл» · архив', about: 'Тридцать лет снимков галактик, туманностей и планет', ok: true },
+    { id: 'webb', kind: 'снимки', name: 'Телескоп «Джеймс Уэбб»', about: 'Инфракрасные снимки: видно то, что не видно в обычный свет', ok: true },
+    { id: 'sdo', kind: 'данные', name: 'NASA SDO · Солнце', about: 'Снимок Солнца каждые 12 секунд, десять длин волн', ok: true },
+    { id: 'quake', kind: 'данные', name: 'Землетрясения · USGS', about: 'Толчки за сутки: сила, глубина, место', ok: true },
+    { id: 'weather', kind: 'данные', name: 'Погода · открытый архив', about: 'Температура и осадки по городам за сто лет', ok: false },
+    { id: 'earthdata', kind: 'карты', name: 'NASA Earthdata', about: 'Спутниковые снимки Земли: пожары, лёд, облака, растительность', ok: true },
+    { id: 'osm', kind: 'карты', name: 'OpenStreetMap', about: 'Карта мира, которую рисуют люди', ok: true },
+    { id: 'oldmaps', kind: 'карты', name: 'Исторические карты', about: 'Сканы карт XVI–XIX веков с привязкой к местности', ok: false },
+    { id: 'guten', kind: 'книги', name: 'Проект «Гутенберг»', about: 'Семьдесят тысяч книг, у которых истёк срок права', ok: true },
+    { id: 'archive', kind: 'книги', name: 'Архив Интернета · книги', about: 'Сканы книг и журналов с поиском по тексту', ok: true },
+    { id: 'tasks', kind: 'книги', name: 'Открытая библиотека задач', about: 'Задачники по математике и физике с решениями', ok: true },
+    { id: 'iss', kind: 'трансляции', name: 'МКС · внешняя камера', about: 'Живой вид Земли со станции, звук отсутствует', ok: 'live' },
+    { id: 'lapalma', kind: 'трансляции', name: 'Обсерватория Ла-Пальма', about: 'Живая картинка с площадки телескопов, задержка около 8 секунд', ok: 'live' },
+    { id: 'namibia', kind: 'трансляции', name: 'Камера у водопоя, Намибия', about: 'Живой вид саванны, звук есть', ok: 'live' },
+  ];
+
+  COUNTS = [
+    { id: 'all', name: 'Все', n: 36 },
+    { id: 'снимки', name: 'снимки', n: 10 },
+    { id: 'данные', name: 'данные', n: 9 },
+    { id: 'карты', name: 'карты', n: 3 },
+    { id: 'книги', name: 'книги', n: 11 },
+    { id: 'трансляции', name: 'трансляции', n: 3 },
+  ];
+
+  componentDidMount() {
+    this.onResize = () => this.fit();
+    window.addEventListener('resize', this.onResize);
+    this.ro = new ResizeObserver(() => this.fit());
+    if (this.host) this.ro.observe(this.host);
+    this.fit();
+    requestAnimationFrame(() => this.fit());
+  }
+  componentDidUpdate() { this.fit(); }
+  componentWillUnmount() {
+    window.removeEventListener('resize', this.onResize);
+    if (this.ro) this.ro.disconnect();
+  }
+  fit() {
+    const host = this.host, f = this.frame;
+    if (!host || !f) return;
+    const w = host.clientWidth, h = host.clientHeight;
+    if (!(w > 0) || !(h > 0)) return;
+    const s = Math.min(1, (w - 24) / 1440, (h - 24) / 900);
+    if (!(s > 0)) return;
+    // Масштаб НЕ трогает раскладку: только transform от центра. Прежде fit писал
+    // marginLeft/marginTop, ResizeObserver получал новый размер и снова звал fit —
+    // страница не заканчивала загрузку.
+    f.style.position = 'absolute';
+    f.style.left = '50%';
+    f.style.top = '50%';
+    f.style.transformOrigin = 'center';
+    f.style.transform = 'translate(-50%, -50%) scale(' + s.toFixed(4) + ')';
+  }
+
+  onFilter = (e) => this.setState({ filter: e.currentTarget.dataset.val });
+
+  renderVals() {
+    const cur = this.state.filter;
+    const list = cur === 'all' ? this.SRC : this.SRC.filter((s) => s.kind === cur);
+    return {
+      setHost: (el) => { this.host = el; if (el && this.ro) this.ro.observe(el); this.fit(); },
+      setFrame: (el) => { this.frame = el; this.fit(); },
+      filters: this.COUNTS.map((f) => ({
+        id: f.id, name: f.name, n: f.n,
+        on: cur === f.id ? 'true' : 'false',
+        bd: cur === f.id ? 'var(--color-border-strong)' : 'var(--color-border)',
+        bg: cur === f.id ? 'var(--color-surface)' : 'none',
+        sh: cur === f.id ? 'inset 0 0 0 1px var(--color-border-strong)' : 'none',
+      })),
+      cards: list.map((s) => ({
+        kind: s.kind, name: s.name, about: s.about,
+        slot: 'hub-' + s.id,
+        slotHint: 'превью источника — перетащите снимок',
+        state: s.ok === true ? 'отвечает · проверено сегодня' : s.ok === 'live' ? 'идёт трансляция · звука нет' : 'молчит · проверка 27 августа',
+        stateColor: s.ok === true ? 'var(--color-go-text)' : 'var(--color-accent-text)',
+        dot: s.ok === true ? 'var(--color-go)' : 'var(--color-accent-solid)',
+      })),
+      onFilter: this.onFilter,
+    };
+  }
+}
+</script>
+</body>
+</html>

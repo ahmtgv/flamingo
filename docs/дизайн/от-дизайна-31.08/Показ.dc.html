@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+    :root{
+      --fl-white:#ffffff; --fl-warm-100:#f1f1ef; --fl-warm-150:#e9e9e6; --fl-warm-200:#d9d9d6;
+      --fl-warm-300:#c4c4c1; --fl-warm-900:#1d1d1f; --fl-coral-500:#e14e1f; --fl-coral-700:#a83610;
+      --fl-coral-300:#ff9d7e;
+      --fl-moss-500:#2f8a56; --fl-moss-700:#226741; --fl-moss-300:#7fd3a3; --fl-moss-50:#e7f2ea;
+      --fl-leaf-500:#619b21; --fl-leaf-700:#4a7a16; --fl-leaf-300:#a8d96a; --fl-leaf-50:#eef4e2; --fl-leaf-800:#3d6412;
+      --fl-info-500:#2f6fa8; --fl-dark-bg:#101012;
+      --color-bg:#f1f1ef; --color-surface:#ffffff; --color-surface-subtle:#e9e9e6;
+      --color-surface-hover:#e9e9e6; --color-border:#d9d9d6; --color-border-strong:#c4c4c1;
+      --color-text:#1d1d1f; --color-text-secondary:#646469; --color-text-hint:#6b6b75; --color-text-disabled:#a8a8ad;
+      --color-text-detail:#646469; --color-accent:#e14e1f; --color-accent-text:#a83610;
+      --color-accent-solid:#c23f14; --color-on-accent:#ffffff;
+      --color-go:#2f8a56; --color-go-text:#226741; --color-go-solid:#226741; --color-go-bg:#e7f2ea;
+      --color-go-border:#7fd3a3; --color-on-go:#ffffff; --color-go-line:#2f8a56;
+      --color-info:#2f6fa8;
+      --color-surface-video:#101012; --color-text-on-video:#f2f2f0;
+      --color-text-on-video-quiet:rgba(255,255,255,.72); --color-border-on-video:rgba(255,255,255,.22);
+      --color-surface-on-video:rgba(255,255,255,.12); --color-go-on-video:#7fd3a3;
+      --color-accent-on-video:#ff9d7e;
+      --color-overlay:rgba(29,29,31,.28);
+      --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px; --space-5:20px;
+      --space-6:24px; --space-7:32px; --space-8:40px; --space-9:48px; --space-10:64px;
+      --radius-xs:4px; --radius-sm:8px; --radius-md:12px; --radius-card:14px; --radius-pill:999px;
+      --radius-control:10px;
+      --text-h1:2rem; --text-h2:1.5rem; --text-h3:1.1875rem; --text-body:1.0625rem;
+      --text-small:.875rem; --text-caption:.8125rem; --text-overline:.75rem;
+      --font-heading:-apple-system,'SF Pro Display','Inter',system-ui,sans-serif;
+      --font-body:-apple-system,'SF Pro Text','Inter',system-ui,sans-serif;
+      --font-mono:'JetBrains Mono','SF Mono','IBM Plex Mono',ui-monospace,monospace;
+      --weight-regular:400; --weight-medium:500; --weight-semibold:600;
+      --leading-snug:1.4; --leading-normal:1.55; --tracking-snug:-.01em; --tracking-tight:-.025em;
+      --control-height-sm:34px; --control-height-md:42px; --control-height-lg:50px; --tap-min:44px;
+      --shadow-sm:0 1px 2px rgba(0,0,0,.03),0 2px 6px rgba(0,0,0,.04);
+      --shadow-md:0 1px 2px rgba(0,0,0,.03),0 8px 24px rgba(0,0,0,.05);
+      --shadow-lg:0 2px 8px rgba(0,0,0,.06),0 16px 40px rgba(0,0,0,.10);
+    }
+    [data-mode="kids"]{
+      --text-body:1.1875rem; --text-small:1rem; --text-caption:.875rem;
+      --control-height-sm:40px; --control-height-md:50px; --control-height-lg:58px; --tap-min:48px;
+      --radius-control:14px;
+      --color-go:#619b21; --color-go-line:#619b21; --color-go-text:#3d6412; --color-go-solid:#4a7a16;
+      --color-on-go:#ffffff; --color-go-bg:#eef4e2; --color-go-border:#a8d96a; --color-go-on-video:#a8d96a;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:var(--font-body);color:var(--color-text);background:var(--color-bg)}
+    a{color:var(--color-accent-text)} a:hover{color:var(--color-accent)}
+  </style>
+</helmet>
+<div ref="{{ setRoot }}" style="height:100vh;display:grid;grid-template-rows:auto minmax(0,1fr);background:var(--color-bg)">
+  <div style="display:flex;align-items:center;gap:var(--space-2);padding:var(--space-3) var(--space-4);border-bottom:1px solid var(--color-border);flex-wrap:wrap">
+    <span style="font:500 var(--text-caption) var(--font-mono);color:var(--color-text-detail);letter-spacing:.08em;text-transform:uppercase">лист: Показ</span>
+    <span style="font:500 var(--text-caption) var(--font-mono);color:var(--color-text-detail);letter-spacing:.08em;text-transform:uppercase;margin-left:var(--space-4)">случай</span>
+    <button data-sw="case" data-val="live" onClick="{{ onSw }}" style="font:500 var(--text-caption) var(--font-mono);background:none;border:1px solid var(--color-border);border-radius:var(--radius-pill);padding:6px 12px;color:var(--color-text-secondary);cursor:pointer">идёт</button>
+    <button data-sw="case" data-val="shows" onClick="{{ onSw }}" style="font:500 var(--text-caption) var(--font-mono);background:none;border:1px solid var(--color-border);border-radius:var(--radius-pill);padding:6px 12px;color:var(--color-text-secondary);cursor:pointer">панель показов</button>
+    <button data-sw="case" data-val="empty" onClick="{{ onSw }}" style="font:500 var(--text-caption) var(--font-mono);background:none;border:1px solid var(--color-border);border-radius:var(--radius-pill);padding:6px 12px;color:var(--color-text-secondary);cursor:pointer">показов нет</button>
+    <button data-sw="case" data-val="load" onClick="{{ onSw }}" style="font:500 var(--text-caption) var(--font-mono);background:none;border:1px solid var(--color-border);border-radius:var(--radius-pill);padding:6px 12px;color:var(--color-text-secondary);cursor:pointer">страница едет</button>
+    <button data-sw="case" data-val="fail" onClick="{{ onSw }}" style="font:500 var(--text-caption) var(--font-mono);background:none;border:1px solid var(--color-border);border-radius:var(--radius-pill);padding:6px 12px;color:var(--color-text-secondary);cursor:pointer">файл не разобрался</button>
+    <button data-sw="case" data-val="mute" onClick="{{ onSw }}" style="font:500 var(--text-caption) var(--font-mono);background:none;border:1px solid var(--color-border);border-radius:var(--radius-pill);padding:6px 12px;color:var(--color-text-secondary);cursor:pointer">пометки не уходят</button>
+    <span style="font:500 var(--text-caption) var(--font-mono);color:var(--color-text-detail);letter-spacing:.08em;text-transform:uppercase;margin-left:var(--space-4)">кто смотрит</span>
+    <button data-sw="role" data-val="lead" onClick="{{ onSw }}" style="font:500 var(--text-caption) var(--font-mono);background:none;border:1px solid var(--color-border);border-radius:var(--radius-pill);padding:6px 12px;color:var(--color-text-secondary);cursor:pointer">ведущий</button>
+    <button data-sw="role" data-val="class" onClick="{{ onSw }}" style="font:500 var(--text-caption) var(--font-mono);background:none;border:1px solid var(--color-border);border-radius:var(--radius-pill);padding:6px 12px;color:var(--color-text-secondary);cursor:pointer">класс</button>
+    <span style="font:500 var(--text-caption) var(--font-mono);color:var(--color-text-detail);letter-spacing:.08em;text-transform:uppercase;margin-left:var(--space-4)">хранение</span>
+    <button data-sw="keep" data-val="yes" onClick="{{ onSw }}" style="font:500 var(--text-caption) var(--font-mono);background:none;border:1px solid var(--color-border);border-radius:var(--radius-pill);padding:6px 12px;color:var(--color-text-secondary);cursor:pointer">есть место</button>
+    <button data-sw="keep" data-val="no" onClick="{{ onSw }}" style="font:500 var(--text-caption) var(--font-mono);background:none;border:1px solid var(--color-border);border-radius:var(--radius-pill);padding:6px 12px;color:var(--color-text-secondary);cursor:pointer">места нет</button>
+    <span style="margin-left:auto;display:flex;gap:var(--space-2);align-items:center">
+      <span data-scroll-probe style="font:400 var(--text-caption) var(--font-mono);color:var(--color-text-detail)">прокрутка страницы: 0 px</span>
+      <button data-sw="kids" data-val="toggle" onClick="{{ onSw }}" style="font:500 var(--text-caption) var(--font-mono);background:none;border:1px solid var(--color-border);border-radius:var(--radius-pill);padding:6px 12px;color:var(--color-text-secondary);cursor:pointer">kids</button>
+    </span>
+  </div>
+  <div ref="{{ setHost }}" style="display:grid;place-items:center;overflow:hidden;min-height:0">
+    <div data-audit-scope data-screen-label="Показ" data-mode="{{ kidsMode }}" ref="{{ setFrame }}" style="width:1440px;height:900px;position:relative;border-radius:var(--radius-card);overflow:hidden;border:1px solid var(--color-border);background:var(--color-surface-video);display:grid;grid-template-rows:auto minmax(0,1fr) auto auto auto">
+      <div style="display:flex;align-items:center;gap:var(--space-3);padding:var(--space-3) var(--space-6);border-bottom:1px solid var(--color-border-on-video)">
+        <sc-for list="{{ faces }}" as="f" hint-placeholder-count="6">
+          <span style="width:104px;height:65px;border-radius:var(--radius-sm);background:var(--color-surface-on-video);display:grid;align-content:center;justify-items:center;gap:2px;min-width:0">
+            <span style="font:500 var(--text-small) var(--font-body);color:var(--color-text-on-video)">{{ f.ini }}</span>
+            <span style="display:inline-flex;align-items:center;gap:var(--space-1);font:400 var(--text-caption) var(--font-mono);color:var(--color-text-on-video-quiet);max-width:96px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"><sc-if value="{{ f.lead }}" hint-placeholder-val="{{ false }}"><span style="width:6px;height:6px;border-radius:var(--radius-pill);background:var(--color-go-on-video)"></span></sc-if>{{ f.name }}</span>
+          </span>
+        </sc-for>
+        <span style="font:400 var(--text-caption) var(--font-mono);color:var(--color-text-on-video-quiet)">ещё 19</span>
+        <span style="margin-left:auto;font:400 var(--text-caption) var(--font-mono);color:var(--color-text-on-video-quiet)">7-Б · 24 ученика · время ваше, московское</span>
+      </div>
+      <div data-geo="показ-сцена" style="position:relative;display:grid;place-items:center;min-height:0;padding:var(--space-6)">
+        <sc-if value="{{ pageShown }}" hint-placeholder-val="{{ true }}">
+          <div style="position:relative;height:100%;aspect-ratio:4/3;max-width:100%;background:var(--color-surface);border-radius:var(--radius-sm);overflow:hidden;box-shadow:var(--shadow-lg)">
+            <div style="display:grid;gap:var(--space-4);align-content:start;padding:var(--space-9) var(--space-10);height:100%">
+              <span style="font:500 var(--text-overline) var(--font-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--color-text-detail)">{{ pageHead }}</span>
+              <sc-for list="{{ pageLines }}" as="ln" hint-placeholder-count="4">
+                <span style="font-size:var(--text-body);line-height:var(--leading-normal);color:var(--color-text)">{{ ln.t }}</span>
+              </sc-for>
+            </div>
+            <svg style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none" viewBox="0 0 1000 750" preserveAspectRatio="none" aria-hidden="true">
+              <sc-for list="{{ penMarks }}" as="m" hint-placeholder-count="1">
+                <path d="{{ m.d }}" fill="none" stroke="{{ m.color }}" stroke-width="{{ m.w }}" stroke-linecap="round" stroke-linejoin="round"></path>
+              </sc-for>
+              <sc-for list="{{ stickerMarks }}" as="m" hint-placeholder-count="1">
+                <g transform="{{ m.tf }}"><circle r="24" fill="var(--color-surface)" stroke="{{ m.color }}" stroke-width="3"></circle><text y="2" text-anchor="middle" dominant-baseline="central" fill="{{ m.color }}" font-size="26" font-weight="700">{{ m.glyph }}</text></g>
+              </sc-for>
+            </svg>
+          </div>
+        </sc-if>
+        <sc-if value="{{ loading }}" hint-placeholder-val="{{ false }}">
+          <div style="height:100%;aspect-ratio:4/3;max-width:100%;display:grid;place-items:center;border-radius:var(--radius-sm);border:1px dashed var(--color-border-on-video)">
+            <span style="display:grid;gap:var(--space-2);justify-items:center;max-width:34rem;padding:var(--space-6);text-align:center">
+              <span style="font-size:var(--text-body);font-weight:500;color:var(--color-text-on-video)">Страница едет</span>
+              <span style="font:400 var(--text-small) var(--font-mono);color:var(--color-text-on-video-quiet)">Разбор контрольной.pdf · страница 3 из 8</span>
+              <span style="font-size:var(--text-small);line-height:var(--leading-snug);color:var(--color-text-on-video-quiet)">Каждая страница уезжает классу отдельно — так канал остаётся свободным для голоса.</span>
+            </span>
+          </div>
+        </sc-if>
+        <sc-if value="{{ failed }}" hint-placeholder-val="{{ false }}">
+          <div style="display:grid;gap:var(--space-3);justify-items:start;max-width:36rem;padding:var(--space-6);border-radius:var(--radius-card);background:var(--color-surface-on-video)">
+            <span style="font-size:var(--text-h3);font-weight:500;letter-spacing:var(--tracking-snug);color:var(--color-text-on-video)">Файл не разобрался по страницам</span>
+            <span style="font-size:var(--text-small);line-height:var(--leading-snug);color:var(--color-text-on-video)">«Геометрия-9.pdf» повреждён или закрыт паролем — из 24 страниц не прочлась ни одна.</span>
+            <span style="font-size:var(--text-small);line-height:var(--leading-snug);color:var(--color-text-on-video-quiet)">Урок идёт, голос и доска работают. Остальные показы на месте.</span>
+            <span style="display:flex;gap:var(--space-2);margin-top:var(--space-2)">
+              <button data-still="открывает выбор файла с устройства; разобранный по страницам файл встаёт в список показов" style="display:inline-grid;place-items:center;min-height:var(--tap-min);padding:0 var(--space-5);border-radius:var(--radius-control);border:none;background:var(--color-go-solid);color:var(--color-on-go);font:500 var(--text-small) var(--font-body);cursor:pointer">Выбрать другой файл</button>
+              <button data-pick="open-shows" data-val="fail" onClick="{{ openPanel }}" style="display:inline-grid;place-items:center;min-height:var(--tap-min);padding:0 var(--space-5);border-radius:var(--radius-control);border:1px solid var(--color-border-on-video);background:none;color:var(--color-text-on-video);font:500 var(--text-small) var(--font-body);cursor:pointer">Показы</button>
+            </span>
+          </div>
+        </sc-if>
+        <sc-if value="{{ emptyStage }}" hint-placeholder-val="{{ false }}">
+          <span style="display:grid;gap:var(--space-2);justify-items:center;max-width:34rem;text-align:center">
+            <span style="font-size:var(--text-body);font-weight:500;color:var(--color-text-on-video)">Здесь встанет показ</span>
+            <span style="font-size:var(--text-small);line-height:var(--leading-snug);color:var(--color-text-on-video-quiet)">Картинка или PDF разберётся по страницам. Показ сохраняется: «Закончить показ» его не стирает, добавить первый можно в панели показов справа.</span>
+          </span>
+        </sc-if>
+      </div>
+      <sc-if value="{{ muted }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;align-items:baseline;gap:var(--space-3);padding:var(--space-3) var(--space-6);border-top:1px solid var(--color-border-on-video);flex-wrap:wrap">
+          <span style="font-size:var(--text-small);font-weight:500;color:var(--color-accent-on-video)">Пометки у класса не появляются — канал пометок молчит.</span>
+          <span style="font:400 var(--text-caption) var(--font-mono);color:var(--color-text-on-video-quiet)">работает: страница, листание, голос · нарисованное сохранено в показе, версия 12:04</span>
+        </div>
+      </sc-if>
+      <sc-if value="{{ polka }}" hint-placeholder-val="{{ false }}">
+        <div data-pult="маркер" style="display:flex;align-items:center;gap:var(--space-2);padding:var(--space-3) var(--space-6);border-top:1px solid var(--color-border-on-video)">
+          <sc-for list="{{ dots }}" as="d" hint-placeholder-count="3">
+            <button data-pick="tool" data-val="{{ d.id }}" onClick="{{ onTool }}" aria-label="{{ d.name }}" aria-pressed="{{ d.on }}" style="display:grid;place-items:center;width:var(--control-height-sm);height:var(--control-height-sm);border-radius:var(--radius-control);border:1px solid {{ d.bd }};background:{{ d.bg }};cursor:pointer">
+              <span style="width:14px;height:14px;border-radius:var(--radius-pill);background:{{ d.swatch }}"></span>
+            </button>
+          </sc-for>
+          <span style="width:1px;height:var(--space-5);background:var(--color-border-on-video);margin:0 var(--space-2)"></span>
+          <sc-for list="{{ toolBtns }}" as="b" hint-placeholder-count="4">
+            <button data-pick="tool" data-val="{{ b.id }}" onClick="{{ onTool }}" aria-pressed="{{ b.on }}" title="{{ b.name }}" style="display:inline-grid;place-items:center;min-height:var(--control-height-sm);min-width:var(--control-height-sm);padding:0 var(--space-3);border-radius:var(--radius-control);border:1px solid {{ b.bd }};background:{{ b.bg }};color:var(--color-text-on-video);font:500 var(--text-small) var(--font-body);cursor:pointer">{{ b.label }}</button>
+          </sc-for>
+          <span style="width:1px;height:var(--space-5);background:var(--color-border-on-video);margin:0 var(--space-2)"></span>
+          <button data-pick="ink-undo" data-val="undo" onClick="{{ onUndo }}" disabled="{{ noMarks }}" aria-disabled="{{ noMarksStr }}" style="display:inline-grid;place-items:center;min-height:var(--control-height-sm);padding:0 var(--space-4);border-radius:var(--radius-control);border:1px solid var(--color-border-on-video);background:none;color:{{ undoColor }};font:500 var(--text-small) var(--font-body);cursor:pointer">Отменить</button>
+          <button data-pick="ink-wipe" data-val="wipe" onClick="{{ onWipe }}" disabled="{{ noMarks }}" aria-disabled="{{ noMarksStr }}" style="display:inline-grid;place-items:center;min-height:var(--control-height-sm);padding:0 var(--space-4);border-radius:var(--radius-control);border:1px solid var(--color-border-on-video);background:none;color:{{ undoColor }};font:500 var(--text-small) var(--font-body);cursor:pointer">Стереть всё</button>
+          <span style="margin-left:auto;font:400 var(--text-caption) var(--font-mono);color:var(--color-text-on-video-quiet)">пометки привязаны к своей странице · ⌘Z отменяет</span>
+        </div>
+      </sc-if>
+      <sc-if value="{{ pultShown }}" hint-placeholder-val="{{ true }}">
+        <div data-pult="показ" style="display:flex;align-items:center;gap:var(--space-3);padding:var(--space-3) var(--space-6);border-top:1px solid var(--color-border-on-video)">
+          <span style="font-size:var(--text-small);font-weight:500;color:var(--color-text-on-video);max-width:20rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ showTitle }}</span>
+          <span style="font:400 var(--text-caption) var(--font-mono);color:var(--color-text-on-video-quiet)">{{ countLabel }}</span>
+          <sc-if value="{{ isLead }}" hint-placeholder-val="{{ true }}">
+            <button data-pick="page" data-val="prev" onClick="{{ onPrev }}" disabled="{{ atFirst }}" aria-disabled="{{ atFirstStr }}" aria-label="Предыдущая страница" style="display:inline-grid;place-items:center;min-height:var(--control-height-sm);min-width:var(--control-height-sm);border-radius:var(--radius-control);border:1px solid var(--color-border-on-video);background:none;color:{{ prevColor }};font:500 var(--text-small) var(--font-mono);cursor:pointer">←</button>
+            <button data-pick="page" data-val="next" onClick="{{ onNext }}" disabled="{{ atLast }}" aria-disabled="{{ atLastStr }}" aria-label="Следующая страница" style="display:inline-grid;place-items:center;min-height:var(--control-height-sm);min-width:var(--control-height-sm);border-radius:var(--radius-control);border:1px solid var(--color-border-on-video);background:none;color:{{ nextColor }};font:500 var(--text-small) var(--font-mono);cursor:pointer">→</button>
+            <span style="width:1px;height:var(--space-5);background:var(--color-border-on-video);margin:0 var(--space-2)"></span>
+            <button data-pick="marker" data-val="toggle" onClick="{{ onMarker }}" aria-pressed="{{ markerOn }}" style="display:inline-grid;place-items:center;min-height:var(--control-height-sm);padding:0 var(--space-4);border-radius:var(--radius-control);border:1px solid {{ markerBd }};background:{{ markerBg }};color:var(--color-text-on-video);font:500 var(--text-small) var(--font-body);cursor:pointer">Маркер</button>
+            <button data-pick="open-shows" data-val="pult" onClick="{{ openPanel }}" style="display:inline-grid;place-items:center;min-height:var(--control-height-sm);padding:0 var(--space-4);border-radius:var(--radius-control);border:1px solid var(--color-border-on-video);background:none;color:var(--color-text-on-video);font:500 var(--text-small) var(--font-body);cursor:pointer">Показы</button>
+            <span style="margin-left:auto"></span>
+            <button data-still="закрывает показ и возвращает сцену комнаты; показ остаётся в списке — случай «панель показов»" style="display:inline-grid;place-items:center;min-height:var(--control-height-sm);padding:0 var(--space-4);border-radius:var(--radius-control);border:1px solid var(--color-border-on-video);background:none;color:var(--color-text-on-video);font:500 var(--text-small) var(--font-body);cursor:pointer">Закончить показ</button>
+          </sc-if>
+          <sc-if value="{{ isClass }}" hint-placeholder-val="{{ false }}">
+            <span style="margin-left:auto;font:400 var(--text-caption) var(--font-mono);color:var(--color-text-on-video-quiet)">листает преподаватель</span>
+          </sc-if>
+        </div>
+      </sc-if>
+      <sc-if value="{{ panelOpen }}" hint-placeholder-val="{{ false }}">
+        <aside aria-label="Показы" style="position:absolute;right:0;top:0;bottom:0;width:360px;background:var(--color-bg);border-left:1px solid var(--color-border);box-shadow:var(--shadow-lg);display:grid;grid-template-rows:auto minmax(0,1fr) auto">
+          <header style="display:flex;align-items:center;gap:var(--space-3);padding:var(--space-4) var(--space-5);border-bottom:1px solid var(--color-border)">
+            <span style="font-family:var(--font-heading);font-size:var(--text-h3);font-weight:500;letter-spacing:var(--tracking-snug);color:var(--color-text)">Показы</span>
+            <span style="font:400 var(--text-caption) var(--font-mono);color:var(--color-text-hint)">Esc закрывает</span>
+            <button data-pick="close-shows" data-val="close" onClick="{{ closePanel }}" style="margin-left:auto;display:inline-grid;place-items:center;min-height:var(--control-height-sm);padding:0 var(--space-4);border-radius:var(--radius-pill);border:1px solid var(--color-border);background:var(--color-surface);font-size:var(--text-small);color:var(--color-text);cursor:pointer">Закрыть</button>
+          </header>
+          <div style="min-height:0;overflow:auto;padding:var(--space-4) var(--space-5);display:grid;gap:var(--space-2);align-content:start">
+            <sc-if value="{{ hasShows }}" hint-placeholder-val="{{ true }}">
+              <sc-for list="{{ showRows }}" as="r" hint-placeholder-count="3">
+                <div style="display:grid;gap:var(--space-2)">
+                  <button data-pick="show" data-val="{{ r.id }}" onClick="{{ r.open }}" aria-pressed="{{ r.on }}" style="display:grid;grid-template-columns:auto minmax(0,1fr);gap:var(--space-3);align-items:center;min-height:var(--tap-min);padding:var(--space-3);border-radius:var(--radius-sm);border:1px solid {{ r.bd }};background:{{ r.bg }};cursor:pointer;text-align:left">
+                    <span style="width:44px;height:33px;border-radius:var(--radius-xs);border:1px solid var(--color-border);background:var(--color-surface);display:grid;gap:3px;align-content:center;padding:0 6px"><span style="height:3px;border-radius:2px;background:var(--color-border-strong)"></span><span style="height:3px;border-radius:2px;background:var(--color-border)"></span><span style="height:3px;width:60%;border-radius:2px;background:var(--color-border)"></span></span>
+                    <span style="display:grid;gap:1px;min-width:0">
+                      <span style="font-size:var(--text-small);color:var(--color-text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ r.title }}</span>
+                      <span style="font:400 var(--text-caption) var(--font-mono);color:var(--color-text-detail)">{{ r.meta }}</span>
+                    </span>
+                  </button>
+                  <sc-if value="{{ r.arming }}" hint-placeholder-val="{{ false }}">
+                    <span style="display:flex;gap:var(--space-2);justify-content:end">
+                      <button data-pick="show-drop" data-val="{{ r.id }}" onClick="{{ r.drop }}" style="display:inline-grid;place-items:center;min-height:var(--control-height-sm);padding:0 var(--space-4);border-radius:var(--radius-control);border:1px solid var(--color-accent-border,#f0b49a);background:none;color:var(--color-accent-text);font:500 var(--text-small) var(--font-body);cursor:pointer">Точно удалить</button>
+                      <button data-pick="show-keep" data-val="{{ r.id }}" onClick="{{ r.disarm }}" style="display:inline-grid;place-items:center;min-height:var(--control-height-sm);padding:0 var(--space-4);border-radius:var(--radius-control);border:1px solid var(--color-border);background:var(--color-surface);color:var(--color-text);font:500 var(--text-small) var(--font-body);cursor:pointer">Оставить</button>
+                    </span>
+                  </sc-if>
+                  <sc-if value="{{ r.calm }}" hint-placeholder-val="{{ true }}">
+                    <span style="display:flex;justify-content:end">
+                      <button data-pick="show-ask" data-val="{{ r.id }}" onClick="{{ r.arm }}" style="display:inline-grid;place-items:center;min-height:var(--control-height-sm);padding:0 var(--space-3);border-radius:var(--radius-control);border:none;background:none;color:var(--color-text-secondary);font:400 var(--text-caption) var(--font-mono);text-decoration:underline;text-decoration-color:var(--color-border-strong);text-underline-offset:3px;cursor:pointer">Удалить</button>
+                    </span>
+                  </sc-if>
+                </div>
+              </sc-for>
+            </sc-if>
+            <sc-if value="{{ noShows }}" hint-placeholder-val="{{ false }}">
+              <p style="margin:0;font-size:var(--text-small);line-height:var(--leading-normal);color:var(--color-text-secondary)">Здесь будут ваши показы: картинки и PDF, разобранные по страницам. Показ сохраняется — «Закончить показ» его не стирает, и к нему можно вернуться на следующем занятии.</p>
+            </sc-if>
+          </div>
+          <footer style="display:grid;gap:var(--space-3);padding:var(--space-4) var(--space-5);border-top:1px solid var(--color-border)">
+            <button data-still="открывает выбор файла с устройства; картинка или PDF разбирается по страницам и встаёт в список свежим сверху" style="display:grid;place-items:center;min-height:var(--tap-min);border-radius:var(--radius-control);border:none;background:var(--color-go-solid);color:var(--color-on-go);font:500 var(--text-body) var(--font-body);cursor:pointer">Добавить показ</button>
+            <p style="margin:0;font:400 var(--text-caption) var(--font-mono);line-height:var(--leading-snug);color:var(--color-text-detail)">{{ keepLine }}</p>
+          </footer>
+        </aside>
+      </sc-if>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;: {&quot;width&quot;: 1512, &quot;height&quot;: 980}}">
+class Component extends DCLogic {
+  // ПОКАЗ (задание 31.08, очередь 1: пункты 1.1 и 1.2). Устройство — из кода:
+  // Show.tsx (пульт, слой пометок по рамке страницы), ShowList.tsx (панель показов),
+  // shows.ts (показы сохраняются в IndexedDB УСТРОЙСТВА — панель говорит об этом словами),
+  // Ink.tsx / InkTools.tsx (3 цвета маркера, стрелка, 3 стикера, отмена).
+  // Решения владельца 31.08: показ сохраняется; показов несколько; рисунок живёт поверх
+  // кадра, пока преподаватель его не снимет; библиотека — у преподавателя, привязка
+  // к занятию происходит при показе.
+  state = {
+    case: 'live', role: 'lead', keep: 'yes', kids: false,
+    page: 2, marker: true, tool: 'pen-coral', panel: false, arming: null,
+    activeShow: 'a', dropped: [],
+    // Пометки по страницам (ключ — номер страницы), как ink в ShowDoc.
+    ink: {
+      2: [
+        { kind: 'pen', d: 'M150 342 C 250 330, 420 330, 560 344', color: 'var(--fl-coral-500)', w: 6 },
+        { kind: 'pen', d: 'M760 470 L590 372 M628 372 L590 372 L616 408', color: 'var(--color-go)', w: 5 },
+        { kind: 'sticker', tf: 'translate(660 300)', glyph: '✓', color: 'var(--color-go)' },
+      ],
+      4: [{ kind: 'sticker', tf: 'translate(500 380)', glyph: '!', color: 'var(--fl-coral-500)' }],
+    },
+  };
+
+  PAGES = [
+    { head: 'Контрольная № 2 · условия', lines: ['Четыре задачи на площади и теорему Герона.', 'Время — 40 минут, черновик сдаётся вместе с работой.'] },
+    { head: 'Задача 1 — разбор', lines: ['Найдите площадь прямоугольного треугольника с катетами 6 и 8.', 'S = (6 · 8) / 2 = 24.', 'Половина класса забыла разделить на два.'] },
+    { head: 'Задача 2 — разбор', lines: ['Найдите площадь треугольника со сторонами 13, 14 и 15.', 'p = (13 + 14 + 15) / 2 = 21', 'S = √(21 · 8 · 7 · 6) = √7056 = 84', 'Во второй строке чаще всего терялся знак корня.'] },
+    { head: 'Задача 3 — разбор', lines: ['Высота к стороне 14 из той же задачи.', 'h = 2S / a = 168 / 14 = 12.'] },
+    { head: 'Типичные ошибки', lines: ['Полупериметр считается ДО подстановки в корень.', 'Единицы: ответ в квадратных сантиметрах, не в сантиметрах.'] },
+    { head: 'Задача 4 — разбор', lines: ['Площадь параллелограмма через синус угла.', 'S = a · b · sin α = 10 · 7 · 0,5 = 35.'] },
+    { head: 'Домашняя работа', lines: ['№ 214, 216, 219 — до четверга.', 'Черновик с полным ходом решения.'] },
+    { head: 'Что повторить к четвергу', lines: ['Теорема Герона, площадь через синус, высота из площади.'] },
+  ];
+
+  SHOWS = [
+    { id: 'a', title: 'Разбор контрольной.pdf', n: 8, when: '31 августа' },
+    { id: 'b', title: 'Теорема синусов — карточки', n: 12, when: '28 августа' },
+    { id: 'c', title: 'Фото доски 7-Б.png', n: 1, when: '19 августа' },
+  ];
+
+  componentDidMount() {
+    this.onResize = () => this.fit();
+    window.addEventListener('resize', this.onResize);
+    // Хост меряется НАБЛЮДАТЕЛЕМ, а не одним махом при монтировании: первый расчёт
+    // приходит до раскладки, когда clientHeight ещё 0 (тот же урок, что в Ink.tsx).
+    this.ro = new ResizeObserver(() => this.fit());
+    if (this.host) this.ro.observe(this.host);
+    // Esc закрывает панель — как правую панель комнаты (утверждено, «Комната урока»).
+    this.onKey = (e) => { if (e.key === 'Escape') this.setState({ panel: false, arming: null }); };
+    window.addEventListener('keydown', this.onKey);
+    this.settle();
+    this.probe = setInterval(() => {
+      const el = this.root && this.root.querySelector('[data-scroll-probe]');
+      if (el) el.textContent = 'прокрутка страницы: ' + Math.max(0, document.documentElement.scrollHeight - window.innerHeight) + ' px';
+    }, 1000);
+  }
+  componentDidUpdate() { this.settle(); }
+  componentWillUnmount() {
+    window.removeEventListener('resize', this.onResize);
+    window.removeEventListener('keydown', this.onKey);
+    if (this.ro) this.ro.disconnect();
+    clearInterval(this.probe);
+  }
+
+  settle() { this.fit(); this.applyChrome(); requestAnimationFrame(() => this.fit()); }
+
+  fit() {
+    const host = this.host, f = this.frame;
+    if (!host || !f) return;
+    const s = Math.min(1, (host.clientWidth - 40) / 1440, (host.clientHeight - 40) / 900);
+    if (!(s > 0)) return; // хост ещё не разложен — придёт ResizeObserver
+    host.style.position = 'relative';
+    f.style.position = 'absolute';
+    f.style.left = '50%'; f.style.top = '50%';
+    f.style.transform = 'translate(-50%, -50%) scale(' + s.toFixed(4) + ')';
+  }
+
+  applyChrome() {
+    const root = this.root; if (!root) return;
+    const cur = { case: this.state.case, role: this.state.role, keep: this.state.keep, kids: this.state.kids ? 'toggle' : '' };
+    root.querySelectorAll('[data-sw]').forEach((b) => {
+      const k = b.dataset.sw;
+      if (!(k in cur)) return;
+      const on = cur[k] === b.dataset.val;
+      b.style.color = on ? 'var(--color-text)' : 'var(--color-text-secondary)';
+      b.style.borderColor = on ? 'var(--color-border-strong)' : 'var(--color-border)';
+      b.style.background = on ? 'var(--color-surface)' : 'none';
+    });
+  }
+
+  onSw = (e) => {
+    const ds = e.currentTarget.dataset;
+    if (ds.sw === 'kids') return this.setState((s) => ({ kids: !s.kids }));
+    if (ds.sw === 'case') {
+      const v = ds.val;
+      // Панель открыта там, где случай про неё; поза маркера в загрузке выключена,
+      // чтобы «едет» и «идёт» отличались только заглушкой страницы (ПРАВИЛА 6.6).
+      return this.setState({
+        case: v,
+        panel: v === 'shows' || v === 'empty',
+        marker: v === 'live' || v === 'mute',
+        arming: null,
+      });
+    }
+    this.setState({ [ds.sw]: ds.val, arming: null });
+  };
+
+  onTool = (e) => { this.setState({ tool: e.currentTarget.dataset.val }); };
+  onMarker = () => this.setState((s) => ({ marker: !s.marker }));
+  onPrev = () => this.setState((s) => ({ page: Math.max(0, s.page - 1) }));
+  onNext = () => this.setState((s) => ({ page: Math.min(this.PAGES.length - 1, s.page + 1) }));
+  openPanel = () => this.setState({ panel: true });
+  closePanel = () => this.setState({ panel: false, arming: null });
+  onUndo = () => this.setState((s) => {
+    const cur = s.ink[s.page] || [];
+    if (!cur.length) return null;
+    return { ink: Object.assign({}, s.ink, { [s.page]: cur.slice(0, -1) }) };
+  });
+  onWipe = () => this.setState((s) => {
+    const cur = s.ink[s.page] || [];
+    if (!cur.length) return null;
+    return { ink: Object.assign({}, s.ink, { [s.page]: [] }) };
+  });
+
+  renderVals() {
+    const s = this.state;
+    const c = s.case;
+    const lead = s.role === 'lead';
+    const pageShown = c === 'live' || c === 'mute' || c === 'shows';
+    const act = this.SHOWS.find((r) => r.id === s.activeShow) || this.SHOWS[0];
+    const onA = act.id === 'a';
+    // Пометки сохраняются в СВОЁМ показе по своим страницам (shows.ts: ink[page]).
+    const marks = onA ? (s.ink[s.page] || []) : [];
+    const noMarks = marks.length === 0;
+    const page = onA
+      ? this.PAGES[s.page]
+      : { head: act.title, lines: ['Страница 1 из показа «' + act.title + '».'] };
+    const pageN = onA ? this.PAGES.length : act.n;
+    const onBd = 'rgba(255,255,255,.45)';
+    const offBd = 'var(--color-border-on-video)';
+    const onBg = 'var(--color-surface-on-video)';
+
+    const DOTS = [
+      { id: 'pen-coral', name: 'Маркер, коралловый', swatch: 'var(--fl-coral-500)' },
+      { id: 'pen-green', name: 'Маркер, зелёный', swatch: 'var(--color-go-on-video)' },
+      { id: 'pen-blue', name: 'Маркер, синий', swatch: 'var(--color-info)' },
+    ];
+    const TOOLS = [
+      { id: 'arrow', label: 'Стрелка', name: 'Стрелка' },
+      { id: 'st-верно', label: '✓', name: 'Стикер «верно»' },
+      { id: 'st-вопрос', label: '?', name: 'Стикер «вопрос»' },
+      { id: 'st-сюда', label: '!', name: 'Стикер «смотрите сюда»' },
+    ];
+
+    return {
+      setRoot: (el) => { this.root = el; },
+      setHost: (el) => { this.host = el; },
+      setFrame: (el) => { this.frame = el; },
+      kidsMode: s.kids ? 'kids' : '',
+
+      faces: [
+        { ini: 'НК', name: 'Нина Кузьмина', lead: true },
+        { ini: 'АВ', name: 'Аня Волкова', lead: false },
+        { ini: 'МР', name: 'Максим Реут', lead: false },
+        { ini: 'ПК', name: 'Петя Ковалёв', lead: false },
+        { ini: 'СЛ', name: 'Соня Лапина', lead: false },
+      ],
+
+      pageShown: pageShown,
+      loading: c === 'load',
+      failed: c === 'fail',
+      emptyStage: c === 'empty',
+      muted: c === 'mute',
+      pageHead: page.head + ' · страница ' + (s.page + 1),
+      pageLines: page.lines.map((t) => ({ t: t })),
+      penMarks: marks.filter((m) => m.kind === 'pen'),
+      stickerMarks: marks.filter((m) => m.kind === 'sticker'),
+
+      polka: lead && s.marker && pageShown,
+      dots: DOTS.map((d) => ({
+        id: d.id, name: d.name, swatch: d.swatch,
+        on: s.tool === d.id ? 'true' : 'false',
+        bd: s.tool === d.id ? onBd : offBd,
+        bg: s.tool === d.id ? onBg : 'none',
+      })),
+      toolBtns: TOOLS.map((t) => ({
+        id: t.id, label: t.label, name: t.name,
+        on: s.tool === t.id ? 'true' : 'false',
+        bd: s.tool === t.id ? onBd : offBd,
+        bg: s.tool === t.id ? onBg : 'none',
+      })),
+      noMarks: noMarks,
+      noMarksStr: noMarks ? 'true' : 'false',
+      undoColor: noMarks ? 'var(--color-text-on-video-quiet)' : 'var(--color-text-on-video)',
+
+      pultShown: pageShown || c === 'load',
+      isLead: lead,
+      isClass: !lead,
+      showTitle: act.title,
+      countLabel: (onA ? s.page + 1 : 1) + ' из ' + pageN,
+      atFirst: s.page === 0 || !onA,
+      atFirstStr: s.page === 0 || !onA ? 'true' : 'false',
+      atLast: !onA || s.page === this.PAGES.length - 1,
+      atLastStr: !onA || s.page === this.PAGES.length - 1 ? 'true' : 'false',
+      prevColor: s.page === 0 || !onA ? 'var(--color-text-on-video-quiet)' : 'var(--color-text-on-video)',
+      nextColor: !onA || s.page === this.PAGES.length - 1 ? 'var(--color-text-on-video-quiet)' : 'var(--color-text-on-video)',
+      markerOn: s.marker ? 'true' : 'false',
+      markerBd: s.marker ? onBd : offBd,
+      markerBg: s.marker ? onBg : 'none',
+
+      panelOpen: lead && s.panel,
+      hasShows: c !== 'empty',
+      noShows: c === 'empty',
+      showRows: (c === 'empty' ? [] : this.SHOWS)
+        .filter((r) => s.dropped.indexOf(r.id) === -1)
+        .map((r) => {
+          const on = r.id === act.id;
+          return {
+            id: r.id, title: r.title,
+            meta: r.n + ' стр. · ' + r.when + (on && pageShown ? ' · показывается' : ''),
+            on: on ? 'true' : 'false',
+            bd: on ? 'var(--color-border-strong)' : 'var(--color-border)',
+            bg: on ? 'var(--color-surface)' : 'none',
+            arming: s.arming === r.id,
+            calm: s.arming !== r.id,
+            open: () => this.setState({ activeShow: r.id, arming: null }),
+            arm: () => this.setState({ arming: r.id }),
+            // Удалить показываемый показ нельзя молча уводить в пустоту: активным
+            // становится верхний из оставшихся.
+            drop: () => this.setState((p) => {
+              const gone = p.dropped.concat(r.id);
+              const left = this.SHOWS.filter((x) => gone.indexOf(x.id) === -1);
+              return { dropped: gone, arming: null, activeShow: r.id === p.activeShow ? (left[0] ? left[0].id : p.activeShow) : p.activeShow };
+            }),
+            disarm: () => this.setState({ arming: null }),
+          };
+        }),
+      keepLine: s.keep === 'yes'
+        ? 'Показы хранятся на этом устройстве. С другого компьютера их не видно.'
+        : 'Браузер не дал места: показы доживут только до перезагрузки страницы.',
+
+      onSw: this.onSw,
+      onTool: this.onTool,
+      onMarker: this.onMarker,
+      onPrev: this.onPrev,
+      onNext: this.onNext,
+      openPanel: this.openPanel,
+      closePanel: this.closePanel,
+      onUndo: this.onUndo,
+      onWipe: this.onWipe,
+    };
+  }
+}
+</script>
+</body>
+</html>
