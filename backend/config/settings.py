@@ -73,11 +73,25 @@ USE_TZ = True
 #
 # 🔴 Пока EMAIL_HOST пуст, письма не уходят — ссылка пишется в журнал сервера.
 # Вход и регистрация от этого не страдают: почта нужна ровно одному пути.
+# 🔴 Пустая строка = переменной нет. Задание владельца из §40 архива:
+# `.env` передаёт пустые значения внутрь, и `int("")` роняет запуск сервера
+# ещё до первой строки журнала — то есть непонятно почему.
+def _num(name: str, default: int) -> int:
+    raw = (os.getenv(name) or "").strip()
+    return int(raw) if raw.isdigit() else default
+
+
 EMAIL_HOST = os.getenv("EMAIL_HOST", "")
-EMAIL_PORT = int(os.getenv("EMAIL_PORT", "587"))
+EMAIL_PORT = _num("EMAIL_PORT", 587)
 EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "")
 EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "")
-EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", "1") == "1"
+
+# 🔴 587 и 465 — РАЗНЫЕ разговоры, и перепутать их значит «письмо не ушло, и молча».
+# На 587 шифрование поднимается командой внутри уже открытого соединения (STARTTLS),
+# на 465 оно есть с первого байта (SSL). Django выбирает по этим двум флагам, и они
+# взаимоисключающие. Яндекс принимает оба; в §40 архива выбран 587.
+EMAIL_USE_SSL = os.getenv("EMAIL_USE_SSL", "") == "1"
+EMAIL_USE_TLS = (not EMAIL_USE_SSL) and os.getenv("EMAIL_USE_TLS", "1") == "1"
 DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "Flamingo <no-reply@flamingo.plus>")
 
 LOGGING = {
