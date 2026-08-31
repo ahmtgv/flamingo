@@ -1,5 +1,7 @@
 import { useMemo, useState } from 'react'
 
+import { Vitrina } from '../hub/Vitrina'
+
 import { IF_SILENT, KINDS, RIGHTS, SOURCES, type Kind, type Source } from '../hub/sources'
 import { Mark } from '../ui/Mark'
 import s from './Hub.module.css'
@@ -21,6 +23,9 @@ const STATE_TEXT = {
 export function Hub({ onBack }: { onBack: () => void }) {
   const [kind, setKind] = useState<Kind | null>(null)
   const [pick, setPick] = useState<Source | null>(null)
+  /* Открытый источник показывается ЗДЕСЬ ЖЕ, поверх каталога. Новая вкладка
+     уносит человека из Flamingo, и обратно он уже не всегда возвращается. */
+  const [open, setOpen] = useState<Source | null>(null)
 
   const list = useMemo(() => (kind ? SOURCES.filter((x) => x.kind === kind) : SOURCES), [kind])
   const silent = SOURCES.filter((x) => x.state === 'down').length
@@ -94,10 +99,10 @@ export function Hub({ onBack }: { onBack: () => void }) {
                 <span className={s.gives}>{x.gives}</span>
                 <span className={s.state}>{STATE_TEXT[x.state]}</span>
               </button>
-              <a className={s.cardGo} href={x.home} target="_blank" rel="noreferrer"
-                 onClick={(e) => e.stopPropagation()}>
-                открыть ↗
-              </a>
+              <button type="button" className={s.cardGo}
+                      onClick={(e) => { e.stopPropagation(); setPick(x); setOpen(x) }}>
+                открыть
+              </button>
             </li>
           ))}
         </ul>
@@ -118,9 +123,9 @@ export function Hub({ onBack }: { onBack: () => void }) {
 
               {/* 🔴 Главное действие каталога — попасть В источник. Без него каталог
                   остаётся витриной имён: человек выбрал строку и упёрся в тупик. */}
-              <a className={s.open} href={pick.home} target="_blank" rel="noreferrer">
-                Открыть источник ↗
-              </a>
+              <button type="button" className={s.open} onClick={() => setOpen(pick)}>
+                Открыть источник
+              </button>
               <span className={s.openWhy}>{new URL(pick.home).host}</span>
 
               {/* ПРАВИЛА 12: дверь видна, названа, не нажимается, сказано когда откроется. */}
@@ -143,6 +148,20 @@ export function Hub({ onBack }: { onBack: () => void }) {
           )}
         </aside>
       </div>
+
+      {/* Источник открыт ЗДЕСЬ ЖЕ. Выход один и он назван — «Закрыть»: из чужой
+          страницы внутри рамки клавиша «назад» не работает так, как ждёт человек. */}
+      {open ? (
+        <div className={s.shown} role="dialog" aria-label={`Источник: ${open.name}`}>
+          <header className={s.shownHead}>
+            <span className={s.shownName}>{open.name}</span>
+            <button type="button" className={s.shownClose} onClick={() => setOpen(null)}>
+              Закрыть
+            </button>
+          </header>
+          <Vitrina url={open.home} name={open.name} />
+        </div>
+      ) : null}
     </main>
   )
 }
