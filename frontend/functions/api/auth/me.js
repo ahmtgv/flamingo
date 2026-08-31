@@ -1,9 +1,10 @@
-import { dropCookie, no, noDb, say, secretOf, whoFrom } from '../_people.js'
+import { dropCookie, no, noDb, ready, say, secretOf, whoFrom } from '../_people.js'
 
 export const onRequest = async ({ request, env }) => {
   if (request.method === 'DELETE') return say({ ok: true }, 200, dropCookie())
   if (request.method !== 'GET') return no('Этот путь отвечает на GET и DELETE.', 405)
   if (!env.DB) return noDb()
+  await ready(env)
 
   const id = await whoFrom(request, await secretOf(env))
   if (!id) return say({ person: null })

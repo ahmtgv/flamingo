@@ -59,6 +59,19 @@ console.log('\nБез базы:')
     String(r.data.error).includes('Урок по ссылке'), r.data.error)
 }
 
+// ── 1б. Первое действие на пустой базе — ВХОД, а не регистрация ──────────
+// Так и было на боевом: база создана, в ней ни одной таблицы. Раньше здесь
+// падало `no such table: people`.
+console.log('\nПервый человек на пустой базе жмёт «Войти»:')
+{
+  const fresh = { DB: fakeD1() }
+  const r = await read(await call(login, 'POST', {
+    env: fresh, body: { email: 'кто@нибудь.рф', password: 'какой-то пароль' } }))
+  ok('отвечает 401 словами, а не падает', r.status === 401 && !!r.data.error, JSON.stringify(r.data))
+  const m = await read(await call(me, 'GET', { env: fresh, cookie: 'fl_ses=YWJj.ZGVm' }))
+  ok('/me с чужой кукой на пустой базе тоже не падает', m.status === 200, JSON.stringify(m.data))
+}
+
 // ── 2. Полный проход: завести → я → выйти → войти ────────────────────────
 console.log('\nС базой, без SESSION_SECRET (ключ заводится сам):')
 const env = { DB: fakeD1() }

@@ -14,11 +14,12 @@ type Props = {
   onGo: (code: string, name: string) => void
   onHub: () => void
   onSign: () => void
+  onOut: () => void
   /** Кто вошёл. Урок по ссылке работает и без учётной записи. */
   person: Person | null
 }
 
-export function Enter({ invited, initialName, onGo, onHub, onSign, person }: Props) {
+export function Enter({ invited, initialName, onGo, onHub, onSign, onOut, person }: Props) {
   const [name, setName] = useState(initialName)
   const [said, setSaid] = useState(false)
 
@@ -40,7 +41,7 @@ export function Enter({ invited, initialName, onGo, onHub, onSign, person }: Pro
         <p className={s.lead}>
           {invited
             ? 'Назовитесь — и входите. Ни регистрации, ни установки.'
-            : 'Комната для урока: доска, лица и голос. Учётных записей пока нет — вы открываете комнату и зовёте класс ссылкой.'}
+            : 'Комната для урока: доска, лица и голос. Вы открываете комнату и зовёте класс ссылкой — ученику ни регистрации, ни установки.'}
         </p>
 
         {invited ? <code className={s.code}>{invited}</code> : null}
@@ -78,7 +79,10 @@ export function Enter({ invited, initialName, onGo, onHub, onSign, person }: Pro
         {/* Учётная запись — второе действие экрана, обводкой: заливка одна и принадлежит
             входу в комнату (ПРАВИЛА 11.4). */}
         {person ? (
-          <p className={s.who}>Вы вошли как {person.name}</p>
+          <p className={s.who}>
+            Вы вошли как {person.name} ·{' '}
+            <button type="button" className={s.out} onClick={onOut}>Выйти</button>
+          </p>
         ) : (
           <button type="button" className={s.hub} onClick={onSign}>
             Войти или завести учётную запись

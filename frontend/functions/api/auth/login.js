@@ -1,7 +1,8 @@
-import { checkPass, makeCookie, no, noDb, say, secretOf } from '../_people.js'
+import { checkPass, makeCookie, no, noDb, ready, say, secretOf } from '../_people.js'
 
 async function enter({ request, env }) {
   if (!env.DB) return noDb()
+  await ready(env)
   const secret = await secretOf(env)
 
   let body = {}

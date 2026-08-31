@@ -113,7 +113,6 @@ export const noDb = () =>
 export async function secretOf(env) {
   if (env.SESSION_SECRET) return env.SESSION_SECRET
   if (!env.DB) return null
-  await env.DB.prepare(KEYS_SQL).run()
   const have = await env.DB.prepare("SELECT val FROM keys WHERE name = 'session'").first()
   if (have?.val) return have.val
   const made = b64url(crypto.getRandomValues(new Uint8Array(48)))
@@ -121,6 +120,18 @@ export async function secretOf(env) {
     .bind(made, new Date().toISOString()).run()
   const back = await env.DB.prepare("SELECT val FROM keys WHERE name = 'session'").first()
   return back?.val ?? made
+}
+
+/** 🔴 Таблицы заводятся ДО любого чтения, и это не украшение.
+ *  Раньше `CREATE TABLE IF NOT EXISTS people` стоял только в регистрации. На свежей
+ *  базе первый человек, который нажал «Войти», а не «Завести», получал
+ *  `no such table: people` — пятисотку вместо слов «почта или пароль не подошли».
+ *  Поймано живым проходом на чистой базе, ровно в том состоянии, в котором боевой
+ *  оказался сразу после подключения D1.
+ */
+export async function ready(env) {
+  await env.DB.prepare(CREATE_SQL).run()
+  await env.DB.prepare(KEYS_SQL).run()
 }
 
 export const KEYS_SQL = `

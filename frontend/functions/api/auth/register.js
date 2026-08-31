@@ -1,9 +1,10 @@
-import { CREATE_SQL, hashPass, makeCookie, no, noDb, say, secretOf } from '../_people.js'
+import { hashPass, makeCookie, no, noDb, ready, say, secretOf } from '../_people.js'
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/
 
 async function make({ request, env }) {
   if (!env.DB) return noDb()
+  await ready(env)
   const secret = await secretOf(env)
 
   let body = {}
@@ -22,7 +23,6 @@ async function make({ request, env }) {
   // Длина честнее сложности: «Xy7!» короче и хуже, чем четыре обычных слова.
   if (pass.length < 8) return no('Пароль короче восьми знаков. Длина надёжнее сложности: возьмите четыре слова.')
 
-  await env.DB.prepare(CREATE_SQL).run()
   const already = await env.DB.prepare('SELECT id FROM people WHERE email = ?').bind(email).first()
   if (already) return no('Такая почта уже занята. Если это вы — войдите.', 409)
 

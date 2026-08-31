@@ -51,8 +51,14 @@ export function Sign({ onDone, onBack }: { onDone: (p: Person) => void; onBack: 
             : 'Учётная запись нужна, чтобы урок оставался после урока: доски, конспект и оценки перестают исчезать вместе с комнатой.'}
         </p>
 
+        {/* 🔴 noValidate. С родной проверкой браузера отказ приходил ПО-АНГЛИЙСКИ
+            («A part followed by '@' should not contain the symbol 'н'») и на нашу
+            же подсказку «имя@почта.рф». Отказ должен говорить нашими словами
+            и по-русски (ПРАВИЛА 6.4), поэтому пузырь браузера выключен, а проверку
+            делает сервер. type="email" оставлен: от него клавиатура на телефоне. */}
         <form
           className={s.form}
+          noValidate
           onSubmit={(e) => {
             e.preventDefault()
             go()
@@ -61,7 +67,7 @@ export function Sign({ onDone, onBack }: { onDone: (p: Person) => void; onBack: 
           <Field
             label="Почта"
             hint="Нужна, чтобы вас узнали при следующем входе"
-            placeholder="имя@почта.ру"
+            placeholder="имя@почта.рф"
             type="email"
             autoComplete="email"
             value={email}
