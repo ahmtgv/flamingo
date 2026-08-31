@@ -11,9 +11,10 @@ type Props = {
   invited: string | null
   initialName: string
   onGo: (code: string, name: string) => void
+  onHub: () => void
 }
 
-export function Enter({ invited, initialName, onGo }: Props) {
+export function Enter({ invited, initialName, onGo, onHub }: Props) {
   const [name, setName] = useState(initialName)
   const [said, setSaid] = useState(false)
 
@@ -69,6 +70,11 @@ export function Enter({ invited, initialName, onGo }: Props) {
             {invited ? 'Войти в комнату' : 'Создать комнату'}
           </Button>
         </form>
+
+        {/* Flamingo HUB стоит рядом со входом: в него ходят и без урока. */}
+        <button type="button" className={s.hub} onClick={onHub}>
+          Flamingo HUB · 36 открытых источников мира
+        </button>
 
         {/* Сказано один раз и словами: и про камеру, и про то, что урок нигде не остаётся. */}
         <p className={s.foot}>

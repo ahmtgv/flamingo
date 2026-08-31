@@ -5,6 +5,8 @@ import { newId } from '../board/protocol'
 import { Chat, type Line } from '../room/Chat'
 import { Note } from '../room/Note'
 import { Shelf, type Source } from '../room/Shelf'
+import { Show } from '../room/Show'
+import { deckFrom, pickFiles, type Deck } from '../room/deck'
 import { Sleepy } from '../room/Sleepy'
 import { Stage } from '../room/Stage'
 import { Tiles } from '../room/Tiles'
@@ -22,6 +24,11 @@ export function Room({ code, name, onLeave }: Props) {
   const [copied, setCopied] = useState(false)
   const [source, setSource] = useState<Source>('faces')
   const [lines, setLines] = useState<Line[]>([])
+  const [deck, setDeck] = useState<Deck | null>(null)
+  const [shown, setShown] = useState<{ title: string; n: number; i: number; src: string | null }>({
+    title: '', n: 0, i: 0, src: null,
+  })
+  const [busy, setBusy] = useState(false)
   const [chatOpen, setChatOpen] = useState(false)
   const [unread, setUnread] = useState(0)
   const link = roomUrl(code)
@@ -34,6 +41,8 @@ export function Room({ code, name, onLeave }: Props) {
 
   useEffect(() => bus.subscribe((m) => {
     if (m.t === 'stage') setSource(m.source)
+    if (m.t === 'showMeta') setShown((cur) => ({ ...cur, title: m.title, n: m.n, i: m.i, src: cur.i === m.i ? cur.src : null }))
+    if (m.t === 'showPage') setShown((cur) => (m.i === cur.i ? { ...cur, src: m.src } : cur))
     if (m.t === 'chat') {
       setLines((cur) => [...cur, { id: m.id, who: m.who, text: m.text, at: m.at, mine: false }])
       setUnread((n) => n + 1)
@@ -50,6 +59,45 @@ export function Room({ code, name, onLeave }: Props) {
       bus.send({ t: 'stage', source: next })
     },
     [bus],
+  )
+
+  /* Показ ведёт учитель: страница уезжает классу по одной, когда её открыли. */
+  const sendPage = useCallback(
+    (d: Deck, i: number) => {
+      bus.send({ t: 'showMeta', title: d.title, n: d.pages.length, i })
+      bus.send({ t: 'showPage', i, src: d.pages[i] })
+      setShown({ title: d.title, n: d.pages.length, i, src: d.pages[i] })
+    },
+    [bus],
+  )
+
+  const startShow = useCallback(async () => {
+    if (deck) {
+      setSource('show')
+      bus.send({ t: 'stage', source: 'show' })
+      sendPage(deck, shown.i)
+      return
+    }
+    const files = await pickFiles('image/*,application/pdf')
+    if (files.length === 0) return
+    setBusy(true)
+    const next = await deckFrom(files)
+    setBusy(false)
+    if (!next) return
+    setDeck(next)
+    setSource('show')
+    bus.send({ t: 'stage', source: 'show' })
+    sendPage(next, 0)
+  }, [bus, deck, sendPage, shown.i])
+
+  const step = useCallback(
+    (d: number) => {
+      if (!deck) return
+      const i = Math.min(deck.pages.length - 1, Math.max(0, shown.i + d))
+      if (i === shown.i) return
+      sendPage(deck, i)
+    },
+    [deck, sendPage, shown.i],
   )
 
   const say = useCallback(
@@ -78,7 +126,6 @@ export function Room({ code, name, onLeave }: Props) {
   }
 
   const alone = peers === 0 && phase === 'live'
-  const onBoard = source === 'board'
 
   return (
     <div className={s.room}>
@@ -94,7 +141,7 @@ export function Room({ code, name, onLeave }: Props) {
           {phase === 'live' ? 'идёт' : phase === 'connecting' ? 'подключаемся' : 'связи нет'}
         </span>
 
-        {iLead ? <Shelf source={source} onPick={pick} /> : null}
+        {iLead ? <Shelf source={source} onPick={pick} onShow={startShow} /> : null}
 
         <button
           type="button"
@@ -109,16 +156,36 @@ export function Room({ code, name, onLeave }: Props) {
       </header>
 
       <div className={`${s.stage} ${chatOpen ? s.withChat : ''}`} ref={stageRef}>
-        {onBoard ? <Board bus={bus} peers={peers} /> : (
+        {source === 'board' ? <Board bus={bus} peers={peers} /> : null}
+        {source === 'show' ? (
+          <Show
+            title={shown.title}
+            page={shown.src}
+            i={shown.i}
+            n={shown.n}
+            lead={iLead}
+            onPrev={() => step(-1)}
+            onNext={() => step(1)}
+            onClose={() => pick('faces')}
+          />
+        ) : null}
+        {source === 'faces' ? (
           <Stage faces={faces} alone={alone} link={link} onCopy={copy} phase={phase} error={error} />
-        )}
+        ) : null}
+
+        {/* ПРАВИЛА 6.3: пока страницы разбираются, сказано, что придёт первым. */}
+        {busy ? (
+          <div className={s.overNote}>
+            <Note light title="Разбираем файл" text="Страницы готовятся прямо в браузере — на сервер файл не уезжает. Первой уедет классу та страница, которую откроете." />
+          </div>
+        ) : null}
 
         {/* Лица лежат ПОВЕРХ доски: холст под ними бесконечный и ничем не обрезан. */}
-        {onBoard && phase === 'live' ? <Tiles faces={faces} /> : null}
+        {(source === 'board' || source === 'show') && phase === 'live' ? <Tiles faces={faces} /> : null}
 
         {/* Эфир — своя область (ПРАВИЛА 6.5): пока он не поднялся, об этом говорит
             карточка лиц, а доска продолжает работать. */}
-        {onBoard && phase !== 'live' ? (
+        {(source === 'board' || source === 'show') && phase !== 'live' ? (
           <div className={s.overNote}>
             {phase === 'connecting' ? (
               <Note light title="Поднимаем эфир" text="Первым появится ваш кадр, потом остальные — по мере входа. Доска уже работает." />

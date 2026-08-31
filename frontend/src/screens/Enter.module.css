@@ -71,3 +71,20 @@
   color: var(--color-text-detail);
   max-width: 56ch;
 }
+
+/* Второе действие экрана — обводкой, а не заливкой: заливка на экране одна
+   и принадлежит входу в комнату (ПРАВИЛА 11.4). */
+.hub {
+  min-height: var(--tap-min);
+  padding: 0 var(--space-5);
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--color-border);
+  background: none;
+  color: var(--color-text);
+  font-size: var(--text-small);
+  cursor: pointer;
+}
+
+.hub:hover {
+  border-color: var(--color-border-strong);
+}

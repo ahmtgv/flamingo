@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 
 import { Enter } from './screens/Enter'
+import { Hub } from './screens/Hub'
 import { Room } from './screens/Room'
 import { codeFromPath } from './lib/code'
 import { rememberName, rememberedName } from './lib/name'
@@ -38,6 +39,14 @@ export function App() {
     go('/')
   }, [go])
 
+  if (path === '/hub') return <Hub onBack={() => go('/')} />
   if (code && name) return <Room code={code} name={name} onLeave={leave} />
-  return <Enter invited={code} initialName={name ?? rememberedName()} onGo={enter} />
+  return (
+    <Enter
+      invited={code}
+      initialName={name ?? rememberedName()}
+      onGo={enter}
+      onHub={() => go('/hub')}
+    />
+  )
 }

@@ -1,15 +1,18 @@
 import s from './Shelf.module.css'
 
 /** Полка источников. Что учитель выбрал — то и видит класс. */
-export type Source = 'faces' | 'board'
+export type Source = 'faces' | 'board' | 'show'
 
-/** 🔴 Четыре приглушённые двери подряд — это уже витрина несуществующего, и
- *  ПРАВИЛА 12.7 велят свернуть такой список в ОДНУ строку. Поэтому картинка,
- *  видео, презентация и учебник названы вместе, одной фразой, и в ней же сказано,
- *  чего они ждут (12.3: объяснение берёт полный контраст, приглушено название). */
-const NOT_YET = 'картинка, видео, презентация, учебник'
+/** Осталось две двери — учебник и живое видео. ПРАВИЛА 12.7 велят сворачивать
+ *  в одну строку список от четырёх дверей; двух хватает назвать вместе. */
+const NOT_YET = 'учебник, живое видео'
 
-export function Shelf({ source, onPick }: { source: Source; onPick: (s: Source) => void }) {
+export function Shelf({ source, onPick, onShow }: {
+  source: Source
+  onPick: (s: Source) => void
+  /** Показ начинается с выбора файла, поэтому у него своя дорога, а не просто вкладка. */
+  onShow: () => void
+}) {
   return (
     <div className={s.shelf}>
       <div className={s.tabs} role="tablist" aria-label="Что показывают классу">
@@ -31,12 +34,21 @@ export function Shelf({ source, onPick }: { source: Source; onPick: (s: Source) 
         >
           Доска
         </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={source === 'show'}
+          className={`${s.item} ${source === 'show' ? s.on : ''}`}
+          onClick={onShow}
+        >
+          Показ
+        </button>
       </div>
 
       {/* ПРАВИЛА 12.4: говорим о сроке, а не о запрете. */}
       <p className={s.notYet}>
         <span className={s.notYetName}>Пока нет: {NOT_YET}</span>
-        <span className={s.notYetWhy}>появятся вместе с курсом и хранилищем файлов</span>
+        <span className={s.notYetWhy}>появятся вместе с курсом</span>
       </p>
     </div>
   )

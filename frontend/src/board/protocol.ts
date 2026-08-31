@@ -56,7 +56,11 @@ export type Msg =
    *  переписка живёт ровно столько, сколько в комнате есть люди. */
   | { t: 'chat'; id: string; who: string; text: string; at: number }
   /** Что сейчас показывают классу. Ведёт тот, кто ведёт урок. */
-  | { t: 'stage'; source: 'faces' | 'board' }
+  | { t: 'stage'; source: 'faces' | 'board' | 'show' }
+  /** Показ: сколько страниц, какая открыта и как называется. Сами страницы едут
+   *  отдельно и по одной — целиком они положили бы канал всему классу. */
+  | { t: 'showMeta'; title: string; n: number; i: number }
+  | { t: 'showPage'; i: number; src: string }
   /** «Я только вошёл, покажите доску». */
   | { t: 'ask' }
   | { t: 'state'; sheets: Sheet[]; active: string }
