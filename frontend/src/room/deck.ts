@@ -77,7 +77,18 @@ export function pickFiles(accept: string): Promise<File[]> {
     inp.type = 'file'
     inp.accept = accept
     inp.multiple = true
-    inp.onchange = () => res(inp.files ? Array.from(inp.files) : [])
+    /* 🔴 Вход живёт В ДОКУМЕНТЕ, а не в воздухе: отсоединённому input часть
+       браузеров (и всякий автопрогон) не умеет отдать файлы — выбор молча
+       пропадает. Невидим, но существует; после выбора убирается за собой. */
+    inp.style.position = 'fixed'
+    inp.style.left = '-1000px'
+    inp.setAttribute('aria-hidden', 'true')
+    inp.tabIndex = -1
+    inp.onchange = () => {
+      res(inp.files ? Array.from(inp.files) : [])
+      inp.remove()
+    }
+    document.body.append(inp)
     inp.click()
   })
 }

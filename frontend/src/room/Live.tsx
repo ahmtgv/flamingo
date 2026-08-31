@@ -1,5 +1,10 @@
+import { useState } from 'react'
+
 import { Vitrina } from '../hub/Vitrina'
 import s from './Live.module.css'
+import { InkLayer, type Tool } from './Ink'
+import { FIRST_TOOL, InkTools } from './InkTools'
+import type { Ink } from './shows'
 import { RIGHTS, SOURCES } from '../hub/sources'
 
 /** Трансляция классу из Flamingo HUB.
@@ -14,6 +19,12 @@ import { RIGHTS, SOURCES } from '../hub/sources'
  *  что чужой сайт вправе не пустить себя внутрь. Уводить преподавателя из урока
  *  в другую вкладку посреди занятия — худшее, что можно сделать: класс остаётся
  *  смотреть на пустую доску.
+ *
+ *  🔴 Маркер поверх трансляции («даже видео» — решение владельца 31.08) живёт,
+ *  пока живёт эта трансляция: у потока нет страниц, к которым пометку можно
+ *  привязать навсегда, поэтому смена источника стирает пометки. Пока маркер
+ *  включён, нажатия достаются ему, а не видео — это цена режима, и она видна:
+ *  выключил маркер — видео снова слушается.
  */
 
 type Kind = 'frame' | 'video' | 'image' | 'link'
@@ -32,15 +43,21 @@ export function embedOf(raw: string): { kind: Kind; src: string } {
 }
 
 export function Live({
-  sourceId, url, lead, onClose,
+  sourceId, url, lead, marks, onMark, onUndo, onWipe, onClose,
 }: {
   sourceId: string
   url: string
   lead: boolean
+  /** Пометки поверх трансляции. Живут, пока живёт источник. */
+  marks: Ink[]
+  onMark: (m: Ink, final: boolean) => void
+  onUndo: () => void
+  onWipe: () => void
   onClose: () => void
 }) {
   const src = SOURCES.find((x) => x.id === sourceId)
   const e = embedOf(url)
+  const [tool, setTool] = useState<Tool | null>(null)
 
   return (
     <div className={s.live}>
@@ -57,7 +74,22 @@ export function Live({
         {e.kind === 'video' ? <video className={s.frame} src={e.src} controls autoPlay /> : null}
         {e.kind === 'image' ? <img className={s.pic} src={e.src} alt={src?.name ?? 'Источник'} /> : null}
         {e.kind === 'link' ? <Vitrina url={e.src} name={src?.name ?? 'Источник'} /> : null}
+
+        {/* Слой пометок — по рамке трансляции. У потока нет «страницы», поэтому
+            доля координат считается от рамки: у всех она стоит одинаково. */}
+        <InkLayer marks={marks} tool={lead ? tool : null} onMark={onMark} />
       </div>
+
+      {lead && tool ? (
+        <InkTools
+          tool={tool}
+          onTool={setTool}
+          onUndo={onUndo}
+          onWipe={onWipe}
+          canUndo={marks.length > 0}
+          canWipe={marks.length > 0}
+        />
+      ) : null}
 
       <div className={s.pult} data-pult="трансляция">
         <span className={s.name}>{src?.name ?? 'Источник'}</span>
@@ -65,6 +97,14 @@ export function Live({
         {lead ? (
           <>
             <span className={s.sep} />
+            <button
+              type="button"
+              className={`${s.mark} ${tool ? s.markOn : ''}`}
+              aria-pressed={Boolean(tool)}
+              onClick={() => setTool(tool ? null : FIRST_TOOL)}
+            >
+              Маркер
+            </button>
             <button type="button" className={s.stop} onClick={onClose}>
               Закончить показ
             </button>

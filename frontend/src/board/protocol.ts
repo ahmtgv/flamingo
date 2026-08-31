@@ -61,6 +61,12 @@ export type Msg =
    *  отдельно и по одной — целиком они положили бы канал всему классу. */
   | { t: 'showMeta'; title: string; n: number; i: number }
   | { t: 'showPage'; i: number; src: string }
+  /** Пометки поверх страницы показа. Координаты — доли рамки страницы (см. shows.ts).
+   *  `ink` заменяет метку по id — так штрих растёт у класса, пока его ведут.
+   *  `inkAll` — страница целиком: уезжает при листании, смене показа и отмене. */
+  | { t: 'ink'; page: number; m: import('../room/shows').Ink }
+  | { t: 'inkDel'; page: number; ids: string[] }
+  | { t: 'inkAll'; page: number; marks: import('../room/shows').Ink[] }
   /** Трансляция из Flamingo HUB: какой источник и какую страницу показывают. */
   | { t: 'live'; sourceId: string; url: string }
   /** «Я только вошёл, покажите доску». */

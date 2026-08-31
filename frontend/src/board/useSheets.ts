@@ -58,8 +58,11 @@ export function useSheets(bus: Bus, peers: number) {
         touch()
         return
       }
-      // Что показывают классу и чат — не дело доски: этим ведает комната.
-      if (m.t === 'stage' || m.t === 'chat' || m.t === 'showMeta' || m.t === 'showPage' || m.t === 'live') return
+      // Что показывают классу, пометки показа и чат — не дело доски: этим ведает комната.
+      if (
+        m.t === 'stage' || m.t === 'chat' || m.t === 'showMeta' || m.t === 'showPage' ||
+        m.t === 'live' || m.t === 'ink' || m.t === 'inkDel' || m.t === 'inkAll'
+      ) return
       const sh = sheet(m.sheet)
       if (!sh) return
       if (m.t === 'seg') {

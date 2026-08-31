@@ -10,7 +10,16 @@ export function pickFile(accept: string): Promise<File | null> {
     const inp = document.createElement('input')
     inp.type = 'file'
     inp.accept = accept
-    inp.onchange = () => res(inp.files?.[0] ?? null)
+    /* Вход живёт в документе, не в воздухе — см. pickFiles в room/deck.ts. */
+    inp.style.position = 'fixed'
+    inp.style.left = '-1000px'
+    inp.setAttribute('aria-hidden', 'true')
+    inp.tabIndex = -1
+    inp.onchange = () => {
+      res(inp.files?.[0] ?? null)
+      inp.remove()
+    }
+    document.body.append(inp)
     inp.click()
   })
 }
