@@ -1,8 +1,8 @@
-import { checkPass, makeCookie, no, noDb, say } from '../_people.js'
+import { checkPass, makeCookie, no, noDb, say, secretOf } from '../_people.js'
 
 async function enter({ request, env }) {
   if (!env.DB) return noDb()
-  if (!env.SESSION_SECRET) return no('Сервер не настроен: нет ключа подписи сессий.', 503)
+  const secret = await secretOf(env)
 
   let body = {}
   try {
@@ -27,7 +27,7 @@ async function enter({ request, env }) {
   if (!(await checkPass(pass, row.pass))) return wrong()
 
   return say({ id: row.id, name: row.name, role: row.role }, 200,
-    await makeCookie(row.id, env.SESSION_SECRET))
+    await makeCookie(row.id, secret))
 }
 
 export const onRequest = (ctx) =>

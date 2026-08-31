@@ -97,6 +97,39 @@ export const no = (error, status = 400) => say({ error }, status)
 export const noDb = () =>
   no('Учётные записи ещё не подключены: у этой сборки нет хранилища. Урок по ссылке работает.', 503)
 
+/** Ключ подписи сессий.
+ *
+ *  Если владелец задал SESSION_SECRET в панели — берём его: секрет, лежащий отдельно
+ *  от данных, сильнее ключа, лежащего с ними рядом. Если не задал — заводим ключ сами,
+ *  один раз, и храним в той же базе. Это снимает с владельца третий шаг настройки:
+ *  достаточно создать базу и привязать её как DB.
+ *
+ *  🔴 Гонка при первом запросе. Два запроса могут прийти одновременно и сгенерировать
+ *  два разных ключа. Поэтому вставка идёт через INSERT OR IGNORE, а дальше ключ
+ *  ПЕРЕЧИТЫВАЕТСЯ из базы: оба запроса возьмут тот, который лёг первым, и подписи
+ *  не разойдутся. Без перечитывания половина кук оказалась бы подписана ключом,
+ *  которого в базе нет.
+ */
+export async function secretOf(env) {
+  if (env.SESSION_SECRET) return env.SESSION_SECRET
+  if (!env.DB) return null
+  await env.DB.prepare(KEYS_SQL).run()
+  const have = await env.DB.prepare("SELECT val FROM keys WHERE name = 'session'").first()
+  if (have?.val) return have.val
+  const made = b64url(crypto.getRandomValues(new Uint8Array(48)))
+  await env.DB.prepare("INSERT OR IGNORE INTO keys (name, val, made_at) VALUES ('session', ?, ?)")
+    .bind(made, new Date().toISOString()).run()
+  const back = await env.DB.prepare("SELECT val FROM keys WHERE name = 'session'").first()
+  return back?.val ?? made
+}
+
+export const KEYS_SQL = `
+CREATE TABLE IF NOT EXISTS keys (
+  name    TEXT PRIMARY KEY,
+  val     TEXT NOT NULL,
+  made_at TEXT NOT NULL
+);`
+
 export const CREATE_SQL = `
 CREATE TABLE IF NOT EXISTS people (
   id      TEXT PRIMARY KEY,

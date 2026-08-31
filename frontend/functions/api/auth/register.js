@@ -1,10 +1,10 @@
-import { CREATE_SQL, hashPass, makeCookie, no, noDb, say } from '../_people.js'
+import { CREATE_SQL, hashPass, makeCookie, no, noDb, say, secretOf } from '../_people.js'
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/
 
 async function make({ request, env }) {
   if (!env.DB) return noDb()
-  if (!env.SESSION_SECRET) return no('Сервер не настроен: нет ключа подписи сессий.', 503)
+  const secret = await secretOf(env)
 
   let body = {}
   try {
@@ -31,7 +31,7 @@ async function make({ request, env }) {
     'INSERT INTO people (id, email, name, role, pass, made_at) VALUES (?, ?, ?, ?, ?, ?)',
   ).bind(id, email, name, role, await hashPass(pass), new Date().toISOString()).run()
 
-  return say({ id, name, role }, 200, await makeCookie(id, env.SESSION_SECRET))
+  return say({ id, name, role }, 200, await makeCookie(id, secret))
 }
 
 export const onRequest = (ctx) =>
