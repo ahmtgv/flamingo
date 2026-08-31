@@ -88,3 +88,9 @@
 .hub:hover {
   border-color: var(--color-border-strong);
 }
+
+.who {
+  margin: 0;
+  font-size: var(--text-small);
+  color: var(--color-go-text);
+}

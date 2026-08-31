@@ -5,6 +5,8 @@ import { newId } from '../board/protocol'
 import { Chat, type Line } from '../room/Chat'
 import { Note } from '../room/Note'
 import { Shelf, type Source } from '../room/Shelf'
+import { HubPick } from '../room/HubPick'
+import { Live } from '../room/Live'
 import { Show } from '../room/Show'
 import { deckFrom, pickFiles, type Deck } from '../room/deck'
 import { Sleepy } from '../room/Sleepy'
@@ -29,6 +31,8 @@ export function Room({ code, name, onLeave }: Props) {
     title: '', n: 0, i: 0, src: null,
   })
   const [busy, setBusy] = useState(false)
+  const [hubOpen, setHubOpen] = useState(false)
+  const [live, setLive] = useState<{ sourceId: string; url: string } | null>(null)
   const [chatOpen, setChatOpen] = useState(false)
   const [unread, setUnread] = useState(0)
   const link = roomUrl(code)
@@ -41,6 +45,7 @@ export function Room({ code, name, onLeave }: Props) {
 
   useEffect(() => bus.subscribe((m) => {
     if (m.t === 'stage') setSource(m.source)
+    if (m.t === 'live') setLive({ sourceId: m.sourceId, url: m.url })
     if (m.t === 'showMeta') setShown((cur) => ({ ...cur, title: m.title, n: m.n, i: m.i, src: cur.i === m.i ? cur.src : null }))
     if (m.t === 'showPage') setShown((cur) => (m.i === cur.i ? { ...cur, src: m.src } : cur))
     if (m.t === 'chat') {
@@ -100,6 +105,18 @@ export function Room({ code, name, onLeave }: Props) {
     [deck, sendPage, shown.i],
   )
 
+  /* Трансляция из HUB: источник и ссылку выбирает ведущий, класс смотрит то же. */
+  const goLive = useCallback(
+    (sourceId: string, url: string) => {
+      setLive({ sourceId, url })
+      setHubOpen(false)
+      setSource('live')
+      bus.send({ t: 'live', sourceId, url })
+      bus.send({ t: 'stage', source: 'live' })
+    },
+    [bus],
+  )
+
   const say = useCallback(
     (text: string) => {
       const line = { id: newId(), who: name, text, at: Date.now() }
@@ -141,7 +158,9 @@ export function Room({ code, name, onLeave }: Props) {
           {phase === 'live' ? 'идёт' : phase === 'connecting' ? 'подключаемся' : 'связи нет'}
         </span>
 
-        {iLead ? <Shelf source={source} onPick={pick} onShow={startShow} /> : null}
+        {iLead ? (
+          <Shelf source={source} onPick={pick} onShow={startShow} onHub={() => setHubOpen(true)} />
+        ) : null}
 
         <button
           type="button"
@@ -169,6 +188,9 @@ export function Room({ code, name, onLeave }: Props) {
             onClose={() => pick('faces')}
           />
         ) : null}
+        {source === 'live' && live ? (
+          <Live sourceId={live.sourceId} url={live.url} lead={iLead} onClose={() => pick('faces')} />
+        ) : null}
         {source === 'faces' ? (
           <Stage faces={faces} alone={alone} link={link} onCopy={copy} phase={phase} error={error} />
         ) : null}
@@ -181,11 +203,11 @@ export function Room({ code, name, onLeave }: Props) {
         ) : null}
 
         {/* Лица лежат ПОВЕРХ доски: холст под ними бесконечный и ничем не обрезан. */}
-        {(source === 'board' || source === 'show') && phase === 'live' ? <Tiles faces={faces} /> : null}
+        {source !== 'faces' && phase === 'live' ? <Tiles faces={faces} /> : null}
 
         {/* Эфир — своя область (ПРАВИЛА 6.5): пока он не поднялся, об этом говорит
             карточка лиц, а доска продолжает работать. */}
-        {(source === 'board' || source === 'show') && phase !== 'live' ? (
+        {source !== 'faces' && phase !== 'live' ? (
           <div className={s.overNote}>
             {phase === 'connecting' ? (
               <Note light title="Поднимаем эфир" text="Первым появится ваш кадр, потом остальные — по мере входа. Доска уже работает." />
@@ -200,6 +222,10 @@ export function Room({ code, name, onLeave }: Props) {
               />
             )}
           </div>
+        ) : null}
+
+        {hubOpen && iLead ? (
+          <HubPick onGo={goLive} onClose={() => setHubOpen(false)} />
         ) : null}
 
         {chatOpen ? (

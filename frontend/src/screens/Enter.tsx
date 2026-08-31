@@ -4,6 +4,7 @@ import { Button } from '../ui/Button'
 import { Field } from '../ui/Field'
 import { Mark } from '../ui/Mark'
 import { newRoomCode } from '../lib/code'
+import type { Person } from '../lib/auth'
 import s from './Enter.module.css'
 
 type Props = {
@@ -12,9 +13,12 @@ type Props = {
   initialName: string
   onGo: (code: string, name: string) => void
   onHub: () => void
+  onSign: () => void
+  /** Кто вошёл. Урок по ссылке работает и без учётной записи. */
+  person: Person | null
 }
 
-export function Enter({ invited, initialName, onGo, onHub }: Props) {
+export function Enter({ invited, initialName, onGo, onHub, onSign, person }: Props) {
   const [name, setName] = useState(initialName)
   const [said, setSaid] = useState(false)
 
@@ -70,6 +74,16 @@ export function Enter({ invited, initialName, onGo, onHub }: Props) {
             {invited ? 'Войти в комнату' : 'Создать комнату'}
           </Button>
         </form>
+
+        {/* Учётная запись — второе действие экрана, обводкой: заливка одна и принадлежит
+            входу в комнату (ПРАВИЛА 11.4). */}
+        {person ? (
+          <p className={s.who}>Вы вошли как {person.name}</p>
+        ) : (
+          <button type="button" className={s.hub} onClick={onSign}>
+            Войти или завести учётную запись
+          </button>
+        )}
 
         {/* Flamingo HUB стоит рядом со входом: в него ходят и без урока. */}
         <button type="button" className={s.hub} onClick={onHub}>

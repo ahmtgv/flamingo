@@ -1,17 +1,19 @@
 import s from './Shelf.module.css'
 
 /** Полка источников. Что учитель выбрал — то и видит класс. */
-export type Source = 'faces' | 'board' | 'show'
+export type Source = 'faces' | 'board' | 'show' | 'live'
 
 /** Осталось две двери — учебник и живое видео. ПРАВИЛА 12.7 велят сворачивать
  *  в одну строку список от четырёх дверей; двух хватает назвать вместе. */
-const NOT_YET = 'учебник, живое видео'
+const NOT_YET = 'учебник'
 
-export function Shelf({ source, onPick, onShow }: {
+export function Shelf({ source, onPick, onShow, onHub }: {
   source: Source
   onPick: (s: Source) => void
   /** Показ начинается с выбора файла, поэтому у него своя дорога, а не просто вкладка. */
   onShow: () => void
+  /** Трансляция начинается с выбора источника — тоже своя дорога. */
+  onHub: () => void
 }) {
   return (
     <div className={s.shelf}>
@@ -43,12 +45,21 @@ export function Shelf({ source, onPick, onShow }: {
         >
           Показ
         </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={source === 'live'}
+          className={`${s.item} ${source === 'live' ? s.on : ''}`}
+          onClick={onHub}
+        >
+          Из HUB
+        </button>
       </div>
 
       {/* ПРАВИЛА 12.4: говорим о сроке, а не о запрете. */}
       <p className={s.notYet}>
         <span className={s.notYetName}>Пока нет: {NOT_YET}</span>
-        <span className={s.notYetWhy}>появятся вместе с курсом</span>
+        <span className={s.notYetWhy}>появится вместе с курсом</span>
       </p>
     </div>
   )

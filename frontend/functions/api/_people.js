@@ -1,0 +1,108 @@
+/** Общее для входа и регистрации: пароли, сессии, ответы.
+ *
+ *  🔴 Пароль НИКОГДА не хранится и не логируется. В базу уезжает только результат
+ *  PBKDF2 с личной солью: по нему пароль не восстановить. Проверка идёт сравнением
+ *  постоянного времени — иначе по скорости ответа подбирают хеш побайтно.
+ *
+ *  Сессия — подписанная кука HttpOnly: её не прочитает ни один скрипт на странице,
+ *  поэтому чужой скрипт не сможет унести чужой урок.
+ */
+
+const ITER = 210000
+
+const b64url = (bytes) => {
+  let s = ''
+  for (const b of new Uint8Array(bytes)) s += String.fromCharCode(b)
+  return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
+}
+
+const unb64url = (s) => {
+  const t = s.replace(/-/g, '+').replace(/_/g, '/')
+  const raw = atob(t + '='.repeat((4 - (t.length % 4)) % 4))
+  const out = new Uint8Array(raw.length)
+  for (let i = 0; i < raw.length; i += 1) out[i] = raw.charCodeAt(i)
+  return out
+}
+
+export async function hashPass(pass, saltRaw) {
+  const salt = saltRaw ?? crypto.getRandomValues(new Uint8Array(16))
+  const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(pass), 'PBKDF2', false, ['deriveBits'])
+  const bits = await crypto.subtle.deriveBits(
+    { name: 'PBKDF2', salt, iterations: ITER, hash: 'SHA-256' }, key, 256)
+  return `pbkdf2$${ITER}$${b64url(salt)}$${b64url(bits)}`
+}
+
+/** Сравнение постоянного времени: по скорости ответа хеш не подбирают. */
+function same(a, b) {
+  if (a.length !== b.length) return false
+  let diff = 0
+  for (let i = 0; i < a.length; i += 1) diff |= a.charCodeAt(i) ^ b.charCodeAt(i)
+  return diff === 0
+}
+
+export async function checkPass(pass, stored) {
+  const parts = String(stored).split('$')
+  if (parts.length !== 4 || parts[0] !== 'pbkdf2') return false
+  const again = await hashPass(pass, unb64url(parts[2]))
+  return same(again, stored)
+}
+
+async function sign(text, secret) {
+  const key = await crypto.subtle.importKey(
+    'raw', new TextEncoder().encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign'])
+  return b64url(await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(text)))
+}
+
+const DAYS = 30
+
+export async function makeCookie(id, secret) {
+  const exp = Date.now() + DAYS * 24 * 3600 * 1000
+  const body = b64url(new TextEncoder().encode(JSON.stringify({ id, exp })))
+  const ses = `${body}.${await sign(body, secret)}`
+  return `fl_ses=${ses}; Path=/; Max-Age=${DAYS * 24 * 3600}; HttpOnly; Secure; SameSite=Lax`
+}
+
+export const dropCookie = () => 'fl_ses=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=Lax'
+
+export async function whoFrom(request, secret) {
+  const raw = (request.headers.get('Cookie') ?? '')
+    .split(';').map((x) => x.trim()).find((x) => x.startsWith('fl_ses='))
+  if (!raw) return null
+  const [body, sig] = raw.slice(7).split('.')
+  if (!body || !sig) return null
+  if (!same(sig, await sign(body, secret))) return null
+  try {
+    const data = JSON.parse(new TextDecoder().decode(unb64url(body)))
+    if (!data.id || typeof data.exp !== 'number' || data.exp < Date.now()) return null
+    return data.id
+  } catch {
+    return null
+  }
+}
+
+export const say = (data, status = 200, cookie) =>
+  new Response(JSON.stringify(data), {
+    status,
+    headers: {
+      'Content-Type': 'application/json; charset=utf-8',
+      'Cache-Control': 'no-store',
+      ...(cookie ? { 'Set-Cookie': cookie } : {}),
+    },
+  })
+
+/** Отказ называет причину словами (ПРАВИЛА 6.4). */
+export const no = (error, status = 400) => say({ error }, status)
+
+/** Пока база не привязана, вход честно говорит об этом, а не молчит. */
+export const noDb = () =>
+  no('Учётные записи ещё не подключены: у этой сборки нет хранилища. Урок по ссылке работает.', 503)
+
+export const CREATE_SQL = `
+CREATE TABLE IF NOT EXISTS people (
+  id      TEXT PRIMARY KEY,
+  email   TEXT UNIQUE NOT NULL,
+  name    TEXT NOT NULL,
+  role    TEXT NOT NULL,
+  pass    TEXT NOT NULL,
+  made_at TEXT NOT NULL
+);`
