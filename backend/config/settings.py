@@ -28,12 +28,22 @@ ALLOWED_HOSTS = _list("ALLOWED_HOSTS", "localhost,127.0.0.1")
 INSTALLED_APPS = [
     "corsheaders",
     "room",
+    "people",
 ]
 
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.common.CommonMiddleware",
 ]
+
+# 🔴 Кука едет с сайта на api. flamingo.plus и api.flamingo.plus — РАЗНЫЕ источники,
+# но ОДИН сайт: SameSite считает по домену второго уровня, поэтому Lax её пропускает,
+# а браузер чужого сайта — нет. Чтобы её видели оба, домен куки общий: .flamingo.plus.
+# Пусто (разработка) — кука остаётся на том хосте, который её выдал.
+SESSION_COOKIE_DOMAIN = os.getenv("SESSION_COOKIE_DOMAIN", "")
+
+# Без этого браузер не пошлёт куку на чужой источник и не примет Set-Cookie в ответ.
+CORS_ALLOW_CREDENTIALS = True
 
 CORS_ALLOWED_ORIGINS = _list(
     "CORS_ALLOWED_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173"
@@ -42,8 +52,18 @@ CORS_ALLOWED_ORIGINS = _list(
 ROOT_URLCONF = "config.urls"
 WSGI_APPLICATION = "config.wsgi.application"
 
-# Базы нет. Django этого не требует, пока никто не просит модель.
-DATABASES: dict = {}
+# 🔴 База появилась вместе с учётными записями. SQLite, и это не времянка:
+# запись здесь — регистрация и смена пароля, то есть единицы в день. Читает один
+# процесс. Postgres добавит службу, которую надо обновлять и бэкапить отдельно,
+# и ничего не даст взамен на этих числах. День, когда даст, наступит с очередями
+# на запись, и тогда меняется одна эта строка.
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": os.getenv("DB_PATH", str(BASE_DIR / "flamingo.sqlite3")),
+    }
+}
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 LANGUAGE_CODE = "ru-ru"
 TIME_ZONE = "UTC"

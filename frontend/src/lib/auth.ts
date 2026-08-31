@@ -1,6 +1,17 @@
 /** Учётные записи. Разговор с сервером один и тот же на входе и в регистрации. */
 
-const BASE = (import.meta.env.DEV ? (import.meta.env.VITE_API_URL ?? '') : '').replace(/\/$/, '')
+/** 🔴 Куда стучаться за учётными записями.
+ *
+ *  Пусто — свой же источник: функции Cloudflare Pages, как было.
+ *  Задано (`VITE_AUTH_URL=https://api.flamingo.plus`) — отдельный сервер.
+ *
+ *  Так переезд не требует дня «всё падает и переключаем»: пока переменной нет,
+ *  работает старый путь; появилась — работает новый. Переключается одной строкой
+ *  в настройках сборки Cloudflare Pages, откат туда же.
+ *
+ *  credentials:'include' ниже обязателен именно из-за этого: без него браузер
+ *  не пошлёт куку на другой источник и не примет Set-Cookie в ответе. */
+const BASE = String(import.meta.env.VITE_AUTH_URL ?? '').replace(/\/$/, '')
 
 export type Person = { id: string; name: string; role: 'teacher' | 'student' }
 

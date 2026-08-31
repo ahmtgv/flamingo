@@ -1,0 +1,5 @@
+flamingo.sqlite3
+*.sqlite3
+.env
+.venv/
+__pycache__/
