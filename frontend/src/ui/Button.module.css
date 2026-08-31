@@ -49,3 +49,16 @@
 .leave:hover:not(:disabled) {
   background: var(--color-go-bg);
 }
+
+/* Тихая кнопка без рамки: уход из урока и прочее, что не является действием
+   урока. Уход — не аларм (ПРАВИЛА 11а), и заливки ему не полагается. */
+.ghost {
+  background: none;
+  border-color: transparent;
+  color: var(--color-text-secondary);
+}
+
+.ghost:hover:not(:disabled) {
+  background: var(--color-surface-hover);
+  color: var(--color-text);
+}

@@ -52,7 +52,7 @@ function Tile({ face, lead, big }: { face: Face; lead?: boolean; big?: boolean }
       {!face.camOn || !face.video ? (
         <span className={`${s.ini} ${big ? s.iniBig : ''}`}>{initials(face.name)}</span>
       ) : null}
-      {lead ? <span className={s.mark}>ведёт урок</span> : null}
+      {lead ? <span className={s.mark}>ведёт занятие</span> : null}
       <span className={s.name}>
         {face.name}
         {face.isLocal ? ' · вы' : ''}

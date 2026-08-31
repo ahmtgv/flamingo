@@ -19,22 +19,28 @@
   box-shadow: var(--shadow-lg);
 }
 
-/* Пульт показа стоит ВЫШЕ зоны, в которой просыпается пульт занятия: иначе они
-   встают друг на друга и стрелки листания уходят под «Микрофон» (проба 30.08). */
+/* 🔴 Пульт показа — ПОЛОСА во всю ширину внизу кадра, а не плавающая таблетка
+   (лист «Показ», 01.09). Две таблетки одна над другой плюс пульт занятия читались
+   этажеркой из трёх пилюль; полоса читается как один пульт с двумя рядами. */
 .pult {
   position: absolute;
-  bottom: var(--space-13);
-  left: 50%;
-  transform: translateX(-50%);
+  left: 0;
+  right: 0;
+  bottom: 0;
   display: flex;
   align-items: center;
-  gap: var(--space-2);
-  max-width: calc(100% - var(--space-8));
-  padding: var(--space-2) var(--space-3);
-  border-radius: var(--radius-pill);
-  border: 1px solid var(--color-border);
-  background: var(--color-surface);
-  box-shadow: var(--shadow-md);
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-5);
+  border-top: 1px solid var(--color-border-on-video);
+  background: var(--color-surface-on-video);
+}
+
+/* Правый край нижней полосы: уход живёт здесь и ничем не залит. */
+.pultEnd {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
 }
 
 .title {

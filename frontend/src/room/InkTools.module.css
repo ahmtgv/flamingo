@@ -1,18 +1,28 @@
 /* Полка инструментов маркера — над пультом сцены, его же языком. */
+/* 🔴 Полка пометок — вторая ПОЛОСА, ровно над пультом показа (лист «Показ»).
+   Прежде она висела отдельной таблеткой и вместе с пультом занятия давала
+   три плавающие пилюли одна над другой. */
 .tools {
   position: absolute;
-  bottom: calc(var(--space-13) + var(--control-height-sm) + var(--space-4));
-  left: 50%;
-  transform: translateX(-50%);
+  left: 0;
+  right: 0;
+  bottom: calc(var(--tap-min) + 2 * var(--space-3) + 1px);
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  max-width: calc(100% - var(--space-8));
-  padding: var(--space-2) var(--space-3);
-  border-radius: var(--radius-pill);
-  border: 1px solid var(--color-border);
-  background: var(--color-surface);
-  box-shadow: var(--shadow-md);
+  padding: var(--space-3) var(--space-5);
+  border-top: 1px solid var(--color-border-on-video);
+  background: var(--color-surface-on-video);
+}
+
+/* Подсказка о том, как устроены пометки: её можно не прочитать, ничего
+   не потеряв, — значит приглушённая (ПРАВИЛА 4.11). */
+.hint {
+  margin-left: auto;
+  font: var(--weight-regular) var(--text-caption) var(--font-mono);
+  color: var(--color-text-on-video-quiet);
+  white-space: nowrap;
+
 }
 
 /* Кнопка цвета: сам цвет — кружок, выбранное — сильной рамкой (ПРАВИЛА 5.7). */

@@ -19,6 +19,17 @@ type Props = {
   person: Person | null
 }
 
+/** Первая страница.
+ *
+ *  🔴 Разложена по листу `docs/дизайн/от-дизайна-31.08/Первая страница.dc.html`
+ *  и записке к нему. Карточка в центре пустого поля разбита на две колонки:
+ *  слева обещание, справа одно действие. Порядок чтения тот же, что был, —
+ *  900 px высоты работают целиком, а не на треть.
+ *
+ *  🔴 Кнопка Flamingo HUB с тела экрана убрана (решение владельца 31.08) и
+ *  переехала НАВЕРХ, в служебную строку. Настоящее верхнее меню появится
+ *  вместе с кабинетом преподавателя — до тех пор наверху живёт одна дверь.
+ */
 export function Enter({ invited, initialName, onGo, onHub, onSign, onOut, person }: Props) {
   const [name, setName] = useState(initialName)
   const [said, setSaid] = useState(false)
@@ -34,72 +45,100 @@ export function Enter({ invited, initialName, onGo, onHub, onSign, onOut, person
 
   return (
     <main className={s.screen}>
-      <div className={s.card}>
+      {/* Верх: знак и двери, которые не про этот урок. */}
+      <header className={s.top}>
         <Mark />
+        <span className={s.topGap} />
+        <button type="button" className={s.topLink} onClick={onHub}>
+          Flamingo HUB
+        </button>
+        {person ? (
+          <span className={s.who}>
+            {person.name} ·{' '}
+            <button type="button" className={s.out} onClick={onOut}>Выйти</button>
+          </span>
+        ) : null}
+      </header>
 
-        <h1 className={s.title}>{invited ? 'Вас ждут в комнате' : 'Занятие по ссылке'}</h1>
-        <p className={s.lead}>
-          {invited
-            ? 'Назовитесь — и входите. Ни регистрации, ни установки.'
-            : 'Комната для урока: доска, лица и голос. Вы открываете комнату и зовёте класс ссылкой — ученику ни регистрации, ни установки.'}
-        </p>
+      <div className={s.body} data-geo="кадр-первой-страницы">
+        {/* Левая колонка — обещание. Вес несёт типографика, а не цвет (ПРАВИЛА 5.6). */}
+        <section className={s.promise}>
+          <h1 className={s.title}>{invited ? 'Вас ждут в комнате' : 'Занятие по ссылке'}</h1>
+          <p className={s.lead}>
+            {invited
+              ? 'Назовитесь — и входите. Ни регистрации, ни установки.'
+              : 'Комната для урока: доска, лица и голос. Вы открываете комнату и зовёте класс ссылкой — ученику ни регистрации, ни установки.'}
+          </p>
 
-        {invited ? <code className={s.code}>{invited}</code> : null}
-
-        <form
-          className={s.form}
-          onSubmit={(e) => {
-            e.preventDefault()
-            go()
-          }}
-        >
-          <Field
-            label="Как вас зовут"
-            hint="Под этим именем вас увидит класс. Без него войти нельзя."
-            placeholder="Например, Аня"
-            value={name}
-            maxLength={40}
-            autoFocus
-            onChange={(e) => {
-              setName(e.target.value)
-              setSaid(false)
-            }}
-          />
-
-          {/* ПРАВИЛА 6.6: строка сообщения стоит всегда — макет не прыгает от её появления. */}
-          <span className={s.say} role="status">
-            {said ? 'Не сказано, как вас зовут.' : ''}
+          <span className={s.rule} />
+          {/* Слова владельца, 31.08. */}
+          <span className={s.three}>
+            лицо<span className={s.dot}>·</span>голос<span className={s.dot}>·</span>аналитика
           </span>
 
-          <Button kind="go" type="submit">
-            {invited ? 'Войти в комнату' : 'Создать комнату'}
-          </Button>
-        </form>
-
-        {/* Учётная запись — второе действие экрана, обводкой: заливка одна и принадлежит
-            входу в комнату (ПРАВИЛА 11.4). */}
-        {person ? (
-          <p className={s.who}>
-            Вы вошли как {person.name} ·{' '}
-            <button type="button" className={s.out} onClick={onOut}>Выйти</button>
+          {/* Сказано один раз и словами: и про камеру, и про то, что урок нигде
+              не остаётся. Это сноска — она не спорит по весу с абзацем выше. */}
+          <p className={s.foot}>
+            В комнате включаются камера и микрофон — браузер спросит разрешение. Урок не
+            записывается, а доска живёт, пока в комнате есть хоть один человек: чтобы она
+            осталась после урока, её сохраняют в файл.
           </p>
-        ) : (
-          <button type="button" className={s.hub} onClick={onSign}>
-            Войти или завести учётную запись
-          </button>
-        )}
+        </section>
 
-        {/* Flamingo HUB стоит рядом со входом: в него ходят и без урока. */}
-        <button type="button" className={s.hub} onClick={onHub}>
-          Flamingo HUB · 36 открытых источников мира
-        </button>
+        {/* Правая колонка — одно действие. */}
+        <section className={s.card}>
+          {invited ? <code className={s.code}>{invited}</code> : null}
 
-        {/* Сказано один раз и словами: и про камеру, и про то, что урок нигде не остаётся. */}
-        <p className={s.foot}>
-          В комнате включаются камера и микрофон — браузер спросит разрешение. Урок не
-          записывается, а доска живёт, пока в комнате есть хоть один человек: чтобы она
-          осталась после урока, её сохраняют в файл.
-        </p>
+          <form
+            className={s.form}
+            onSubmit={(e) => {
+              e.preventDefault()
+              go()
+            }}
+          >
+            <Field
+              label="Как вас зовут"
+              hint="Под этим именем вас увидит класс. Без него войти нельзя."
+              placeholder="Например, Аня"
+              value={name}
+              maxLength={40}
+              autoFocus
+              onChange={(e) => {
+                setName(e.target.value)
+                setSaid(false)
+              }}
+            />
+
+            {/* 🔴 Место под сообщение занято ВСЕГДА и ровно в три строки
+                (ПРАВИЛА 6.6, `data-geo` листа «строка-сообщения»): иначе появление
+                отказа сдвигает кнопку, и человек нажимает не туда, куда целился. */}
+            <div className={s.say} data-geo="строка-сообщения" role="status">
+              {said ? (
+                <>
+                  <span className={s.sayHead}>Сначала имя</span>
+                  <span className={s.sayBody}>
+                    Без имени класс не поймёт, кто открыл комнату. Одного слова достаточно.
+                  </span>
+                </>
+              ) : null}
+            </div>
+
+            <Button kind="go" type="submit" data-geo="главное-действие">
+              {invited ? 'Войти в комнату' : 'Создать комнату'}
+            </Button>
+          </form>
+
+          {/* Дверь входа — не третья кнопка в столбик, а строка под вопросом:
+              заливка на экране одна и принадлежит входу в комнату (ПРАВИЛА 11.4). */}
+          {person ? null : (
+            <p className={s.ask}>
+              Уже есть учётная запись?{' '}
+              <button type="button" className={s.signLink} onClick={onSign}>
+                Войти или завести учётную запись
+              </button>
+            </p>
+          )}
+        </section>
       </div>
     </main>
   )

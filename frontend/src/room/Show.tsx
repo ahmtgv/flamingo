@@ -129,10 +129,13 @@ export function Show({
               <button type="button" className={s.toolBtn} onClick={onShows}>
                 Показы
               </button>
-              <span className={s.sep} />
-              <button type="button" className={s.stop} onClick={onClose}>
-                Закончить показ
-              </button>
+              {/* Уход из показа живёт у правого края полосы и ничем не залит:
+                  уход — не аларм (ПРАВИЛА 11а), и заливка на экране одна. */}
+              <span className={s.pultEnd}>
+                <button type="button" className={s.stop} onClick={onClose}>
+                  Закончить показ
+                </button>
+              </span>
             </>
           ) : (
             <span className={s.follow}>листает преподаватель</span>

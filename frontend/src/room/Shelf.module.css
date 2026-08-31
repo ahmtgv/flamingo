@@ -53,11 +53,21 @@
 }
 
 /* 12.2: приглушено НАЗВАНИЕ двери — цветом и весом, не прозрачностью. */
+/* Плашка приглушённой двери: цвет и вес приглушены, прозрачности нет
+   (ПРАВИЛА 12.1–12.2), цель нажатия полная (12.6), курсор обычный (12.5). */
 .notYetName {
+  display: inline-grid;
+  place-items: center;
+  min-height: var(--tap-min);
+  padding: 0 var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-subtle);
   font-size: var(--text-small);
   font-weight: var(--weight-regular);
   color: var(--color-text-secondary);
   white-space: nowrap;
+  cursor: default;
 }
 
 /* 12.3: строка «почему» — часть смысла, берёт полный контраст. */

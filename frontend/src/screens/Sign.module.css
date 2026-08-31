@@ -1,34 +1,48 @@
+/* Вход и регистрация. Разложены по листу дизайна
+   `docs/дизайн/от-дизайна-31.08/Вход и регистрация.dc.html`:
+   тот же язык, что на первой странице — слева обещание, справа одно действие. */
+
 .screen {
   height: 100%;
   display: grid;
-  place-items: center;
-  padding: var(--space-5);
   background: var(--color-bg);
   overflow: hidden;
 }
 
-.card {
-  position: relative;
+.body {
   display: grid;
-  gap: var(--space-4);
-  width: 100%;
-  max-width: 34rem;
-  max-height: 100%;
-  padding: var(--space-7);
-  border-radius: var(--radius-card);
-  border: 1px solid var(--color-border);
-  background: var(--color-surface);
-  box-shadow: var(--shadow-md);
-  overflow-y: auto;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: center;
+  gap: var(--space-11);
+  padding: var(--space-8) var(--space-11);
+  min-height: 0;
 }
 
-/* ПРАВИЛА 1.4: дорога назад — левый верхний угол. */
+@media (max-width: 960px) {
+  .body {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-6);
+    padding: var(--space-6);
+    align-content: center;
+  }
+}
+
+.promise {
+  display: grid;
+  justify-items: start;
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+/* Дорога назад — левый верхний угол, во всех состояниях (ПРАВИЛА 1.4).
+   Цель нажатия полная: у двери она не меньше, чем у кнопки. */
 .back {
-  justify-self: start;
-  min-height: var(--control-height-sm);
+  display: inline-grid;
+  place-items: center;
+  min-height: var(--tap-min);
   padding: 0 var(--space-4);
-  border-radius: var(--radius-pill);
   border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
   background: none;
   color: var(--color-text);
   font-size: var(--text-small);
@@ -42,17 +56,50 @@
 .title {
   margin: 0;
   font-family: var(--font-heading);
-  font-size: var(--text-h1);
+  font-size: var(--text-display);
   font-weight: var(--weight-semibold);
   letter-spacing: var(--tracking-tight);
+  line-height: var(--leading-heading);
   color: var(--color-text);
 }
 
+/* 🔴 Три строки заняты всегда: у режимов объяснение разной длины, и без
+   заданной высоты заголовок ездил бы вверх-вниз при смене режима
+   (ПРАВИЛА 6.7а — высота держится числом строк, а не подгонкой слов). */
 .lead {
   margin: 0;
-  font-size: var(--text-small);
+  min-height: calc(3 * var(--leading-body) * 1em);
+  font-size: var(--text-body);
+  line-height: var(--leading-body);
+  color: var(--color-text-detail);
+  max-width: 46ch;
+}
+
+.rule {
+  width: 100%;
+  max-width: 46ch;
+  height: 1px;
+  background: var(--color-border);
+}
+
+.foot {
+  margin: 0;
+  font-size: var(--text-caption);
   line-height: var(--leading-snug);
   color: var(--color-text-detail);
+  max-width: 52ch;
+}
+
+/* ── правая колонка ───────────────────────────────────────────────────── */
+.card {
+  display: grid;
+  gap: var(--space-5);
+  padding: var(--space-8);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-sm);
+  min-width: 0;
 }
 
 .form {
@@ -60,24 +107,27 @@
   gap: var(--space-4);
 }
 
+/* Выбор роли: выбранная плитка берёт сильную рамку и приглушённую заливку.
+   Зелёного здесь нет — роль не «можно дальше» (ПРАВИЛА 5.7). */
 .roles {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: var(--space-3);
 }
 
 .role {
   display: grid;
+  align-content: start;
   gap: var(--space-1);
   min-height: var(--tap-min);
-  padding: var(--space-3) var(--space-4);
-  text-align: left;
-  border-radius: var(--radius-control);
+  padding: var(--space-4);
   border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
   background: none;
   color: var(--color-text);
   font-size: var(--text-small);
   font-weight: var(--weight-medium);
+  text-align: left;
   cursor: pointer;
 }
 
@@ -85,10 +135,11 @@
   border-color: var(--color-border-strong);
 }
 
-/* Выбранная роль — нейтральная заливка: заливка экрана принадлежит входу. */
 .roleOn {
+  border-color: var(--color-text);
+  border-width: 2px;
+  padding: calc(var(--space-4) - 1px);
   background: var(--color-surface-subtle);
-  border-color: var(--color-border-strong);
 }
 
 .roleWhy {
@@ -98,35 +149,71 @@
   color: var(--color-text-detail);
 }
 
-/* Строка ответа стоит всегда; коралловая, потому что отказ входа — аларм. */
+/* 🔴 Строка сообщения стоит ВСЕГДА, и высота посчитана по самому длинному
+   состоянию: кнопка и переключатель режима не двигаются между состояниями
+   (ПРАВИЛА 6.6). Раньше отказ появлялся новой строкой и сдвигал кнопку вниз
+   ровно в тот момент, когда человек в неё целился. */
 .say {
-  min-height: var(--space-5);
-  font-size: var(--text-small);
-  line-height: var(--leading-snug);
-  color: var(--color-accent-text);
+  display: grid;
+  align-content: start;
+  gap: var(--space-1);
+  min-height: calc(3 * var(--leading-snug) * 1em);
 }
 
-/* Спокойный ответ: письмо ушло — это не аларм, значит не коралловый (ПРАВИЛА 11а). */
-.calm {
+.sayHead {
   font-size: var(--text-small);
+  font-weight: var(--weight-medium);
+  color: var(--color-text);
+}
+
+.sayBody {
+  font-size: var(--text-caption);
   line-height: var(--leading-snug);
-  color: var(--color-go-text);
+  color: var(--color-text-detail);
+}
+
+/* Аларм красит только заголовок сообщения: пояснение обязано читаться
+   и берёт полный контраст (ПРАВИЛА 12.3). */
+.sayAlarm .sayHead {
+  color: var(--color-error-text);
 }
 
 .swaps {
   display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
   flex-wrap: wrap;
-  gap: var(--space-2) var(--space-5);
 }
 
 .swap {
-  justify-self: start;
-  text-align: left;
-  min-height: var(--control-height-sm);
+  display: inline-grid;
+  place-items: center;
+  min-height: var(--tap-min);
   padding: 0;
   border: none;
   background: none;
-  color: var(--color-text);
+  color: var(--color-go-text);
+  font-size: var(--text-small);
+  text-decoration: underline;
+  text-decoration-color: var(--color-go-border);
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.swap:hover {
+  text-decoration-color: var(--color-go);
+}
+
+/* «Забыли пароль» — тише переключателя режима: это не второе главное действие. */
+.swapQuiet {
+  display: inline-grid;
+  place-items: center;
+  min-height: var(--tap-min);
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--color-text-detail);
   font-size: var(--text-small);
   text-decoration: underline;
   text-decoration-color: var(--color-border-strong);
@@ -134,9 +221,6 @@
   cursor: pointer;
 }
 
-.foot {
-  margin: 0;
-  font-size: var(--text-caption);
-  line-height: var(--leading-snug);
-  color: var(--color-text-detail);
+.swapQuiet:hover {
+  color: var(--color-text);
 }

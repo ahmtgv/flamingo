@@ -1,45 +1,52 @@
-/* Чат лежит ПОВЕРХ холста справа: доска под ним остаётся целой, а панель уходит
-   по кнопке. Тёмная пара цветов — как у всего, что стоит над видео и холстом. */
+/* Чат занятия. Разложен по листу дизайна
+   `docs/дизайн/от-дизайна-31.08/Чат занятия.dc.html`.
+
+   🔴 Панель ПАРИТ над холстом справа и ничего не сжимает: правило владельца
+   01.09 — поле доски идёт влево, вправо и вниз без края. Раньше она была
+   в 22rem и съедала треть холста; теперь 380 px (лист, ширина «normal»). */
 .chat {
   position: absolute;
   right: var(--space-4);
   top: var(--space-4);
   bottom: var(--space-4);
-  width: 22rem;
+  width: var(--chat-width);
   max-width: calc(100% - var(--space-8));
   z-index: 3;
   display: grid;
-  grid-template-rows: auto minmax(0, 1fr) auto;
+  grid-template-rows: auto minmax(0, 1fr) auto auto;
   border-radius: var(--radius-card);
   border: 1px solid var(--color-border);
-  background: var(--color-surface);
+  background: var(--color-bg);
   box-shadow: var(--shadow-lg);
   overflow: hidden;
+  min-width: 0;
 }
 
 .head {
   display: flex;
   align-items: center;
   gap: var(--space-3);
-  padding: var(--space-3) var(--space-4);
+  padding: var(--space-4) var(--space-5);
   border-bottom: 1px solid var(--color-border);
 }
 
 .title {
   font-family: var(--font-heading);
   font-size: var(--text-body);
-  font-weight: var(--weight-medium);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-snug);
   color: var(--color-text);
 }
 
+/* Цель нажатия у закрытия — полная: дверь не сжимается (ПРАВИЛА 12.6). */
 .close {
   margin-left: auto;
-  width: var(--control-height-sm);
-  height: var(--control-height-sm);
+  width: var(--tap-min);
+  height: var(--tap-min);
   display: grid;
   place-items: center;
   border: none;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-control);
   background: none;
   color: var(--color-text-secondary);
   cursor: pointer;
@@ -51,59 +58,116 @@
 }
 
 .body {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-  padding: var(--space-4);
   min-height: 0;
-  overflow-y: auto;
+  overflow: auto;
+  padding: var(--space-5);
+  display: grid;
+  gap: var(--space-4);
+  align-content: start;
 }
 
 .empty {
   margin: 0;
   font-size: var(--text-small);
-  line-height: var(--leading-snug);
-  color: var(--color-text-detail);
+  line-height: var(--leading-body);
+  color: var(--color-text-secondary);
 }
 
+/* Реплика: имя и время строкой, под ними облачко. Свои — справа: так видно,
+   где чужой вопрос, не читая имени. */
 .line {
-  margin: 0;
   display: grid;
+  justify-items: start;
   gap: var(--space-1);
+  min-width: 0;
+}
+
+.mine {
+  justify-items: end;
 }
 
 .who {
-  font: var(--weight-medium) var(--text-caption) var(--font-mono);
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  font: var(--weight-regular) var(--text-caption) var(--font-mono);
   color: var(--color-text-detail);
 }
 
-.mine .who {
-  color: var(--color-go-text);
+/* Время — то, что можно не прочитать, ничего не потеряв (ПРАВИЛА 4.11). */
+.at {
+  color: var(--color-text-hint);
 }
 
 .text {
+  max-width: 22rem;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-card);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
   font-size: var(--text-small);
-  line-height: var(--leading-snug);
+  line-height: var(--leading-body);
   color: var(--color-text);
   overflow-wrap: anywhere;
 }
 
+.mine .text {
+  border-color: var(--color-go-border);
+  background: var(--color-go-bg);
+}
+
+/* Место под сообщение занято всегда (ПРАВИЛА 6.6): высота посчитана по
+   самому длинному состоянию — облачко в две строки плюс заголовок. */
+.say {
+  display: grid;
+  padding: 0 var(--space-5);
+  min-height: calc(
+    2 * var(--space-3) + 2px + var(--text-small) * var(--leading-snug) + var(--space-1) +
+      2 * var(--text-caption) * var(--leading-snug)
+  );
+}
+
+.sayBox {
+  display: grid;
+  gap: var(--space-1);
+  align-content: start;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-accent-subtle-border);
+  background: var(--color-error-bg);
+}
+
+.sayHead {
+  font-size: var(--text-small);
+  font-weight: var(--weight-medium);
+  line-height: var(--leading-snug);
+  color: var(--color-accent-text);
+}
+
+/* Пояснение берёт полный контраст: это часть смысла, а не сноска (ПРАВИЛА 12.3). */
+.sayBody {
+  font-size: var(--text-caption);
+  line-height: var(--leading-snug);
+  color: var(--color-text-secondary);
+}
+
 .form {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   gap: var(--space-2);
-  padding: var(--space-3);
+  padding: var(--space-4) var(--space-5);
   border-top: 1px solid var(--color-border);
 }
 
 .input {
-  flex: 1 1 auto;
   min-width: 0;
-  min-height: var(--control-height-md);
+  height: var(--tap-min);
   padding: 0 var(--space-4);
   border: 1px solid var(--color-border-strong);
   border-radius: var(--radius-control);
   background: var(--color-surface);
   color: var(--color-text);
+  font-family: var(--font-body);
   font-size: var(--text-small);
 }
 
@@ -112,12 +176,15 @@
   box-shadow: var(--focus-ring);
 }
 
+/* 🔴 «Отправить» живая, как только в поле есть текст. Прежде она была приглушена
+   всегда — и выглядела мёртвой ровно тогда, когда работала (ПРАВИЛА 14.1). */
 .send {
-  flex: 0 0 auto;
-  min-height: var(--control-height-md);
-  padding: 0 var(--space-4);
-  border-radius: var(--radius-pill);
-  border: 1px solid var(--color-go-solid);
+  display: inline-grid;
+  place-items: center;
+  min-height: var(--tap-min);
+  padding: 0 var(--space-5);
+  border: none;
+  border-radius: var(--radius-control);
   background: var(--color-go-solid);
   color: var(--color-on-go);
   font-size: var(--text-small);
@@ -126,8 +193,7 @@
 }
 
 .send:disabled {
-  background: none;
-  border-color: var(--color-border);
+  background: var(--color-surface-subtle);
   color: var(--color-text-disabled);
   cursor: default;
 }

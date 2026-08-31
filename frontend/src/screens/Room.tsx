@@ -11,10 +11,8 @@ import { Show } from '../room/Show'
 import { ShowList } from '../room/ShowList'
 import { deckFrom, pickFiles } from '../room/deck'
 import { allShows, dropShow, putShow, type Ink, type ShowDoc } from '../room/shows'
-import { Sleepy } from '../room/Sleepy'
 import { Stage } from '../room/Stage'
 import { Tiles } from '../room/Tiles'
-import { useEdge } from '../room/useEdge'
 import { useRoom } from '../room/useRoom'
 import { roomUrl } from '../lib/code'
 import { Button } from '../ui/Button'
@@ -53,7 +51,7 @@ export function Room({ code, name, onLeave }: Props) {
   const [unread, setUnread] = useState(0)
   const link = roomUrl(code)
   const stageRef = useRef<HTMLDivElement>(null)
-  const edge = useEdge(stageRef)
+  // Спящих пультов в комнате больше нет: пульт стоит всегда (лист, 31.08).
 
   /* Ведущий в куске 1 — тот, кто открыл комнату: аккаунтов и ролей нет, роль
      считается по времени входа. Экран ученика от этого легче. */
@@ -343,29 +341,34 @@ export function Room({ code, name, onLeave }: Props) {
       {/* Верхняя строка стоит всегда: где я, что за комната, идёт ли урок.
           Всё остальное управление просыпается под рукой. */}
       <header className={s.head}>
-        <Mark />
-        <span className={s.sep} />
-        <span className={s.code}>{code}</span>
-        <span className={s.live}>
-          {/* ПРАВИЛА 11а: «идёт» зелёное, «связи нет» — аларм и потому коралловое. */}
-          <span className={`${s.dot} ${phase === 'failed' ? s.dotAlarm : ''} ${phase === 'connecting' ? s.dotWait : ''}`} />
-          {phase === 'live' ? 'идёт' : phase === 'connecting' ? 'подключаемся' : 'связи нет'}
+        <span className={s.headLeft}>
+          <Mark />
+          <span className={s.sep} />
+          <span className={s.code}>{code}</span>
+          <span className={s.live}>
+            {/* ПРАВИЛА 11а: «идёт» зелёное, «связи нет» — аларм и потому коралловое. */}
+            <span className={`${s.dot} ${phase === 'failed' ? s.dotAlarm : ''} ${phase === 'connecting' ? s.dotWait : ''}`} />
+            {phase === 'live' ? 'идёт' : phase === 'connecting' ? 'подключаемся' : 'связи нет'}
+          </span>
         </span>
 
+        {/* Полка держит центр строки: это главный переключатель урока. */}
         {iLead ? (
           <Shelf source={source} onPick={pick} onShow={startShow} onHub={() => setHubOpen(true)} />
-        ) : null}
+        ) : <span />}
 
-        <button
-          type="button"
-          className={`${s.chatBtn} ${chatOpen ? s.chatOn : ''}`}
-          onClick={() => setChatOpen((v) => !v)}
-        >
-          Чат
-          {/* ПРАВИЛА 11.8: непрочитанное в чате ИДУЩЕГО занятия портится от ожидания —
-              вопрос живёт до конца урока. Поэтому коралловая надпись, но не заливка. */}
-          {unread > 0 && !chatOpen ? <span className={s.unread}>{unread}</span> : null}
-        </button>
+        <span className={s.headRight}>
+          <button
+            type="button"
+            className={`${s.chatBtn} ${chatOpen ? s.chatOn : ''}`}
+            onClick={() => setChatOpen((v) => !v)}
+          >
+            Чат
+            {/* ПРАВИЛА 11.8: непрочитанное в чате ИДУЩЕГО занятия портится от ожидания —
+                вопрос живёт до конца урока. Поэтому коралловая надпись, но не заливка. */}
+            {unread > 0 && !chatOpen ? <span className={s.unread}>{unread}</span> : null}
+          </button>
+        </span>
       </header>
 
       <div className={`${s.stage} ${chatOpen ? s.withChat : ''}`} ref={stageRef}>
@@ -453,11 +456,13 @@ export function Room({ code, name, onLeave }: Props) {
         ) : null}
 
         {chatOpen ? (
-          <Chat lines={lines} onClose={() => setChatOpen(false)} onSend={say} />
+          <Chat lines={lines} alive={phase === 'live'} onClose={() => setChatOpen(false)} onSend={say} />
         ) : null}
 
-        {/* Пульт занятия просыпается снизу. */}
-        <Sleepy side="bottom" label="микрофон · камера · выход" open={edge === 'bottom'}>
+        {/* 🔴 Пульт занятия стоит ВСЕГДА (лист «Комната урока», 31.08): раньше он
+            прятался за таблетку «микрофон · камера · выход», и посреди урока
+            выключить микрофон было делом в два движения. */}
+        <div className={s.pultBox}>
           <div className={s.pult}>
             <Button kind="quiet" onClick={toggleMic} aria-pressed={mic}>
               {mic ? 'Микрофон' : 'Микрофон выключен'}
@@ -473,11 +478,13 @@ export function Room({ code, name, onLeave }: Props) {
                 </Button>
               </>
             ) : null}
-            <Button kind="leave" onClick={quit}>
+            {/* Уход — НЕ аларм (ПРАВИЛА 11а). На листе он нейтральный и тише
+                прочих кнопок пульта: это не действие урока, а выход из него. */}
+            <Button kind="ghost" onClick={quit}>
               {iLead ? 'Завершить урок' : 'Выйти'}
             </Button>
           </div>
-        </Sleepy>
+        </div>
       </div>
     </div>
   )

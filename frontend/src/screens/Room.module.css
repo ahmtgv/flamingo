@@ -8,13 +8,32 @@
   overflow: hidden;
 }
 
+/* 🔴 Полка источников стоит ПО ЦЕНТРУ верхней строки (решение владельца 31.08,
+   лист «Комната урока»): это главный переключатель урока, и середина — его место.
+   Слева «где я», справа «Чат»; полка держит центр при любой длине кода комнаты. */
 .head {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: center;
   gap: var(--space-3);
   padding: var(--space-2) var(--space-5);
   border-bottom: 1px solid var(--color-border);
   background: var(--color-bg);
+  min-width: 0;
+}
+
+.headLeft {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.headRight {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-3);
   min-width: 0;
 }
 
@@ -105,10 +124,14 @@
   --rail-right: calc(22rem + var(--space-6));
 }
 
+/* 🔴 Карточка про эфир начинается НИЖЕ полосы, в которой стоит плашка досок:
+   раньше она садилась ровно на «Доска 1 · + доска · Сохранить в файл» и давала
+   текст поверх текста. Отступ считается от НИЗА плашки, а не от верха кадра —
+   тот же промах, что был с пультом показа 30.08. */
 .overNote {
   position: absolute;
   right: var(--rail-right);
-  top: var(--space-4);
+  top: calc(var(--space-4) + var(--tap-min) + var(--space-4));
   z-index: 2;
   max-width: 24rem;
 }
@@ -131,4 +154,16 @@
   height: var(--space-5);
   background: var(--color-border);
   margin: 0 var(--space-2);
+}
+
+/* 🔴 Пульт занятия стоит ВСЕГДА, внизу по центру (лист «Комната урока», 31.08).
+   Спящая таблетка «микрофон · камера · выход» делала выключение микрофона
+   делом в два движения — посреди урока это дорого. */
+.pultBox {
+  position: absolute;
+  left: 50%;
+  bottom: var(--space-4);
+  transform: translateX(-50%);
+  z-index: 4;
+  max-width: calc(100% - var(--space-8));
 }

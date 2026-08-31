@@ -1,17 +1,22 @@
 import { useMemo, useState } from 'react'
 
+import { Cover } from '../hub/Cover'
 import { Vitrina } from '../hub/Vitrina'
-
 import { IF_SILENT, KINDS, RIGHTS, SOURCES, type Kind, type Source } from '../hub/sources'
 import { Mark } from '../ui/Mark'
 import s from './Hub.module.css'
 
 /** Flamingo HUB — каталог чужих открытых источников.
  *
- *  🔴 Экран собирается из ДВУХ независимых источников: каталог наш, а состояние
- *  каждого источника — чужой опрос. Поэтому частичный отказ здесь обязателен
- *  и показан (ПРАВИЛА 6.5): каталог показывает всё, а девять источников честно
- *  помечены «молчит» с временем последней удачной проверки.
+ *  🔴 Разложен по листу `docs/дизайн/от-дизайна-31.08/Flamingo HUB.dc.html`:
+ *  фильтры стоят в строке заголовка, «Ответили 29 из 36» сжато в одну строку
+ *  справа, правого рельса нет, у карточки есть обложка, а цветных полос слева
+ *  нет вовсе — состояние говорит точка и надпись (решение владельца 31.08).
+ *
+ *  🔴 Право и «что будет, если замолчит» переехали в ВИТРИНУ, а не пропали
+ *  вместе с рельсом: ПРАВИЛА 8.10 требуют, чтобы у источника были названы
+ *  четыре человеческие формулировки права и строка про молчание. Читать их
+ *  уместнее там, где источник открыт, а не в углу каталога.
  */
 
 const STATE_TEXT = {
@@ -22,7 +27,6 @@ const STATE_TEXT = {
 
 export function Hub({ onBack }: { onBack: () => void }) {
   const [kind, setKind] = useState<Kind | null>(null)
-  const [pick, setPick] = useState<Source | null>(null)
   /* Открытый источник показывается ЗДЕСЬ ЖЕ, поверх каталога. Новая вкладка
      уносит человека из Flamingo, и обратно он уже не всегда возвращается. */
   const [open, setOpen] = useState<Source | null>(null)
@@ -41,23 +45,10 @@ export function Hub({ onBack }: { onBack: () => void }) {
         <span className={s.crumb}>Flamingo HUB</span>
       </header>
 
+      {/* Заголовок, фильтры и строка опроса — одной строкой: раньше они занимали
+          четыре этажа и отодвигали каталог за нижний край. */}
       <div className={s.top}>
         <h1 className={s.title}>Источники мира</h1>
-        <p className={s.lead}>
-          Каждый источник проверен руками: что он даёт, что с ним можно сделать и что будет,
-          если он замолчит. Право написано словами — его читает ученик, а не только юрист.
-        </p>
-
-        {/* Частичный отказ живёт в своей строке и стоит всегда (ПРАВИЛА 6.5а, 6.6). */}
-        <p className={s.partial}>
-          <span className={s.partialTitle}>
-            Ответили {SOURCES.length - silent} источников из {SOURCES.length}
-          </span>
-          <span className={s.partialText}>
-            работает: поиск, право, показ классу · не работает: опрос {silent} источников —
-            они помечены «молчит» · что с данными: у молчащих показана последняя удачная проверка
-          </span>
-        </p>
 
         <div className={s.filters} role="tablist" aria-label="Вид источника">
           <button
@@ -67,7 +58,7 @@ export function Hub({ onBack }: { onBack: () => void }) {
             className={`${s.filter} ${kind === null ? s.filterOn : ''}`}
             onClick={() => setKind(null)}
           >
-            Все {SOURCES.length}
+            Все <span className={s.filterN}>{SOURCES.length}</span>
           </button>
           {KINDS.map((k) => (
             <button
@@ -78,75 +69,45 @@ export function Hub({ onBack }: { onBack: () => void }) {
               className={`${s.filter} ${kind === k ? s.filterOn : ''}`}
               onClick={() => setKind(k)}
             >
-              {k} {SOURCES.filter((x) => x.kind === k).length}
+              {k} <span className={s.filterN}>{SOURCES.filter((x) => x.kind === k).length}</span>
             </button>
           ))}
         </div>
+
+        {/* Частичный отказ сжат до одной строки (решение владельца 31.08):
+            сколько источников ответило. Подробности — у каждой карточки своей
+            строкой состояния, а не общей простынёй наверху. */}
+        <span className={s.answered}>
+          <span className={s.answeredDot} />
+          Ответили {SOURCES.length - silent} из {SOURCES.length}
+        </span>
       </div>
 
       <div className={s.body}>
-        <ul className={s.list}>
+        <ul className={s.list} aria-label="Список источников">
           {list.map((x) => (
-            <li key={x.id} className={s.item}>
-              <button
-                type="button"
-                className={`${s.card} ${pick?.id === x.id ? s.cardOn : ''} ${s[`st_${x.state}`]}`}
-                onClick={() => setPick(x)}
-                aria-pressed={pick?.id === x.id}
-              >
+            <li key={x.id} className={s.card}>
+              <span className={s.shot}>
+                <Cover id={x.id} kind={x.kind} />
+              </span>
+
+              <span className={s.words}>
                 <span className={s.kind}>{x.kind}</span>
                 <span className={s.name}>{x.name}</span>
                 <span className={s.gives}>{x.gives}</span>
-                <span className={s.state}>{STATE_TEXT[x.state]}</span>
-              </button>
-              <button type="button" className={s.cardGo}
-                      onClick={(e) => { e.stopPropagation(); setPick(x); setOpen(x) }}>
-                открыть
-              </button>
+                <span className={`${s.state} ${s[`st_${x.state}`]}`}>
+                  <span className={s.stateDot} />
+                  {STATE_TEXT[x.state]}
+                </span>
+                <span className={s.foot}>
+                  <button type="button" className={s.go} onClick={() => setOpen(x)}>
+                    открыть
+                  </button>
+                </span>
+              </span>
             </li>
           ))}
         </ul>
-
-        <aside className={s.detail} aria-label="Про источник">
-          {pick ? (
-            <>
-              <span className={s.detailKind}>{pick.kind}</span>
-              <h2 className={s.detailName}>{pick.name}</h2>
-              <p className={s.detailText}>{pick.gives}</p>
-
-              <p className={s.rightShort}>{RIGHTS[pick.right].short}</p>
-              <p className={s.detailText}>{RIGHTS[pick.right].can}</p>
-              <p className={s.detailText}>{RIGHTS[pick.right].cant}</p>
-
-              <span className={s.label}>если замолчит</span>
-              <p className={s.detailText}>{IF_SILENT[pick.kind]}</p>
-
-              {/* 🔴 Главное действие каталога — попасть В источник. Без него каталог
-                  остаётся витриной имён: человек выбрал строку и упёрся в тупик. */}
-              <button type="button" className={s.open} onClick={() => setOpen(pick)}>
-                Открыть источник
-              </button>
-              <span className={s.openWhy}>{new URL(pick.home).host}</span>
-
-              {/* ПРАВИЛА 12: дверь видна, названа, не нажимается, сказано когда откроется. */}
-              <span className={s.door} aria-disabled="true" tabIndex={-1}>
-                Показать классу
-              </span>
-              <span className={s.doorWhy}>
-                появится вместе с уроком: показ идёт из комнаты, а не отсюда
-              </span>
-            </>
-          ) : (
-            /* ПРАВИЛА 6.2: пусто объясняет словами и даёт одно действие. */
-            <>
-              <span className={s.label}>ничего не выбрано</span>
-              <p className={s.detailText}>
-                Выберите источник слева — здесь появится, что он даёт, что с ним можно
-                и чего нельзя, и что будет, если он замолчит.
-              </p>
-            </>
-          )}
-        </aside>
       </div>
 
       {/* Источник открыт ЗДЕСЬ ЖЕ. Выход один и он назван — «Закрыть»: из чужой
@@ -154,12 +115,26 @@ export function Hub({ onBack }: { onBack: () => void }) {
       {open ? (
         <div className={s.shown} role="dialog" aria-label={`Источник: ${open.name}`}>
           <header className={s.shownHead}>
+            <span className={s.shownKind}>{open.kind}</span>
             <span className={s.shownName}>{open.name}</span>
+            <span className={s.shownHost}>{new URL(open.home).host}</span>
             <button type="button" className={s.shownClose} onClick={() => setOpen(null)}>
               Закрыть
             </button>
           </header>
+
           <Vitrina url={open.home} name={open.name} />
+
+          {/* ПРАВИЛА 8.10: право — четыре человеческие формулировки, к каждой
+              строка «можно» и строка «нельзя», и отдельно — что будет, если
+              источник замолчит. Это читает ученик, а не юрист. */}
+          <footer className={s.rights}>
+            <span className={s.rightShort}>{RIGHTS[open.right].short}</span>
+            <span className={s.rightLine}>{RIGHTS[open.right].can}</span>
+            <span className={s.rightLine}>{RIGHTS[open.right].cant}</span>
+            <span className={s.rightLabel}>если замолчит</span>
+            <span className={s.rightLine}>{IF_SILENT[open.kind]}</span>
+          </footer>
         </div>
       ) : null}
     </main>

@@ -48,7 +48,7 @@ function Tile({ face, lead }: { face: Face; lead?: boolean }) {
       <Media track={face.video} />
       <Sound track={face.audio} />
       {!face.camOn || !face.video ? <span className={s.ini}>{initials(face.name)}</span> : null}
-      {lead ? <span className={s.mark}>ведёт урок</span> : null}
+      {lead ? <span className={s.mark}>ведёт занятие</span> : null}
       <span className={s.name}>
         {face.name}
         {face.isLocal ? ' · вы' : ''}
@@ -70,7 +70,7 @@ export function Tiles({ faces }: { faces: Face[] }) {
   if (!open) {
     return (
       <button type="button" className={s.show} onClick={() => setOpen(true)}>
-        Показать лица · {faces.length}
+        Показать превью · {faces.length}
       </button>
     )
   }
@@ -78,7 +78,7 @@ export function Tiles({ faces }: { faces: Face[] }) {
   return (
     <div className={s.rail} aria-label="Участники">
       <button type="button" className={s.hide} onClick={() => setOpen(false)}>
-        Свернуть лица
+        Свернуть превью
       </button>
       {lead ? <Tile face={lead} lead /> : null}
       <div className={s.pupils}>

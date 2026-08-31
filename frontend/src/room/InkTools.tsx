@@ -73,6 +73,10 @@ export function InkTools({ tool, onTool, onUndo, onWipe, canUndo, canWipe }: {
       <button type="button" className={s.btn} onClick={onWipe} disabled={!canWipe}>
         Стереть всё
       </button>
+
+      {/* Правило пометок сказано словами прямо на полке (лист «Показ»): иначе
+          человек не знает, увидит ли он свой рисунок, вернувшись на страницу. */}
+      <span className={s.hint}>пометки привязаны к своей странице · ⌘Z отменяет</span>
     </div>
   )
 }

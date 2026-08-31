@@ -51,6 +51,11 @@ export function inspect({ name, text, kind, known }) {
 
     if (kind !== 'css') return
     if (/^\s*(\/\*|\*)/.test(line)) return
+    /* 🔴 Условие @media — единственное место в CSS, куда токен подставить НЕЛЬЗЯ:
+       медиазапрос читается до каскада и переменных не видит. Прибор, который
+       требует здесь токен, требует невозможного — и его начинают обходить, а
+       обойдённый прибор перестаёт ловить настоящие голые значения. */
+    if (/^\s*@media\b/.test(line)) return
 
     for (const m of line.matchAll(/(?<![\w-])(\d+(?:\.\d+)?)px/g)) {
       if (Number(m[1]) > 3) say(n, `голый размер ${m[0]} — берётся токеном (ПРАВИЛА 2.8)`)
@@ -88,6 +93,8 @@ function selftest() {
     ['голый размер', { kind: 'css', text: '.x { padding: 24px; }' }, 1],
     ['голый цвет', { kind: 'css', text: '.x { color: #ff0000; }' }, 1],
     ['значение в комментарии', { kind: 'css', text: '  /* было 24px и #fff */' }, 0],
+    ['порог медиазапроса', { kind: 'css', text: '@media (max-width: 900px) {' }, 0],
+    ['голое значение под медиазапросом', { kind: 'css', text: '@media (min-width: 900px) {\n  .x { padding: 24px; }' }, 1],
     ['кнопка отвечает', { kind: 'tsx', text: '<button onClick={go}>Да</button>' }, 0],
     ['кнопка объявлена немой', { kind: 'tsx', text: '<button data-still="показ">Да</button>' }, 0],
     ['кнопка молчит', { kind: 'tsx', text: '<button className={s.b}>Да</button>' }, 1],

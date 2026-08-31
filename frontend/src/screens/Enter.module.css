@@ -1,30 +1,78 @@
+/* Первая страница. Разложена по листу дизайна
+   `docs/дизайн/от-дизайна-31.08/Первая страница.dc.html`. */
+
 .screen {
   height: 100%;
   display: grid;
-  place-items: center;
-  padding: var(--space-6);
+  grid-template-rows: auto minmax(0, 1fr);
   background: var(--color-bg);
   overflow: hidden;
 }
 
-.card {
-  display: grid;
+/* ── верх ─────────────────────────────────────────────────────────────────
+   Двери, которые не про этот урок: HUB и учётная запись. Решение владельца
+   01.09 — «хаб должен быть наверху». */
+.top {
+  display: flex;
+  align-items: center;
   gap: var(--space-4);
-  justify-items: start;
-  width: 100%;
-  max-width: var(--content-max-narrow);
-  padding: var(--space-8);
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-card);
-  box-shadow: var(--shadow-sm);
+  padding: var(--space-4) var(--space-6);
+  border-bottom: 1px solid var(--color-border);
 }
 
-/* ПРАВИЛА 4.1: заголовок страницы один, --text-h1, вес 600. */
+.topGap {
+  flex: 1 1 auto;
+}
+
+.topLink {
+  min-height: var(--tap-min);
+  padding: 0 var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  background: none;
+  color: var(--color-text);
+  font-size: var(--text-small);
+  cursor: pointer;
+}
+
+.topLink:hover {
+  border-color: var(--color-border-strong);
+}
+
+/* ── тело: две колонки ────────────────────────────────────────────────────
+   Слева обещание, справа одно действие. Раньше здесь была одна карточка
+   посреди пустого поля: 900 px высоты работали на треть. */
+.body {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+  align-items: center;
+  gap: var(--space-11);
+  padding: var(--space-8) var(--space-11);
+  min-height: 0;
+}
+
+@media (max-width: 900px) {
+  .body {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-6);
+    padding: var(--space-6);
+    align-content: center;
+  }
+}
+
+.promise {
+  display: grid;
+  justify-items: start;
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+/* ПРАВИЛА 4.1: заголовок страницы один. Здесь он крупнее обычного h1 —
+   на этом экране он единственная крупная вещь и держит всю левую колонку. */
 .title {
   margin: 0;
   font-family: var(--font-heading);
-  font-size: var(--text-h1);
+  font-size: var(--text-display);
   font-weight: var(--weight-semibold);
   letter-spacing: var(--tracking-tight);
   line-height: var(--leading-heading);
@@ -36,10 +84,54 @@
   font-size: var(--text-body);
   line-height: var(--leading-body);
   color: var(--color-text-detail);
+  max-width: 46ch;
+}
+
+.rule {
+  width: 100%;
+  max-width: 46ch;
+  height: 1px;
+  background: var(--color-border);
+}
+
+/* Моно — служебная подпись, а не заголовок (ПРАВИЛА 4.4). */
+.three {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  font: var(--weight-regular) var(--text-caption) var(--font-mono);
+  letter-spacing: 0.06em;
+  color: var(--color-text-detail);
+}
+
+.dot {
+  color: var(--color-text-hint);
+}
+
+/* Сноска: по весу не спорит с абзацем, потому что это сноска. */
+.foot {
+  margin: 0;
+  font-size: var(--text-caption);
+  line-height: var(--leading-snug);
+  color: var(--color-text-detail);
   max-width: 52ch;
 }
 
+/* ── правая колонка ───────────────────────────────────────────────────── */
+.card {
+  display: grid;
+  justify-items: stretch;
+  gap: var(--space-5);
+  padding: var(--space-8);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-sm);
+  min-width: 0;
+}
+
 .code {
+  justify-self: start;
   font: var(--weight-medium) var(--text-small) var(--font-mono);
   letter-spacing: 0.08em;
   color: var(--color-text);
@@ -52,47 +144,60 @@
 .form {
   display: grid;
   gap: var(--space-3);
-  justify-items: start;
   width: 100%;
-  max-width: var(--content-max-narrow);
 }
 
-/* Место под сообщение занято всегда — ровно одна строка (ПРАВИЛА 6.6). */
+/* 🔴 Место под сообщение занято ВСЕГДА, и высота держится числом строк, а не
+   подгонкой слов под пиксели (ПРАВИЛА 6.7а). Три строки — столько занимает
+   самый длинный из текстов состояний. */
 .say {
-  min-height: calc(var(--leading-snug) * 1em);
-  font-size: var(--text-caption);
-  color: var(--color-error-text);
+  display: grid;
+  align-content: start;
+  gap: var(--space-1);
+  min-height: calc(3 * var(--leading-snug) * 1em);
 }
 
-.foot {
-  margin: 0;
+.sayHead {
+  font-size: var(--text-small);
+  font-weight: var(--weight-medium);
+  color: var(--color-text);
+}
+
+.sayBody {
   font-size: var(--text-caption);
   line-height: var(--leading-snug);
   color: var(--color-text-detail);
-  max-width: 56ch;
 }
 
-/* Второе действие экрана — обводкой, а не заливкой: заливка на экране одна
-   и принадлежит входу в комнату (ПРАВИЛА 11.4). */
-.hub {
-  min-height: var(--tap-min);
-  padding: 0 var(--space-5);
-  border-radius: var(--radius-pill);
-  border: 1px solid var(--color-border);
-  background: none;
-  color: var(--color-text);
+/* Дверь входа — строка под вопросом, а не третья кнопка в столбик. */
+.ask {
+  margin: 0;
   font-size: var(--text-small);
+  color: var(--color-text-detail);
+}
+
+.signLink {
+  display: inline-grid;
+  place-items: center;
+  min-height: var(--tap-min);
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--color-go-text);
+  font: inherit;
+  text-decoration: underline;
+  text-decoration-color: var(--color-go-border);
+  text-underline-offset: 3px;
   cursor: pointer;
 }
 
-.hub:hover {
-  border-color: var(--color-border-strong);
+.signLink:hover {
+  text-decoration-color: var(--color-go);
 }
 
 .who {
-  margin: 0;
   font-size: var(--text-small);
-  color: var(--color-go-text);
+  color: var(--color-text-detail);
 }
 
 /* Выход — подчёркнутая строка, не кнопка: заливка на экране одна и принадлежит

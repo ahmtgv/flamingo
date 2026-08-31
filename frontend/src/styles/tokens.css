@@ -316,6 +316,9 @@
   --control-height-sm: 34px;
   --control-height-md: 42px;
   --control-height-lg: 50px;
+  /* Ширина чата занятия. Лист «Чат занятия» 01.09: 380 — рабочая,
+     520 — запасная. Прежние 22rem съедали треть холста. */
+  --chat-width: 380px;
   --tap-min: 44px;
 
   /* ---------- Focus ring (two-layer, brand) ---------- */

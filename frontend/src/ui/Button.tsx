@@ -8,7 +8,7 @@ import s from './Button.module.css'
  *  `quiet` — всё остальное: обводка, нейтральный цвет.
  *  `leave` — уход и отмена: коралловая ОБВОДКА, не заливка (ПРАВИЛА 11.3).
  */
-export type ButtonKind = 'go' | 'quiet' | 'leave'
+export type ButtonKind = 'go' | 'quiet' | 'leave' | 'ghost'
 
 type Props = ButtonHTMLAttributes<HTMLButtonElement> & {
   kind?: ButtonKind

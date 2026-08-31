@@ -1,28 +1,29 @@
-/* Экран не прокручивается целиком (ПРАВИЛА 1.2): прокручиваются список и карточка
-   справа — две названные области, ровно предел 1.3. */
+/* Flamingo HUB. Разложен по листу дизайна
+   `docs/дизайн/от-дизайна-31.08/Flamingo HUB.dc.html`. */
+
 .screen {
   height: 100%;
   display: grid;
   grid-template-rows: auto auto minmax(0, 1fr);
   background: var(--color-bg);
   overflow: hidden;
-  /* Витрина источника ложится ПОВЕРХ каталога — ей нужен якорь. */
-  position: relative;
 }
 
 .head {
   display: flex;
   align-items: center;
   gap: var(--space-4);
-  padding: var(--space-3) var(--space-5);
+  padding: var(--space-4) var(--space-6);
   border-bottom: 1px solid var(--color-border);
 }
 
 .back {
-  min-height: var(--control-height-sm);
+  display: inline-grid;
+  place-items: center;
+  min-height: var(--tap-min);
   padding: 0 var(--space-4);
-  border-radius: var(--radius-pill);
   border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
   background: none;
   color: var(--color-text);
   font-size: var(--text-small);
@@ -34,143 +35,158 @@
 }
 
 .crumb {
-  font: var(--weight-medium) var(--text-caption) var(--font-mono);
-  letter-spacing: var(--tracking-wide);
-  color: var(--color-text-detail);
+  font: var(--weight-regular) var(--text-caption) var(--font-mono);
+  letter-spacing: 0.08em;
   text-transform: uppercase;
+  color: var(--color-text-detail);
 }
 
+/* ── строка заголовка ─────────────────────────────────────────────────────
+   Заголовок, фильтры и строка опроса стоят В ОДНОЙ строке (лист, 31.08):
+   раньше они занимали четыре этажа и отодвигали каталог за нижний край. */
 .top {
-  display: grid;
-  gap: var(--space-3);
-  padding: var(--space-5);
-  border-bottom: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  gap: var(--space-5);
+  padding: var(--space-6) var(--space-6) var(--space-5);
+  flex-wrap: wrap;
 }
 
 .title {
   margin: 0;
   font-family: var(--font-heading);
-  font-size: var(--text-h1);
+  font-size: var(--text-h2);
   font-weight: var(--weight-semibold);
   letter-spacing: var(--tracking-tight);
+  line-height: var(--leading-heading);
   color: var(--color-text);
-}
-
-.lead {
-  margin: 0;
-  max-width: 88ch;
-  font-size: var(--text-small);
-  line-height: var(--leading-snug);
-  color: var(--color-text-detail);
-}
-
-/* Частичный отказ: полоса слева и подпись, без карточки поверх экрана. */
-.partial {
-  margin: 0;
-  display: grid;
-  gap: var(--space-1);
-  padding: var(--space-3) var(--space-4);
-  border-left: 2px solid var(--color-go-line);
-  background: var(--color-go-bg);
-  border-radius: var(--radius-sm);
-}
-
-.partialTitle {
-  font-size: var(--text-small);
-  font-weight: var(--weight-medium);
-  color: var(--color-text);
-}
-
-.partialText {
-  font-size: var(--text-caption);
-  line-height: var(--leading-snug);
-  color: var(--color-text-secondary);
+  white-space: nowrap;
 }
 
 .filters {
   display: flex;
-  flex-wrap: wrap;
+  align-items: center;
   gap: var(--space-2);
+  flex-wrap: wrap;
+  min-width: 0;
 }
 
 .filter {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--space-2);
   min-height: var(--control-height-sm);
   padding: 0 var(--space-4);
-  border-radius: var(--radius-pill);
   border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
   background: none;
-  color: var(--color-text-secondary);
-  font-size: var(--text-caption);
+  color: var(--color-text);
+  font-size: var(--text-small);
   cursor: pointer;
 }
 
 .filter:hover {
   border-color: var(--color-border-strong);
-  color: var(--color-text);
 }
 
-/* Выбранный вид — нейтральная заливка: акцент экрана принадлежит не фильтру. */
+/* Выбранный фильтр — сильная рамка и белая подложка, не акцент: это выбор,
+   а не «можно дальше» (ПРАВИЛА 5.7). */
 .filterOn {
-  background: var(--color-surface-subtle);
   border-color: var(--color-border-strong);
-  color: var(--color-text);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-xs);
 }
 
+.filterN {
+  font: var(--weight-medium) var(--text-caption) var(--font-mono);
+  color: var(--color-text-detail);
+}
+
+/* Строка опроса: сколько источников ответило. Точка — графика, её порог 3,0
+   (ПРАВИЛА 4.10); слово рядом делает её читаемой без цвета. */
+.answered {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-small);
+  color: var(--color-text-detail);
+  white-space: nowrap;
+}
+
+.answeredDot {
+  width: var(--dot-size);
+  height: var(--dot-size);
+  border-radius: var(--radius-pill);
+  background: var(--color-go);
+}
+
+/* ── каталог ──────────────────────────────────────────────────────────── */
 .body {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 22rem;
-  gap: var(--space-5);
-  padding: var(--space-5);
+  padding: 0 var(--space-6) var(--space-6);
   min-height: 0;
 }
 
 .list {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr));
-  align-content: start;
-  gap: var(--space-4);
   margin: 0;
   padding: 0;
   list-style: none;
   min-height: 0;
-  overflow-y: auto;
+  overflow: auto;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-auto-rows: max-content;
+  gap: var(--space-4);
+  align-content: start;
 }
 
+@media (max-width: 1180px) {
+  .list {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 860px) {
+  .list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* 🔴 Цветной полосы слева у карточки НЕТ (решение владельца 31.08).
+   Состояние говорит точка и надпись: двадцать коралловых полос в решётке
+   съедали единственный акцент экрана (ПРАВИЛА 5.4). */
 .card {
   display: grid;
-  gap: var(--space-2);
-  width: 100%;
-  min-height: var(--tap-min);
-  padding: var(--space-4) var(--space-5);
-  text-align: left;
-  border-radius: var(--radius-card);
+  grid-template-rows: var(--space-13) auto;
   border: 1px solid var(--color-border);
-  border-left: 2px solid var(--color-border-strong);
+  border-radius: var(--radius-card);
   background: var(--color-surface);
-  cursor: pointer;
+  min-width: 0;
+  overflow: hidden;
 }
 
-.card:hover {
-  border-color: var(--color-border-strong);
+.shot {
+  display: block;
+  background: var(--color-surface-subtle);
+  border-bottom: 1px solid var(--color-border);
+  overflow: hidden;
+  line-height: 0;
 }
 
-/* ПРАВИЛА 3.2: сильная рамка — только у выбранного. */
-.cardOn {
-  border-color: var(--color-border-strong);
-  box-shadow: var(--shadow-sm);
-}
-
-/* ПРАВИЛА 5.2: состояние — полоса 2 px слева и подпись, не обводка по периметру. */
-.st_ok {
-  border-left-color: var(--color-go-line);
-}
-
-.st_live {
-  border-left-color: var(--color-accent-solid);
-}
-
-.st_down {
-  border-left-color: var(--color-border-strong);
+/* Высота строк задана числом строк текста: карточки одного ряда обязаны
+   совпадать верхними и нижними кромками (ПРАВИЛА 3.3, 6.7а). */
+.words {
+  display: grid;
+  grid-template-rows:
+    auto
+    calc(2 * var(--text-body) * var(--leading-snug))
+    calc(2 * var(--text-small) * var(--leading-snug))
+    auto
+    auto;
+  gap: var(--space-2);
+  padding: var(--space-4) var(--space-5);
+  min-width: 0;
 }
 
 .kind {
@@ -181,193 +197,121 @@
 }
 
 .name {
-  font-family: var(--font-heading);
   font-size: var(--text-body);
   font-weight: var(--weight-medium);
-  letter-spacing: var(--tracking-snug);
+  line-height: var(--leading-snug);
   color: var(--color-text);
+  overflow: hidden;
 }
 
 .gives {
   font-size: var(--text-small);
   line-height: var(--leading-snug);
-  color: var(--color-text-detail);
+  color: var(--color-text-secondary);
+  overflow: hidden;
 }
 
 .state {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
   font: var(--weight-regular) var(--text-caption) var(--font-mono);
-  color: var(--color-text-secondary);
-}
-
-.st_live .state {
-  color: var(--color-accent-text);
-}
-
-.st_ok .state {
-  color: var(--color-go-text);
-}
-
-.detail {
-  display: grid;
-  gap: var(--space-3);
-  align-content: start;
-  padding: var(--space-5);
-  border-radius: var(--radius-card);
-  border: 1px solid var(--color-border);
-  background: var(--color-surface);
-  min-height: 0;
-  overflow-y: auto;
-}
-
-.detailKind {
-  font: var(--weight-medium) var(--text-overline) var(--font-mono);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--color-text-detail);
-}
-
-.detailName {
-  margin: 0;
-  font-family: var(--font-heading);
-  font-size: var(--text-h3);
-  font-weight: var(--weight-medium);
-  letter-spacing: var(--tracking-snug);
-  color: var(--color-text);
-}
-
-.detailText {
-  margin: 0;
-  font-size: var(--text-small);
   line-height: var(--leading-snug);
-  color: var(--color-text-detail);
+  min-width: 0;
 }
 
-.rightShort {
-  margin: 0;
-  padding: var(--space-2) var(--space-3);
-  border-radius: var(--radius-sm);
-  background: var(--color-surface-subtle);
-  font-size: var(--text-small);
-  font-weight: var(--weight-medium);
-  color: var(--color-text);
-}
-
-.label {
-  font: var(--weight-medium) var(--text-overline) var(--font-mono);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--color-text-detail);
-}
-
-/* Приглушённая дверь: цвет и вес, не прозрачность; цель нажатия полная. */
-.door {
-  display: grid;
-  place-items: center;
-  min-height: var(--tap-min);
-  padding: 0 var(--space-5);
-  border-radius: var(--radius-control);
-  border: 1px solid var(--color-border);
-  background: var(--color-surface-subtle);
-  color: var(--color-text-secondary);
-  font-size: var(--text-small);
-  font-weight: var(--weight-regular);
-  cursor: default;
-}
-
-.doorWhy {
-  font-size: var(--text-caption);
-  line-height: var(--leading-snug);
-  color: var(--color-text-secondary);
-}
-
-.item {
-  position: relative;
-  display: grid;
-}
-
-/* Переход к самому источнику стоит на каждой карточке: чаще всего человеку
-   нужен именно он, а не разбор права. */
-.cardGo {
-  position: absolute;
-  right: var(--space-3);
-  top: var(--space-3);
-  min-height: var(--control-height-sm);
-  display: grid;
-  place-items: center;
-  padding: 0 var(--space-3);
+.stateDot {
+  flex: none;
+  width: var(--dot-size);
+  height: var(--dot-size);
   border-radius: var(--radius-pill);
-  border: 1px solid var(--color-border);
-  background: var(--color-surface);
-  color: var(--color-text-secondary);
-  font-size: var(--text-caption);
-  text-decoration: none;
+  background: currentColor;
+  transform: translateY(-1px);
 }
 
-.cardGo:hover {
-  border-color: var(--color-go-border);
+.st_ok {
   color: var(--color-go-text);
-  background: var(--color-go-bg);
 }
 
-/* Главное действие подробностей — зелёная заливка, одна на экран (ПРАВИЛА 11.1). */
-.open {
-  display: grid;
+/* Идущая трансляция портится от ожидания — она и есть аларм (ПРАВИЛА 11.8). */
+.st_live {
+  color: var(--color-error-text);
+}
+
+.st_down {
+  color: var(--color-text-detail);
+}
+
+.foot {
+  display: flex;
+  align-items: center;
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--color-border);
+  min-width: 0;
+}
+
+.go {
+  display: inline-grid;
   place-items: center;
   min-height: var(--tap-min);
   padding: 0 var(--space-5);
-  border-radius: var(--radius-control);
-  border: 1px solid var(--color-go-solid);
-  background: var(--color-go-solid);
-  color: var(--color-on-go);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  background: none;
+  color: var(--color-text);
   font-size: var(--text-small);
-  font-weight: var(--weight-medium);
-  text-decoration: none;
+  cursor: pointer;
 }
 
-.open:hover {
-  background: var(--color-go-solid-hover);
-  border-color: var(--color-go-solid-hover);
+.go:hover {
+  border-color: var(--color-border-strong);
 }
 
-.openWhy {
-  font: var(--weight-regular) var(--text-caption) var(--font-mono);
-  color: var(--color-text-secondary);
-}
-
-/* ── Источник, открытый прямо в каталоге ──────────────────────────────────── */
-
+/* ── витрина источника поверх каталога ────────────────────────────────── */
 .shown {
   position: absolute;
   inset: 0;
-  z-index: 20;
+  z-index: 5;
   display: grid;
-  grid-template-rows: auto minmax(0, 1fr);
-  gap: var(--space-3);
-  padding: var(--space-4) var(--space-5) var(--space-5);
+  grid-template-rows: auto minmax(0, 1fr) auto;
   background: var(--color-bg);
 }
 
 .shownHead {
   display: flex;
-  align-items: center;
-  gap: var(--space-4);
+  align-items: baseline;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-6);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.shownKind {
+  font: var(--weight-medium) var(--text-overline) var(--font-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-detail);
 }
 
 .shownName {
-  font-family: var(--font-heading);
-  font-size: var(--text-h3);
+  font-size: var(--text-body);
   font-weight: var(--weight-medium);
-  letter-spacing: var(--tracking-snug);
   color: var(--color-text);
+}
+
+.shownHost {
+  font: var(--weight-regular) var(--text-caption) var(--font-mono);
+  color: var(--color-text-detail);
 }
 
 .shownClose {
   margin-left: auto;
-  min-height: var(--control-height-sm);
-  padding: 0 var(--space-4);
-  border-radius: var(--radius-pill);
+  display: inline-grid;
+  place-items: center;
+  min-height: var(--tap-min);
+  padding: 0 var(--space-5);
   border: 1px solid var(--color-border);
-  background: var(--color-surface);
+  border-radius: var(--radius-pill);
+  background: none;
   color: var(--color-text);
   font-size: var(--text-small);
   cursor: pointer;
@@ -375,4 +319,33 @@
 
 .shownClose:hover {
   border-color: var(--color-border-strong);
+}
+
+/* Право и молчание — под рамкой источника, там где их читают (ПРАВИЛА 8.10). */
+.rights {
+  display: grid;
+  gap: var(--space-1);
+  padding: var(--space-4) var(--space-6);
+  border-top: 1px solid var(--color-border);
+  background: var(--color-surface-subtle);
+}
+
+.rightShort {
+  font-size: var(--text-small);
+  font-weight: var(--weight-medium);
+  color: var(--color-text);
+}
+
+.rightLine {
+  font-size: var(--text-caption);
+  line-height: var(--leading-snug);
+  color: var(--color-text-detail);
+}
+
+.rightLabel {
+  margin-top: var(--space-2);
+  font: var(--weight-medium) var(--text-overline) var(--font-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-detail);
 }
