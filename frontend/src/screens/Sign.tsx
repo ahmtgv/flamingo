@@ -12,6 +12,13 @@ import s from './Sign.module.css'
  *  Учётная запись нужна для того, чтобы урок оставался после урока: без неё комната
  *  живёт ровно столько, сколько в ней есть люди.
  */
+/** 🔴 Восстановление пароля живёт только на НАШЕМ сервере: письма шлёт он.
+ *  Пока учётные записи идут через функции Cloudflare, пути /forgot нет вовсе —
+ *  и кнопка «Забыли пароль» вела бы в пустоту (проверено на боевом: 405).
+ *  Дверь, которая не открывается, хуже отсутствующей: человек жмёт и решает,
+ *  что сломались мы. Поэтому её просто нет, пока нет сервера. */
+const ЕСТЬ_ВОССТАНОВЛЕНИЕ = Boolean(import.meta.env.VITE_AUTH_URL)
+
 export function Sign({ onDone, onBack }: { onDone: (p: Person) => void; onBack: () => void }) {
   const [mode, setMode] = useState<'in' | 'new' | 'forgot'>('in')
   const [email, setEmail] = useState('')
@@ -167,7 +174,7 @@ export function Sign({ onDone, onBack }: { onDone: (p: Person) => void; onBack: 
                 : 'Учётная запись уже есть — войти'}
           </button>
           {/* Дверь «забыли пароль» стоит только на входе: в регистрации забывать нечего. */}
-          {mode === 'in' ? (
+          {mode === 'in' && ЕСТЬ_ВОССТАНОВЛЕНИЕ ? (
             <button
               type="button"
               className={s.swap}

@@ -14,6 +14,7 @@ Workers Free даёт 10 мс на запрос: PBKDF2 даже на 100 000 п
 """
 from __future__ import annotations
 
+import base64
 import hashlib
 import json
 import re
@@ -42,6 +43,36 @@ HASHER = PasswordHasher()
 EMPTY_HASH = HASHER.hash("пароль, которого ни у кого нет")
 
 EMAIL = re.compile(r"^[^\s@]+@[^\s@]+\.[^\s@]{2,}$")
+
+
+def _b64url_back(text: str) -> bytes:
+    """Обратно из того base64url, каким писали отпечатки функции Cloudflare."""
+    t = text.replace("-", "+").replace("_", "/")
+    return base64.b64decode(t + "=" * ((4 - len(t) % 4) % 4))
+
+
+def подходит(password: str, stored: str) -> bool:
+    """🔴 Понимаем ДВА вида отпечатков, и это не архитектурная роскошь.
+
+    Пока учётные записи жили на Cloudflare, пароли писались как
+    `pbkdf2$100000$соль$отпечаток`. Люди, зарегистрировавшиеся до переезда,
+    придут со своими старыми паролями — и если сервер их не узнает, каждый
+    получит «почта или пароль не подошли» на ВЕРНОМ пароле. Это не «попросим
+    всех восстановить»: это потерянные люди на ровном месте.
+
+    Свои отпечатки argon2id начинаются с `$argon2`. Чужие — с `pbkdf2$`.
+    Старый проверяем как есть, а при первом же удачном входе переписываем
+    на argon2id (см. login): пароль в этот момент в руках, другого случая не будет.
+    """
+    if stored.startswith("$argon2"):
+        HASHER.verify(stored, password)  # бросит, если не подошёл
+        return True
+    parts = stored.split("$")
+    if len(parts) != 4 or parts[0] != "pbkdf2" or not parts[1].isdigit():
+        return False
+    again = hashlib.pbkdf2_hmac(
+        "sha256", password.encode(), _b64url_back(parts[2]), int(parts[1]), dklen=32)
+    return secrets.compare_digest(again, _b64url_back(parts[3]))
 #: Ключ на смену пароля живёт час. Дольше — он становится вторым паролем,
 #: который лежит в почтовом ящике и которого никто не помнит.
 RESET_LIFE = timedelta(hours=1)
@@ -151,7 +182,9 @@ def login(request: HttpRequest) -> JsonResponse:
         guard.missed(email, ip)
         return wrong
     try:
-        HASHER.verify(person.pass_hash, password)
+        if not подходит(password, person.pass_hash):
+            guard.missed(email, ip)
+            return wrong
     except VerifyMismatchError:
         guard.missed(email, ip)
         return wrong
@@ -161,9 +194,9 @@ def login(request: HttpRequest) -> JsonResponse:
 
     guard.hit(email, ip)
 
-    # Настройки argon2 со временем крепчают. Если отпечаток сделан по старым —
-    # перезаписываем на новые прямо сейчас, пока пароль в руках и его можно хешировать.
-    if HASHER.check_needs_rehash(person.pass_hash):
+    # Отпечаток из Cloudflare переписываем на argon2id, а свои — если настройки
+    # argon2 с тех пор окрепли. И то и другое можно только сейчас: пароль в руках.
+    if not person.pass_hash.startswith("$argon2") or HASHER.check_needs_rehash(person.pass_hash):
         person.pass_hash = HASHER.hash(password)
         person.save(update_fields=["pass_hash"])
 
