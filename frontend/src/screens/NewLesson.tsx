@@ -1,15 +1,14 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 
 import type { Person } from '../lib/auth'
 import { Field } from '../ui/Field'
 import { Mark } from '../ui/Mark'
-import { сегодняСтрокой } from '../lib/lessons'
 import {
   Беда, завестиУрок, поправитьУрок, положитьСсылку, положитьФайл, снятьПособие,
   убратьУрок, читатьУроки, type Пособие, type Урок,
 } from '../lib/study'
 import {
-  датаВМашинную, датаИзМашинной, маскаВремени, маскаДаты, времяЦелое,
+  датаВМашинную, датаИзМашинной, когдаПоУмолчанию, маскаВремени, маскаДаты, времяЦелое,
 } from '../lib/datetime'
 import s from './NewLesson.module.css'
 
@@ -30,11 +29,6 @@ import s from './NewLesson.module.css'
  *  честнее: человек видит, что урок уже сохранён, и может уйти в любой момент.
  */
 
-function ближайшийЧас(now: Date = new Date()): string {
-  const ч = now.getMinutes() > 0 ? now.getHours() + 1 : now.getHours()
-  return `${String(ч % 24).padStart(2, '0')}:00`
-}
-
 const РАЗМЕР = (b: number) =>
   b >= 1024 * 1024 ? `${Math.round(b / (1024 * 1024))} МБ`
     : b >= 1024 ? `${Math.round(b / 1024)} КБ` : `${b} Б`
@@ -50,8 +44,9 @@ export function NewLesson({ person, урокId, onDone, onBack, onOut, onHome }:
 }) {
   const [урок, setУрок] = useState<Урок | null>(null)
   const [название, setНазвание] = useState('')
-  const [дата, setДата] = useState(() => датаИзМашинной(сегодняСтрокой()))
-  const [время, setВремя] = useState(() => ближайшийЧас())
+  const начало = useMemo(когдаПоУмолчанию, [])
+  const [дата, setДата] = useState(начало.дата)
+  const [время, setВремя] = useState(начало.время)
   const [минут, setМинут] = useState('45')
   const [сказать, setСказать] = useState<[string, string] | null>(null)
   const [хорошо, setХорошо] = useState('')
