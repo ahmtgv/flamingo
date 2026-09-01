@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8">
+<title>Г · Повтор</title>
+<link rel="stylesheet" href="лист.css">
+<style>
+.тело { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); min-height: 0; }
+.левое { padding: var(--space-6) var(--space-7); display: grid; align-content: start; gap: var(--space-4); border-right: 1px solid var(--color-border); min-width: 0; }
+.правое { padding: var(--space-6); display: grid; align-content: start; gap: var(--space-4); min-width: 0; }
+
+.искать { display: flex; align-items: center; gap: var(--space-3); min-height: var(--control-height-md); padding: 0 var(--space-4); border: 1px solid var(--color-border-strong); border-radius: var(--radius-control); background: var(--color-surface); color: #6b6b75; font-size: var(--text-small); }
+
+.лента { display: grid; gap: var(--space-2); }
+.когда { font: var(--weight-regular) var(--text-overline) var(--font-mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-text-hint); padding-top: var(--space-2); }
+
+.урок { display: grid; grid-template-columns: 4.5rem minmax(0, 1fr) auto; align-items: center; gap: var(--space-4); padding: var(--space-3) var(--space-4); border: 1px solid var(--color-border); border-radius: var(--radius-control); background: var(--color-surface); }
+.урок.выбран { border-color: var(--color-text); box-shadow: 0 0 0 3px rgba(29,29,31,0.07); }
+.урокЧас { font: var(--weight-regular) var(--text-caption) var(--font-mono); color: var(--color-text-detail); }
+.урокТело { display: grid; gap: 2px; min-width: 0; }
+.урокИмя { font-size: var(--text-small); font-weight: var(--weight-medium); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.урокПод { font-size: var(--text-caption); color: var(--color-text-detail); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.повторить { display: inline-grid; place-items: center; min-height: var(--control-height-sm); padding: 0 var(--space-4); border: 1px solid var(--color-border-strong); border-radius: var(--radius-pill); font-size: var(--text-caption); color: var(--color-text); white-space: nowrap; }
+.урок.выбран .повторить { background: var(--color-go-solid); border-color: transparent; color: var(--color-on-go); font-weight: var(--weight-medium); }
+
+/* Правая колонка — копия, открытая на правку. Меняют обычно одно: день. */
+.шапкаСправа { display: flex; align-items: baseline; gap: var(--space-3); }
+.шапкаСправа .из { font: var(--weight-regular) var(--text-caption) var(--font-mono); color: var(--color-text-detail); }
+.копия { display: grid; gap: var(--space-4); padding: var(--space-5); }
+.строка { display: grid; grid-template-columns: 6.5rem minmax(0, 1fr); align-items: center; gap: var(--space-4); }
+.имяПоля { font: var(--weight-regular) var(--text-overline) var(--font-mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-text-detail); }
+.знач { display: flex; align-items: center; min-height: var(--control-height-md); padding: 0 var(--space-4); border: 1px solid var(--color-border); border-radius: var(--radius-control); background: var(--color-surface-subtle); font-size: var(--text-body); }
+.знач.правят { background: var(--color-surface); border-color: var(--color-text); box-shadow: 0 0 0 3px rgba(29,29,31,0.08); }
+.знач .мет { margin-left: auto; font: var(--weight-regular) var(--text-caption) var(--font-mono); color: var(--color-text-detail); }
+
+.мат { display: grid; gap: var(--space-2); }
+.матСтрока { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-3) var(--space-4); border: 1px solid var(--color-border); border-radius: var(--radius-control); background: var(--color-surface); font-size: var(--text-small); }
+.матСтрока .где { margin-left: auto; font: var(--weight-regular) var(--text-caption) var(--font-mono); color: var(--color-text-detail); }
+.матСтрока.снят { background: var(--color-surface-subtle); color: var(--color-text-secondary); text-decoration: line-through; text-decoration-color: var(--color-border-strong); }
+
+.низ { display: flex; align-items: center; gap: var(--space-3); }
+.нетСервера { padding: var(--space-4); border: 1px solid var(--color-border); border-radius: var(--radius-control); background: var(--color-surface-subtle); font-size: var(--text-caption); line-height: var(--leading-snug); color: var(--color-text-secondary); }
+.вымысел { display: inline-grid; place-items: center; padding: 2px var(--space-3); border-radius: var(--radius-pill); background: #fae5e2; color: #a82a1f; font: var(--weight-medium) var(--text-overline) var(--font-mono); letter-spacing: 0.06em; }
+</style></head><body>
+
+<div class="имя">Вариант Г · Повтор — создать значит скопировать. <span style="opacity:.75">Данные на листе вымышлены: у продукта ещё нет ни одного прошедшего урока</span></div>
+
+<div class="кадр">
+  <header class="шапка">
+    <span class="знак"><img class="птица" src="../../../frontend/public/flamingo-bird.svg" alt="">Flamingo</span>
+    <span class="крошка">Кабинет преподавателя · создать урок</span>
+    <span class="кто">Адель · <u>Выйти</u></span>
+  </header>
+
+  <div class="тело">
+    <div class="левое">
+      <h1 class="титул">Повторить урок</h1>
+      <span class="подпись">Почти всякий новый урок — это прошлый с другой датой. Возьмите тот, что был, и поменяйте, что нужно. <span class="вымысел">данные вымышленные</span></span>
+      <span class="искать">Найти по названию, классу или материалу</span>
+
+      <div class="лента">
+        <span class="когда">На этой неделе</span>
+        <div class="урок выбран">
+          <span class="урокЧас">вт 14:00</span>
+          <span class="урокТело">
+            <span class="урокИмя">Алгебра — квадратные уравнения</span>
+            <span class="урокПод">45 мин · 2 материала · были 18 человек</span>
+          </span>
+          <span class="повторить">Повторить →</span>
+        </div>
+        <div class="урок">
+          <span class="урокЧас">пн 09:00</span>
+          <span class="урокТело">
+            <span class="урокИмя">Геометрия — признаки подобия</span>
+            <span class="урокПод">45 мин · 1 материал · были 16 человек</span>
+          </span>
+          <span class="повторить">Повторить</span>
+        </div>
+
+        <span class="когда">На прошлой неделе</span>
+        <div class="урок">
+          <span class="урокЧас">чт 14:00</span>
+          <span class="урокТело">
+            <span class="урокИмя">Алгебра — квадратные уравнения</span>
+            <span class="урокПод">45 мин · 2 материала · были 17 человек</span>
+          </span>
+          <span class="повторить">Повторить</span>
+        </div>
+        <div class="урок">
+          <span class="урокЧас">ср 15:30</span>
+          <span class="урокТело">
+            <span class="урокИмя">Консультация перед контрольной</span>
+            <span class="урокПод">30 мин · без материалов · были 5 человек</span>
+          </span>
+          <span class="повторить">Повторить</span>
+        </div>
+      </div>
+
+      <span class="мелко">Первый урок повторять нечего — тогда экран показывает пустую ленту и одну кнопку «Завести урок с нуля»: она открывает лист варианта А.</span>
+    </div>
+
+    <div class="правое">
+      <div class="шапкаСправа">
+        <h2 class="раздел">Копия</h2>
+        <span class="из">из урока вт, 26 августа</span>
+      </div>
+
+      <div class="карта копия">
+        <div class="строка">
+          <span class="имяПоля">Что</span>
+          <span class="знач">Алгебра — квадратные уравнения</span>
+        </div>
+        <div class="строка">
+          <span class="имяПоля">Когда</span>
+          <span class="знач правят">завтра, 2 сентября, 14:00 <span class="мет">меняют это</span></span>
+        </div>
+        <div class="строка">
+          <span class="имяПоля">Сколько</span>
+          <span class="знач">45 минут</span>
+        </div>
+        <div class="строка">
+          <span class="имяПоля">Кому</span>
+          <span class="знач">ссылкой — кому пришлю</span>
+        </div>
+      </div>
+
+      <span class="метка">Материалы переехали вместе с уроком</span>
+      <div class="мат">
+        <span class="матСтрока">Квадратные уравнения. Разбор.pdf <span class="где">12 страниц</span></span>
+        <span class="матСтрока">Тренажёр: дискриминант <span class="где">Методички</span></span>
+        <span class="матСтрока снят">Домашнее от 26 августа <span class="где">убрано</span></span>
+      </div>
+      <span class="мелко">Доска прошлого урока не переносится: она принадлежит тому уроку. Переносится то, что вы к нему приложили.</span>
+
+      <div class="низ">
+        <span class="го">Создать урок</span>
+        <span class="тихо">Открыть целиком</span>
+      </div>
+
+      <div class="нетСервера"><b>Честно о сегодняшнем дне.</b> Повторять пока нечего: прошедших уроков продукт не хранит — ни одного. Этот вариант оживает вторым, после того как уроки начнут сохраняться.</div>
+    </div>
+  </div>
+</div>
+
+<div class="разбор">
+  <section><h4>Устройство</h4><p>Создание — это копирование. Учитель ведёт одно и то же по кругу: та же алгебра, другой вторник. Экран не спрашивает заново то, что уже известно, — он показывает прошлое и даёт менять в копии одну строку. Материалы едут следом; доска не едет — она принадлежит своему уроку.</p></section>
+  <section><h4>Чем платим</h4><p>Пока прошлого нет, экрана нет: на пустой ленте он вырождается в «завести с нуля», то есть в вариант А. Значит это не замена, а вторая дверь — и её нельзя строить первой.</p></section>
+  <section><h4>Что нужно на сервере</h4><p>Таблица занятий плюс их история: кто был, сколько шло, что прикладывали. Это заметно больше, чем у А и Б, — зато на этом же складе потом стоит вся аналитика («лицо · голос · аналитика»).</p></section>
+</div>
+
+</body></html>

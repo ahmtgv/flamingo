@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8">
+<title>Д · Одной строкой</title>
+<link rel="stylesheet" href="лист.css">
+<style>
+.тело { display: grid; align-content: start; justify-items: center; gap: var(--space-5); padding: var(--space-8) var(--space-7); min-height: 0; }
+.узко { width: 100%; max-width: 56rem; display: grid; gap: var(--space-5); }
+
+.строка { display: flex; align-items: center; gap: var(--space-3); min-height: 66px; padding: 0 var(--space-5); border: 1px solid var(--color-text); border-radius: var(--radius-card); background: var(--color-surface); box-shadow: 0 0 0 4px rgba(29,29,31,0.06); }
+.строка .набрано { font-family: var(--font-heading); font-size: var(--text-h2); letter-spacing: var(--tracking-snug); }
+.каретка { display: inline-block; width: 2px; height: 1.15em; background: var(--color-text); vertical-align: -0.15em; }
+
+.разобрал { display: grid; gap: var(--space-3); }
+.чипы { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.чип { display: inline-flex; align-items: baseline; gap: var(--space-2); min-height: var(--control-height-sm); padding: var(--space-2) var(--space-4); border: 1px solid var(--color-border-strong); border-radius: var(--radius-pill); background: var(--color-surface); font-size: var(--text-small); }
+.чип .роль { font: var(--weight-regular) var(--text-overline) var(--font-mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-text-detail); }
+.чип .знач { font-weight: var(--weight-medium); border-bottom: 1px dashed var(--color-border-strong); }
+.чип.спорный { border-color: #b57f16; background: #f6eed9; }
+.чип.спорный .роль { color: #7d570c; }
+
+.вопросик { display: grid; gap: var(--space-2); padding: var(--space-4) var(--space-5); border: 1px solid var(--color-border); border-radius: var(--radius-control); background: var(--color-surface); }
+.вопросикГол { font-size: var(--text-small); font-weight: var(--weight-medium); }
+.вопросикРяд { display: flex; gap: var(--space-2); flex-wrap: wrap; }
+.ответ { display: inline-grid; place-items: center; min-height: var(--control-height-sm); padding: 0 var(--space-4); border: 1px solid var(--color-border-strong); border-radius: var(--radius-pill); font-size: var(--text-caption); }
+.ответ.главный { background: var(--color-text); border-color: transparent; color: var(--color-bg); }
+
+.итог { display: flex; align-items: center; gap: var(--space-4); padding-top: var(--space-2); }
+.итог .объясн { font-size: var(--text-caption); line-height: var(--leading-snug); color: var(--color-text-detail); max-width: 26rem; }
+
+.примеры { display: grid; gap: var(--space-2); }
+.примерыГол { font: var(--weight-regular) var(--text-overline) var(--font-mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-text-detail); }
+.пример { padding: var(--space-3) var(--space-4); border: 1px solid var(--color-border); border-radius: var(--radius-control); background: var(--color-surface-subtle); font: var(--weight-regular) var(--text-small) var(--font-mono); color: var(--color-text-secondary); }
+
+.дверца { display: flex; align-items: center; gap: var(--space-3); font-size: var(--text-small); color: var(--color-text-secondary); }
+.дверца u { text-decoration-color: var(--color-border-strong); text-underline-offset: 3px; color: var(--color-text); }
+.нетСервера { padding: var(--space-4); border: 1px solid var(--color-border); border-radius: var(--radius-control); background: var(--color-surface-subtle); font-size: var(--text-caption); line-height: var(--leading-snug); color: var(--color-text-secondary); }
+</style></head><body>
+
+<div class="имя">Вариант Д · Одной строкой — урок набирают словами, экран показывает, что понял</div>
+
+<div class="кадр">
+  <header class="шапка">
+    <span class="знак"><img class="птица" src="../../../frontend/public/flamingo-bird.svg" alt="">Flamingo</span>
+    <span class="крошка">Кабинет преподавателя · создать урок</span>
+    <span class="кто">Адель · <u>Выйти</u></span>
+  </header>
+
+  <div class="тело">
+    <div class="узко">
+      <h1 class="титул">Скажите, какой урок</h1>
+      <span class="подпись">Одной строкой, как сказали бы вслух. Ниже — что из этого понято: всё нажимается и правится, ничего не создастся молча.</span>
+
+      <div class="строка">
+        <span class="набрано">Алгебра, квадратные уравнения, завтра в 14:00, 45 минут<span class="каретка"></span></span>
+      </div>
+
+      <div class="разобрал">
+        <span class="метка">Понято так</span>
+        <div class="чипы">
+          <span class="чип"><span class="роль">что</span><span class="знач">Алгебра — квадратные уравнения</span></span>
+          <span class="чип"><span class="роль">когда</span><span class="знач">вт, 2 сентября</span></span>
+          <span class="чип"><span class="роль">во сколько</span><span class="знач">14:00</span></span>
+          <span class="чип"><span class="роль">идёт</span><span class="знач">45 минут</span></span>
+          <span class="чип спорный"><span class="роль">кому</span><span class="знач">не сказано — ссылкой</span></span>
+        </div>
+        <span class="мелко">Пунктир значит «нажмите и поправьте». Ничего угаданного не остаётся молча: неугаданное подсвечено и спрошено словами.</span>
+      </div>
+
+      <div class="вопросик">
+        <span class="вопросикГол">«14:00» — это завтрашний вторник. Не сегодня?</span>
+        <div class="вопросикРяд">
+          <span class="ответ главный">Да, завтра</span>
+          <span class="ответ">Сегодня в 14:00 — уже прошло</span>
+          <span class="ответ">Другой день</span>
+        </div>
+      </div>
+
+      <div class="итог">
+        <span class="го">Создать урок</span>
+        <span class="тихо">Открыть как форму</span>
+        <span class="объясн">«Как форму» раскрывает то же самое полями — на случай, когда строкой сказать неудобно или разбор ошибся.</span>
+      </div>
+
+      <div class="примеры">
+        <span class="примерыГол">Так тоже понимается</span>
+        <span class="пример">геометрия 7-Б в четверг 9 утра</span>
+        <span class="пример">консультация сегодня через час, полчаса</span>
+        <span class="пример">физика каждый вторник 15:30</span>
+      </div>
+
+      <div class="нетСервера"><b>Честно о сегодняшнем дне.</b> Строку разбираем мы сами, без сети и без чужих служб: правила языка написаны и лежат у нас. Но сохранить разобранное пока некуда — справочника занятий у продукта нет.</div>
+    </div>
+  </div>
+</div>
+
+<div class="разбор">
+  <section><h4>Устройство</h4><p>Не заполнять, а сказать. Строка разбирается по мере набора, и разбор показан чипами: понятое — обычным, непонятое — жёлтым и вслух вопросом. Это самая быстрая дорога для того, кто заводит урок сотый раз, и единственная, которая одинаково работает мышью, пальцем и голосом.</p></section>
+  <section><h4>Чем платим</h4><p>Разбор русского времени — работа не на день: «в среду», «через час», «полвторого», «каждый вторник». Ошибка разбора страшнее пустого поля: человек уверен, что сказал, а понято другое. Поэтому чипы и вопрос обязательны, а «Открыть как форму» — не украшение, а страховка.</p></section>
+  <section><h4>Что нужно на сервере</h4><p>Ничего сверх варианта А: разбор живёт в браузере. Но нужен свой словарь дат и его проверка — иначе первый же «в понедельник после праздников» создаст урок не в тот день.</p></section>
+</div>
+
+</body></html>

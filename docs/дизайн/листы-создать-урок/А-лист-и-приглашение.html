@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8">
+<title>А · Лист и приглашение</title>
+<link rel="stylesheet" href="лист.css">
+<style>
+.тело { display: grid; grid-template-columns: minmax(0, 1fr) 26rem; min-height: 0; }
+.левое { padding: var(--space-6) var(--space-7); display: grid; align-content: start; gap: var(--space-5); border-right: 1px solid var(--color-border); }
+.правое { padding: var(--space-6); display: grid; align-content: start; gap: var(--space-5); }
+
+.пара { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-4); }
+.тройка { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: var(--space-4); }
+
+/* Кому: сегменты, а не выпадашка — вариантов ровно два, и оба видны. */
+.сегменты { display: inline-flex; border: 1px solid var(--color-border-strong); border-radius: var(--radius-pill); overflow: hidden; }
+.сег { min-height: var(--control-height-md); display: grid; place-items: center; padding: 0 var(--space-5); font-size: var(--text-small); color: var(--color-text-secondary); }
+.сег.выбран { background: var(--color-text); color: var(--color-bg); }
+
+.чемодан { display: grid; gap: var(--space-2); }
+.строкаМат { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-3) var(--space-4); border: 1px solid var(--color-border); border-radius: var(--radius-control); background: var(--color-surface); font-size: var(--text-small); }
+.строкаМат .где { margin-left: auto; font: var(--weight-regular) var(--text-caption) var(--font-mono); color: var(--color-text-detail); }
+.добавить { display: flex; gap: var(--space-2); }
+.чип { display: inline-grid; place-items: center; min-height: var(--control-height-sm); padding: 0 var(--space-4); border: 1px dashed var(--color-border-strong); border-radius: var(--radius-pill); font-size: var(--text-caption); color: var(--color-text-secondary); }
+
+.низ { display: flex; align-items: center; gap: var(--space-4); padding-top: var(--space-2); }
+.низ .объясн { font-size: var(--text-caption); color: var(--color-text-detail); max-width: 22rem; line-height: var(--leading-snug); }
+
+/* Правая колонка — то же самое, но глазами ученика. */
+.заголовокСправа { font: var(--weight-regular) var(--text-overline) var(--font-mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-text-detail); }
+.превью { padding: var(--space-5); display: grid; gap: var(--space-3); }
+.превьюТитул { font-family: var(--font-heading); font-size: var(--text-h3); font-weight: var(--weight-semibold); }
+.превьюСтрока { font-size: var(--text-small); color: var(--color-text-secondary); }
+.кодик { font: var(--weight-regular) var(--text-small) var(--font-mono); padding: var(--space-2) var(--space-3); border-radius: var(--radius-sm); background: var(--color-surface-subtle); }
+.ссылка { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-3) var(--space-4); border: 1px solid var(--color-border); border-radius: var(--radius-control); background: var(--color-surface); }
+.ссылка code { font: var(--weight-regular) var(--text-caption) var(--font-mono); color: var(--color-text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ссылка .копи { margin-left: auto; font-size: var(--text-caption); color: var(--color-text-secondary); white-space: nowrap; }
+.нетСервера { padding: var(--space-4); border: 1px solid var(--color-border); border-radius: var(--radius-control); background: var(--color-surface-subtle); font-size: var(--text-caption); line-height: var(--leading-snug); color: var(--color-text-secondary); }
+</style></head><body>
+
+<div class="имя">Вариант А · Лист и приглашение — одна страница, ответ виден на ней же</div>
+
+<div class="кадр">
+  <header class="шапка">
+    <span class="знак"><img class="птица" src="../../../frontend/public/flamingo-bird.svg" alt="">Flamingo</span>
+    <span class="крошка">Кабинет преподавателя · создать урок</span>
+    <span class="кто">Адель · <u>Выйти</u></span>
+  </header>
+
+  <div class="тело">
+    <div class="левое">
+      <h1 class="титул">Создать урок</h1>
+
+      <div class="поле">
+        <span class="метка">Что</span>
+        <span class="ввод фокус">Алгебра — квадратные уравнения</span>
+        <span class="мелко">Это увидит класс на приглашении и в своём кабинете.</span>
+      </div>
+
+      <div class="тройка">
+        <div class="поле">
+          <span class="метка">Когда</span>
+          <span class="ввод">завтра, 2 сентября</span>
+        </div>
+        <div class="поле">
+          <span class="метка">Во сколько</span>
+          <span class="ввод">14:00</span>
+        </div>
+        <div class="поле">
+          <span class="метка">Сколько идёт</span>
+          <span class="ввод">45 минут</span>
+        </div>
+      </div>
+
+      <div class="поле">
+        <span class="метка">Кому</span>
+        <span class="сегменты">
+          <span class="сег выбран">Ссылкой — кому пришлю</span>
+          <span class="сег">Классу из списка</span>
+        </span>
+        <span class="мелко">Классов пока нет: список учеников появится вместе с курсами. Ссылка работает уже сегодня и никакой записи не требует.</span>
+      </div>
+
+      <div class="поле">
+        <span class="метка">С чем</span>
+        <div class="чемодан">
+          <span class="строкаМат">Квадратные уравнения. Разбор.pdf <span class="где">12 страниц</span></span>
+          <span class="строкаМат">Тренажёр: дискриминант <span class="где">Методички</span></span>
+        </div>
+        <div class="добавить">
+          <span class="чип">+ Документ</span>
+          <span class="чип">+ Из Методичек</span>
+          <span class="чип">+ Ссылка</span>
+        </div>
+        <span class="мелко">Всё это уже лежит на доске, когда класс входит: урок начинается не с «сейчас найду файл».</span>
+      </div>
+
+      <div class="низ">
+        <span class="го">Создать урок</span>
+        <span class="тихо">Начать прямо сейчас</span>
+        <span class="объясн">«Сейчас» открывает комнату и не заводит записи в расписании — то, что работает сегодня.</span>
+      </div>
+    </div>
+
+    <div class="правое">
+      <span class="заголовокСправа">Что получит класс</span>
+      <div class="карта превью">
+        <span class="превьюТитул">Вас ждут в комнате</span>
+        <span class="превьюСтрока">Алгебра — квадратные уравнения</span>
+        <span class="превьюСтрока">завтра, 2 сентября, 14:00 · 45 минут</span>
+        <span class="кодик">pq4m-hk73-xwz2</span>
+        <span class="мелко">Назовитесь — и входите. Ни регистрации, ни установки.</span>
+      </div>
+
+      <span class="заголовокСправа">Ссылка на урок</span>
+      <div class="ссылка"><code>flamingo.plus/r/pq4m-hk73-xwz2</code><span class="копи">Скопировать</span></div>
+      <span class="мелко">Ссылка живёт с уроком: её можно прислать и сегодня, и за минуту до начала.</span>
+
+      <div class="нетСервера">
+        <b>Честно о сегодняшнем дне.</b> Кнопка «Создать урок» пока не имеет куда сохранить: справочника занятий у продукта нет. Работает только «Начать прямо сейчас». Что нужно, чтобы лист ожил, — в разборе под кадром.
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="разбор">
+  <section><h4>Устройство</h4><p>Одна страница и один разговор. Поля идут в том порядке, в каком учитель думает: что · когда · кому · с чем. Справа — не «превью ради превью», а ответ: вот ровно это увидит ученик и вот ссылка, которую вы ему пошлёте. Заполнено уже почти всё: пустым остаётся только название.</p></section>
+  <section><h4>Чем платим</h4><p>Восемь полей сразу: учителю, которому нужно только «завтра в два», всё равно показано всё остальное. И низ кадра пустует — форма короче страницы. Это запас на то, чего ещё нет (курс, тема, домашнее), но сегодня он читается как незаконченность.</p></section>
+  <section><h4>Что нужно на сервере</h4><p>Таблица занятий: id, название, начало, длительность, код комнаты, автор. И всё — материалы можно доложить вторым шагом. Это самый дешёвый из пяти вариантов.</p></section>
+</div>
+
+</body></html>

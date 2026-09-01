@@ -1,0 +1,188 @@
+/* Общая обвязка листов «Создать урок».
+   Внутри кадра — только токены продукта: лист должен врать не больше,
+   чем врёт сборка. Всё, что вокруг кадра, — служебное и в продукт не идёт. */
+@import url('../../../frontend/src/styles/tokens.css');
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  padding: 32px;
+  background: #5b5b60;
+  font-family: var(--font-sans);
+  color: var(--color-text);
+}
+
+/* ── служебное вокруг кадра ─────────────────────────────────────────── */
+.имя {
+  max-width: 1440px;
+  margin: 0 auto 12px;
+  font: 600 15px var(--font-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #ffffff;
+}
+
+.кадр {
+  width: 1440px;
+  height: 900px;
+  margin: 0 auto;
+  overflow: hidden;
+  background: var(--color-bg);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+}
+
+.разбор {
+  width: 1440px;
+  margin: 20px auto 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.разбор section {
+  padding: 16px 18px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.94);
+}
+
+.разбор h4 {
+  margin: 0 0 6px;
+  font: 600 12px var(--font-mono);
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: #6e6e73;
+}
+
+.разбор p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.55;
+  color: #1d1d1f;
+}
+
+/* ── шапка кабинета (как в сборке) ──────────────────────────────────── */
+.шапка {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-5);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.знак {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-family: var(--font-heading);
+  font-size: var(--text-body);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-snug);
+}
+
+.птица { width: 20px; height: 20px; }
+
+.крошка {
+  font: var(--weight-regular) var(--text-caption) var(--font-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-detail);
+}
+
+.кто {
+  margin-left: auto;
+  font-size: var(--text-small);
+  color: var(--color-text-detail);
+}
+
+.кто u { text-decoration-color: var(--color-border-strong); text-underline-offset: 3px; }
+
+/* ── общие мелочи ───────────────────────────────────────────────────── */
+h1.титул {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: var(--text-h1);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-tight);
+  line-height: var(--leading-heading);
+}
+
+h2.раздел {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: var(--text-h3);
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--tracking-snug);
+}
+
+.подпись {
+  font-size: var(--text-small);
+  line-height: var(--leading-body);
+  color: var(--color-text-secondary);
+}
+
+.мелко {
+  font-size: var(--text-caption);
+  line-height: var(--leading-snug);
+  color: var(--color-text-detail);
+}
+
+.поле { display: grid; gap: var(--space-2); }
+
+.метка {
+  font: var(--weight-regular) var(--text-overline) var(--font-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-detail);
+}
+
+.ввод {
+  display: flex;
+  align-items: center;
+  min-height: var(--control-height-md);
+  padding: 0 var(--space-4);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-control);
+  background: var(--color-surface);
+  font-size: var(--text-body);
+  color: var(--color-text);
+}
+
+.ввод.пусто { color: #6b6b75; }
+
+.ввод.фокус { border-color: var(--color-text); box-shadow: 0 0 0 3px rgba(29, 29, 31, 0.08); }
+
+.го {
+  display: inline-grid;
+  place-items: center;
+  min-height: var(--tap-min);
+  padding: 0 var(--space-6);
+  border: none;
+  border-radius: var(--radius-pill);
+  background: var(--color-go-solid);
+  color: var(--color-on-go);
+  font-size: var(--text-small);
+  font-weight: var(--weight-medium);
+}
+
+.тихо {
+  display: inline-grid;
+  place-items: center;
+  min-height: var(--tap-min);
+  padding: 0 var(--space-5);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-pill);
+  background: none;
+  font-size: var(--text-small);
+  color: var(--color-text);
+}
+
+.карта {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+}
+
+.волос { height: 1px; background: var(--color-border); }

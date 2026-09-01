@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8">
+<title>Б · Три шага</title>
+<link rel="stylesheet" href="лист.css">
+<style>
+.тело { display: grid; grid-template-rows: auto minmax(0, 1fr) auto; min-height: 0; }
+
+/* Полоса пути. Пройденное не исчезает — оно сжимается в строку и остаётся
+   читаемым: человек всегда видит, что он уже ответил. */
+.путь { display: flex; align-items: center; gap: var(--space-4); padding: var(--space-4) var(--space-7); border-bottom: 1px solid var(--color-border); }
+.шаг { display: flex; align-items: baseline; gap: var(--space-3); font-size: var(--text-small); }
+.номер { font: var(--weight-regular) var(--text-caption) var(--font-mono); color: var(--color-text-hint); }
+.шаг.готов .ответ { color: var(--color-text); font-weight: var(--weight-medium); }
+.шаг.готов .чего { color: var(--color-text-detail); }
+.шаг.сейчас .чего { color: var(--color-text); font-weight: var(--weight-medium); }
+.шаг.потом .чего { color: var(--color-text-hint); }
+.шаг.готов .правка { font-size: var(--text-caption); color: var(--color-text-secondary); text-decoration: underline; text-underline-offset: 3px; }
+.стрелка { color: var(--color-text-hint); }
+.счёт { margin-left: auto; font: var(--weight-regular) var(--text-caption) var(--font-mono); letter-spacing: 0.08em; color: var(--color-text-detail); }
+
+/* Вопрос. Один на экран, крупно — на планшете читается с вытянутой руки. */
+.вопрос { display: grid; align-content: center; justify-items: center; gap: var(--space-6); padding: var(--space-7); text-align: center; }
+.вопросТитул { margin: 0; font-family: var(--font-heading); font-size: var(--text-display); font-weight: var(--weight-semibold); letter-spacing: var(--tracking-tight); line-height: var(--leading-tight); }
+.вопросЛид { margin: 0; max-width: 34rem; font-size: var(--text-body); line-height: var(--leading-body); color: var(--color-text-secondary); }
+
+.дни { display: flex; gap: var(--space-3); }
+.день { display: grid; justify-items: center; gap: var(--space-1); min-width: 7.5rem; padding: var(--space-4) var(--space-5); border: 1px solid var(--color-border-strong); border-radius: var(--radius-card); background: var(--color-surface); }
+.день.выбран { border-color: var(--color-text); box-shadow: 0 0 0 3px rgba(29,29,31,0.08); }
+.деньСлово { font-size: var(--text-body); font-weight: var(--weight-medium); }
+.деньЧисло { font: var(--weight-regular) var(--text-caption) var(--font-mono); color: var(--color-text-detail); }
+
+.часы { display: flex; gap: var(--space-2); flex-wrap: wrap; justify-content: center; max-width: 40rem; }
+.час { display: grid; place-items: center; min-height: var(--tap-min); min-width: 5rem; border: 1px solid var(--color-border); border-radius: var(--radius-pill); background: var(--color-surface); font: var(--weight-regular) var(--text-body) var(--font-mono); color: var(--color-text-secondary); }
+.час.выбран { border-color: transparent; background: var(--color-text); color: var(--color-bg); }
+.час.свой { font-family: var(--font-sans); font-size: var(--text-small); border-style: dashed; }
+
+.сколько { display: flex; align-items: baseline; gap: var(--space-3); font-size: var(--text-small); color: var(--color-text-secondary); }
+.сколько b { font-size: var(--text-body); color: var(--color-text); }
+.сколько u { text-decoration-color: var(--color-border-strong); text-underline-offset: 3px; }
+
+.низ { display: flex; align-items: center; gap: var(--space-4); padding: var(--space-5) var(--space-7); border-top: 1px solid var(--color-border); }
+.низ .назад { font-size: var(--text-small); color: var(--color-text-secondary); }
+.низ .справа { margin-left: auto; display: flex; align-items: center; gap: var(--space-4); }
+.низ .мелко { max-width: 24rem; text-align: right; }
+</style></head><body>
+
+<div class="имя">Вариант Б · Три шага — один вопрос на экран, для планшета и для спешки</div>
+
+<div class="кадр">
+  <header class="шапка">
+    <span class="знак"><img class="птица" src="../../../frontend/public/flamingo-bird.svg" alt="">Flamingo</span>
+    <span class="крошка">Кабинет преподавателя · создать урок</span>
+    <span class="кто">Адель · <u>Выйти</u></span>
+  </header>
+
+  <div class="тело">
+    <div class="путь">
+      <span class="шаг готов"><span class="номер">01</span><span class="ответ">Алгебра — квадратные уравнения</span><span class="правка">изменить</span></span>
+      <span class="стрелка">→</span>
+      <span class="шаг сейчас"><span class="номер">02</span><span class="чего">Когда</span></span>
+      <span class="стрелка">→</span>
+      <span class="шаг потом"><span class="номер">03</span><span class="чего">Кому и с чем</span></span>
+      <span class="счёт">шаг 2 из 3</span>
+    </div>
+
+    <div class="вопрос">
+      <h1 class="вопросТитул">Когда урок?</h1>
+      <p class="вопросЛид">Можно выбрать пальцем, можно набрать. Время потом видно всем — и вам в расписании, и классу на приглашении.</p>
+
+      <div class="дни">
+        <span class="день"><span class="деньСлово">Сегодня</span><span class="деньЧисло">1 сен, пн</span></span>
+        <span class="день выбран"><span class="деньСлово">Завтра</span><span class="деньЧисло">2 сен, вт</span></span>
+        <span class="день"><span class="деньСлово">Среда</span><span class="деньЧисло">3 сен</span></span>
+        <span class="день"><span class="деньСлово">Другой день</span><span class="деньЧисло">календарь</span></span>
+      </div>
+
+      <div class="часы">
+        <span class="час">09:00</span>
+        <span class="час">10:00</span>
+        <span class="час">12:00</span>
+        <span class="час выбран">14:00</span>
+        <span class="час">15:30</span>
+        <span class="час">18:00</span>
+        <span class="час свой">своё время</span>
+      </div>
+
+      <span class="сколько">идёт <b>45 минут</b> · <u>30</u> · <u>60</u> · <u>90</u></span>
+    </div>
+
+    <div class="низ">
+      <span class="назад">← Назад к названию</span>
+      <span class="справа">
+        <span class="мелко">Ничего не потеряется: шаги можно проходить назад и вперёд, урок создаётся в конце.</span>
+        <span class="го">Дальше — кому и с чем</span>
+      </span>
+    </div>
+  </div>
+</div>
+
+<div class="разбор">
+  <section><h4>Устройство</h4><p>Экран задаёт ровно один вопрос и отвечает на него нажатием, а не набором. Пройденное сжато в строку наверху и остаётся видимым — «шаг 2 из 3» и уже введённое название. Рассчитан на планшет и на пять минут между уроками: читается с вытянутой руки, попасть можно не глядя.</p></section>
+  <section><h4>Чем платим</h4><p>Три экрана вместо одного там, где учителю нужно поменять одну строку. Мастер хорош на первом уроке и мешает на сотом — значит рядом обязана быть быстрая дорога («повторить прошлый»), иначе он превратится в повинность.</p></section>
+  <section><h4>Что нужно на сервере</h4><p>Та же таблица занятий, что и в А. Плюс черновик: если шаги живут между заходами, незаконченный урок надо где-то держать — иначе закрытая вкладка стирает работу.</p></section>
+</div>
+
+</body></html>

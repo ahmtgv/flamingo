@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8">
+<title>В · Из месяца</title>
+<link rel="stylesheet" href="лист.css">
+<style>
+.тело { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.35fr) 20rem; padding: var(--space-6); grid-auto-rows: max-content; min-height: 0; }
+.кол { display: grid; align-content: start; gap: var(--space-4); padding-right: var(--space-6); border-right: 1px solid var(--color-border); min-width: 0; }
+.кол + .кол { padding-left: var(--space-6); }
+.рельс { border-right: none; padding-right: 0; }
+
+.пусто { display: grid; justify-items: start; gap: var(--space-3); padding: var(--space-5); border: 1px solid var(--color-border); border-radius: var(--radius-card); background: var(--color-surface); }
+.пустоГол { font-size: var(--text-body); font-weight: var(--weight-medium); }
+
+.мТоп { display: flex; align-items: baseline; gap: var(--space-3); }
+.мИмя { font-size: var(--text-body); font-weight: var(--weight-medium); }
+.мЧисло { font: var(--weight-regular) var(--text-caption) var(--font-mono); color: var(--color-text-detail); }
+.неделя, .числа { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: var(--space-1); }
+.дн { font: var(--weight-regular) var(--text-overline) var(--font-mono); letter-spacing: 0.08em; color: var(--color-text-hint); text-align: center; }
+.число { display: grid; place-items: center; min-height: var(--space-8); border-radius: var(--radius-sm); font: var(--weight-regular) var(--text-caption) var(--font-mono); color: var(--color-text-detail); }
+.число.сегодня { border: 1px solid var(--color-border-strong); color: var(--color-text); font-weight: var(--weight-medium); }
+.число.наводка { background: var(--color-surface-subtle); color: var(--color-text); }
+
+/* Раскрытый день. Урок растёт ПРЯМО В МЕСЯЦЕ: линейка часов, блок тянется
+   мышью, имя набирается на строке. Отдельной страницы нет вовсе. */
+.раскрыт { display: grid; gap: var(--space-3); padding: var(--space-4); border: 1px solid var(--color-text); border-radius: var(--radius-card); background: var(--color-surface); box-shadow: 0 8px 28px rgba(0,0,0,0.10); }
+.раскрытТоп { display: flex; align-items: baseline; gap: var(--space-3); }
+.раскрытДень { font-size: var(--text-body); font-weight: var(--weight-medium); }
+.раскрытМелко { font: var(--weight-regular) var(--text-caption) var(--font-mono); color: var(--color-text-detail); margin-left: auto; }
+
+.строкаИмени { display: flex; align-items: center; gap: var(--space-2); padding-bottom: var(--space-2); border-bottom: 1px solid var(--color-text); font-size: var(--text-h3); font-family: var(--font-heading); font-weight: var(--weight-medium); }
+.каретка { display: inline-block; width: 2px; height: 1.1em; background: var(--color-text); }
+
+.линейка { position: relative; height: 84px; border: 1px solid var(--color-border); border-radius: var(--radius-control); background: var(--color-surface-subtle); overflow: hidden; }
+.часовые { position: absolute; inset: 0; display: grid; grid-template-columns: repeat(12, 1fr); }
+.часовая { border-right: 1px solid var(--color-border); }
+.часовая:last-child { border-right: none; }
+.часовая { position: relative; }
+.часПодпись { position: absolute; bottom: 5px; left: 7px; font: var(--weight-regular) 11px var(--font-mono); color: var(--color-text-hint); }
+.блок { position: absolute; top: 8px; bottom: 22px; left: 41.6%; width: 12.5%; border-radius: var(--radius-sm); background: var(--color-go-solid); color: var(--color-on-go); display: grid; place-items: center; font: 500 12px var(--font-mono); white-space: nowrap; }
+.ручка { position: absolute; top: 50%; width: 6px; height: 22px; margin-top: -11px; border-radius: 3px; background: var(--color-on-go); opacity: 0.55; }
+.ручка.л { left: 3px; } .ручка.п { right: 3px; }
+
+.подРучкой { display: flex; align-items: center; gap: var(--space-3); }
+.подРучкой .время { font: var(--weight-regular) var(--text-small) var(--font-mono); }
+.подРучкой .право { margin-left: auto; display: flex; gap: var(--space-2); align-items: center; }
+
+.чип { display: inline-grid; place-items: center; min-height: var(--control-height-sm); padding: 0 var(--space-4); border: 1px dashed var(--color-border-strong); border-radius: var(--radius-pill); font-size: var(--text-caption); color: var(--color-text-secondary); }
+
+.акты { display: grid; align-content: start; gap: var(--space-2); }
+.акт { display: grid; justify-items: start; gap: var(--space-1); padding: var(--space-4); border: 1px solid var(--color-border); border-radius: var(--radius-control); background: var(--color-surface); }
+.актИмя { font-size: var(--text-small); font-weight: var(--weight-medium); }
+.актЗач { font-size: var(--text-caption); line-height: var(--leading-snug); color: var(--color-text-detail); }
+.дверь { background: var(--color-surface-subtle); }
+.дверь .актИмя { font-weight: var(--weight-regular); color: var(--color-text-secondary); }
+.дверь .актЗач { color: var(--color-text-secondary); }
+.нетСервера { padding: var(--space-4); border: 1px solid var(--color-border); border-radius: var(--radius-control); background: var(--color-surface-subtle); font-size: var(--text-caption); line-height: var(--leading-snug); color: var(--color-text-secondary); }
+</style></head><body>
+
+<div class="имя">Вариант В · Из месяца — отдельной страницы нет, урок растёт в календаре</div>
+
+<div class="кадр">
+  <header class="шапка">
+    <span class="знак"><img class="птица" src="../../../frontend/public/flamingo-bird.svg" alt="">Flamingo</span>
+    <span class="крошка">Кабинет преподавателя</span>
+    <span class="кто">Адель · <u>Выйти</u></span>
+  </header>
+
+  <div class="тело">
+    <div class="кол">
+      <h2 class="раздел">Расписание на сегодня</h2>
+      <div class="пусто">
+        <span class="пустоГол">Занятий на сегодня нет</span>
+        <span class="подпись">Урок заводится в календаре справа: нажмите на день — и он раскроется. Начать прямо сейчас, без расписания, тоже можно.</span>
+        <span class="го">Начать урок сейчас</span>
+      </div>
+      <div class="нетСервера"><b>Честно о сегодняшнем дне.</b> Занятие, заведённое в календаре, пока негде хранить: справочника уроков у продукта нет. Что нужно, чтобы календарь ожил, — в разборе под кадром.</div>
+    </div>
+
+    <div class="кол">
+      <h2 class="раздел">Расписание на месяц</h2>
+      <div class="мТоп"><span class="мИмя">сентябрь 2026</span><span class="мЧисло">нажмите день, чтобы завести урок</span></div>
+      <div class="неделя">
+        <span class="дн">пн</span><span class="дн">вт</span><span class="дн">ср</span><span class="дн">чт</span><span class="дн">пт</span><span class="дн">сб</span><span class="дн">вс</span>
+      </div>
+      <div class="числа">
+        <span class="число сегодня">1</span><span class="число">2</span><span class="число">3</span><span class="число наводка">4</span><span class="число">5</span><span class="число">6</span><span class="число">7</span>
+      </div>
+
+      <div class="раскрыт">
+        <div class="раскрытТоп">
+          <span class="раскрытДень">Четверг, 4 сентября</span>
+          <span class="раскрытМелко">свернуть ✕</span>
+        </div>
+        <div class="строкаИмени">Алгебра — квадратные уравнения<span class="каретка"></span></div>
+        <div class="линейка">
+          <div class="часовые">
+            <span class="часовая"><span class="часПодпись">8</span></span>
+            <span class="часовая"><span class="часПодпись">9</span></span>
+            <span class="часовая"><span class="часПодпись">10</span></span>
+            <span class="часовая"><span class="часПодпись">11</span></span>
+            <span class="часовая"><span class="часПодпись">12</span></span>
+            <span class="часовая"><span class="часПодпись">13</span></span>
+            <span class="часовая"><span class="часПодпись">14</span></span>
+            <span class="часовая"><span class="часПодпись">15</span></span>
+            <span class="часовая"><span class="часПодпись">16</span></span>
+            <span class="часовая"><span class="часПодпись">17</span></span>
+            <span class="часовая"><span class="часПодпись">18</span></span>
+            <span class="часовая"><span class="часПодпись">19</span></span>
+          </div>
+          <div class="блок">45 мин<span class="ручка л"></span><span class="ручка п"></span></div>
+        </div>
+        <div class="подРучкой">
+          <span class="время">14:00 — 14:45 · 45 минут</span>
+          <span class="право">
+            <span class="чип">+ Материалы</span>
+            <span class="го">Готово</span>
+          </span>
+        </div>
+        <span class="мелко">Тяните за края, чтобы изменить время. Ссылку на урок можно скопировать сразу после «Готово».</span>
+      </div>
+
+      <div class="числа">
+        <span class="число">8</span><span class="число">9</span><span class="число">10</span><span class="число">11</span><span class="число">12</span><span class="число">13</span><span class="число">14</span>
+      </div>
+      <div class="числа">
+        <span class="число">15</span><span class="число">16</span><span class="число">17</span><span class="число">18</span><span class="число">19</span><span class="число">20</span><span class="число">21</span>
+      </div>
+      <div class="числа">
+        <span class="число">22</span><span class="число">23</span><span class="число">24</span><span class="число">25</span><span class="число">26</span><span class="число">27</span><span class="число">28</span>
+      </div>
+      <div class="числа">
+        <span class="число">29</span><span class="число">30</span><span class="число"></span><span class="число"></span><span class="число"></span><span class="число"></span><span class="число"></span>
+      </div>
+      <span class="мелко">точка — занятие · сегодня обведено</span>
+    </div>
+
+    <div class="кол рельс">
+      <h2 class="раздел">Действия</h2>
+      <div class="акты">
+        <div class="акт"><span class="актИмя">Начать урок сейчас</span><span class="актЗач">комната откроется, ссылку отправите классу</span></div>
+        <div class="акт дверь"><span class="актИмя">Мои методички</span><span class="актЗач">то, из чего собираются занятия — после хранилища</span></div>
+        <div class="акт дверь"><span class="актИмя">Мои ученики</span><span class="актЗач">появятся, когда учеников можно будет записать на курс</span></div>
+      </div>
+      <span class="мелко">«Создать урок» из этого столбца исчезает: создавать можно там, где видно, когда. Одна дверь вместо двух.</span>
+    </div>
+  </div>
+</div>
+
+<div class="разбор">
+  <section><h4>Устройство</h4><p>Страницы «Создать урок» нет вовсе. Есть календарь, который уже стоит в кабинете и сейчас мёртв: нажали на день — он раскрылся строкой, имя набирается прямо на линии, время тянется за края блока. Время не поле, а место: сразу видно, что в четверг уже два урока и третий не влезет.</p></section>
+  <section><h4>Чем платим</h4><p>Тянуть мышью на телефоне нельзя, и точность до пяти минут пальцем недостижима — нужна вторая, «полевая» дорога для узкого экрана. Урок без даты («когда-нибудь, заготовка») в этом устройстве завести негде.</p></section>
+  <section><h4>Что нужно на сервере</h4><p>Та же таблица занятий. Плюс выборка по месяцу — календарь спрашивает «что в сентябре», а не «все занятия». Это один запрос, но его надо сразу написать правильно.</p></section>
+</div>
+
+</body></html>
