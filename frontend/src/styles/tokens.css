@@ -250,10 +250,21 @@
 
   /* ---------- Typography: two voices ---------- */
   /* UI voice — SF on Apple devices, Inter elsewhere (SIL OFL) */
-  --font-heading: -apple-system, 'SF Pro Display', 'Inter', system-ui, sans-serif;
-  --font-body:    -apple-system, 'SF Pro Text', 'Inter', system-ui, sans-serif;
+  /* 🔴 ШРИФТ СВОЙ, А НЕ СИСТЕМНЫЙ (решение владельца 01.09).
+     Раньше здесь стоял `-apple-system` — это не шрифт, а просьба к системе
+     дать свой: на маке приходил SF Pro, на Windows — Segoe UI, на Android —
+     Roboto. То есть дизайна не было: был дизайн для владельцев Apple и
+     лотерея для всех остальных, и ученик с андроида видел не то же, что
+     преподаватель с мака.
+     Manrope лежит рядом с продуктом (`@fontsource-variable/manrope`, файлы
+     уезжают в сборку) — без чужих CDN: быстрее и никто не считает наших
+     учеников по запросам за шрифтом. Переменное начертание: один файл на
+     все веса, 200–800, наш потолок 600.
+     Системные имена оставлены запасными — на те полсекунды, пока файл едет. */
+  --font-heading: 'Manrope Variable', -apple-system, 'Inter', system-ui, sans-serif;
+  --font-body:    'Manrope Variable', -apple-system, 'Inter', system-ui, sans-serif;
   /* Machine voice — numbers, time, kickers, statuses, counters, meta */
-  --font-mono:    'JetBrains Mono', 'SF Mono', 'IBM Plex Mono', ui-monospace, monospace;
+  --font-mono:    'JetBrains Mono Variable', 'JetBrains Mono', 'SF Mono', ui-monospace, monospace;
 
   --weight-regular: 400;
   --weight-medium: 500;
