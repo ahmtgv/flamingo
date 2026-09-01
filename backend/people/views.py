@@ -30,7 +30,7 @@ from django.http import HttpRequest, JsonResponse
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 
-from . import guard
+from . import guard, session
 from .mail import send_reset
 from .models import Person, Reset
 
@@ -77,9 +77,12 @@ def подходит(password: str, stored: str) -> bool:
 #: который лежит в почтовом ящике и которого никто не помнит.
 RESET_LIFE = timedelta(hours=1)
 SITE = "https://flamingo.plus"
-COOKIE = "fl_ses"
-DAYS = 30
-SALT = "flamingo.session"
+# 🔴 Кука и «кто пришёл» переехали в `session.py`: тот же вопрос задают журнал
+# и занятия, и ответ должен быть один. Имена оставлены здесь как псевдонимы,
+# чтобы не переписывать весь файл ради переезда.
+COOKIE = session.COOKIE
+DAYS = session.DAYS
+SALT = session.SALT
 
 
 def _no(reason: str, status: int = 400) -> JsonResponse:
@@ -90,28 +93,11 @@ def _no(reason: str, status: int = 400) -> JsonResponse:
 def _said(person: Person, status: int = 200) -> JsonResponse:
     """Ответ + кука. Пароль и отпечаток наружу не уходят никогда."""
     res = JsonResponse({"id": person.id, "name": person.name, "role": person.role}, status=status)
-    res.set_cookie(
-        COOKIE,
-        signing.dumps({"id": person.id}, salt=SALT),
-        max_age=DAYS * 24 * 3600,
-        httponly=True,                       # ни один скрипт на странице её не прочитает
-        secure=True,                         # только по https
-        samesite="Lax",
-        domain=settings.SESSION_COOKIE_DOMAIN or None,  # .flamingo.plus — общая для сайта и api
-        path="/",
-    )
-    return res
+    return session.remember(res, person)
 
 
 def _who(request: HttpRequest) -> Person | None:
-    raw = request.COOKIES.get(COOKIE)
-    if not raw:
-        return None
-    try:
-        data = signing.loads(raw, salt=SALT, max_age=DAYS * 24 * 3600)
-    except signing.BadSignature:
-        return None
-    return Person.objects.filter(id=data.get("id")).first()
+    return session.who(request)
 
 
 def _body(request: HttpRequest) -> dict:

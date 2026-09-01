@@ -29,6 +29,7 @@ INSTALLED_APPS = [
     "corsheaders",
     "room",
     "people",
+    "study",
 ]
 
 MIDDLEWARE = [
@@ -64,6 +65,17 @@ DATABASES = {
     }
 }
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# 🔴 Где лежат учебные пособия. НЕ рядом с кодом: `git pull` на сервере не должен
+# ни видеть чужие файлы, ни тем более их трогать. По умолчанию — там же, где база.
+MEDIA_ROOT = os.getenv("MEDIA_ROOT", "/var/lib/flamingo/materials")
+
+# Загрузка идёт на диск с 2,5 МБ, а не копится в памяти: иначе десяток
+# одновременных презентаций кладут процесс.
+FILE_UPLOAD_MAX_MEMORY_SIZE = 2 * 1024 * 1024
+# Потолок на тело запроса. Свой потолок на файл — в study/files.py, и он ниже:
+# этот нужен, чтобы Django отказал раньше, чем прочитает гигабайт в никуда.
+DATA_UPLOAD_MAX_MEMORY_SIZE = 96 * 1024 * 1024
 
 LANGUAGE_CODE = "ru-ru"
 TIME_ZONE = "UTC"
