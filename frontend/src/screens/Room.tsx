@@ -393,7 +393,10 @@ export function Room({ code, name, onLeave }: Props) {
             написанное пропадало в тот момент, когда преподаватель уходил
             показать документ: React сносил компонент вместе с листами.
             Теперь доска живёт до конца занятия, а прячется показом сцены. */}
-        <div className={s.scene} hidden={source !== 'board'} aria-hidden={source !== 'board'}>
+        <div
+          className={`${s.scene} ${source === 'board' ? '' : s.sceneOff}`}
+          aria-hidden={source !== 'board'}
+        >
           <Board bus={bus} peers={peers} onOpen={(url) => goLive('доска', url)} />
         </div>
         {source === 'show' ? (
