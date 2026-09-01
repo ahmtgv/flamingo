@@ -1,0 +1,293 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8">
+<title>Журнал</title>
+<link rel="stylesheet" href="лист.css">
+<style>
+.тело { padding: var(--space-6) var(--space-7); display: grid; align-content: start; gap: var(--space-5); min-height: 0; }
+
+.верх { display: grid; gap: var(--space-2); }
+.титул { margin: 0; font-family: var(--font-heading); font-size: var(--text-h1); font-weight: var(--weight-semibold); letter-spacing: var(--tracking-tight); line-height: var(--leading-heading); }
+.лид { margin: 0; font-size: var(--text-small); line-height: var(--leading-body); color: var(--color-text-detail); max-width: 62ch; }
+
+/* Строка управления: одно зелёное действие, остальное тише (ПРАВИЛА 11.4). */
+.пульт { display: flex; align-items: center; gap: var(--space-3); }
+.го { display: inline-grid; place-items: center; min-height: var(--tap-min); padding: 0 var(--space-5); border: none; border-radius: var(--radius-pill); background: var(--color-go-solid); color: var(--color-on-go); font-size: var(--text-small); font-weight: var(--weight-medium); }
+.тихо { display: inline-grid; place-items: center; min-height: var(--tap-min); padding: 0 var(--space-5); border: 1px solid var(--color-border-strong); border-radius: var(--radius-pill); background: none; font-size: var(--text-small); color: var(--color-text); }
+.месяц { margin-left: auto; display: flex; align-items: center; gap: var(--space-3); }
+.месяцИмя { font-size: var(--text-small); font-weight: var(--weight-medium); }
+.стрелка { display: inline-grid; place-items: center; width: var(--tap-min); height: var(--tap-min); border: 1px solid var(--color-border); border-radius: var(--radius-pill); color: var(--color-text-secondary); font-size: var(--text-small); }
+
+/* ── таблица журнала ─────────────────────────────────────────────────── */
+.таблица { border: 1px solid var(--color-border); border-radius: var(--radius-card); background: var(--color-surface); overflow: hidden; }
+.ряд { display: grid; grid-template-columns: 17rem repeat(8, minmax(0, 1fr)) 6rem; align-items: stretch; }
+.ряд + .ряд { border-top: 1px solid var(--color-border); }
+
+.шапкаРяд { background: var(--color-surface-subtle); }
+.ячШапка { display: grid; align-content: center; justify-items: center; gap: 2px; padding: var(--space-3) var(--space-2); border-left: 1px solid var(--color-border); }
+.ячШапка:first-child { border-left: none; justify-items: start; padding-left: var(--space-5); }
+.дата { font: var(--weight-medium) var(--text-caption) var(--font-mono); color: var(--color-text); }
+.деньНед { font: var(--weight-regular) var(--text-overline) var(--font-mono); color: var(--color-text-hint); }
+.колПодпись { font: var(--weight-regular) var(--text-overline) var(--font-mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-text-detail); }
+
+/* Урок, которого ещё не было: столбец приглушён целиком — приглушено НАЗВАНИЕ
+   и фон, а не прозрачность (ПРАВИЛА 12.1). */
+.впереди .дата { color: var(--color-text-secondary); font-weight: var(--weight-regular); }
+.ячВпереди { background: var(--color-surface-subtle); }
+
+.ячИмя { display: grid; align-content: center; gap: 2px; padding: var(--space-3) var(--space-5); min-width: 0; }
+.имяУч { font-size: var(--text-small); font-weight: var(--weight-medium); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.какПришёл { font: var(--weight-regular) var(--text-overline) var(--font-mono); color: var(--color-text-hint); }
+
+.яч { display: grid; place-items: center; padding: var(--space-3) var(--space-2); border-left: 1px solid var(--color-border); }
+.был { width: 7px; height: 7px; border-radius: var(--radius-pill); background: var(--color-text); }
+.нет { width: 10px; height: 1px; background: var(--color-border-strong); }
+
+.итог { display: grid; place-items: center; padding: var(--space-3) var(--space-2); border-left: 1px solid var(--color-border); font: var(--weight-regular) var(--text-caption) var(--font-mono); color: var(--color-text-detail); }
+.итог b { color: var(--color-text); font-weight: var(--weight-medium); }
+
+.низТаблицы { background: var(--color-surface-subtle); }
+.низТаблицы .ячИмя { color: var(--color-text-detail); font-size: var(--text-caption); }
+
+.легенда { display: flex; align-items: center; gap: var(--space-4); font: var(--weight-regular) var(--text-caption) var(--font-mono); color: var(--color-text-hint); flex-wrap: wrap; }
+.легенда i { display: inline-flex; align-items: center; gap: var(--space-2); font-style: normal; }
+
+/* ── пусто ───────────────────────────────────────────────────────────── */
+.пусто { display: grid; justify-items: start; gap: var(--space-3); max-width: 46rem; padding: var(--space-6); border: 1px solid var(--color-border); border-radius: var(--radius-card); background: var(--color-surface); }
+.пустоГол { font-size: var(--text-body); font-weight: var(--weight-medium); }
+.пустоТело { font-size: var(--text-small); line-height: var(--leading-body); color: var(--color-text-detail); }
+.дороги { display: grid; gap: var(--space-2); width: 100%; margin-top: var(--space-2); }
+.дорога { display: grid; gap: 2px; padding: var(--space-4); border: 1px solid var(--color-border); border-radius: var(--radius-control); }
+.дорогаИмя { font-size: var(--text-small); font-weight: var(--weight-medium); }
+.дорогаЧто { font-size: var(--text-caption); line-height: var(--leading-snug); color: var(--color-text-detail); }
+
+/* ── панель добавления ───────────────────────────────────────────────── */
+.занавес { position: absolute; inset: 0; background: rgba(29, 29, 31, 0.28); display: grid; place-items: center; }
+.панель { width: 34rem; display: grid; gap: var(--space-5); padding: var(--space-8); background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-card); box-shadow: 0 24px 60px rgba(0,0,0,0.22); }
+.панельТитул { margin: 0; font-family: var(--font-heading); font-size: var(--text-h2); font-weight: var(--weight-semibold); letter-spacing: var(--tracking-tight); }
+.панельЛид { margin: 0; font-size: var(--text-small); line-height: var(--leading-body); color: var(--color-text-detail); }
+.путь { display: grid; gap: var(--space-3); }
+.путьМетка { font: var(--weight-medium) var(--text-overline) var(--font-mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-text-detail); }
+.ссылкаБокс { display: flex; align-items: center; gap: var(--space-3); min-height: var(--control-height-lg); padding: 0 var(--space-4); border: 1px solid var(--color-border-strong); border-radius: var(--radius-control); background: var(--color-surface); }
+.ссылкаБокс code { font: var(--weight-regular) var(--text-small) var(--font-mono); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.копи { margin-left: auto; font-size: var(--text-small); color: var(--color-text); white-space: nowrap; text-decoration: underline; text-decoration-color: var(--color-border-strong); text-underline-offset: 3px; }
+.поле { display: flex; align-items: center; min-height: var(--control-height-lg); padding: 0 var(--space-4); border: 1px solid var(--color-border-strong); border-radius: var(--radius-control); background: var(--color-surface); font-size: var(--text-body); color: var(--color-text-hint); }
+.мелко { font-size: var(--text-caption); line-height: var(--leading-snug); color: var(--color-text-detail); }
+.разделитель { display: flex; align-items: center; gap: var(--space-4); font: var(--weight-regular) var(--text-overline) var(--font-mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-text-hint); }
+.разделитель::before, .разделитель::after { content: ''; flex: 1; height: 1px; background: var(--color-border); }
+.панельНиз { display: flex; align-items: center; gap: var(--space-3); }
+.отмена { margin-left: auto; font-size: var(--text-small); color: var(--color-text-secondary); }
+
+.разбор { width: 1440px; margin: 0 auto 36px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
+.разбор section { padding: 16px 18px; border-radius: 12px; background: rgba(255,255,255,0.94); }
+.разбор h4 { margin: 0 0 6px; font: 600 12px var(--font-mono); letter-spacing: 0.09em; text-transform: uppercase; color: #6e6e73; }
+.разбор p { margin: 0; font-size: 14px; line-height: 1.55; color: #1d1d1f; }
+</style></head><body>
+
+<!-- ══════════════ КАДР 1 ══════════════ -->
+<div class="имя">Журнал · как он выглядит, когда в нём есть люди и уроки <em>— имена и посещения на листе вымышленные</em></div>
+
+<div class="кадр">
+  <header class="шапка">
+    <span class="знак"><img class="птица" src="../../../frontend/public/flamingo-bird.svg" alt=""><span class="слово">flamingo<span class="точка">.</span></span></span>
+    <span class="крошка">Кабинет преподавателя · Журнал</span>
+    <span class="кто">Адель · <u>Выйти</u></span>
+  </header>
+
+  <div class="тело">
+    <div class="верх">
+      <h1 class="титул">Журнал</h1>
+      <p class="лид">Все ученики и все занятия в одном месте. Строка — ученик, столбец — урок. Нажмите на дату, чтобы открыть урок, на имя — чтобы увидеть ученика и написать ему.</p>
+    </div>
+
+    <div class="пульт">
+      <span class="го">Добавить ученика</span>
+      <span class="тихо">Создать урок</span>
+      <span class="месяц">
+        <span class="стрелка">‹</span>
+        <span class="месяцИмя">сентябрь 2026</span>
+        <span class="стрелка">›</span>
+      </span>
+    </div>
+
+    <div class="таблица">
+      <div class="ряд шапкаРяд">
+        <span class="ячШапка"><span class="колПодпись">Ученик · 6</span></span>
+        <span class="ячШапка"><span class="дата">01.09</span><span class="деньНед">вт</span></span>
+        <span class="ячШапка"><span class="дата">03.09</span><span class="деньНед">чт</span></span>
+        <span class="ячШапка"><span class="дата">08.09</span><span class="деньНед">вт</span></span>
+        <span class="ячШапка"><span class="дата">10.09</span><span class="деньНед">чт</span></span>
+        <span class="ячШапка"><span class="дата">15.09</span><span class="деньНед">вт</span></span>
+        <span class="ячШапка впереди"><span class="дата">17.09</span><span class="деньНед">чт</span></span>
+        <span class="ячШапка впереди"><span class="дата">22.09</span><span class="деньНед">вт</span></span>
+        <span class="ячШапка впереди"><span class="дата">24.09</span><span class="деньНед">чт</span></span>
+        <span class="ячШапка"><span class="колПодпись">Был</span></span>
+      </div>
+
+      <div class="ряд">
+        <span class="ячИмя"><span class="имяУч">Анна Величко</span><span class="какПришёл">по ссылке · 26 авг</span></span>
+        <span class="яч"><i class="был"></i></span><span class="яч"><i class="был"></i></span><span class="яч"><i class="был"></i></span>
+        <span class="яч"><i class="нет"></i></span><span class="яч"><i class="был"></i></span>
+        <span class="яч ячВпереди"></span><span class="яч ячВпереди"></span><span class="яч ячВпереди"></span>
+        <span class="итог"><b>4</b>&nbsp;/&nbsp;5</span>
+      </div>
+
+      <div class="ряд">
+        <span class="ячИмя"><span class="имяУч">Тимур Сафин</span><span class="какПришёл">по ссылке · 26 авг</span></span>
+        <span class="яч"><i class="был"></i></span><span class="яч"><i class="был"></i></span><span class="яч"><i class="был"></i></span>
+        <span class="яч"><i class="был"></i></span><span class="яч"><i class="был"></i></span>
+        <span class="яч ячВпереди"></span><span class="яч ячВпереди"></span><span class="яч ячВпереди"></span>
+        <span class="итог"><b>5</b>&nbsp;/&nbsp;5</span>
+      </div>
+
+      <div class="ряд">
+        <span class="ячИмя"><span class="имяУч">Мария Долгих</span><span class="какПришёл">по почте · 28 авг</span></span>
+        <span class="яч"><i class="нет"></i></span><span class="яч"><i class="был"></i></span><span class="яч"><i class="был"></i></span>
+        <span class="яч"><i class="был"></i></span><span class="яч"><i class="нет"></i></span>
+        <span class="яч ячВпереди"></span><span class="яч ячВпереди"></span><span class="яч ячВпереди"></span>
+        <span class="итог"><b>3</b>&nbsp;/&nbsp;5</span>
+      </div>
+
+      <div class="ряд">
+        <span class="ячИмя"><span class="имяУч">Ильдар Нуриев</span><span class="какПришёл">по ссылке · 29 авг</span></span>
+        <span class="яч"><i class="был"></i></span><span class="яч"><i class="был"></i></span><span class="яч"><i class="нет"></i></span>
+        <span class="яч"><i class="был"></i></span><span class="яч"><i class="был"></i></span>
+        <span class="яч ячВпереди"></span><span class="яч ячВпереди"></span><span class="яч ячВпереди"></span>
+        <span class="итог"><b>4</b>&nbsp;/&nbsp;5</span>
+      </div>
+
+      <div class="ряд">
+        <span class="ячИмя"><span class="имяУч">Полина Ковалёва</span><span class="какПришёл">по ссылке · 01 сен</span></span>
+        <span class="яч"><i class="был"></i></span><span class="яч"><i class="был"></i></span><span class="яч"><i class="был"></i></span>
+        <span class="яч"><i class="был"></i></span><span class="яч"><i class="был"></i></span>
+        <span class="яч ячВпереди"></span><span class="яч ячВпереди"></span><span class="яч ячВпереди"></span>
+        <span class="итог"><b>5</b>&nbsp;/&nbsp;5</span>
+      </div>
+
+      <div class="ряд">
+        <span class="ячИмя"><span class="имяУч">Егор Тимофеев</span><span class="какПришёл">приглашён · ждёт</span></span>
+        <span class="яч"><i class="нет"></i></span><span class="яч"><i class="нет"></i></span><span class="яч"><i class="нет"></i></span>
+        <span class="яч"><i class="нет"></i></span><span class="яч"><i class="нет"></i></span>
+        <span class="яч ячВпереди"></span><span class="яч ячВпереди"></span><span class="яч ячВпереди"></span>
+        <span class="итог"><b>0</b>&nbsp;/&nbsp;5</span>
+      </div>
+
+      <div class="ряд низТаблицы">
+        <span class="ячИмя">Пришли на урок</span>
+        <span class="итог">4</span><span class="итог">5</span><span class="итог">5</span>
+        <span class="итог">5</span><span class="итог">4</span>
+        <span class="итог ячВпереди">—</span><span class="итог ячВпереди">—</span><span class="итог ячВпереди">—</span>
+        <span class="итог"></span>
+      </div>
+    </div>
+
+    <div class="легенда">
+      <i><span class="был"></span> был на уроке</i>
+      <i><span class="нет"></span> не был</i>
+      <i>пусто — урок ещё не прошёл</i>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ КАДР 2 ══════════════ -->
+<div class="имя">Журнал · первый запуск, учеников ещё нет</div>
+
+<div class="кадр">
+  <header class="шапка">
+    <span class="знак"><img class="птица" src="../../../frontend/public/flamingo-bird.svg" alt=""><span class="слово">flamingo<span class="точка">.</span></span></span>
+    <span class="крошка">Кабинет преподавателя · Журнал</span>
+    <span class="кто">Адель · <u>Выйти</u></span>
+  </header>
+
+  <div class="тело">
+    <div class="верх">
+      <h1 class="титул">Журнал</h1>
+      <p class="лид">Все ученики и все занятия в одном месте. Строка — ученик, столбец — урок.</p>
+    </div>
+
+    <div class="пульт">
+      <span class="го">Добавить ученика</span>
+      <span class="тихо">Создать урок</span>
+      <span class="месяц">
+        <span class="стрелка">‹</span>
+        <span class="месяцИмя">сентябрь 2026</span>
+        <span class="стрелка">›</span>
+      </span>
+    </div>
+
+    <div class="пусто">
+      <span class="пустоГол">Учеников пока нет</span>
+      <span class="пустоТело">
+        Журнал наполняется не вводом с клавиатуры, а связью: ученик приходит сам,
+        и с этого момента вы видите друг друга — он вас в своих преподавателях,
+        вы его здесь.
+      </span>
+      <div class="дороги">
+        <div class="дорога">
+          <span class="дорогаИмя">Ссылка в журнал</span>
+          <span class="дорогаЧто">Отправьте её как угодно — в мессенджере, письмом, голосом. Перешёл — и вы связаны.</span>
+        </div>
+        <div class="дорога">
+          <span class="дорогаИмя">По почте</span>
+          <span class="дорогаЧто">Ту же ссылку отправим мы. Ответ один и тот же, есть у нас такая почта или нет: узнать по журналу, кто зарегистрирован, нельзя.</span>
+        </div>
+      </div>
+      <span class="го">Добавить ученика</span>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ КАДР 3 ══════════════ -->
+<div class="имя">Журнал · как добавляют ученика</div>
+
+<div class="кадр">
+  <header class="шапка">
+    <span class="знак"><img class="птица" src="../../../frontend/public/flamingo-bird.svg" alt=""><span class="слово">flamingo<span class="точка">.</span></span></span>
+    <span class="крошка">Кабинет преподавателя · Журнал</span>
+    <span class="кто">Адель · <u>Выйти</u></span>
+  </header>
+
+  <div class="тело">
+    <div class="верх">
+      <h1 class="титул">Журнал</h1>
+      <p class="лид">Все ученики и все занятия в одном месте. Строка — ученик, столбец — урок.</p>
+    </div>
+    <div class="пульт">
+      <span class="го">Добавить ученика</span>
+      <span class="тихо">Создать урок</span>
+    </div>
+  </div>
+
+  <div class="занавес">
+    <div class="панель">
+      <h2 class="панельТитул">Добавить ученика</h2>
+      <p class="панельЛид">Ученик приходит сам — по ссылке. Перешёл, назвался — и вы связаны: он видит вас в своих преподавателях, вы его в журнале, и у вас появляется общий чат.</p>
+
+      <div class="путь">
+        <span class="путьМетка">Ссылка в журнал</span>
+        <div class="ссылкаБокс"><code>flamingo.plus/у/adel-7k3m-w9xz</code><span class="копи">Скопировать</span></div>
+        <span class="мелко">Живёт 7 дней, добавляет одного человека. Ссылку можно погасить в любой момент — тогда старая перестанет работать, а новая создастся здесь же.</span>
+      </div>
+
+      <div class="разделитель">или</div>
+
+      <div class="путь">
+        <span class="путьМетка">Отправить по почте</span>
+        <span class="поле">имя@почта.рф</span>
+        <span class="мелко">Пришлём ту же ссылку письмом. Ответ будет один и тот же, есть у нас такая почта или нет: иначе журнал стал бы способом проверять, кто у нас зарегистрирован.</span>
+      </div>
+
+      <div class="панельНиз">
+        <span class="го">Отправить приглашение</span>
+        <span class="отмена">Отмена</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="разбор">
+  <section><h4>Почему таблица</h4><p>Журнал — вещь с четырёхсотлетней формой: строка ученик, столбец занятие. Ничего лучше не придумано, и придумывать не надо: преподаватель узнаёт эту сетку без объяснений. Всё остальное на странице — один зелёный «Добавить ученика», тихое «Создать урок» и месяц.</p></section>
+  <section><h4>Откуда берутся отметки</h4><p>Не руками. Комната знает, кто в неё вошёл и когда, — посещение проставляется само. Ручная правка нужна будет («был, но с чужого устройства»), но она не первая: сначала честная запись того, что произошло.</p></section>
+  <section><h4>Что нужно на сервере</h4><p>Три таблицы: ученики, связь «преподаватель ↔ ученик» с состоянием приглашения, посещения. Плюс одноразовые ссылки-приглашения. Место под это — единицы мегабайт: 69 ГБ уходят на документы, а не на журнал.</p></section>
+</div>
+
+</body></html>

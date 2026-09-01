@@ -1,0 +1,76 @@
+/* Обвязка листов журнала. Внутри кадра — только токены продукта и его же
+   шрифты: лист обязан врать не больше, чем врёт сборка. */
+@import url('../../../frontend/src/styles/tokens.css');
+
+@font-face{font-family:'Manrope Variable';font-weight:200 800;font-display:block;
+  src:url('../../../frontend/node_modules/@fontsource-variable/manrope/files/manrope-cyrillic-wght-normal.woff2') format('woff2-variations');
+  unicode-range:U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116}
+@font-face{font-family:'Manrope Variable';font-weight:200 800;font-display:block;
+  src:url('../../../frontend/node_modules/@fontsource-variable/manrope/files/manrope-latin-wght-normal.woff2') format('woff2-variations')}
+@font-face{font-family:'JetBrains Mono Variable';font-weight:100 800;font-display:block;
+  src:url('../../../frontend/node_modules/@fontsource-variable/jetbrains-mono/files/jetbrains-mono-cyrillic-wght-normal.woff2') format('woff2-variations');
+  unicode-range:U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116}
+@font-face{font-family:'JetBrains Mono Variable';font-weight:100 800;font-display:block;
+  src:url('../../../frontend/node_modules/@fontsource-variable/jetbrains-mono/files/jetbrains-mono-latin-wght-normal.woff2') format('woff2-variations')}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  padding: 32px;
+  background: #5b5b60;
+  font-family: var(--font-body);
+  color: var(--color-text);
+}
+
+.имя {
+  max-width: 1440px;
+  margin: 0 auto 12px;
+  font: 500 14px var(--font-mono);
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: #ffffff;
+}
+
+.имя em { font-style: normal; opacity: 0.7; text-transform: none; letter-spacing: 0; }
+
+.кадр {
+  width: 1440px;
+  height: 900px;
+  margin: 0 auto 36px;
+  overflow: hidden;
+  background: var(--color-bg);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  position: relative;
+}
+
+/* ── верхняя строка кабинета ─────────────────────────────────────────── */
+.шапка {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-5);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.знак { display: inline-flex; align-items: center; gap: var(--space-2); }
+.птица { width: var(--mark-bird); height: var(--mark-bird); }
+.слово {
+  font-family: var(--font-heading);
+  font-size: var(--text-body);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-tight);
+}
+.точка { color: var(--color-accent); }
+
+.крошка {
+  font: var(--weight-regular) var(--text-caption) var(--font-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-detail);
+}
+
+.кто { margin-left: auto; font-size: var(--text-small); color: var(--color-text-detail); }
+.кто u { text-decoration-color: var(--color-border-strong); text-underline-offset: 3px; }
