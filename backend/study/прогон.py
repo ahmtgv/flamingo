@@ -24,6 +24,27 @@ os.environ["MEDIA_ROOT"] = str(ПАПКА)
 Path("/tmp/прогон.sqlite3").unlink(missing_ok=True)
 django.setup()
 
+# 🔴 `django.test.Client` стучится на хост `testserver`. В боевых настройках
+# такого хоста в ALLOWED_HOSTS нет и быть не должно — и Django отвечает на всё
+# «Bad Request (400)» html-страницей. Обычно это добавляет `manage.py test`,
+# но мы гоняем прибор напрямую, поэтому зовём сами.
+from django.test.utils import setup_test_environment
+setup_test_environment()
+
+from django.conf import settings
+
+# 🔴 ПРЕДОХРАНИТЕЛЬ. Прибор заводит и удаляет людей, занятия и файлы. Если он
+# хоть раз попадёт в боевую базу, он её вычистит. Проверяем ДО первой записи,
+# что и база, и папка пособий — временные.
+db = str(settings.DATABASES["default"]["NAME"])
+media = str(settings.MEDIA_ROOT)
+if not db.startswith("/tmp/") or not media.startswith("/tmp/"):
+    print("СТОП. Прибор смотрит не в свою базу:")
+    print(f"  база:    {db}")
+    print(f"  пособия: {media}")
+    print("Ожидались пути в /tmp. Ничего не тронуто.")
+    sys.exit(2)
+
 from django.core.management import call_command
 call_command("migrate", verbosity=0, interactive=False)
 
