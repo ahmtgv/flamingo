@@ -2,15 +2,35 @@
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
-  font-family: var(--font-heading);
-  font-size: var(--text-body);
-  font-weight: var(--weight-semibold);
-  letter-spacing: var(--tracking-snug);
   color: var(--color-text);
 }
 
-.quiet {
+/* Птица на 15 % крупнее слова — решение владельца 01.09. */
+.bird {
+  width: var(--mark-bird);
+  height: var(--mark-bird);
+  flex: none;
+}
+
+/* Словесный знак: строчные, плотный трекинг — как в связке знаков. */
+.word {
+  font-family: var(--font-heading);
+  font-size: var(--text-body);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-tight);
+}
+
+/* Точка — единственное коралловое пятно в знаке (токен так и подписан). */
+.dot {
+  color: var(--color-accent);
+}
+
+.quiet .word {
   font-size: var(--text-small);
+  color: var(--color-text-on-video);
+}
+
+.quiet {
   color: var(--color-text-on-video);
 }
 
