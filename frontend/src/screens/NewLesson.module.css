@@ -1,6 +1,9 @@
-/* Экран «Создать урок». Сосед кабинета: та же верхняя строка, та же волосяная
-   линия под ней, та же типографика (`Кабинет учителя.dc.html`, ПРАВИЛА 3.4).
-   Одна колонка — на странице четыре поля, делить её не на что. */
+/* Экран «Создать урок».
+   🔴 Язык взят НЕ выдуманный: это тот же лист, по которому сделаны вход и
+   регистрация (`docs/дизайн/от-дизайна-31.08/Вход и регистрация.dc.html`) —
+   две колонки, слева обещание, справа одно действие в белой карточке.
+   Верхняя строка — кабинетная: экран живёт внутри учётной записи. */
+
 .screen {
   height: 100%;
   display: grid;
@@ -9,6 +12,7 @@
   overflow: hidden;
 }
 
+/* ── верхняя строка: та же, что в кабинете ────────────────────────────── */
 .head {
   display: flex;
   align-items: center;
@@ -46,46 +50,128 @@
 
 .out:hover { color: var(--color-text); }
 
-/* Тело. Низ страницы пуст намеренно: страница короткая, и она должна быть
-   короткой (задание 01.09, п. 5). Докладывать туда нечего. */
+/* ── две колонки ──────────────────────────────────────────────────────── */
 .body {
-  padding: var(--space-6) var(--space-7);
-  align-content: start;
-  overflow-y: auto;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: center;
+  gap: var(--space-11);
+  padding: var(--space-8) var(--space-11);
+  min-height: 0;
 }
 
-.form {
-  display: grid;
-  align-content: start;
-  gap: var(--space-5);
-  width: 100%;
-  max-width: 28rem;
+@media (max-width: 960px) {
+  .body {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-6);
+    padding: var(--space-6);
+    align-content: center;
+    overflow-y: auto;
+  }
 }
+
+.promise {
+  display: grid;
+  justify-items: start;
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+/* Дорога назад — левый верхний угол (ПРАВИЛА 1.4). Цель нажатия полная. */
+.back {
+  display: inline-grid;
+  place-items: center;
+  min-height: var(--tap-min);
+  padding: 0 var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  background: none;
+  color: var(--color-text);
+  font-size: var(--text-small);
+  cursor: pointer;
+}
+
+.back:hover { border-color: var(--color-border-strong); }
 
 .title {
   margin: 0;
   font-family: var(--font-heading);
-  font-size: var(--text-h1);
+  font-size: var(--text-display);
   font-weight: var(--weight-semibold);
   letter-spacing: var(--tracking-tight);
   line-height: var(--leading-heading);
   color: var(--color-text);
 }
 
-/* ПРАВИЛА 6.6: место под сообщение занято ВСЕГДА — иначе отказ сдвигает
-   кнопку, и человек нажимает не туда, куда целился. Высота взята по самому
-   длинному из отказов: заголовок плюс строка объяснения (замерено живым
-   проходом — при меньшей высоте кнопка уезжала). */
+.lead {
+  margin: 0;
+  font-size: var(--text-body);
+  line-height: var(--leading-body);
+  color: var(--color-text-detail);
+  max-width: 46ch;
+}
+
+.rule {
+  width: 100%;
+  max-width: 46ch;
+  height: 1px;
+  background: var(--color-border);
+}
+
+/* Сноска. Здесь и сказано, где урок лежит на самом деле: умалчивать нельзя
+   (ПРАВИЛА 6.3), но и спорить по весу с формой она не должна. */
+.foot {
+  margin: 0;
+  font-size: var(--text-caption);
+  line-height: var(--leading-snug);
+  color: var(--color-text-detail);
+  max-width: 52ch;
+}
+
+/* ── правая колонка ───────────────────────────────────────────────────── */
+.card {
+  display: grid;
+  gap: var(--space-5);
+  padding: var(--space-8);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-sm);
+  min-width: 0;
+}
+
+.form {
+  display: grid;
+  gap: var(--space-4);
+}
+
+/* Когда — это одна мысль из трёх коротких ответов, и она читается одной
+   строкой. Растягивать поле под «45» на всю карточку значит врать про то,
+   сколько туда писать (ПРАВИЛА 13.4). */
+.when {
+  display: grid;
+  grid-template-columns: 1.3fr 1fr 1fr;
+  gap: var(--space-3);
+}
+
+@media (max-width: 520px) {
+  .when { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* 🔴 Строка сообщения стоит ВСЕГДА, высота считана по самому длинному
+   состоянию: кнопка не двигается в тот момент, когда в неё целятся
+   (ПРАВИЛА 6.6). */
 .say {
   display: grid;
+  align-content: start;
   gap: var(--space-1);
-  min-height: var(--space-8);
+  min-height: calc(3 * var(--leading-snug) * 1em);
 }
 
 .sayHead {
   font-size: var(--text-small);
   font-weight: var(--weight-medium);
-  color: var(--color-text);
+  color: var(--color-error-text);
 }
 
 .sayBody {
@@ -94,36 +180,18 @@
   color: var(--color-text-detail);
 }
 
+/* Главное действие карточки — во всю её ширину, как на входе. На экране
+   такая заливка одна (ПРАВИЛА 11.4). */
 .go {
-  justify-self: start;
-  min-height: var(--tap-min);
+  min-height: var(--control-height-lg);
   padding: 0 var(--space-6);
   border: none;
   border-radius: var(--radius-pill);
   background: var(--color-go-solid);
   color: var(--color-on-go);
-  font-size: var(--text-small);
+  font-size: var(--text-body);
   font-weight: var(--weight-medium);
   cursor: pointer;
 }
 
 .go:hover { background: var(--color-go-solid-hover); }
-
-/* Дорога назад — тихая строка, а не вторая кнопка: заливка на экране одна
-   и принадлежит созданию урока (ПРАВИЛА 11.4). */
-.back {
-  justify-self: start;
-  display: inline-grid;
-  place-items: center;
-  min-height: var(--tap-min);
-  padding: 0 var(--space-2);
-  margin-left: calc(-1 * var(--space-2));
-  border: none;
-  border-radius: var(--radius-control);
-  background: none;
-  color: var(--color-text-secondary);
-  font-size: var(--text-small);
-  cursor: pointer;
-}
-
-.back:hover { color: var(--color-text); background: var(--color-surface-subtle); }
