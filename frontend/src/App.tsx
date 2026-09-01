@@ -8,6 +8,7 @@ import { Room } from './screens/Room'
 import { codeFromPath } from './lib/code'
 import { rememberName, rememberedName } from './lib/name'
 import { logout, whoAmI, type Person } from './lib/auth'
+import { завестиТему } from './lib/theme'
 
 /** Двух экранов хватает, значит и маршрутизатора не нужно: адрес — это `/` или `/r/<код>`.
  *  Библиотека появится тогда, когда экранов станет больше, а не раньше. */
@@ -33,6 +34,9 @@ export function App() {
   useEffect(() => {
     whoAmI().then((r) => setPerson(r.person)).catch(() => undefined)
   }, [])
+
+  /* День и ночь. Пока человек не выбрал сам — идём за системой и слушаем её. */
+  useEffect(() => завестиТему(), [])
 
   useEffect(() => {
     const onPop = () => setPath(hereNow())

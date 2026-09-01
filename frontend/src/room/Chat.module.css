@@ -197,3 +197,22 @@
   color: var(--color-text-disabled);
   cursor: default;
 }
+
+/* Ссылка в реплике: подчёркнута и нажимается, но это кнопка, а не <a> —
+   уходить из занятия по ней нельзя, она открывает рамку внутри урока. */
+.link {
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--color-go-text);
+  font: inherit;
+  text-decoration: underline;
+  text-decoration-color: var(--color-go-border);
+  text-underline-offset: 2px;
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+
+.link:hover {
+  text-decoration-color: var(--color-go);
+}

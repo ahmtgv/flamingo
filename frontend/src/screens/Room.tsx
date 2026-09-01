@@ -15,6 +15,7 @@ import { Stage } from '../room/Stage'
 import { Tiles } from '../room/Tiles'
 import { useRoom } from '../room/useRoom'
 import { roomUrl } from '../lib/code'
+import { читатьТему, следующая, сохранитьТему, type Тема } from '../lib/theme'
 import { Button } from '../ui/Button'
 import { Mark } from '../ui/Mark'
 import s from './Room.module.css'
@@ -48,6 +49,7 @@ export function Room({ code, name, onLeave }: Props) {
   const [hubOpen, setHubOpen] = useState(false)
   const [live, setLive] = useState<{ sourceId: string; url: string } | null>(null)
   const [chatOpen, setChatOpen] = useState(false)
+  const [тема, setТема] = useState<Тема>(читатьТему)
   const [unread, setUnread] = useState(0)
   const link = roomUrl(code)
   const stageRef = useRef<HTMLDivElement>(null)
@@ -372,7 +374,14 @@ export function Room({ code, name, onLeave }: Props) {
       </header>
 
       <div className={`${s.stage} ${chatOpen ? s.withChat : ''}`} ref={stageRef}>
-        {source === 'board' ? <Board bus={bus} peers={peers} /> : null}
+        {/* 🔴 Доска НЕ размонтируется при переходе на показ или трансляцию.
+            Раньше здесь стоял `source === 'board' ? <Board/> : null`, и всё
+            написанное пропадало в тот момент, когда преподаватель уходил
+            показать документ: React сносил компонент вместе с листами.
+            Теперь доска живёт до конца занятия, а прячется показом сцены. */}
+        <div className={s.scene} hidden={source !== 'board'} aria-hidden={source !== 'board'}>
+          <Board bus={bus} peers={peers} />
+        </div>
         {source === 'show' ? (
           <Show
             title={shown.title}
@@ -456,7 +465,15 @@ export function Room({ code, name, onLeave }: Props) {
         ) : null}
 
         {chatOpen ? (
-          <Chat lines={lines} alive={phase === 'live'} onClose={() => setChatOpen(false)} onSend={say} />
+          <Chat
+            lines={lines}
+            alive={phase === 'live'}
+            onClose={() => setChatOpen(false)}
+            onSend={say}
+            /* Ссылка из чата открывается рамкой в занятии — тем же путём,
+               что источник из HUB: класс не уходит из урока. */
+            onOpen={(url) => goLive('чат', url)}
+          />
         ) : null}
 
         {/* 🔴 Пульт занятия стоит ВСЕГДА (лист «Комната урока», 31.08): раньше он
@@ -470,14 +487,30 @@ export function Room({ code, name, onLeave }: Props) {
             <Button kind="quiet" onClick={toggleCam} aria-pressed={cam}>
               {cam ? 'Камера' : 'Камера выключена'}
             </Button>
+            {/* Ссылка на урок — под рукой у преподавателя прямо в занятии:
+                позвать опоздавшего нужно, не выходя из комнаты. */}
             {iLead ? (
               <>
                 <span className={s.divider} />
                 <Button kind="quiet" onClick={copy}>
-                  {copied ? 'Ссылка скопирована' : 'Ссылка на комнату'}
+                  {copied ? 'Ссылка скопирована' : 'Ссылка на урок'}
                 </Button>
               </>
             ) : null}
+
+            <span className={s.divider} />
+            {/* День и ночь. Круг из трёх: день → ночь → как в системе. */}
+            <Button
+              kind="quiet"
+              onClick={() => {
+                const т = следующая(тема)
+                setТема(т)
+                сохранитьТему(т)
+              }}
+              title="День, ночь или как в системе"
+            >
+              {тема === 'день' ? 'День' : тема === 'ночь' ? 'Ночь' : 'Как в системе'}
+            </Button>
             {/* Уход — НЕ аларм (ПРАВИЛА 11а). На листе он нейтральный и тише
                 прочих кнопок пульта: это не действие урока, а выход из него. */}
             <Button kind="ghost" onClick={quit}>

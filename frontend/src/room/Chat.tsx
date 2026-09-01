@@ -19,16 +19,48 @@ export type Line = { id: string; who: string; text: string; at: number; mine: bo
  *  Это сказано словами в самом чате, а не спрятано (утверждённый лист «Комната урока»).
  */
 
+/** 🔴 Ссылка в реплике — живая, и открывается ОНА В ЗАНЯТИИ, а не новой вкладкой:
+ *  новая вкладка уносит человека из урока, и обратно он возвращается не всегда
+ *  (решение владельца 31.08, то же правило, что у ссылок из HUB).
+ *
+ *  Разбор нарочно грубый: `https://…`, `http://…` и `www.…`. Хитрый разбор адресов
+ *  ошибается на краях — например, на точке в конце предложения, — а цена ошибки
+ *  здесь высокая: класс уходит не туда, куда звал преподаватель. */
+const АДРЕС = /(https?:\/\/[^\s<>"']+|www\.[^\s<>"']+)/gi
+
+/** Хвостовая пунктуация в адрес не входит: «смотрите tass.ru.» — это точка
+ *  предложения, а не часть ссылки. */
+function почистить(t: string): string {
+  return t.replace(/[.,;:!?)\]]+$/, '')
+}
+
+function куски(text: string) {
+  const out: { сам: string; ссылка?: string }[] = []
+  let last = 0
+  for (const m of text.matchAll(АДРЕС)) {
+    const i = m.index ?? 0
+    if (i > last) out.push({ сам: text.slice(last, i) })
+    const чистый = почистить(m[0])
+    out.push({ сам: чистый, ссылка: чистый.startsWith('www.') ? `https://${чистый}` : чистый })
+    if (чистый.length < m[0].length) out.push({ сам: m[0].slice(чистый.length) })
+    last = i + m[0].length
+  }
+  if (last < text.length) out.push({ сам: text.slice(last) })
+  return out
+}
+
 /** Время реплики — в поясе смотрящего (ПРАВИЛА 8.5). */
 const часы = (at: number) =>
   new Date(at).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })
 
-export function Chat({ lines, alive, onClose, onSend }: {
+export function Chat({ lines, alive, onClose, onSend, onOpen }: {
   lines: Line[]
   /** Связь с комнатой. Нет связи — сообщение не уйдёт, и об этом надо сказать. */
   alive: boolean
   onClose: () => void
   onSend: (text: string) => void
+  /** Открыть адрес из реплики — рамкой в занятии, а не новой вкладкой. */
+  onOpen: (url: string) => void
 }) {
   const [text, setText] = useState('')
   const [failed, setFailed] = useState(false)
@@ -82,7 +114,23 @@ export function Chat({ lines, alive, onClose, onSend }: {
                 {l.mine ? 'вы' : l.who}
                 <span className={s.at}>{часы(l.at)}</span>
               </span>
-              <span className={s.text}>{l.text}</span>
+              <span className={s.text}>
+                {куски(l.text).map((к, i) =>
+                  к.ссылка ? (
+                    <button
+                      key={i}
+                      type="button"
+                      className={s.link}
+                      title={`Открыть ${к.ссылка} в занятии`}
+                      onClick={() => onOpen(к.ссылка as string)}
+                    >
+                      {к.сам}
+                    </button>
+                  ) : (
+                    <span key={i}>{к.сам}</span>
+                  ),
+                )}
+              </span>
             </div>
           ))
         )}

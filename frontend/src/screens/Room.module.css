@@ -16,7 +16,7 @@
   grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: center;
   gap: var(--space-3);
-  padding: var(--space-2) var(--space-5);
+  padding: var(--space-1) var(--space-4);
   border-bottom: 1px solid var(--color-border);
   background: var(--color-bg);
   min-width: 0;
@@ -43,18 +43,25 @@
   background: var(--color-border);
 }
 
+/* 🔴 Код комнаты — В ОДНУ СТРОКУ. Раньше он переносился («8wyp-t7m3-\n9vr6»)
+   и читался как две разные вещи: владелец прислал снимок с вопросом «что это?».
+   Адрес, разорванный посередине, перестаёт быть адресом. */
 .code {
-  font: var(--weight-medium) var(--text-caption) var(--font-mono);
+  font: var(--weight-medium) var(--text-overline) var(--font-mono);
   letter-spacing: var(--tracking-wide);
   color: var(--color-text-detail);
+  white-space: nowrap;
+  flex: none;
 }
 
 .live {
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
-  font: var(--weight-medium) var(--text-caption) var(--font-mono);
+  font: var(--weight-medium) var(--text-overline) var(--font-mono);
   color: var(--color-text-detail);
+  white-space: nowrap;
+  flex: none;
 }
 
 /* ПРАВИЛА 4.10: точка состояния — значащая графика, свой порог 3,0. */
@@ -132,6 +139,16 @@
    раньше она садилась ровно на «Доска 1 · + доска · Сохранить в файл» и давала
    текст поверх текста. Отступ считается от НИЗА плашки, а не от верха кадра —
    тот же промах, что был с пультом показа 30.08. */
+/* Сцена, которая остаётся жить, когда смотрят на другую. `hidden` сам по себе
+   даёт `display:none`, и этого достаточно: состояние React при этом цело,
+   а размеры пересчитаются, когда сцену покажут снова. */
+.scene {
+  position: absolute;
+  inset: 0;
+  min-width: 0;
+  min-height: 0;
+}
+
 .overNote {
   position: absolute;
   right: var(--rail-right);
