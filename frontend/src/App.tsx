@@ -10,7 +10,7 @@ import { BadLink } from './screens/BadLink'
 import { NewLesson } from './screens/NewLesson'
 import { Journal } from './screens/Journal'
 import { Invite } from './screens/Invite'
-import { Wait } from './ui/Wait'
+import { Молчание, Wait } from './ui/Wait'
 import { codeFromPath } from './lib/code'
 import { rememberName, rememberedName } from './lib/name'
 import { logout, whoAmI, type Person } from './lib/auth'
@@ -40,15 +40,30 @@ export function App() {
   /* 🔴 «Ещё не спросили» и «никто не вошёл» — разные вещи, и путать их нельзя:
      пока ответа нет, показывать вход рано (см. `ui/Wait.tsx`). */
   const [узнали, setУзнали] = useState(false)
+  /* 🔴 «Спросили и не услышали» — третье состояние, и без него их было два:
+     «не знаем» и «знаем». Молчание сервера сваливалось в «не знаем» и вешало
+     экран ожидания навсегда (02.09, живой перезапуск сервера). Теперь оно
+     названо и показано словами. */
+  const [молчит, setМолчит] = useState(false)
+  const [спрос, setСпрос] = useState(0)
   /* Откуда человека увели ко входу. Нужно ровно для одного: вернуть его туда же.
      Пусто — возвращаться некуда, и кнопки «назад» на входе не будет. */
   const [звали, setЗвали] = useState<string | null>(null)
 
   useEffect(() => {
+    let живо = true
     whoAmI()
-      .then((r) => setPerson(r.person))
-      .catch(() => undefined)
-      .finally(() => setУзнали(true))
+      .then((r) => { if (живо) { setPerson(r.person); setМолчит(false) } })
+      .catch(() => { if (живо) setМолчит(true) })
+      .finally(() => { if (живо) setУзнали(true) })
+    return () => { живо = false }
+  }, [спрос])
+
+  /* Спросить ещё раз: возвращаемся в незнание и повторяем запрос. */
+  const спроситьСнова = useCallback(() => {
+    setУзнали(false)
+    setМолчит(false)
+    setСпрос((n) => n + 1)
   }, [])
 
   /* День и ночь. Пока человек не выбрал сам — идём за системой и слушаем её. */
@@ -133,6 +148,7 @@ export function App() {
      кабинету неоткуда взяться и нечего в нём показывать. */
   if (path === '/кабинет') {
     if (!узнали) return <Wait />
+    if (молчит) return <Молчание onAgain={спроситьСнова} />
     return person ? кабинет(person) : <Sign onDone={вошёл} />
   }
 
@@ -140,6 +156,7 @@ export function App() {
      Экран учительский: ученику создавать нечего. */
   if (path === '/создать-урок' || path.startsWith('/урок/')) {
     if (!узнали) return <Wait />
+    if (молчит) return <Молчание onAgain={спроситьСнова} />
     if (!person || person.role !== 'teacher') return person ? кабинет(person) : <Sign onDone={вошёл} />
     const id = path.startsWith('/урок/') ? decodeURIComponent(path.slice('/урок/'.length)) : undefined
     return (
@@ -160,6 +177,7 @@ export function App() {
   /* Журнал: ученики и занятия. Ведёт его преподаватель. */
   if (path === '/журнал') {
     if (!узнали) return <Wait />
+    if (молчит) return <Молчание onAgain={спроситьСнова} />
     if (!person) return <Sign onDone={вошёл} />
     if (person.role !== 'teacher') return кабинет(person)
     return (
@@ -224,6 +242,7 @@ export function App() {
      регистрации. Урок по ссылке — сердце продукта, и убрать его нельзя. */
   if (!code) {
     if (!узнали) return <Wait />
+    if (молчит) return <Молчание onAgain={спроситьСнова} />
     return person ? кабинет(person) : <Sign onDone={вошёл} />
   }
 

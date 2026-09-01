@@ -15,3 +15,53 @@
   text-transform: uppercase;
   color: var(--color-text-hint);
 }
+
+/* ── когда сервер молчит ──────────────────────────────────────────────────── */
+
+.words {
+  max-width: 34rem;
+  margin: 0;
+  padding: 0 var(--space-5);
+  text-align: center;
+  font-size: var(--text-body);
+  line-height: var(--leading-body);
+  color: var(--color-text-detail);
+}
+
+.doors { display: flex; align-items: center; gap: var(--space-4); flex-wrap: wrap; justify-content: center; }
+
+.again {
+  min-height: var(--tap-min);
+  padding: 0 var(--space-6);
+  border: none;
+  border-radius: var(--radius-pill);
+  background: var(--color-go-solid);
+  color: var(--color-on-go);
+  font-family: var(--font-body);
+  font-size: var(--text-body);
+  cursor: pointer;
+}
+
+.again:hover { background: var(--color-go-solid-hover); }
+
+.quiet {
+  min-height: var(--tap-min);
+  padding: 0 var(--space-5);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-pill);
+  background: none;
+  color: var(--color-text);
+  font-family: var(--font-body);
+  font-size: var(--text-body);
+  cursor: pointer;
+}
+
+.small {
+  max-width: 34rem;
+  margin: 0;
+  padding: 0 var(--space-5);
+  text-align: center;
+  font-size: var(--text-caption);
+  line-height: var(--leading-snug);
+  color: var(--color-text-hint);
+}

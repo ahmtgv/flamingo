@@ -65,7 +65,16 @@ async function разговор<T>(путь: string, init?: RequestInit): Promis
   if (!BASE) throw new НетСервера('сервер не задан')
   let res: Response
   try {
-    res = await fetch(`${BASE}/api/study/${путь}`, { credentials: 'include', ...init })
+    /* 🔴 СРОК ОТВЕТА — как и у учётных записей (auth.ts). У `fetch` его нет,
+       и сервер, принявший соединение и замолчавший, держит обещание вечно:
+       экран остаётся ждать без слов и без выхода. Поймано 02.09 на живом
+       перезапуске сервера. Файл пособия может быть большим, поэтому срок
+       здесь на разговор о занятиях, а не на скачивание. */
+    res = await fetch(`${BASE}/api/study/${путь}`, {
+      credentials: 'include',
+      signal: AbortSignal.timeout(12_000),
+      ...init,
+    })
   } catch {
     throw new НетСервера('сервер не отвечает')
   }
