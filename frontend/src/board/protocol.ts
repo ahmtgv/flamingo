@@ -79,7 +79,10 @@ export type Msg =
   | { t: 'inkDel'; page: number; ids: string[] }
   | { t: 'inkAll'; page: number; marks: import('../room/shows').Ink[] }
   /** Трансляция из Flamingo HUB: какой источник и какую страницу показывают. */
-  | { t: 'live'; sourceId: string; url: string }
+  /* `имя` — для того, что открыли не из каталога HUB, а из пособий урока:
+     у такого источника нет строки в SOURCES, а подписать его чем-то надо,
+     и класс должен видеть ту же подпись, что ведущий. */
+  | { t: 'live'; sourceId: string; url: string; имя?: string }
   /** «Я только вошёл, покажите доску». */
   | { t: 'ask' }
   | { t: 'state'; sheets: Sheet[]; active: string }

@@ -17,7 +17,7 @@ import { Tiles } from '../room/Tiles'
 import { useRoom } from '../room/useRoom'
 import { roomUrl } from '../lib/code'
 import { читатьТему, следующая, сохранитьТему, type Тема } from '../lib/theme'
-import { отметиться } from '../lib/study'
+import { взятьПособие, отметиться, пособияКомнаты, type Пособие } from '../lib/study'
 import { Button } from '../ui/Button'
 import { Mark } from '../ui/Mark'
 import s from './Room.module.css'
@@ -32,6 +32,22 @@ export function Room({ code, name, onLeave, onHome }: Props) {
      Вызов один на вход в комнату, второй раз посещения не удвоит: на сервере
      стоит «одно посещение на урок». */
   useEffect(() => { отметиться(code) }, [code])
+
+  /* 🔴 ПОСОБИЯ УРОКА. Экран «Создать урок» обещает преподавателю словами:
+     «они лягут на полку „Учебные Документы“, когда класс войдёт». Обещание
+     было написано, а комната о нём не знала: «Учебные Документы» вели в
+     файловый диалог на диске, и приложенное заранее в уроке не появлялось
+     нигде (поймано владельцем 02.09).
+     Спрашиваем один раз на вход. Пусто — обычное дело: «Начать урок сейчас»
+     занятия не заводит, и говорить об этом на уроке нечего. */
+  const [пособия, setПособия] = useState<Пособие[]>([])
+  useEffect(() => {
+    let живо = true
+    пособияКомнаты(code)
+      .then((о) => { if (живо && о) setПособия(о.пособия) })
+      .catch(() => undefined)
+    return () => { живо = false }
+  }, [code])
 
   const [copied, setCopied] = useState(false)
   const [source, setSource] = useState<Source>('faces')
@@ -56,7 +72,7 @@ export function Room({ code, name, onLeave, onHome }: Props) {
 
   const [busy, setBusy] = useState(false)
   const [hubOpen, setHubOpen] = useState(false)
-  const [live, setLive] = useState<{ sourceId: string; url: string } | null>(null)
+  const [live, setLive] = useState<{ sourceId: string; url: string; имя?: string } | null>(null)
   const [chatOpen, setChatOpen] = useState(false)
   const [тема, setТема] = useState<Тема>(читатьТему)
   const [unread, setUnread] = useState(0)
@@ -85,7 +101,7 @@ export function Room({ code, name, onLeave, onHome }: Props) {
   useEffect(() => bus.subscribe((m) => {
     if (m.t === 'stage') setSource(m.source)
     if (m.t === 'live') {
-      setLive({ sourceId: m.sourceId, url: m.url })
+      setLive({ sourceId: m.sourceId, url: m.url, имя: m.имя })
       setWireInk((cur) => ({ ...cur, [-1]: [] }))
     }
     if (m.t === 'showMeta') {
@@ -112,7 +128,7 @@ export function Room({ code, name, onLeave, onHome }: Props) {
       if (!sc.lead) return
       bus.send({ t: 'stage', source: sc.source })
       if (sc.live) {
-        bus.send({ t: 'live', sourceId: sc.live.sourceId, url: sc.live.url })
+        bus.send({ t: 'live', sourceId: sc.live.sourceId, url: sc.live.url, имя: sc.live.имя })
         bus.send({ t: 'inkAll', page: -1, marks: sc.liveInk })
       }
       if (sc.doc) {
@@ -139,7 +155,7 @@ export function Room({ code, name, onLeave, onHome }: Props) {
     if (sc.lead && peers > wasPeers.current) {
       bus.send({ t: 'stage', source: sc.source })
       if (sc.live) {
-        bus.send({ t: 'live', sourceId: sc.live.sourceId, url: sc.live.url })
+        bus.send({ t: 'live', sourceId: sc.live.sourceId, url: sc.live.url, имя: sc.live.имя })
         bus.send({ t: 'inkAll', page: -1, marks: sc.liveInk })
       }
       if (sc.doc) {
@@ -197,18 +213,18 @@ export function Room({ code, name, onLeave, onHome }: Props) {
   }, [openShow])
 
   /* Дверь «Показ» на полке: активный показ продолжается с той же страницы,
-     без активного открывается список — показов может быть несколько. */
+     без активного открывается список — показов и пособий может быть несколько. */
   const startShow = useCallback(async () => {
     if (active) {
       openShow(active)
       return
     }
-    if (shows.length === 0) {
+    if (shows.length === 0 && пособия.length === 0) {
       await addShow()
       return
     }
     setListOpen(true)
-  }, [active, shows.length, openShow, addShow])
+  }, [active, shows.length, пособия.length, openShow, addShow])
 
   const step = useCallback(
     (d: number) => {
@@ -281,16 +297,55 @@ export function Room({ code, name, onLeave, onHome }: Props) {
   /* Трансляция из HUB: источник и ссылку выбирает ведущий, класс смотрит то же.
      Пометки прежнего источника стираются: они были про другую картинку. */
   const goLive = useCallback(
-    (sourceId: string, url: string) => {
-      setLive({ sourceId, url })
+    (sourceId: string, url: string, имя?: string) => {
+      setLive({ sourceId, url, имя })
       setLiveInk([])
       setHubOpen(false)
       setSource('live')
-      bus.send({ t: 'live', sourceId, url })
+      bus.send({ t: 'live', sourceId, url, имя })
       bus.send({ t: 'inkAll', page: -1, marks: [] })
       bus.send({ t: 'stage', source: 'live' })
     },
     [bus],
+  )
+
+  /* Открыть пособие урока.
+   *
+   *  🔴 ССЫЛКА ОТКРЫВАЕТСЯ ВНУТРИ ЗАНЯТИЯ, А НЕ В НОВОЙ ВКЛАДКЕ — то же
+   *  решение владельца, что и для HUB (Live.tsx, 31.08, подтверждено 02.09).
+   *  Увести преподавателя в другую вкладку посреди урока — худшее, что можно
+   *  сделать: класс остаётся смотреть на пустую доску. Поэтому ссылка идёт
+   *  той же дорогой, что источники мира: видео и картинку узнаём и играем,
+   *  остальное — в Витрину, которая честно предупреждает, что чужой сайт
+   *  вправе не пустить себя внутрь.
+   *
+   *  Файл скачивает только ведущий и раскладывает на страницы: класс видит
+   *  страницы по каналу, права на сам файл ему не нужны. */
+  const показатьПособие = useCallback(
+    async (п: Пособие) => {
+      setListOpen(false)
+      if (п.вид === 'link') {
+        goLive('', п.адрес, п.имя)
+        return
+      }
+      setBusy(true)
+      try {
+        const файл = await взятьПособие(п)
+        const deck = await deckFrom([файл])
+        if (!deck) return
+        const doc: ShowDoc = { id: newId(), title: п.имя, pages: deck.pages, ink: {}, at: Date.now() }
+        setShows((cur) => [doc, ...cur])
+        putShow(doc).then((ok) => setKept(ok))
+        openShow(doc)
+      } catch {
+        /* Сняли пособие или сервер молчит. Урок идёт: не окно с ошибкой,
+           а строка в списке — «не отдалось». Список её и покажет. */
+        setПособия((с) => с.filter((x) => x.id !== п.id))
+      } finally {
+        setBusy(false)
+      }
+    },
+    [goLive, openShow],
   )
 
   const onLiveMark = useCallback(
@@ -378,7 +433,14 @@ export function Room({ code, name, onLeave, onHome }: Props) {
 
         {/* Полка держит центр строки: это главный переключатель урока. */}
         {iLead ? (
-          <Shelf source={source} onPick={pick} onShow={startShow} onHub={() => setHubOpen(true)} onShare={share} />
+          <Shelf
+            source={source}
+            естьПособия={пособия.length > 0}
+            onPick={pick}
+            onShow={startShow}
+            onHub={() => setHubOpen(true)}
+            onShare={share}
+          />
         ) : <span />}
 
         <span className={s.headRight}>
@@ -441,6 +503,7 @@ export function Room({ code, name, onLeave, onHome }: Props) {
           <Live
             sourceId={live.sourceId}
             url={live.url}
+            имя={live.имя}
             lead={iLead}
             marks={iLead ? liveInk : (wireInk[-1] ?? [])}
             onMark={onLiveMark}
@@ -497,6 +560,8 @@ export function Room({ code, name, onLeave, onHome }: Props) {
         {listOpen && iLead ? (
           <ShowList
             shows={shows}
+            пособия={пособия}
+            onПособие={показатьПособие}
             activeId={activeId}
             kept={kept}
             onOpen={(id) => {

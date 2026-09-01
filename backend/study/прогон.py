@@ -272,6 +272,29 @@ r = С.get("/api/study/teachers")
 r = С.get(f"/api/study/file/{пос['id']}")
 да("свой ученик файл ВИДИТ", r.status_code == 200, r.status_code)
 
+# ── занятие по коду комнаты ────────────────────────────────────────────────
+раздел("Комната знает своё занятие:")
+r = У.get(f"/api/study/rooms/{код}")
+да("преподаватель получает своё занятие по коду", r.status_code == 200, r.status_code)
+да("и знает, что ведёт его", r.json().get("веду") is True, r.json().get("веду"))
+да("пособия приезжают вместе с занятием",
+   len(r.json()["урок"]["материалы"]) >= 1, r.json()["урок"]["материалы"])
+
+r = С.get(f"/api/study/rooms/{код}")
+да("свой ученик занятие тоже видит", r.status_code == 200, r.status_code)
+да("но ведущим себя не считает", r.json().get("веду") is False, r.json().get("веду"))
+
+r = С2.get(f"/api/study/rooms/{код}")
+да("посторонний получает «нет такого», а не «нельзя»", r.status_code == 404, r.status_code)
+r = гость.get(f"/api/study/rooms/{код}")
+да("гость без учётной записи — 401", r.status_code == 401, r.status_code)
+r = У.get("/api/study/rooms/pq4m-hk73-xwz2")
+да("код без занятия — 404 словами", r.status_code == 404 and "error" in r.json(), r.status_code)
+r = У.get("/api/study/rooms/враньё")
+да("кривой код — отказ словами, а не падение", r.status_code == 400, r.status_code)
+r = У.post(f"/api/study/rooms/{код}")
+да("чужой метод — 405 со словами", r.status_code == 405 and "error" in r.json(), r.status_code)
+
 # ── уборка ─────────────────────────────────────────────────────────────────
 раздел("Уборка:")
 путь = ПАПКА / m.path

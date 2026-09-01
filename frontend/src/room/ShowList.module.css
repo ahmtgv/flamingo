@@ -208,3 +208,34 @@
   line-height: var(--leading-body);
   color: var(--color-text-detail);
 }
+
+/* ── две группы в одном списке ────────────────────────────────────────────── */
+
+/* Подпись группы, а не заголовок: она называет, ОТКУДА эти строки, и должна
+   читаться тише имён файлов — иначе спорит с ними за внимание. */
+.group {
+  margin: 0;
+  padding: var(--space-3) var(--space-4) var(--space-1);
+  font: var(--weight-regular) var(--text-overline) var(--font-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-hint);
+}
+
+/* Место первой страницы у пособия, которое ещё не открывали. Пустая рамка
+   тех же размеров, что и `.thumb`: строки стоят ровно, и никто не выдаёт
+   чужую картинку за лицо этого файла. */
+.noFace {
+  width: var(--space-12);
+  height: var(--space-10);
+  border-radius: var(--radius-sm);
+  border: 1px dashed var(--color-border-strong);
+  background: var(--color-surface-subtle);
+  flex: none;
+}
+
+/* Пособие, которое хранится, но на доску не ложится: видно, названо, не
+   нажимается (ПРАВИЛА 12.5). Приглушены слова, а не прозрачность. */
+.rowWait { cursor: default; }
+.rowWait .rowName { color: var(--color-text-secondary); font-weight: var(--weight-regular); }
+.rowWait .noFace { border-style: dotted; }

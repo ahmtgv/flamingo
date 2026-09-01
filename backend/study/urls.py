@@ -11,6 +11,7 @@ urlpatterns = [
     path("journal", views.journal, name="study-journal"),
     path("invites", views.invites, name="study-invites"),
     path("invites/<str:ключ>", views.invite, name="study-invite"),
+    path("rooms/<str:код>", views.room, name="study-room"),
     path("visits", views.visits, name="study-visits"),
     path("teachers", views.teachers, name="study-teachers"),
 ]

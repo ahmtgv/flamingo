@@ -43,10 +43,12 @@ export function embedOf(raw: string): { kind: Kind; src: string } {
 }
 
 export function Live({
-  sourceId, url, lead, marks, onMark, onUndo, onWipe, onClose,
+  sourceId, url, имя, lead, marks, onMark, onUndo, onWipe, onClose,
 }: {
   sourceId: string
   url: string
+  /** Подпись для того, что открыли не из каталога: пособие урока. */
+  имя?: string
   lead: boolean
   /** Пометки поверх трансляции. Живут, пока живёт источник. */
   marks: Ink[]
@@ -56,6 +58,7 @@ export function Live({
   onClose: () => void
 }) {
   const src = SOURCES.find((x) => x.id === sourceId)
+  const подпись = src?.name ?? имя ?? 'Источник'
   const e = embedOf(url)
   const [tool, setTool] = useState<Tool | null>(null)
 
@@ -66,14 +69,14 @@ export function Live({
           <iframe
             className={s.frame}
             src={e.src}
-            title={src?.name ?? 'Трансляция'}
+            title={подпись}
             allow="autoplay; fullscreen; picture-in-picture"
             sandbox="allow-scripts allow-same-origin allow-presentation"
           />
         ) : null}
         {e.kind === 'video' ? <video className={s.frame} src={e.src} controls autoPlay /> : null}
-        {e.kind === 'image' ? <img className={s.pic} src={e.src} alt={src?.name ?? 'Источник'} /> : null}
-        {e.kind === 'link' ? <Vitrina url={e.src} name={src?.name ?? 'Источник'} /> : null}
+        {e.kind === 'image' ? <img className={s.pic} src={e.src} alt={подпись} /> : null}
+        {e.kind === 'link' ? <Vitrina url={e.src} name={подпись} /> : null}
 
         {/* Слой пометок — по рамке трансляции. У потока нет «страницы», поэтому
             доля координат считается от рамки: у всех она стоит одинаково. */}
@@ -92,7 +95,7 @@ export function Live({
       ) : null}
 
       <div className={s.pult} data-pult="трансляция">
-        <span className={s.name}>{src?.name ?? 'Источник'}</span>
+        <span className={s.name}>{подпись}</span>
         {src ? <span className={s.right}>{RIGHTS[src.right].cant}</span> : null}
         {lead ? (
           <>

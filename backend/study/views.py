@@ -13,6 +13,7 @@
     POST   /api/study/invites                 сделать ссылку в журнал (и письмо)
     GET    /api/study/invites/<ключ>          кто зовёт
     POST   /api/study/invites/<ключ>          принять приглашение
+    GET    /api/study/rooms/<код>             занятие по коду комнаты, с пособиями
     POST   /api/study/visits                  отметиться на занятии по коду комнаты
     GET    /api/study/teachers                у кого я учусь
 
@@ -419,6 +420,41 @@ def visits(request: HttpRequest) -> JsonResponse:
     except IntegrityError:
         pass  # уже отмечен — второй вход не считается вторым посещением
     return JsonResponse({"отмечен": True, "урок": l.title})
+
+
+# ── занятие по коду комнаты ──────────────────────────────────────────────────
+
+def room(request: HttpRequest, код: str) -> JsonResponse:
+    """Занятие по коду комнаты — вместе с пособиями.
+
+    🔴 ОТДЕЛЬНЫЙ ПУТЬ, А НЕ ПОИСК ПО СПИСКУ ЗАНЯТИЙ. Список `lessons` всегда
+    ограничен месяцем, а комната живёт своей жизнью: в неё входят и накануне,
+    и на следующий день, и первого числа в занятие, назначенное тридцатым.
+    Искать по месяцу значит иногда не находить — а «пособий нет» и «пособия
+    не нашлись» человек прочтёт одинаково и решит, что мы их потеряли.
+
+    Право то же, что у самого пособия: своё занятие видит преподаватель, чужое
+    — только его ученик. Чужому отвечаем «нет такого», а не «нельзя»: отказ
+    «нельзя» подтверждает, что занятие существует.
+    """
+    if request.method != "GET":
+        return _no("Этот путь отвечает только на GET.", 405)
+    person = who(request)
+    if not person:
+        return _no("Сначала войдите.", 401)
+
+    ключ = код.strip().lower()
+    if not ROOM_CODE.match(ключ):
+        return _no("Код комнаты не похож на код.")
+    l = (Lesson.objects.filter(code=ключ)
+         .prefetch_related("materials").select_related("teacher").first())
+    if not l:
+        return _no("Комната не от занятия.", 404)
+    свой = l.teacher_id == person.id or Bond.objects.filter(
+        teacher_id=l.teacher_id, student=person).exists()
+    if not свой:
+        return _no("Комната не от занятия.", 404)
+    return JsonResponse({"урок": _урок(l), "веду": l.teacher_id == person.id})
 
 
 # ── мои преподаватели (ученику) ──────────────────────────────────────────────
