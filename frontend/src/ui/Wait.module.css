@@ -1,0 +1,17 @@
+/* Пока не знаем, кто пришёл. Экран занят одним знаком и одной строкой:
+   показать в этот миг форму входа значит соврать вошедшему человеку. */
+.screen {
+  height: 100%;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: var(--space-4);
+  background: var(--color-bg);
+}
+
+.say {
+  font: var(--weight-regular) var(--text-caption) var(--font-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-hint);
+}

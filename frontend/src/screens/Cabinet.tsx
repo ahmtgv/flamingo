@@ -50,12 +50,13 @@ function Дверь({ имя, ждёт }: { имя: string; ждёт: string }) 
   )
 }
 
-export function Cabinet({ person, onLesson, onOut, onBack }: {
+export function Cabinet({ person, onLesson, onOut, onHome }: {
   person: Person
   /** Начать урок: кабинет открывает комнату и ведёт в неё. */
   onLesson: (code: string) => void
   onOut: () => void
-  onBack: () => void
+  /** Домой — то есть в кабинет. На самом кабинете знак обновляет его же. */
+  onHome: () => void
 }) {
   const сегодня = useMemo(() => new Date(), [])
   const клетки = useMemo(() => клеткиМесяца(сегодня), [сегодня])
@@ -64,10 +65,10 @@ export function Cabinet({ person, onLesson, onOut, onBack }: {
   return (
     <main className={s.screen}>
       <header className={s.head}>
-        <button type="button" className={s.back} onClick={onBack}>
-          ← Занятие по ссылке
-        </button>
-        <Mark />
+        {/* 🔴 Дороги назад из кабинета нет, и это верно: кабинет и ЕСТЬ главная
+            (решение владельца 01.09). Кнопка «← Занятие по ссылке» вела на
+            посадочную страницу, которой больше не существует. */}
+        <Mark onGo={onHome} title="Главная — кабинет" />
         <span className={s.crumb}>{учитель ? 'Кабинет преподавателя' : 'Мой учебный кабинет'}</span>
         <span className={s.who}>
           {person.name} ·{' '}
@@ -90,14 +91,19 @@ export function Cabinet({ person, onLesson, onOut, onBack }: {
                 ? 'Расписание появится вместе с курсами: пока их негде хранить — справочник занятий ещё не поднят. Урок можно начать прямо сейчас, ссылку класс получит от вас.'
                 : 'Здесь будут уроки, на которые вас записали, и всё, что на них происходило: доски, показанное, задания. Пока курсов нет, войти на урок можно по ссылке преподавателя.'}
             </span>
+            {/* 🔴 У ученика тут НЕТ кнопки, и это не забытая кнопка. Войти на урок
+                он может только по ссылке преподавателя — своей страницы «введите
+                код» у нас нет и не планируется. Нарисовать дверь, за которой
+                ничего нет, хуже, чем сказать словами (ПРАВИЛА 12.2). */}
             {учитель ? (
               <button type="button" className={s.go} onClick={() => onLesson(newRoomCode())}>
                 Начать урок сейчас
               </button>
             ) : (
-              <button type="button" className={s.goQuiet} onClick={onBack}>
-                Войти по ссылке
-              </button>
+              <span className={s.emptyWay}>
+                Ссылка приходит от преподавателя — в сообщении или письме.
+                Откройте её, и комната пустит вас по имени.
+              </span>
             )}
           </div>
         </section>

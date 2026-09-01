@@ -39,7 +39,7 @@ export function NewPass({ ключ, onDone, onBack }: {
     <main className={s.screen}>
       <div className={s.card}>
         <button type="button" className={s.back} onClick={onBack}>
-          ← На главную
+          ← Ко входу
         </button>
         <Mark />
 

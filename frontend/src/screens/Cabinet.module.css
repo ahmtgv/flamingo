@@ -175,6 +175,14 @@
   background: var(--color-go-solid-hover);
 }
 
+/* Путь, у которого нет кнопки: сказан словами и приглушён, потому что это
+   объяснение, а не действие (ПРАВИЛА 12.2). */
+.emptyWay {
+  font-size: var(--text-caption);
+  line-height: var(--leading-snug);
+  color: var(--color-text-secondary);
+}
+
 .goQuiet {
   min-height: var(--tap-min);
   padding: 0 var(--space-5);

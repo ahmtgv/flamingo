@@ -25,7 +25,7 @@ const STATE_TEXT = {
   down: 'молчит с 09:40 · показываем последнюю проверку',
 } as const
 
-export function Hub({ onBack }: { onBack: () => void }) {
+export function Hub({ onBack, onHome }: { onBack: () => void; onHome: () => void }) {
   const [kind, setKind] = useState<Kind | null>(null)
   /* Открытый источник показывается ЗДЕСЬ ЖЕ, поверх каталога. Новая вкладка
      уносит человека из Flamingo, и обратно он уже не всегда возвращается. */
@@ -41,7 +41,7 @@ export function Hub({ onBack }: { onBack: () => void }) {
         <button type="button" className={s.back} onClick={onBack}>
           ← Назад
         </button>
-        <Mark />
+        <Mark onGo={onHome} />
         <span className={s.crumb}>Flamingo HUB</span>
       </header>
 

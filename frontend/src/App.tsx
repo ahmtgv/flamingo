@@ -6,13 +6,16 @@ import { Hub } from './screens/Hub'
 import { Sign } from './screens/Sign'
 import { NewPass } from './screens/NewPass'
 import { Room } from './screens/Room'
+import { BadLink } from './screens/BadLink'
+import { Wait } from './ui/Wait'
 import { codeFromPath } from './lib/code'
 import { rememberName, rememberedName } from './lib/name'
 import { logout, whoAmI, type Person } from './lib/auth'
 import { завестиТему } from './lib/theme'
 
-/** Двух экранов хватает, значит и маршрутизатора не нужно: адрес — это `/` или `/r/<код>`.
- *  Библиотека появится тогда, когда экранов станет больше, а не раньше. */
+/** Экранов немного, значит и маршрутизатора не нужно: адрес — это `/`, `/вход`,
+ *  `/кабинет`, `/hub` или `/r/<код>`. Библиотека появится тогда, когда экранов
+ *  станет больше, а не раньше. */
 /** 🔴 Адрес читается ТОЛЬКО через это. Путь у нас русский — `/вход`, — а браузер
  *  отдаёт `window.location.pathname` в процентах: `/%D0%B2%D1%85%D0%BE%D0%B4`.
  *  Сравнение с литералом при этом молча не сходится, и человек, пришедший по прямой
@@ -31,9 +34,18 @@ export function App() {
   /* Кто вошёл. Спрашиваем один раз при открытии: комната по ссылке работает и без
      учётной записи, поэтому молчание сервера здесь ничего не ломает. */
   const [person, setPerson] = useState<Person | null>(null)
+  /* 🔴 «Ещё не спросили» и «никто не вошёл» — разные вещи, и путать их нельзя:
+     пока ответа нет, показывать вход рано (см. `ui/Wait.tsx`). */
+  const [узнали, setУзнали] = useState(false)
+  /* Откуда человека увели ко входу. Нужно ровно для одного: вернуть его туда же.
+     Пусто — возвращаться некуда, и кнопки «назад» на входе не будет. */
+  const [звали, setЗвали] = useState<string | null>(null)
 
   useEffect(() => {
-    whoAmI().then((r) => setPerson(r.person)).catch(() => undefined)
+    whoAmI()
+      .then((r) => setPerson(r.person))
+      .catch(() => undefined)
+      .finally(() => setУзнали(true))
   }, [])
 
   /* День и ночь. Пока человек не выбрал сам — идём за системой и слушаем её. */
@@ -72,22 +84,37 @@ export function App() {
     go('/')
   }, [go])
 
-  if (path === '/hub') return <Hub onBack={() => go('/')} />
+  /** 🔴 Куда ведёт «домой» — знак Flamingo (решение владельца 01.09). Вошедшего —
+   *  в кабинет: он там и живёт. Незашедшего — ко входу: посадочной страницы,
+   *  с которой всё равно некуда идти, больше нет. */
+  const домой = useCallback(() => go(person ? '/кабинет' : '/вход'), [go, person])
+
+  /** Вошёл — и сразу в кабинет. Один путь на все три двери входа. */
+  const вошёл = useCallback((p: Person) => {
+    setPerson(p)
+    setУзнали(true)
+    rememberName(p.name)
+    go('/кабинет')
+  }, [go])
+
+  const кабинет = (p: Person) => (
+    <Cabinet
+      person={p}
+      onLesson={(c) => enter(c, p.name)}
+      onOut={() => { out(); go('/вход') }}
+      onHome={домой}
+    />
+  )
+
+  if (path === '/hub') return <Hub onBack={домой} onHome={домой} />
 
   /* Личный кабинет. Он ЕСТЬ только у того, кто вошёл: без учётной записи
-     кабинету неоткуда взяться и нечего в нём показывать. Незашедшего
-     отправляем ко входу, а не показываем пустую комнату с чужим именем. */
+     кабинету неоткуда взяться и нечего в нём показывать. */
   if (path === '/кабинет') {
-    if (!person) return <Sign onDone={(p) => { setPerson(p); rememberName(p.name); go('/кабинет') }} onBack={() => go('/')} />
-    return (
-      <Cabinet
-        person={person}
-        onLesson={(c) => enter(c, person.name)}
-        onOut={() => { out(); go('/') }}
-        onBack={() => go('/')}
-      />
-    )
+    if (!узнали) return <Wait />
+    return person ? кабинет(person) : <Sign onDone={вошёл} />
   }
+
   if (path === '/новый-пароль') {
     /* Ключ из письма живёт только в адресе. Забираем его и НЕ кладём в состояние
        надолго: экран им пользуется один раз и больше он не нужен. */
@@ -97,40 +124,43 @@ export function App() {
     } catch {
       ключ = ''
     }
-    return (
-      <NewPass
-        ключ={ключ}
-        onDone={(p) => {
-          setPerson(p)
-          rememberName(p.name)
-          go('/')
-        }}
-        onBack={() => go('/')}
-      />
-    )
+    return <NewPass ключ={ключ} onDone={вошёл} onBack={() => go('/вход')} />
   }
+
   if (path === '/вход') {
-    return (
-      <Sign
-        onDone={(p) => {
-          setPerson(p)
-          rememberName(p.name)
-          /* Вошёл — значит у него есть кабинет, и он ждёт именно там,
-             а не на странице «занятие по ссылке». */
-          go('/кабинет')
-        }}
-        onBack={() => go('/')}
-      />
-    )
+    /* 🔴 «Назад» здесь есть не всегда, и это не оплошность. Ученик, пришедший
+       по ссылке и нажавший «войти», возвращается к своей комнате. Человек,
+       открывший `/вход` сам или только что вышедший, возвращаться некуда —
+       и кнопка, ведущая на этот же экран, была бы дверью в стену (ПРАВИЛА 14.1). */
+    return <Sign onDone={вошёл} onBack={звали ? () => go(`/r/${звали}`) : undefined} />
   }
-  if (code && name) return <Room code={code} name={name} onLeave={leave} />
+
+  if (code && name) return <Room code={code} name={name} onLeave={leave} onHome={домой} />
+
+  /* 🔴 Адрес начинается с `/r/`, а кода в нём нет: ссылку скопировали не целиком.
+     Раньше такого человека молча уносило на посадочную страницу; её больше нет,
+     и без этой ветки он попадал бы на форму входа — то есть продукт требовал бы
+     регистрации там, где просто оборвалась ссылка. */
+  if (!code && /^\/r\//.test(path)) {
+    return <BadLink адрес={window.location.host + path} onWay={домой} вошёл={Boolean(person)} />
+  }
+
+  /* 🔴 Посадочной страницы больше нет (решение владельца 01.09): вошёл — кабинет,
+     не вошёл — вход. Но ЭКРАН ПРИГЛАШЕНИЯ остаётся единственной дверью для ученика,
+     пришедшего по ссылке: `/r/<код>` — «Вас ждут в комнате», имя и вход без
+     регистрации. Урок по ссылке — сердце продукта, и убрать его нельзя. */
+  if (!code) {
+    if (!узнали) return <Wait />
+    return person ? кабинет(person) : <Sign onDone={вошёл} />
+  }
+
   return (
     <Enter
       invited={code}
       initialName={name ?? person?.name ?? rememberedName()}
       onGo={enter}
       onHub={() => go('/hub')}
-      onSign={() => go('/вход')}
+      onSign={() => { setЗвали(code); go('/вход') }}
       onCabinet={() => go('/кабинет')}
       onOut={out}
       person={person}

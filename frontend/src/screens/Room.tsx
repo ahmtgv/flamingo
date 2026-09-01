@@ -21,9 +21,9 @@ import { Button } from '../ui/Button'
 import { Mark } from '../ui/Mark'
 import s from './Room.module.css'
 
-type Props = { code: string; name: string; onLeave: () => void }
+type Props = { code: string; name: string; onLeave: () => void; onHome: () => void }
 
-export function Room({ code, name, onLeave }: Props) {
+export function Room({ code, name, onLeave, onHome }: Props) {
   const { phase, error, faces, peers, bus, mic, cam, toggleMic, toggleCam, sharing, shareSaid, toggleShare, leave } = useRoom(code, name)
   const [copied, setCopied] = useState(false)
   const [source, setSource] = useState<Source>('faces')
@@ -358,7 +358,7 @@ export function Room({ code, name, onLeave }: Props) {
           Всё остальное управление просыпается под рукой. */}
       <header className={s.head}>
         <span className={s.headLeft}>
-          <Mark />
+          <Mark onGo={onHome} />
           <span className={s.sep} />
           <span className={s.code}>{code}</span>
           <span className={s.live}>

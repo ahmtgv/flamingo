@@ -13,3 +13,19 @@
   font-size: var(--text-small);
   color: var(--color-text-on-video);
 }
+
+/* Знак-дверь. Цель нажатия полная, рамки нет: знак остаётся знаком,
+   но рука понимает, что он живой. */
+.link {
+  min-height: var(--tap-min);
+  padding: 0 var(--space-2);
+  margin-left: calc(-1 * var(--space-2));
+  border: none;
+  border-radius: var(--radius-control);
+  background: none;
+  cursor: pointer;
+}
+
+.link:hover {
+  background: var(--color-surface-subtle);
+}

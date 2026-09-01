@@ -3,13 +3,12 @@ import { useState } from 'react'
 import { Button } from '../ui/Button'
 import { Field } from '../ui/Field'
 import { Mark } from '../ui/Mark'
-import { newRoomCode } from '../lib/code'
 import type { Person } from '../lib/auth'
 import s from './Enter.module.css'
 
 type Props = {
-  /** Код из адреса. Есть — человека позвали; нет — он начинает сам. */
-  invited: string | null
+  /** Код из адреса. Он здесь ВСЕГДА: без кода этого экрана не бывает. */
+  invited: string
   initialName: string
   onGo: (code: string, name: string) => void
   onHub: () => void
@@ -20,16 +19,19 @@ type Props = {
   person: Person | null
 }
 
-/** Первая страница.
+/** Приглашение: «Вас ждут в комнате».
  *
- *  🔴 Разложена по листу `docs/дизайн/от-дизайна-31.08/Первая страница.dc.html`
- *  и записке к нему. Карточка в центре пустого поля разбита на две колонки:
- *  слева обещание, справа одно действие. Порядок чтения тот же, что был, —
- *  900 px высоты работают целиком, а не на треть.
+ *  🔴 Это ЕДИНСТВЕННАЯ дверь ученика и единственный экран на `/r/<код>`.
+ *  Посадочной страницы, где комнату заводили с нуля, больше нет (решение
+ *  владельца 01.09): вошедшего встречает кабинет, невошедшего — вход, а урок
+ *  начинается из кабинета преподавателя. Здесь остался ровно один случай —
+ *  человек пришёл по ссылке; поэтому кода без приглашения экран уже не знает.
  *
- *  🔴 Кнопка Flamingo HUB с тела экрана убрана (решение владельца 31.08) и
- *  переехала НАВЕРХ, в служебную строку. Настоящее верхнее меню появится
- *  вместе с кабинетом преподавателя — до тех пор наверху живёт одна дверь.
+ *  🔴 Разложен по листу `docs/дизайн/от-дизайна-31.08/Первая страница.dc.html`
+ *  и записке к нему: две колонки — слева обещание, справа одно действие.
+ *
+ *  🔴 Регистрации здесь не требуют и требовать не будут: ученик входит по имени.
+ *  Урок по ссылке — сердце продукта.
  */
 export function Enter({ invited, initialName, onGo, onHub, onSign, onCabinet, onOut, person }: Props) {
   const [name, setName] = useState(initialName)
@@ -41,14 +43,14 @@ export function Enter({ invited, initialName, onGo, onHub, onSign, onCabinet, on
       setSaid(true)
       return
     }
-    onGo(invited ?? newRoomCode(), clean)
+    onGo(invited, clean)
   }
 
   return (
     <main className={s.screen}>
       {/* Верх: знак и двери, которые не про этот урок. */}
       <header className={s.top}>
-        <Mark />
+        <Mark onGo={person ? onCabinet : undefined} />
         <span className={s.topGap} />
         <button type="button" className={s.topLink} onClick={onHub}>
           Flamingo HUB
@@ -69,11 +71,9 @@ export function Enter({ invited, initialName, onGo, onHub, onSign, onCabinet, on
       <div className={s.body} data-geo="кадр-первой-страницы">
         {/* Левая колонка — обещание. Вес несёт типографика, а не цвет (ПРАВИЛА 5.6). */}
         <section className={s.promise}>
-          <h1 className={s.title}>{invited ? 'Вас ждут в комнате' : 'Занятие по ссылке'}</h1>
+          <h1 className={s.title}>Вас ждут в комнате</h1>
           <p className={s.lead}>
-            {invited
-              ? 'Назовитесь — и входите. Ни регистрации, ни установки.'
-              : 'Комната для урока: доска, лица и голос. Вы открываете комнату и зовёте класс ссылкой — ученику ни регистрации, ни установки.'}
+            Назовитесь — и входите. Ни регистрации, ни установки.
           </p>
 
           <span className={s.rule} />
@@ -93,7 +93,7 @@ export function Enter({ invited, initialName, onGo, onHub, onSign, onCabinet, on
 
         {/* Правая колонка — одно действие. */}
         <section className={s.card}>
-          {invited ? <code className={s.code}>{invited}</code> : null}
+          <code className={s.code}>{invited}</code>
 
           <form
             className={s.form}
@@ -130,7 +130,7 @@ export function Enter({ invited, initialName, onGo, onHub, onSign, onCabinet, on
             </div>
 
             <Button kind="go" type="submit" data-geo="главное-действие">
-              {invited ? 'Войти в комнату' : 'Создать комнату'}
+              Войти в комнату
             </Button>
           </form>
 

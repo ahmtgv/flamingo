@@ -63,7 +63,11 @@ const ИДЁТ: Record<Mode, [string, string]> = {
   forgot: ['Отправляем ссылку', 'Письмо приходит в течение минуты. Страницу можно закрыть.'],
 }
 
-export function Sign({ onDone, onBack }: { onDone: (p: Person) => void; onBack: () => void }) {
+/** 🔴 «Назад» приходит НЕ ВСЕГДА. Ученик, свернувший сюда с приглашения,
+ *  возвращается к своей комнате; человек, открывший вход прямо или только что
+ *  вышедший, возвращаться некуда — и кнопка, ведущая на этот же экран, была бы
+ *  дверью в стену. Дороги назад нет — значит её и не рисуем (ПРАВИЛА 14.1). */
+export function Sign({ onDone, onBack }: { onDone: (p: Person) => void; onBack?: () => void }) {
   const [mode, setMode] = useState<Mode>('in')
   const [email, setEmail] = useState('')
   const [name, setName] = useState('')
@@ -127,9 +131,11 @@ export function Sign({ onDone, onBack }: { onDone: (p: Person) => void; onBack: 
       <div className={s.body}>
         {/* Левая колонка — где я, куда вернуться и почему это вообще нужно. */}
         <section className={s.promise}>
-          <button type="button" className={s.back} onClick={onBack}>
-            ← Назад
-          </button>
+          {onBack ? (
+            <button type="button" className={s.back} onClick={onBack}>
+              ← Назад в комнату
+            </button>
+          ) : null}
           <Mark />
 
           <h1 className={s.title} data-geo="заголовок">{ЗАГОЛОВОК[mode]}</h1>

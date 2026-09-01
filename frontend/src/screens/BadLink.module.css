@@ -1,0 +1,71 @@
+/* Ссылка на урок, которую не удалось прочитать. Экран из одной карточки:
+   человеку тут не выбирать, ему нужно понять, что случилось. */
+.screen {
+  height: 100%;
+  display: grid;
+  place-items: center;
+  padding: var(--space-6);
+  background: var(--color-bg);
+}
+
+.card {
+  display: grid;
+  justify-items: start;
+  gap: var(--space-4);
+  max-width: 32rem;
+  padding: var(--space-6);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: var(--text-h2);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-tight);
+  line-height: var(--leading-heading);
+  color: var(--color-text);
+}
+
+.lead {
+  margin: 0;
+  font-size: var(--text-body);
+  line-height: var(--leading-body);
+  color: var(--color-text-secondary);
+}
+
+/* Каков адрес на самом деле — показан, а не описан. */
+.shape {
+  display: block;
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  background: var(--color-surface-subtle);
+  font: var(--weight-regular) var(--text-small) var(--font-mono);
+  color: var(--color-text);
+  overflow-wrap: anywhere;
+}
+
+.foot {
+  margin: 0;
+  font-size: var(--text-caption);
+  line-height: var(--leading-snug);
+  color: var(--color-text-detail);
+}
+
+.way {
+  min-height: var(--tap-min);
+  padding: 0 var(--space-5);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-pill);
+  background: none;
+  color: var(--color-text);
+  font-size: var(--text-small);
+  cursor: pointer;
+}
+
+.way:hover {
+  border-color: var(--color-text);
+}
