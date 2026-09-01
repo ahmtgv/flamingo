@@ -33,11 +33,13 @@ const РАЗМЕР = (b: number) =>
   b >= 1024 * 1024 ? `${Math.round(b / (1024 * 1024))} МБ`
     : b >= 1024 ? `${Math.round(b / 1024)} КБ` : `${b} Б`
 
-export function NewLesson({ person, урокId, onDone, onBack, onOut, onHome }: {
+export function NewLesson({ person, урокId, onDone, onCreated, onBack, onOut, onHome }: {
   person: Person
   /** Правим существующий урок — или заводим новый, если пусто. */
   урокId?: string
   onDone: () => void
+  /** Урок только что заведён: адрес страницы пора подменить на его. */
+  onCreated?: (id: string) => void
   onBack: () => void
   onOut: () => void
   onHome: () => void
@@ -101,9 +103,15 @@ export function NewLesson({ person, урокId, onDone, onBack, onOut, onHome }:
     setЖдём(true)
     setСказать(null)
     try {
+      const новый = !урок
       const у = урок ? await поправитьУрок(урок.id, что) : await завестиУрок(что)
       setУрок(у)
-      setХорошо(урок ? 'Изменения сохранены.' : 'Урок создан. Можно приложить материалы.')
+      setХорошо(новый ? 'Урок создан. Можно приложить материалы.' : 'Изменения сохранены.')
+      /* 🔴 АДРЕС ПОДМЕНЯЕТСЯ ТОЛЬКО ПОСЛЕ УДАЧИ И ТОЛЬКО ОДИН РАЗ. До этой
+         строки экран оставался на «/создать-урок», хотя урок уже существовал:
+         обновление страницы теряло панель материалов. Подмена, а не переход —
+         иначе «Назад» упиралось бы в пустую форму создания того, что уже создано. */
+      if (новый) onCreated?.(у.id)
     } catch (e) {
       setСказать(['Не сохранилось', e instanceof Беда ? e.message : 'Сервер занятий не ответил.'])
     } finally {

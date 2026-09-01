@@ -65,6 +65,15 @@ export function App() {
     setPath(to)
   }, [])
 
+  /* 🔴 ПОДМЕНА АДРЕСА БЕЗ setPath — И ЭТО НАРОЧНО. Экран уже показывает то,
+     что нужно; менять `path` значило бы пересобрать его заново (ключ у
+     NewLesson зависит от id) и стереть «Урок создан. Можно приложить
+     материалы.». Адресу достаточно догнать экран: обновление страницы теперь
+     попадёт на урок, а «Назад» не получит лишней ступеньки. */
+  const подменить = useCallback((to: string) => {
+    window.history.replaceState({}, '', to)
+  }, [])
+
   const code = codeFromPath(path)
 
   const enter = useCallback(
@@ -140,6 +149,7 @@ export function App() {
         урокId={id}
         /* Готово — возвращаемся в кабинет: он и есть расписание. */
         onDone={() => go('/кабинет')}
+        onCreated={(новыйId) => подменить(`/урок/${encodeURIComponent(новыйId)}`)}
         onBack={() => go('/кабинет')}
         onOut={() => { out(); go('/вход') }}
         onHome={домой}
