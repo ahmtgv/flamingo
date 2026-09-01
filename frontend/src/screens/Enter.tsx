@@ -14,6 +14,7 @@ type Props = {
   onGo: (code: string, name: string) => void
   onHub: () => void
   onSign: () => void
+  onCabinet: () => void
   onOut: () => void
   /** Кто вошёл. Урок по ссылке работает и без учётной записи. */
   person: Person | null
@@ -30,7 +31,7 @@ type Props = {
  *  переехала НАВЕРХ, в служебную строку. Настоящее верхнее меню появится
  *  вместе с кабинетом преподавателя — до тех пор наверху живёт одна дверь.
  */
-export function Enter({ invited, initialName, onGo, onHub, onSign, onOut, person }: Props) {
+export function Enter({ invited, initialName, onGo, onHub, onSign, onCabinet, onOut, person }: Props) {
   const [name, setName] = useState(initialName)
   const [said, setSaid] = useState(false)
 
@@ -53,10 +54,15 @@ export function Enter({ invited, initialName, onGo, onHub, onSign, onOut, person
           Flamingo HUB
         </button>
         {person ? (
-          <span className={s.who}>
-            {person.name} ·{' '}
-            <button type="button" className={s.out} onClick={onOut}>Выйти</button>
-          </span>
+          <>
+            <button type="button" className={s.topLink} onClick={onCabinet}>
+              {person.role === 'teacher' ? 'Кабинет' : 'Мой учебный кабинет'}
+            </button>
+            <span className={s.who}>
+              {person.name} ·{' '}
+              <button type="button" className={s.out} onClick={onOut}>Выйти</button>
+            </span>
+          </>
         ) : null}
       </header>
 

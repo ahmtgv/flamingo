@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 
 import { Enter } from './screens/Enter'
+import { Cabinet } from './screens/Cabinet'
 import { Hub } from './screens/Hub'
 import { Sign } from './screens/Sign'
 import { NewPass } from './screens/NewPass'
@@ -72,6 +73,21 @@ export function App() {
   }, [go])
 
   if (path === '/hub') return <Hub onBack={() => go('/')} />
+
+  /* Личный кабинет. Он ЕСТЬ только у того, кто вошёл: без учётной записи
+     кабинету неоткуда взяться и нечего в нём показывать. Незашедшего
+     отправляем ко входу, а не показываем пустую комнату с чужим именем. */
+  if (path === '/кабинет') {
+    if (!person) return <Sign onDone={(p) => { setPerson(p); rememberName(p.name); go('/кабинет') }} onBack={() => go('/')} />
+    return (
+      <Cabinet
+        person={person}
+        onLesson={(c) => enter(c, person.name)}
+        onOut={() => { out(); go('/') }}
+        onBack={() => go('/')}
+      />
+    )
+  }
   if (path === '/новый-пароль') {
     /* Ключ из письма живёт только в адресе. Забираем его и НЕ кладём в состояние
        надолго: экран им пользуется один раз и больше он не нужен. */
@@ -99,7 +115,9 @@ export function App() {
         onDone={(p) => {
           setPerson(p)
           rememberName(p.name)
-          go('/')
+          /* Вошёл — значит у него есть кабинет, и он ждёт именно там,
+             а не на странице «занятие по ссылке». */
+          go('/кабинет')
         }}
         onBack={() => go('/')}
       />
@@ -113,6 +131,7 @@ export function App() {
       onGo={enter}
       onHub={() => go('/hub')}
       onSign={() => go('/вход')}
+      onCabinet={() => go('/кабинет')}
       onOut={out}
       person={person}
     />

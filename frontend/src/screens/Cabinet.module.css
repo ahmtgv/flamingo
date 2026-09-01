@@ -1,0 +1,306 @@
+/* Личный кабинет. Разложен по утверждённому листу
+   `docs/дизайн/листы/Кабинет учителя.dc.html`: три колонки через волосяные
+   линии — работа слева, календарь в середине, действия справа (ПРАВИЛА 3.4). */
+
+.screen {
+  height: 100%;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  background: var(--color-bg);
+  overflow: hidden;
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-5);
+  border-bottom: 1px solid var(--color-border);
+}
+
+/* Дорога назад — левый верхний угол, во всех состояниях (ПРАВИЛА 1.4). */
+.back {
+  display: inline-grid;
+  place-items: center;
+  min-height: var(--control-height-sm);
+  padding: 0 var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  background: none;
+  color: var(--color-text);
+  font-size: var(--text-caption);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.back:hover {
+  border-color: var(--color-border-strong);
+}
+
+.crumb {
+  font: var(--weight-regular) var(--text-caption) var(--font-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-detail);
+  white-space: nowrap;
+}
+
+.who {
+  margin-left: auto;
+  font-size: var(--text-small);
+  color: var(--color-text-detail);
+  white-space: nowrap;
+}
+
+.out {
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--color-text-secondary);
+  font: inherit;
+  text-decoration: underline;
+  text-decoration-color: var(--color-border-strong);
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.out:hover {
+  color: var(--color-text);
+}
+
+/* Колонки кабинета: работа · календарь · рельс (ПРАВИЛА 3.4, 3.5).
+   Рельс не тянется — иначе он съедает работу. */
+.body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 20rem;
+  padding: var(--space-6);
+  min-height: 0;
+}
+
+@media (max-width: 1100px) {
+  .body {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-6);
+    overflow: auto;
+  }
+}
+
+/* 🔴 Строки по содержимому, а не «заголовок плюс всё остальное». С
+   `auto minmax(0,1fr)` второй ряд растягивался на всю высоту, и календарь
+   уезжал к нижнему краю: пустая колонка сверху, месяц внизу. Колонка кабинета
+   читается сверху вниз — значит и содержимое лежит сверху. */
+.col {
+  display: grid;
+  grid-auto-rows: max-content;
+  align-content: start;
+  gap: var(--space-4);
+  padding-right: var(--space-6);
+  border-right: 1px solid var(--color-border);
+  min-height: 0;
+  min-width: 0;
+}
+
+.col + .col {
+  padding-left: var(--space-6);
+}
+
+.rail {
+  border-right: none;
+  padding-right: 0;
+}
+
+@media (max-width: 1100px) {
+  .col {
+    border-right: none;
+    padding-right: 0;
+  }
+
+  .col + .col {
+    padding-left: 0;
+    border-top: 1px solid var(--color-border);
+    padding-top: var(--space-6);
+  }
+}
+
+/* Заголовок карточки — не второй титул (ПРАВИЛА 4.2 в смягчённом виде:
+   на кабинете это заголовки разделов, поэтому обычная гарнитура, но тише h1). */
+.h2 {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: var(--text-h3);
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--tracking-snug);
+  color: var(--color-text);
+}
+
+/* Пусто объясняет словами и даёт одно действие (ПРАВИЛА 6.2). */
+.empty {
+  display: grid;
+  justify-items: start;
+  align-content: start;
+  gap: var(--space-3);
+  padding: var(--space-5);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+}
+
+.emptyHead {
+  font-size: var(--text-body);
+  font-weight: var(--weight-medium);
+  color: var(--color-text);
+}
+
+.emptyBody {
+  font-size: var(--text-small);
+  line-height: var(--leading-body);
+  color: var(--color-text-detail);
+}
+
+/* Главное действие кабинета — зелёная заливка, на экране она одна
+   (ПРАВИЛА 11.1, 11.4). */
+.go {
+  min-height: var(--tap-min);
+  padding: 0 var(--space-5);
+  border: none;
+  border-radius: var(--radius-pill);
+  background: var(--color-go-solid);
+  color: var(--color-on-go);
+  font-size: var(--text-small);
+  font-weight: var(--weight-medium);
+  cursor: pointer;
+}
+
+.go:hover {
+  background: var(--color-go-solid-hover);
+}
+
+.goQuiet {
+  min-height: var(--tap-min);
+  padding: 0 var(--space-5);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-pill);
+  background: none;
+  color: var(--color-text);
+  font-size: var(--text-small);
+  cursor: pointer;
+}
+
+/* ── месяц ───────────────────────────────────────────────────────────── */
+.monthTop {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+}
+
+.monthName {
+  font-size: var(--text-body);
+  font-weight: var(--weight-medium);
+  color: var(--color-text);
+}
+
+.monthN {
+  font: var(--weight-regular) var(--text-caption) var(--font-mono);
+  color: var(--color-text-detail);
+}
+
+.week,
+.days {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: var(--space-1);
+}
+
+.weekDay {
+  font: var(--weight-regular) var(--text-overline) var(--font-mono);
+  letter-spacing: 0.08em;
+  color: var(--color-text-hint);
+  text-align: center;
+}
+
+/* Клетка держит высоту числом, а не содержимым: сетка месяца не должна
+   дышать от того, что в одном месяце 30 дней, а в другом 31. */
+.day {
+  display: grid;
+  place-items: center;
+  min-height: var(--space-8);
+  border-radius: var(--radius-sm);
+  font: var(--weight-regular) var(--text-caption) var(--font-mono);
+  color: var(--color-text-detail);
+}
+
+/* Сегодня — обводка, а не заливка: это состояние, а не действие
+   (ПРАВИЛА 5.2). */
+.dayNow {
+  border: 1px solid var(--color-border-strong);
+  color: var(--color-text);
+  font-weight: var(--weight-medium);
+}
+
+.legend {
+  font: var(--weight-regular) var(--text-caption) var(--font-mono);
+  color: var(--color-text-hint);
+}
+
+/* ── действия ────────────────────────────────────────────────────────── */
+.acts {
+  display: grid;
+  align-content: start;
+  gap: var(--space-2);
+}
+
+.act {
+  display: grid;
+  justify-items: start;
+  gap: var(--space-1);
+  min-height: var(--tap-min);
+  padding: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  background: var(--color-surface);
+  text-align: left;
+  cursor: pointer;
+}
+
+.act:hover {
+  border-color: var(--color-border-strong);
+}
+
+.actName {
+  font-size: var(--text-small);
+  font-weight: var(--weight-medium);
+  color: var(--color-text);
+}
+
+.actWhy {
+  font-size: var(--text-caption);
+  line-height: var(--leading-snug);
+  color: var(--color-text-detail);
+}
+
+/* Приглушённая дверь: приглушено НАЗВАНИЕ — цветом и весом, не прозрачностью
+   (ПРАВИЛА 12.1–12.2). Объяснение берёт полный контраст: это часть смысла (12.3).
+   Цель нажатия остаётся полной (12.6). */
+.door {
+  display: grid;
+  justify-items: start;
+  gap: var(--space-1);
+  min-height: var(--tap-min);
+  padding: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  background: var(--color-surface-subtle);
+  cursor: default;
+}
+
+.doorName {
+  font-size: var(--text-small);
+  font-weight: var(--weight-regular);
+  color: var(--color-text-secondary);
+}
+
+.doorWhy {
+  font-size: var(--text-caption);
+  line-height: var(--leading-snug);
+  color: var(--color-text-secondary);
+}
