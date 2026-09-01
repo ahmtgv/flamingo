@@ -128,7 +128,13 @@
 /* ── таблица ──────────────────────────────────────────────────────────── */
 /* Ширина столбца занятия задана числом, а не долей: при двадцати уроках доли
    схлопнули бы дату в кашу. Таблица едет вбок внутри себя, а не тащит страницу. */
+/* Карточка обнимает таблицу, а не тянется на всю ширину: при трёх уроках
+   иначе справа остаётся пустой белый лист, и «Был» висит посреди него.
+   При двадцати уроках таблица шире экрана — тогда она едет вбок внутри
+   себя (`max-width` + `overflow-x`), а не тащит страницу. */
 .wrap {
+  width: max-content;
+  max-width: 100%;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-card);
   background: var(--color-surface);
@@ -142,14 +148,21 @@
 
 .headRow { background: var(--color-surface-subtle); }
 
+/* 🔴 Дата урока — `<button>`, и браузер дорисовывает ему СВОЮ рамку в 2px,
+   если не сказать `border: none` целиком. Одного `border-left` мало: он
+   задаёт только левую сторону, а три остальные остаются браузерными.
+   Поймано глазом на живом кадре, прибор такого не видит. */
 .hCell {
   display: grid;
   align-content: center;
   justify-items: center;
   gap: 2px;
   padding: var(--space-3) var(--space-2);
+  border: none;
   border-left: 1px solid var(--color-border);
+  border-radius: 0;
   background: none;
+  color: inherit;
   cursor: pointer;
   font: inherit;
 }
@@ -212,13 +225,18 @@
 
 .wasnt { width: var(--space-3); height: 1px; background: var(--color-border-strong); }
 
+/* 🔴 flex, а не grid: внутри `<b>2</b> / 2` — два узла, и grid раскладывает
+   их в две СТРОКИ (у него поток по строкам), а flex — в одну. На живом кадре
+   «2 / 2» стояло столбиком. */
 .sum {
-  display: grid;
-  place-items: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   padding: var(--space-3) var(--space-2);
   border-left: 1px solid var(--color-border);
   font: var(--weight-regular) var(--text-caption) var(--font-mono);
   color: var(--color-text-detail);
+  white-space: nowrap;
 }
 
 .sum b { color: var(--color-text); font-weight: var(--weight-medium); }
