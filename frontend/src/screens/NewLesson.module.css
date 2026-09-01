@@ -1,0 +1,129 @@
+/* Экран «Создать урок». Сосед кабинета: та же верхняя строка, та же волосяная
+   линия под ней, та же типографика (`Кабинет учителя.dc.html`, ПРАВИЛА 3.4).
+   Одна колонка — на странице четыре поля, делить её не на что. */
+.screen {
+  height: 100%;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  background: var(--color-bg);
+  overflow: hidden;
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-5);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.crumb {
+  font: var(--weight-regular) var(--text-caption) var(--font-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-detail);
+  white-space: nowrap;
+}
+
+.who {
+  margin-left: auto;
+  font-size: var(--text-small);
+  color: var(--color-text-detail);
+  white-space: nowrap;
+}
+
+.out {
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--color-text-secondary);
+  font: inherit;
+  text-decoration: underline;
+  text-decoration-color: var(--color-border-strong);
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.out:hover { color: var(--color-text); }
+
+/* Тело. Низ страницы пуст намеренно: страница короткая, и она должна быть
+   короткой (задание 01.09, п. 5). Докладывать туда нечего. */
+.body {
+  padding: var(--space-6) var(--space-7);
+  align-content: start;
+  overflow-y: auto;
+}
+
+.form {
+  display: grid;
+  align-content: start;
+  gap: var(--space-5);
+  width: 100%;
+  max-width: 28rem;
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: var(--text-h1);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-tight);
+  line-height: var(--leading-heading);
+  color: var(--color-text);
+}
+
+/* ПРАВИЛА 6.6: место под сообщение занято ВСЕГДА — иначе отказ сдвигает
+   кнопку, и человек нажимает не туда, куда целился. Высота взята по самому
+   длинному из отказов: заголовок плюс строка объяснения (замерено живым
+   проходом — при меньшей высоте кнопка уезжала). */
+.say {
+  display: grid;
+  gap: var(--space-1);
+  min-height: var(--space-8);
+}
+
+.sayHead {
+  font-size: var(--text-small);
+  font-weight: var(--weight-medium);
+  color: var(--color-text);
+}
+
+.sayBody {
+  font-size: var(--text-caption);
+  line-height: var(--leading-snug);
+  color: var(--color-text-detail);
+}
+
+.go {
+  justify-self: start;
+  min-height: var(--tap-min);
+  padding: 0 var(--space-6);
+  border: none;
+  border-radius: var(--radius-pill);
+  background: var(--color-go-solid);
+  color: var(--color-on-go);
+  font-size: var(--text-small);
+  font-weight: var(--weight-medium);
+  cursor: pointer;
+}
+
+.go:hover { background: var(--color-go-solid-hover); }
+
+/* Дорога назад — тихая строка, а не вторая кнопка: заливка на экране одна
+   и принадлежит созданию урока (ПРАВИЛА 11.4). */
+.back {
+  justify-self: start;
+  display: inline-grid;
+  place-items: center;
+  min-height: var(--tap-min);
+  padding: 0 var(--space-2);
+  margin-left: calc(-1 * var(--space-2));
+  border: none;
+  border-radius: var(--radius-control);
+  background: none;
+  color: var(--color-text-secondary);
+  font-size: var(--text-small);
+  cursor: pointer;
+}
+
+.back:hover { color: var(--color-text); background: var(--color-surface-subtle); }

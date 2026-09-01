@@ -7,6 +7,7 @@ import { Sign } from './screens/Sign'
 import { NewPass } from './screens/NewPass'
 import { Room } from './screens/Room'
 import { BadLink } from './screens/BadLink'
+import { NewLesson } from './screens/NewLesson'
 import { Wait } from './ui/Wait'
 import { codeFromPath } from './lib/code'
 import { rememberName, rememberedName } from './lib/name'
@@ -101,6 +102,7 @@ export function App() {
     <Cabinet
       person={p}
       onLesson={(c) => enter(c, p.name)}
+      onNew={() => go('/создать-урок')}
       onOut={() => { out(); go('/вход') }}
       onHome={домой}
     />
@@ -113,6 +115,23 @@ export function App() {
   if (path === '/кабинет') {
     if (!узнали) return <Wait />
     return person ? кабинет(person) : <Sign onDone={вошёл} />
+  }
+
+  /* Создать урок на будущее. Экран учительский: ученику создавать нечего,
+     и дверь к нему в его кабинете не рисуется. */
+  if (path === '/создать-урок') {
+    if (!узнали) return <Wait />
+    if (!person || person.role !== 'teacher') return person ? кабинет(person) : <Sign onDone={вошёл} />
+    return (
+      <NewLesson
+        person={person}
+        /* Урок заведён — возвращаемся в кабинет: он и есть расписание. */
+        onDone={() => go('/кабинет')}
+        onBack={() => go('/кабинет')}
+        onOut={() => { out(); go('/вход') }}
+        onHome={домой}
+      />
+    )
   }
 
   if (path === '/новый-пароль') {

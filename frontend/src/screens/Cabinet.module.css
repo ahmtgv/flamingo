@@ -194,6 +194,79 @@
   cursor: pointer;
 }
 
+/* ── строки расписания ───────────────────────────────────────────────── */
+.rows {
+  display: grid;
+  align-content: start;
+  gap: var(--space-2);
+}
+
+/* Кнопка в списке занятий не тянется на всю колонку: главное действие меряется
+   своим словом, а не шириной соседа (ПРАВИЛА 11.4). */
+.rows .go,
+.rows .emptyWay {
+  justify-self: start;
+}
+
+.rows .emptyWay {
+  padding-top: var(--space-2);
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 3.5rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  background: var(--color-surface);
+}
+
+.rowWhen {
+  font: var(--weight-regular) var(--text-caption) var(--font-mono);
+  color: var(--color-text-detail);
+}
+
+.rowBody {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.rowName {
+  font-size: var(--text-small);
+  font-weight: var(--weight-medium);
+  color: var(--color-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rowSub {
+  font: var(--weight-regular) var(--text-caption) var(--font-mono);
+  color: var(--color-text-detail);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Вход в занятие — обводка, а не заливка: зелёная на экране одна и принадлежит
+   «Начать урок сейчас» (ПРАВИЛА 11.4). */
+.rowGo {
+  min-height: var(--control-height-sm);
+  padding: 0 var(--space-4);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-pill);
+  background: none;
+  color: var(--color-text);
+  font-size: var(--text-caption);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.rowGo:hover { border-color: var(--color-text); }
+
 /* ── месяц ───────────────────────────────────────────────────────────── */
 .monthTop {
   display: flex;
@@ -235,6 +308,25 @@
   border-radius: var(--radius-sm);
   font: var(--weight-regular) var(--text-caption) var(--font-mono);
   color: var(--color-text-detail);
+}
+
+/* Клетка держит точку под числом — значит числу нужно место сверху, а точке
+   снизу, и высота клетки от появления точки не меняется. */
+.day {
+  position: relative;
+}
+
+/* Точка занятия. Цвет «дальше» — тот же, что у главного действия: это про
+   работу, которая назначена, а не про тревогу (ПРАВИЛА 5.2). */
+.dot {
+  position: absolute;
+  bottom: var(--space-1);
+  left: 50%;
+  width: var(--space-1);
+  height: var(--space-1);
+  margin-left: calc(-1 * var(--space-1) / 2);
+  border-radius: var(--radius-pill);
+  background: var(--color-go-solid);
 }
 
 /* Сегодня — обводка, а не заливка: это состояние, а не действие

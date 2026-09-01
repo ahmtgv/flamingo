@@ -3,6 +3,7 @@ import { useMemo } from 'react'
 import type { Person } from '../lib/auth'
 import { Mark } from '../ui/Mark'
 import { newRoomCode } from '../lib/code'
+import { дниСЗанятиями, сегодняСтрокой, уроки, урокиНа, type Урок } from '../lib/lessons'
 import s from './Cabinet.module.css'
 
 /** Личный кабинет — учителя и ученика.
@@ -50,10 +51,27 @@ function Дверь({ имя, ждёт }: { имя: string; ждёт: string }) 
   )
 }
 
-export function Cabinet({ person, onLesson, onOut, onHome }: {
+/** Строка занятия в расписании. Время слева, название посередине, вход справа —
+ *  тот же порядок чтения, что и во всём кабинете. */
+function Строка({ у, onGo }: { у: Урок; onGo: () => void }) {
+  return (
+    <div className={s.row}>
+      <span className={s.rowWhen}>{у.время}</span>
+      <span className={s.rowBody}>
+        <span className={s.rowName}>{у.название}</span>
+        <span className={s.rowSub}>{у.минут} мин · {у.код}</span>
+      </span>
+      <button type="button" className={s.rowGo} onClick={onGo}>Войти</button>
+    </div>
+  )
+}
+
+export function Cabinet({ person, onLesson, onNew, onOut, onHome }: {
   person: Person
   /** Начать урок: кабинет открывает комнату и ведёт в неё. */
   onLesson: (code: string) => void
+  /** Создать урок на будущее — отдельный экран. */
+  onNew: () => void
   onOut: () => void
   /** Домой — то есть в кабинет. На самом кабинете знак обновляет его же. */
   onHome: () => void
@@ -61,6 +79,11 @@ export function Cabinet({ person, onLesson, onOut, onHome }: {
   const сегодня = useMemo(() => new Date(), [])
   const клетки = useMemo(() => клеткиМесяца(сегодня), [сегодня])
   const учитель = person.role === 'teacher'
+  /* 🔴 Занятия читаются из памяти браузера: сервера занятий ещё нет
+     (`lib/lessons.ts`). Об этом сказано словами ниже — умалчивать нельзя. */
+  const наСегодня = useMemo(() => урокиНа(сегодняСтрокой(сегодня)), [сегодня])
+  const занятые = useMemo(() => дниСЗанятиями(сегодня.getFullYear(), сегодня.getMonth()), [сегодня])
+  const всего = useMemo(() => уроки().length, [])
 
   return (
     <main className={s.screen}>
@@ -81,14 +104,29 @@ export function Cabinet({ person, onLesson, onOut, onHome }: {
         <section className={s.col}>
           <h2 className={s.h2}>{учитель ? 'Расписание на сегодня' : 'Мои уроки'}</h2>
 
-          {/* ПРАВИЛА 6.2: пусто объясняет словами и всегда даёт одно действие. */}
+          {/* Занятия есть — показываем их, а не рассказ о том, что их нет. */}
+          {учитель && наСегодня.length ? (
+            <div className={s.rows}>
+              {наСегодня.map((у) => (
+                <Строка key={у.id} у={у} onGo={() => onLesson(у.код)} />
+              ))}
+              <span className={s.emptyWay}>
+                Уроки пока хранятся в этом браузере: сервера занятий ещё нет.
+                На другом устройстве этого расписания не будет.
+              </span>
+              <button type="button" className={s.go} onClick={() => onLesson(newRoomCode())}>
+                Начать урок сейчас
+              </button>
+            </div>
+          ) : (
+          /* ПРАВИЛА 6.2: пусто объясняет словами и всегда даёт одно действие. */
           <div className={s.empty}>
             <span className={s.emptyHead}>
               {учитель ? 'Занятий на сегодня нет' : 'Уроков пока нет'}
             </span>
             <span className={s.emptyBody}>
               {учитель
-                ? 'Расписание появится вместе с курсами: пока их негде хранить — справочник занятий ещё не поднят. Урок можно начать прямо сейчас, ссылку класс получит от вас.'
+                ? 'Урок на будущее заводится кнопкой «Создать урок» справа — пока он хранится в этом браузере, сервера занятий ещё нет. А начать прямо сейчас можно всегда: ссылку класс получит от вас.'
                 : 'Здесь будут уроки, на которые вас записали, и всё, что на них происходило: доски, показанное, задания. Пока курсов нет, войти на урок можно по ссылке преподавателя.'}
             </span>
             {/* 🔴 У ученика тут НЕТ кнопки, и это не забытая кнопка. Войти на урок
@@ -106,6 +144,7 @@ export function Cabinet({ person, onLesson, onOut, onHome }: {
               </span>
             )}
           </div>
+          )}
         </section>
 
         {/* ── середина: месяц ──────────────────────────────────────────── */}
@@ -116,8 +155,10 @@ export function Cabinet({ person, onLesson, onOut, onHome }: {
             <span className={s.monthName}>
               {МЕСЯЦЫ[сегодня.getMonth()]} {сегодня.getFullYear()}
             </span>
-            {/* Число занятий не выдумываем: их пока негде взять. */}
-            <span className={s.monthN}>занятий нет</span>
+            {/* Число берётся из тех же занятий, что и расписание. Не выдумывается. */}
+            <span className={s.monthN}>
+              {всего ? `занятий ${всего}` : 'занятий нет'}
+            </span>
           </div>
 
           <div className={s.week}>
@@ -133,6 +174,7 @@ export function Cabinet({ person, onLesson, onOut, onHome }: {
                 className={`${s.day} ${д === сегодня.getDate() ? s.dayNow : ''}`}
               >
                 {д ?? ''}
+                {д !== null && занятые.has(д) ? <span className={s.dot} /> : null}
               </span>
             ))}
           </div>
@@ -150,7 +192,10 @@ export function Cabinet({ person, onLesson, onOut, onHome }: {
                 <span className={s.actName}>Начать урок сейчас</span>
                 <span className={s.actWhy}>комната откроется, ссылку отправите классу</span>
               </button>
-              <Дверь имя="Создать урок" ждёт="появится вместе с расписанием и курсами" />
+              <button type="button" className={s.act} onClick={onNew}>
+                <span className={s.actName}>Создать урок</span>
+                <span className={s.actWhy}>урок на будущее: название, дата, время</span>
+              </button>
               <Дверь имя="Мои методички" ждёт="то, из чего собираются занятия — после хранилища" />
               <Дверь имя="Мои ученики" ждёт="появятся, когда учеников можно будет записать на курс" />
               <Дверь имя="Повышение квалификации" ждёт="курсы и материалы для себя — позже" />
