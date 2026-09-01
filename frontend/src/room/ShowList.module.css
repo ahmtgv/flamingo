@@ -125,6 +125,9 @@
 
 .rowName {
   overflow: hidden;
+  /* min-width: 0 — иначе многоточие не сработает: флекс- и грид-элемент
+     не ужимается ниже своего содержимого. Правило см. в guard-check. */
+  min-width: 0;
   text-overflow: ellipsis;
   white-space: nowrap;
   font-size: var(--text-small);

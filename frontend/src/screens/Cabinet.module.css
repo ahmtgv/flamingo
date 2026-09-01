@@ -254,6 +254,9 @@
   font-weight: var(--weight-medium);
   color: var(--color-text);
   overflow: hidden;
+  /* min-width: 0 — иначе многоточие не сработает: флекс- и грид-элемент
+     не ужимается ниже своего содержимого. Правило см. в guard-check. */
+  min-width: 0;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -262,6 +265,9 @@
   font: var(--weight-regular) var(--text-caption) var(--font-mono);
   color: var(--color-text-detail);
   overflow: hidden;
+  /* min-width: 0 — иначе многоточие не сработает: флекс- и грид-элемент
+     не ужимается ниже своего содержимого. Правило см. в guard-check. */
+  min-width: 0;
   text-overflow: ellipsis;
   white-space: nowrap;
 }

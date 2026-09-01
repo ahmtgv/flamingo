@@ -198,6 +198,9 @@
   font-weight: var(--weight-medium);
   color: var(--color-text);
   overflow: hidden;
+  /* min-width: 0 — иначе многоточие не сработает: флекс- и грид-элемент
+     не ужимается ниже своего содержимого. Правило см. в guard-check. */
+  min-width: 0;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -298,6 +301,12 @@
   width: 100%;
   max-width: 34rem;
   display: grid;
+  /* 🔴 minmax(0, 1fr), А НЕ ПРОСТО GRID. Колонка по умолчанию меряется по
+     самому широкому содержимому, и длинная ссылка в моноширинном шрифте
+     раздувала панель на 58px: «Закрыть» уезжала за край панели,
+     «Скопировать» обрезалась пополам. Ноль в minmax разрешает колонке быть
+     уже своего содержимого. */
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--space-5);
   padding: var(--space-8);
   background: var(--color-surface);
@@ -347,6 +356,11 @@
 .linkBox code {
   font: var(--weight-regular) var(--text-small) var(--font-mono);
   color: var(--color-text);
+  /* 🔴 MIN-WIDTH: 0 — БЕЗ НЕГО МНОГОТОЧИЕ НИКОГДА НЕ СРАБОТАЕТ. Флекс-элемент
+     по умолчанию не ужимается ниже своего содержимого (min-width: auto), а
+     ссылка — сплошная строка без переносов. Обрезание было написано и молчало:
+     коробка просто росла. Ноль возвращает многоточию право на жизнь. */
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
