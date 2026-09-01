@@ -16,6 +16,10 @@ type Props = {
   onPick: (id: string, e: React.PointerEvent) => void
   onText: (id: string, text: string) => void
   onDoneEdit: () => void
+  /** Перелистнуть документ. Страница общая: доска — общее место. */
+  onPage: (id: string, page: number) => void
+  /** Открыть адрес рамкой В ЗАНЯТИИ, а не новой вкладкой. */
+  onOpen: (url: string) => void
 }
 
 function Arrow({ o }: { o: Extract<Obj, { kind: 'arrow' }> }) {
@@ -106,7 +110,7 @@ function Editable({
   )
 }
 
-export function Objects({ objs, k, selected, editing, onPick, onText, onDoneEdit }: Props) {
+export function Objects({ objs, k, selected, editing, onPick, onText, onDoneEdit, onPage, onOpen }: Props) {
   return (
     <>
       {objs.map((o) => {
@@ -155,6 +159,28 @@ export function Objects({ objs, k, selected, editing, onPick, onText, onDoneEdit
             </div>
           )
         }
+        if (o.kind === 'doc') {
+          const n = o.pages.length
+          const i = Math.min(n - 1, Math.max(0, o.page))
+          return (
+            <div key={o.id} {...common} style={{ left: o.x, top: o.y, width: o.w, height: o.h }}>
+              <div className={s.objDoc}>
+                <img className={s.objDocPage} src={o.pages[i]} alt={`${o.name}, страница ${i + 1} из ${n}`} draggable={false} />
+                {/* Полоса листания — часть объекта, а не плавающий пульт:
+                    документ двигают за неё же, и она уезжает вместе с ним. */}
+                <div className={s.objDocFoot} onPointerDown={(e) => e.stopPropagation()}>
+                  <span className={s.objDocName} title={o.name}>{o.name}</span>
+                  <button type="button" className={s.objDocBtn} disabled={i === 0}
+                          aria-label="Страница назад" onClick={() => onPage(o.id, i - 1)}>←</button>
+                  <span className={s.objDocNum}>{i + 1} / {n}</span>
+                  <button type="button" className={s.objDocBtn} disabled={i >= n - 1}
+                          aria-label="Страница вперёд" onClick={() => onPage(o.id, i + 1)}>→</button>
+                </div>
+              </div>
+            </div>
+          )
+        }
+
         if (o.kind === 'image') {
           return (
             <div key={o.id} {...common} style={{ left: o.x, top: o.y, width: o.w, height: o.h }}>
@@ -168,11 +194,15 @@ export function Objects({ objs, k, selected, editing, onPick, onText, onDoneEdit
                 и класс смотрит его там же, где оно лежит. */}
             <div className={s.objVideo}>
               <span className={s.objVideoTitle}>{o.name ?? 'Видео'}</span>
-              <a className={s.objVideoLink} href={o.url} target="_blank" rel="noreferrer"
-                 onPointerDown={(e) => e.stopPropagation()}>
+              {/* 🔴 Открывается В ЗАНЯТИИ рамкой, а не новой вкладкой: новая вкладка
+                  уносит класс из урока (решение владельца 31.08, то же правило,
+                  что у ссылок из HUB и из чата). */}
+              <button type="button" className={s.objVideoLink}
+                      onPointerDown={(e) => e.stopPropagation()}
+                      onClick={() => onOpen(o.url)}>
                 {o.url}
-              </a>
-              <span className={s.objVideoHint}>откроется в новой вкладке · масштаб {Math.round(k * 100)} %</span>
+              </button>
+              <span className={s.objVideoHint}>откроется рамкой в занятии · масштаб {Math.round(k * 100)} %</span>
             </div>
           </div>
         )

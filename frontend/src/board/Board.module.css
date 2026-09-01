@@ -600,3 +600,119 @@
   font: var(--weight-medium) var(--text-caption) var(--font-body);
   white-space: nowrap;
 }
+
+/* ── документ на доске ───────────────────────────────────────────────────
+   Один объект со страницами внутри. Полоса листания — часть объекта:
+   она уезжает вместе с ним и не превращается в третий плавающий пульт. */
+.objDoc {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  border-radius: var(--radius-card);
+  border: 1px solid var(--color-border-strong);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+}
+
+.objDocPage {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: var(--fl-white);
+}
+
+.objDocFoot {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-top: 1px solid var(--color-border);
+  background: var(--color-surface-subtle);
+}
+
+.objDocName {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--text-caption);
+  color: var(--color-text-detail);
+}
+
+.objDocNum {
+  font: var(--weight-medium) var(--text-caption) var(--font-mono);
+  color: var(--color-text-detail);
+  white-space: nowrap;
+}
+
+.objDocBtn {
+  flex: none;
+  width: var(--control-height-sm);
+  height: var(--control-height-sm);
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  background: var(--color-surface);
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.objDocBtn:disabled {
+  color: var(--color-text-disabled);
+  cursor: default;
+}
+
+/* Сообщение о разборе документа. Стоит под плашкой досок, а не поверх неё:
+   тот же промах с налезанием текста на текст мы уже ловили дважды. */
+.docSay {
+  position: absolute;
+  left: 50%;
+  top: calc(var(--space-4) + var(--tap-min) + var(--space-4));
+  transform: translateX(-50%);
+  z-index: 5;
+  display: grid;
+  gap: var(--space-2);
+  justify-items: start;
+  max-width: var(--content-max-narrow);
+  padding: var(--space-4) var(--space-5);
+  border-radius: var(--radius-card);
+  border: 1px solid var(--color-border);
+  background: var(--color-bg);
+  box-shadow: var(--shadow-md);
+}
+
+.docSayAlarm {
+  border-color: var(--color-accent-subtle-border);
+}
+
+.docSayHead {
+  font-size: var(--text-body);
+  font-weight: var(--weight-medium);
+  color: var(--color-text);
+}
+
+.docSayAlarm .docSayHead {
+  color: var(--color-error-text);
+}
+
+/* Объяснение берёт полный контраст: это часть смысла (ПРАВИЛА 12.3). */
+.docSayBody {
+  font-size: var(--text-small);
+  line-height: var(--leading-snug);
+  color: var(--color-text-secondary);
+}
+
+.docSayGo {
+  min-height: var(--tap-min);
+  padding: 0 var(--space-5);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-pill);
+  background: none;
+  color: var(--color-text);
+  font-size: var(--text-small);
+  cursor: pointer;
+}

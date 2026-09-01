@@ -30,6 +30,10 @@ export type Obj =
   | { id: string; kind: 'arrow'; x: number; y: number; x2: number; y2: number; color: string; width: number }
   | { id: string; kind: 'image'; x: number; y: number; w: number; h: number; src: string; name?: string }
   | { id: string; kind: 'video'; x: number; y: number; w: number; h: number; url: string; name?: string }
+  /** Документ на доске — ОДИН объект со страницами внутри, а не россыпь картинок.
+   *  Восемь страниц россыпью нельзя двигать вместе, и в них теряешься.
+   *  `page` — какую страницу видно сейчас; доска общая, поэтому она общая тоже. */
+  | { id: string; kind: 'doc'; x: number; y: number; w: number; h: number; name: string; pages: string[]; page: number }
 
 export type ObjKind = Obj['kind']
 
@@ -50,6 +54,10 @@ export type Msg =
    *  кроме картинки, а картинку всё равно режет на части `chunk.ts`. */
   | { t: 'obj'; sheet: string; o: Obj }
   | { t: 'objdel'; sheet: string; ids: string[] }
+  /** Перелистнули документ. Отдельным сообщением, а не целым объектом: страницы
+   *  весят сотни килобайт каждая, и слать их заново ради номера страницы —
+   *  это минута молчания у всего класса. */
+  | { t: 'docPage'; sheet: string; id: string; page: number }
   /** Доска целиком заменяется — так уезжает отмена: пересказывать её пошагово
    *  дороже и хрупче, чем прислать лист в том виде, к которому вернулись. */
   | { t: 'sheetState'; sheet: Sheet }

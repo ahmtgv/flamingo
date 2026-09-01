@@ -26,9 +26,11 @@ type Props = {
   bus: Bus
   /** Сколько человек в комнате кроме меня. Нужно ровно для одного: у кого спросить доску. */
   peers: number
+  /** Открыть адрес рамкой в занятии. Доска не уводит человека в новую вкладку. */
+  onOpen: (url: string) => void
 }
 
-export function Board({ bus, peers }: Props) {
+export function Board({ bus, peers, onOpen }: Props) {
   const frameRef = useRef<HTMLDivElement>(null)
   const wrapRef = useRef<HTMLDivElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -42,6 +44,8 @@ export function Board({ bus, peers }: Props) {
   const [view, setView] = useState<View>({ x: 0, y: 0, k: 1 })
   const [sel, setSel] = useState<string[]>([])
   const [editing, setEditing] = useState<string | null>(null)
+  /* Что сказать про разбор документа: null — молчим, и это тоже состояние. */
+  const [docSay, setDocSay] = useState<{ вид: 'идёт' | 'отказ'; голова: string; тело: string } | null>(null)
   const [space, setSpace] = useState(false)
   const [marq, setMarq] = useState<Box | null>(null)
   const [histTick, setHistTick] = useState(0)
@@ -670,20 +674,39 @@ export function Board({ bus, peers }: Props) {
   }
   /** Документ на холст. PDF разбирается тем же кодом, что и показ, и ложится
    *  страницами сверху вниз: доска бесконечная, обрезать нечего. */
+  /** Документ на холст. ОДИН объект со страницами внутри (решение владельца 01.09):
+   *  россыпь картинок нельзя двигать вместе, и в ней теряешься.
+   *
+   *  🔴 У разбора есть ГОЛОС. Раньше здесь не было ни одного состояния: файл
+   *  выбран — и тишина, отличить «делаю» от «сломалось» нельзя было ни владельцу,
+   *  ни мне. Молчание и было дефектом (ПРАВИЛА 6.3, 6.4). */
   const addDoc = async () => {
     const f = await pickFile('application/pdf')
     if (!f) return
-    const { pagesOfPdf } = await import('../room/deck')
-    const pages = await pagesOfPdf(f)
-    if (pages.length === 0) return
-    const p0 = centerWorld()
-    mark()
-    pages.forEach((src, i) => {
+    setDocSay({ вид: 'идёт', голова: 'Разбираем файл', тело: `${f.name}. Страницы делаются прямо в браузере — файл никуда не уезжает.` })
+    try {
+      const { pagesOfPdf } = await import('../room/deck')
+      const pages = await pagesOfPdf(f)
+      if (pages.length === 0) {
+        setDocSay({ вид: 'отказ', голова: 'В файле нет страниц', тело: 'Похоже, это не PDF или он повреждён. Доска цела, всё остальное на месте.' })
+        return
+      }
+      const p0 = centerWorld()
+      mark()
       st.putObj({
-        id: newId(), kind: 'image', src, name: `${f.name} · ${i + 1}`,
-        x: p0[0], y: p0[1] + i * 620, w: 840, h: 594,
+        id: newId(), kind: 'doc', name: f.name, pages, page: 0,
+        x: p0[0] - 320, y: p0[1] - 230, w: 640, h: 460,
       })
-    })
+      setDocSay(null)
+    } catch (e) {
+      // Причина называется словами, а не «что-то пошло не так» (ПРАВИЛА 6.4).
+      console.error('документ на доску:', e)
+      setDocSay({
+        вид: 'отказ',
+        голова: 'Файл не разобрался',
+        тело: 'Это не PDF, он повреждён или слишком тяжёлый для браузера. Доска цела — попробуйте другой файл или возьмите нужные страницы отдельно.',
+      })
+    }
   }
 
   const addVideo = () => {
@@ -727,6 +750,8 @@ export function Board({ bus, peers }: Props) {
             onPick={onPick}
             onText={onText}
             onDoneEdit={() => setEditing(null)}
+            onPage={st.turnDoc}
+            onOpen={onOpen}
           />
         </div>
 
@@ -774,6 +799,20 @@ export function Board({ bus, peers }: Props) {
         canUndo={hist.current.canUndo} canRedo={hist.current.canRedo}
         histTick={histTick}
       />
+
+      {/* Что с документом: «разбираем» или «не разобрался». Место занято только
+          когда есть что сказать — это плавающее сообщение, а не часть макета. */}
+      {docSay ? (
+        <div className={`${s.docSay} ${docSay.вид === 'отказ' ? s.docSayAlarm : ''}`} role="status">
+          <span className={s.docSayHead}>{docSay.голова}</span>
+          <span className={s.docSayBody}>{docSay.тело}</span>
+          {docSay.вид === 'отказ' ? (
+            <button type="button" className={s.docSayGo} onClick={() => setDocSay(null)}>
+              Понятно
+            </button>
+          ) : null}
+        </div>
+      ) : null}
 
       {/* Доски и сохранение — плашка сверху, тоже всегда на месте. */}
       <Sheets

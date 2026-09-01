@@ -81,6 +81,9 @@ export function useSheets(bus: Bus, peers: number) {
         else sh.objs.push(m.o)
       } else if (m.t === 'objdel') {
         sh.objs = sh.objs.filter((o) => !m.ids.includes(o.id))
+      } else if (m.t === 'docPage') {
+        const o = sh.objs.find((x) => x.id === m.id)
+        if (o && o.kind === 'doc') o.page = m.page
       }
       touch()
     },
@@ -139,6 +142,23 @@ export function useSheets(bus: Bus, peers: number) {
       else sh.objs.push(o)
       touch()
       if (!quiet) bus.send({ t: 'obj', sheet: sh.id, o })
+    },
+    [bus, sheet, touch],
+  )
+
+  /** Перелистнуть документ. Соседу уезжает НОМЕР страницы, а не документ целиком:
+   *  страницы весят сотни килобайт, и пересылать их ради номера — минута молчания
+   *  у всего класса (тот же расчёт, что у показа в `room/deck.ts`). */
+  const turnDoc = useCallback(
+    (id: string, page: number) => {
+      const sh = sheet()
+      const o = sh.objs.find((x) => x.id === id)
+      if (!o || o.kind !== 'doc') return
+      const n = Math.min(o.pages.length - 1, Math.max(0, page))
+      if (n === o.page) return
+      o.page = n
+      touch()
+      bus.send({ t: 'docPage', sheet: sh.id, id, page: n })
     },
     [bus, sheet, touch],
   )
@@ -210,6 +230,7 @@ export function useSheets(bus: Bus, peers: number) {
     addSheet,
     openSheet,
     putObj,
+    turnDoc,
     dropObj,
     addStroke,
     eraseIds,

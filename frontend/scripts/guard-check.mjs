@@ -66,9 +66,9 @@ export function inspect({ name, text, kind, known }) {
   })
 
   if (kind === 'tsx') {
-    for (const m of text.matchAll(/<button\b[\s\S]*?>/g)) {
-      const tag = m[0]
-      const n = text.slice(0, m.index).split('\n').length
+    for (const m of tags(text, 'button')) {
+      const tag = m.tag
+      const n = text.slice(0, m.at).split('\n').length
       const answers =
         /onClick=/.test(tag) ||
         /type="submit"/.test(tag) ||
@@ -78,6 +78,36 @@ export function inspect({ name, text, kind, known }) {
     }
   }
 
+  return out
+}
+
+/** 🔴 Тег ищется СЧЁТОМ СКОБОК, а не регуляркой до первого «>».
+ *  Регулярка `/<button\b[\s\S]*?>/` обрывалась на «>» внутри атрибута — а он там
+ *  бывает постоянно: `disabled={i >= n - 1}` и `onClick={() => …}`. Тег обрезался
+ *  до `onClick`, и прибор объявлял живую кнопку молчащей. Две таких ложных тревоги
+ *  он выдал 01.09 на документе доски. Прибор, который врёт, хуже отсутствующего:
+ *  его перестают слушать, и он больше не ловит настоящие дефекты.
+ */
+export function tags(text, name) {
+  const out = []
+  const re = new RegExp(`<${name}\\b`, 'g')
+  for (const m of text.matchAll(re)) {
+    let i = m.index + m[0].length
+    let depth = 0
+    let quote = ''
+    for (; i < text.length; i += 1) {
+      const c = text[i]
+      if (quote) {
+        if (c === quote) quote = ''
+        continue
+      }
+      if (c === '"' || c === "'" || c === '`') quote = c
+      else if (c === '{') depth += 1
+      else if (c === '}') depth -= 1
+      else if (c === '>' && depth === 0) break
+    }
+    out.push({ at: m.index, tag: text.slice(m.index, i + 1) })
+  }
   return out
 }
 
@@ -98,6 +128,8 @@ function selftest() {
     ['кнопка отвечает', { kind: 'tsx', text: '<button onClick={go}>Да</button>' }, 0],
     ['кнопка объявлена немой', { kind: 'tsx', text: '<button data-still="показ">Да</button>' }, 0],
     ['кнопка молчит', { kind: 'tsx', text: '<button className={s.b}>Да</button>' }, 1],
+    ['живая кнопка со стрелкой в атрибуте', { kind: 'tsx', text: '<button disabled={i >= n} onClick={() => go(1)}>→</button>' }, 0],
+    ['немая кнопка со стрелкой в атрибуте', { kind: 'tsx', text: '<button disabled={i >= n} className={s.b}>→</button>' }, 1],
     ['общая строка токенов', { kind: 'css', text: '.x { margin: var(--b); }' }, 0],
   ]
 
