@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 
+import { ИМЕНА } from './Shelf'
 import s from './Show.module.css'
 import { InkLayer, type Tool } from './Ink'
 import { FIRST_TOOL, InkTools } from './InkTools'
@@ -127,7 +128,7 @@ export function Show({
                 Маркер
               </button>
               <button type="button" className={s.toolBtn} onClick={onShows}>
-                Показы
+                {ИМЕНА.show}
               </button>
               {/* Уход из показа живёт у правого края полосы и ничем не залит:
                   уход — не аларм (ПРАВИЛА 11а), и заливка на экране одна. */}

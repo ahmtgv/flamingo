@@ -27,6 +27,11 @@
   text-transform: uppercase;
   color: var(--color-text-detail);
   white-space: nowrap;
+  /* Ужиматься крошка обязана: без min-width флекс-элемент держит свою
+     ширину и распирает шапку (см. ужимание-check). */
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .who {
@@ -37,7 +42,15 @@
 }
 
 .out {
-  padding: 0;
+  /* 🔴 ЦЕЛЬ НАЖАТИЯ, А НЕ ТОЛЬКО СЛОВО (ПРАВИЛА 7.2). «Выйти» — текстовая
+     кнопка без отступов, и её высота была 19 px при нижней границе 34.
+     Промахнуться по ней с сенсорного экрана — обычное дело, а промах по
+     выходу человек читает как «ничего не нажалось». Слова остаются теми же:
+     растёт только область, по которой можно попасть. */
+  min-height: var(--control-height-sm);
+  padding: 0 var(--space-2);
+  display: inline-flex;
+  align-items: center;
   border: none;
   background: none;
   color: var(--color-text-secondary);
@@ -152,6 +165,12 @@
   display: grid;
   grid-template-columns: 1.3fr 1fr 1fr;
   gap: var(--space-3);
+  /* 🔴 ПОЛЯ РАВНЯЮТСЯ ПО НИЗУ, А НЕ ПО ВЕРХУ. На 1280 — а это рабочий кадр
+     (ПРАВИЛА 1.1) — метка «Длительность, мин» не влезает в свою колонку и
+     переносится на вторую строку. При выравнивании по верху поле уезжало на
+     6 px ниже соседей: ряд разъезжался, хотя правило 3.3 разрешает разброс
+     не больше двух. По низу высота метки на ряд не влияет вовсе. */
+  align-items: end;
 }
 
 @media (max-width: 520px) {
@@ -231,7 +250,12 @@
 }
 
 .matOff {
-  padding: 0;
+  /* Та же цена промаха, что у «Выйти»: 18 px при границе 34 (ПРАВИЛА 7.2).
+     «Снять» стоит рядом с именем файла — промах снимает не то пособие. */
+  min-height: var(--control-height-sm);
+  padding: 0 var(--space-2);
+  display: inline-flex;
+  align-items: center;
   border: none;
   background: none;
   color: var(--color-text-secondary);
@@ -364,3 +388,30 @@
 .go:hover { background: var(--color-go-solid-hover); }
 
 .go:disabled { opacity: 1; background: var(--color-go-solid-hover); cursor: default; }
+
+/* 🔴 ТЕЛЕФОН: ШАПКА В ДВЕ СТРОКИ, А НЕ В ОДНУ ОБРЕЗАННУЮ.
+   На 390 px шапка требовала 432 px минимума и не ужималась: `white-space:
+   nowrap` у хлебной крошки и у имени. Из-за одной этой строки весь экран
+   становился 452 px шириной — «Выйти» уезжала за край, кнопка «Войти» в
+   строке урока разрезалась пополам, воскресенье пропадало из календаря.
+   Один и тот же дефект ломал пять экранов, потому что шапка у них общая.
+
+   Не прячем крошку и не режем её многоточием: ПРАВИЛА 9.5 требуют, чтобы
+   шапка говорила, где я. Переносим её на вторую строку целиком — это
+   другая раскладка того же, как и велит ПРАВИЛА 9.6. */
+@media (max-width: 560px) {
+  .head {
+    flex-wrap: wrap;
+    row-gap: var(--space-2);
+    padding-left: var(--space-4);
+    padding-right: var(--space-4);
+  }
+
+  .who { order: 2; }
+
+  .crumb {
+    order: 3;
+    flex-basis: 100%;
+    margin: 0;
+  }
+}

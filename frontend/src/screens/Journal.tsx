@@ -187,7 +187,11 @@ export function Journal({ person, onBack, onHome, onOut, onNew, onLesson }: {
                 {ученики.map((у) => (
                   <div key={у.id} className={s.row}>
                     <span className={s.name}>
-                      <span className={s.nameWho}>{у.имя}</span>
+                      {/* 🔴 ОБРЕЗАННОЕ ИМЯ ОБЯЗАНО ИМЕТЬ `title` (ПРАВИЛА 13.2).
+                          «Пётр Вячеславович Хмельницки…» — 82 px срезано, и
+                          узнать целиком было негде: в журнале имя единственное
+                          место, где человек назван. */}
+                      <span className={s.nameWho} title={у.имя}>{у.имя}</span>
                       <span className={s.nameHow}>по {у.как} · с {у.с.slice(8, 10)}.{у.с.slice(5, 7)}</span>
                     </span>
                     {уроки.map((урок, i) => (

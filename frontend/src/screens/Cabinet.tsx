@@ -54,17 +54,29 @@ function Дверь({ имя, ждёт }: { имя: string; ждёт: string }) 
 
 /** Строка занятия в расписании. Время слева, название посередине, вход справа —
  *  тот же порядок чтения, что и во всём кабинете. */
-function Строка({ у, onGo, onEdit }: { у: Урок; onGo: () => void; onEdit: () => void }) {
+/** Строка занятия. У преподавателя середина строки — дверь в правку;
+ *  у ученика править нечего, и дверь не рисуется: середина остаётся текстом.
+ *  Войти могут оба — комната одна и та же. */
+function Строка({ у, onGo, onEdit }: { у: Урок; onGo: () => void; onEdit?: () => void }) {
   const пособий = у.материалы.length
+  const слова = (
+    <>
+      <span className={s.rowName}>{у.название}</span>
+      <span className={s.rowSub}>
+        {у.минут} мин · {у.код}{пособий ? ` · ${пособий} матер.` : ''}
+      </span>
+    </>
+  )
   return (
     <div className={s.row}>
       <span className={s.rowWhen}>{у.время}</span>
-      <button type="button" className={s.rowBody} onClick={onEdit} title="Поправить урок">
-        <span className={s.rowName}>{у.название}</span>
-        <span className={s.rowSub}>
-          {у.минут} мин · {у.код}{пособий ? ` · ${пособий} матер.` : ''}
-        </span>
-      </button>
+      {onEdit ? (
+        <button type="button" className={s.rowBody} onClick={onEdit} title="Поправить урок">
+          {слова}
+        </button>
+      ) : (
+        <span className={`${s.rowBody} ${s.rowPlain}`}>{слова}</span>
+      )}
       <button type="button" className={s.rowGo} onClick={onGo}>Войти</button>
     </div>
   )
@@ -105,6 +117,12 @@ export function Cabinet({ person, onLesson, onNew, onEdit, onJournal, onOut, onH
   const наСегодня = (все ?? []).filter((у) => у.дата === сегодняСтрока)
   const занятые = new Set((все ?? []).map((у) => Number(у.дата.slice(8, 10))))
   const всего = (все ?? []).length
+  /* 🔴 «ЕЩЁ НЕ СПРОСИЛИ» — НЕ «НИЧЕГО НЕТ». Пока занятия едут, `все` — null,
+     и раньше экран честно считал это пустотой: показывал «Занятий на сегодня
+     нет» и «занятий нет», а через мгновение сменялся расписанием. На быстрой
+     сети это моргание, на медленной — прямая неправда, которой человек верит
+     (ПРАВИЛА 6.3: загрузка не мигает пустотой; 6.6: макет не прыгает). */
+  const едут = все === null
 
   return (
     <main className={s.screen}>
@@ -125,11 +143,28 @@ export function Cabinet({ person, onLesson, onNew, onEdit, onJournal, onOut, onH
         <section className={s.col}>
           <h2 className={s.h2}>{учитель ? 'Расписание на сегодня' : 'Мои уроки'}</h2>
 
-          {/* Занятия есть — показываем их, а не рассказ о том, что их нет. */}
-          {учитель && наСегодня.length ? (
+          {/* 🔴 ЗАНЯТИЯ ПОКАЗЫВАЮТСЯ ОБОИМ. Раньше условие было
+              `учитель && наСегодня.length`, и ученик не видел своих уроков
+              никогда: слева стояло «Уроков пока нет», а календарь в середине
+              того же экрана считал занятия и ставил точки. Один экран
+              противоречил сам себе, и текст «Пока курсов нет» был неправдой.
+              Сервер отдаёт ученику занятия его преподавателей нарочно —
+              значит, их и показываем. Войти может и он: комната одна. */}
+          {едут ? (
+            /* Место то же, что у списка: заглушка не двигает ничего вокруг. */
+            <div className={s.rows}>
+              <div className={`${s.row} ${s.rowWait}`} aria-hidden />
+              <span className={s.emptyWay}>Смотрим расписание на сегодня…</span>
+            </div>
+          ) : наСегодня.length ? (
             <div className={s.rows}>
               {наСегодня.map((у) => (
-                <Строка key={у.id} у={у} onGo={() => onLesson(у.код)} onEdit={() => onEdit(у.id)} />
+                <Строка
+                  key={у.id}
+                  у={у}
+                  onGo={() => onLesson(у.код)}
+                  onEdit={учитель ? () => onEdit(у.id) : undefined}
+                />
               ))}
               {дом === 'браузер' ? (
                 <span className={s.emptyWay}>
@@ -137,9 +172,11 @@ export function Cabinet({ person, onLesson, onNew, onEdit, onJournal, onOut, onH
                   На другом устройстве этого расписания не будет.
                 </span>
               ) : null}
-              <button type="button" className={s.go} onClick={() => onLesson(newRoomCode())}>
-                Начать урок сейчас
-              </button>
+              {учитель ? (
+                <button type="button" className={s.go} onClick={() => onLesson(newRoomCode())}>
+                  Начать урок сейчас
+                </button>
+              ) : null}
             </div>
           ) : (
           /* ПРАВИЛА 6.2: пусто объясняет словами и всегда даёт одно действие. */
@@ -182,7 +219,7 @@ export function Cabinet({ person, onLesson, onNew, onEdit, onJournal, onOut, onH
             </span>
             {/* Число берётся из тех же занятий, что и расписание. Не выдумывается. */}
             <span className={s.monthN}>
-              {всего ? `занятий ${всего}` : 'занятий нет'}
+              {едут ? 'считаем занятия' : всего ? `занятий ${всего}` : 'занятий нет'}
             </span>
           </div>
 
@@ -213,10 +250,12 @@ export function Cabinet({ person, onLesson, onNew, onEdit, onJournal, onOut, onH
 
           {учитель ? (
             <div className={s.acts}>
-              <button type="button" className={s.act} onClick={() => onLesson(newRoomCode())}>
-                <span className={s.actName}>Начать урок сейчас</span>
-                <span className={s.actWhy}>комната откроется, ссылку отправите классу</span>
-              </button>
+              {/* 🔴 «НАЧАТЬ УРОК СЕЙЧАС» ЖИВЁТ В ОДНОМ МЕСТЕ — СЛЕВА, У РАСПИСАНИЯ.
+                  Здесь стояла вторая дверь с теми же словами: зелёная заливка
+                  слева и карточка справа. Одни и те же слова разным весом на
+                  одном экране читаются как разный смысл (ПРАВИЛА 5.12), и
+                  человек тратит секунду на вопрос «а это одно и то же?».
+                  Действие про сегодняшнюю работу — значит, стоит у работы. */}
               <button type="button" className={s.act} onClick={onNew}>
                 <span className={s.actName}>Создать урок</span>
                 <span className={s.actWhy}>урок на будущее: название, дата, время</span>
