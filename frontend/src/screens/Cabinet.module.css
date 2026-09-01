@@ -228,10 +228,25 @@
   color: var(--color-text-detail);
 }
 
+/* Тело строки — дверь в правку урока: нажимают на название, а не ищут
+   карандаш сбоку (ПРАВИЛА 12.6 — цель нажатия полная). */
 .rowBody {
   display: grid;
   gap: 2px;
   min-width: 0;
+  padding: 0;
+  border: none;
+  background: none;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+.rowBody:hover .rowName {
+  text-decoration: underline;
+  text-decoration-color: var(--color-border-strong);
+  text-underline-offset: 3px;
 }
 
 .rowName {

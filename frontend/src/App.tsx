@@ -8,6 +8,8 @@ import { NewPass } from './screens/NewPass'
 import { Room } from './screens/Room'
 import { BadLink } from './screens/BadLink'
 import { NewLesson } from './screens/NewLesson'
+import { Journal } from './screens/Journal'
+import { Invite } from './screens/Invite'
 import { Wait } from './ui/Wait'
 import { codeFromPath } from './lib/code'
 import { rememberName, rememberedName } from './lib/name'
@@ -103,10 +105,18 @@ export function App() {
       person={p}
       onLesson={(c) => enter(c, p.name)}
       onNew={() => go('/создать-урок')}
+      onEdit={(id) => go(`/урок/${id}`)}
+      onJournal={() => go('/журнал')}
       onOut={() => { out(); go('/вход') }}
       onHome={домой}
     />
   )
+
+  /** Ключ приглашения из адреса `/у/<ключ>`. */
+  const ключПриглашения = (() => {
+    const m = path.match(/^\/у\/([^/]+)\/?$/)
+    return m ? decodeURIComponent(m[1]) : null
+  })()
 
   if (path === '/hub') return <Hub onBack={домой} onHome={домой} />
 
@@ -117,18 +127,52 @@ export function App() {
     return person ? кабинет(person) : <Sign onDone={вошёл} />
   }
 
-  /* Создать урок на будущее. Экран учительский: ученику создавать нечего,
-     и дверь к нему в его кабинете не рисуется. */
-  if (path === '/создать-урок') {
+  /* Создать урок или поправить заведённый — один экран, два состояния.
+     Экран учительский: ученику создавать нечего. */
+  if (path === '/создать-урок' || path.startsWith('/урок/')) {
     if (!узнали) return <Wait />
     if (!person || person.role !== 'teacher') return person ? кабинет(person) : <Sign onDone={вошёл} />
+    const id = path.startsWith('/урок/') ? decodeURIComponent(path.slice('/урок/'.length)) : undefined
     return (
       <NewLesson
+        key={id ?? 'новый'}
         person={person}
-        /* Урок заведён — возвращаемся в кабинет: он и есть расписание. */
+        урокId={id}
+        /* Готово — возвращаемся в кабинет: он и есть расписание. */
         onDone={() => go('/кабинет')}
         onBack={() => go('/кабинет')}
         onOut={() => { out(); go('/вход') }}
+        onHome={домой}
+      />
+    )
+  }
+
+  /* Журнал: ученики и занятия. Ведёт его преподаватель. */
+  if (path === '/журнал') {
+    if (!узнали) return <Wait />
+    if (!person) return <Sign onDone={вошёл} />
+    if (person.role !== 'teacher') return кабинет(person)
+    return (
+      <Journal
+        person={person}
+        onBack={() => go('/кабинет')}
+        onHome={домой}
+        onOut={() => { out(); go('/вход') }}
+        onNew={() => go('/создать-урок')}
+        onLesson={(c) => enter(c, person.name)}
+      />
+    )
+  }
+
+  /* Ссылка в журнал: `/у/<ключ>`. Работает и вошедшему, и пришедшему впервые. */
+  if (ключПриглашения) {
+    if (!узнали) return <Wait />
+    return (
+      <Invite
+        ключ={ключПриглашения}
+        person={person}
+        onSign={() => { setЗвали(null); go('/вход') }}
+        onDone={домой}
         onHome={домой}
       />
     )

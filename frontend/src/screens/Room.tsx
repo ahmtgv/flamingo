@@ -17,6 +17,7 @@ import { Tiles } from '../room/Tiles'
 import { useRoom } from '../room/useRoom'
 import { roomUrl } from '../lib/code'
 import { читатьТему, следующая, сохранитьТему, type Тема } from '../lib/theme'
+import { отметиться } from '../lib/study'
 import { Button } from '../ui/Button'
 import { Mark } from '../ui/Mark'
 import s from './Room.module.css'
@@ -25,6 +26,13 @@ type Props = { code: string; name: string; onLeave: () => void; onHome: () => vo
 
 export function Room({ code, name, onLeave, onHome }: Props) {
   const { phase, error, faces, peers, bus, mic, cam, toggleMic, toggleCam, sharing, shareSaid, toggleShare, leave } = useRoom(code, name)
+  /* 🔴 Посещение отмечает КОМНАТА, а не рука преподавателя: она знает, кто
+     вошёл. Тихо: если человек без учётной записи или комната не от занятия —
+     сервер так и отвечает, и говорить об этом на уроке нечего.
+     Вызов один на вход в комнату, второй раз посещения не удвоит: на сервере
+     стоит «одно посещение на урок». */
+  useEffect(() => { отметиться(code) }, [code])
+
   const [copied, setCopied] = useState(false)
   const [source, setSource] = useState<Source>('faces')
   const [lines, setLines] = useState<Line[]>([])

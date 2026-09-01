@@ -180,6 +180,170 @@
   color: var(--color-text-detail);
 }
 
+/* ── материалы ────────────────────────────────────────────────────────── */
+/* 🔴 Одна тихая строка, а не блок. Материалы — важная часть урока, но не
+   главная работа этого экрана: главная — сказать что и когда (ПРАВИЛА 4.11). */
+.mats {
+  display: grid;
+  gap: var(--space-3);
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--color-border);
+}
+
+.matsLabel {
+  font: var(--weight-medium) var(--text-overline) / 1 var(--font-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-detail);
+}
+
+.matList {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.mat {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  background: var(--color-surface-subtle);
+}
+
+.matName {
+  font-size: var(--text-small);
+  color: var(--color-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.matWhat {
+  font: var(--weight-regular) var(--text-caption) var(--font-mono);
+  color: var(--color-text-detail);
+  white-space: nowrap;
+}
+
+.matOff {
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--color-text-secondary);
+  font-size: var(--text-caption);
+  text-decoration: underline;
+  text-decoration-color: var(--color-border-strong);
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.matOff:hover { color: var(--color-text); }
+
+.matAdd {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+/* Пунктирная пилюля: «сюда можно положить», а не «здесь что-то есть». */
+.chip {
+  display: inline-grid;
+  place-items: center;
+  min-height: var(--control-height-sm);
+  padding: 0 var(--space-4);
+  border: 1px dashed var(--color-border-strong);
+  border-radius: var(--radius-pill);
+  background: none;
+  color: var(--color-text-secondary);
+  font-size: var(--text-caption);
+  cursor: pointer;
+}
+
+.chip:hover { border-color: var(--color-text); color: var(--color-text); }
+
+.hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.linkRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--space-2);
+}
+
+.linkField {
+  min-height: var(--control-height-sm);
+  padding: 0 var(--space-3);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-control);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  font-size: var(--text-small);
+  width: 100%;
+}
+
+.linkField:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.matsHint {
+  font-size: var(--text-caption);
+  line-height: var(--leading-snug);
+  color: var(--color-text-detail);
+}
+
+/* Удачный исход — словами и спокойно. Зелёного тут нет: заливка на экране
+   одна и принадлежит действию (ПРАВИЛА 11.4). */
+.sayOk {
+  font-size: var(--text-small);
+  color: var(--color-text-secondary);
+}
+
+/* Что делать после сохранения: уйти или убрать урок. */
+.after {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.quiet {
+  min-height: var(--tap-min);
+  padding: 0 var(--space-5);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-pill);
+  background: none;
+  color: var(--color-text);
+  font-size: var(--text-small);
+  cursor: pointer;
+}
+
+.quiet:hover { border-color: var(--color-text); }
+
+/* Уход и потеря — коралловая ОБВОДКА, не заливка (ПРАВИЛА 11.3). */
+.drop {
+  margin-left: auto;
+  min-height: var(--tap-min);
+  padding: 0 var(--space-4);
+  border: 1px solid var(--color-accent-subtle-border);
+  border-radius: var(--radius-pill);
+  background: none;
+  color: var(--color-accent-text);
+  font-size: var(--text-small);
+  cursor: pointer;
+}
+
+.drop:hover { border-color: var(--color-accent-text); }
+
 /* Главное действие карточки — во всю её ширину, как на входе. На экране
    такая заливка одна (ПРАВИЛА 11.4). */
 .go {
@@ -195,3 +359,5 @@
 }
 
 .go:hover { background: var(--color-go-solid-hover); }
+
+.go:disabled { opacity: 1; background: var(--color-go-solid-hover); cursor: default; }

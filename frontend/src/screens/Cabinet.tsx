@@ -1,9 +1,10 @@
-import { useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
 import type { Person } from '../lib/auth'
 import { Mark } from '../ui/Mark'
 import { newRoomCode } from '../lib/code'
-import { дниСЗанятиями, сегодняСтрокой, уроки, урокиНа, type Урок } from '../lib/lessons'
+import { сегодняСтрокой } from '../lib/lessons'
+import { гдеЛежат, читатьУроки, type Урок } from '../lib/study'
 import s from './Cabinet.module.css'
 
 /** Личный кабинет — учителя и ученика.
@@ -53,25 +54,31 @@ function Дверь({ имя, ждёт }: { имя: string; ждёт: string }) 
 
 /** Строка занятия в расписании. Время слева, название посередине, вход справа —
  *  тот же порядок чтения, что и во всём кабинете. */
-function Строка({ у, onGo }: { у: Урок; onGo: () => void }) {
+function Строка({ у, onGo, onEdit }: { у: Урок; onGo: () => void; onEdit: () => void }) {
+  const пособий = у.материалы.length
   return (
     <div className={s.row}>
       <span className={s.rowWhen}>{у.время}</span>
-      <span className={s.rowBody}>
+      <button type="button" className={s.rowBody} onClick={onEdit} title="Поправить урок">
         <span className={s.rowName}>{у.название}</span>
-        <span className={s.rowSub}>{у.минут} мин · {у.код}</span>
-      </span>
+        <span className={s.rowSub}>
+          {у.минут} мин · {у.код}{пособий ? ` · ${пособий} матер.` : ''}
+        </span>
+      </button>
       <button type="button" className={s.rowGo} onClick={onGo}>Войти</button>
     </div>
   )
 }
 
-export function Cabinet({ person, onLesson, onNew, onOut, onHome }: {
+export function Cabinet({ person, onLesson, onNew, onEdit, onJournal, onOut, onHome }: {
   person: Person
   /** Начать урок: кабинет открывает комнату и ведёт в неё. */
   onLesson: (code: string) => void
   /** Создать урок на будущее — отдельный экран. */
   onNew: () => void
+  /** Поправить заведённый урок — тот же экран в другом состоянии. */
+  onEdit: (id: string) => void
+  onJournal: () => void
   onOut: () => void
   /** Домой — то есть в кабинет. На самом кабинете знак обновляет его же. */
   onHome: () => void
@@ -79,11 +86,25 @@ export function Cabinet({ person, onLesson, onNew, onOut, onHome }: {
   const сегодня = useMemo(() => new Date(), [])
   const клетки = useMemo(() => клеткиМесяца(сегодня), [сегодня])
   const учитель = person.role === 'teacher'
-  /* 🔴 Занятия читаются из памяти браузера: сервера занятий ещё нет
-     (`lib/lessons.ts`). Об этом сказано словами ниже — умалчивать нельзя. */
-  const наСегодня = useMemo(() => урокиНа(сегодняСтрокой(сегодня)), [сегодня])
-  const занятые = useMemo(() => дниСЗанятиями(сегодня.getFullYear(), сегодня.getMonth()), [сегодня])
-  const всего = useMemo(() => уроки().length, [])
+  const месяц = `${сегодня.getFullYear()}-${String(сегодня.getMonth() + 1).padStart(2, '0')}`
+
+  /* 🔴 Занятия спрашиваем у сервера; если его нет — у браузера. Что именно
+     вышло, видно по `гдеЛежат()`, и об этом сказано словами ниже: умалчивать,
+     что расписание живёт в одной вкладке, нельзя (ПРАВИЛА 6.3). */
+  const [все, setВсе] = useState<Урок[] | null>(null)
+  useEffect(() => {
+    let живо = true
+    читатьУроки(месяц)
+      .then((у) => { if (живо) setВсе(у) })
+      .catch(() => { if (живо) setВсе([]) })
+    return () => { живо = false }
+  }, [месяц])
+
+  const дом = гдеЛежат()
+  const сегодняСтрока = сегодняСтрокой(сегодня)
+  const наСегодня = (все ?? []).filter((у) => у.дата === сегодняСтрока)
+  const занятые = new Set((все ?? []).map((у) => Number(у.дата.slice(8, 10))))
+  const всего = (все ?? []).length
 
   return (
     <main className={s.screen}>
@@ -108,12 +129,14 @@ export function Cabinet({ person, onLesson, onNew, onOut, onHome }: {
           {учитель && наСегодня.length ? (
             <div className={s.rows}>
               {наСегодня.map((у) => (
-                <Строка key={у.id} у={у} onGo={() => onLesson(у.код)} />
+                <Строка key={у.id} у={у} onGo={() => onLesson(у.код)} onEdit={() => onEdit(у.id)} />
               ))}
-              <span className={s.emptyWay}>
-                Уроки пока хранятся в этом браузере: сервера занятий ещё нет.
-                На другом устройстве этого расписания не будет.
-              </span>
+              {дом === 'браузер' ? (
+                <span className={s.emptyWay}>
+                  Уроки пока хранятся в этом браузере: сервер занятий не отвечает.
+                  На другом устройстве этого расписания не будет.
+                </span>
+              ) : null}
               <button type="button" className={s.go} onClick={() => onLesson(newRoomCode())}>
                 Начать урок сейчас
               </button>
@@ -126,7 +149,9 @@ export function Cabinet({ person, onLesson, onNew, onOut, onHome }: {
             </span>
             <span className={s.emptyBody}>
               {учитель
-                ? 'Урок на будущее заводится кнопкой «Создать урок» справа — пока он хранится в этом браузере, сервера занятий ещё нет. А начать прямо сейчас можно всегда: ссылку класс получит от вас.'
+                ? (дом === 'браузер'
+                  ? 'Урок на будущее заводится кнопкой «Создать урок» справа. Сервер занятий сейчас не отвечает, поэтому расписание живёт в этом браузере и на другом устройстве его не будет. Начать прямо сейчас можно всегда.'
+                  : 'Урок на будущее заводится кнопкой «Создать урок» справа. А начать прямо сейчас можно всегда: ссылку класс получит от вас.')
                 : 'Здесь будут уроки, на которые вас записали, и всё, что на них происходило: доски, показанное, задания. Пока курсов нет, войти на урок можно по ссылке преподавателя.'}
             </span>
             {/* 🔴 У ученика тут НЕТ кнопки, и это не забытая кнопка. Войти на урок
@@ -196,8 +221,11 @@ export function Cabinet({ person, onLesson, onNew, onOut, onHome }: {
                 <span className={s.actName}>Создать урок</span>
                 <span className={s.actWhy}>урок на будущее: название, дата, время</span>
               </button>
+              <button type="button" className={s.act} onClick={onJournal}>
+                <span className={s.actName}>Журнал</span>
+                <span className={s.actWhy}>ученики и занятия: кто был, кого позвать</span>
+              </button>
               <Дверь имя="Мои методички" ждёт="то, из чего собираются занятия — после хранилища" />
-              <Дверь имя="Мои ученики" ждёт="появятся, когда учеников можно будет записать на курс" />
               <Дверь имя="Повышение квалификации" ждёт="курсы и материалы для себя — позже" />
             </div>
           ) : (
