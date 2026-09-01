@@ -20,6 +20,9 @@ export type Face = {
   isLocal: boolean
   video?: Track
   audio?: Track
+  /** Экран, которым человек делится. Отдельная дорожка, а не подмена камеры:
+   *  лицо и экран нужны одновременно — «смотрите сюда» без лица не работает. */
+  screen?: Track
   speaking: boolean
   camOn: boolean
   micOn: boolean
@@ -41,12 +44,14 @@ function pub(p: { trackPublications: Map<string, TrackPublication> }, source: st
 function faceOf(p: any, isLocal: boolean): Face {
   const cam = pub(p, 'camera')
   const mic = pub(p, 'microphone')
+  const scr = pub(p, 'screen_share')
   return {
     identity: p.identity,
     name: p.name || p.identity,
     isLocal,
     video: cam?.track ?? undefined,
     audio: isLocal ? undefined : (mic?.track ?? undefined),
+    screen: scr?.track ?? undefined,
     speaking: Boolean(p.isSpeaking),
     camOn: Boolean(cam && !cam.isMuted),
     micOn: Boolean(mic && !mic.isMuted),
@@ -75,6 +80,9 @@ export function useRoom(code: string, name: string) {
   const [faces, setFaces] = useState<Face[]>([])
   const [mic, setMic] = useState(true)
   const [cam, setCam] = useState(true)
+  /* Делюсь ли я экраном. Отдельно от `cam`: это другая дорожка. */
+  const [sharing, setSharing] = useState(false)
+  const [shareSaid, setShareSaid] = useState('')
 
   useEffect(() => {
     let alive = true
@@ -202,6 +210,33 @@ export function useRoom(code: string, name: string) {
     await room.localParticipant.setCameraEnabled(next).catch(() => setCam(!next))
   }, [cam])
 
+  /** Показать свой экран классу.
+   *
+   *  🔴 Это единственный честный способ показать классу чужой сайт. Рамка внутри
+   *  страницы работает не везде: большинство сайтов запрещают показ у себя внутри
+   *  рамки, и обойти этот запрет нельзя — он их, а не наша слабость. Экран же
+   *  показывает ровно то, что видит преподаватель.
+   *
+   *  Браузер сам спросит, чем делиться: окном, вкладкой или всем экраном. Отказ
+   *  человека — не отказ продукта: говорим словами и продолжаем урок. */
+  const toggleShare = useCallback(async () => {
+    const room = roomRef.current
+    if (!room) return
+    const next = !sharing
+    setShareSaid('')
+    try {
+      await room.localParticipant.setScreenShareEnabled(next, { audio: false })
+      setSharing(next)
+    } catch (e) {
+      // NotAllowedError — человек закрыл окно выбора. Это не поломка.
+      const отказ = (e as { name?: string })?.name === 'NotAllowedError'
+      setShareSaid(отказ
+        ? 'Показ экрана отменён — окно выбора закрыто. Урок идёт дальше.'
+        : 'Браузер не дал показать экран. Урок идёт дальше: доска, голос и чат работают.')
+      setSharing(false)
+    }
+  }, [sharing])
+
   const leave = useCallback(() => {
     roomRef.current?.disconnect().catch(() => undefined)
   }, [])
@@ -216,6 +251,9 @@ export function useRoom(code: string, name: string) {
     cam,
     toggleMic,
     toggleCam,
+    sharing,
+    shareSaid,
+    toggleShare,
     leave,
   }
 }

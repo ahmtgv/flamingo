@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react'
 import s from './Shelf.module.css'
 
 /** Полка источников. Что учитель выбрал — то и видит класс. */
-export type Source = 'faces' | 'board' | 'show' | 'live'
+export type Source = 'faces' | 'board' | 'show' | 'live' | 'screen'
 
 /** 🔴 Имена с решения владельца 01.09. Полка называет вещи так, как их называют
  *  в школе, а не так, как они устроены внутри: «Класс», а не «лица»;
@@ -16,13 +16,15 @@ export const ИМЕНА: Record<Source, string> = {
   board: 'Классная Доска',
   show: 'Учебные Документы',
   live: 'Методички',
+  screen: 'Экран преподавателя',
 }
 
 /** Что лежит внутри «Методичек». Живой пока один пункт; остальные — приглушённые
  *  двери: видны, названы, не нажимаются, и рядом сказано, чего они ждут
  *  (ПРАВИЛА 12.2–12.5). Мёртвая кнопка, которая выглядит живой, хуже отсутствующей. */
-const МЕТОДИЧКИ: { имя: string; ждёт?: string }[] = [
+const МЕТОДИЧКИ: { имя: string; ждёт?: string; экран?: true }[] = [
   { имя: 'Из HUB' },
+  { имя: 'Показать свой экран', экран: true },
   { имя: 'Материалы для урока', ждёт: 'появятся вместе с курсом — их загружает преподаватель' },
   { имя: 'Избранные материалы', ждёт: 'появятся вместе с учётной записью преподавателя' },
   { имя: 'Подключить…', ждёт: 'свои телескопы, дроны, серверы и библиотеки — после кабинета' },
@@ -31,13 +33,15 @@ const МЕТОДИЧКИ: { имя: string; ждёт?: string }[] = [
 /** Дверь, которой ещё нет. Плашка с именем, а не строка текста. */
 const NOT_YET = 'Учебник'
 
-export function Shelf({ source, onPick, onShow, onHub }: {
+export function Shelf({ source, onPick, onShow, onHub, onShare }: {
   source: Source
   onPick: (s: Source) => void
   /** Показ начинается с выбора файла, поэтому у него своя дорога, а не просто вкладка. */
   onShow: () => void
   /** Трансляция начинается с выбора источника — тоже своя дорога. */
   onHub: () => void
+  /** Показ экрана: браузер сам спросит, чем делиться. */
+  onShare: () => void
 }) {
   const [open, setOpen] = useState(false)
   const box = useRef<HTMLDivElement>(null)
@@ -104,7 +108,8 @@ export function Shelf({ source, onPick, onShow, onHub }: {
                     className={s.packItem}
                     onClick={() => {
                       setOpen(false)
-                      onHub()
+                      if (м.экран) onShare()
+                      else onHub()
                     }}
                   >
                     {м.имя}

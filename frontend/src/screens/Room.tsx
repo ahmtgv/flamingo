@@ -7,6 +7,7 @@ import { Note } from '../room/Note'
 import { Shelf, type Source } from '../room/Shelf'
 import { HubPick } from '../room/HubPick'
 import { Live } from '../room/Live'
+import { Screen } from '../room/Screen'
 import { Show } from '../room/Show'
 import { ShowList } from '../room/ShowList'
 import { deckFrom, pickFiles } from '../room/deck'
@@ -23,7 +24,7 @@ import s from './Room.module.css'
 type Props = { code: string; name: string; onLeave: () => void }
 
 export function Room({ code, name, onLeave }: Props) {
-  const { phase, error, faces, peers, bus, mic, cam, toggleMic, toggleCam, leave } = useRoom(code, name)
+  const { phase, error, faces, peers, bus, mic, cam, toggleMic, toggleCam, sharing, shareSaid, toggleShare, leave } = useRoom(code, name)
   const [copied, setCopied] = useState(false)
   const [source, setSource] = useState<Source>('faces')
   const [lines, setLines] = useState<Line[]>([])
@@ -310,6 +311,19 @@ export function Room({ code, name, onLeave }: Props) {
     setLiveInk([])
   }, [bus])
 
+  /** Показать свой экран классу. Сцена переключается сама: делиться экраном
+   *  и продолжать смотреть на лица — значит показывать классу не то, что думаешь. */
+  const share = useCallback(async () => {
+    await toggleShare()
+    setSource('screen')
+    bus.send({ t: 'stage', source: 'screen' })
+  }, [bus, toggleShare])
+
+  const stopShare = useCallback(async () => {
+    await toggleShare()
+    pick('faces')
+  }, [pick, toggleShare])
+
   const say = useCallback(
     (text: string) => {
       const line = { id: newId(), who: name, text, at: Date.now() }
@@ -356,7 +370,7 @@ export function Room({ code, name, onLeave }: Props) {
 
         {/* Полка держит центр строки: это главный переключатель урока. */}
         {iLead ? (
-          <Shelf source={source} onPick={pick} onShow={startShow} onHub={() => setHubOpen(true)} />
+          <Shelf source={source} onPick={pick} onShow={startShow} onHub={() => setHubOpen(true)} onShare={share} />
         ) : <span />}
 
         <span className={s.headRight}>
@@ -400,6 +414,18 @@ export function Room({ code, name, onLeave }: Props) {
             onClose={() => pick('faces')}
           />
         ) : null}
+        {/* Экран того, кто им делится. Своего экрана в своей же вкладке
+            браузер не отдаёт обратно — поэтому у ведущего показана надпись,
+            а не картинка: врать зеркалом хуже, чем сказать словами. */}
+        {source === 'screen' ? (
+          <Screen
+            track={faces.find((f) => f.screen)?.screen}
+            mine={sharing}
+            who={faces.find((f) => f.screen)?.name ?? 'преподаватель'}
+            onStop={stopShare}
+          />
+        ) : null}
+
         {source === 'live' && live ? (
           <Live
             sourceId={live.sourceId}
@@ -414,6 +440,14 @@ export function Room({ code, name, onLeave }: Props) {
         ) : null}
         {source === 'faces' ? (
           <Stage faces={faces} alone={alone} link={link} onCopy={copy} phase={phase} error={error} />
+        ) : null}
+
+        {/* Отказ показа экрана. Человек закрыл окно выбора — это не поломка,
+            и урок идёт дальше; но молчать нельзя (ПРАВИЛА 6.4). */}
+        {shareSaid ? (
+          <div className={s.overNote}>
+            <Note light title="Экран не показан" text={shareSaid} />
+          </div>
         ) : null}
 
         {/* ПРАВИЛА 6.3: пока страницы разбираются, сказано, что придёт первым. */}
