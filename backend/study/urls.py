@@ -14,4 +14,7 @@ urlpatterns = [
     path("rooms/<str:код>", views.room, name="study-room"),
     path("visits", views.visits, name="study-visits"),
     path("teachers", views.teachers, name="study-teachers"),
+    path("talks", views.talks, name="study-talks"),
+    path("talks/<str:кто>", views.talk, name="study-talk"),
+    path("talks/<str:кто>/read", views.talk_read, name="study-talk-read"),
 ]

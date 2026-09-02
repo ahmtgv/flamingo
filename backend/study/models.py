@@ -1,12 +1,13 @@
 """Занятия, журнал и всё, что к ним крепится.
 
-Пять таблиц, и каждая отвечает на один вопрос:
+Шесть таблиц, и каждая отвечает на один вопрос:
 
     Lesson    что и когда преподаватель проводит
     Bond      кто у него учится
     Invite    одноразовая ссылка, которой ученик к нему приходит
     Visit     кто на каком занятии был
     Material  что приложено к занятию
+    Message   что они друг другу написали между занятиями
 
 🔴 Ученик добавляется НЕ поиском по справочнику, а ссылкой (решение владельца
 01.09). Разница не косметическая: поиск по почте или телефону — это способ
@@ -161,3 +162,54 @@ class Material(models.Model):
     class Meta:
         db_table = "materials"
         ordering = ["made_at"]
+
+
+class Message(models.Model):
+    """Сообщение между преподавателем и его учеником.
+
+    🔴 ПИСАТЬ МОЖНО ТОЛЬКО ТОМУ, С КЕМ ЕСТЬ СВЯЗЬ (`Bond`). Проверка стоит
+    на сервере и на каждом пути, а не в интерфейсе: id ученика преподаватель
+    видит в журнале, и без этой проверки любой вошедший написал бы кому угодно,
+    подставив чужой id в запрос. Интерфейс защитой не бывает.
+
+    🔴 ПРИГЛАШЕНИЕ НА ЗАНЯТИЕ — НЕ ОТДЕЛЬНАЯ ТАБЛИЦА, А ВИД СООБЩЕНИЯ. Оно
+    приходит в ту же переписку и тем же порядком, что и слова: «зову вас на
+    „Алгебра“, вторник 14:00» — это реплика в разговоре. Отдельная лента
+    развела бы одно событие по двум местам, и ученик искал бы приглашение
+    там, где его нет.
+
+    ⚠️ `Invite` рядом — про ДРУГОЕ: это одноразовая ссылка, которой человек
+    впервые приходит в журнал к преподавателю. Здесь — зов на конкретный урок
+    к тому, кто уже пришёл. Имена похожи, смыслы разные.
+    """
+
+    TEXT, INVITE = "text", "invite"
+    KINDS = [(TEXT, "сообщение"), (INVITE, "зову на занятие")]
+
+    #: Длина реплики. Не письмо и не документ: если нужно больше — это пособие.
+    MAX = 2000
+
+    id = models.CharField(primary_key=True, max_length=36, default=new_id)
+    sender = models.ForeignKey(Person, on_delete=models.CASCADE, related_name="sent")
+    receiver = models.ForeignKey(Person, on_delete=models.CASCADE, related_name="received")
+    kind = models.CharField(max_length=8, choices=KINDS, default=TEXT)
+    text = models.CharField(max_length=MAX, blank=True, default="")
+    #: Для kind="invite". SET_NULL, а не CASCADE: занятие могут снять, но чужая
+    #: реплика в разговоре от этого не исчезает — она показывает «занятие снято».
+    #: Стирать сказанное задним числом хуже, чем показать, что оно устарело.
+    lesson = models.ForeignKey(Lesson, on_delete=models.SET_NULL, null=True, blank=True,
+                               related_name="calls")
+    made_at = models.DateTimeField(auto_now_add=True)
+    #: Когда получатель открыл разговор. Пусто — непрочитано.
+    read_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        db_table = "messages"
+        ordering = ["made_at"]
+        indexes = [
+            models.Index(fields=["receiver", "sender", "made_at"]),
+            models.Index(fields=["receiver", "read_at"]),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.sender_id} → {self.receiver_id}: {self.text[:40]}"

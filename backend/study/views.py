@@ -16,6 +16,10 @@
     GET    /api/study/rooms/<код>             занятие по коду комнаты, с пособиями
     POST   /api/study/visits                  отметиться на занятии по коду комнаты
     GET    /api/study/teachers                у кого я учусь
+    GET    /api/study/talks                   с кем я в переписке
+    GET    /api/study/talks/<id>              переписка с ним
+    POST   /api/study/talks/<id>              написать ему (словами или зовом на урок)
+    POST   /api/study/talks/<id>/read         отметить прочитанным
 
 🔴 ЧУЖОЕ НЕ ОТДАЁМ И НЕ ПРАВИМ. Каждый путь, который трогает занятие, сначала
 спрашивает: это занятие ЭТОГО преподавателя? Ответ на чужой id — «не найдено»,
@@ -31,7 +35,7 @@ from datetime import date, time
 from pathlib import Path
 
 from django.conf import settings
-from django.db import IntegrityError
+from django.db import IntegrityError, models
 from django.http import FileResponse, HttpRequest, JsonResponse
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
@@ -40,7 +44,7 @@ from people.models import Person
 from people.session import who
 
 from .files import ALL_MAX, Отказ, сохранить, тип
-from .models import Bond, Invite, Lesson, Material, Visit
+from .models import Bond, Invite, Lesson, Material, Message, Visit
 
 SITE = "https://flamingo.plus"
 MONTH = re.compile(r"^(\d{4})-(\d{2})$")
@@ -467,3 +471,176 @@ def teachers(request: HttpRequest) -> JsonResponse:
     return JsonResponse({"преподаватели": [
         {"id": b.teacher_id, "имя": b.teacher.name, "с": b.since.date().isoformat()}
         for b in свои]})
+
+
+# ── переписка между занятиями ────────────────────────────────────────────────
+#
+# 🔴 Владелец 02.09: «ученик с учителем, которые запарились друг с другом,
+# остаются в контакте и могут писать сообщения друг другу, и учитель может
+# приглашать ученика на урок».
+#
+# Связь уже была — `Bond`. Разговор ложится на неё и НИ НА ЧТО ДРУГОЕ: нет
+# связи — нет разговора, и это единственное правило доступа здесь. Оно стоит
+# на сервере, потому что id ученика преподаватель видит в журнале, а id
+# преподавателя ученик видит в кабинете: без проверки на сервере любой
+# вошедший написал бы кому угодно, подставив чужой id.
+
+
+def _собеседник(я: Person, кто: str) -> Person | None:
+    """Человек, с которым у меня есть связь. Для всех остальных id разговора
+    не существует — и отвечаем «не найдено», а не «нельзя»: «нельзя»
+    подтверждает, что такой человек у нас есть (правило файла)."""
+    свой = (Bond.objects.filter(teacher=я, student_id=кто).select_related("student").first()
+            or Bond.objects.filter(student=я, teacher_id=кто).select_related("teacher").first())
+    if not свой:
+        return None
+    return свой.student if свой.teacher_id == я.id else свой.teacher
+
+
+def _реплика(m: Message, я: Person) -> dict:
+    вышло = {
+        "id": m.id,
+        "мой": m.sender_id == я.id,
+        "вид": m.kind,
+        "текст": m.text,
+        "когда": m.made_at.isoformat(),
+        "прочитано": m.read_at is not None,
+    }
+    if m.kind == Message.INVITE:
+        # Занятие могли снять — тогда реплика остаётся, а урока в ней нет.
+        # Пусто здесь значит «занятие снято», и интерфейс скажет это словами.
+        вышло["урок"] = ({
+            "id": m.lesson.id,
+            "название": m.lesson.title,
+            "дата": m.lesson.on.isoformat(),
+            "время": m.lesson.at.strftime("%H:%M"),
+            "код": m.lesson.code,
+        } if m.lesson else None)
+    return вышло
+
+
+def talks(request: HttpRequest) -> JsonResponse:
+    """С кем я в переписке. Это ровно те, с кем есть связь, — включая тех,
+    кому ещё ни разу не писали: пустой разговор с учеником нужен, чтобы
+    было куда написать первое слово."""
+    if request.method != "GET":
+        return _no("Этот путь отвечает только на GET.", 405)
+    я = who(request)
+    if not я:
+        return _no("Сначала войдите.", 401)
+
+    связи = (list(Bond.objects.filter(teacher=я).select_related("student"))
+             + list(Bond.objects.filter(student=я).select_related("teacher")))
+    люди = {(b.student if b.teacher_id == я.id else b.teacher).id:
+            (b.student if b.teacher_id == я.id else b.teacher, b) for b in связи}
+    if not люди:
+        return JsonResponse({"разговоры": []})
+
+    # Один запрос на все разговоры: их единицы, а N+1 к базе на каждом
+    # открытии кабинета — это цена, которую платит каждый вход.
+    все = list(Message.objects
+               .filter(models.Q(sender=я, receiver_id__in=люди) |
+                       models.Q(receiver=я, sender_id__in=люди))
+               .select_related("lesson")
+               .order_by("made_at"))
+
+    последнее: dict[str, Message] = {}
+    непрочитано: dict[str, int] = {}
+    for m in все:
+        другой = m.receiver_id if m.sender_id == я.id else m.sender_id
+        последнее[другой] = m
+        if m.receiver_id == я.id and m.read_at is None:
+            непрочитано[другой] = непрочитано.get(другой, 0) + 1
+
+    разговоры = []
+    for id_, (человек, связь) in люди.items():
+        m = последнее.get(id_)
+        разговоры.append({
+            "кто": id_,
+            "имя": человек.name,
+            "роль": человек.role,
+            "с": связь.since.date().isoformat(),
+            "непрочитано": непрочитано.get(id_, 0),
+            "последнее": _реплика(m, я) if m else None,
+        })
+    # Сверху те, где есть непрочитанное, потом по свежести разговора.
+    разговоры.sort(key=lambda р: (
+        -р["непрочитано"],
+        р["последнее"]["когда"] if р["последнее"] else "",
+    ), reverse=False)
+    разговоры.sort(key=lambda р: (р["непрочитано"] > 0,
+                                  р["последнее"]["когда"] if р["последнее"] else ""),
+                   reverse=True)
+    return JsonResponse({"разговоры": разговоры})
+
+
+@csrf_exempt
+def talk(request: HttpRequest, кто: str) -> JsonResponse:
+    """GET — вся переписка с человеком. POST — написать ему."""
+    я = who(request)
+    if not я:
+        return _no("Сначала войдите.", 401)
+    другой = _собеседник(я, кто)
+    if not другой:
+        return _no("Такого разговора нет.", 404)
+
+    if request.method == "GET":
+        письма = (Message.objects
+                  .filter(models.Q(sender=я, receiver=другой) |
+                          models.Q(sender=другой, receiver=я))
+                  .select_related("lesson")
+                  .order_by("made_at"))
+        return JsonResponse({
+            "кто": другой.id,
+            "имя": другой.name,
+            "роль": другой.role,
+            "письма": [_реплика(m, я) for m in письма],
+        })
+
+    if request.method != "POST":
+        return _no("Этот путь отвечает на GET и POST.", 405)
+
+    тело = _body(request)
+    урок_id = str(тело.get("урок") or "").strip()
+
+    if урок_id:
+        # Зов на занятие. Зовёт только тот, чьё это занятие: позвать класс на
+        # чужой урок — значит раздать чужую комнату.
+        if я.role != Person.TEACHER:
+            return _no("На занятие зовёт преподаватель.", 403)
+        урок = Lesson.objects.filter(id=урок_id, teacher=я).first()
+        if not урок:
+            return _no("Такого занятия нет.", 404)
+        m = Message.objects.create(sender=я, receiver=другой, kind=Message.INVITE,
+                                   text=str(тело.get("текст") or "").strip()[:Message.MAX],
+                                   lesson=урок)
+        return JsonResponse({"письмо": _реплика(m, я)}, status=201)
+
+    текст = str(тело.get("текст") or "").strip()
+    if not текст:
+        return _no("Сообщение пустое: напишите, что передать.")
+    if len(текст) > Message.MAX:
+        return _no(f"Слишком длинно: до {Message.MAX} знаков. "
+                   "Что длиннее — это уже пособие к занятию.")
+    m = Message.objects.create(sender=я, receiver=другой, text=текст)
+    return JsonResponse({"письмо": _реплика(m, я)}, status=201)
+
+
+@csrf_exempt
+def talk_read(request: HttpRequest, кто: str) -> JsonResponse:
+    """Отметить прочитанным всё, что пришло от этого человека.
+
+    🔴 Отдельным путём, а не побочным делом GET: чтение не должно менять
+    состояние. Иначе предзагрузка страницы браузером гасит непрочитанное,
+    которого человек не видел."""
+    if request.method != "POST":
+        return _no("Этот путь отвечает только на POST.", 405)
+    я = who(request)
+    if not я:
+        return _no("Сначала войдите.", 401)
+    другой = _собеседник(я, кто)
+    if not другой:
+        return _no("Такого разговора нет.", 404)
+    сколько = (Message.objects.filter(receiver=я, sender=другой, read_at__isnull=True)
+               .update(read_at=timezone.now()))
+    return JsonResponse({"отмечено": сколько})
