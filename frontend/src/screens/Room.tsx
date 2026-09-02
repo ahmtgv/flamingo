@@ -11,6 +11,7 @@ import { Screen } from '../room/Screen'
 import { Show } from '../room/Show'
 import { ShowList } from '../room/ShowList'
 import { deckFrom, pickFiles } from '../room/deck'
+import { планСпроса } from '../room/спрос'
 import { allShows, dropShow, putShow, type Ink, type ShowDoc } from '../room/shows'
 import { Stage } from '../room/Stage'
 import { Tiles } from '../room/Tiles'
@@ -97,8 +98,15 @@ export function Room({ code, name, onLeave, onHome }: Props) {
     source: Source; live: typeof live; doc: ShowDoc | null; i: number; lead: boolean; liveInk: Ink[]
   }>({ source: 'faces', live: null, doc: null, i: 0, lead: false, liveInk: [] })
   scene.current = { source, live, doc: active, i: shown.i, lead: iLead, liveInk }
+  /* Приехала ли сцена хоть каким-то сообщением. Ссылка, а не состояние:
+     её читает подписка, которая живёт дольше любого кадра. */
+  const сценаПришла = useRef(false)
 
   useEffect(() => bus.subscribe((m) => {
+    /* Любое из четырёх — уже ответ: спрашивать больше не о чем. */
+    if (m.t === 'stage' || m.t === 'live' || m.t === 'showMeta' || m.t === 'showPage') {
+      сценаПришла.current = true
+    }
     if (m.t === 'stage') setSource(m.source)
     if (m.t === 'live') {
       setLive({ sourceId: m.sourceId, url: m.url, имя: m.имя })
@@ -166,6 +174,18 @@ export function Room({ code, name, onLeave, onHome }: Props) {
     }
     wasPeers.current = peers
   }, [peers, bus])
+
+  /* 🔴 ВОШЕДШИЙ СПРАШИВАЕТ САМ, И НЕ ОДИН РАЗ (владелец 02.09: «ученик не
+     видит трансляцию учебных пособий и доски»). Почему так и что было
+     сломано — в `room/спрос.ts`, там же караул. Здесь только руки. */
+  useEffect(() => {
+    const сроки = планСпроса({ фаза: phase, веду: iLead, соседей: peers, сценаПришла: сценаПришла.current })
+    if (!сроки.length) return
+    const метки = сроки.map((мс) => setTimeout(() => {
+      if (!сценаПришла.current) bus.send({ t: 'ask' })
+    }, мс))
+    return () => метки.forEach(clearTimeout)
+  }, [phase, iLead, peers, bus])
 
   const pick = useCallback(
     (next: Source) => {
