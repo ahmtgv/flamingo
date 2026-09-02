@@ -3,7 +3,13 @@
   position: absolute;
   left: var(--space-4);
   top: var(--space-4);
-  bottom: var(--space-4);
+  /* 🔴 ПАНЕЛЬ САМА РЕЗЕРВИРУЕТ МЕСТО ПОД ПУЛЬТОМ (ПРАВИЛА 3.6). Пульт занятия
+     плавает по центру низа и стоит ВСЕГДА; панель кончалась там же, и её
+     последняя строка — «Добавленное с компьютера хранится на нём же» —
+     уходила под пульт. Отступ живёт в панели, а не в пульте: иначе каждый,
+     кто появится внизу, будет садиться на чужой текст. Формула та же, что у
+     рельса кабинета: высота пульта плюс его отступ снизу и столько же сверху. */
+  bottom: calc(var(--control-height-md) + 2 * var(--space-4));
   width: 24rem;
   max-width: calc(100% - var(--space-8));
   z-index: 3;
@@ -62,11 +68,21 @@
   color: var(--color-text-secondary);
 }
 
+/* Единственная прокручиваемая середина панели: и пособия урока, и то, что
+   добавили с компьютера, живут внутри неё. Прокрутка одна, а не две
+   (ПРАВИЛА 1.3). */
+.свиток {
+  overflow: auto;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-content: start;
+  min-height: 0;
+}
+
 .list {
   margin: 0;
   padding: var(--space-2);
   list-style: none;
-  overflow: auto;
   display: grid;
   gap: var(--space-1);
   align-content: start;
