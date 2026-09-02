@@ -61,7 +61,9 @@ export function useSheets(bus: Bus, peers: number) {
       // Что показывают классу, пометки показа и чат — не дело доски: этим ведает комната.
       if (
         m.t === 'stage' || m.t === 'chat' || m.t === 'showMeta' || m.t === 'showPage' ||
-        m.t === 'live' || m.t === 'ink' || m.t === 'inkDel' || m.t === 'inkAll'
+        m.t === 'live' || m.t === 'ink' || m.t === 'inkDel' || m.t === 'inkAll' ||
+        // Подпись «кто ведёт» — дело комнаты, а не доски (Room.tsx).
+        m.t === 'lead'
       ) return
       const sh = sheet(m.sheet)
       if (!sh) return

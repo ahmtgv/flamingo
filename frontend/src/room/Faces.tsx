@@ -71,8 +71,14 @@ export function Faces({ faces, alone, link, onCopy, phase, error }: {
 }) {
   // Ведущий стоит первым и во всю ширину полосы: на него смотрит класс, и в решётке
   // равных плиток среди тридцати он терялся (решение владельца 30.08).
-  const lead = faces.find((f) => f.lead) ?? faces[0]
-  const pupils = faces.filter((f) => f !== lead)
+  /* 🔴 «Первый в списке» — ЯКОРЬ РАСКЛАДКИ, А НЕ РОЛЬ. Крупная плитка кому-то
+     нужна всегда, иначе полоса разъезжается. Но подпись «ведёт занятие» на ней
+     появляется, ТОЛЬКО если ведущий назван (Room.tsx, `ведущий`). Раньше здесь
+     стояло `?? faces[0]` и подпись доставалась первому вошедшему — тот же самый
+     промах, что и в useRoom, только с другой стороны. */
+  const якорь = faces.find((f) => f.lead) ?? faces[0]
+  const ведёт = Boolean(якорь?.lead)
+  const pupils = faces.filter((f) => f !== якорь)
   const shown = pupils.slice(0, CAP)
   const rest = pupils.length - shown.length
 
@@ -101,7 +107,7 @@ export function Faces({ faces, alone, link, onCopy, phase, error }: {
   return (
     <aside className={s.rail} aria-label="Участники">
       <div className={s.tiles}>
-        {lead ? <Tile key={lead.identity} face={lead} lead /> : null}
+        {якорь ? <Tile key={якорь.identity} face={якорь} lead={ведёт} /> : null}
         {shown.length > 0 ? (
           <div className={s.pupils}>
             {shown.map((f) => (

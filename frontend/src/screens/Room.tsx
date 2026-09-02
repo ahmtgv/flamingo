@@ -26,7 +26,7 @@ import s from './Room.module.css'
 type Props = { code: string; name: string; onLeave: () => void; onHome: () => void }
 
 export function Room({ code, name, onLeave, onHome }: Props) {
-  const { phase, error, faces, peers, bus, mic, cam, toggleMic, toggleCam, sharing, shareSaid, toggleShare, leave } = useRoom(code, name)
+  const { phase, error, faces, me, peers, bus, mic, cam, toggleMic, toggleCam, sharing, shareSaid, toggleShare, leave } = useRoom(code, name)
   /* 🔴 Посещение отмечает КОМНАТА, а не рука преподавателя: она знает, кто
      вошёл. Тихо: если человек без учётной записи или комната не от занятия —
      сервер так и отвечает, и говорить об этом на уроке нечего.
@@ -42,10 +42,33 @@ export function Room({ code, name, onLeave, onHome }: Props) {
      Спрашиваем один раз на вход. Пусто — обычное дело: «Начать урок сейчас»
      занятия не заводит, и говорить об этом на уроке нечего. */
   const [пособия, setПособия] = useState<Пособие[]>([])
+  /* 🔴 ВЕДУ ЛИ Я ЗАНЯТИЕ — ОТВЕТ СЕРВЕРА, И БОЛЬШЕ НИЧЕЙ.
+   *
+   *  Владелец 02.09: «если ученик заходит раньше учителя, он становится в
+   *  статусе учителя со всеми доступными учителю опциями — это не должно быть
+   *  априори; не блокировать скриптом, а исключить как сценарий программно,
+   *  чтобы не было даже намёка на такую возможность».
+   *
+   *  Было именно так: комната считала ведущим того, кто вошёл первым
+   *  (`withLead` в useRoom.ts — удалён целиком, а не обвешан проверками).
+   *
+   *  Теперь роль отвечает `GET /api/study/rooms/<код>` — и отвечает про того,
+   *  кто прислал свою куку. Никакого другого источника нет:
+   *    · сервер молчит — ведущего нет;
+   *    · комната не от занятия — ведущего нет;
+   *    · человек не хозяин этого занятия — ведущего нет.
+   *  Начальное значение `false`, а не `true`: неизвестность здесь означает
+   *  «прав нет», иначе первые кадры до ответа сервера снова раздали бы права
+   *  всем подряд. */
+  const [веду, setВеду] = useState(false)
   useEffect(() => {
     let живо = true
     пособияКомнаты(code)
-      .then((о) => { if (живо && о) setПособия(о.пособия) })
+      .then((о) => {
+        if (!живо || !о) return
+        setПособия(о.пособия)
+        setВеду(о.веду)
+      })
       .catch(() => undefined)
     return () => { живо = false }
   }, [code])
@@ -86,9 +109,22 @@ export function Room({ code, name, onLeave, onHome }: Props) {
 
   /* Ведущий в куске 1 — тот, кто открыл комнату: аккаунтов и ролей нет, роль
      считается по времени входа. Экран ученика от этого легче. */
-  const iLead = faces.find((f) => f.isLocal)?.lead ?? true
+  /* Права — только по ответу сервера. Ни времени входа, ни порядка в списке,
+     ни чьего-либо слова по каналу здесь нет и быть не может. */
+  const iLead = веду
 
   const active = shows.find((d) => d.id === activeId) ?? null
+
+  /* 🔴 ПОДПИСЬ, А НЕ ПРАВО. Класс должен видеть, на чьей плитке написано
+     «ведёт занятие». Знает это только сам ведущий — от сервера, — поэтому он
+     называет свой опознаватель по каналу. Подделать это сообщение чужим
+     клиентом можно, и цена подделки ровно одна: подпись окажется не на той
+     плитке. Прав она не даёт: их каждый экран берёт из СВОЕГО ответа сервера
+     (см. `веду` выше). Никто не назван — подписи нет ни у кого, и это верно:
+     врать про роль хуже, чем промолчать. */
+  const [ведущий, setВедущий] = useState<string | null>(null)
+  const лица = faces.map((f) => (f.lead === (f.identity === ведущий) ? f
+    : { ...f, lead: f.identity === ведущий }))
 
   useEffect(() => {
     allShows().then(setShows).catch(() => setShows([]))
@@ -110,6 +146,7 @@ export function Room({ code, name, onLeave, onHome }: Props) {
     if (m.t === 'stage' || m.t === 'live' || m.t === 'showMeta' || m.t === 'showPage') {
       сценаПришла.current = true
     }
+    if (m.t === 'lead') setВедущий(m.id)
     if (m.t === 'stage') setSource(m.source)
     if (m.t === 'live') {
       setLive({ sourceId: m.sourceId, url: m.url, имя: m.имя })
@@ -177,6 +214,14 @@ export function Room({ code, name, onLeave, onHome }: Props) {
     }
     wasPeers.current = peers
   }, [peers, bus])
+
+  /* Ведущий называет себя классу — при выходе в эфир и на каждого вошедшего:
+     подпись нужна и тому, кто пришёл последним. */
+  useEffect(() => {
+    if (phase !== 'live' || !веду || !me) return
+    setВедущий(me)
+    bus.send({ t: 'lead', id: me })
+  }, [phase, веду, me, peers, bus])
 
   /* 🔴 ВОШЕДШИЙ СПРАШИВАЕТ САМ, И НЕ ОДИН РАЗ (владелец 02.09: «ученик не
      видит трансляцию учебных пособий и доски»). Почему так и что было
@@ -536,7 +581,7 @@ export function Room({ code, name, onLeave, onHome }: Props) {
           />
         ) : null}
         {source === 'faces' ? (
-          <Stage faces={faces} alone={alone} link={link} onCopy={copy} phase={phase} error={error} />
+          <Stage faces={лица} alone={alone} link={link} onCopy={copy} phase={phase} error={error} />
         ) : null}
 
         {/* Отказ показа экрана. Человек закрыл окно выбора — это не поломка,
@@ -555,7 +600,7 @@ export function Room({ code, name, onLeave, onHome }: Props) {
         ) : null}
 
         {/* Лица лежат ПОВЕРХ доски: холст под ними бесконечный и ничем не обрезан. */}
-        {source !== 'faces' && phase === 'live' ? <Tiles faces={faces} /> : null}
+        {source !== 'faces' && phase === 'live' ? <Tiles faces={лица} /> : null}
 
         {/* Эфир — своя область (ПРАВИЛА 6.5): пока он не поднялся, об этом говорит
             карточка лиц, а доска продолжает работать. */}

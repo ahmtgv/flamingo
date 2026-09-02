@@ -62,8 +62,14 @@ const CAP = 8
 
 export function Tiles({ faces }: { faces: Face[] }) {
   const [open, setOpen] = useState(true)
-  const lead = faces.find((f) => f.lead) ?? faces[0]
-  const pupils = faces.filter((f) => f !== lead)
+  /* 🔴 «Первый в списке» — ЯКОРЬ РАСКЛАДКИ, А НЕ РОЛЬ. Крупная плитка кому-то
+     нужна всегда, иначе полоса разъезжается. Но подпись «ведёт занятие» на ней
+     появляется, ТОЛЬКО если ведущий назван (Room.tsx, `ведущий`). Раньше здесь
+     стояло `?? faces[0]` и подпись доставалась первому вошедшему — тот же самый
+     промах, что и в useRoom, только с другой стороны. */
+  const якорь = faces.find((f) => f.lead) ?? faces[0]
+  const ведёт = Boolean(якорь?.lead)
+  const pupils = faces.filter((f) => f !== якорь)
   const shown = pupils.slice(0, CAP)
   const rest = pupils.length - shown.length
 
@@ -80,7 +86,7 @@ export function Tiles({ faces }: { faces: Face[] }) {
       <button type="button" className={s.hide} onClick={() => setOpen(false)}>
         Свернуть превью
       </button>
-      {lead ? <Tile face={lead} lead /> : null}
+      {якорь ? <Tile face={якорь} lead={ведёт} /> : null}
       <div className={s.pupils}>
         {shown.map((f) => (
           <Tile key={f.identity} face={f} />

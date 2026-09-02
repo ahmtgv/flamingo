@@ -83,8 +83,14 @@ export function Stage({ faces, alone, link, onCopy, phase, error }: {
 }) {
   const boxRef = useRef<HTMLDivElement>(null)
   const [cols, setCols] = useState(2)
-  const lead = faces.find((f) => f.lead) ?? faces[0]
-  const pupils = faces.filter((f) => f !== lead)
+  /* 🔴 «Первый в списке» — ЯКОРЬ РАСКЛАДКИ, А НЕ РОЛЬ. Крупная плитка кому-то
+     нужна всегда, иначе полоса разъезжается. Но подпись «ведёт занятие» на ней
+     появляется, ТОЛЬКО если ведущий назван (Room.tsx, `ведущий`). Раньше здесь
+     стояло `?? faces[0]` и подпись доставалась первому вошедшему — тот же самый
+     промах, что и в useRoom, только с другой стороны. */
+  const якорь = faces.find((f) => f.lead) ?? faces[0]
+  const ведёт = Boolean(якорь?.lead)
+  const pupils = faces.filter((f) => f !== якорь)
 
   useEffect(() => {
     const el = boxRef.current
@@ -121,7 +127,7 @@ export function Stage({ faces, alone, link, onCopy, phase, error }: {
 
   return (
     <div className={s.stage}>
-      <div className={s.half}>{lead ? <Tile face={lead} lead big /> : null}</div>
+      <div className={s.half}>{якорь ? <Tile face={якорь} lead={ведёт} big /> : null}</div>
 
       {pupils.length > 0 ? (
         <div className={s.half} ref={boxRef}>
