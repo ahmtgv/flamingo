@@ -81,9 +81,14 @@
   color: var(--color-text-detail);
 }
 
+/* 🔴 `align-items: flex-start` обязателен. Без него колонка растягивает детей
+   по ширине, и пузырь занимает всю панель от края до края — из-за чего короткое
+   «йоу» читается как полотно, а своё и чужое перестаёт различаться местом.
+   Поймано на боевом сразу после выката. */
 .реплика {
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
   gap: var(--space-1);
   max-width: 90%;
 }
@@ -209,8 +214,14 @@
   color: var(--color-alarm-text);
 }
 
+/* 🔴 ДВЕ СТРОКИ, А НЕ ОДНА. В одну строку поле, «Позвать на урок» и
+   «Отправить» в 23rem не влезали: главное действие уезжало за край панели и
+   нажать его было нечем. Поле сверху во всю ширину, кнопки под ним справа —
+   и ничего не обрезается ни на какой ширине. */
 .низ {
   display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
   align-items: center;
   gap: var(--space-2);
   padding: var(--space-3);
@@ -218,7 +229,7 @@
 }
 
 .поле {
-  flex: 1;
+  flex: 1 0 100%;
   min-width: 0;
   min-height: var(--control-height-sm);
   padding: 0 var(--space-3);
