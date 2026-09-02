@@ -1,0 +1,233 @@
+/* Разговор вне занятия. Тем же языком, что чат урока: одна вещь, выученная
+   один раз. Панель ПАРИТ над содержимым и ничего не сжимает — журнал и
+   расписание остаются на своих местах и той же ширины. */
+
+.панель {
+  position: fixed;
+  right: var(--space-4);
+  bottom: var(--space-4);
+  top: calc(var(--space-4) + var(--space-11));
+  width: 23rem;
+  max-width: calc(100vw - 2 * var(--space-4));
+  z-index: 30;
+  display: grid;
+  /* Три ряда ровно: шапка, лента, низ. Лента одна тянется. */
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+}
+
+@media (max-width: 560px) {
+  .панель {
+    left: var(--space-3);
+    right: var(--space-3);
+    top: var(--space-3);
+    bottom: var(--space-3);
+    width: auto;
+  }
+}
+
+.верх {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.кто {
+  font-weight: var(--weight-semibold);
+  font-size: var(--text-body);
+  color: var(--color-text);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.закрыть {
+  margin-left: auto;
+  flex: none;
+  width: var(--control-height-sm);
+  height: var(--control-height-sm);
+  display: grid;
+  place-items: center;
+  border: none;
+  background: none;
+  border-radius: var(--radius-pill);
+  color: var(--color-text-detail);
+  cursor: pointer;
+}
+
+.закрыть:hover { background: var(--color-surface-hover); color: var(--color-text); }
+
+/* 🔴 Лента прокручивается ОДНА, и высота ей задана рядом грида, а не
+   содержимым: иначе длинный разговор выдавливает строку ввода за край окна,
+   и написать становится нечем. */
+.лента {
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-4);
+}
+
+.слова {
+  margin: 0;
+  font-size: var(--text-small);
+  color: var(--color-text-detail);
+}
+
+.реплика {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  max-width: 90%;
+}
+
+.моя { align-self: flex-end; align-items: flex-end; }
+
+.когда {
+  font: var(--weight-regular) var(--text-overline) var(--font-mono);
+  color: var(--color-text-hint);
+}
+
+.пузырь {
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-subtle);
+  color: var(--color-text);
+  font-size: var(--text-small);
+  /* Чужой текст без пробелов не должен растягивать панель. */
+  overflow-wrap: anywhere;
+}
+
+.моя .пузырь { background: var(--color-go-bg); }
+
+/* Зов на занятие — не пузырь: у него своя работа и своя дверь. */
+.зов {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border: 1px solid var(--color-go-text);
+  border-radius: var(--radius-md);
+  background: var(--color-go-bg);
+}
+
+.зовШапка {
+  font: var(--weight-medium) var(--text-overline) var(--font-mono);
+  letter-spacing: var(--tracking-overline);
+  text-transform: uppercase;
+  color: var(--color-go-text);
+}
+
+.зовИмя {
+  font-weight: var(--weight-semibold);
+  font-size: var(--text-small);
+  color: var(--color-text);
+  overflow-wrap: anywhere;
+}
+
+.зовКогда {
+  font-size: var(--text-caption);
+  color: var(--color-text-detail);
+}
+
+.зовВход {
+  align-self: flex-start;
+  min-height: var(--control-height-sm);
+  display: inline-flex;
+  align-items: center;
+  padding: 0 var(--space-4);
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--color-go-text);
+  color: var(--color-go-text);
+  font-size: var(--text-caption);
+  font-weight: var(--weight-medium);
+  text-decoration: none;
+}
+
+.зовВход:hover { background: var(--color-surface); }
+
+/* Занятие сняли: реплика осталась, но звать больше некуда. */
+.зовСнят {
+  border-color: var(--color-border);
+  background: var(--color-surface-subtle);
+}
+
+.зовСнят .зовШапка { color: var(--color-text-detail); }
+
+.выбор {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border-top: 1px solid var(--color-border);
+  max-height: 14rem;
+  overflow-y: auto;
+}
+
+.выборЗаголовок {
+  font: var(--weight-medium) var(--text-overline) var(--font-mono);
+  letter-spacing: var(--tracking-overline);
+  text-transform: uppercase;
+  color: var(--color-text-detail);
+}
+
+.урок {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-height: var(--control-height-md);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  text-align: left;
+  cursor: pointer;
+}
+
+.урок:hover { border-color: var(--color-border-strong); background: var(--color-surface-hover); }
+
+.урокКогда {
+  font: var(--weight-regular) var(--text-overline) var(--font-mono);
+  color: var(--color-text-detail);
+}
+
+.урокИмя { font-size: var(--text-small); color: var(--color-text); }
+
+/* Отказ несёт слова сервера, а не «что-то пошло не так» (ПРАВИЛА 6.4). */
+.отказ {
+  margin: 0;
+  padding: var(--space-2) var(--space-4);
+  border-top: 1px solid var(--color-border);
+  font-size: var(--text-caption);
+  color: var(--color-alarm-text);
+}
+
+.низ {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border-top: 1px solid var(--color-border);
+}
+
+.поле {
+  flex: 1;
+  min-width: 0;
+  min-height: var(--control-height-sm);
+  padding: 0 var(--space-3);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  font-size: var(--text-small);
+}
+
+.поле::placeholder { color: var(--color-text-hint); }

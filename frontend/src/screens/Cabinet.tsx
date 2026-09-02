@@ -3,7 +3,8 @@ import { useEffect, useMemo, useState } from 'react'
 import type { Person } from '../lib/auth'
 import { Mark } from '../ui/Mark'
 import { сегодняСтрокой } from '../lib/lessons'
-import { гдеЛежат, урокСейчас, читатьУроки, type Урок } from '../lib/study'
+import { гдеЛежат, разговоры, урокСейчас, читатьУроки, type Разговор, type Урок } from '../lib/study'
+import { Переписка } from './Переписка'
 import s from './Cabinet.module.css'
 
 /** Личный кабинет — учителя и ученика.
@@ -111,6 +112,38 @@ export function Cabinet({ person, onLesson, onNew, onEdit, onJournal, onOut, onH
      только сервер, и придумать её на месте нельзя ни ученику, ни учителю.
      Сервер молчит — говорим словами и никуда не ведём: открыть комнату, в
      которой нельзя вести урок, хуже, чем сказать «сейчас нельзя». */
+  /* 🔴 РАЗГОВОРЫ С ПРЕПОДАВАТЕЛЯМИ (решение владельца 02.09: «ученик может
+     писать учителю из своего кабинета — сразу после того, как они добавились
+     друг к другу»). Список — это те, с кем есть связь; пустой разговор в нём
+     тоже стоит, иначе первое слово написать некуда. */
+  const [беседы, setБеседы] = useState<Разговор[] | null>(null)
+  const [говорим, setГоворим] = useState<{ кто: string; имя: string } | null>(null)
+  const обновитьБеседы = () => { разговоры().then(setБеседы) }
+  useEffect(() => { if (!учитель) обновитьБеседы() }, [учитель])
+
+  const beседы = () => (
+    <>
+      {(беседы ?? []).map((б) => (
+        <button
+          key={б.кто}
+          type="button"
+          className={s.act}
+          onClick={() => setГоворим({ кто: б.кто, имя: б.имя })}
+        >
+          <span className={s.actName}>
+            {б.имя}
+            {б.непрочитано > 0 ? <span className={s.новые}>{б.непрочитано}</span> : null}
+          </span>
+          <span className={s.actWhy}>
+            {б.последнее
+              ? (б.последнее.вид === 'invite' ? 'зовёт на занятие' : б.последнее.текст)
+              : 'разговора ещё не было'}
+          </span>
+        </button>
+      ))}
+    </>
+  )
+
   const [сейчасИдёт, setСейчасИдёт] = useState(false)
   const [сейчасБеда, setСейчасБеда] = useState('')
   const начатьСейчас = async () => {
@@ -290,19 +323,36 @@ export function Cabinet({ person, onLesson, onNew, onEdit, onJournal, onOut, onH
             </div>
           ) : (
             <div className={s.acts}>
-              <div className={s.empty}>
-                <span className={s.emptyHead}>Переписки пока нет</span>
-                <span className={s.emptyBody}>
-                  Здесь будут разговоры с преподавателями вне урока: вопросы,
-                  ссылки, картинки и документы. Появятся вместе с курсом —
-                  писать можно тому, кто вас учит.
-                </span>
-              </div>
+              {беседы === null ? (
+                <div className={s.empty}>
+                  <span className={s.emptyHead}>Смотрим, с кем вы в переписке…</span>
+                </div>
+              ) : беседы.length === 0 ? (
+                <div className={s.empty}>
+                  <span className={s.emptyHead}>Переписки пока нет</span>
+                  <span className={s.emptyBody}>
+                    Писать можно тому, кто вас учит. Как только преподаватель
+                    добавит вас к себе, он появится здесь — и разговор откроется
+                    отсюда же.
+                  </span>
+                </div>
+              ) : (
+                beседы()
+              )}
               <Дверь имя="Мои методички" ждёт="то, что преподаватель дал к уроку" />
             </div>
           )}
         </section>
       </div>
+      {говорим ? (
+        <Переписка
+          кто={говорим.кто}
+          имя={говорим.имя}
+          веду={false}
+          onClose={() => { setГоворим(null); обновитьБеседы() }}
+          onПрочитано={обновитьБеседы}
+        />
+      ) : null}
     </main>
   )
 }

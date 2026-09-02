@@ -216,7 +216,21 @@
   min-width: 0;
 }
 
+/* Имя ученика — дверь в разговор с ним (решение владельца 02.09). Кнопка, а
+   не ссылка: разговор открывается панелью здесь же, адреса у него нет. Цель
+   нажатия во всю ширину столбца: попадать в имя мышью — не работа человека. */
 .nameWho {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  width: 100%;
+  min-height: var(--control-height-sm);
+  padding: 0;
+  border: none;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+  font-family: inherit;
   font-size: var(--text-small);
   font-weight: var(--weight-medium);
   color: var(--color-text);
@@ -226,6 +240,22 @@
   min-width: 0;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.nameWho:hover { color: var(--color-go-text); }
+
+/* Сколько непрочитанного. 🔴 ЗЕЛЁНОЕ, А НЕ КОРАЛЛОВОЕ: коралловым красим то,
+   что портится от ожидания (решение владельца 24.08). Сообщение не портится —
+   оно никуда не денется; портится поднятая рука на уроке, она и коралловая. */
+.новые {
+  flex: none;
+  min-width: var(--space-5);
+  padding: 0 var(--space-1);
+  border-radius: var(--radius-pill);
+  background: var(--color-go-bg);
+  color: var(--color-go-text);
+  font: var(--weight-medium) var(--text-overline) var(--font-mono);
+  text-align: center;
 }
 
 .nameHow {

@@ -417,6 +417,9 @@
 }
 
 .actName {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
   font-size: var(--text-small);
   font-weight: var(--weight-medium);
   color: var(--color-text);
@@ -497,4 +500,18 @@
   min-height: var(--tap-min);
   border: 1px dashed var(--color-border);
   background: none;
+}
+
+/* Сколько непрочитанного в разговоре с преподавателем.
+   🔴 ЗЕЛЁНОЕ, А НЕ КОРАЛЛОВОЕ: коралловым красим то, что портится от ожидания
+   (решение владельца 24.08). Сообщение не портится — оно никуда не денется. */
+.новые {
+  flex: none;
+  min-width: var(--space-5);
+  padding: 0 var(--space-1);
+  border-radius: var(--radius-pill);
+  background: var(--color-go-bg);
+  color: var(--color-go-text);
+  font: var(--weight-medium) var(--text-overline) var(--font-mono);
+  text-align: center;
 }

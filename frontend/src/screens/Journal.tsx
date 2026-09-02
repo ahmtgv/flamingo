@@ -3,6 +3,8 @@ import { useCallback, useEffect, useState } from 'react'
 import type { Person } from '../lib/auth'
 import { Mark } from '../ui/Mark'
 import { Беда, сделатьПриглашение, читатьЖурнал, type Журнал as Данные } from '../lib/study'
+import { Переписка } from './Переписка'
+import { разговоры } from '../lib/study'
 import s from './Journal.module.css'
 
 /** Журнал: все ученики и все занятия.
@@ -76,6 +78,24 @@ export function Journal({ person, onBack, onHome, onOut, onNew, onLesson }: {
   const сколькоВДне = new Map<string, number>()
   for (const у of уроки) сколькоВДне.set(у.дата, (сколькоВДне.get(у.дата) ?? 0) + 1)
   const ученики = данные?.ученики ?? []
+
+  /* 🔴 ПЕРЕПИСКА ОТКРЫВАЕТСЯ ИЗ СТРОКИ УЧЕНИКА (решение владельца 02.09).
+     Отдельного списка «сообщения» нет нарочно: ученики уже стоят строками
+     журнала, и второй список тех же людей — это второе место, где их искать.
+     Непрочитанное считает сервер; здесь оно только показывается.
+     Цвет зелёный, а не коралловый: коралловым мы красим то, что портится от
+     ожидания (решение владельца 24.08), а сообщение не портится — оно никуда
+     не денется. */
+  const [говорим, setГоворим] = useState<{ кто: string; имя: string } | null>(null)
+  const [непрочитано, setНепрочитано] = useState<Map<string, number>>(new Map())
+  const пересчитать = useCallback(() => {
+    разговоры().then((р) => {
+      if (!р) return
+      setНепрочитано(new Map(р.map((х) => [х.кто, х.непрочитано])))
+    })
+  }, [])
+  useEffect(пересчитать, [пересчитать, месяц])
+  const будущие = уроки.filter((у) => !у.прошёл)
   const прошедших = уроки.filter((у) => у.прошёл).length
 
   return (
@@ -191,7 +211,17 @@ export function Journal({ person, onBack, onHome, onOut, onNew, onLesson }: {
                           «Пётр Вячеславович Хмельницки…» — 82 px срезано, и
                           узнать целиком было негде: в журнале имя единственное
                           место, где человек назван. */}
-                      <span className={s.nameWho} title={у.имя}>{у.имя}</span>
+                      <button
+                        type="button"
+                        className={s.nameWho}
+                        title={`Написать: ${у.имя}`}
+                        onClick={() => setГоворим({ кто: у.id, имя: у.имя })}
+                      >
+                        {у.имя}
+                        {(непрочитано.get(у.id) ?? 0) > 0 ? (
+                          <span className={s.новые}>{непрочитано.get(у.id)}</span>
+                        ) : null}
+                      </button>
                       <span className={s.nameHow}>по {у.как} · с {у.с.slice(8, 10)}.{у.с.slice(5, 7)}</span>
                     </span>
                     {уроки.map((урок, i) => (
@@ -244,6 +274,16 @@ export function Journal({ person, onBack, onHome, onOut, onNew, onLesson }: {
       {зовём ? (
         <Зовём
           onClose={() => { setЗовём(false); обновить() }}
+        />
+      ) : null}
+      {говорим ? (
+        <Переписка
+          кто={говорим.кто}
+          имя={говорим.имя}
+          веду
+          уроки={будущие}
+          onClose={() => { setГоворим(null); пересчитать() }}
+          onПрочитано={пересчитать}
         />
       ) : null}
     </main>
