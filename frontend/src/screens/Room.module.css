@@ -196,6 +196,28 @@
   border: 1px solid var(--color-border);
   background: var(--color-surface);
   box-shadow: var(--shadow-md);
+  /* Пульт спит, пока его не позвали (решение владельца 02.09, см. .pultBox).
+     `visibility`, а не `display`: спящий пульт выпадает из обхода клавиатуры,
+     но сохраняет размер — раскрываясь, ему нечего пересчитывать, и он не
+     дёргает кадр. */
+  visibility: hidden;
+  opacity: 0;
+  transform: translateY(var(--space-2));
+  transition:
+    opacity var(--duration-fast) ease,
+    transform var(--duration-fast) ease,
+    visibility var(--duration-fast);
+}
+
+/* Три пути к пульту, и ни один не теряется: мышь — наведением, палец —
+   нажатием на язычок (data-open), клавиатура — фокусом на язычке, который
+   стоит в разметке ПЕРВЫМ, поэтому Tab приходит к нему до кнопок пульта. */
+.pultBox:hover .pult,
+.pultBox:focus-within .pult,
+.pultBox[data-open='да'] .pult {
+  visibility: visible;
+  opacity: 1;
+  transform: none;
 }
 
 .divider {
@@ -218,12 +240,61 @@
   font-size: var(--text-caption);
 }
 
+/* 🔴 РЕШЕНИЕ ВЛАДЕЛЬЦА 02.09: «пусть нижнее меню появляется при наведении —
+   оно вторично», способ — «прячется везде, вызывается язычком».
+
+   ⚠️ Это ОТМЕНЯЕТ порядок «пульт стоит всегда» с листа «Комната урока» (31.08)
+   и ту причину, по которой он там появился: выключить микрофон снова станет
+   делом в два движения. Расхождение названо владельцу словами, а не решено
+   молча (правило 62.2). Решение — его.
+
+   Заодно снимается наезд со скрина владельца: пульт занятия стоял ПОВЕРХ
+   нижней полосы показа, и полоса показа читалась наполовину. */
 .pultBox {
   position: absolute;
-  max-width: calc(100% - var(--space-8));
   left: 50%;
   bottom: var(--space-4);
   transform: translateX(-50%);
   z-index: 4;
   max-width: calc(100% - var(--space-8));
+  display: flex;
+  /* Обратный порядок: в разметке язычок первый (ради Tab), на экране — нижний. */
+  flex-direction: column-reverse;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* Пока идёт показ, внизу кадра стоит его собственная полоса во всю ширину.
+   Раскрытый пульт поднимается НАД ней: две полосы друг на друге — это и был
+   дефект. Высота полосы собрана из тех же токенов, что и она сама. */
+.pultOverStrip {
+  bottom: calc(var(--space-4) + 2 * var(--space-3) + var(--control-height-sm) + var(--space-1));
+}
+
+/* Язычок — единственное, что видно, пока пульт спит. Цель нажатия полная
+   (ПРАВИЛА 7.2), а сам знак — короткая черта: он зовёт, а не спорит с уроком. */
+.pultTab {
+  display: grid;
+  place-items: center;
+  min-height: var(--control-height-sm);
+  padding: 0 var(--space-5);
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-md);
+  cursor: pointer;
+}
+
+.pultTabLine {
+  display: block;
+  width: var(--space-6);
+  height: var(--space-1);
+  border-radius: var(--radius-pill);
+  background: var(--color-text-detail);
+  transition: background var(--duration-fast) ease;
+}
+
+.pultTab:hover .pultTabLine,
+.pultTab:focus-visible .pultTabLine {
+  background: var(--color-text);
 }

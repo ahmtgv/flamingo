@@ -75,6 +75,9 @@ export function Room({ code, name, onLeave, onHome }: Props) {
   const [hubOpen, setHubOpen] = useState(false)
   const [live, setLive] = useState<{ sourceId: string; url: string; имя?: string } | null>(null)
   const [chatOpen, setChatOpen] = useState(false)
+  /* Пульт вызван пальцем. Мышь и клавиатура обходятся без состояния —
+     их держит CSS (:hover и :focus-within), а нажатие состояние требует. */
+  const [пультЗван, setПультЗван] = useState(false)
   const [тема, setТема] = useState<Тема>(читатьТему)
   const [unread, setUnread] = useState(0)
   const link = roomUrl(code)
@@ -606,11 +609,38 @@ export function Room({ code, name, onLeave, onHome }: Props) {
           />
         ) : null}
 
-        {/* 🔴 Пульт занятия стоит ВСЕГДА (лист «Комната урока», 31.08): раньше он
-            прятался за таблетку «микрофон · камера · выход», и посреди урока
-            выключить микрофон было делом в два движения. */}
-        <div className={s.pultBox}>
-          <div className={s.pult}>
+        {/* 🔴 Пульт занятия СПИТ и вызывается язычком — решение владельца 02.09
+            («оно вторично»). Это отменяет прежний порядок с листа «Комната
+            урока» (31.08), где пульт стоял всегда, и возвращает цену, ради
+            которой тот порядок вводился: выключить микрофон — два движения.
+            Расхождение названо владельцу вслух (62.2), решение принято им.
+            Разбор путей к пульту — в Room.module.css у .pultBox. */}
+        <div
+          className={`${s.pultBox} ${source === 'show' ? s.pultOverStrip : ''}`}
+          data-open={пультЗван ? 'да' : 'нет'}
+          onKeyDown={(e) => {
+            if (e.key !== 'Escape') return
+            setПультЗван(false)
+            /* Уводим фокус из пульта на язычок — иначе :focus-within держит
+               его раскрытым, и Escape выглядит сломанной кнопкой. */
+            e.currentTarget.querySelector<HTMLButtonElement>('[data-pult-tab]')?.focus()
+          }}
+        >
+          {/* Язычок ПЕРВЫМ в разметке ради обхода клавиатурой; на экране он
+              нижний — порядок переворачивает column-reverse. */}
+          <button
+            type="button"
+            data-pult-tab
+            className={s.pultTab}
+            aria-expanded={пультЗван}
+            aria-controls="pult"
+            aria-label={пультЗван ? 'Скрыть пульт занятия' : 'Показать пульт занятия'}
+            title="Пульт занятия"
+            onClick={() => setПультЗван((v) => !v)}
+          >
+            <span className={s.pultTabLine} aria-hidden="true" />
+          </button>
+          <div className={s.pult} id="pult">
             <Button kind="quiet" onClick={toggleMic} aria-pressed={mic}>
               {mic ? 'Микрофон' : 'Микрофон выключен'}
             </Button>
