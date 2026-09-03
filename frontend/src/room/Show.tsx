@@ -47,6 +47,15 @@ export function Show({
   const showRef = useRef<HTMLDivElement>(null)
   const imgRef = useRef<HTMLImageElement>(null)
   const [spot, setSpot] = useState<{ left: number; top: number; width: number; height: number } | null>(null)
+  /* 🔴 Размер страницы, ВПИСАННОЙ в кадр. От него и считается увеличение.
+     Первый заход был неверный: я поднимал `max-width` до 125% — а он умеет
+     только ОГРАНИЧИВАТЬ, не растягивать. Картинка меньше кадра оставалась
+     своего размера, и нажатие не делало ничего (поймано владельцем на боевом).
+     Поэтому размер теперь задаётся явно: вписанный × ступень. */
+  const [вписана, setВписана] = useState<{ w: number; h: number } | null>(null)
+  /* Картинка приезжает не мгновенно. Пока она не загрузилась, мерить нечего —
+     а померить надо ровно тогда, когда стало что. Счётчик будит замер. */
+  const [пришла, setПришла] = useState(0)
 
   /* 🔴 Слой пометок обязан лежать РОВНО по картинке, а не по сцене: доля 0.5 —
      это середина страницы, а не середина тёмного поля вокруг неё. Картинка сама
@@ -66,6 +75,9 @@ export function Show({
     const place = () => {
       const a = box.getBoundingClientRect()
       const b = img.getBoundingClientRect()
+      /* Мерку снимаем только когда страница вписана: в увеличенном виде она
+         мерила бы саму себя и росла бы с каждым кадром. */
+      if (масштаб === 1 && b.width > 0) setВписана({ w: b.width, h: b.height })
       setSpot(рамкаПометок(
         { left: a.left, top: a.top, scrollLeft: box.scrollLeft, scrollTop: box.scrollTop },
         { left: b.left, top: b.top, width: b.width, height: b.height },
@@ -80,7 +92,7 @@ export function Show({
       ro.disconnect()
       box.removeEventListener('scroll', place)
     }
-  }, [page, масштаб])
+  }, [page, масштаб, пришла])
 
   /* Отмена с клавиатуры — как на доске: рука тянется к Ctrl+Z сама. */
   useEffect(() => {
@@ -104,9 +116,19 @@ export function Show({
         <img
           ref={imgRef}
           className={s.page}
-          style={масштаб > 1
-            ? { maxWidth: `${масштаб * 100}%`, maxHeight: `${масштаб * 100}%` }
+          /* Явные ширина и высота, а не `transform`: страница по-настоящему
+             занимает больше места, показ получает прокрутку, и до дальнего угла
+             увеличенной страницы можно доехать. `transform` растянул бы картинку
+             поверх кадра, а доехать до края было бы нечем. */
+          style={масштаб > 1 && вписана
+            ? {
+              width: `${вписана.w * масштаб}px`,
+              height: `${вписана.h * масштаб}px`,
+              maxWidth: 'none',
+              maxHeight: 'none',
+            }
             : undefined}
+          onLoad={() => setПришла((n) => n + 1)}
           src={page}
           alt={`${title}, страница ${i + 1} из ${n}`}
         />
