@@ -199,3 +199,18 @@
   border-color: var(--color-text);
   background: var(--color-surface-subtle);
 }
+
+/* Увеличенная страница не влезает в кадр — показ становится прокручиваемым.
+   Без этого «увеличить» значило бы «обрезать». */
+.showZoom {
+  overflow: auto;
+  place-items: start center;
+}
+
+/* Пара «− +» перед названием: одна вещь, поэтому и стоят вместе. */
+.zoom {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  flex: none;
+}

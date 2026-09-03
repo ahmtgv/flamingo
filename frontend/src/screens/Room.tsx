@@ -131,6 +131,10 @@ export function Room({ code, name, onLeave, onHome }: Props) {
   const [shown, setShown] = useState<{ title: string; n: number; i: number; src: string | null }>({
     title: '', n: 0, i: 0, src: null,
   })
+  /* 🔴 Увеличение показа (решение владельца 02.09). Своё у каждого, но
+     движение ведущего уезжает классу: «посмотрите вот здесь» без общего
+     масштаба не значит ничего. */
+  const [масштаб, setМасштаб] = useState(1)
   const [wireInk, setWireInk] = useState<Record<number, Ink[]>>({})
   /* Пометки поверх трансляции. У потока нет страниц — по каналу они едут под
      номером −1 и живут до смены источника: привязать их не к чему (Live.tsx). */
@@ -178,9 +182,10 @@ export function Room({ code, name, onLeave, onHome }: Props) {
      на `ask` сама, а сцена, показ и трансляция — здесь. Снимок текущего — в
      ссылке, потому что подписка живёт дольше любого состояния. */
   const scene = useRef<{
-    source: Source; live: typeof live; doc: ShowDoc | null; i: number; lead: boolean; liveInk: Ink[]
-  }>({ source: 'faces', live: null, doc: null, i: 0, lead: false, liveInk: [] })
-  scene.current = { source, live, doc: active, i: shown.i, lead: iLead, liveInk }
+    source: Source; live: typeof live; doc: ShowDoc | null; i: number; lead: boolean
+    liveInk: Ink[]; масштаб: number
+  }>({ source: 'faces', live: null, doc: null, i: 0, lead: false, liveInk: [], масштаб: 1 })
+  scene.current = { source, live, doc: active, i: shown.i, lead: iLead, liveInk, масштаб }
   /* Приехала ли сцена хоть каким-то сообщением. Ссылка, а не состояние:
      её читает подписка, которая живёт дольше любого кадра. */
   const сценаПришла = useRef(false)
@@ -191,6 +196,7 @@ export function Room({ code, name, onLeave, onHome }: Props) {
       сценаПришла.current = true
     }
     if (m.t === 'lead') setВедущий(m.id)
+    if (m.t === 'zoom') setМасштаб(m.v)
     if (m.t === 'stage') setSource(m.source)
     if (m.t === 'live') {
       setLive({ sourceId: m.sourceId, url: m.url, имя: m.имя })
@@ -227,6 +233,7 @@ export function Room({ code, name, onLeave, onHome }: Props) {
         bus.send({ t: 'showMeta', title: sc.doc.title, n: sc.doc.pages.length, i: sc.i })
         bus.send({ t: 'showPage', i: sc.i, src: sc.doc.pages[sc.i] })
         bus.send({ t: 'inkAll', page: sc.i, marks: sc.doc.ink[sc.i] ?? [] })
+        bus.send({ t: 'zoom', v: sc.масштаб })
       }
     }
     if (m.t === 'chat') {
@@ -254,6 +261,7 @@ export function Room({ code, name, onLeave, onHome }: Props) {
         bus.send({ t: 'showMeta', title: sc.doc.title, n: sc.doc.pages.length, i: sc.i })
         bus.send({ t: 'showPage', i: sc.i, src: sc.doc.pages[sc.i] })
         bus.send({ t: 'inkAll', page: sc.i, marks: sc.doc.ink[sc.i] ?? [] })
+        bus.send({ t: 'zoom', v: sc.масштаб })
       }
     }
     wasPeers.current = peers
@@ -305,6 +313,9 @@ export function Room({ code, name, onLeave, onHome }: Props) {
       setActiveId(d.id)
       setListOpen(false)
       setSource('show')
+      /* Новый показ открывается по кадру: увеличение прошлого документа к
+         этому отношения не имеет. */
+      setМасштаб(1)
       bus.send({ t: 'stage', source: 'show' })
       sendPage(d, pageOf.current.get(d.id) ?? 0)
     },
@@ -588,6 +599,12 @@ export function Room({ code, name, onLeave, onHome }: Props) {
             i={shown.i}
             n={shown.n}
             lead={iLead}
+            масштаб={масштаб}
+            onZoom={(v) => {
+              setМасштаб(v)
+              /* Ведущий тянет за собой класс; ученик двигает только свой экран. */
+              if (iLead) bus.send({ t: 'zoom', v })
+            }}
             marks={marks}
             onMark={onMark}
             onUndo={onUndo}

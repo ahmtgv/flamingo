@@ -62,8 +62,8 @@ export function useSheets(bus: Bus, peers: number) {
       if (
         m.t === 'stage' || m.t === 'chat' || m.t === 'showMeta' || m.t === 'showPage' ||
         m.t === 'live' || m.t === 'ink' || m.t === 'inkDel' || m.t === 'inkAll' ||
-        // Подпись «кто ведёт» — дело комнаты, а не доски (Room.tsx).
-        m.t === 'lead'
+        // Подпись «кто ведёт» и увеличение показа — дело комнаты, а не доски.
+        m.t === 'lead' || m.t === 'zoom'
       ) return
       const sh = sheet(m.sheet)
       if (!sh) return
