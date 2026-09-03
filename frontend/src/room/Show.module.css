@@ -2,13 +2,27 @@
    на что смотрят вдвоём: светлая стена слепит комнату. */
 .show {
   position: relative;
-  display: grid;
-  place-items: center;
   min-width: 0;
   min-height: 0;
-  padding: var(--space-4);
   background: var(--color-surface-video);
   overflow: hidden;
+}
+
+/* 🔴 Холст — то, что прокручивается при увеличении. Полоса показа и полка
+   маркера лежат снаружи него и потому стоят на месте: когда прокручиваемым был
+   весь показ, они уезжали вместе со страницей и обрезались. */
+.canvas {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: var(--space-4);
+  overflow: hidden;
+}
+
+.canvasZoom {
+  overflow: auto;
+  place-items: start center;
 }
 
 .page {
@@ -200,12 +214,6 @@
   background: var(--color-surface-subtle);
 }
 
-/* Увеличенная страница не влезает в кадр — показ становится прокручиваемым.
-   Без этого «увеличить» значило бы «обрезать». */
-.showZoom {
-  overflow: auto;
-  place-items: start center;
-}
 
 /* Пара «− +» перед названием: одна вещь, поэтому и стоят вместе. */
 .zoom {

@@ -6,18 +6,13 @@ import { InkLayer, type Tool } from './Ink'
 import { FIRST_TOOL, InkTools } from './InkTools'
 import type { Ink } from './shows'
 import { Note } from './Note'
-import { рамкаПометок } from './рамка'
+import { СТУПЕНИ, вписать, рамкаПометок, ступень } from './рамка'
 
 /** Что учитель показывает классу: картинка или страница презентации.
  *
  *  Листает только ведущий — класс смотрит туда же, куда он. Рисует поверх тоже
  *  только ведущий, тем же правом: «смотрите сюда» должно значить одно для всех.
  */
-
-/** Ступени увеличения. Не «плюс десять процентов»: на уроке нужно не подобрать
- *  масштаб, а быстро приблизить и вернуться. Шесть ступеней проходятся тремя
- *  нажатиями в каждую сторону. */
-export const СТУПЕНИ = [1, 1.25, 1.5, 2, 2.5, 3]
 
 export function Show({
   title, page, i, n, lead, масштаб, onZoom,
@@ -75,9 +70,16 @@ export function Show({
     const place = () => {
       const a = box.getBoundingClientRect()
       const b = img.getBoundingClientRect()
-      /* Мерку снимаем только когда страница вписана: в увеличенном виде она
-         мерила бы саму себя и росла бы с каждым кадром. */
-      if (масштаб === 1 && b.width > 0) setВписана({ w: b.width, h: b.height })
+      /* Вписанный размер СЧИТАЕМ от кадра и собственного размера картинки —
+         тогда он известен на любой ступени, в том числе сразу после
+         перелистывания и при входе в уже увеличенный показ. */
+      const st = getComputedStyle(box)
+      const кадр = {
+        w: a.width - parseFloat(st.paddingLeft) - parseFloat(st.paddingRight),
+        h: a.height - parseFloat(st.paddingTop) - parseFloat(st.paddingBottom),
+      }
+      const впис = вписать(кадр, { w: img.naturalWidth, h: img.naturalHeight })
+      if (впис) setВписана(впис)
       setSpot(рамкаПометок(
         { left: a.left, top: a.top, scrollLeft: box.scrollLeft, scrollTop: box.scrollTop },
         { left: b.left, top: b.top, width: b.width, height: b.height },
@@ -108,7 +110,17 @@ export function Show({
   }, [lead, onUndo])
 
   return (
-    <div className={`${s.show} ${масштаб > 1 ? s.showZoom : ''}`} ref={showRef}>
+    <div className={s.show}>
+      {/* 🔴 ПРОКРУЧИВАЕТСЯ ХОЛСТ, А НЕ ВЕСЬ ПОКАЗ. Полоса показа и полка
+          маркера лежат absolute внутри показа; когда прокручиваемым был он сам,
+          они уезжали вместе со страницей — полосу утаскивало влево и обрезало
+          (поймано владельцем на боевом 02.09). Теперь прокрутка живёт во
+          вложенном холсте, а полоса и полка остаются снаружи и стоят на месте.
+          Слой пометок при этом ВНУТРИ холста: он обязан ехать со страницей. */}
+      <div
+        className={`${s.canvas} ${масштаб > 1 ? s.canvasZoom : ''}`}
+        ref={showRef}
+      >
       {page ? (
         /* Увеличение — через предел размера, а не `transform`: так картинка
            по-настоящему занимает больше места, показ прокручивается, а рамка
@@ -120,7 +132,7 @@ export function Show({
              занимает больше места, показ получает прокрутку, и до дальнего угла
              увеличенной страницы можно доехать. `transform` растянул бы картинку
              поверх кадра, а доехать до края было бы нечем. */
-          style={масштаб > 1 && вписана
+          style={масштаб !== 1 && вписана
             ? {
               width: `${вписана.w * масштаб}px`,
               height: `${вписана.h * масштаб}px`,
@@ -146,6 +158,7 @@ export function Show({
           <InkLayer marks={marks} tool={lead ? tool : null} onMark={onMark} />
         </div>
       ) : null}
+      </div>
 
       {/* Инструменты пометок просыпаются над пультом, когда маркер включён. */}
       {lead && tool ? (
@@ -171,7 +184,7 @@ export function Show({
           <span className={s.zoom}>
             <button
               type="button" className={s.btn}
-              onClick={() => onZoom(СТУПЕНИ[Math.max(0, СТУПЕНИ.indexOf(масштаб) - 1)] ?? 1)}
+              onClick={() => onZoom(ступень(масштаб, -1))}
               disabled={масштаб <= СТУПЕНИ[0]}
               aria-label={`Уменьшить. Сейчас ${Math.round(масштаб * 100)}%`}
               title="Уменьшить"
@@ -180,7 +193,7 @@ export function Show({
             </button>
             <button
               type="button" className={s.btn}
-              onClick={() => onZoom(СТУПЕНИ[Math.min(СТУПЕНИ.length - 1, СТУПЕНИ.indexOf(масштаб) + 1)] ?? 1)}
+              onClick={() => onZoom(ступень(масштаб, 1))}
               disabled={масштаб >= СТУПЕНИ[СТУПЕНИ.length - 1]}
               aria-label={`Увеличить. Сейчас ${Math.round(масштаб * 100)}%`}
               title="Увеличить"
