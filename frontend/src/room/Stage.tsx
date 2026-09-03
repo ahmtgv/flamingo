@@ -73,9 +73,11 @@ function grid(n: number, w: number, h: number): number {
   return best.cols
 }
 
-export function Stage({ faces, alone, link, onCopy, phase, error }: {
+export function Stage({ faces, alone, веду, link, onCopy, phase, error }: {
   faces: Face[]
   alone: boolean
+  /** Веду ли занятие я. Ответ сервера, а не догадка (Room.tsx). */
+  веду: boolean
   link: string
   onCopy: () => void
   phase: 'connecting' | 'live' | 'failed'
@@ -125,6 +127,46 @@ export function Stage({ faces, alone, link, onCopy, phase, error }: {
     )
   }
 
+  /* 🔴 ОДИН В КОМНАТЕ — ОТДЕЛЬНАЯ РАСКЛАДКА (решение владельца 02.09).
+     Половинки делят между собой ЛИЦА; когда лицо одно, делить нечего, и оно
+     занимало левую половину во всю высоту, а справа стояло чёрное поле.
+     Теперь одно лицо стоит по центру и по кадру. */
+  if (alone) {
+    return (
+      <div className={s.stage}>
+        <div className={s.solo}>
+          <div className={s.soloTile}>
+            {якорь ? <Tile face={якорь} lead={ведёт} big /> : null}
+          </div>
+          {/* 🔴 ССЫЛКУ НА УРОК ВИДИТ ТОЛЬКО ВЕДУЩИЙ. Звать класс — его работа;
+              ученику эта карточка предлагала делать не своё дело, да ещё и
+              раздавать комнату. Кто ведёт — говорит сервер, тот же ответ, что
+              даёт права на показ и доску.
+              Взамен ученику — слова (ПРАВИЛА 6.2): пустой экран без слов
+              человек читает как поломку и уходит перезагружаться. */}
+          {!веду ? (
+            <p className={s.ждём}>
+              Урок ещё не начался. Преподаватель войдёт — и занятие начнётся;
+              выходить и заходить заново не нужно.
+            </p>
+          ) : null}
+        </div>
+
+        {веду ? (
+          <div className={s.half}>
+            <Note
+              title="Класс ещё не собрался"
+              text="Отправьте ссылку тем, кого ждёте. Пока никто не вошёл, урок начинать не обязательно."
+              code={link}
+              action="Скопировать ссылку"
+              onAction={onCopy}
+            />
+          </div>
+        ) : null}
+      </div>
+    )
+  }
+
   return (
     <div className={s.stage}>
       <div className={s.half}>{якорь ? <Tile face={якорь} lead={ведёт} big /> : null}</div>
@@ -136,19 +178,6 @@ export function Stage({ faces, alone, link, onCopy, phase, error }: {
               <Tile key={f.identity} face={f} />
             ))}
           </div>
-        </div>
-      ) : null}
-
-      {/* ПРАВИЛА 6.2: пусто объясняет словами и всегда даёт одно действие. */}
-      {alone ? (
-        <div className={s.half}>
-          <Note
-            title="Класс ещё не собрался"
-            text="Отправьте ссылку тем, кого ждёте. Пока никто не вошёл, урок начинать не обязательно."
-            code={link}
-            action="Скопировать ссылку"
-            onAction={onCopy}
-          />
         </div>
       ) : null}
     </div>

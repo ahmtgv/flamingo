@@ -19,9 +19,53 @@ import { useRoom } from '../room/useRoom'
 import { roomUrl } from '../lib/code'
 import { читатьТему, следующая, сохранитьТему, type Тема } from '../lib/theme'
 import { взятьПособие, отметиться, пособияКомнаты, type Пособие } from '../lib/study'
-import { Button } from '../ui/Button'
 import { Mark } from '../ui/Mark'
 import s from './Room.module.css'
+
+/* Знаки пульта занятия. Рисованные, а не глифы шрифта: глиф на части машин
+   не отрисовывается и оставляет пустой квадрат (тот же довод, что у крестика
+   в чате). Все — одна сетка 24 и одна толщина линии, иначе ряд рассыпается. */
+const З = {
+  width: 18, height: 18, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor',
+  strokeWidth: 1.7, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const,
+  'aria-hidden': true,
+}
+
+const МИКРОФОН = (
+  <svg {...З}><rect x="9" y="3" width="6" height="11" rx="3" /><path d="M5 11a7 7 0 0 0 14 0M12 18v3" /></svg>
+)
+const МИКРОФОН_ВЫКЛ = (
+  <svg {...З}><rect x="9" y="3" width="6" height="11" rx="3" /><path d="M5 11a7 7 0 0 0 14 0M12 18v3M4 4l16 16" /></svg>
+)
+const КАМЕРА = (
+  <svg {...З}><rect x="3" y="6" width="12" height="12" rx="2.5" /><path d="M15 10.5l6-3.5v10l-6-3.5z" /></svg>
+)
+const КАМЕРА_ВЫКЛ = (
+  <svg {...З}><rect x="3" y="6" width="12" height="12" rx="2.5" /><path d="M15 10.5l6-3.5v10l-6-3.5zM4 4l16 16" /></svg>
+)
+const ССЫЛКА = (
+  <svg {...З}>
+    <path d="M10 14a4 4 0 0 0 6 .5l3-3a4 4 0 0 0-5.5-5.5l-1.5 1.5" />
+    <path d="M14 10a4 4 0 0 0-6-.5l-3 3A4 4 0 0 0 10.5 18l1.5-1.5" />
+  </svg>
+)
+const ГАЛКА = (<svg {...З}><path d="M4.5 12.5l5 5 10-11" /></svg>)
+const СОЛНЦЕ = (
+  <svg {...З}>
+    <circle cx="12" cy="12" r="4.2" />
+    <path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.2 5.2l1.4 1.4M17.4 17.4l1.4 1.4M18.8 5.2l-1.4 1.4M6.6 17.4l-1.4 1.4" />
+  </svg>
+)
+const ЛУНА = (<svg {...З}><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z" /></svg>)
+const СИСТЕМА = (
+  <svg {...З}><rect x="3" y="5" width="18" height="12" rx="2" /><path d="M8 21h8M12 17v4" /></svg>
+)
+const ВЫХОД = (
+  <svg {...З}>
+    <path d="M14 4h4.5A1.5 1.5 0 0 1 20 5.5v13a1.5 1.5 0 0 1-1.5 1.5H14" />
+    <path d="M9 8l-5 4 5 4M4 12h11" />
+  </svg>
+)
 
 type Props = { code: string; name: string; onLeave: () => void; onHome: () => void }
 
@@ -581,7 +625,7 @@ export function Room({ code, name, onLeave, onHome }: Props) {
           />
         ) : null}
         {source === 'faces' ? (
-          <Stage faces={лица} alone={alone} link={link} onCopy={copy} phase={phase} error={error} />
+          <Stage faces={лица} alone={alone} веду={iLead} link={link} onCopy={copy} phase={phase} error={error} />
         ) : null}
 
         {/* Отказ показа экрана. Человек закрыл окно выбора — это не поломка,
@@ -685,42 +729,68 @@ export function Room({ code, name, onLeave, onHome }: Props) {
           >
             <span className={s.pultTabLine} aria-hidden="true" />
           </button>
+          {/* 🔴 ЗНАКИ ВМЕСТО СЛОВ (решение владельца 02.09). Пять надписей в
+              пилюле поверх урока спорили с уроком по весу; знак называет то же
+              самое и не читается — узнаётся.
+
+              ⚠️ Имени кнопки при этом НЕ ТЕРЯЮТ: у каждой `aria-label` для
+              читалки экрана и `title` для подсказки под мышью. Кнопка без имени
+              для человека с читалкой — это кнопка «графика», и нажать её
+              вслепую нельзя. Цель нажатия прежняя, 34 (ПРАВИЛА 7.2). */}
           <div className={s.pult} id="pult">
-            <Button kind="quiet" onClick={toggleMic} aria-pressed={mic}>
-              {mic ? 'Микрофон' : 'Микрофон выключен'}
-            </Button>
-            <Button kind="quiet" onClick={toggleCam} aria-pressed={cam}>
-              {cam ? 'Камера' : 'Камера выключена'}
-            </Button>
-            {/* Ссылка на урок — под рукой у преподавателя прямо в занятии:
-                позвать опоздавшего нужно, не выходя из комнаты. */}
+            <button
+              type="button" className={s.pultIcon} onClick={toggleMic} aria-pressed={mic}
+              aria-label={mic ? 'Микрофон включён' : 'Микрофон выключен'}
+              title={mic ? 'Микрофон' : 'Микрофон выключен'}
+            >
+              {mic ? МИКРОФОН : МИКРОФОН_ВЫКЛ}
+            </button>
+            <button
+              type="button" className={s.pultIcon} onClick={toggleCam} aria-pressed={cam}
+              aria-label={cam ? 'Камера включена' : 'Камера выключена'}
+              title={cam ? 'Камера' : 'Камера выключена'}
+            >
+              {cam ? КАМЕРА : КАМЕРА_ВЫКЛ}
+            </button>
+
+            {/* Ссылка на урок — под рукой у ведущего прямо в занятии: позвать
+                опоздавшего нужно, не выходя из комнаты. */}
             {iLead ? (
               <>
                 <span className={s.divider} />
-                <Button kind="quiet" onClick={copy}>
-                  {copied ? 'Ссылка скопирована' : 'Ссылка на урок'}
-                </Button>
+                <button
+                  type="button" className={s.pultIcon} onClick={copy}
+                  aria-label={copied ? 'Ссылка скопирована' : 'Скопировать ссылку на урок'}
+                  title={copied ? 'Ссылка скопирована' : 'Ссылка на урок'}
+                >
+                  {copied ? ГАЛКА : ССЫЛКА}
+                </button>
               </>
             ) : null}
 
             <span className={s.divider} />
             {/* День и ночь. Круг из трёх: день → ночь → как в системе. */}
-            <Button
-              kind="quiet"
+            <button
+              type="button" className={s.pultIcon}
               onClick={() => {
                 const т = следующая(тема)
                 setТема(т)
                 сохранитьТему(т)
               }}
+              aria-label={`Оформление: ${тема === 'день' ? 'день' : тема === 'ночь' ? 'ночь' : 'как в системе'}. Переключить`}
               title="День, ночь или как в системе"
             >
-              {тема === 'день' ? 'День' : тема === 'ночь' ? 'Ночь' : 'Как в системе'}
-            </Button>
-            {/* Уход — НЕ аларм (ПРАВИЛА 11а). На листе он нейтральный и тише
-                прочих кнопок пульта: это не действие урока, а выход из него. */}
-            <Button kind="ghost" onClick={quit}>
-              {iLead ? 'Завершить урок' : 'Выйти'}
-            </Button>
+              {тема === 'день' ? СОЛНЦЕ : тема === 'ночь' ? ЛУНА : СИСТЕМА}
+            </button>
+
+            {/* Уход — НЕ аларм (ПРАВИЛА 11а): без заливки и тише прочих. */}
+            <button
+              type="button" className={`${s.pultIcon} ${s.pultOut}`} onClick={quit}
+              aria-label={iLead ? 'Завершить урок' : 'Выйти из комнаты'}
+              title={iLead ? 'Завершить урок' : 'Выйти'}
+            >
+              {ВЫХОД}
+            </button>
           </div>
         </div>
       </div>

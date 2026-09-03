@@ -11,8 +11,15 @@
   align-items: center;
   gap: var(--space-2);
   padding: var(--space-3) var(--space-5);
-  border-top: 1px solid var(--color-border-on-video);
-  background: var(--color-surface-on-video);
+  /* 🔴 НАСТОЯЩАЯ ПОВЕРХНОСТЬ, А НЕ 12% БЕЛОГО. Полка стояла на
+     `--color-surface-on-video` — прозрачной плёнке для тёмного кадра, — а все
+     её кнопки и надписи взяты светлыми токенами (`--color-text`,
+     `--color-border`): они рассчитаны на белый фон. На светлом снимке
+     инструменты пропадали совсем. Поймано владельцем на боевом 02.09.
+     Теперь полка — та же поверхность, что пульт занятия: одним языком и
+     видно на любой картинке. */
+  border-top: 1px solid var(--color-border);
+  background: var(--color-surface);
 }
 
 /* Подсказка о том, как устроены пометки: её можно не прочитать, ничего
@@ -20,7 +27,8 @@
 .hint {
   margin-left: auto;
   font: var(--weight-regular) var(--text-caption) var(--font-mono);
-  color: var(--color-text-on-video-quiet);
+  /* Поверхность стала светлой — и подсказка берёт светлый токен. */
+  color: var(--color-text-hint);
   white-space: nowrap;
 
 }
