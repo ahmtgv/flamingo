@@ -8,7 +8,7 @@
     "build": "tsc -b && vite build",
     "lint": "oxlint",
     "preview": "vite preview --port 5181 --strictPort",
-    "check": "tsc -b && npm run guards && vite build",
+    "check": "tsc -b && npm run guards && vite build && node scripts/сборка-check.mjs --selftest && node scripts/сборка-check.mjs",
     "guards": "node scripts/guard-check.mjs --selftest && node scripts/guard-check.mjs && node scripts/class-check.mjs && node scripts/время-check.mjs && node scripts/ужимание-check.mjs && node scripts/спрос-check.mjs --selftest && node scripts/спрос-check.mjs && node scripts/ведущий-check.mjs --selftest && node scripts/ведущий-check.mjs && node scripts/рамка-check.mjs --selftest && node scripts/рамка-check.mjs && node scripts/пергамент-check.mjs --selftest && node scripts/пергамент-check.mjs && node scripts/auth-check.mjs",
     "auth": "node scripts/auth-check.mjs"
   },

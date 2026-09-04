@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useState } from 'react'
 
-import { Enter } from './screens/Enter'
+/* 🔴 ВХОД ПЕРЕВЕДЁН НА ПЕРГАМЕНТ (шаг 04, экран первый). Старый `screens/Enter`
+   не удалён и не тронут: он держит тот же смысл на старом законе и вернётся
+   одной строкой, если экран не примут. Остальные экраны — по-прежнему старые. */
+import { Вход } from './пергамент/Вход'
 import { Cabinet } from './screens/Cabinet'
 import { Hub } from './screens/Hub'
 import { Sign } from './screens/Sign'
@@ -264,7 +267,7 @@ export function App() {
   }
 
   return (
-    <Enter
+    <Вход
       invited={code}
       initialName={name ?? person?.name ?? rememberedName()}
       onGo={enter}

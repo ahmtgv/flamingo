@@ -1,0 +1,335 @@
+/* Вход на языке ПЕРГАМЕНТА. Разбор языка — docs/дизайн/CURSOR-DESIGN.md,
+   решение и порядок перехода — docs/ПЕРГАМЕНТ.md.
+
+   Три вещи, которые здесь делаются иначе, чем в старом законе:
+     · ЗАГОЛОВОК ШЕПЧЕТ. Вес 400 даже на 72 пикселях; иерархию несут кегль и
+       трекинг. Полужирного в наборе нет — нечего взять, нечего и сломать.
+     · УГЛОВ КРУГЛЫХ НЕТ. Четыре пикселя у всего: кнопка, поле, карточка, код.
+       Таблетки ломают ощущение бумаги, разрезанной ножом.
+     · ЗАЛИВКА ОДНА И ЧЕРНИЛЬНАЯ. Уголёк здесь — только текст: ссылка внизу
+       и точка знака. */
+
+.экран {
+  height: 100%;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  background: var(--п-холст);
+  color: var(--п-текст);
+  font-family: var(--п-гротеск);
+  overflow: hidden;
+}
+
+/* ── верх ──────────────────────────────────────────────────────────────── */
+
+.верх {
+  display: flex;
+  align-items: center;
+  gap: var(--п-6);
+  padding: var(--п-4) var(--п-7);
+  border-bottom: 1px solid var(--п-волос);
+}
+
+.знак,
+.знакДверь {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--п-2);
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: default;
+}
+
+.знакДверь {
+  cursor: pointer;
+}
+
+.птица {
+  display: block;
+}
+
+.слово {
+  font-size: var(--п-интерфейс);
+  letter-spacing: var(--п-интерфейс-трекинг);
+  color: var(--п-текст);
+}
+
+/* Единственный уголёк в верхней полосе — точка знака. */
+.точка {
+  color: var(--п-уголёк);
+}
+
+.зазор {
+  flex: 1 1 auto;
+}
+
+/* 🔴 ВЕРХНИЕ ДВЕРИ — СЛОВА, А НЕ ТАБЛЕТКИ. В старом законе это были кнопки с
+   рамкой и радиусом 999. У пергамента верхняя полоса — строка текста;
+   заливка на экране одна и принадлежит входу в комнату (ПРАВИЛА 11.4).
+   Цель нажатия при этом остаётся полной: высота от --tap-min, не от кегля. */
+.верхняяСсылка {
+  display: inline-grid;
+  place-items: center;
+  min-height: var(--tap-min);
+  padding: 0 var(--п-2);
+  border: none;
+  background: none;
+  color: var(--п-пепел);
+  font-family: inherit;
+  font-size: var(--п-интерфейс);
+  letter-spacing: var(--п-интерфейс-трекинг);
+  cursor: pointer;
+  transition: color var(--п-скорость) var(--п-кривая);
+}
+
+.верхняяСсылка:hover {
+  color: var(--п-текст);
+}
+
+.кто {
+  font-size: var(--п-мелкий);
+  color: var(--п-плавник);
+}
+
+.выйти {
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--п-плавник);
+  font: inherit;
+  text-decoration: underline;
+  text-decoration-color: var(--п-линия);
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.выйти:hover {
+  color: var(--п-текст);
+}
+
+/* ── тело: две колонки ─────────────────────────────────────────────────── */
+
+.тело {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+  align-items: center;
+  gap: var(--п-10);
+  padding: var(--п-8) var(--п-10);
+  min-height: 0;
+}
+
+@media (max-width: 900px) {
+  .тело {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--п-7);
+    padding: var(--п-6);
+    /* SAFE CENTER, а не просто center: выше нуля прокрутить нельзя, и обычное
+       центрирование выталкивает начало содержимого за верхний край. */
+    align-content: safe center;
+  }
+}
+
+.обещание {
+  display: grid;
+  justify-items: start;
+  gap: var(--п-5);
+  min-width: 0;
+}
+
+/* 🔴 ВЕС 400 НА 72 ПИКСЕЛЯХ. Это подпись языка, а не недосмотр. Кегль тянется
+   между h1 и «крупно» шириной кадра, трекинг стянут: чем крупнее, тем теснее. */
+.заголовок {
+  margin: 0;
+  font-size: clamp(var(--п-h1), 5.2vw, var(--п-крупно));
+  font-weight: var(--п-вес-обычный);
+  letter-spacing: var(--п-крупно-трекинг);
+  line-height: var(--п-крупно-строка);
+  color: var(--п-текст);
+}
+
+/* 🔴 ГАРАМОН — РЕДАКТОРСКАЯ ПРОЗА. Один абзац на экран, и это он: обещание,
+   написанное человеком. Всё служебное остаётся гротеском. */
+.подзаголовок {
+  margin: 0;
+  font-family: var(--п-сериф);
+  font-size: var(--п-проза);
+  line-height: var(--п-проза-строка);
+  color: var(--п-плавник);
+  max-width: 46ch;
+}
+
+.черта {
+  width: 100%;
+  max-width: 46ch;
+  height: 1px;
+  background: var(--п-волос);
+}
+
+/* Моно — служебная подпись: метки, счётчики, коды (ПРАВИЛА 4.4). */
+.трое {
+  display: flex;
+  align-items: center;
+  gap: var(--п-3);
+  font-family: var(--п-моно);
+  font-size: var(--п-бровь);
+  line-height: var(--п-бровь-строка);
+  letter-spacing: var(--п-бровь-трекинг);
+  color: var(--п-пепел);
+}
+
+.разделитель {
+  color: var(--п-туман);
+}
+
+.сноска {
+  margin: 0;
+  font-size: var(--п-мелкий);
+  line-height: var(--п-мелкий-строка);
+  color: var(--п-плавник);
+  max-width: 52ch;
+}
+
+/* ── правая колонка ────────────────────────────────────────────────────── */
+
+/* Сначала волосяная линия, и её достаточно: тень — только под крупной
+   карточкой с макетом окна, а это не она. */
+.карточка {
+  display: grid;
+  justify-items: stretch;
+  gap: var(--п-6);
+  padding: var(--п-8);
+  background: var(--п-карточка);
+  border: 1px solid var(--п-линия);
+  border-radius: var(--п-скругление);
+  min-width: 0;
+}
+
+.код {
+  justify-self: start;
+  font-family: var(--п-моно);
+  font-size: var(--п-мелкий);
+  letter-spacing: var(--п-бровь-трекинг);
+  color: var(--п-текст);
+  background: var(--п-выше);
+  border: 1px solid var(--п-линия);
+  border-radius: var(--п-скругление);
+  padding: var(--п-2) var(--п-3);
+}
+
+.форма {
+  display: grid;
+  gap: var(--п-4);
+  width: 100%;
+}
+
+.поле {
+  display: grid;
+  gap: var(--п-2);
+}
+
+.метка {
+  font-size: var(--п-мелкий);
+  color: var(--п-пепел);
+}
+
+.ввод {
+  min-height: var(--control-height-md);
+  padding: 0 var(--п-3);
+  background: var(--п-холст);
+  border: 1px solid var(--п-линия);
+  border-radius: var(--п-скругление);
+  color: var(--п-текст);
+  font-family: inherit;
+  font-size: var(--п-текст-размер);
+  transition: border-color var(--п-скорость) var(--п-кривая);
+}
+
+.ввод::placeholder {
+  color: var(--п-туман);
+}
+
+.ввод:focus {
+  outline: none;
+  border-color: var(--п-текст);
+}
+
+/* Обязательность говорится ОДИН раз и словами (ПРАВИЛА 13.1). */
+.подсказка {
+  font-size: var(--п-мелкий);
+  line-height: var(--п-мелкий-строка);
+  color: var(--п-туман);
+}
+
+/* Место под сообщение занято всегда: три строки — столько занимает самый
+   длинный из текстов состояний (ПРАВИЛА 6.7а). */
+.речь {
+  display: grid;
+  align-content: start;
+  gap: var(--п-1);
+  min-height: calc(3 * var(--п-мелкий-строка) * 1em);
+}
+
+.речьГлава {
+  font-size: var(--п-интерфейс);
+  font-weight: var(--п-вес-средний);
+  color: var(--п-багрянец);
+}
+
+.речьТело {
+  font-size: var(--п-мелкий);
+  line-height: var(--п-мелкий-строка);
+  color: var(--п-плавник);
+}
+
+/* 🔴 ЕДИНСТВЕННАЯ ЗАЛИВКА ЭКРАНА, И ОНА ЧЕРНИЛЬНАЯ. Не уголёк: у пергамента
+   уголёк — текст, а не поверхность. Караул `уголёкНеПоверхность` это мерит. */
+.главное {
+  min-height: var(--control-height-md);
+  padding: 0 var(--п-6);
+  border: 1px solid var(--п-текст);
+  border-radius: var(--п-скругление);
+  background: var(--п-текст);
+  color: var(--п-холст);
+  font-family: inherit;
+  font-size: var(--п-интерфейс);
+  font-weight: var(--п-вес-средний);
+  letter-spacing: var(--п-интерфейс-трекинг);
+  cursor: pointer;
+  transition: opacity var(--п-скорость) var(--п-кривая);
+}
+
+.главное:hover {
+  opacity: 0.88;
+}
+
+.вопрос {
+  margin: 0;
+  font-size: var(--п-мелкий);
+  color: var(--п-плавник);
+}
+
+/* Уголёк во всём экране ровно два раза: точка знака и эта ссылка.
+
+   🔴 ЦЕЛЬ НАЖАТИЯ ДЕРЖИТСЯ И У СТРОЧНОЙ ССЫЛКИ. `inline-grid` с
+   `min-height` делает её высокой, не выламывая из абзаца. Найдено прибором
+   `tapTargets` на первом же прогоне переведённого экрана: без этого ссылка
+   была 16 пикселей — старый `Enter` держал её правильно, а я, переписывая
+   экран на новый язык, потерял по дороге. Язык сменился, палец — нет. */
+.ссылка {
+  display: inline-grid;
+  place-items: center;
+  min-height: var(--tap-min);
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--п-уголёк);
+  font: inherit;
+  text-decoration: underline;
+  text-decoration-color: color-mix(in oklab, var(--п-уголёк) 40%, transparent);
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.ссылка:hover {
+  text-decoration-color: var(--п-уголёк);
+}
