@@ -1,7 +1,8 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import { Chat, type Line } from '../room/Chat'
-import type { Реплика } from '../lib/study'
+import { завестиУрок, читатьУроки, type Реплика } from '../lib/study'
+import { Cabinet } from './Cabinet'
 import { Переписка } from './Переписка'
 
 /** Стенд панелей: посмотреть чат и переписку без сервера.
@@ -37,9 +38,54 @@ const РАЗГОВОР = (яУчитель: boolean): Реплика[] => {
   ] as Реплика[]
 }
 
+/* Пара занятий в текущем месяце, чтобы в календаре были точки. Сервера здесь
+   нет — `завестиУрок` сам уходит в браузерное хранилище. */
+function useПодложенныеУроки(нужны: boolean) {
+  const [готово, setГотово] = useState(false)
+  useEffect(() => {
+    if (!нужны || готово) return
+    const н = new Date()
+    const мес = `${н.getFullYear()}-${String(н.getMonth() + 1).padStart(2, '0')}`
+    читатьУроки(мес).then(async (есть) => {
+      if (есть.length === 0) {
+        const день = (д: number) => `${мес}-${String(д).padStart(2, '0')}`
+        await завестиУрок({ название: 'Английский · разговор', дата: день(2), время: '17:00', минут: 45 })
+        await завестиУрок({ название: 'Английский · грамматика', дата: день(11), время: '18:30', минут: 60 })
+        await завестиУрок({ название: 'Разбор ошибок', дата: день(11), время: '20:00', минут: 30 })
+      }
+      setГотово(true)
+    })
+  }, [нужны, готово])
+  return готово
+}
+
 export function Стенд() {
   const [строки, setСтроки] = useState(РЕПЛИКИ)
   const [ктоЯ, setКтоЯ] = useState<'учитель' | 'ученик'>('учитель')
+  const [что, setЧто] = useState<'панели' | 'кабинет'>('панели')
+  const готово = useПодложенныеУроки(что === 'кабинет')
+
+  if (что === 'кабинет') {
+    return (
+      <div style={{ height: '100%', position: 'relative' }}>
+        <button type="button" onClick={() => setЧто('панели')}
+                style={{ position: 'fixed', left: 8, bottom: 8, zIndex: 99 }}>
+          ← к панелям
+        </button>
+        {готово ? (
+          <Cabinet
+            person={{ id: 'я', name: ктоЯ === 'учитель' ? 'Люция Валерьевна' : 'Аня', role: ктоЯ === 'учитель' ? 'teacher' : 'student' }}
+            onLesson={() => undefined}
+            onNew={() => undefined}
+            onEdit={() => undefined}
+            onJournal={() => undefined}
+            onOut={() => setКтоЯ((к) => (к === 'учитель' ? 'ученик' : 'учитель'))}
+            onHome={() => undefined}
+          />
+        ) : null}
+      </div>
+    )
+  }
 
   return (
     <main style={{ height: '100%', position: 'relative', overflow: 'hidden' }}>
@@ -50,9 +96,12 @@ export function Стенд() {
           {ктоЯ === 'учитель' ? ' преподавателя' : ' ученика'}: сторона выбирается ролью,
           поэтому разговор выглядит одинаково с обеих сторон.
         </p>
-        <button type="button" onClick={() => setКтоЯ((к) => (к === 'учитель' ? 'ученик' : 'учитель'))}>
-          Смотреть глазами {ктоЯ === 'учитель' ? 'ученика' : 'преподавателя'}
-        </button>
+        <span style={{ display: 'flex', gap: 8 }}>
+          <button type="button" onClick={() => setКтоЯ((к) => (к === 'учитель' ? 'ученик' : 'учитель'))}>
+            Смотреть глазами {ктоЯ === 'учитель' ? 'ученика' : 'преподавателя'}
+          </button>
+          <button type="button" onClick={() => setЧто('кабинет')}>Кабинет с календарём</button>
+        </span>
       </div>
 
       {/* Каждая панель в своей половине: иначе переписка (fixed, z-index 30)

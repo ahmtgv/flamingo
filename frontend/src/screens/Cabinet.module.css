@@ -184,6 +184,22 @@
   color: var(--color-text-detail);
 }
 
+/* Тихая кнопка: дорога назад к сегодняшнему дню. Заливки не берёт — на экране
+   она одна и принадлежит главному действию (ПРАВИЛА 11.4). */
+.quiet {
+  justify-self: start;
+  min-height: var(--control-height-sm);
+  padding: 0 var(--space-4);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-pill);
+  background: none;
+  color: var(--color-text);
+  font-size: var(--text-caption);
+  cursor: pointer;
+}
+
+.quiet:hover { background: var(--color-surface-hover); }
+
 /* Главное действие кабинета — зелёная заливка, на экране она одна
    (ПРАВИЛА 11.1, 11.4). */
 .go {
@@ -350,15 +366,40 @@
 }
 
 /* Клетка держит высоту числом, а не содержимым: сетка месяца не должна
-   дышать от того, что в одном месяце 30 дней, а в другом 31. */
+   дышать от того, что в одном месяце 30 дней, а в другом 31.
+
+   🔴 КЛЕТКА — КНОПКА (решение владельца 04.09). Рамки и заливки у неё нет:
+   календарь остаётся спокойным, а нажимаемость видно по курсору и по подсветке
+   под указателем. Цель нажатия — вся клетка целиком, а не число внутри. */
 .day {
   display: grid;
   place-items: center;
   min-height: var(--space-8);
+  border: 1px solid transparent;
   border-radius: var(--radius-sm);
+  background: none;
   font: var(--weight-regular) var(--text-caption) var(--font-mono);
   color: var(--color-text-detail);
+  cursor: pointer;
 }
+
+/* Пустое место до первого числа кнопкой не притворяется. */
+.day[aria-hidden] { cursor: default; }
+
+.day:hover { background: var(--color-surface-hover); color: var(--color-text); }
+
+/* Выбранный день — заливка: это ВЫБОР, сделанный человеком, и он должен читаться
+   сильнее, чем «сегодня» (обводка) — иначе на соседних числах их не различить. */
+.dayPick {
+  background: var(--color-text);
+  color: var(--color-bg);
+  font-weight: var(--weight-medium);
+}
+
+.dayPick:hover { background: var(--color-text); color: var(--color-bg); }
+
+/* Точка на выбранном дне — на тёмной заливке, значит своим светлым цветом. */
+.dayPick .dot { background: var(--color-bg); }
 
 /* Клетка держит точку под числом — значит числу нужно место сверху, а точке
    снизу, и высота клетки от появления точки не меняется. */
