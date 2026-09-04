@@ -3,7 +3,11 @@
 
    🔴 Панель ПАРИТ над холстом справа и ничего не сжимает: правило владельца
    01.09 — поле доски идёт влево, вправо и вниз без края. Раньше она была
-   в 22rem и съедала треть холста; теперь 380 px (лист, ширина «normal»). */
+   в 22rem и съедала треть холста; теперь 380 px (лист, ширина «normal»).
+
+   🔴 04.09 ОКНО СТАЛО ПОДВИЖНЫМ. Место и размер приходят из `ui/окно.ts`
+   инлайновым стилем, поэтому здесь остались только запасные значения — они
+   работают ровно один кадр, до первого замера. */
 .chat {
   position: absolute;
   right: var(--space-4);
@@ -22,13 +26,35 @@
   min-width: 0;
 }
 
+/* Шапка — ручка окна. Курсор говорит об этом до нажатия. */
 .head {
   display: flex;
   align-items: center;
   gap: var(--space-3);
   padding: var(--space-4) var(--space-5);
   border-bottom: 1px solid var(--color-border);
+  cursor: grab;
+  touch-action: none;
 }
+
+.head:active { cursor: grabbing; }
+
+/* Угол размера. Маленький и тихий — но цель нажатия у него полная. */
+.grip {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: var(--control-height-sm);
+  height: var(--control-height-sm);
+  display: grid;
+  place-items: end;
+  padding: var(--space-2);
+  color: var(--color-text-hint);
+  cursor: nwse-resize;
+  touch-action: none;
+}
+
+.grip:hover { color: var(--color-text-detail); }
 
 .title {
   font-family: var(--font-heading);
@@ -73,17 +99,14 @@
   color: var(--color-text-secondary);
 }
 
-/* Реплика: имя и время строкой, под ними облачко. Свои — справа: так видно,
-   где чужой вопрос, не читая имени. */
+/* 🔴 ВСЕ РЕПЛИКИ СЛЕВА (решение владельца 04.09). Правая сторона в общем
+   разговоре врала: она означает «вторая сторона беседы», а в классе сторон не
+   две. Кто написал — сказано именем над строкой, мелким и светлым. */
 .line {
   display: grid;
   justify-items: start;
   gap: var(--space-1);
   min-width: 0;
-}
-
-.mine {
-  justify-items: end;
 }
 
 .who {
@@ -99,21 +122,15 @@
   color: var(--color-text-hint);
 }
 
+/* 🔴 ПУЗЫРЕЙ НЕТ. Реплика — строка текста, а не облачко: рамка вокруг каждой
+   фразы в узкой панели съедала половину ширины на воздух и делала короткое
+   «да» размером с абзац. Зелёного тем более нет — цвет в переписке не значит
+   ничего и шумит на весь экран. */
 .text {
-  max-width: 22rem;
-  padding: var(--space-3) var(--space-4);
-  border-radius: var(--radius-card);
-  border: 1px solid var(--color-border);
-  background: var(--color-surface);
   font-size: var(--text-small);
   line-height: var(--leading-body);
   color: var(--color-text);
   overflow-wrap: anywhere;
-}
-
-.mine .text {
-  border-color: var(--color-go-border);
-  background: var(--color-go-bg);
 }
 
 /* Место под сообщение занято всегда (ПРАВИЛА 6.6): высота посчитана по
@@ -159,13 +176,16 @@
   border-top: 1px solid var(--color-border);
 }
 
+/* 🔴 ПОЛЕ ТИШЕ КАРТОЧКИ (решение владельца 04.09). Белое поле на белой панели
+   читалось как ещё одна карточка; теперь это углубление: заливка на ступень
+   ниже поверхности, рамка обычная, а не сильная. */
 .input {
   min-width: 0;
   height: var(--tap-min);
   padding: 0 var(--space-4);
-  border: 1px solid var(--color-border-strong);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-control);
-  background: var(--color-surface);
+  background: var(--color-field);
   color: var(--color-text);
   font-family: var(--font-body);
   font-size: var(--text-small);
@@ -176,19 +196,20 @@
   box-shadow: var(--focus-ring);
 }
 
-/* 🔴 «Отправить» живая, как только в поле есть текст. Прежде она была приглушена
-   всегда — и выглядела мёртвой ровно тогда, когда работала (ПРАВИЛА 14.1). */
+/* 🔴 СТРЕЛКА ВМЕСТО СЛОВА (решение владельца 04.09, образец — строка ввода
+   Cursor). Подпись «Отправить» занимала треть узкой строки и повторяла то, что
+   и так понятно по месту и по Enter. Живая, как только в поле есть текст:
+   прежде кнопка была приглушена всегда и выглядела мёртвой ровно тогда, когда
+   работала (ПРАВИЛА 14.1). Цель нажатия полная — --tap-min по обеим сторонам. */
 .send {
   display: inline-grid;
   place-items: center;
-  min-height: var(--tap-min);
-  padding: 0 var(--space-5);
+  width: var(--tap-min);
+  height: var(--tap-min);
   border: none;
   border-radius: var(--radius-control);
-  background: var(--color-go-solid);
-  color: var(--color-on-go);
-  font-size: var(--text-small);
-  font-weight: var(--weight-medium);
+  background: var(--color-text);
+  color: var(--color-bg);
   cursor: pointer;
 }
 

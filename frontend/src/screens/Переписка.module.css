@@ -1,6 +1,10 @@
 /* Разговор вне занятия. Тем же языком, что чат урока: одна вещь, выученная
    один раз. Панель ПАРИТ над содержимым и ничего не сжимает — журнал и
-   расписание остаются на своих местах и той же ширины. */
+   расписание остаются на своих местах и той же ширины.
+
+   🔴 04.09 ОКНО СТАЛО ПОДВИЖНЫМ: место и размер приходят из `ui/окно.ts`
+   инлайновым стилем, а здесь остались запасные значения на один кадр — до
+   первого замера. */
 
 .панель {
   position: fixed;
@@ -30,13 +34,35 @@
   }
 }
 
+/* Шапка — ручка окна. Курсор говорит об этом до нажатия. */
 .верх {
   display: flex;
   align-items: center;
   gap: var(--space-3);
   padding: var(--space-3) var(--space-4);
   border-bottom: 1px solid var(--color-border);
+  cursor: grab;
+  touch-action: none;
 }
+
+.верх:active { cursor: grabbing; }
+
+/* Угол размера: маленький и тихий, но цель нажатия полная. */
+.угол {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: var(--control-height-sm);
+  height: var(--control-height-sm);
+  display: grid;
+  place-items: end;
+  padding: var(--space-2);
+  color: var(--color-text-hint);
+  cursor: nwse-resize;
+  touch-action: none;
+}
+
+.угол:hover { color: var(--color-text-detail); }
 
 .кто {
   font-weight: var(--weight-semibold);
@@ -82,35 +108,43 @@
 }
 
 /* 🔴 `align-items: flex-start` обязателен. Без него колонка растягивает детей
-   по ширине, и пузырь занимает всю панель от края до края — из-за чего короткое
-   «йоу» читается как полотно, а своё и чужое перестаёт различаться местом.
-   Поймано на боевом сразу после выката. */
+   по ширине, и строка занимает всю панель от края до края — из-за чего короткое
+   «йоу» читается как полотно, а стороны перестают различаться местом.
+   Поймано на боевом сразу после выката.
+
+   🔴 СТОРОНА — ПО РОЛИ, А НЕ ПО АВТОРСТВУ (решение владельца 04.09):
+   преподаватель слева, ученик справа, ОДИНАКОВО на обоих экранах. Раньше своё
+   уходило вправо — и один разговор у двоих выглядел зеркально. */
 .реплика {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   gap: var(--space-1);
-  max-width: 90%;
+  max-width: 86%;
 }
 
-.моя { align-self: flex-end; align-items: flex-end; }
+.справа { align-self: flex-end; align-items: flex-end; }
+
+/* Текст внутри читается слева направо всегда: правым краем выравнивается блок,
+   а не строки. Рваный левый край в многострочной реплике читать тяжело. */
+.справа .слово { text-align: left; }
 
 .когда {
   font: var(--weight-regular) var(--text-overline) var(--font-mono);
   color: var(--color-text-hint);
 }
 
-.пузырь {
-  padding: var(--space-2) var(--space-3);
-  border-radius: var(--radius-md);
-  background: var(--color-surface-subtle);
+/* 🔴 ПУЗЫРЕЙ НЕТ (решение владельца 04.09). Реплика — строка текста. Зелёная
+   заливка своих сообщений не значила ничего: сторону и так видно по месту и по
+   имени, а цвет шумел на весь экран и спорил с единственной акцентной заливкой
+   страницы (ПРАВИЛА 5.1). */
+.слово {
   color: var(--color-text);
   font-size: var(--text-small);
+  line-height: var(--leading-body);
   /* Чужой текст без пробелов не должен растягивать панель. */
   overflow-wrap: anywhere;
 }
-
-.моя .пузырь { background: var(--color-go-bg); }
 
 /* Зов на занятие — не пузырь: у него своя работа и своя дверь. */
 .зов {
@@ -118,15 +152,15 @@
   flex-direction: column;
   gap: var(--space-2);
   padding: var(--space-3);
-  border: 1px solid var(--color-go-text);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  background: var(--color-go-bg);
+  background: var(--color-surface-subtle);
 }
 
 .зовШапка {
   font: var(--weight-medium) var(--text-overline) var(--font-mono);
   text-transform: uppercase;
-  color: var(--color-go-text);
+  color: var(--color-text-detail);
 }
 
 .зовИмя {
@@ -147,15 +181,15 @@
   display: inline-flex;
   align-items: center;
   padding: 0 var(--space-4);
-  border-radius: var(--radius-pill);
-  border: 1px solid var(--color-go-text);
-  color: var(--color-go-text);
+  border-radius: var(--radius-control);
+  border: 1px solid var(--color-border-strong);
+  color: var(--color-text);
   font-size: var(--text-caption);
   font-weight: var(--weight-medium);
   text-decoration: none;
 }
 
-.зовВход:hover { background: var(--color-surface); }
+.зовВход:hover { background: var(--color-surface-hover); }
 
 /* Занятие сняли: реплика осталась, но звать больше некуда. */
 .зовСнят {
@@ -212,31 +246,58 @@
   color: var(--color-error-text);
 }
 
-/* 🔴 ДВЕ СТРОКИ, А НЕ ОДНА. В одну строку поле, «Позвать на урок» и
-   «Отправить» в 23rem не влезали: главное действие уезжало за край панели и
-   нажать его было нечем. Поле сверху во всю ширину, кнопки под ним справа —
-   и ничего не обрезается ни на какой ширине. */
+/* 🔴 СТРОКА ВВОДА — ПОЛЕ И СТРЕЛКА, «Позвать на урок» отдельной строкой под
+   ними. Прежде поле, «Позвать» и «Отправить» словом не влезали в 23rem: главное
+   действие уезжало за край панели и нажать его было нечем. Стрелка вместо слова
+   освободила две трети строки, и перенос больше не нужен. */
 .низ {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  align-items: center;
+  display: grid;
   gap: var(--space-2);
   padding: var(--space-3);
   border-top: 1px solid var(--color-border);
 }
 
+.строка {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.позвать { justify-self: start; }
+
+/* 🔴 ПОЛЕ ТИШЕ ПАНЕЛИ (решение владельца 04.09). Белое поле на белой панели
+   читалось как ещё одна карточка; теперь это углубление: заливка на ступень
+   ниже поверхности, рамка обычная, углы не таблеткой. */
 .поле {
-  flex: 1 0 100%;
   min-width: 0;
   min-height: var(--control-height-sm);
   padding: 0 var(--space-3);
-  border: 1px solid var(--color-border-strong);
-  border-radius: var(--radius-pill);
-  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  background: var(--color-field);
   color: var(--color-text);
   font: inherit;
   font-size: var(--text-small);
+}
+
+/* Стрелка. Цель нажатия полная, заливка чернильная — единственная на панели. */
+.послать {
+  display: inline-grid;
+  place-items: center;
+  width: var(--control-height-md);
+  height: var(--control-height-md);
+  border: none;
+  border-radius: var(--radius-control);
+  background: var(--color-text);
+  color: var(--color-bg);
+  cursor: pointer;
+}
+
+.послать:disabled {
+  background: var(--color-surface-subtle);
+  color: var(--color-text-disabled);
+  cursor: default;
 }
 
 .поле::placeholder { color: var(--color-text-hint); }

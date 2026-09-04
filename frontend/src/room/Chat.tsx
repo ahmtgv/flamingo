@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 
+import { useОкно } from '../ui/окно'
+import { СТРЕЛКА, УГОЛ } from '../ui/знаки'
 import s from './Chat.module.css'
 
 export type Line = { id: string; who: string; text: string; at: number; mine: boolean }
@@ -13,7 +15,16 @@ export type Line = { id: string; who: string; text: string; at: number; mine: bo
  *     влево, вправо и вниз без края);
  *   — «Отправить» была приглушена всегда: теперь живая, как только в поле есть текст;
  *   — строка сообщения стоит всегда, поэтому лента и поле не прыгают между состояниями;
- *   — у каждой реплики имя и время отдельной строкой, свои — справа.
+ *   — у каждой реплики имя и время отдельной строкой.
+ *
+ *  🔴 ПРАВКИ ВЛАДЕЛЬЦА 04.09. Чат стал спокойнее и подвижнее:
+ *   — окно возят за шапку и тянут за угол (общая механика — `ui/окно.ts`);
+ *   — пузырей нет: реплика — строка текста, а не облачко. Зелёного тем более:
+ *     цвет в переписке не значит ничего, а шумит на весь экран;
+ *   — В ГРУППОВОМ ЧАТЕ ВСЕ РЕПЛИКИ СЛЕВА. Правая сторона в общем разговоре
+ *     врала: она говорит «это другая сторона беседы», а сторон здесь не две,
+ *     а весь класс. Кто написал — сказано именем, мелким и светлым;
+ *   — «Отправить» словом заменена стрелкой в самом поле.
  *
  *  ⚠️ Без учётных записей переписка нигде не хранится: все вышли — чат исчез.
  *  Это сказано словами в самом чате, а не спрятано (утверждённый лист «Комната урока»).
@@ -65,6 +76,7 @@ export function Chat({ lines, alive, onClose, onSend, onOpen }: {
   const [text, setText] = useState('')
   const [failed, setFailed] = useState(false)
   const tail = useRef<HTMLDivElement>(null)
+  const окно = useОкно({ ширина: 380, минШирина: 300, минВысота: 280 })
 
   useEffect(() => {
     tail.current?.scrollIntoView({ block: 'end' })
@@ -86,8 +98,10 @@ export function Chat({ lines, alive, onClose, onSend, onOpen }: {
   }
 
   return (
-    <aside className={s.chat} aria-label="Чат занятия" data-geo="панель-чата">
-      <header className={s.head}>
+    <aside ref={окно.поставить} style={окно.стиль} className={s.chat}
+           aria-label="Чат занятия" data-geo="панель-чата">
+      {/* Шапка — ручка окна: за неё возят. Кнопка внутри при этом работает. */}
+      <header className={s.head} {...окно.везтиЗа}>
         <span className={s.title}>Чат занятия</span>
         {/* Значок рисованный, а не глиф шрифта: глиф на части машин
             не отрисовывается и оставляет пустой квадрат. */}
@@ -109,7 +123,8 @@ export function Chat({ lines, alive, onClose, onSend, onOpen }: {
           </p>
         ) : (
           lines.map((l) => (
-            <div key={l.id} className={`${s.line} ${l.mine ? s.mine : ''}`}>
+            /* Все слева: сторон в общем разговоре не две, а весь класс. */
+            <div key={l.id} className={s.line}>
               <span className={s.who}>
                 {l.mine ? 'вы' : l.who}
                 <span className={s.at}>{часы(l.at)}</span>
@@ -169,10 +184,16 @@ export function Chat({ lines, alive, onClose, onSend, onOpen }: {
           maxLength={500}
           aria-label="Сообщение в чат"
         />
-        <button type="submit" className={s.send} disabled={!text.trim()}>
-          Отправить
+        {/* Стрелка вместо слова: подпись «Отправить» занимала треть строки
+            ввода и повторяла то, что и так понятно по месту и по Enter. */}
+        <button type="submit" className={s.send} disabled={!text.trim()}
+                aria-label="Отправить" title="Отправить">
+          {СТРЕЛКА}
         </button>
       </form>
+
+      {/* Угол: за него тянут размер. Держится в самом низу справа. */}
+      <span className={s.grip} {...окно.тянутьЗа} aria-hidden="true">{УГОЛ}</span>
     </aside>
   )
 }
