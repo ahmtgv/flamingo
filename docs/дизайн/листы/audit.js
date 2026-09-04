@@ -243,8 +243,45 @@
     }
     return layers.reduceRight((acc, l) => over(l.c, l.a, acc), [255, 255, 255]);
   }
+  /* ── ПЕРГАМЕНТ ────────────────────────────────────────────────────────────
+     🔴 ЗАКОН ЭКРАНОВ СМЕНИЛСЯ, И ПРИБОР ОБЯЗАН СМЕНИТЬСЯ ВМЕСТЕ С НИМ — НО НЕ
+     ОСЛЕПНУТЬ. Владелец 03.09 взял палитру Cursor один в один и снял ПРАВИЛО 4.8
+     (порог 4,5). Снять порог совсем — значит выключить прибор: тогда любой цвет,
+     который я придумаю по дороге, пройдёт молча, и разговор «а это тоже осознанно?»
+     станет невозможен.
+     Поэтому правило переписано, а не отменено, и звучит в одну строку:
+        ПОД ПЕРГАМЕНТОМ ОБА ЦВЕТА — И ТЕКСТ, И ФОН — ОБЯЗАНЫ БЫТЬ ТОКЕНАМИ НАБОРА.
+     Такая пара считается ПРИНЯТОЙ: она попадает в отчёт числом, но не дефектом.
+     Всё остальное меряется прежним порогом 4,5 / 3,0.
+     Что при этом продолжает ловиться (то есть чем прибор ещё полезен):
+       · цвет мимо набора — придуманный по дороге серый;
+       · токен набора на фоне, под который его никто не мерил;
+       · ПРОЗРАЧНОСТЬ (ПРАВИЛА 4.7): при opacity < 1 подмешанный цвет уже не равен
+         токену, пара перестаёт быть принятой и краснеет — как и должна;
+       · акцент на акценте.
+     Значения берутся с ЖИВОГО узла, а не переписаны сюда числами: набор ещё будет
+     двигаться, а прибор с устаревшей копией палитры — прибор, который врёт. */
+  const ПЕРГ_ТЕКСТ = ['--п-текст', '--п-пепел', '--п-плавник', '--п-туман', '--п-уголёк', '--п-янтарь', '--п-изумруд', '--п-багрянец'];
+  const ПЕРГ_ФОН = ['--п-холст', '--п-карточка', '--п-выше', '--п-линия', '--п-текст', '--п-янтарь', '--п-лес'];
+  const _перг = new WeakMap();
+  function пергамент(el) {
+    const узел = el.closest ? el.closest('[data-\u044f\u0437\u044b\u043a="\u043f\u0435\u0440\u0433\u0430\u043c\u0435\u043d\u0442"]') : null;
+    if (!узел) return null;
+    if (_перг.has(узел)) return _перг.get(узел);
+    const cs = getComputedStyle(узел);
+    const собрать = (имена) => имена.map((н) => ({ н, c: parse(cs.getPropertyValue(н).trim()) })).filter((x) => x.c.length === 3);
+    const набор = { текст: собрать(ПЕРГ_ТЕКСТ), фон: собрать(ПЕРГ_ФОН) };
+    // холст и карточка бывают и цветом текста (надпись на тёмной заливке) — и наоборот
+    набор.текст = набор.текст.concat(собрать(['--п-холст', '--п-карточка']));
+    _перг.set(узел, набор);
+    return набор;
+  }
+  const близко = (a, b) => a.length === 3 && b.length === 3 && a.every((v, i) => Math.abs(v - b[i]) <= 2);
+  const изНабора = (список, c) => { const н = список.find((x) => близко(x.c, c)); return н ? н.н : null; };
+
   function contrast(root) {
     const bad = [];
+    const принято = [];
     let skipped = 0;
     root.querySelectorAll('*').forEach((el) => {
       if (!vis(el) || el.children.length) return;
@@ -273,9 +310,16 @@
       const size = parseFloat(cs.fontSize), weight = Number(cs.fontWeight) || 400;
       const large = size >= 24 || (size >= 18.66 && weight >= 600);
       const need = large ? 3 : 4.5;
-      if (ratio < need - 0.01) bad.push({ el: sig(el), ratio: Math.round(ratio * 100) / 100, need, size, text: txt.slice(0, 36) });
+      const r2 = Math.round(ratio * 100) / 100;
+      const набор = пергамент(el);
+      if (набор) {
+        const тн = изНабора(набор.текст, fgMix), фн = изНабора(набор.фон, bg);
+        if (тн && фн) { принято.push({ пара: тн + ' на ' + фн, ratio: r2, text: txt.slice(0, 28) }); return; }
+      }
+      if (ratio < need - 0.01) bad.push({ el: sig(el), ratio: r2, need, size, text: txt.slice(0, 36) });
     });
     bad.skipped = skipped;
+    bad.принято = принято;
     return bad;
   }
 
@@ -295,8 +339,20 @@
     const [r, g, b] = p;
     return g > 60 && g - r > 24 && g - b > 20;
   };
+  /* 🔴 ПОД ПЕРГАМЕНТОМ АКЦЕНТ ОПОЗНАЁТСЯ ТОКЕНОМ, А НЕ ОТТЕНКОМ. Догадка по числам
+     («красноватое — значит коралл») на новой палитре врёт сразу дважды: под неё
+     подходят и янтарь #c08532, и багрянец #cf2d56 — то есть кнопка «Продолжить»
+     и слово об ошибке считались бы акцентными заливками, и экран краснел бы на
+     ровном месте. Значения токенов известны точно — сравниваем с ними.
+
+     🔴 И САМО ПРАВИЛО ЗДЕСЬ ДРУГОЕ, ПРИЧЁМ СТРОЖЕ. У старого закона акцентная
+     заливка разрешена (одна на экран). У пергамента уголёк — ЭТО ТЕКСТ: «ни
+     заливки, ни фона, ни иконки». Значит порог не «не больше двух», а НОЛЬ.
+     Заливки берут чернила; янтарь и лес — только внутри продуктовых окон. */
   function accents(root) {
     const fills = [], texts = [], goFills = [], goTexts = [], goLines = [];
+    const угольковыеЗаливки = [], угольковыеСлова = [], пергЗелёныеСлова = [];
+    let подПергаментом = 0;
     root.querySelectorAll('*').forEach((el) => {
       if (!vis(el)) return;
       const cs = getComputedStyle(el);
@@ -306,12 +362,25 @@
       // ПОЛОСА — не заливка. Всё, что тоньше 6 px по одной из сторон, — графика (ПРАВИЛА 5.4):
       // линия прогресса, точка, штрих. Иначе четыре полоски курсов читаются как четыре заливки
       const line = box.height / k <= 6 || box.width / k <= 6;
-      if (isCoral(cs.backgroundColor) && big && !line) fills.push({ el: sig(el), text: (el.textContent || '').trim().slice(0, 24) });
+      const t = (el.textContent || '').trim();
+      const набор = пергамент(el);
+      if (набор) {
+        подПергаментом += 1;
+        const уголёк = набор.текст.find((x) => x.н === '--п-уголёк');
+        const зелёные = набор.текст.filter((x) => x.н === '--п-изумруд' || x.н === '--п-лес');
+        const это = (списокИли, c) => списокИли.some((x) => близко(x.c, c));
+        if (уголёк && big && !line && близко(уголёк.c, parse(cs.backgroundColor))) {
+          угольковыеЗаливки.push({ el: sig(el), text: t.slice(0, 24) });
+        }
+        if (t && !el.children.length && уголёк && близко(уголёк.c, parse(cs.color))) угольковыеСлова.push(t.slice(0, 24));
+        if (t && !el.children.length && это(зелёные, parse(cs.color))) пергЗелёныеСлова.push(t.slice(0, 24));
+        return;
+      }
+      if (isCoral(cs.backgroundColor) && big && !line) fills.push({ el: sig(el), text: t.slice(0, 24) });
       if (isGo(cs.backgroundColor) && big) {
         if (line) goLines.push(sig(el));
-        else goFills.push({ el: sig(el), text: (el.textContent || '').trim().slice(0, 24) });
+        else goFills.push({ el: sig(el), text: t.slice(0, 24) });
       }
-      const t = (el.textContent || '').trim();
       if (t && !el.children.length && isCoral(cs.color)) texts.push(t.slice(0, 24));
       if (t && !el.children.length && isGo(cs.color)) goTexts.push(t.slice(0, 24));
     });
@@ -319,6 +388,7 @@
       fills, texts, fillCount: fills.length, textCount: texts.length,
       goFills, goTexts, goLines,
       goFillCount: goFills.length, goTextCount: goTexts.length, goLineCount: goLines.length,
+      угольковыеЗаливки, угольковыеСлова, пергЗелёныеСлова, подПергаментом,
     };
   }
 
@@ -584,7 +654,15 @@
       rowTops: report.rowTops.length ? 'ДЕФЕКТ ' + report.rowTops.length : 'ok',
       gaps: report.gaps.offGrid.length ? 'вне сетки 4px: ' + report.gaps.offGrid.join(', ') : 'ok · разных значений ' + report.gaps.distinct,      rawValues: report.rawValues.length ? 'ДЕФЕКТ ' + report.rawValues.length : 'ok',
       tapTargets: report.tapTargets.length ? 'ДЕФЕКТ ' + report.tapTargets.length : 'ok',
-      contrast: report.contrast.length ? 'ДЕФЕКТ ' + report.contrast.length : 'ok',
+      /* Принятые владельцем пары считаются и показываются, но дефектом не зовутся:
+         решение 03.09 — палитра Cursor один в один, ПРАВИЛО 4.8 снято. Число здесь
+         стоит нарочно: пока оно видно, разговор «а это тоже осознанно?» возможен. */
+      contrast: (report.contrast.length ? 'ДЕФЕКТ ' + report.contrast.length : 'ok')
+        + (report.contrast.принято && report.contrast.принято.length
+            ? ' · принято владельцем ' + report.contrast.принято.length
+              + ' (худшая пара ' + report.contrast.принято.reduce((a, b) => (b.ratio < a.ratio ? b : a)).пара
+              + ' = ' + report.contrast.принято.reduce((a, b) => (b.ratio < a.ratio ? b : a)).ratio + ')'
+            : ''),
       wrapped: report.wrapped.length ? 'ДЕФЕКТ · подпись рвётся в ' + report.wrapped.length : 'ok',
       rowWrap: report.rowWrap.length ? 'ДЕФЕКТ · ряд развалился в ' + report.rowWrap.length : 'ok',
       frameBleed: report.frameBleed.length ? 'ДЕФЕКТ · вышло за кадр ' + report.frameBleed.length : 'ok',
@@ -599,6 +677,12 @@
         : 'ok · заливок ' + report.accents.fillCount + ', текста ' + report.accents.textCount,
       // ПРАВИЛА 5.9: зелёного — одна заливка и до трёх надписей; метки списка (оценки,
       // «пройдено») — однородный столбец, а не акценты, и считаются отдельно от надписей
+      /* Пергамент: уголёк — текст, а не поверхность. Порог не «не больше двух», а ноль. */
+      уголёкНеПоверхность: !report.accents.подПергаментом
+        ? 'не применимо · на экране нет пергамента'
+        : (report.accents.угольковыеЗаливки.length
+            ? 'ДЕФЕКТ · уголёк взят заливкой ' + report.accents.угольковыеЗаливки.length + ' раз (заливки берут чернила)'
+            : 'ok · заливок углём 0, слов углём ' + report.accents.угольковыеСлова.length),
       accentsGo: report.accents.goFillCount > 1
         ? 'ДЕФЕКТ · зелёных заливок ' + report.accents.goFillCount
         : 'ok · заливок ' + report.accents.goFillCount + ', текста ' + report.accents.goTextCount + ', линий ' + report.accents.goLineCount,
@@ -651,9 +735,42 @@
     flew.style.cssText = 'position:absolute;left:-160px;top:0;width:120px;height:30px;background:#ffffff;color:#1d1d1f';
     flew.textContent = 'уехал за кадр';
     host.append(flew);
+    /* ── ПЕРГАМЕНТ: три подкладных образца ───────────────────────────────────
+       Токены ставятся ПРЯМО НА УЗЛЕ образца: лист может быть открыт и без
+       `пергамент.css`, а проверять прибор надо здесь и сейчас. Прибор читает
+       их вычисленным стилем и разницы не заметит.
+       Образцы подобраны так, чтобы поймать обе стороны нового правила:
+         · принятая пара (туман на холсте = 2,41 — ровно та, о которой спорили)
+           обязана НЕ считаться дефектом;
+         · тот же по светлоте, но ЧУЖОЙ серый обязан считаться — иначе прибор
+           слеп и «сняли порог» означало бы «выключили прибор»;
+         · уголёк заливкой обязан краснеть: у пергамента он только текст. */
+    const перг = document.createElement('div');
+    перг.setAttribute('data-\u044f\u0437\u044b\u043a', '\u043f\u0435\u0440\u0433\u0430\u043c\u0435\u043d\u0442');
+    [['--\u043f-\u0445\u043e\u043b\u0441\u0442', '#f7f7f4'], ['--\u043f-\u0442\u0435\u043a\u0441\u0442', '#26251e'],
+     ['--\u043f-\u0442\u0443\u043c\u0430\u043d', '#a1a19f'], ['--\u043f-\u0443\u0433\u043e\u043b\u0451\u043a', '#f54e00'],
+     ['--\u043f-\u043a\u0430\u0440\u0442\u043e\u0447\u043a\u0430', '#f2f1ed'], ['--\u043f-\u0432\u044b\u0448\u0435', '#e6e5e0'],
+     ['--\u043f-\u043b\u0438\u043d\u0438\u044f', '#cdcdc9'], ['--\u043f-\u044f\u043d\u0442\u0430\u0440\u044c', '#c08532'],
+     ['--\u043f-\u043b\u0435\u0441', '#34785c'], ['--\u043f-\u0438\u0437\u0443\u043c\u0440\u0443\u0434', '#1f8a65'],
+     ['--\u043f-\u043f\u0435\u043f\u0435\u043b', '#7a7974'], ['--\u043f-\u043f\u043b\u0430\u0432\u043d\u0438\u043a', '#84847e'],
+     ['--\u043f-\u0431\u0430\u0433\u0440\u044f\u043d\u0435\u0446', '#cf2d56']].forEach(([н, v]) => перг.style.setProperty(н, v));
+    перг.style.cssText += ';position:absolute;left:0;top:200px;width:240px;background:#f7f7f4';
+    const принятая = document.createElement('div');
+    принятая.style.cssText = 'color:#a1a19f;font-size:13px';   // туман на холсте = 2,41
+    принятая.textContent = 'подпись туманом';
+    const чужая = document.createElement('div');
+    чужая.style.cssText = 'color:#9e9e9e;font-size:13px';       // мимо набора, та же светлота
+    чужая.textContent = 'придуманный по дороге серый';
+    const заливкаУглём = document.createElement('div');
+    заливкаУглём.style.cssText = 'width:120px;height:40px;background:#f54e00;color:#f7f7f4';
+    заливкаУглём.textContent = 'уголёк заливкой';
+    перг.append(принятая, чужая, заливкаУглём);
+    host.append(перг);
+
     document.body.append(host);
     scope().append(host);
     const r = window.flAudit({ label: 'selftest' });
+    const принятыеПары = (r.contrast.принято || []).map((x) => x.пара);
     host.remove();
     return {
       'ловит обрезку': r.clipped.length > 0,
@@ -667,6 +784,10 @@
       'ловит развал ряда': r.rowWrap.length > 0,
       'ловит текст под слоем': r.textUnderLayer.length > 0,
       'ловит вылет за кадр': r.frameBleed.length > 0,
+      'пергамент: принятую пару НЕ считает дефектом': принятыеПары.some((п) => п.indexOf('\u0442\u0443\u043c\u0430\u043d') !== -1)
+        && !r.contrast.some((d) => d.text.indexOf('\u043f\u043e\u0434\u043f\u0438\u0441\u044c \u0442\u0443\u043c\u0430\u043d\u043e\u043c') === 0),
+      'пергамент: чужой цвет мимо набора всё ещё ловит': r.contrast.some((d) => d.text.indexOf('\u043f\u0440\u0438\u0434\u0443\u043c\u0430\u043d\u043d\u044b\u0439') === 0),
+      'пергамент: уголёк заливкой ловит': r.accents.угольковыеЗаливки.length > 0,
     };
   };
 })();

@@ -125,7 +125,6 @@
 
 .зовШапка {
   font: var(--weight-medium) var(--text-overline) var(--font-mono);
-  letter-spacing: var(--tracking-overline);
   text-transform: uppercase;
   color: var(--color-go-text);
 }
@@ -178,7 +177,6 @@
 
 .выборЗаголовок {
   font: var(--weight-medium) var(--text-overline) var(--font-mono);
-  letter-spacing: var(--tracking-overline);
   text-transform: uppercase;
   color: var(--color-text-detail);
 }
@@ -211,7 +209,7 @@
   padding: var(--space-2) var(--space-4);
   border-top: 1px solid var(--color-border);
   font-size: var(--text-caption);
-  color: var(--color-alarm-text);
+  color: var(--color-error-text);
 }
 
 /* 🔴 ДВЕ СТРОКИ, А НЕ ОДНА. В одну строку поле, «Позвать на урок» и

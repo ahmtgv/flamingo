@@ -28,9 +28,34 @@ import { fileURLToPath } from 'node:url'
 const ROOT = fileURLToPath(new URL('..', import.meta.url))
 const SRC = join(ROOT, 'src')
 
-/** Имена токенов стоят в tokens.css по нескольку в строке — ищем везде, не в начале. */
+/* 🔴 ИМЯ ТОКЕНА БЫВАЕТ КИРИЛЛИЧЕСКИМ. `\w` в JS — это [A-Za-z0-9_], и `--п-текст`
+   под него не подходит ни одной буквой после дефисов. Пока класс был `[\w-]`,
+   прибор не видел новый набор ВООБЩЕ: ни объявления (значит имя считалось
+   неизвестным), ни обращения (значит опечатка в нём проходила молча). Поймано
+   самопроверкой на подкладном образце до того, как переведён первый экран. */
+const ЧАСТЬ_ИМЕНИ = '[\\p{L}\\p{N}_-]'
+const ИМЯ_ОБЪЯВЛЕНИЯ = new RegExp(`(--${ЧАСТЬ_ИМЕНИ}+)\\s*:`, 'gu')
+const ИМЯ_В_VAR = new RegExp(`var\\((--${ЧАСТЬ_ИМЕНИ}+)`, 'gu')
+const ИМЯ_В_СТРОКЕ = new RegExp(`['"](--${ЧАСТЬ_ИМЕНИ}+)['"]`, 'gu')
+/* 🔴 МЕСТНАЯ ПЕРЕМЕННАЯ — НЕ ТОКЕН. Журнал ставит ширину столбца на сам элемент:
+   `style={{ ['--скольких']: String(n) }}`, а модуль её читает. Такое имя в наборе
+   отсутствует по замыслу, и требовать его там — требовать невозможного. Отличаем
+   по синтаксису: объявление — вычисляемый ключ, за которым стоит двоеточие;
+   обращение — просто строка. Опечатка при этом ловится по-прежнему: имя, которого
+   нет ни в наборах, ни среди объявленных, остаётся дефектом. */
+const ОБЪЯВЛЕНИЕ_В_TSX = new RegExp(`\\[\\s*['"](--${ЧАСТЬ_ИМЕНИ}+)['"][^\\]]*\\]\\s*:`, 'gu')
+
+/** Имена, объявленные не в наборе, а на месте: у элемента или внутри модуля. */
+export function местные(текст, kind) {
+  const out = new Set()
+  const re = kind === 'css' ? ИМЯ_ОБЪЯВЛЕНИЯ : ОБЪЯВЛЕНИЕ_В_TSX
+  for (const m of текст.matchAll(re)) out.add(m[1])
+  return out
+}
+
+/** Имена токенов стоят в наборе по нескольку в строке — ищем везде, не в начале. */
 export function tokenNames(css) {
-  return new Set([...css.matchAll(/(--[\w-]+)\s*:/g)].map((m) => m[1]))
+  return new Set([...css.matchAll(ИМЯ_ОБЪЯВЛЕНИЯ)].map((m) => m[1]))
 }
 
 /** Одна проверка одного файла. Возвращает список дефектов строками. */
@@ -73,11 +98,11 @@ export function inspect({ name, text, kind, known }) {
     const n = i + 1
     const line = kind === 'css' ? тоже(строкаЦеликом) : строкаЦеликом
 
-    for (const m of line.matchAll(/var\((--[\w-]+)/g)) {
-      if (!known.has(m[1])) say(n, `токена нет в tokens.css: ${m[1]}`)
+    for (const m of line.matchAll(ИМЯ_В_VAR)) {
+      if (!known.has(m[1])) say(n, `токена нет ни в одном наборе: ${m[1]}`)
     }
-    for (const m of line.matchAll(/['"](--[\w-]+)['"]/g)) {
-      if (!known.has(m[1])) say(n, `токена нет в tokens.css: ${m[1]} (в строке)`)
+    for (const m of line.matchAll(ИМЯ_В_СТРОКЕ)) {
+      if (!known.has(m[1])) say(n, `токена нет ни в одном наборе: ${m[1]} (в строке)`)
     }
 
     if (kind !== 'css') return
@@ -144,7 +169,7 @@ export function tags(text, name) {
 /* ── самопроверка: каждому правилу — свой подкладной образец ─────────────────── */
 
 function selftest() {
-  const known = tokenNames(':root { --a: 1px;  --b: 2px; }')
+  const known = tokenNames(':root { --a: 1px;  --b: 2px;  --п-текст: #26251e; }')
   const cases = [
     ['имя токена есть', { kind: 'css', text: '.x { color: var(--a); }' }, 0],
     ['имени токена нет', { kind: 'css', text: '.x { color: var(--nope); }' }, 1],
@@ -166,9 +191,27 @@ function selftest() {
     ['живая кнопка со стрелкой в атрибуте', { kind: 'tsx', text: '<button disabled={i >= n} onClick={() => go(1)}>→</button>' }, 0],
     ['немая кнопка со стрелкой в атрибуте', { kind: 'tsx', text: '<button disabled={i >= n} className={s.b}>→</button>' }, 1],
     ['общая строка токенов', { kind: 'css', text: '.x { margin: var(--b); }' }, 0],
+    /* Кириллические имена. Раньше обе строки давали 0 — прибор их не видел вовсе. */
+    ['кириллическое имя есть', { kind: 'css', text: '.x { color: var(--п-текст); }' }, 0],
+    ['кириллического имени нет', { kind: 'css', text: '.x { color: var(--п-нету); }' }, 1],
+    ['кириллическое имя в строке', { kind: 'tsx', text: `const c = '--п-нету'` }, 1],
   ]
 
-  let bad = 0
+  /* Местные имена: объявление у элемента — не дефект, простое обращение — дефект. */
+  const объявлено = местные(`style={{ ['--скольких' as string]: String(n) }}`, 'tsx')
+  const неОбъявлено = местные(`const c = '--п-нету'`, 'tsx')
+  const местноеОк = объявлено.has('--скольких') && объявлено.size === 1 && неОбъявлено.size === 0
+  console.log(`${местноеОк ? 'ok  ' : 'ПЛОХО'} местное имя: ждали объявление и не ждали обращение, получили ${объявлено.size}/${неОбъявлено.size}`)
+
+  /* Союз наборов проверяется отдельно от разбора строк: он живёт в другой
+     функции, и без этой проверки «прибор знает пергамент» осталось бы словами.
+     Подкладывается заведомо РАЗДЕЛЬНОЕ содержимое: если союз склеится не так,
+     одно из двух имён потеряется и счёт разойдётся. */
+  const союз = наборы((н) => (н.includes('пергамент') ? ':root { --п-текст: #26251e; }' : ':root { --color-text: #111; }'))
+  const союзОк = союз.has('--color-text') && союз.has('--п-текст') && союз.size === 2
+  console.log(`${союзОк ? 'ok  ' : 'ПЛОХО'} союз наборов: ждали оба имени, получили ${[...союз].join(' ')}`)
+
+  let bad = (союзОк ? 0 : 1) + (местноеОк ? 0 : 1)
   for (const [title, f, expected] of cases) {
     const got = inspect({ name: 'образец', known, ...f }).length
     const ok = got === expected
@@ -194,18 +237,43 @@ function walk(dir) {
   return out
 }
 
+/* 🔴 НАБОРОВ ДВА, И ЭТО НАДОЛГО. `tokens.css` держит экраны старого закона,
+   `пергамент.css` — переведённые (решение владельца 03.09, docs/ПЕРГАМЕНТ.md).
+   Переход идёт по одному экрану, поэтому оба набора живут одновременно, и знать
+   прибор обязан оба: иначе первый же переведённый экран краснеет весь целиком.
+   Сами наборы из проверки на «голое значение» исключены — объявление токена и
+   ЕСТЬ то место, где голому значению положено стоять. */
+export const НАБОРЫ = ['styles/tokens.css', 'styles/пергамент.css']
+
+export function наборы(читать) {
+  const out = new Set()
+  for (const н of НАБОРЫ) for (const имя of tokenNames(читать(н))) out.add(имя)
+  return out
+}
+
 function run() {
-  const known = tokenNames(readFileSync(join(SRC, 'styles/tokens.css'), 'utf8'))
+  const known = наборы((н) => readFileSync(join(SRC, н), 'utf8'))
   const defects = []
   let seen = 0
 
+  const файлы = []
   for (const file of walk(SRC)) {
     const kind = file.endsWith('.css') ? 'css' : /\.tsx?$/.test(file) ? 'tsx' : null
     if (!kind) continue
-    if (file.endsWith('styles/tokens.css')) continue
+    if (НАБОРЫ.some((н) => file.endsWith(н))) continue
+    файлы.push({ file, kind, text: readFileSync(file, 'utf8') })
+  }
+
+  // Первый проход — собрать местные имена; второй — проверять. Порядок обхода
+  // дерева не должен решать, объявлено имя или нет.
+  const свои = new Set()
+  for (const ф of файлы) for (const имя of местные(ф.text, ф.kind)) свои.add(имя)
+  const всё = new Set([...known, ...свои])
+
+  for (const ф of файлы) {
     seen += 1
     defects.push(
-      ...inspect({ name: relative(ROOT, file), text: readFileSync(file, 'utf8'), kind, known }),
+      ...inspect({ name: relative(ROOT, ф.file), text: ф.text, kind: ф.kind, known: всё }),
     )
   }
 
@@ -214,7 +282,7 @@ function run() {
     defects.forEach((d) => console.error('  ' + d))
     process.exit(1)
   }
-  console.log(`ok · токенов известно ${known.size}, файлов просмотрено ${seen}`)
+  console.log(`ok · токенов известно ${known.size}, местных имён ${свои.size}, файлов просмотрено ${seen}`)
 }
 
 if (process.argv.includes('--selftest')) selftest()
