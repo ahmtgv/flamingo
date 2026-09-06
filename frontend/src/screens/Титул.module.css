@@ -145,19 +145,6 @@
   box-shadow: var(--shadow-md);
 }
 .пуск svg { position: static; width: var(--space-4); height: var(--space-4); }
-.проМетка {
-  position: absolute;
-  left: var(--space-2);
-  top: var(--space-2);
-  font-family: var(--font-mono);
-  font-size: var(--text-overline);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--color-text-inverse);
-  background: var(--color-overlay);
-  border-radius: var(--radius-xs);
-  padding: 0 var(--space-1);
-}
 .проПодпись { display: grid; gap: 2px; font-size: var(--text-small); line-height: 1.35; }
 .проПодпись s { font-family: var(--font-mono); font-size: var(--text-overline); color: var(--color-text-hint); text-decoration: none; }
 .стопкой .проПодпись { display: flex; align-items: baseline; gap: var(--space-3); }
