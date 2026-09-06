@@ -1,0 +1,365 @@
+/* Титульный экран. Один кадр, доска и лента — по утверждённому формату.
+   Значения только токенами (ПРАВИЛА 2.8): голых px и hex здесь нет,
+   волосяные 0–3 px разрешены, кегль берётся шкалой --text-*. */
+
+.экран {
+  height: 100vh;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  background: var(--color-bg);
+  color: var(--color-text);
+  overflow: hidden;
+}
+
+/* ── шапка ─────────────────────────────────────────────────────────── */
+.шапка {
+  display: flex;
+  align-items: center;
+  gap: var(--space-6);
+  height: var(--control-height-lg);
+  padding: 0 var(--space-5);
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+.меню { display: flex; gap: var(--space-5); }
+.пункт {
+  color: var(--color-text-detail);
+  font-size: var(--text-small);
+  min-height: var(--tap-min);
+  display: inline-grid;
+  align-items: center;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+.пункт:hover { color: var(--color-text); }
+.разрыв { flex: 1; }
+.вход {
+  color: var(--color-text-detail);
+  font-size: var(--text-small);
+  min-height: var(--tap-min);
+  display: inline-grid;
+  align-items: center;
+  padding: 0 var(--space-1);
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+.вход:hover { color: var(--color-text); }
+.дверь {
+  background: var(--color-go-solid);
+  color: var(--color-on-go);
+  border: 0;
+  border-radius: var(--radius-control);
+  min-height: var(--tap-min);
+  padding: 0 var(--space-4);
+  font: 600 var(--text-small) var(--font-heading);
+  cursor: pointer;
+  display: inline-grid;
+  place-items: center;
+}
+.дверь:hover { background: var(--color-go-solid-hover); }
+
+/* ── разворот: слово слева, доска справа ───────────────────────────── */
+.разворот {
+  display: grid;
+  grid-template-columns: minmax(0, 0.82fr) minmax(0, 1.18fr);
+  gap: var(--space-7);
+  min-height: 0;
+  padding: var(--space-5);
+  align-items: stretch;
+}
+.левая { display: grid; grid-template-rows: auto minmax(0, 1fr); gap: var(--space-4); min-height: 0; }
+.слова { display: grid; align-content: start; gap: var(--space-3); }
+.бровь {
+  font-family: var(--font-mono);
+  font-size: var(--text-overline);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-text-hint);
+}
+.заголовок {
+  margin: 0;
+  font-size: var(--text-h1);
+  line-height: 1.03;
+  font-weight: 600;
+  letter-spacing: -0.032em;
+}
+@media (min-width: 1400px) {
+  .заголовок { font-size: var(--text-display); }
+}
+.лид {
+  margin: 0;
+  font-size: var(--text-body);
+  line-height: 1.5;
+  color: var(--color-text-detail);
+}
+.кому {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-3);
+  font-family: var(--font-mono);
+  font-size: var(--text-overline);
+  line-height: 1.5;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-text-hint);
+  align-items: center;
+}
+.кому b { color: var(--color-text-detail); font-weight: 400; }
+
+/* ── проморолик ────────────────────────────────────────────────────── */
+/* Раскладку низа выбирает замер: где хватает высоты — ролик во всю ширину
+   с подписью снизу, где нет — подпись сбоку, чтобы справа не зияла дыра. */
+.проБлок { display: grid; gap: var(--space-4); min-width: 0; min-height: 0; align-content: start; }
+.сбоку { grid-template-columns: auto minmax(0, 1fr); align-items: end; }
+.стопкой { grid-template-columns: minmax(0, 1fr); gap: var(--space-2); }
+.проТекст { display: grid; gap: var(--space-2); min-width: 0; }
+.сбоку .проТекст { align-content: end; }
+.промо {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  max-width: 100%;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  overflow: hidden;
+  background: var(--color-surface);
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  display: block;
+  padding: 0;
+}
+.промо svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.пуск {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: var(--space-9);
+  height: var(--space-9);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface);
+  display: grid;
+  place-items: center;
+  box-shadow: var(--shadow-md);
+}
+.пуск svg { position: static; width: var(--space-4); height: var(--space-4); }
+.проМетка {
+  position: absolute;
+  left: var(--space-2);
+  top: var(--space-2);
+  font-family: var(--font-mono);
+  font-size: var(--text-overline);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-text-inverse);
+  background: var(--color-overlay);
+  border-radius: var(--radius-xs);
+  padding: 0 var(--space-1);
+}
+.проПодпись { display: grid; gap: 2px; font-size: var(--text-small); line-height: 1.35; }
+.проПодпись s { font-family: var(--font-mono); font-size: var(--text-overline); color: var(--color-text-hint); text-decoration: none; }
+.стопкой .проПодпись { display: flex; align-items: baseline; gap: var(--space-3); }
+.стопкой .проПодпись s { margin-left: auto; white-space: nowrap; }
+
+/* ── доска ─────────────────────────────────────────────────────────── */
+.доска {
+  height: 100%;
+  min-height: 0;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+.дШапка {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--color-border);
+  font-family: var(--font-mono);
+  font-size: var(--text-overline);
+  color: var(--color-text-hint);
+}
+.живо { margin-left: auto; display: inline-flex; align-items: center; gap: var(--space-1); color: var(--color-text-detail); }
+.огонёк { width: var(--space-1); height: var(--space-1); border-radius: var(--radius-pill); background: var(--color-accent); display: block; }
+/* Доска в ТОЧКУ, а не в клетку: клетка чертит сплошные линии и спорит
+   с рисунком, точки держат ту же сетку, но отступают на задний план. */
+.поле {
+  position: relative;
+  min-height: 0;
+  background-image: radial-gradient(circle at center, var(--color-border) 1.2px, transparent 1.2px);
+  background-size: var(--space-6) var(--space-6);
+}
+.холст { display: block; width: 100%; height: 100%; touch-action: none; cursor: crosshair; }
+/* След указателя живёт на СВОЁМ слое и чистится каждый кадр: на общем холсте
+   он оставался насовсем и ложился поверх рисунка. */
+.след { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.шёпот {
+  position: absolute;
+  left: var(--space-4);
+  bottom: var(--space-3);
+  font-size: var(--text-caption);
+  color: var(--color-text-hint);
+  pointer-events: none;
+  transition: opacity var(--duration-slow);
+}
+.дНиз {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-top: 1px solid var(--color-border);
+  flex-wrap: wrap;
+}
+.перо {
+  width: var(--space-5);
+  height: var(--space-5);
+  border-radius: var(--radius-pill);
+  border: 2px solid transparent;
+  cursor: pointer;
+  padding: 0;
+}
+.пероВ { border-color: var(--color-text); }
+.сцены { display: flex; gap: var(--space-1); margin-left: auto; flex-wrap: wrap; }
+.сцена {
+  font-family: var(--font-mono);
+  font-size: var(--text-overline);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: var(--space-1) var(--space-2);
+  background: var(--color-bg);
+  cursor: pointer;
+}
+.сцена:hover { border-color: var(--color-border-strong); }
+.сценаВ { border-color: var(--color-text); }
+
+/* ── низ: ролики и хаб ─────────────────────────────────────────────── */
+.низ {
+  border-top: 1px solid var(--color-border);
+  background: var(--color-surface);
+  padding: var(--space-3) var(--space-5);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: var(--space-7);
+}
+.часть { min-width: 0; display: grid; align-content: start; }
+.нШапка { display: flex; align-items: baseline; gap: var(--space-3); margin-bottom: var(--space-2); }
+.нЗаголовок { margin: 0; font-size: var(--text-h3); font-weight: 600; letter-spacing: -0.01em; }
+.нПодпись {
+  font-family: var(--font-mono);
+  font-size: var(--text-overline);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-text-hint);
+}
+.всё { margin-left: auto; font-size: var(--text-caption); color: var(--color-text-detail); background: none; border: 0; cursor: pointer; padding: 0; }
+.всё:hover { color: var(--color-text); }
+
+.лента { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: var(--space-3); }
+.ролик { display: grid; gap: var(--space-2); min-width: 0; }
+.обложка {
+  position: relative;
+  aspect-ratio: 9 / 16;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--color-surface-subtle);
+  border: 1px solid var(--color-border);
+}
+.обложка svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.предмет {
+  position: absolute;
+  left: var(--space-1);
+  top: var(--space-1);
+  font-family: var(--font-mono);
+  font-size: var(--text-overline);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-hint);
+}
+.скоро {
+  position: absolute;
+  right: var(--space-1);
+  bottom: var(--space-1);
+  font-family: var(--font-mono);
+  font-size: var(--text-overline);
+  color: var(--color-text-hint);
+  background: var(--color-surface);
+  border-radius: var(--radius-xs);
+  padding: 0 var(--space-1);
+}
+.имя {
+  font-size: var(--text-caption);
+  line-height: 1.3;
+  color: var(--color-text-detail);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.хаб { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-2); align-content: start; }
+.источник {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-bg);
+  padding: var(--space-2);
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--space-3);
+  align-items: center;
+  min-width: 0;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color var(--duration-fast), transform var(--duration-fast);
+}
+.источник:hover { border-color: var(--color-border-strong); transform: translateY(-2px); }
+.превью {
+  width: var(--space-10);
+  aspect-ratio: 1;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  display: block;
+  background: var(--color-surface-subtle);
+}
+.превью svg { display: block; width: 100%; height: 100%; }
+.иТекст { display: grid; gap: 2px; min-width: 0; }
+.иВид {
+  font-family: var(--font-mono);
+  font-size: var(--text-overline);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-text-hint);
+}
+.иИмя {
+  min-width: 0;
+  font-size: var(--text-caption);
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  line-height: 1.25;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.иДаёт {
+  min-width: 0;
+  font-size: var(--text-overline);
+  line-height: 1.28;
+  color: var(--color-text-hint);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* Состояние говорит точка и надпись, цветных полос слева нет
+   (решение владельца 31.08, как на экране хаба). */
+.иСост { font-family: var(--font-mono); font-size: var(--text-overline); color: var(--color-go-text); display: flex; align-items: center; gap: var(--space-1); }
+.иЭфир { color: var(--color-accent-text); }
+.иМолчит { color: var(--color-text-hint); }
+.иТочка { width: var(--space-1); height: var(--space-1); border-radius: var(--radius-pill); background: currentColor; display: block; }
