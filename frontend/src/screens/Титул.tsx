@@ -108,7 +108,14 @@ const ПЕРЬЯ = ['--color-text', '--color-accent', '--color-go', '--color-inf
 const В_ХАБЕ = ['hubble', 'loc', 'lapalma', 'rijks', 'rumsey', 'usgs']
 const СОСТОЯНИЕ = { ok: 'отвечает', live: 'идёт трансляция', down: 'молчит' } as const
 
-export function Титул({ onSign, onHub }: { onSign: () => void; onHub: () => void }) {
+export function Титул({ onSign, onHub, молчит = false, onAgain }: {
+  onSign: () => void
+  onHub: () => void
+  /** Сервер учётных записей не ответил. Титул от этого не ломается: страдают
+   *  только двери, и об этом сказано словами, а не молчанием. */
+  молчит?: boolean
+  onAgain?: () => void
+}) {
   const холст = useRef<HTMLCanvasElement>(null)
   const следРеф = useRef<HTMLCanvasElement>(null)
   const левая = useRef<HTMLDivElement>(null)
@@ -122,7 +129,7 @@ export function Титул({ onSign, onHub }: { onSign: () => void; onHub: () =>
   const движок = useRef<ReturnType<typeof доска> | null>(null)
 
   const источники = В_ХАБЕ.map((id) => SOURCES.find((x) => x.id === id)).filter(Boolean)
-  const молчит = SOURCES.filter((x) => x.state === 'down').length
+  const молчатИсточников = SOURCES.filter((x) => x.state === 'down').length
 
   /* Доска: сцены идут по кругу, взяли перо — молчат. */
   useEffect(() => {
@@ -225,6 +232,14 @@ export function Титул({ onSign, onHub }: { onSign: () => void; onHub: () =>
         <button type="button" className={s.дверь} onClick={onSign}>Завести учётную запись</button>
       </header>
 
+      {молчит && (
+        <p className={s.отказ}>
+          Сервер учётных записей не отвечает — войти и завести запись сейчас нельзя.
+          Доска, источники мира и урок по ссылке работают.
+          {onAgain && <button type="button" className={s.снова} onClick={onAgain}>Спросить ещё раз</button>}
+        </p>
+      )}
+
       <div className={s.разворот}>
         <div className={s.левая} ref={левая}>
           <div className={s.слова} ref={слова}>
@@ -313,7 +328,7 @@ export function Титул({ onSign, onHub }: { onSign: () => void; onHub: () =>
         <div className={s.часть}>
           <div className={s.нШапка}>
             <h2 className={s.нЗаголовок}>Flamingo HUB</h2>
-            <span className={s.нПодпись}>источники мира · молчат {молчит} из {SOURCES.length}</span>
+            <span className={s.нПодпись}>источники мира · молчат {молчатИсточников} из {SOURCES.length}</span>
             <button type="button" className={s.всё} onClick={onHub}>все {SOURCES.length} →</button>
           </div>
           <div className={s.хаб}>
