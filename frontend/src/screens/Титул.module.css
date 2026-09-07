@@ -5,7 +5,18 @@
 .экран {
   height: 100vh;
   display: grid;
-  grid-template-rows: auto auto minmax(0, 1fr) auto;
+  /* 🔴 НИЗ МЕРЯЕТСЯ ВЫСОТОЙ, А НЕ ШИРИНОЙ. Полоса была `auto`, а обложки —
+     9:16 от ширины колонки: на широком окне колонка растёт, обложка растёт
+     вместе с ней, полоса перестаёт помещаться и её срезает. Теперь у полосы
+     доля экрана, а всё внутри считает размер от неё. */
+  /* Полоса низа — ОПРЕДЕЛЁННАЯ доля экрана, а не `minmax(0, 34vh)`:
+     та позволяла строке сжиматься по содержимому, а содержимое считает высоту
+     от неё же — круг, и полоса схлопывалась в 25 px. Поймано стендом. */
+  grid-template-rows: auto auto minmax(0, 1fr) 34vh;
+  /* 🔴 СТРОКА У КАЖДОГО СВОЯ, А НЕ ПО ПОРЯДКУ. Полоса отказа появляется только
+     при молчании сервера — без неё все дети съезжали на строку вверх: разворот
+     получал `auto`, а низ забирал `1fr`, и полоса роликов вылезала за кадр.
+     Именно это и сломало боевой. Поймано стендом на настоящем CSS. */
   background: var(--color-bg);
   color: var(--color-text);
   overflow: hidden;
@@ -13,6 +24,7 @@
 
 /* ── шапка ─────────────────────────────────────────────────────────── */
 .шапка {
+  grid-row: 1;
   display: flex;
   align-items: center;
   gap: var(--space-6);
@@ -63,6 +75,7 @@
 
 /* ── разворот: слово слева, доска справа ───────────────────────────── */
 .разворот {
+  grid-row: 3;
   display: grid;
   grid-template-columns: minmax(0, 0.82fr) minmax(0, 1.18fr);
   gap: var(--space-7);
@@ -121,6 +134,10 @@
   position: relative;
   aspect-ratio: 16 / 9;
   max-width: 100%;
+  /* Потолок по высоте: ширину ролику считает JS, но ДО первого замера он
+     занимает всю ширину колонки и раздувает разворот — на первом кадре
+     страницу дёргало. */
+  max-height: 100%;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-card);
   overflow: hidden;
@@ -228,14 +245,17 @@
 
 /* ── низ: ролики и хаб ─────────────────────────────────────────────── */
 .низ {
+  grid-row: 4;
   border-top: 1px solid var(--color-border);
   background: var(--color-surface);
   padding: var(--space-3) var(--space-5);
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: var(--space-7);
+  min-height: 0;
+  overflow: hidden;
 }
-.часть { min-width: 0; display: grid; align-content: start; }
+.часть { min-width: 0; min-height: 0; display: grid; grid-template-rows: auto minmax(0, 1fr); }
 .нШапка { display: flex; align-items: baseline; gap: var(--space-3); margin-bottom: var(--space-2); }
 .нЗаголовок { margin: 0; font-size: var(--text-h3); font-weight: 600; letter-spacing: -0.01em; }
 .нПодпись {
@@ -248,11 +268,14 @@
 .всё { margin-left: auto; font-size: var(--text-caption); color: var(--color-text-detail); background: none; border: 0; cursor: pointer; padding: 0; }
 .всё:hover { color: var(--color-text); }
 
-.лента { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: var(--space-3); }
-.ролик { display: grid; gap: var(--space-2); min-width: 0; }
+.лента { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: var(--space-3); min-height: 0; }
+.ролик { display: grid; grid-template-rows: minmax(0, 1fr) auto; gap: var(--space-2); min-width: 0; min-height: 0; }
 .обложка {
   position: relative;
+  height: 100%;
   aspect-ratio: 9 / 16;
+  justify-self: center;
+  max-width: 100%;
   border-radius: var(--radius-md);
   overflow: hidden;
   background: var(--color-surface-subtle);
@@ -290,7 +313,8 @@
   overflow: hidden;
 }
 
-.хаб { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-2); align-content: start; }
+.хаб { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: repeat(3, minmax(0, 1fr)); gap: var(--space-2); min-height: 0; }
 .источник {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
@@ -301,6 +325,8 @@
   gap: var(--space-3);
   align-items: center;
   min-width: 0;
+  min-height: 0;
+  overflow: hidden;
   color: inherit;
   text-align: left;
   cursor: pointer;
@@ -308,7 +334,8 @@
 }
 .источник:hover { border-color: var(--color-border-strong); transform: translateY(-2px); }
 .превью {
-  width: var(--space-10);
+  height: 100%;
+  max-height: var(--space-11);
   aspect-ratio: 1;
   border-radius: var(--radius-sm);
   overflow: hidden;
@@ -354,6 +381,7 @@
 /* Отказ назван ВНУТРИ своей области: полоса под шапкой, а не карточка поверх
    всего экрана. Карточка поверх врёт, будто не работает ничего (ПРАВИЛА 6.5). */
 .отказ {
+  grid-row: 2;
   margin: 0;
   padding: var(--space-2) var(--space-5);
   border-bottom: 1px solid var(--color-accent-subtle-border);
@@ -373,4 +401,11 @@
   font-size: var(--text-small);
   cursor: pointer;
   min-height: var(--tap-min);
+}
+
+/* В тесном по высоте окне у плитки источника уходит строка «что даёт»:
+   имя и состояние обязательны, описание — нет. Медиазапрос по ВЫСОТЕ,
+   потому что тесно именно ей: полоса низа — доля экрана. */
+@media (max-height: 880px) {
+  .иДаёт { display: none; }
 }

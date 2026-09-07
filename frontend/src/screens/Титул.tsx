@@ -125,6 +125,7 @@ export function Титул({ onSign, onHub, молчит = false, onAgain }: {
   const подпись = useRef<HTMLSpanElement>(null)
   const [сцена, setСцена] = useState(0)
   const [перо, setПеро] = useState(0)
+  const пероРеф = useRef(0)
   const [стопкой, setСтопкой] = useState(true)
   const движок = useRef<ReturnType<typeof доска> | null>(null)
 
@@ -139,9 +140,44 @@ export function Титул({ onSign, onHub, молчит = false, onAgain }: {
     движок.current = д
     д.размер()
     д.играть(0, setСцена)
+    д.сторож(setСцена)
+
+    /* 🔴 ПЕРО. Без этого доска только показывала: «возьмите перо» было
+       обещанием, которого экран не выполнял. Нажали — сцены молчат, ведём —
+       остаётся штрих тем же почерком, отпустили и восемь секунд тишины —
+       доска снова показывает сама. */
+    const П = палитра(c)
+    const цвета = [П.перо, П.акцент, П.зелёный, П.синий]
+    const где = (e: PointerEvent): [number, number] => {
+      const r = c.getBoundingClientRect()
+      return [e.clientX - r.left, e.clientY - r.top]
+    }
+    const вниз = (e: PointerEvent) => {
+      c.setPointerCapture(e.pointerId)
+      д.взятьПеро()
+      const p = где(e)
+      д.вести(p[0], p[1], цвета[пероРеф.current])
+    }
+    const ведём = (e: PointerEvent) => {
+      if (!(e.buttons & 1)) return
+      const p = где(e)
+      д.вести(p[0], p[1], цвета[пероРеф.current])
+    }
+    const вверх = () => д.отпустить()
+    c.addEventListener('pointerdown', вниз)
+    c.addEventListener('pointermove', ведём)
+    c.addEventListener('pointerup', вверх)
+    c.addEventListener('pointerleave', вверх)
     const наРазмер = () => { д.размер(); д.играть(д.текущая(), setСцена) }
     window.addEventListener('resize', наРазмер)
-    return () => { window.removeEventListener('resize', наРазмер); д.стоп() }
+    return () => {
+      window.removeEventListener('resize', наРазмер)
+      c.removeEventListener('pointerdown', вниз)
+      c.removeEventListener('pointermove', ведём)
+      c.removeEventListener('pointerup', вверх)
+      c.removeEventListener('pointerleave', вверх)
+      д.стоп()
+    }
   }, [])
 
   /* 🔴 РАСКЛАДКУ НИЗА РЕШАЕТ ЗАМЕР, А НЕ МЕДИАЗАПРОС. Колонка бывает высокой и
@@ -188,7 +224,10 @@ export function Титул({ onSign, onHub, молчит = false, onAgain }: {
     const где = (e: PointerEvent): [number, number] => {
       const r = c.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]
     }
-    const движение = (e: PointerEvent) => { const p = где(e); хвост.push([p[0], p[1], Date.now()]) }
+    const движение = (e: PointerEvent) => {
+      if (e.buttons & 1) { хвост = []; return }   // пока ведут перо, следа нет
+      const p = где(e); хвост.push([p[0], p[1], Date.now()])
+    }
     const уход = () => { хвост = [] }
     const кадр = () => {
       if (!жив) return
@@ -286,7 +325,7 @@ export function Титул({ onSign, onHub, молчит = false, onAgain }: {
                 aria-label={`перо ${i + 1}`}
                 className={`${s.перо} ${i === перо ? s.пероВ : ''}`}
                 style={{ background: `var(${имя})` }}
-                onClick={() => setПеро(i)}
+                onClick={() => { setПеро(i); пероРеф.current = i }}
               />
             ))}
             <span className={s.сцены}>
