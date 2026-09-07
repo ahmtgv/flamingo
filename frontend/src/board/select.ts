@@ -57,8 +57,39 @@ export function hitStroke(st: Stroke, p: Point, tol: number): boolean {
   return false
 }
 
+/** Углы фигуры в мировых координатах. Овал сюда не идёт: у него нет углов. */
+function углы(o: Extract<Obj, { kind: 'shape' }>): Point[] {
+  const { x, y, w, h } = o
+  if (o.form === 'rect') return [[x, y], [x + w, y], [x + w, y + h], [x, y + h]]
+  return [[x + w / 2, y], [x + w, y + h], [x, y + h]]
+}
+
+function поКонтуру(p: Point, pts: Point[]): number {
+  let d = Infinity
+  for (let i = 1; i < pts.length; i += 1) d = Math.min(d, nearSegment(p, pts[i - 1], pts[i]))
+  return Math.min(d, nearSegment(p, pts[pts.length - 1], pts[0]))
+}
+
 export function hitObj(o: Obj, p: Point, tol: number): boolean {
   if (o.kind === 'arrow') return nearSegment(p, [o.x, o.y], [o.x2, o.y2]) < tol + o.width / 2
+  /* 🔴 Фигура ловится ПО ЛИНИИ, а не по своему прямоугольнику. Иначе большой
+     круг, которым обвели схему, забирал бы себе каждое нажатие внутри — и всё,
+     что он обводит, стало бы недоступно. То же правило, что у штриха. */
+  if (o.kind === 'shape') {
+    const r = tol + o.width / 2
+    if (o.form === 'ellipse') {
+      const cx = o.x + o.w / 2, cy = o.y + o.h / 2
+      const rx = o.w / 2 || 1, ry = o.h / 2 || 1
+      const nx = (p[0] - cx) / rx, ny = (p[1] - cy) / ry
+      const t = Math.hypot(nx, ny)
+      if (t === 0) return false
+      /* Ближайшая точка овала в ту же сторону от середины: точного расстояния
+         до эллипса в замкнутом виде нет, а это приближение врёт меньше, чем
+         толщина линии, — то есть незаметно. */
+      return Math.hypot(p[0] - (cx + (nx / t) * rx), p[1] - (cy + (ny / t) * ry)) < r
+    }
+    return поКонтуру(p, углы(o)) < r
+  }
   return inside(objBox(o), p)
 }
 

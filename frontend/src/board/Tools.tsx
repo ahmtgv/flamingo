@@ -1,15 +1,17 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 
 import s from './Board.module.css'
-import { PENS } from './protocol'
+import { PENS, type Form } from './protocol'
 
-export type Tool = 'pick' | 'pen' | 'eraser' | 'hand' | 'arrow' | 'dash' | 'text' | 'note'
+export type Tool = 'pick' | 'pen' | 'fade' | 'eraser' | 'hand' | 'arrow' | 'dash' | 'shape' | 'text' | 'note'
 
 type Props = {
   tool: Tool
   setTool: (t: Tool) => void
   pen: number
   setPen: (i: number) => void
+  form: Form
+  setForm: (f: Form) => void
   thick: boolean
   setThick: (f: (v: boolean) => boolean) => void
   armed: boolean
@@ -45,6 +47,12 @@ const I = {
   undo: <path d="M9 7L4 12l5 5 M4 12h9a6 6 0 010 12h-1" />,
   redo: <path d="M15 7l5 5-5 5 M20 12h-9a6 6 0 000 12h1" />,
   arrow: <path d="M5 19L19 5 M19 5h-6 M19 5v6" />,
+  /* Маркер: перо и след, который редеет и обрывается, — то, что с ним и
+     происходит. Значок рисованный, как и остальные: глиф шрифта не отрисуется. */
+  fade: <path d="M4 20l3.5-1 8.5-8.5-2.5-2.5L5 16.5z M15.5 5.5l3 3 M13.5 21h2 M17.5 21h1.5 M21 21h.5" />,
+  ellipse: <ellipse cx="12" cy="12" rx="8.5" ry="6.5" />,
+  rect: <rect x="4" y="6.5" width="16" height="11" rx="1" />,
+  tri: <path d="M12 5l8 14H4z" />,
   dash: <path d="M4 12h3 M10 12h4 M17 12h3" />,
   wipe: <path d="M4 20h16 M6 16l9-9 4 4-9 9z M13 6l4 4" />,
 }
@@ -58,23 +66,41 @@ function Ico({ d }: { d: keyof typeof I }) {
   )
 }
 
+/** Подписи фигур. Список один и тот же для выпадашки и для подсказки кнопки:
+ *  два списка разъезжаются на первой же правке. */
+const ФИГУРЫ: { f: Form; знак: 'ellipse' | 'rect' | 'tri'; имя: string; как: string }[] = [
+  { f: 'ellipse', знак: 'ellipse', имя: 'Овал', как: 'с Shift — ровный круг' },
+  { f: 'rect', знак: 'rect', имя: 'Прямоугольник', как: 'с Shift — квадрат' },
+  { f: 'tri', знак: 'tri', имя: 'Треугольник', как: 'с Shift — равносторонний' },
+]
+
 export function Tools({
-  tool, setTool, pen, setPen, thick, setThick, armed, wipe, addDoc, addImage, addVideo,
+  tool, setTool, pen, setPen, form, setForm, thick, setThick, armed, wipe, addDoc, addImage, addVideo,
   undo, redo, canUndo, canRedo,
 }: Props) {
   /* «Вложить» — одна кнопка на три способа положить что-то на холст (решение
      владельца 01.09, лист «Доска»). Три отдельные кнопки занимали в столбце
      столько же места, сколько вся работа с пером. */
-  const [attach, setAttach] = useState(false)
+  /* Выпадашек стало две — «Вложить» и «Фигуры», — поэтому открытая одна на обе:
+     две независимые открывались бы одновременно и накладывались друг на друга. */
+  const [menu, setMenu] = useState<'attach' | 'shape' | null>(null)
   const box = useRef<HTMLDivElement>(null)
+  const boxShape = useRef<HTMLDivElement>(null)
+  const menuShape = useRef<HTMLDivElement>(null)
+  /* 🔴 Куда раскрыть список фигур — ВНИЗ или ВВЕРХ — решает замер, а не догадка.
+     Кнопка фигуры стоит то в конце столбца, то в середине (панель переносится
+     по месту), поэтому любая жёсткая сторона где-нибудь да срежется: вниз —
+     на 1440×900, вверх — на 1280×800. Оба случая пойманы снимком. */
+  const [вверх, setВверх] = useState(false)
 
   useEffect(() => {
-    if (!attach) return
+    if (!menu) return
     const away = (e: PointerEvent) => {
-      if (!box.current?.contains(e.target as Node)) setAttach(false)
+      const t = e.target as Node
+      if (!box.current?.contains(t) && !boxShape.current?.contains(t)) setMenu(null)
     }
     const esc = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setAttach(false)
+      if (e.key === 'Escape') setMenu(null)
     }
     // Выпадашка, которую нечем закрыть, — ловушка: холст под ней перестаёт слушаться.
     window.addEventListener('pointerdown', away)
@@ -83,7 +109,20 @@ export function Tools({
       window.removeEventListener('pointerdown', away)
       window.removeEventListener('keydown', esc)
     }
-  }, [attach])
+  }, [menu])
+
+  useLayoutEffect(() => {
+    if (menu !== 'shape') return
+    const м = menuShape.current
+    const рама = boxShape.current?.closest('[role="toolbar"]')?.parentElement
+    if (!м || !рама) return
+    const r = м.getBoundingClientRect()
+    const f = рама.getBoundingClientRect()
+    // Одного разворота хватает: список ниже рамы не бывает, и оба края сразу
+    // за кадр не выходят.
+    if (!вверх && r.bottom > f.bottom) setВверх(true)
+    else if (вверх && r.top < f.top) setВверх(false)
+  }, [menu, вверх])
 
   const btn = (t: Tool, d: keyof typeof I, title: string) => (
     <button
@@ -99,7 +138,7 @@ export function Tools({
   )
 
   const вложение = (d: keyof typeof I, имя: string, что: () => void) => (
-    <button type="button" className={s.attachItem} onClick={() => { setAttach(false); что() }}>
+    <button type="button" className={s.attachItem} onClick={() => { setMenu(null); что() }}>
       <Ico d={d} />
       {имя}
     </button>
@@ -111,6 +150,9 @@ export function Tools({
           пробелом, и отдельная кнопка под это место в столбце не окупала. */}
       {btn('pick', 'pick', 'Выбрать · клавиша V')}
       {btn('pen', 'pen', 'Перо · клавиша P')}
+      {/* Маркер стоит рядом с пером, а не с фигурами: рука делает им то же
+          самое — ведёт линию. Разница только в том, что она не остаётся. */}
+      {btn('fade', 'fade', 'Исчезающий маркер · пропадает через 5 секунд · клавиша M')}
       {btn('eraser', 'eraser', 'Ластик · клавиша E')}
 
       <span className={s.sep} />
@@ -120,15 +162,15 @@ export function Tools({
       <div className={s.attachBox} ref={box}>
         <button
           type="button"
-          className={`${s.tool} ${attach ? s.toolOn : ''}`}
-          aria-expanded={attach}
+          className={`${s.tool} ${menu === 'attach' ? s.toolOn : ''}`}
+          aria-expanded={menu === 'attach'}
           aria-label="Вложить"
           title="Вложить: документ, картинка, видео, заметка"
-          onClick={() => setAttach((v) => !v)}
+          onClick={() => setMenu((v) => (v === 'attach' ? null : 'attach'))}
         >
           <Ico d="clip" />
         </button>
-        {attach ? (
+        {menu === 'attach' ? (
           <div className={s.attachMenu} role="menu" aria-label="Что вложить">
             {вложение('doc', 'Документ', addDoc)}
             {вложение('image', 'Картинка', addImage)}
@@ -176,6 +218,47 @@ export function Tools({
           Стрелка, пунктир и толщина отвечают на один вопрос: как выглядит линия. */}
       {btn('arrow', 'arrow', 'Стрелка · клавиша A')}
       {btn('dash', 'dash', 'Пунктирная линия · клавиша D')}
+
+      {/* Три фигуры под одной кнопкой, как «Вложить»: тремя кнопками столбец
+          вырастает на 144 px и перестаёт помещаться в кадр. Значок показывает
+          ту фигуру, которая нарисуется, — иначе кнопка не говорит, что сделает. */}
+      <div className={s.attachBox} ref={boxShape}>
+        <button
+          type="button"
+          className={`${s.tool} ${tool === 'shape' || menu === 'shape' ? s.toolOn : ''}`}
+          aria-expanded={menu === 'shape'}
+          aria-pressed={tool === 'shape'}
+          aria-label="Фигура"
+          title={`Фигура: ${ФИГУРЫ.find((x) => x.f === form)?.имя.toLowerCase()} · клавиша S`}
+          onClick={() => {
+            /* Первое нажатие берёт ту фигуру, что была выбрана прошлый раз, —
+               рисовать можно сразу. Второе открывает список, чтобы сменить. */
+            if (tool !== 'shape') { setTool('shape'); setMenu(null); return }
+            setMenu((v) => (v === 'shape' ? null : 'shape'))
+          }}
+        >
+          <Ico d={ФИГУРЫ.find((x) => x.f === form)?.знак ?? 'ellipse'} />
+        </button>
+        {menu === 'shape' ? (
+          <div ref={menuShape} className={`${s.attachMenu} ${вверх ? s.attachMenuUp : ''}`}
+               role="menu" aria-label="Какая фигура">
+            {ФИГУРЫ.map((ф) => (
+              <button
+                key={ф.f}
+                type="button"
+                className={`${s.attachItem} ${form === ф.f ? s.attachItemOn : ''}`}
+                onClick={() => { setForm(ф.f); setTool('shape'); setMenu(null) }}
+              >
+                <Ico d={ф.знак} />
+                <span className={s.attachWords}>
+                  {ф.имя}
+                  <s className={s.attachHow}>{ф.как}</s>
+                </span>
+              </button>
+            ))}
+          </div>
+        ) : null}
+      </div>
 
       <button
         type="button"

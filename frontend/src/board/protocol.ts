@@ -12,6 +12,11 @@
 
 export type Point = [number, number]
 
+/** Какие фигуры умеет доска. Круг и квадрат — это овал и прямоугольник,
+ *  которые тянули с Shift: отдельных кнопок под них нет, иначе набор
+ *  удваивается, а разницы в объекте никакой. */
+export type Form = 'ellipse' | 'rect' | 'tri'
+
 export type Stroke = {
   id: string
   /** Имя токена цвета, а не значение: цвет считается на месте, из темы (ПРАВИЛА 2.8). */
@@ -28,6 +33,10 @@ export type Obj =
   | { id: string; kind: 'text';  x: number; y: number; w: number; text: string; color: string; size: number }
   | { id: string; kind: 'note';  x: number; y: number; w: number; h: number; text: string }
   | { id: string; kind: 'arrow'; x: number; y: number; x2: number; y2: number; color: string; width: number }
+  /** Фигура — КОНТУР, а не заливка: доска остаётся тетрадью, а не редактором
+   *  картинок. Заливка спрятала бы под собой то, что уже нарисовано, и обвести
+   *  ею «вот это место» стало бы нельзя. */
+  | { id: string; kind: 'shape'; form: Form; x: number; y: number; w: number; h: number; color: string; width: number }
   | { id: string; kind: 'image'; x: number; y: number; w: number; h: number; src: string; name?: string }
   | { id: string; kind: 'video'; x: number; y: number; w: number; h: number; url: string; name?: string }
   /** Документ на доске — ОДИН объект со страницами внутри, а не россыпь картинок.
@@ -48,6 +57,11 @@ export type Sheet = {
 export type Msg =
   /** Кусок штриха: первый приходит вместе с цветом и толщиной, следующие — только точками. */
   | { t: 'seg'; sheet: string; id: string; color: string; width: number; dash?: boolean; pts: Point[] }
+  /** Маркер: те же точки, но НЕ в лист. Он живёт пять секунд и исчезает сам,
+   *  поэтому его нет ни в доске, ни в отмене, ни в том, что уезжает вошедшему.
+   *  Отдельное сообщение, а не `seg` с признаком: признак пришлось бы помнить
+   *  и в листе, и в файле, и в истории — ради того, чего через пять секунд нет. */
+  | { t: 'fade'; sheet: string; id: string; color: string; width: number; pts: Point[] }
   | { t: 'erase'; sheet: string; ids: string[] }
   | { t: 'clear'; sheet: string }
   /** Объект появился или изменился. Одно сообщение на объект целиком: они маленькие,
@@ -110,6 +124,10 @@ export const PENS = [
 ] as const
 
 export const PEN_WIDTHS = { thin: 2, thick: 5 } as const
+
+/** Маркер вдвое толще пера: он не пишет, а показывает — «смотрите сюда».
+ *  Тонкой линией это делать неудобно, а через пять секунд её ещё и не видно. */
+export const MARKER_K = 2
 
 export function newId(): string {
   return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`

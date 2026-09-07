@@ -52,6 +52,44 @@ function Arrow({ o }: { o: Extract<Obj, { kind: 'arrow' }> }) {
   )
 }
 
+/** Фигура. Рисуется дважды: сначала широкой прозрачной линией — за неё берут
+ *  пальцем, — потом настоящей. Без первой в тонкий контур не попасть: на 100 %
+ *  это линия в два пикселя. */
+function Shape({ o }: { o: Extract<Obj, { kind: 'shape' }> }) {
+  const pad = o.width * 3 + 4
+  const w = o.w + pad * 2
+  const h = o.h + pad * 2
+  const контур = (stroke: string, strokeWidth: number, ловит: boolean) => {
+    const общее = {
+      fill: 'none' as const,
+      stroke,
+      strokeWidth,
+      strokeLinejoin: 'round' as const,
+      strokeLinecap: 'round' as const,
+      style: { pointerEvents: ловит ? ('stroke' as const) : ('none' as const) },
+    }
+    if (o.form === 'rect') {
+      return <rect x={pad} y={pad} width={Math.max(1, o.w)} height={Math.max(1, o.h)} {...общее} />
+    }
+    if (o.form === 'ellipse') {
+      return (
+        <ellipse cx={pad + o.w / 2} cy={pad + o.h / 2}
+                 rx={Math.max(0.5, o.w / 2)} ry={Math.max(0.5, o.h / 2)} {...общее} />
+      )
+    }
+    return (
+      <polygon points={`${pad + o.w / 2},${pad} ${pad + o.w},${pad + o.h} ${pad},${pad + o.h}`} {...общее} />
+    )
+  }
+  return (
+    <svg className={s.objShape} style={{ left: o.x - pad, top: o.y - pad, width: w, height: h }}
+         viewBox={`0 0 ${w} ${h}`}>
+      {контур('transparent', Math.max(o.width * 3, 14), true)}
+      {контур(`var(${o.color})`, o.width, false)}
+    </svg>
+  )
+}
+
 function Editable({
   value,
   editing,
@@ -127,6 +165,19 @@ export function Objects({ objs, k, selected, editing, onPick, onText, onDoneEdit
                     style={{ left: Math.min(o.x, o.x2), top: Math.min(o.y, o.y2),
                              width: Math.abs(o.x2 - o.x) || 2, height: Math.abs(o.y2 - o.y) || 2 }} />
               <Arrow o={o} />
+            </div>
+          )
+        }
+        if (o.kind === 'shape') {
+          /* Рама объекта прозрачна для указателя, как у стрелки: иначе она
+             накрыла бы весь холст и перехватила бы всё, что делают мимо. */
+          return (
+            <div key={o.id} {...common} style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
+              {sel ? (
+                <span className={s.objShapeSel}
+                      style={{ left: o.x, top: o.y, width: Math.max(o.w, 2), height: Math.max(o.h, 2) }} />
+              ) : null}
+              <Shape o={o} />
             </div>
           )
         }

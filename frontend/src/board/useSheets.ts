@@ -62,6 +62,8 @@ export function useSheets(bus: Bus, peers: number) {
       if (
         m.t === 'stage' || m.t === 'chat' || m.t === 'showMeta' || m.t === 'showPage' ||
         m.t === 'live' || m.t === 'ink' || m.t === 'inkDel' || m.t === 'inkAll' ||
+        // Маркер в лист не ложится: он живёт пять секунд, и ведает им сама доска.
+        m.t === 'fade' ||
         // Подпись «кто ведёт» и увеличение показа — дело комнаты, а не доски.
         m.t === 'lead' || m.t === 'zoom'
       ) return

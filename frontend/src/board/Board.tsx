@@ -8,7 +8,10 @@ import { Sheets } from './Sheets'
 import { Tools, type Tool } from './Tools'
 import { useSheets } from './useSheets'
 import { imageObj, openFile, pickFile, saveFile } from './files'
-import { newId, PENS, PEN_WIDTHS, type Bus, type Obj, type Point, type Sheet, type Stroke } from './protocol'
+import {
+  MARKER_K, newId, PENS, PEN_WIDTHS,
+  type Bus, type Form, type Obj, type Point, type Sheet, type Stroke,
+} from './protocol'
 import {
   boxOverlap, hitObj, hitStroke, moveObj, moveStroke, objBox, resizeXform,
   strokeBox, unionBox, type Box, type Handle, type Xform,
@@ -21,6 +24,26 @@ const ERASE_R = 12
 const FLUSH_MS = 50
 /** Промах указателя, который всё ещё считается попаданием в тонкую линию. */
 const HIT_TOL = 8
+/** Маркер: сколько держится целым и сколько тает. Вместе — ровно пять секунд,
+ *  как просил владелец. Таяние отдельным куском, а не с первой секунды: линия,
+ *  которая бледнеет сразу, читается как «плохо нарисовано», а не как «временно». */
+const МАРКЕР_ДЕРЖИТСЯ = 4200
+const МАРКЕР_ТАЕТ = 800
+
+/** Контур фигуры на холсте. Тем же порядком точек, что в `Objects.tsx` и в
+ *  `select.ts`: разойдутся — и рисунок, попадание и предпросмотр перестанут
+ *  совпадать между собой. */
+function контур(ctx: CanvasRenderingContext2D, o: Extract<Obj, { kind: 'shape' }>) {
+  if (o.form === 'rect') { ctx.rect(o.x, o.y, o.w, o.h); return }
+  if (o.form === 'ellipse') {
+    ctx.ellipse(o.x + o.w / 2, o.y + o.h / 2, Math.max(0.5, o.w / 2), Math.max(0.5, o.h / 2), 0, 0, Math.PI * 2)
+    return
+  }
+  ctx.moveTo(o.x + o.w / 2, o.y)
+  ctx.lineTo(o.x + o.w, o.y + o.h)
+  ctx.lineTo(o.x, o.y + o.h)
+  ctx.closePath()
+}
 
 type Props = {
   bus: Bus
@@ -39,6 +62,7 @@ export function Board({ bus, peers, onOpen }: Props) {
 
   const [tool, setTool] = useState<Tool>('pen')
   const [pen, setPen] = useState(0)
+  const [form, setForm] = useState<Form>('ellipse')
   const [thick, setThick] = useState(false)
   const [armed, setArmed] = useState(false)
   const [view, setView] = useState<View>({ x: 0, y: 0, k: 1 })
@@ -59,7 +83,17 @@ export function Board({ bus, peers, onOpen }: Props) {
 
   const drawing = useRef<{ id: string; unsent: Point[] } | null>(null)
   const panning = useRef<{ sx: number; sy: number; vx: number; vy: number } | null>(null)
-  const arrowing = useRef<Obj | null>(null)
+  /* Здесь лежит то, что сейчас тянут из ничего: стрелка или фигура. Один ящик
+     на оба, потому что жест один и тот же — протяжка от угла до угла. */
+  const тянем = useRef<Obj | null>(null)
+  const началоФигуры = useRef<Point | null>(null)
+  /* 🔴 Маркер живёт ОТДЕЛЬНО от листа. Ни в доске, ни в отмене, ни в файле его
+     нет: через пять секунд его нет и на экране. Попади он в лист — вошедший
+     получил бы чужие пометки пятиминутной давности как часть доски. */
+  const гаснут = useRef<{ id: string; color: string; width: number; pts: Point[]; живёт: number }[]>([])
+  const гасим = useRef<{ id: string; unsent: Point[] } | null>(null)
+  const гасимТаймер = useRef<number | null>(null)
+  const тикает = useRef<number | null>(null)
   const marquee = useRef<Point | null>(null)
   const moving = useRef<{ from: Point; base: Sheet } | null>(null)
   const sizing = useRef<{ h: Handle; box: Box; base: Sheet; ratio: boolean } | null>(null)
@@ -77,6 +111,8 @@ export function Board({ bus, peers, onOpen }: Props) {
     hist.current.reset()
     setHistTick((v) => v + 1)
     setSel([])
+    // Пометки маркера принадлежат той доске, на которой их вели.
+    гаснут.current = []
   }, [st.active])
 
   const undo = useCallback(() => {
@@ -139,7 +175,7 @@ export function Board({ bus, peers, onOpen }: Props) {
         ctx.restore()
       }
     })
-    const a = arrowing.current
+    const a = тянем.current
     if (a && a.kind === 'arrow') {
       ctx.strokeStyle = colorOf(a.color)
       ctx.lineWidth = a.width
@@ -148,9 +184,88 @@ export function Board({ bus, peers, onOpen }: Props) {
       ctx.lineTo(a.x2, a.y2)
       ctx.stroke()
     }
+    if (a && a.kind === 'shape') {
+      ctx.strokeStyle = colorOf(a.color)
+      ctx.lineWidth = a.width
+      ctx.beginPath()
+      контур(ctx, a)
+      ctx.stroke()
+    }
+
+    /* Маркер поверх всего: он показывает на то, что уже нарисовано. */
+    const сейчас = performance.now()
+    гаснут.current.forEach((м) => {
+      if (м.pts.length === 0) return
+      const возраст = сейчас - м.живёт
+      const видно = возраст <= МАРКЕР_ДЕРЖИТСЯ ? 1 : 1 - (возраст - МАРКЕР_ДЕРЖИТСЯ) / МАРКЕР_ТАЕТ
+      if (видно <= 0) return
+      ctx.save()
+      ctx.globalAlpha = 0.75 * видно
+      ctx.strokeStyle = colorOf(м.color)
+      ctx.lineWidth = м.width
+      ctx.beginPath()
+      ctx.moveTo(м.pts[0][0], м.pts[0][1])
+      for (let i = 1; i < м.pts.length; i += 1) ctx.lineTo(м.pts[i][0], м.pts[i][1])
+      if (м.pts.length === 1) ctx.lineTo(м.pts[0][0] + 0.1, м.pts[0][1])
+      ctx.stroke()
+      ctx.restore()
+    })
   }, [colorOf, st.sheet])
 
   useEffect(redraw, [redraw, view, st.version, st.active, sel])
+
+  /* ── маркер: свой и чужой ───────────────────────────────────────────────── */
+
+  /* Перерисовку берём из ссылки: петля таяния живёт дольше одного `redraw`,
+     и замыкание на старый показывало бы доску такой, какой она была в начале. */
+  const рисуйРеф = useRef(redraw)
+  рисуйРеф.current = redraw
+  const листРеф = useRef(st.sheet.id)
+  листРеф.current = st.sheet.id
+
+  /** Крутится только пока на доске есть чему таять — и сама останавливается. */
+  const крутить = useCallback(() => {
+    if (тикает.current !== null) return
+    const шаг = () => {
+      const сейчас = performance.now()
+      гаснут.current = гаснут.current.filter((м) => сейчас - м.живёт < МАРКЕР_ДЕРЖИТСЯ + МАРКЕР_ТАЕТ)
+      рисуйРеф.current()
+      тикает.current = гаснут.current.length > 0 ? window.requestAnimationFrame(шаг) : null
+    }
+    тикает.current = window.requestAnimationFrame(шаг)
+  }, [])
+
+  useEffect(() => () => {
+    if (тикает.current !== null) window.cancelAnimationFrame(тикает.current)
+  }, [])
+
+  useEffect(
+    () =>
+      bus.subscribe((m) => {
+        if (m.t !== 'fade') return
+        // Чужая доска — чужие пометки: на этой их быть не должно.
+        if (m.sheet !== листРеф.current) return
+        const есть = гаснут.current.find((x) => x.id === m.id)
+        if (есть) {
+          есть.pts.push(...m.pts)
+          есть.живёт = performance.now()
+        } else {
+          гаснут.current.push({ id: m.id, color: m.color, width: m.width, pts: [...m.pts], живёт: performance.now() })
+        }
+        крутить()
+      }),
+    [bus, крутить],
+  )
+
+  const гасимСлить = useCallback(() => {
+    гасимТаймер.current = null
+    const g = гасим.current
+    if (!g || g.unsent.length === 0) return
+    const м = гаснут.current.find((x) => x.id === g.id)
+    if (!м) return
+    bus.send({ t: 'fade', sheet: листРеф.current, id: g.id, color: м.color, width: м.width, pts: g.unsent })
+    g.unsent = []
+  }, [bus])
 
   useEffect(() => {
     const wrap = wrapRef.current
@@ -306,10 +421,36 @@ export function Board({ bus, peers, onOpen }: Props) {
     }
     if (t === 'arrow') {
       ;(e.currentTarget as HTMLElement).setPointerCapture(e.pointerId)
-      arrowing.current = {
+      тянем.current = {
         id: newId(), kind: 'arrow', x: p[0], y: p[1], x2: p[0], y2: p[1],
         color: PENS[pen].token, width: thick ? PEN_WIDTHS.thick : PEN_WIDTHS.thin,
       }
+      return
+    }
+    if (t === 'shape') {
+      ;(e.currentTarget as HTMLElement).setPointerCapture(e.pointerId)
+      началоФигуры.current = p
+      тянем.current = {
+        id: newId(), kind: 'shape', form, x: p[0], y: p[1], w: 0, h: 0,
+        color: PENS[pen].token, width: thick ? PEN_WIDTHS.thick : PEN_WIDTHS.thin,
+      }
+      return
+    }
+    if (t === 'fade') {
+      /* 🔴 `mark()` здесь НЕ зовём. Маркер не попадает в отмену: отменять то,
+         что и так исчезнет через пять секунд, значит забить стопку отмены
+         мусором и лишить преподавателя настоящей отмены. */
+      ;(e.currentTarget as HTMLElement).setPointerCapture(e.pointerId)
+      const id = newId()
+      гаснут.current.push({
+        id,
+        color: PENS[pen].token,
+        width: (thick ? PEN_WIDTHS.thick : PEN_WIDTHS.thin) * MARKER_K,
+        pts: [p],
+        живёт: performance.now(),
+      })
+      гасим.current = { id, unsent: [p] }
+      крутить()
       return
     }
     if (t === 'text' || t === 'note') {
@@ -366,8 +507,40 @@ export function Board({ bus, peers, onOpen }: Props) {
       })
       return
     }
-    if (arrowing.current && arrowing.current.kind === 'arrow') {
-      arrowing.current = { ...arrowing.current, x2: p[0], y2: p[1] }
+    if (тянем.current && тянем.current.kind === 'arrow') {
+      тянем.current = { ...тянем.current, x2: p[0], y2: p[1] }
+      redraw()
+      return
+    }
+    if (тянем.current && тянем.current.kind === 'shape' && началоФигуры.current) {
+      const a = началоФигуры.current
+      let w = p[0] - a[0]
+      let h = p[1] - a[1]
+      // Shift равняет стороны: так получаются круг и квадрат, и отдельных
+      // кнопок под них не нужно.
+      if (e.shiftKey) {
+        const k = Math.max(Math.abs(w), Math.abs(h))
+        w = (w < 0 ? -1 : 1) * k
+        h = (h < 0 ? -1 : 1) * k
+      }
+      тянем.current = {
+        ...тянем.current,
+        x: Math.min(a[0], a[0] + w), y: Math.min(a[1], a[1] + h),
+        w: Math.abs(w), h: Math.abs(h),
+      }
+      redraw()
+      return
+    }
+    if (гасим.current) {
+      const м = гаснут.current.find((x) => x.id === гасим.current!.id)
+      if (м) {
+        м.pts.push(p)
+        // Пять секунд считаются от ПОСЛЕДНЕЙ точки: иначе начало длинной линии
+        // растворяется, пока её ещё ведут.
+        м.живёт = performance.now()
+      }
+      гасим.current.unsent.push(p)
+      if (гасимТаймер.current === null) гасимТаймер.current = window.setTimeout(гасимСлить, FLUSH_MS)
       redraw()
       return
     }
@@ -410,14 +583,25 @@ export function Board({ bus, peers, onOpen }: Props) {
       }
       return
     }
-    if (arrowing.current) {
-      const a = arrowing.current
-      arrowing.current = null
+    if (тянем.current) {
+      const a = тянем.current
+      тянем.current = null
+      началоФигуры.current = null
+      // Случайный щелчок вместо протяжки не оставляет точку размером в ничто.
       if (a.kind === 'arrow' && Math.hypot(a.x2 - a.x, a.y2 - a.y) > 6) {
         mark()
         st.putObj(a)
       }
+      if (a.kind === 'shape' && a.w > 6 && a.h > 6) {
+        mark()
+        st.putObj(a)
+      }
       redraw()
+      return
+    }
+    if (гасим.current) {
+      гасимСлить()
+      гасим.current = null
       return
     }
     flush()
@@ -625,6 +809,8 @@ export function Board({ bus, peers, onOpen }: Props) {
       const k = e.key.toLowerCase()
       if (k === 'v' || k === 'м') setTool('pick')
       if (k === 'p' || k === 'з') setTool('pen')
+      if (k === 'm' || k === 'ь') setTool('fade')
+      if (k === 's' || k === 'ы') setTool('shape')
       if (k === 'e' || k === 'у') setTool('eraser')
       if (k === 'h' || k === 'р') setTool('hand')
       if (k === 'a' || k === 'ф') setTool('arrow')
@@ -792,6 +978,7 @@ export function Board({ bus, peers, onOpen }: Props) {
       <Tools
         tool={tool} setTool={setTool}
         pen={pen} setPen={setPen}
+        form={form} setForm={setForm}
         thick={thick} setThick={setThick}
         armed={armed} wipe={wipe}
         addImage={addImage} addVideo={addVideo} addDoc={addDoc}

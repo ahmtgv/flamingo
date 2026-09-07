@@ -23,8 +23,16 @@
   left: var(--space-4);
   top: var(--space-4);
   z-index: 2;
-  display: grid;
-  grid-template-columns: var(--tap-min);
+  /* 🔴 Колонок столько, сколько влезает в РАМУ, а не сколько угадано по высоте
+     окна. Было `@media (max-height: 820px)` — порог, посчитанный под пятнадцать
+     кнопок; кнопок стало семнадцать, и в окнах 821–966 столбец уходил под
+     нижний край. Перенос по месту считает сам браузер и от настоящей высоты
+     рамы, а не от высоты окна, из которой ещё надо вычесть шапку комнаты. */
+  display: flex;
+  flex-direction: column;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  max-height: calc(100% - var(--space-4) * 2);
   gap: var(--space-1);
   padding: var(--space-2);
   border-radius: var(--radius-card);
@@ -38,19 +46,6 @@
      из панели обрезающий кадр, и выпадашка «Вложить», выезжающая вбок, пропадала
      целиком: кнопка нажималась, а меню не показывалось. Поймано своим же прогоном.
      Вместо прокрутки — вторая колонка на низком экране (ниже). */
-}
-
-/* На кадре ниже 820 px пятнадцать кнопок в один столбец не помещаются: последняя
-   уходит за нижний край. Складываем панель в две колонки — она становится 104 px
-   в ширину и вдвое ниже, и ничего не обрезается. */
-@media (max-height: 820px) {
-  .tools {
-    grid-template-columns: var(--tap-min) var(--tap-min);
-  }
-
-  .tools .sep {
-    grid-column: 1 / -1;
-  }
 }
 
 .tools::-webkit-scrollbar {
@@ -86,10 +81,12 @@
   color: var(--color-text);
 }
 
-/* Разделитель тонкий и без полей: инструментов девять, и каждый лишний отступ
-   выталкивает «Стереть всё» за край столбца на кадре 1280×800. */
+/* Разделитель тонкий и без полей: каждый лишний отступ выталкивает «Стереть всё»
+   за край столбца на кадре 1280×800. Ширину берёт от колонки (`align-self`),
+   иначе при переносе он схлопывается в точку. */
 .sep {
   flex: 0 0 auto;
+  align-self: stretch;
   height: 1px;
   background: var(--color-border);
   margin: var(--space-1) var(--space-2);
@@ -117,6 +114,15 @@
   box-shadow: var(--shadow-md);
 }
 
+/* 🔴 Список фигур раскрывается ВВЕРХ. Кнопка фигуры стоит внизу столбца, и
+   список, растущий вниз, упирался в дно рамы: «Треугольник» срезало, и третья
+   фигура становилась недоступной. Поймано снимком на кадре 1440×900.
+   У «Вложить» этой беды нет — та кнопка в верхней трети столбца. */
+.attachMenuUp {
+  top: auto;
+  bottom: 0;
+}
+
 .attachItem {
   display: grid;
   grid-template-columns: var(--space-6) 1fr;
@@ -136,6 +142,27 @@
 
 .attachItem:hover {
   background: var(--color-surface-subtle);
+}
+
+/* Выбранная фигура отмечается нейтральной заливкой — тем же способом, что
+   выбранный инструмент (ПРАВИЛА 5.7). Акцент на экране урока принадлежит другому. */
+.attachItemOn {
+  background: var(--color-surface-subtle);
+}
+
+.attachWords {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+/* Как получить второй вариант фигуры. Не «подсказка при наведении»: пальцем
+   наведения нет, и правило «с Shift — круг» иначе не узнать никак. */
+.attachHow {
+  font-family: var(--font-mono);
+  font-size: var(--text-overline);
+  color: var(--color-text-hint);
+  text-decoration: none;
 }
 
 .pen {
@@ -430,6 +457,23 @@
 }
 
 .objPickArrow {
+  outline: 2px solid var(--color-go);
+  outline-offset: var(--space-2);
+}
+
+.objShape {
+  position: absolute;
+  overflow: visible;
+  /* Сама рамка ничего не ловит — ловит только широкая прозрачная линия внутри
+     (см. Objects.tsx). Ребёнок вправе включить себе указатель обратно. */
+  pointer-events: none;
+}
+
+/* Выбранную фигуру обводим по её прямоугольнику — так же, как выбранную стрелку.
+   Обводка ничего не ловит: берут за саму линию. */
+.objShapeSel {
+  position: absolute;
+  pointer-events: none;
   outline: 2px solid var(--color-go);
   outline-offset: var(--space-2);
 }
