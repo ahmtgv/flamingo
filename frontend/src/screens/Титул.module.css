@@ -13,6 +13,14 @@
      та позволяла строке сжиматься по содержимому, а содержимое считает высоту
      от неё же — круг, и полоса схлопывалась в 25 px. Поймано стендом. */
   grid-template-rows: auto auto minmax(0, 1fr) 34vh;
+  /* Поля кадра. Полосы остаются во всю ширину — линии шапки и низа должны
+     доходить до края окна, иначе экран выглядит обрезанным листом. Внутрь
+     полос кладём отступ: `--поле` растёт с окном, `--центр` на широком окне
+     добавляет ещё, чтобы содержимое собралось в середину, а не растянулось
+     от края до края. `--воздух` — тот же отступ по высоте, считается от неё. */
+  --поле: clamp(var(--space-6), 3.4vw, var(--space-10));
+  --центр: max(var(--поле), calc((100% - 104rem) / 2));
+  --воздух: clamp(var(--space-4), 2.2vh, var(--space-7));
   /* 🔴 СТРОКА У КАЖДОГО СВОЯ, А НЕ ПО ПОРЯДКУ. Полоса отказа появляется только
      при молчании сервера — без неё все дети съезжали на строку вверх: разворот
      получал `auto`, а низ забирал `1fr`, и полоса роликов вылезала за кадр.
@@ -29,7 +37,7 @@
   align-items: center;
   gap: var(--space-6);
   height: var(--control-height-lg);
-  padding: 0 var(--space-5);
+  padding: 0 var(--центр);
   border-bottom: 1px solid var(--color-border);
   background: var(--color-surface);
 }
@@ -80,7 +88,7 @@
   grid-template-columns: minmax(0, 0.82fr) minmax(0, 1.18fr);
   gap: var(--space-7);
   min-height: 0;
-  padding: var(--space-5);
+  padding: var(--воздух) var(--центр);
   align-items: stretch;
 }
 .левая { display: grid; grid-template-rows: auto minmax(0, 1fr); gap: var(--space-4); min-height: 0; }
@@ -248,7 +256,10 @@
   grid-row: 4;
   border-top: 1px solid var(--color-border);
   background: var(--color-surface);
-  padding: var(--space-3) var(--space-5);
+  /* Низ прижат к кромке намеренно: полоса — это дно кадра, а её высота
+     34vh, и лишний отступ снизу съедает строку «что даёт» у плитки хаба
+     ровно на 4 px при 1512×944. Поймано стендом. */
+  padding: var(--space-3) var(--центр);
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: var(--space-7);
@@ -383,7 +394,7 @@
 .отказ {
   grid-row: 2;
   margin: 0;
-  padding: var(--space-2) var(--space-5);
+  padding: var(--space-2) var(--центр);
   border-bottom: 1px solid var(--color-accent-subtle-border);
   background: var(--color-accent-subtle);
   color: var(--color-text-detail);
@@ -408,4 +419,11 @@
    потому что тесно именно ей: полоса низа — доля экрана. */
 @media (max-height: 880px) {
   .иДаёт { display: none; }
+}
+
+/* Отступ снизу — только там, где он ничего не отнимает. Полоса низа занимает
+   долю экрана, и на 1512×944 запаса у плитки хаба остаётся 5 px: добавь туда
+   воздух — и «что даёт» вылезет из плитки. На высоком экране запас есть. */
+@media (min-height: 1000px) {
+  .низ { padding-bottom: var(--воздух); }
 }
