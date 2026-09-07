@@ -95,6 +95,18 @@ export function useRoom(code: string, name: string) {
   const [cam, setCam] = useState(true)
   /* Делюсь ли я экраном. Отдельно от `cam`: это другая дорожка. */
   const [sharing, setSharing] = useState(false)
+  /** 🔴 БРАУЗЕР НЕ ДАЁТ ИГРАТЬ ЗВУК, ПОКА ПО СТРАНИЦЕ НЕ НАЖАЛИ.
+   *
+   *  Это защита от самозапускающейся рекламы, и она есть везде, а на телефонах
+   *  строже всего. Отдавать свой голос она не мешает — только играть чужой.
+   *  Поэтому поломка выглядит дико: тебя слышат, ты никого. Поймано владельцем
+   *  на живом уроке 07.09: он вошёл третьим с телефона, его голос дошёл до обоих,
+   *  а он не слышал никого.
+   *
+   *  Само это не проходит. `<audio autoPlay>` молча не играет, и человек сидит в
+   *  тишине при целой связи и пришедшей дорожке. Лечится одним: позвать
+   *  `room.startAudio()` В ОТВЕТ НА НАЖАТИЕ человека. */
+  const [звукГлушится, setЗвукГлушится] = useState(false)
   const [shareSaid, setShareSaid] = useState('')
 
   useEffect(() => {
@@ -132,6 +144,10 @@ export function useRoom(code: string, name: string) {
       .on(RoomEvent.LocalTrackPublished, snapshot)
       .on(RoomEvent.LocalTrackUnpublished, snapshot)
       .on(RoomEvent.ActiveSpeakersChanged, snapshot)
+      .on(RoomEvent.AudioPlaybackStatusChanged, () => {
+        if (!alive) return
+        setЗвукГлушится(!room.canPlaybackAudio)
+      })
       .on(RoomEvent.DataReceived, onData)
       .on(RoomEvent.Disconnected, () => {
         if (!alive) return
@@ -157,6 +173,9 @@ export function useRoom(code: string, name: string) {
         }
         setPhase('live')
         snapshot()
+        /* Спрашиваем сразу: событие приходит только когда состояние МЕНЯЕТСЯ, а
+           запрет мог стоять с самого начала — тогда события не будет вовсе. */
+        setЗвукГлушится(!room.canPlaybackAudio)
         try {
           await room.localParticipant.enableCameraAndMicrophone()
         } catch {
@@ -250,6 +269,21 @@ export function useRoom(code: string, name: string) {
     }
   }, [sharing])
 
+  /** Включить звук. Зовётся ТОЛЬКО из обработчика нажатия: браузер разрешает
+   *  играть звук лишь в ответ на действие человека, и вызов «просто так» он
+   *  отклонит молча. */
+  const включитьЗвук = useCallback(async () => {
+    const room = roomRef.current
+    if (!room) return
+    try {
+      await room.startAudio()
+      setЗвукГлушится(!room.canPlaybackAudio)
+    } catch {
+      /* Не вышло — надпись останется, и человек нажмёт ещё раз. Врать «готово»
+         тут нельзя: он проверит ушами через секунду. */
+    }
+  }, [])
+
   const leave = useCallback(() => {
     roomRef.current?.disconnect().catch(() => undefined)
   }, [])
@@ -269,6 +303,8 @@ export function useRoom(code: string, name: string) {
     sharing,
     shareSaid,
     toggleShare,
+    звукГлушится,
+    включитьЗвук,
     leave,
   }
 }

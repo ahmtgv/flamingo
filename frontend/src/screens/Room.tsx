@@ -70,7 +70,7 @@ const ВЫХОД = (
 type Props = { code: string; name: string; onLeave: () => void; onHome: () => void }
 
 export function Room({ code, name, onLeave, onHome }: Props) {
-  const { phase, error, faces, me, peers, bus, mic, cam, toggleMic, toggleCam, sharing, shareSaid, toggleShare, leave } = useRoom(code, name)
+  const { phase, error, faces, me, peers, bus, mic, cam, toggleMic, toggleCam, sharing, shareSaid, toggleShare, звукГлушится, включитьЗвук, leave } = useRoom(code, name)
   /* 🔴 Посещение отмечает КОМНАТА, а не рука преподавателя: она знает, кто
      вошёл. Тихо: если человек без учётной записи или комната не от занятия —
      сервер так и отвечает, и говорить об этом на уроке нечего.
@@ -580,7 +580,28 @@ export function Room({ code, name, onLeave, onHome }: Props) {
         </span>
       </header>
 
-      <div className={`${s.stage} ${chatOpen ? s.withChat : ''}`} ref={stageRef}>
+      {/* 🔴 БРАУЗЕР ГЛУШИТ ЧУЖОЙ ГОЛОС, ПОКА ПО СТРАНИЦЕ НЕ НАЖАЛИ.
+          Отдавать свой он при этом разрешает — поэтому беда выглядит дико:
+          тебя слышат, ты никого. Молчать об этом нельзя: человек решит, что
+          сломались мы или что собеседник ушёл (ПРАВИЛА 6.5 — отказ называет
+          себя словами). Полоса стоит НАД сценой и во всю ширину: это не мелкая
+          подсказка, без неё урока нет. */}
+      {звукГлушится ? (
+        <p className={s.звукМолчит} role="status">
+          <span>Браузер не даёт включить звук, пока вы не нажмёте. Это его защита, не наша поломка.</span>
+          <button type="button" className={s.звукКнопка} onClick={включитьЗвук}>
+            Включить звук
+          </button>
+        </p>
+      ) : null}
+
+      <div
+        className={`${s.stage} ${chatOpen ? s.withChat : ''}`}
+        ref={stageRef}
+        /* Первое же касание сцены — тоже разрешение браузера. Пробуем тихо: если
+           сработало, полоса уйдёт сама и человек даже не заметит, что была. */
+        onPointerDownCapture={звукГлушится ? включитьЗвук : undefined}
+      >
         {/* 🔴 Доска НЕ размонтируется при переходе на показ или трансляцию.
             Раньше здесь стоял `source === 'board' ? <Board/> : null`, и всё
             написанное пропадало в тот момент, когда преподаватель уходил
