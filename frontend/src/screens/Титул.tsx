@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { Cover } from '../hub/Cover'
-import { SOURCES } from '../hub/sources'
+import { RIGHTS, SOURCES } from '../hub/sources'
 import { Mark } from '../ui/Mark'
 import { доска, палитра } from './титул-доска'
 import s from './Титул.module.css'
@@ -106,8 +106,6 @@ function постер() {
 
 const ПЕРЬЯ = ['--color-text', '--color-accent', '--color-go', '--color-info'] as const
 const В_ХАБЕ = ['hubble', 'loc', 'lapalma', 'rijks', 'rumsey', 'usgs']
-const СОСТОЯНИЕ = { ok: 'отвечает', live: 'идёт трансляция', down: 'молчит' } as const
-
 export function Титул({ onSign, onNew, onHub, молчит = false, onAgain }: {
   onSign: () => void
   /** Отдельная дверь: «завести» и «войти» — разные намерения, и вести им надо
@@ -133,7 +131,6 @@ export function Титул({ onSign, onNew, onHub, молчит = false, onAgain
   const движок = useRef<ReturnType<typeof доска> | null>(null)
 
   const источники = В_ХАБЕ.map((id) => SOURCES.find((x) => x.id === id)).filter(Boolean)
-  const молчатИсточников = SOURCES.filter((x) => x.state === 'down').length
 
   /* Доска: сцены идут по кругу, взяли перо — молчат. */
   useEffect(() => {
@@ -400,7 +397,11 @@ export function Титул({ onSign, onNew, onHub, молчит = false, onAgain
         <div className={s.часть}>
           <div className={s.нШапка}>
             <h2 className={s.нЗаголовок}>Flamingo HUB</h2>
-            <span className={s.нПодпись}>источники мира · молчат {молчатИсточников} из {SOURCES.length}</span>
+            {/* 🔴 БЫЛО «МОЛЧАТ 1 ИЗ 36» — ЧИСЛО ИЗ НИОТКУДА. Считалось по буквам
+                `state`, набранным руками в каталоге; опроса источников нет вовсе
+                (осмотр 08.09, находка 19). Титул — первое, что видит человек, и
+                первое, что он видит, не имеет права быть выдумкой. */}
+            <span className={s.нПодпись}>источники мира · открыты для урока</span>
             <button type="button" className={s.всё} onClick={onHub}>все {SOURCES.length} →</button>
           </div>
           <div className={s.хаб}>
@@ -411,8 +412,10 @@ export function Титул({ onSign, onNew, onHub, молчит = false, onAgain
                   <span className={s.иВид}>{и.kind}</span>
                   <span className={s.иИмя} title={и.name}>{и.name}</span>
                   <span className={s.иДаёт} title={и.gives}>{и.gives}</span>
-                  <span className={`${s.иСост} ${и.state === 'live' ? s.иЭфир : ''} ${и.state === 'down' ? s.иМолчит : ''}`}>
-                    <span className={s.иТочка} />{СОСТОЯНИЕ[и.state]}
+                  {/* Та же строка, что в каталоге: не «жив ли сайт» (мы не знаем),
+                      а «что с ним можно» (знаем словами). Hub.tsx, ПРАВИЛА 8.10. */}
+                  <span className={`${s.иПраво} ${и.right === 'own' ? s.иСвободно : ''} ${и.right === 'live' ? s.иУзко : ''}`}>
+                    <span className={s.иТочка} />{RIGHTS[и.right].tag}
                   </span>
                 </span>
               </button>

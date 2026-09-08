@@ -21,12 +21,6 @@ import { Button } from '../ui/Button'
  *  уместнее там, где источник открыт, а не в углу каталога.
  */
 
-const STATE_TEXT = {
-  ok: 'отвечает · проверено сегодня',
-  live: 'идёт трансляция · звука нет',
-  down: 'молчит с 09:40 · показываем последнюю проверку',
-} as const
-
 export function Hub({ onBack, onHome }: { onBack: () => void; onHome: () => void }) {
   const [kind, setKind] = useState<Kind | null>(null)
   /* Открытый источник показывается ЗДЕСЬ ЖЕ, поверх каталога. Новая вкладка
@@ -35,7 +29,6 @@ export function Hub({ onBack, onHome }: { onBack: () => void; onHome: () => void
   const поверх = useПоверх<HTMLDivElement>(() => setOpen(null), open !== null)
 
   const list = useMemo(() => (kind ? SOURCES.filter((x) => x.kind === kind) : SOURCES), [kind])
-  const silent = SOURCES.filter((x) => x.state === 'down').length
 
   return (
     <main className={s.screen}>
@@ -77,13 +70,12 @@ export function Hub({ onBack, onHome }: { onBack: () => void; onHome: () => void
           ))}
         </div>
 
-        {/* Частичный отказ сжат до одной строки (решение владельца 31.08):
-            сколько источников ответило. Подробности — у каждой карточки своей
-            строкой состояния, а не общей простынёй наверху. */}
-        <span className={s.answered}>
-          <span className={s.answeredDot} />
-          Ответили {SOURCES.length - silent} из {SOURCES.length}
-        </span>
+        {/* 🔴 ЗДЕСЬ СТОЯЛО «ОТВЕТИЛИ 29 ИЗ 36» — И НИКТО НИКОГО НЕ СПРАШИВАЛ.
+            Число считалось по буквам `state`, набранным руками в каталоге
+            (осмотр 08.09, находка 19). Строка про частичный отказ вернётся в
+            тот день, когда появится настоящий опрос со стороны сервера, и
+            тогда рядом с ней будет время последней проверки. Пока опроса нет —
+            нет и строки: место в разметке пустое, а не занято выдумкой. */}
       </div>
 
       <div className={s.body}>
@@ -98,9 +90,14 @@ export function Hub({ onBack, onHome }: { onBack: () => void; onHome: () => void
                 <span className={s.kind}>{x.kind}</span>
                 <span className={s.name}>{x.name}</span>
                 <span className={s.gives}>{x.gives}</span>
-                <span className={`${s.state} ${s[`st_${x.state}`]}`}>
-                  <span className={s.stateDot} />
-                  {STATE_TEXT[x.state]}
+                {/* 🔴 НЕ «ОТВЕЧАЕТ · ПРОВЕРЕНО СЕГОДНЯ», А «ЧТО С ЭТИМ МОЖНО».
+                    Про доступность мы не знаем ничего (см. `hub/sources.ts`), а
+                    про право знаем всё: оно записано словами и проверено ПРАВИЛАМИ
+                    8.10. Это и есть вопрос, с которым преподаватель приходит в
+                    каталог: не «жив ли сайт», а «можно ли это взять на урок». */}
+                <span className={`${s.can} ${s[`can_${x.right}`]}`}>
+                  <span className={s.canDot} />
+                  {RIGHTS[x.right].tag}
                 </span>
                 <span className={s.foot}>
                   {/* 🔴 ИМЯ ЦЕЛИ НАЗЫВАЕТ, ЧТО ИМЕННО ОТКРЫВАЕТСЯ. Померено на

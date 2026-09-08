@@ -5,12 +5,22 @@
  *  формулировки, а не четыре названия лицензий: их читает ученик, а не юрист.
  *
  *  Состав перенесён с утверждённого листа «Источники мира» без правок.
- *  Это НАШ каталог; сами источники чужие, и их опрос — отдельный источник данных,
- *  который может молчать (ПРАВИЛА 6.5).
+ *
+ *  🔴 ПОЛЯ `state` ЗДЕСЬ НЕТ И БЫТЬ НЕ МОЖЕТ. Оно стояло: `ok` / `live` / `down`,
+ *  и три экрана выводили по нему «отвечает · проверено сегодня», «молчит с 09:40»,
+ *  «Ответили 29 из 36», «молчат 1 из 36». Ни одной проверки за этими словами не
+ *  было ни разу: буква была набрана руками, время «09:40» выдумано мной, а числа
+ *  «29» и «1» посчитаны по выдуманным буквам. Осмотр 08.09, находка 19.
+ *
+ *  Опросить эти 36 сайтов со страницы нельзя в принципе: чужой сервер не отвечает
+ *  на запрос из браузера (CORS), нужен опрос со стороны сервера — отдельная работа,
+ *  и она не сделана. Пока её нет, каталог не произносит ни слова о доступности.
+ *
+ *  Вместо состояния карточка говорит то, что мы про источник ЗНАЕМ наверняка и что
+ *  человеку на уроке нужнее: что с ним МОЖНО делать (`RIGHTS[...].tag`).
  */
 
 export type Right = 'own' | 'attr' | 'show' | 'live'
-export type State = 'ok' | 'live' | 'down'
 export type Kind = 'снимки' | 'данные' | 'карты' | 'книги' | 'трансляции'
 
 export type Source = {
@@ -19,29 +29,38 @@ export type Source = {
   name: string
   gives: string
   right: Right
-  state: State
   /** Куда идти за самим источником. Без адреса каталог — витрина имён:
    *  человек выбрал строку и упёрся в тупик (поймано владельцем 31.08). */
   home: string
 }
 
-export const RIGHTS: Record<Right, { short: string; can: string; cant: string }> = {
+/** 🔴 `tag` — та же мысль, что `short`, но в одну строку карточки.
+ *  Мерено 08.09: `short` у права `live` — 37 знаков, в колонку каталога (255 px
+ *  на четырёх колонках) не влезает и переносится второй строкой. Соседние
+ *  карточки ряда от этого разъезжаются кромками (ПРАВИЛА 3.3, 6.7а). Поэтому у
+ *  карточки своя метка до двадцати знаков, а полные четыре формулировки ПРАВИЛ
+ *  8.10 остаются там, где на них есть место, — в витрине источника. */
+export const RIGHTS: Record<Right, { tag: string; short: string; can: string; cant: string }> = {
   own: {
+    tag: 'можно брать себе',
     short: 'можно брать в свою работу',
     can: 'можно: показывать, скачивать, вставлять в свою работу и публиковать её',
     cant: 'нельзя: выдавать за своё — источник называется рядом',
   },
   attr: {
+    tag: 'можно, назвав автора',
     short: 'можно, если назвать автора',
     can: 'можно: показывать и вставлять в работу, назвав автора и источник',
     cant: 'нельзя: продавать и убирать имя автора',
   },
   show: {
+    tag: 'можно показывать',
     short: 'можно показывать классу',
     can: 'можно: открыть на уроке и на проекторе, читать вслух',
     cant: 'нельзя: копировать в свою работу и раздавать файлом',
   },
   live: {
+    tag: 'только на уроке',
     short: 'только внутри урока, копий не остаётся',
     can: 'можно: вывести живой поток классу на время урока',
     cant: 'нельзя: записывать и пересматривать — записей у нас нет вообще',
@@ -51,42 +70,42 @@ export const RIGHTS: Record<Right, { short: string; can: string; cant: string }>
 export const KINDS: Kind[] = ['снимки', 'данные', 'карты', 'книги', 'трансляции']
 
 export const SOURCES: Source[] = [
-  { id: 'apod', kind: 'снимки', name: 'NASA · снимок дня', gives: 'Один астрономический снимок в сутки с объяснением на английском', right: 'own', state: 'ok', home: 'https://apod.nasa.gov/apod/astropix.html' },
-  { id: 'hubble', kind: 'снимки', name: 'Телескоп «Хаббл» · архив', gives: 'Тридцать лет снимков галактик, туманностей и планет', right: 'own', state: 'ok', home: 'https://hubblesite.org/images' },
-  { id: 'jwst', kind: 'снимки', name: 'Телескоп «Джеймс Уэбб»', gives: 'Инфракрасные снимки: видно то, что не видно в обычный свет', right: 'own', state: 'ok', home: 'https://webbtelescope.org/images' },
-  { id: 'sdo', kind: 'данные', name: 'NASA SDO · Солнце', gives: 'Снимок Солнца каждые 12 секунд, десять длин волн', right: 'own', state: 'ok', home: 'https://sdo.gsfc.nasa.gov/data/' },
-  { id: 'earth', kind: 'карты', name: 'NASA Earthdata', gives: 'Спутниковые снимки Земли: пожары, лёд, облака, растительность', right: 'own', state: 'ok', home: 'https://worldview.earthdata.nasa.gov/' },
-  { id: 'iss', kind: 'трансляции', name: 'МКС · внешняя камера', gives: 'Живой вид Земли со станции, звук отсутствует', right: 'live', state: 'live', home: 'https://www.nasa.gov/live/' },
-  { id: 'esa', kind: 'снимки', name: 'ESA · Европейское космическое агентство', gives: 'Снимки миссий и Земли из космоса, подписи на английском', right: 'attr', state: 'ok', home: 'https://www.esa.int/ESA_Multimedia/Images' },
-  { id: 'eso', kind: 'снимки', name: 'ESO · южная обсерватория', gives: 'Снимки Чили: Млечный Путь, экзопланеты, телескопы', right: 'attr', state: 'ok', home: 'https://www.eso.org/public/images/' },
-  { id: 'lapalma', kind: 'трансляции', name: 'Обсерватория Ла-Пальма', gives: 'Живая картинка с площадки телескопов, задержка около 8 секунд', right: 'live', state: 'live', home: 'https://www.gtc.iac.es/multimedia/webcams.php' },
-  { id: 'noaa', kind: 'данные', name: 'NOAA · погода и океан', gives: 'Температура, ветер, ураганы — числа и карты за 40 лет', right: 'own', state: 'ok', home: 'https://www.noaa.gov/climate' },
-  { id: 'usgs', kind: 'данные', name: 'USGS · землетрясения', gives: 'Все землетрясения мира, обновление каждые пять минут', right: 'own', state: 'ok', home: 'https://earthquake.usgs.gov/earthquakes/map/' },
-  { id: 'kvert', kind: 'трансляции', name: 'Камчатка · камеры на вулканах', gives: 'Живая картинка с вулканов, ночью почти ничего не видно', right: 'live', state: 'down', home: 'https://glob.emsd.ru/visual-observations/' },
-  { id: 'met', kind: 'снимки', name: 'Метрополитен-музей · открытая коллекция', gives: '490 тысяч изображений вещей и картин', right: 'own', state: 'ok', home: 'https://www.metmuseum.org/art/collection' },
-  { id: 'rijks', kind: 'снимки', name: 'Рейксмузеум', gives: 'Голландская живопись в очень высоком разрешении', right: 'own', state: 'ok', home: 'https://www.rijksmuseum.nl/en/collection' },
-  { id: 'smith', kind: 'снимки', name: 'Смитсоновский институт', gives: 'Три миллиона предметов: от насекомых до самолётов', right: 'own', state: 'ok', home: 'https://www.si.edu/openaccess' },
-  { id: 'loc', kind: 'книги', name: 'Библиотека Конгресса', gives: 'Карты, фотографии, газеты, звукозаписи XIX–XX веков', right: 'own', state: 'ok', home: 'https://www.loc.gov/collections/' },
-  { id: 'gallica', kind: 'книги', name: 'Gallica · Национальная библиотека Франции', gives: 'Рукописи, атласы и газеты, оцифрованные страницами', right: 'show', state: 'ok', home: 'https://gallica.bnf.fr/' },
-  { id: 'bl', kind: 'книги', name: 'Британская библиотека', gives: 'Средневековые рукописи и первые печатные книги', right: 'show', state: 'ok', home: 'https://www.bl.uk/manuscripts/' },
-  { id: 'bodleian', kind: 'книги', name: 'Бодлианская библиотека', gives: 'Оксфордские собрания: наука и география до XIX века', right: 'show', state: 'ok', home: 'https://digital.bodleian.ox.ac.uk/' },
-  { id: 'cambridge', kind: 'книги', name: 'Кембриджская цифровая библиотека', gives: 'Тетради Ньютона его почерком, страница за страницей', right: 'show', state: 'down', home: 'https://cudl.lib.cam.ac.uk/' },
-  { id: 'gutenberg', kind: 'книги', name: 'Проект «Гутенберг»', gives: '70 тысяч книг, у которых кончился срок охраны', right: 'own', state: 'ok', home: 'https://www.gutenberg.org/' },
-  { id: 'archive', kind: 'книги', name: 'Интернет-архив', gives: 'Книги, звук, старое видео и копии исчезнувших сайтов', right: 'attr', state: 'ok', home: 'https://archive.org/' },
-  { id: 'europeana', kind: 'книги', name: 'Europeana', gives: 'Собрания музеев и архивов Европы в одном поиске', right: 'attr', state: 'down', home: 'https://www.europeana.eu/' },
-  { id: 'wiki', kind: 'снимки', name: 'Викисклад', gives: 'Сто миллионов файлов, право у каждого своё и указано', right: 'attr', state: 'ok', home: 'https://commons.wikimedia.org/' },
-  { id: 'rumsey', kind: 'карты', name: 'Карты Дэвида Румзи', gives: 'Сто тысяч старых карт, наложенных на современную Землю', right: 'attr', state: 'ok', home: 'https://www.davidrumsey.com/' },
-  { id: 'osm', kind: 'карты', name: 'OpenStreetMap', gives: 'Карта мира, которую можно разобрать на слои и данные', right: 'attr', state: 'ok', home: 'https://www.openstreetmap.org/' },
-  { id: 'gbif', kind: 'данные', name: 'GBIF · биоразнообразие', gives: 'Где и когда каких животных и растений видели — два миллиарда записей', right: 'own', state: 'ok', home: 'https://www.gbif.org/' },
-  { id: 'inat', kind: 'снимки', name: 'iNaturalist', gives: 'Фотографии живого, снятые людьми и определённые сообществом', right: 'attr', state: 'ok', home: 'https://www.inaturalist.org/' },
-  { id: 'eol', kind: 'книги', name: 'Энциклопедия жизни', gives: 'Статья на каждый известный вид, с фотографиями', right: 'attr', state: 'down', home: 'https://eol.org/' },
-  { id: 'pdb', kind: 'данные', name: 'Банк белковых структур', gives: 'Трёхмерные модели белков и вирусов, можно вертеть', right: 'own', state: 'ok', home: 'https://www.rcsb.org/' },
-  { id: 'cern', kind: 'данные', name: 'CERN · открытые данные', gives: 'Настоящие данные столкновений частиц и инструменты к ним', right: 'own', state: 'down', home: 'https://opendata.cern.ch/' },
-  { id: 'arxiv', kind: 'книги', name: 'arXiv', gives: 'Свежие научные статьи по физике и математике до журнала', right: 'show', state: 'ok', home: 'https://arxiv.org/' },
-  { id: 'pmc', kind: 'книги', name: 'PubMed Central', gives: 'Медицинские и биологические статьи в открытом доступе', right: 'show', state: 'down', home: 'https://www.ncbi.nlm.nih.gov/pmc/' },
-  { id: 'wb', kind: 'данные', name: 'Всемирный банк · открытые данные', gives: 'Население, доходы, электричество — по странам и годам', right: 'own', state: 'ok', home: 'https://data.worldbank.org/' },
-  { id: 'owid', kind: 'данные', name: 'Our World in Data', gives: 'Готовые графики по климату, здоровью, энергии с источниками', right: 'attr', state: 'ok', home: 'https://ourworldindata.org/' },
-  { id: 'eurostat', kind: 'данные', name: 'Eurostat', gives: 'Статистика Европы: цены, работа, транспорт, учёба', right: 'own', state: 'down', home: 'https://ec.europa.eu/eurostat/data/database' },
+  { id: 'apod', kind: 'снимки', name: 'NASA · снимок дня', gives: 'Один астрономический снимок в сутки с объяснением на английском', right: 'own', home: 'https://apod.nasa.gov/apod/astropix.html' },
+  { id: 'hubble', kind: 'снимки', name: 'Телескоп «Хаббл» · архив', gives: 'Тридцать лет снимков галактик, туманностей и планет', right: 'own', home: 'https://hubblesite.org/images' },
+  { id: 'jwst', kind: 'снимки', name: 'Телескоп «Джеймс Уэбб»', gives: 'Инфракрасные снимки: видно то, что не видно в обычный свет', right: 'own', home: 'https://webbtelescope.org/images' },
+  { id: 'sdo', kind: 'данные', name: 'NASA SDO · Солнце', gives: 'Снимок Солнца каждые 12 секунд, десять длин волн', right: 'own', home: 'https://sdo.gsfc.nasa.gov/data/' },
+  { id: 'earth', kind: 'карты', name: 'NASA Earthdata', gives: 'Спутниковые снимки Земли: пожары, лёд, облака, растительность', right: 'own', home: 'https://worldview.earthdata.nasa.gov/' },
+  { id: 'iss', kind: 'трансляции', name: 'МКС · внешняя камера', gives: 'Живой вид Земли со станции, звук отсутствует', right: 'live', home: 'https://www.nasa.gov/live/' },
+  { id: 'esa', kind: 'снимки', name: 'ESA · Европейское космическое агентство', gives: 'Снимки миссий и Земли из космоса, подписи на английском', right: 'attr', home: 'https://www.esa.int/ESA_Multimedia/Images' },
+  { id: 'eso', kind: 'снимки', name: 'ESO · южная обсерватория', gives: 'Снимки Чили: Млечный Путь, экзопланеты, телескопы', right: 'attr', home: 'https://www.eso.org/public/images/' },
+  { id: 'lapalma', kind: 'трансляции', name: 'Обсерватория Ла-Пальма', gives: 'Живая картинка с площадки телескопов, задержка около 8 секунд', right: 'live', home: 'https://www.gtc.iac.es/multimedia/webcams.php' },
+  { id: 'noaa', kind: 'данные', name: 'NOAA · погода и океан', gives: 'Температура, ветер, ураганы — числа и карты за 40 лет', right: 'own', home: 'https://www.noaa.gov/climate' },
+  { id: 'usgs', kind: 'данные', name: 'USGS · землетрясения', gives: 'Все землетрясения мира, обновление каждые пять минут', right: 'own', home: 'https://earthquake.usgs.gov/earthquakes/map/' },
+  { id: 'kvert', kind: 'трансляции', name: 'Камчатка · камеры на вулканах', gives: 'Живая картинка с вулканов, ночью почти ничего не видно', right: 'live', home: 'https://glob.emsd.ru/visual-observations/' },
+  { id: 'met', kind: 'снимки', name: 'Метрополитен-музей · открытая коллекция', gives: '490 тысяч изображений вещей и картин', right: 'own', home: 'https://www.metmuseum.org/art/collection' },
+  { id: 'rijks', kind: 'снимки', name: 'Рейксмузеум', gives: 'Голландская живопись в очень высоком разрешении', right: 'own', home: 'https://www.rijksmuseum.nl/en/collection' },
+  { id: 'smith', kind: 'снимки', name: 'Смитсоновский институт', gives: 'Три миллиона предметов: от насекомых до самолётов', right: 'own', home: 'https://www.si.edu/openaccess' },
+  { id: 'loc', kind: 'книги', name: 'Библиотека Конгресса', gives: 'Карты, фотографии, газеты, звукозаписи XIX–XX веков', right: 'own', home: 'https://www.loc.gov/collections/' },
+  { id: 'gallica', kind: 'книги', name: 'Gallica · Национальная библиотека Франции', gives: 'Рукописи, атласы и газеты, оцифрованные страницами', right: 'show', home: 'https://gallica.bnf.fr/' },
+  { id: 'bl', kind: 'книги', name: 'Британская библиотека', gives: 'Средневековые рукописи и первые печатные книги', right: 'show', home: 'https://www.bl.uk/manuscripts/' },
+  { id: 'bodleian', kind: 'книги', name: 'Бодлианская библиотека', gives: 'Оксфордские собрания: наука и география до XIX века', right: 'show', home: 'https://digital.bodleian.ox.ac.uk/' },
+  { id: 'cambridge', kind: 'книги', name: 'Кембриджская цифровая библиотека', gives: 'Тетради Ньютона его почерком, страница за страницей', right: 'show', home: 'https://cudl.lib.cam.ac.uk/' },
+  { id: 'gutenberg', kind: 'книги', name: 'Проект «Гутенберг»', gives: '70 тысяч книг, у которых кончился срок охраны', right: 'own', home: 'https://www.gutenberg.org/' },
+  { id: 'archive', kind: 'книги', name: 'Интернет-архив', gives: 'Книги, звук, старое видео и копии исчезнувших сайтов', right: 'attr', home: 'https://archive.org/' },
+  { id: 'europeana', kind: 'книги', name: 'Europeana', gives: 'Собрания музеев и архивов Европы в одном поиске', right: 'attr', home: 'https://www.europeana.eu/' },
+  { id: 'wiki', kind: 'снимки', name: 'Викисклад', gives: 'Сто миллионов файлов, право у каждого своё и указано', right: 'attr', home: 'https://commons.wikimedia.org/' },
+  { id: 'rumsey', kind: 'карты', name: 'Карты Дэвида Румзи', gives: 'Сто тысяч старых карт, наложенных на современную Землю', right: 'attr', home: 'https://www.davidrumsey.com/' },
+  { id: 'osm', kind: 'карты', name: 'OpenStreetMap', gives: 'Карта мира, которую можно разобрать на слои и данные', right: 'attr', home: 'https://www.openstreetmap.org/' },
+  { id: 'gbif', kind: 'данные', name: 'GBIF · биоразнообразие', gives: 'Где и когда каких животных и растений видели — два миллиарда записей', right: 'own', home: 'https://www.gbif.org/' },
+  { id: 'inat', kind: 'снимки', name: 'iNaturalist', gives: 'Фотографии живого, снятые людьми и определённые сообществом', right: 'attr', home: 'https://www.inaturalist.org/' },
+  { id: 'eol', kind: 'книги', name: 'Энциклопедия жизни', gives: 'Статья на каждый известный вид, с фотографиями', right: 'attr', home: 'https://eol.org/' },
+  { id: 'pdb', kind: 'данные', name: 'Банк белковых структур', gives: 'Трёхмерные модели белков и вирусов, можно вертеть', right: 'own', home: 'https://www.rcsb.org/' },
+  { id: 'cern', kind: 'данные', name: 'CERN · открытые данные', gives: 'Настоящие данные столкновений частиц и инструменты к ним', right: 'own', home: 'https://opendata.cern.ch/' },
+  { id: 'arxiv', kind: 'книги', name: 'arXiv', gives: 'Свежие научные статьи по физике и математике до журнала', right: 'show', home: 'https://arxiv.org/' },
+  { id: 'pmc', kind: 'книги', name: 'PubMed Central', gives: 'Медицинские и биологические статьи в открытом доступе', right: 'show', home: 'https://www.ncbi.nlm.nih.gov/pmc/' },
+  { id: 'wb', kind: 'данные', name: 'Всемирный банк · открытые данные', gives: 'Население, доходы, электричество — по странам и годам', right: 'own', home: 'https://data.worldbank.org/' },
+  { id: 'owid', kind: 'данные', name: 'Our World in Data', gives: 'Готовые графики по климату, здоровью, энергии с источниками', right: 'attr', home: 'https://ourworldindata.org/' },
+  { id: 'eurostat', kind: 'данные', name: 'Eurostat', gives: 'Статистика Европы: цены, работа, транспорт, учёба', right: 'own', home: 'https://ec.europa.eu/eurostat/data/database' },
 ]
 
 /** Что будет, если источник замолчит — сказано у каждого вида отдельно. */

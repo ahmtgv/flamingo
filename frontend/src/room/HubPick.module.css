@@ -115,11 +115,6 @@
   color: var(--color-text-detail);
 }
 
-.silent {
-  font: var(--weight-regular) var(--text-caption) var(--font-mono);
-  color: var(--color-text-secondary);
-}
-
 .foot {
   display: grid;
   gap: var(--space-2);
