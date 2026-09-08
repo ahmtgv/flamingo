@@ -190,17 +190,25 @@ export function ShowList({
                   </span>
                 </span>
               </button>
+              {/* 🔴 ИМЯ ЦЕЛИ НАЗЫВАЕТ, ЧТО ИМЕННО УДАЛЯЕТСЯ. На экране «Удалить»
+                  стоит у каждой методички, и глазами видно, у какой; голосом и
+                  с клавиатуры — нет: читалка говорит «Удалить» столько раз,
+                  сколько методичек. Ошибиться здесь стоит дороже, чем где-либо
+                  ещё на этом экране: удаление необратимо. */}
               {arming === d.id ? (
                 <span className={s.confirm}>
-                  <button type="button" className={s.drop} onClick={() => { setArming(null); onDrop(d.id) }}>
+                  <button type="button" className={s.drop} onClick={() => { setArming(null); onDrop(d.id) }}
+                          aria-label={`Точно удалить: ${d.title}`}>
                     Точно удалить
                   </button>
-                  <button type="button" className={s.keep} onClick={() => setArming(null)}>
+                  <button type="button" className={s.keep} onClick={() => setArming(null)}
+                          aria-label={`Оставить: ${d.title}`}>
                     Оставить
                   </button>
                 </span>
               ) : (
-                <button type="button" className={s.dropAsk} onClick={() => setArming(d.id)}>
+                <button type="button" className={s.dropAsk} onClick={() => setArming(d.id)}
+                        aria-label={`Удалить: ${d.title}`}>
                   Удалить
                 </button>
               )}

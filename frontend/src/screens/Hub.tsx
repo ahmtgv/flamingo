@@ -102,7 +102,14 @@ export function Hub({ onBack, onHome }: { onBack: () => void; onHome: () => void
                   {STATE_TEXT[x.state]}
                 </span>
                 <span className={s.foot}>
-                  <button type="button" className={s.go} onClick={() => setOpen(x)}>
+                  {/* 🔴 ИМЯ ЦЕЛИ НАЗЫВАЕТ, ЧТО ИМЕННО ОТКРЫВАЕТСЯ. Померено на
+                      стенде 08.09: на этом экране 44 цели и 36 из них зовутся
+                      «открыть» — одним словом. Глазами их различает соседняя
+                      строка, голосом и с клавиатуры — ничто: читалка говорит
+                      «открыть» тридцать шесть раз подряд. Слово на кнопке
+                      остаётся прежним, меняется только имя цели. */}
+                  <button type="button" className={s.go} onClick={() => setOpen(x)}
+                          aria-label={`Открыть: ${x.name}`}>
                     открыть
                   </button>
                 </span>

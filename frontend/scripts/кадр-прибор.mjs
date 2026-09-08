@@ -114,7 +114,12 @@ for (const [ш, в, кадр] of КАДРЫ) {
            которая его зовёт. Такие поля 1×1 и с `clip`. */
         const спрятано = (e) => {
           const s = getComputedStyle(e)
-          return s.clipPath !== 'none' || s.clip !== 'auto' || (e.clientWidth <= 1 && e.clientHeight <= 1)
+          /* 🔴 И `visibility: hidden` ТОЖЕ. У такого узла коробка остаётся, а
+             нажать его нельзя — и `innerText` у него пустой. Прибор без этой
+             проверки объявил безымянной вкладку «Доска 1» в комнате: имя у неё
+             есть, просто панель в тот момент спрятана целиком. */
+          return s.visibility === 'hidden' || s.clipPath !== 'none' || s.clip !== 'auto'
+            || (e.clientWidth <= 1 && e.clientHeight <= 1)
         }
         const цели = [...document.querySelectorAll('button,a,input,select,textarea,[role="button"],[role="radio"]')]
           .filter((e) => { const r = e.getBoundingClientRect(); return r.width > 0 && r.height > 0 && !спрятано(e) })
@@ -142,9 +147,51 @@ for (const [ш, в, кадр] of КАДРЫ) {
         })
         const прокр = [...document.querySelectorAll('*')].filter((e) =>
           e.scrollHeight > e.clientHeight + 2 && ['auto', 'scroll'].includes(getComputedStyle(e).overflowY)).length
+        /* 🔴 ДВЕ ЦЕЛИ С ОДНИМ ИМЕНЕМ. Наряд 5, пункт 12. Имя цели — то, что
+           слышит читалка и видит клавиатура; глазами их различает соседняя
+           строка, а голосом — ничто. Померено 08.09: на экране хаба 44 цели и
+           36 из них звались «открыть». Имя берём так же, как берёт браузер:
+           `aria-label` ЗАМЕНЯЕТ текст, а не дополняет его, и `title` тоже. */
+        const имяЦели = (e) => {
+          /* 🔴 У ПОЛЯ ИМЯ БЕРЁТСЯ ИЗ ПОДПИСИ, А НЕ ИЗ СОДЕРЖИМОГО. Первый заход
+             читал только `aria-label`/`title`/текст — и объявил безымянными
+             четырнадцать полей на входе, регистрации и создании урока, у
+             которых подпись есть и стоит рядом в `<label>`. Прибор, который
+             ищет иначе, чем ищет браузер, находит не то. */
+          const по = (в) => (в || '').replace(/\s+/g, ' ').trim()
+          const прямо = по(e.getAttribute('aria-label'))
+          if (прямо) return прямо
+          const ссылка = e.getAttribute('aria-labelledby')
+          if (ссылка) {
+            const чужое = ссылка.split(/\s+/).map((id) => по(document.getElementById(id)?.innerText)).filter(Boolean)
+            if (чужое.length) return чужое.join(' ')
+          }
+          if (e.id) {
+            const подпись = document.querySelector(`label[for="${CSS.escape(e.id)}"]`)
+            if (подпись) return по(подпись.innerText)
+          }
+          const обёртка = e.closest('label')
+          if (обёртка) return по(обёртка.innerText)
+          /* `textContent`, а не только `innerText`: второй зависит от раскладки
+             и пуст у спрятанного узла — а имя у того есть. */
+          const свой = по(e.innerText) || по(e.textContent)
+          if (свой) return свой
+          return по(e.getAttribute('title')) || по(e.getAttribute('placeholder'))
+        }
+        const поИмени = new Map()
+        for (const e of цели) {
+          const и = имяЦели(e)
+          if (!и) continue
+          поИмени.set(и, (поИмени.get(и) ?? 0) + 1)
+        }
+        const тёзки = [...поИмени].filter(([, n]) => n > 1).sort((a, b) => b[1] - a[1])
+
         return {
           прокрутка: document.documentElement.scrollHeight - document.documentElement.clientHeight,
           областей: прокр, целей: цели.length, вне: вне.length,
+          безымянных: цели.filter((e) => !имяЦели(e)).length,
+          тёзки: тёзки.slice(0, 4).map(([и, n]) => [и.slice(0, 38), n]),
+          тёзокВсего: тёзки.reduce((с, [, n]) => с + n - 1, 0),
           внеИмена: вне.slice(0, 3).map((x) => `${x.и}@${Math.round(x.r.top)}`),
           мелкие: цели.map((e) => {
             const { ш, в } = целиком(e)
@@ -227,6 +274,21 @@ for (const кадр of КАДРЫ.map((к) => к[2])) {
       console.log(`  тесно (${грубо}…${порог - 1}):`)
       for (const с of тесные) console.log(с)
     }
+  }
+}
+
+/* ── две цели с одним именем ─────────────────────────────────────────────── */
+{
+  const первый = КАДРЫ[0][2]
+  const строки = всё.filter((x) => x.кадр === первый && (x.тёзокВсего || x.безымянных))
+  console.log(`\n── имена целей, ${КАДРЫ[0][0]} ──`)
+  if (!строки.length) console.log('  ✅ на каждом экране имена целей разные и ни одна не безымянна')
+  for (const x of строки) {
+    const части = []
+    if (x.тёзокВсего) части.push(`тёзок ${x.тёзокВсего}`)
+    if (x.безымянных) части.push(`безымянных ${x.безымянных}`)
+    console.log(`  ${x.экран.padEnd(22)} ${части.join(' · ')}`)
+    for (const [и, n] of x.тёзки || []) console.log(`      «${и}» — ${n}`)
   }
 }
 

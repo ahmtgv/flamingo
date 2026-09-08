@@ -78,13 +78,17 @@ function Строка({ у, onGo, onEdit }: { у: Урок; onGo: () => void; on
     <div className={s.row}>
       <span className={s.rowWhen}>{у.время}</span>
       {onEdit ? (
-        <button type="button" className={s.rowBody} onClick={onEdit} title="Поправить урок">
+        <button type="button" className={s.rowBody} onClick={onEdit}
+                title={`Поправить урок: ${у.название}, ${у.время}`}>
           {слова}
         </button>
       ) : (
         <span className={`${s.rowBody} ${s.rowPlain}`}>{слова}</span>
       )}
-      <button type="button" className={s.rowGo} onClick={onGo}>Войти</button>
+      {/* Имя цели называет, в КАКОЙ урок. В полном дне таких кнопок 23, и все
+          они звались «Войти»: голосом и с клавиатуры не различить ни одной. */}
+      <button type="button" className={s.rowGo} onClick={onGo}
+              aria-label={`Войти в урок: ${у.название}, ${у.время}`}>Войти</button>
     </div>
   )
 }

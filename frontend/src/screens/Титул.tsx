@@ -321,7 +321,12 @@ export function Титул({ onSign, onNew, onHub, молчит = false, onAgain
 
           <div className={`${s.проБлок} ${стопкой ? s.стопкой : s.сбоку}`} ref={блок}>
             {/* Ролика ещё нет — кнопка объявлена немой словами (ПРАВИЛА 14.1). */}
-            <button type="button" className={s.промо} ref={промо} data-still="проморолик снимается">
+            {/* 🔴 У КНОПКИ ИЗ ОДНОЙ КАРТИНКИ ИМЕНИ НЕТ ВОВСЕ. Померено 08.09:
+                читалка объявляет её просто «кнопка». `data-still` объясняет
+                молчание нам (ПРАВИЛА 14.1), но человеку у экрана — ничего. */}
+            <button type="button" className={s.промо} ref={промо}
+                    aria-label="Посмотреть, как проходит занятие"
+                    data-still="проморолик снимается">
               {постер()}
               <span className={s.пуск}>
                 <svg viewBox="0 0 16 16" aria-hidden><path d="M4 2l10 6-10 6z" fill="var(--color-text)" /></svg>
