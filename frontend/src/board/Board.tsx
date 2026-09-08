@@ -949,7 +949,21 @@ export function Board({ bus, peers, onOpen }: Props) {
         }}
         style={{ backgroundSize: `${24 * view.k}px ${24 * view.k}px`, backgroundPosition: `${view.x}px ${view.y}px` }}
       >
-        <canvas ref={canvasRef} className={s.canvas} />
+        {/* 🔴 У ХОЛСТА ЕСТЬ ИМЯ И ТЕКСТОВЫЙ СЛЕД. Раньше `<canvas>` стоял голым:
+            читалка экрана называла его «графика», сказать, что на доске
+            что-то есть, было нечем, и человек, который не видит рисунка, не
+            узнавал даже, пустая она или полная. Рисовать голосом мы его не
+            научим — но назвать и сосчитать обязаны (аудит 07.09, находка 12). */}
+        <canvas
+          ref={canvasRef}
+          className={s.canvas}
+          role="img"
+          aria-label={
+            empty
+              ? 'Доска занятия, пустая'
+              : `Доска занятия: штрихов ${st.sheet.strokes.length}, объектов ${st.sheet.objs.length}`
+          }
+        />
 
         <div
           className={s.layer}
