@@ -30,31 +30,8 @@
 
 .doors { display: flex; align-items: center; gap: var(--space-4); flex-wrap: wrap; justify-content: center; }
 
-.again {
-  min-height: var(--tap-min);
-  padding: 0 var(--space-6);
-  border: none;
-  border-radius: var(--radius-pill);
-  background: var(--color-go-solid);
-  color: var(--color-on-go);
-  font-family: var(--font-body);
-  font-size: var(--text-body);
-  cursor: pointer;
-}
 
-.again:hover { background: var(--color-go-solid-hover); }
 
-.quiet {
-  min-height: var(--tap-min);
-  padding: 0 var(--space-5);
-  border: 1px solid var(--color-border-strong);
-  border-radius: var(--radius-pill);
-  background: none;
-  color: var(--color-text);
-  font-family: var(--font-body);
-  font-size: var(--text-body);
-  cursor: pointer;
-}
 
 .small {
   max-width: 34rem;
@@ -65,3 +42,7 @@
   line-height: var(--leading-snug);
   color: var(--color-text-hint);
 }
+
+/* 🔴 `.again` И `.quiet` УБРАНЫ (решение владельца 08.09: экраны берут общую
+   кнопку). Здесь они были на кегле 17 против 14 у общей — единственное место,
+   где это отличие вообще существовало. */

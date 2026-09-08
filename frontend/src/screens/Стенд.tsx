@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react'
 
 import { Board } from '../board/Board'
 import { Chat, type Line } from '../room/Chat'
-import { Faces } from '../room/Faces'
 import { HubPick } from '../room/HubPick'
 import { FIRST_TOOL, InkTools } from '../room/InkTools'
 import { Live } from '../room/Live'
@@ -30,6 +29,7 @@ import { NewLesson } from './NewLesson'
 import { NewPass } from './NewPass'
 import { Room } from './Room'
 import { Sign } from './Sign'
+import { Молчание, Wait } from '../ui/Wait'
 import { Титул } from './Титул'
 import { Переписка } from './Переписка'
 
@@ -298,6 +298,12 @@ function СЖурналом({ дети, сколько, поМесяцу }: {
 export const ЭКРАНЫ: { имя: string; путь: string; рисуй: () => React.ReactElement }[] = [
   { имя: 'титул', путь: '/', рисуй: () => <Титул onSign={ни} onNew={ни} onHub={ни} /> },
   { имя: 'титул-молчит', путь: '/', рисуй: () => <Титул onSign={ни} onNew={ни} onHub={ни} молчит onAgain={ни} /> },
+  /* 🔴 ДВА СОСТОЯНИЯ, КОТОРЫЕ ВИДИТ ЧЕЛОВЕК, А СТЕНД НЕ ПОКАЗЫВАЛ. Это не
+     маршруты — это то, что стоит НА маршруте, пока сервер не ответил, и
+     `стенд-check` их не требовал. Найдено 08.09: я поменял в «Молчании»
+     кнопки и пошёл смотреть — а смотреть было негде (правило 6б в CLAUDE.md). */
+  { имя: 'ожидание', путь: '/кабинет', рисуй: () => <Wait /> },
+  { имя: 'молчание', путь: '/кабинет', рисуй: () => <Молчание onAgain={ни} onRoom={ни} /> },
   { имя: 'вход', путь: '/вход', рисуй: () => <Sign onDone={ни} onBack={ни} /> },
   { имя: 'регистрация', путь: '/регистрация', рисуй: () => <Sign onDone={ни} режим="new" /> },
   { имя: 'новый-пароль', путь: '/новый-пароль', рисуй: () => <NewPass ключ="проба" onDone={ни} onBack={ни} /> },
@@ -385,9 +391,6 @@ export const ЭКРАНЫ: { имя: string; путь: string; рисуй: () =>
   ) },
   { имя: 'сцена-связи-нет', путь: '/r/', рисуй: () => (
     <ВКадре><Stage faces={[]} alone веду link="flamingo.plus/r/g6rh-ntaf-rzpp" onCopy={ни} phase="failed" error="Медиасервер не ответил." /></ВКадре>
-  ) },
-  { имя: 'лица', путь: '/r/', рисуй: () => (
-    <ВКадре><Faces faces={ЛИЦА} alone={false} link="flamingo.plus/r/g6rh-ntaf-rzpp" onCopy={ни} phase="live" error="" /></ВКадре>
   ) },
   { имя: 'плитки', путь: '/r/', рисуй: () => <НаСцене><Tiles faces={ЛИЦА} /></НаСцене> },
   { имя: 'пособия', путь: '/r/', рисуй: () => (

@@ -193,39 +193,9 @@
   color: var(--color-text-detail);
 }
 
-/* Тихая кнопка: дорога назад к сегодняшнему дню. Заливки не берёт — на экране
-   она одна и принадлежит главному действию (ПРАВИЛА 11.4). */
-.quiet {
-  justify-self: start;
-  min-height: var(--control-height-sm);
-  padding: 0 var(--space-4);
-  border: 1px solid var(--color-border-strong);
-  border-radius: var(--radius-pill);
-  background: none;
-  color: var(--color-text);
-  font-size: var(--text-caption);
-  cursor: pointer;
-}
 
-.quiet:hover { background: var(--color-surface-hover); }
 
-/* Главное действие кабинета — зелёная заливка, на экране она одна
-   (ПРАВИЛА 11.1, 11.4). */
-.go {
-  min-height: var(--tap-min);
-  padding: 0 var(--space-5);
-  border: none;
-  border-radius: var(--radius-pill);
-  background: var(--color-go-solid);
-  color: var(--color-on-go);
-  font-size: var(--text-small);
-  font-weight: var(--weight-medium);
-  cursor: pointer;
-}
 
-.go:hover {
-  background: var(--color-go-solid-hover);
-}
 
 /* Путь, у которого нет кнопки: сказан словами и приглушён, потому что это
    объяснение, а не действие (ПРАВИЛА 12.2). */
@@ -255,7 +225,7 @@
 
 /* Кнопка в списке занятий не тянется на всю колонку: главное действие меряется
    своим словом, а не шириной соседа (ПРАВИЛА 11.4). */
-.rows .go,
+.rows .вСписке,
 .rows .emptyWay {
   justify-self: start;
 }
@@ -416,8 +386,14 @@
   position: relative;
 }
 
-/* Точка занятия. Цвет «дальше» — тот же, что у главного действия: это про
-   работу, которая назначена, а не про тревогу (ПРАВИЛА 5.2). */
+/* 🔴 ТОЧКА ЗАНЯТИЯ — ЦВЕТОМ ТЕКСТА (решение владельца 08.09).
+   Было зелёной заливкой. Померено на «кабинет-месяц»: при занятиях, разложенных
+   по месяцу, таких точек 28 на экране, где заливка должна быть одна (ПРАВИЛА 5.1).
+   Точка ничего не просит нажать — она говорит «тут занятие». Это состояние, а не
+   действие, и двумя правилами ниже в этом же файле то же самое уже сказано про
+   «сегодня»: обводка, а не заливка (ПРАВИЛА 5.2).
+   Тот же цвет, что у точки «был» в журнале (`Journal.module.css`, `.was`) — и
+   это одна и та же вещь по смыслу: факт, а не приглашение. */
 .dot {
   position: absolute;
   bottom: var(--space-1);
@@ -426,7 +402,7 @@
   height: var(--space-1);
   margin-left: calc(-1 * var(--space-1) / 2);
   border-radius: var(--radius-pill);
-  background: var(--color-go-solid);
+  background: var(--color-text);
 }
 
 /* Сегодня — обводка, а не заливка: это состояние, а не действие
@@ -563,3 +539,9 @@
   font: var(--weight-medium) var(--text-overline) var(--font-mono);
   text-align: center;
 }
+
+/* 🔴 `.go` И `.quiet` ОТСЮДА УБРАНЫ (решение владельца 08.09: экраны берут
+   общую кнопку). Кнопка живёт в `ui/Button`: геометрия в `.b`, цвет в `.go` /
+   `.quiet`. Здесь их больше нет и заводить их заново нельзя — расхождение
+   начинается ровно с этой строки. Если кнопке нужен крючок раскладки, он
+   передаётся как `className` и содержит ТОЛЬКО раскладку. */

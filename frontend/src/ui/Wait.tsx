@@ -1,5 +1,6 @@
 import { Mark } from './Mark'
 import s from './Wait.module.css'
+import { Button } from './Button'
 
 /** Короткое ожидание в начале.
  *
@@ -36,11 +37,11 @@ export function Молчание({ onAgain, onRoom }: { onAgain: () => void; onR
         перезапускают: обычно это меньше минуты.
       </p>
       <span className={s.doors}>
-        <button type="button" className={s.again} onClick={onAgain}>Спросить ещё раз</button>
+        <Button kind="go" onClick={onAgain}>Спросить ещё раз</Button>
         {onRoom ? (
-          <button type="button" className={s.quiet} onClick={onRoom}>
+          <Button kind="quiet" onClick={onRoom}>
             Войти в урок по ссылке
-          </button>
+          </Button>
         ) : null}
       </span>
       <p className={s.small}>

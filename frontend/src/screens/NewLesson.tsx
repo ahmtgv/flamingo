@@ -11,6 +11,7 @@ import {
   датаВМашинную, датаИзМашинной, когдаПоУмолчанию, маскаВремени, маскаДаты, времяЦелое,
 } from '../lib/datetime'
 import s from './NewLesson.module.css'
+import { Button } from '../ui/Button'
 
 /** Урок: завести новый или поправить заведённый.
  *
@@ -328,14 +329,14 @@ export function NewLesson({ person, урокId, onDone, onCreated, onBack, onOut
               ) : null}
             </div>
 
-            <button type="submit" className={s.go} disabled={ждём}>
+            <Button kind="go" type="submit" disabled={ждём}>
               {ждём ? 'Сохраняем…' : правка ? 'Сохранить' : 'Создать урок'}
-            </button>
+            </Button>
 
             {правка ? (
               <>
               <div className={s.after}>
-                <button type="button" className={s.quiet} onClick={onDone}>Готово</button>
+                <Button kind="quiet" onClick={onDone}>Готово</Button>
                 <button
                   type="button"
                   className={`${s.drop} ${сноситьВзвод ? s.dropArmed : ''}`}

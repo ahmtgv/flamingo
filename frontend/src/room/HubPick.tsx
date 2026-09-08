@@ -3,6 +3,7 @@ import { useMemo, useState } from 'react'
 import { KINDS, RIGHTS, SOURCES, type Kind } from '../hub/sources'
 import { useПоверх } from '../lib/окно'
 import s from './HubPick.module.css'
+import { Button } from '../ui/Button'
 
 /** Выбор источника для показа классу — прямо из комнаты, не уходя с урока.
  *
@@ -90,9 +91,9 @@ export function HubPick({ onGo, onClose }: {
           Каталог знает, что за источник и что с ним можно. Какую именно страницу показать
           сегодня — решаете вы.
         </span>
-        <button type="submit" className={s.go} disabled={!pick || !url.trim()}>
+        <Button kind="go" type="submit" disabled={!pick || !url.trim()}>
           Показать классу
-        </button>
+        </Button>
       </form>
     </aside>
   )

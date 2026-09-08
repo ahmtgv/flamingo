@@ -6,6 +6,7 @@ import { сегодняСтрокой } from '../lib/lessons'
 import { Беда, гдеЛежат, разговоры, урокСейчас, читатьУроки, type Разговор, type Урок } from '../lib/study'
 import { Переписка } from './Переписка'
 import s from './Cabinet.module.css'
+import { Button } from '../ui/Button'
 
 /** Личный кабинет — учителя и ученика.
  *
@@ -69,8 +70,13 @@ function Строка({ у, onGo, onEdit }: { у: Урок; onGo: () => void; on
   const слова = (
     <>
       <span className={s.rowName} title={у.название}>{у.название}</span>
+      {/* 🔴 КОД КОМНАТЫ УШЁЛ В ПОДСКАЗКУ (решение владельца 08.09). На телефоне
+          строка обрезалась посередине кода — «45 мин · nd6q-4ztq…»: место 149 px,
+          надо 179. Обрезанный код бесполезен: не прочитать, не скопировать, не
+          узнать по нему урок. А «Войти» стоит рядом — код руками не переносят.
+          В `title` он остаётся целиком, для того редкого случая, когда нужен. */}
       <span className={s.rowSub} title={`${у.минут} мин · ${у.код}`}>
-        {у.минут} мин · {у.код}{пособий ? ` · ${пособий} матер.` : ''}
+        {у.минут} мин{пособий ? ` · ${пособий} матер.` : ''}
       </span>
     </>
   )
@@ -193,9 +199,9 @@ export function Cabinet({ person, onLesson, onNew, onEdit, onJournal, onOut, onH
   }
   const кнопкаСейчас = (
     <>
-      <button type="button" className={s.go} onClick={начатьСейчас} disabled={сейчасИдёт}>
+      <Button kind="go" className={s.вСписке} onClick={начатьСейчас} disabled={сейчасИдёт}>
         {сейчасИдёт ? 'Открываем комнату…' : 'Начать урок сейчас'}
-      </button>
+      </Button>
       {сейчасБеда ? <span className={s.emptyWay}>{сейчасБеда}</span> : null}
     </>
   )
@@ -283,9 +289,9 @@ export function Cabinet({ person, onLesson, onNew, onEdit, onJournal, onOut, onH
                 {беда} Занятия никуда не делись — их не удалось прочитать сейчас.
                 Ссылки на уроки, которые вы уже отправили, работают.
               </span>
-              <button type="button" className={s.quiet} onClick={() => { setВсе(null); setБеда(null); setЕщёРаз((н) => н + 1) }}>
+              <Button kind="quiet" onClick={() => { setВсе(null); setБеда(null); setЕщёРаз((н) => н + 1) }}>
                 Посмотреть ещё раз
-              </button>
+              </Button>
             </div>
           ) : наСегодня.length ? (
             <div className={s.rows}>
@@ -313,9 +319,9 @@ export function Cabinet({ person, onLesson, onNew, onEdit, onJournal, onOut, onH
                   дверь не туда: нажатие завело бы занятие сегодняшним числом. */}
               {учитель && !свой ? кнопкаСейчас : null}
               {свой ? (
-                <button type="button" className={s.quiet} onClick={() => setВыбран(null)}>
+                <Button kind="quiet" onClick={() => setВыбран(null)}>
                   Вернуться к сегодняшнему дню
-                </button>
+                </Button>
               ) : null}
             </div>
           ) : (
@@ -329,9 +335,9 @@ export function Cabinet({ person, onLesson, onNew, onEdit, onJournal, onOut, onH
               <span className={s.emptyHead}>
                 {деньПоказа} {МЕСЯЦЕВ[сегодня.getMonth()]} занятий нет
               </span>
-              <button type="button" className={s.quiet} onClick={() => setВыбран(null)}>
+              <Button kind="quiet" onClick={() => setВыбран(null)}>
                 Вернуться к сегодняшнему дню
-              </button>
+              </Button>
             </div>
           ) : (
           <div className={s.empty}>
@@ -439,9 +445,9 @@ export function Cabinet({ person, onLesson, onNew, onEdit, onJournal, onOut, onH
                     {бедаБесед || 'Переписка живёт на сервере, а он не отвечает. '
                       + 'Написанное раньше никуда не делось — оно там, а не в этом браузере.'}
                   </span>
-                  <button type="button" className={s.quiet} onClick={обновитьБеседы}>
+                  <Button kind="quiet" onClick={обновитьБеседы}>
                     Попробовать ещё раз
-                  </button>
+                  </Button>
                 </div>
               ) : беседы === null ? (
                 <div className={s.empty}>

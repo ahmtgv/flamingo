@@ -20,7 +20,10 @@ import { readFileSync } from 'node:fs'
 const ФАЙЛЫ = {
   useRoom: 'src/room/useRoom.ts',
   Room: 'src/screens/Room.tsx',
-  Faces: 'src/room/Faces.tsx',
+  /* 🔴 `Faces` СНЯТ 08.09 (решение владельца: полоса лиц заменена плитками).
+     Караул не «упрощён» — он потерял один из четырёх домов, потому что дома
+     больше нет. Правила остались все: их держат `Stage` и `Tiles`, где та же
+     логика и живёт в продукте. */
   Stage: 'src/room/Stage.tsx',
   Tiles: 'src/room/Tiles.tsx',
 }
@@ -35,7 +38,7 @@ const ЗАПРЕТЫ = [
   },
   {
     имя: 'никто не объявляется ведущим по месту в списке',
-    где: ['useRoom', 'Faces', 'Stage', 'Tiles'],
+    где: ['useRoom', 'Stage', 'Tiles'],
     нельзя: /lead:\s*true/,
     цена: 'роль раздаётся кодом, а не сервером',
   },
@@ -47,7 +50,7 @@ const ЗАПРЕТЫ = [
   },
   {
     имя: 'подпись «ведёт занятие» не вешается на первого безусловно',
-    где: ['Faces', 'Stage', 'Tiles'],
+    где: ['Stage', 'Tiles'],
     нельзя: /faces\[0\][\s\S]{0,200}<Tile[^>]*\slead\s*(\/?>|big)/,
     цена: 'первый вошедший снова подписан ведущим',
   },
@@ -106,8 +109,6 @@ if (process.argv.includes('--selftest')) {
         return ordered.map((f, i) => (i === 0 ? { ...f, lead: true } : f))
       }`,
     Room: `const iLead = faces.find((f) => f.isLocal)?.lead ?? true`,
-    Faces: `const lead = faces.find((f) => f.lead) ?? faces[0]
-      return <Tile key={lead.identity} face={lead} lead />`,
     Stage: `const lead = faces.find((f) => f.lead) ?? faces[0]`,
     Tiles: `const lead = faces.find((f) => f.lead) ?? faces[0]`,
   }

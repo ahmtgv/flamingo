@@ -15,6 +15,8 @@ import '@fontsource/eb-garamond/500.css'
 
 import './styles/tokens.css'
 import './styles/пергамент.css'
+/* Витринный набор: второй набор типографики, только титул (решение владельца 08.09). */
+import './styles/витрина.css'
 import './styles/base.css'
 import { App } from './App'
 

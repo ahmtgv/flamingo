@@ -7,6 +7,7 @@ import { Переписка } from './Переписка'
 import { разговоры } from '../lib/study'
 import { useПоверх } from '../lib/окно'
 import s from './Journal.module.css'
+import { Button } from '../ui/Button'
 
 /** Журнал: все ученики и все занятия.
  *
@@ -132,11 +133,11 @@ export function Journal({ person, onBack, onHome, onOut, onNew, onLesson, под
         </div>
 
         <div className={s.pult}>
-          <button type="button" className={s.go} onClick={() => setЗовём(true)}>
+          <Button kind="go" onClick={() => setЗовём(true)}>
             Добавить ученика
-          </button>
-          <button type="button" className={s.quiet} onClick={onNew}>Создать урок</button>
-          <button type="button" className={s.quiet} onClick={onBack}>← В кабинет</button>
+          </Button>
+          <Button kind="quiet" onClick={onNew}>Создать урок</Button>
+          <Button kind="quiet" onClick={onBack}>← В кабинет</Button>
           <span className={s.month}>
             <button type="button" className={s.arrow} onClick={() => сдвиг(-1)} aria-label="Месяц назад">‹</button>
             <span className={s.monthName}>{МЕСЯЦЫ[когда.getMonth()]} {когда.getFullYear()}</span>
@@ -176,9 +177,9 @@ export function Journal({ person, onBack, onHome, onOut, onNew, onLesson, под
                 </span>
               </div>
             </div>
-            <button type="button" className={s.go} onClick={() => setЗовём(true)}>
+            <Button kind="go" onClick={() => setЗовём(true)}>
               Добавить ученика
-            </button>
+            </Button>
           </div>
         ) : (
           <>
@@ -414,7 +415,7 @@ function Зовём({ onClose }: { onClose: () => void }) {
         <span className={s.small} role="status">{беда || сказано}</span>
 
         <div className={s.panelFoot}>
-          <button type="button" className={s.go} onClick={письмом}>Отправить приглашение</button>
+          <Button kind="go" onClick={письмом}>Отправить приглашение</Button>
           <button type="button" className={s.cancel} onClick={onClose}>Закрыть</button>
         </div>
       </div>

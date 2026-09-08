@@ -6,6 +6,7 @@ import { IF_SILENT, KINDS, RIGHTS, SOURCES, type Kind, type Source } from '../hu
 import { Mark } from '../ui/Mark'
 import { useПоверх } from '../lib/окно'
 import s from './Hub.module.css'
+import { Button } from '../ui/Button'
 
 /** Flamingo HUB — каталог чужих открытых источников.
  *
@@ -108,10 +109,10 @@ export function Hub({ onBack, onHome }: { onBack: () => void; onHome: () => void
                       строка, голосом и с клавиатуры — ничто: читалка говорит
                       «открыть» тридцать шесть раз подряд. Слово на кнопке
                       остаётся прежним, меняется только имя цели. */}
-                  <button type="button" className={s.go} onClick={() => setOpen(x)}
+                  <Button kind="quiet" onClick={() => setOpen(x)}
                           aria-label={`Открыть: ${x.name}`}>
                     открыть
-                  </button>
+                  </Button>
                 </span>
               </span>
             </li>

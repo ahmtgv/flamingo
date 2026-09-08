@@ -353,18 +353,7 @@
   gap: var(--space-3);
 }
 
-.quiet {
-  min-height: var(--tap-min);
-  padding: 0 var(--space-5);
-  border: 1px solid var(--color-border-strong);
-  border-radius: var(--radius-pill);
-  background: none;
-  color: var(--color-text);
-  font-size: var(--text-small);
-  cursor: pointer;
-}
 
-.quiet:hover { border-color: var(--color-text); }
 
 /* Уход и потеря — коралловая ОБВОДКА, не заливка (ПРАВИЛА 11.3). */
 .drop {
@@ -381,23 +370,8 @@
 
 .drop:hover { border-color: var(--color-accent-text); }
 
-/* Главное действие карточки — во всю её ширину, как на входе. На экране
-   такая заливка одна (ПРАВИЛА 11.4). */
-.go {
-  min-height: var(--control-height-lg);
-  padding: 0 var(--space-6);
-  border: none;
-  border-radius: var(--radius-pill);
-  background: var(--color-go-solid);
-  color: var(--color-on-go);
-  font-size: var(--text-body);
-  font-weight: var(--weight-medium);
-  cursor: pointer;
-}
 
-.go:hover { background: var(--color-go-solid-hover); }
 
-.go:disabled { opacity: 1; background: var(--color-go-solid-hover); cursor: default; }
 
 /* 🔴 ТЕЛЕФОН: ШАПКА В ДВЕ СТРОКИ, А НЕ В ОДНУ ОБРЕЗАННУЮ.
    На 390 px шапка требовала 432 px минимума и не ужималась: `white-space:
@@ -441,3 +415,9 @@
   color: var(--color-text-detail);
   max-width: 52ch;
 }
+
+/* 🔴 `.go` И `.quiet` ОТСЮДА УБРАНЫ (решение владельца 08.09: экраны берут
+   общую кнопку). Кнопка живёт в `ui/Button`: геометрия в `.b`, цвет в `.go` /
+   `.quiet`. Здесь их больше нет и заводить их заново нельзя — расхождение
+   начинается ровно с этой строки. Если кнопке нужен крючок раскладки, он
+   передаётся как `className` и содержит ТОЛЬКО раскладку. */

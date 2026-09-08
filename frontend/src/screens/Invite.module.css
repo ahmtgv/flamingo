@@ -46,31 +46,14 @@
   color: var(--color-text-detail);
 }
 
-.go {
-  min-height: var(--tap-min);
-  padding: 0 var(--space-6);
-  border: none;
-  border-radius: var(--radius-pill);
-  background: var(--color-go-solid);
-  color: var(--color-on-go);
-  font-size: var(--text-small);
-  font-weight: var(--weight-medium);
-  cursor: pointer;
-}
 
-.go:hover { background: var(--color-go-solid-hover); }
 
-.quiet {
-  min-height: var(--tap-min);
-  padding: 0 var(--space-5);
-  border: 1px solid var(--color-border-strong);
-  border-radius: var(--radius-pill);
-  background: none;
-  color: var(--color-text);
-  font-size: var(--text-small);
-  cursor: pointer;
-}
 
-.quiet:hover { border-color: var(--color-text); }
 
 .row { display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap; }
+
+/* 🔴 `.go` И `.quiet` ОТСЮДА УБРАНЫ (решение владельца 08.09: экраны берут
+   общую кнопку). Кнопка живёт в `ui/Button`: геометрия в `.b`, цвет в `.go` /
+   `.quiet`. Здесь их больше нет и заводить их заново нельзя — расхождение
+   начинается ровно с этой строки. Если кнопке нужен крючок раскладки, он
+   передаётся как `className` и содержит ТОЛЬКО раскладку. */

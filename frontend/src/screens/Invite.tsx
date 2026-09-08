@@ -4,6 +4,7 @@ import type { Person } from '../lib/auth'
 import { Mark } from '../ui/Mark'
 import { Беда, ктоЗовёт, принятьПриглашение } from '../lib/study'
 import s from './Invite.module.css'
+import { Button } from '../ui/Button'
 
 /** Ссылка в журнал: `/у/<ключ>`.
  *
@@ -85,7 +86,7 @@ export function Invite({ ключ, person, onSign, onDone, onHome }: {
               Вы записаны к преподавателю: {готово}. Занятия появятся в вашем
               кабинете, а ссылку на урок больше искать не придётся.
             </p>
-            <button type="button" className={s.go} onClick={onDone}>В мой кабинет</button>
+            <Button kind="go" onClick={onDone}>В мой кабинет</Button>
           </>
         ) : беда ? (
           <>
@@ -99,9 +100,9 @@ export function Invite({ ключ, person, onSign, onDone, onHome }: {
             )}
             <div className={s.row}>
               {молчит ? (
-                <button type="button" className={s.go} onClick={спросить}>Спросить ещё раз</button>
+                <Button kind="go" onClick={спросить}>Спросить ещё раз</Button>
               ) : null}
-              <button type="button" className={s.quiet} onClick={onHome}>На главную</button>
+              <Button kind="quiet" onClick={onHome}>На главную</Button>
             </div>
           </>
         ) : зовёт === null ? (
@@ -117,18 +118,18 @@ export function Invite({ ключ, person, onSign, onDone, onHome }: {
 
             {person ? (
               <div className={s.row}>
-                <button type="button" className={s.go} onClick={принять} disabled={ждём}>
+                <Button kind="go" onClick={принять} disabled={ждём}>
                   {ждём ? 'Записываем…' : 'Согласиться'}
-                </button>
-                <button type="button" className={s.quiet} onClick={onHome}>Не сейчас</button>
+                </Button>
+                <Button kind="quiet" onClick={onHome}>Не сейчас</Button>
               </div>
             ) : (
               <>
                 <div className={s.row}>
-                  <button type="button" className={s.go} onClick={onSign}>
+                  <Button kind="go" onClick={onSign}>
                     Войти или завести учётную запись
-                  </button>
-                  <button type="button" className={s.quiet} onClick={onHome}>Не сейчас</button>
+                  </Button>
+                  <Button kind="quiet" onClick={onHome}>Не сейчас</Button>
                 </div>
                 <p className={s.foot}>
                   🔴 Учётная запись нужна именно здесь: связь преподавателя
