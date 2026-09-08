@@ -4,6 +4,7 @@ import { Cover } from '../hub/Cover'
 import { Vitrina } from '../hub/Vitrina'
 import { IF_SILENT, KINDS, RIGHTS, SOURCES, type Kind, type Source } from '../hub/sources'
 import { Mark } from '../ui/Mark'
+import { useПоверх } from '../lib/окно'
 import s from './Hub.module.css'
 
 /** Flamingo HUB — каталог чужих открытых источников.
@@ -30,6 +31,7 @@ export function Hub({ onBack, onHome }: { onBack: () => void; onHome: () => void
   /* Открытый источник показывается ЗДЕСЬ ЖЕ, поверх каталога. Новая вкладка
      уносит человека из Flamingo, и обратно он уже не всегда возвращается. */
   const [open, setOpen] = useState<Source | null>(null)
+  const поверх = useПоверх<HTMLDivElement>(() => setOpen(null), open !== null)
 
   const list = useMemo(() => (kind ? SOURCES.filter((x) => x.kind === kind) : SOURCES), [kind])
   const silent = SOURCES.filter((x) => x.state === 'down').length
@@ -113,7 +115,7 @@ export function Hub({ onBack, onHome }: { onBack: () => void; onHome: () => void
       {/* Источник открыт ЗДЕСЬ ЖЕ. Выход один и он назван — «Закрыть»: из чужой
           страницы внутри рамки клавиша «назад» не работает так, как ждёт человек. */}
       {open ? (
-        <div className={s.shown} role="dialog" aria-label={`Источник: ${open.name}`}>
+        <div ref={поверх} tabIndex={-1} role="dialog" aria-modal="true" className={s.shown} aria-label={`Источник: ${open.name}`}>
           <header className={s.shownHead}>
             <span className={s.shownKind}>{open.kind}</span>
             <span className={s.shownName}>{open.name}</span>

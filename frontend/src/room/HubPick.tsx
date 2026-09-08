@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 
 import { KINDS, RIGHTS, SOURCES, type Kind } from '../hub/sources'
+import { useПоверх } from '../lib/окно'
 import s from './HubPick.module.css'
 
 /** Выбор источника для показа классу — прямо из комнаты, не уходя с урока.
@@ -20,8 +21,10 @@ export function HubPick({ onGo, onClose }: {
   const list = useMemo(() => (kind ? SOURCES.filter((x) => x.kind === kind) : SOURCES), [kind])
   const chosen = SOURCES.find((x) => x.id === pick)
 
+  const поверх = useПоверх<HTMLElement>(onClose)
+
   return (
-    <aside className={s.panel} aria-label="Показать классу из Flamingo HUB">
+    <aside ref={поверх} tabIndex={-1} role="dialog" aria-modal="true" className={s.panel} aria-label="Показать классу из Flamingo HUB">
       <header className={s.head}>
         <span className={s.title}>Показать из Flamingo HUB</span>
         <button type="button" className={s.close} onClick={onClose} aria-label="Закрыть">

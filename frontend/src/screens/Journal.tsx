@@ -5,6 +5,7 @@ import { Mark } from '../ui/Mark'
 import { Беда, сделатьПриглашение, читатьЖурнал, type Журнал as Данные } from '../lib/study'
 import { Переписка } from './Переписка'
 import { разговоры } from '../lib/study'
+import { useПоверх } from '../lib/окно'
 import s from './Journal.module.css'
 
 /** Журнал: все ученики и все занятия.
@@ -292,6 +293,7 @@ export function Journal({ person, onBack, onHome, onOut, onNew, onLesson }: {
 
 /** Панель «Добавить ученика»: одноразовая ссылка и почта как второй путь к ней. */
 function Зовём({ onClose }: { onClose: () => void }) {
+  const поверх = useПоверх<HTMLDivElement>(onClose)
   const [ссылка, setСсылка] = useState('')
   const [до, setДо] = useState('')
   const [почта, setПочта] = useState('')
@@ -334,8 +336,8 @@ function Зовём({ onClose }: { onClose: () => void }) {
   }
 
   return (
-    <div className={s.veil} role="dialog" aria-label="Добавить ученика">
-      <div className={s.panel}>
+    <div className={s.veil}>
+      <div ref={поверх} tabIndex={-1} role="dialog" aria-modal="true" aria-label="Добавить ученика" className={s.panel}>
         <h2 className={s.panelTitle}>Добавить ученика</h2>
         <p className={s.panelLead}>
           Ученик приходит сам — по ссылке. Перешёл, назвался — и вы связаны:

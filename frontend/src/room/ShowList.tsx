@@ -1,5 +1,6 @@
 import { useState } from 'react'
 
+import { useПоверх } from '../lib/окно'
 import { ИМЕНА } from './Shelf'
 import type { Пособие } from '../lib/study'
 import type { ShowDoc } from './shows'
@@ -87,8 +88,12 @@ export function ShowList({
      показа — из пушки по воробью, а одно нажатие — потеря без спроса. */
   const [arming, setArming] = useState<string | null>(null)
 
+  /* Окно поверх урока: Escape закрывает, фокус не уходит наружу (ПРАВИЛА 7.x,
+     аудит 07.09 находка 11). */
+  const поверх = useПоверх<HTMLElement>(onClose)
+
   return (
-    <aside className={s.panel} aria-label={ИМЕНА.show}>
+    <aside ref={поверх} tabIndex={-1} role="dialog" aria-modal="true" className={s.panel} aria-label={ИМЕНА.show}>
       <header className={s.head}>
         {/* 🔴 ОДНО ИМЯ ВО ВСЕХ МЕСТАХ (ПРАВИЛА 4.9). Заголовок панели раньше
             менялся с «Учебные Документы» на «Показы» в зависимости от того,
