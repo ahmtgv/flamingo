@@ -49,7 +49,7 @@ function Tile({ face, lead }: { face: Face; lead?: boolean }) {
       <Sound track={face.audio} />
       {!face.camOn || !face.video ? <span className={s.ini}>{initials(face.name)}</span> : null}
       {lead ? <span className={s.mark}>ведёт занятие</span> : null}
-      <span className={s.name}>
+      <span className={s.name} title={face.name}>
         {face.name}
         {face.isLocal ? ' · вы' : ''}
       </span>

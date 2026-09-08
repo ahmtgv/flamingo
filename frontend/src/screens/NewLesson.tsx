@@ -187,7 +187,8 @@ export function NewLesson({ person, урокId, onDone, onCreated, onBack, onOut
     <main className={s.screen}>
       <header className={s.head}>
         <Mark onGo={onHome} title="Главная — кабинет" />
-        <span className={s.crumb}>
+        <span className={s.crumb}
+              title={`Кабинет преподавателя · ${правка ? 'Урок' : 'Создать урок'}`}>
           Кабинет преподавателя · {правка ? 'Урок' : 'Создать урок'}
         </span>
         <span className={s.who}>
@@ -263,7 +264,7 @@ export function NewLesson({ person, урокId, onDone, onCreated, onBack, onOut
                   <div className={s.matList}>
                     {урок.материалы.map((п) => (
                       <span key={п.id} className={s.mat}>
-                        <span className={s.matName}>{п.имя}</span>
+                        <span className={s.matName} title={п.имя}>{п.имя}</span>
                         <span className={s.matWhat}>
                           {п.вид === 'link' ? 'ссылка' : РАЗМЕР(п.размер)}
                         </span>

@@ -207,7 +207,7 @@ export function Show({
               +
             </button>
           </span>
-          <span className={s.title}>{title}</span>
+          <span className={s.title} title={title}>{title}</span>
           <span className={s.count}>
             {i + 1} из {n}
           </span>

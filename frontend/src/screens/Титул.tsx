@@ -404,8 +404,8 @@ export function Титул({ onSign, onNew, onHub, молчит = false, onAgain
                 <span className={s.превью}><Cover id={и.id} kind={и.kind} /></span>
                 <span className={s.иТекст}>
                   <span className={s.иВид}>{и.kind}</span>
-                  <span className={s.иИмя}>{и.name}</span>
-                  <span className={s.иДаёт}>{и.gives}</span>
+                  <span className={s.иИмя} title={и.name}>{и.name}</span>
+                  <span className={s.иДаёт} title={и.gives}>{и.gives}</span>
                   <span className={`${s.иСост} ${и.state === 'live' ? s.иЭфир : ''} ${и.state === 'down' ? s.иМолчит : ''}`}>
                     <span className={s.иТочка} />{СОСТОЯНИЕ[и.state]}
                   </span>

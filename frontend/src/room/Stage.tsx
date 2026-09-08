@@ -70,7 +70,7 @@ function Tile({ face, lead, big }: { face: Face; lead?: boolean; big?: boolean }
         {кадрИдёт ? <span className={s.state}>кадр идёт</span> : null}
         {!face.micOn ? <span className={s.state}>без звука</span> : null}
       </span>
-      <span className={s.name}>
+      <span className={s.name} title={face.name}>
         {face.name}
         {face.isLocal ? ' · вы' : ''}
       </span>

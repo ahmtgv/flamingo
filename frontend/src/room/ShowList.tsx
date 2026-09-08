@@ -125,7 +125,7 @@ export function ShowList({
                 <>
                   <span className={s.noFace} aria-hidden />
                   <span className={s.rowWords}>
-                    <span className={s.rowName}>{подпись(п)}</span>
+                    <span className={s.rowName} title={подпись(п)}>{подпись(п)}</span>
                     <span className={s.rowMeta}>
                       {наДоску(п)
                         ? `${ВИД[п.вид]}${п.вид === 'link' ? '' : ` · ${ВЕС(п.размер)}`}`
@@ -183,7 +183,7 @@ export function ShowList({
                 {/* Первая страница — лицо показа: по имени файла его не вспомнить. */}
                 <img className={s.thumb} src={d.pages[0]} alt="" />
                 <span className={s.rowWords}>
-                  <span className={s.rowName}>{d.title}</span>
+                  <span className={s.rowName} title={d.title}>{d.title}</span>
                   <span className={s.rowMeta}>
                     {d.pages.length} стр. · {when(d.at)}
                     {d.id === activeId ? ' · показывается' : ''}

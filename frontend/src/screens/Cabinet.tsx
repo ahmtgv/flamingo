@@ -68,8 +68,8 @@ function Строка({ у, onGo, onEdit }: { у: Урок; onGo: () => void; on
   const пособий = у.материалы.length
   const слова = (
     <>
-      <span className={s.rowName}>{у.название}</span>
-      <span className={s.rowSub}>
+      <span className={s.rowName} title={у.название}>{у.название}</span>
+      <span className={s.rowSub} title={`${у.минут} мин · ${у.код}`}>
         {у.минут} мин · {у.код}{пособий ? ` · ${пособий} матер.` : ''}
       </span>
     </>
@@ -240,7 +240,9 @@ export function Cabinet({ person, onLesson, onNew, onEdit, onJournal, onOut, onH
             (решение владельца 01.09). Кнопка «← Занятие по ссылке» вела на
             посадочную страницу, которой больше не существует. */}
         <Mark onGo={onHome} title="Главная — кабинет" />
-        <span className={s.crumb}>{учитель ? 'Кабинет преподавателя' : 'Мой учебный кабинет'}</span>
+        <span className={s.crumb} title={учитель ? 'Кабинет преподавателя' : 'Мой учебный кабинет'}>
+          {учитель ? 'Кабинет преподавателя' : 'Мой учебный кабинет'}
+        </span>
         <span className={s.who}>
           {person.name} ·{' '}
           <button type="button" className={s.out} onClick={onOut}>Выйти</button>

@@ -113,7 +113,9 @@ export function Journal({ person, onBack, onHome, onOut, onNew, onLesson, под
     <main className={s.screen}>
       <header className={s.head}>
         <Mark onGo={onHome} title="Главная — кабинет" />
-        <span className={s.crumb}>Кабинет преподавателя · Журнал</span>
+        <span className={s.crumb} title="Кабинет преподавателя · Журнал">
+          Кабинет преподавателя · Журнал
+        </span>
         <span className={s.who}>
           {person.name} ·{' '}
           <button type="button" className={s.out} onClick={onOut}>Выйти</button>
@@ -362,7 +364,7 @@ function Зовём({ onClose }: { onClose: () => void }) {
 
         <div className={s.wayBlock}>
           <span className={s.wayLabel}>Ссылка в журнал</span>
-          <div className={s.linkBox}>
+          <div className={s.linkBox} title={ссылка || undefined}>
             <code>{ссылка || (беда ? 'ссылки нет: ' + беда : 'делаем ссылку…')}</code>
             {ссылка ? (
               <button type="button" className={s.copy} onClick={копировать}>
@@ -385,6 +387,9 @@ function Зовём({ onClose }: { onClose: () => void }) {
 
         <div className={s.wayBlock}>
           <span className={s.wayLabel}>Отправить по почте</span>
+          {/* обрезание-исключение: коробка одинакова у ссылки и у поля почты,
+              а внутри поля стоит то, что человек набрал сам, — читать ему
+              нечего, и подсказывать нечем. */}
           <div className={s.linkBox}>
             <input
               className={s.mailField}
