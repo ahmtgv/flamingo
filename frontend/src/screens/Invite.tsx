@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 
 import type { Person } from '../lib/auth'
 import { Mark } from '../ui/Mark'
@@ -26,13 +26,36 @@ export function Invite({ ключ, person, onSign, onDone, onHome }: {
   const [готово, setГотово] = useState('')
   const [ждём, setЖдём] = useState(false)
 
+  /* 🔴 «ССЫЛКА НЕ РАБОТАЕТ» И «СЕРВЕР МОЛЧИТ» — РАЗНЫЕ ОТВЕТЫ. Раньше заголовок
+     говорил «Ссылка не работает», а строка под ним — «сервер занятий не
+     отвечает»: два разных диагноза друг над другом, и человек шёл просить новую
+     ссылку вместо того, чтобы подождать минуту. `Беда` — это ответ сервера, то
+     есть ссылка действительно не годится; всё остальное — молчание, и ссылка
+     скорее всего цела. Аудит 07.09, находка 20. */
+  const [молчит, setМолчит] = useState(false)
+
+  const спросить = useCallback(() => {
+    setБеда('')
+    setМолчит(false)
+    setЗовёт(null)
+    ктоЗовёт(ключ)
+      .then((имя) => setЗовёт(имя))
+      .catch((e) => {
+        if (e instanceof Беда) { setБеда(e.message); return }
+        setМолчит(true)
+        setБеда('Сервер занятий не ответил. Ссылка, скорее всего, цела — подождите минуту и спросите ещё раз.')
+      })
+  }, [ключ])
+
   useEffect(() => {
     let живо = true
     ктоЗовёт(ключ)
       .then((имя) => { if (живо) setЗовёт(имя) })
       .catch((e) => {
-        if (живо) setБеда(e instanceof Беда ? e.message
-          : 'Ссылка не открылась: сервер занятий не отвечает.')
+        if (!живо) return
+        if (e instanceof Беда) { setБеда(e.message); return }
+        setМолчит(true)
+        setБеда('Сервер занятий не ответил. Ссылка, скорее всего, цела — подождите минуту и спросите ещё раз.')
       })
     return () => { живо = false }
   }, [ключ])
@@ -66,13 +89,20 @@ export function Invite({ ключ, person, onSign, onDone, onHome }: {
           </>
         ) : беда ? (
           <>
-            <h1 className={s.title}>Ссылка не работает</h1>
+            <h1 className={s.title}>{молчит ? 'Сервер занятий не ответил' : 'Ссылка не работает'}</h1>
             <p className={s.lead}>{беда}</p>
-            <p className={s.foot}>
-              Ссылка в журнал живёт семь дней и срабатывает один раз. Попросите
-              преподавателя прислать новую — это одно нажатие.
-            </p>
-            <button type="button" className={s.quiet} onClick={onHome}>На главную</button>
+            {молчит ? null : (
+              <p className={s.foot}>
+                Ссылка в журнал живёт семь дней и срабатывает один раз. Попросите
+                преподавателя прислать новую — это одно нажатие.
+              </p>
+            )}
+            <div className={s.row}>
+              {молчит ? (
+                <button type="button" className={s.go} onClick={спросить}>Спросить ещё раз</button>
+              ) : null}
+              <button type="button" className={s.quiet} onClick={onHome}>На главную</button>
+            </div>
           </>
         ) : зовёт === null ? (
           <p className={s.lead}>Смотрим, кто зовёт…</p>

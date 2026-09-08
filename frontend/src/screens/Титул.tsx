@@ -270,8 +270,33 @@ export function Титул({ onSign, onNew, onHub, молчит = false, onAgain
           <button type="button" className={s.пункт} onClick={onSign}>Преподавателям</button>
         </nav>
         <span className={s.разрыв} />
-        <button type="button" className={s.вход} onClick={onSign}>Войти</button>
-        <button type="button" className={s.дверь} onClick={onNew}>Завести учётную запись</button>
+        {/* 🔴 ЕСЛИ НАПИСАНО «НЕЛЬЗЯ» — ДВЕРЬ И ДОЛЖНА НЕ ОТКРЫВАТЬСЯ. Полоса
+            отказа ниже говорила «войти и завести запись сейчас нельзя», а обе
+            двери оставались живыми: человек нажимал, попадал на форму, вводил
+            почту и пароль и только там узнавал, что сервер молчит. Мёртвая
+            кнопка, которая выглядит живой, хуже отсутствующей (ПРАВИЛА 12.5);
+            приглушается цвет и вес, не прозрачность (12.1), а цель остаётся
+            полной (12.6). Аудит 07.09, находка 13. */}
+        <button
+          type="button"
+          className={s.вход}
+          onClick={молчит ? undefined : onSign}
+          aria-disabled={молчит || undefined}
+          tabIndex={молчит ? -1 : undefined}
+          data-ждёт={молчит ? 'да' : undefined}
+        >
+          Войти
+        </button>
+        <button
+          type="button"
+          className={s.дверь}
+          onClick={молчит ? undefined : onNew}
+          aria-disabled={молчит || undefined}
+          tabIndex={молчит ? -1 : undefined}
+          data-ждёт={молчит ? 'да' : undefined}
+        >
+          Завести учётную запись
+        </button>
       </header>
 
       {молчит && (

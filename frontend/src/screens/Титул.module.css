@@ -569,3 +569,14 @@
   top: calc((var(--tap-min) - 100%) / -2);
   bottom: calc((var(--tap-min) - 100%) / -2);
 }
+
+/* Приглушённая дверь: цвет и вес, а не прозрачность (ПРАВИЛА 12.1); цель
+   остаётся полной (12.6); «почему нельзя» стоит рядом, в полосе отказа (12.3). */
+.вход[data-ждёт='да'],
+.дверь[data-ждёт='да'] {
+  background: var(--color-surface-subtle);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-secondary);
+  font-weight: var(--weight-regular);
+  cursor: default;
+}

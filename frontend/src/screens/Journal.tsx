@@ -302,13 +302,19 @@ function Зовём({ onClose }: { onClose: () => void }) {
   const [скопировано, setСкопировано] = useState(false)
 
   /* Ссылку делаем сразу: человек пришёл сюда за ней, а не за формой. */
+  /* 🔴 «ДЕЛАЕМ ССЫЛКУ…» И «ССЫЛКА НЕ СДЕЛАЛАСЬ» СТОЯЛИ НА ЭКРАНЕ ВМЕСТЕ. Когда
+     запрос падал, `ссылка` оставалась пустой, и коробка навсегда застревала на
+     «делаем ссылку…», пока рядом висел отказ. Человек читал два взаимно
+     исключающих ответа и ждал того, что уже не придёт. Аудит 07.09, находка 21. */
+  const [ещё, setЕщё] = useState(0)
   useEffect(() => {
     let живо = true
+    setБеда('')
     сделатьПриглашение()
       .then((r) => { if (живо) { setСсылка(r.ссылка); setДо(r.до) } })
-      .catch((e) => { if (живо) setБеда(e instanceof Беда ? e.message : 'Ссылка не сделалась.') })
+      .catch((e) => { if (живо) setБеда(e instanceof Беда ? e.message : 'Сервер не ответил.') })
     return () => { живо = false }
-  }, [])
+  }, [ещё])
 
   const письмом = async () => {
     const адрес = почта.trim().toLowerCase()
@@ -347,10 +353,14 @@ function Зовём({ onClose }: { onClose: () => void }) {
         <div className={s.wayBlock}>
           <span className={s.wayLabel}>Ссылка в журнал</span>
           <div className={s.linkBox}>
-            <code>{ссылка || 'делаем ссылку…'}</code>
+            <code>{ссылка || (беда ? 'ссылки нет: ' + беда : 'делаем ссылку…')}</code>
             {ссылка ? (
               <button type="button" className={s.copy} onClick={копировать}>
                 {скопировано ? 'Скопировано' : 'Скопировать'}
+              </button>
+            ) : беда ? (
+              <button type="button" className={s.copy} onClick={() => { setСсылка(''); setЕщё((н) => н + 1) }}>
+                Ещё раз
               </button>
             ) : null}
           </div>
