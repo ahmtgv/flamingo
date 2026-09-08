@@ -34,18 +34,13 @@ const ДНИ = ['вс', 'пн', 'вт', 'ср', 'чт', 'пт', 'сб']
 const ключМесяца = (d: Date) =>
   `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
 
-export function Journal({ person, onBack, onHome, onOut, onNew, onLesson, подложка }: {
+export function Journal({ person, onBack, onHome, onOut, onNew, onLesson }: {
   person: Person
   onBack: () => void
   onHome: () => void
   onOut: () => void
   onNew: () => void
   onLesson: (код: string) => void
-  /** 🔴 ТОЛЬКО ДЛЯ СТЕНДА (`screens/Стенд.tsx`, живёт под `import.meta.env.DEV`).
-   *  Готовый журнал вместо запроса: журнал живёт на сервере, и без него на
-   *  стенде виден только отказ. А ломается он не на трёх занятиях, а на
-   *  тридцати — тот же случай, что «кабинет-полный-день». */
-  подложка?: Данные
 }) {
   const [когда, setКогда] = useState(() => new Date())
   const [данные, setДанные] = useState<Данные | null>(null)
@@ -57,12 +52,11 @@ export function Journal({ person, onBack, onHome, onOut, onNew, onLesson, под
   const обновить = useCallback(() => {
     let живо = true
     setБеда('')
-    if (подложка) { setДанные(подложка); return () => { живо = false } }
     читатьЖурнал(месяц)
       .then((д) => { if (живо) setДанные(д) })
       .catch((e) => { if (живо) setБеда(e instanceof Беда ? e.message : 'Журнал не открылся.') })
     return () => { живо = false }
-  }, [месяц, подложка])
+  }, [месяц])
 
   useEffect(() => обновить(), [обновить])
 
@@ -99,11 +93,7 @@ export function Journal({ person, onBack, onHome, onOut, onNew, onLesson, под
     разговоры().then((р) => {
       if (!р) return
       setНепрочитано(new Map(р.map((х) => [х.кто, х.непрочитано])))
-    /* Отказ здесь глотается НАРОЧНО и это единственное такое место: счётчик
-       непрочитанного — украшение строки, а не смысл журнала. Экран журнала уже
-       говорит словами, когда не открылся сам; вторая жалоба о том же сервере
-       рядом ничего не добавит. */
-    }).catch(() => {})
+    })
   }, [])
   useEffect(пересчитать, [пересчитать, месяц])
   const будущие = уроки.filter((у) => !у.прошёл)
