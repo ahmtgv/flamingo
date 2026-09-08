@@ -488,51 +488,16 @@
 }
 
 /* ------------------------------------------------------------
-   4. KIDS MODE (7–11) — larger, more spacious
-   Apply [data-mode="kids"] alongside any theme.
+   4. ДЕТСКИЙ РЕЖИМ — ВЫНЕСЕН ИЗ ЭТОГО ФАЙЛА (решение владельца 08.09: в v1 не идёт)
+   Лежит в `styles/детский.css` и НИКЕМ не ввозится.
+
+   🔴 Почему вынесен, а не оставлен лежать. `data-mode` не выставлял никто: ни
+   экран, ни настройка, ни адрес — режим был недостижим для человека. Но не для
+   приборов: блок стоял последним в файле, и 08.09 прибор, читавший токены,
+   промахнулся мимо тёмной темы и набрал значения ИЗ НЕГО — докладывал рост
+   цели 48 вместо 44 и кегль 16 вместо 14. Мёртвый для человека код остаётся
+   живым для инструментов, и это его единственное действие.
    ------------------------------------------------------------ */
-[data-mode="kids"] {
-  --text-body:    1.1875rem; /* 19 */
-  --text-small:   1rem;      /* 16 */
-  --text-caption: 0.9375rem; /* 15 */
-  --text-h3:      1.375rem;  /* 22 */
-  --text-h2:      1.75rem;   /* 28 */
-
-  --leading-body: 1.75;
-
-  --control-height-sm: 40px;
-  --control-height-md: 50px;
-  --control-height-lg: 58px;
-  --tap-min: 48px;
-
-  --radius-control: 14px;
-  --radius-card: 20px;
-
-  /* Детская версия берёт ЛИСТ вместо мха: теплее, звонче, ближе к «сделал!». Ступени те же
-     по назначению, поэтому ни один экран не переписывается — меняется только семья. */
-  --color-go:            var(--fl-leaf-500);
-  --color-go-line:       var(--fl-leaf-500);
-  --color-go-text:       var(--fl-leaf-800);
-  --color-go-solid:      var(--fl-leaf-700);
-  --color-go-solid-hover: var(--fl-leaf-500);
-  --color-on-go:         var(--fl-white);
-  --color-go-bg:         var(--fl-leaf-50);
-  --color-go-border:     var(--fl-leaf-300);
-  --color-go-on-video:   var(--fl-leaf-300);
-}
-
-[data-theme="dark"][data-mode="kids"],
-[data-mode="kids"] [data-theme="dark"] {
-  --color-go:            var(--fl-leaf-300);
-  --color-go-line:       var(--fl-leaf-300);
-  --color-go-text:       var(--fl-leaf-300);
-  --color-go-solid:      var(--fl-leaf-300);
-  --color-go-solid-hover: #bde389;
-  --color-on-go:         #1d1d1f;
-  --color-go-bg:         var(--fl-leaf-950);
-  --color-go-border:     var(--fl-leaf-700);
-  --color-go-on-video:   var(--fl-leaf-300);
-}
 
 /* ------------------------------------------------------------
    5. Reduced motion

@@ -261,7 +261,14 @@ function run() {
     const kind = file.endsWith('.css') ? 'css' : /\.tsx?$/.test(file) ? 'tsx' : null
     if (!kind) continue
     if (НАБОРЫ.some((н) => file.endsWith(н))) continue
-    файлы.push({ file, kind, text: readFileSync(file, 'utf8') })
+    const text = readFileSync(file, 'utf8')
+    /* 🔴 ПОМЕТКА «ВНЕ ПРОДУКТА» УВАЖАЕТСЯ И ЗДЕСЬ. Та же пометка, что держит
+       `стенд-check`: файл, который продукт не ввозит, не чинится под закон
+       продукта. Заведена 08.09, когда детский режим уехал из `tokens.css` в
+       свой файл: набор токенов и есть то место, где голому значению положено
+       стоять, а вынесенный набор перестал быть набором только по адресу. */
+    if (/ВНЕ ПРОДУКТА:/.test(text.slice(0, 1200))) continue
+    файлы.push({ file, kind, text })
   }
 
   // Первый проход — собрать местные имена; второй — проверять. Порядок обхода
