@@ -673,6 +673,19 @@ export function Board({ bus, peers, onOpen }: Props) {
     st.putObj({ ...o, text })
   }
 
+  /* 🔴 ВЫСОТА ТЕКСТА ПРИЕЗЖАЕТ С ОТРИСОВКИ, А НЕ УГАДЫВАЕТСЯ. Раньше рамка
+     выделения считала любой текст однострочным: у абзаца в четыре строки она
+     обнимала первую, обводка не бралась за остальные, а нажатие мимо первой
+     строки в объект не попадало. Аудит 07.09, находка 23. Меряет тот, кто
+     рисует; значение уезжает классу вместе с объектом, потому что рамка
+     должна совпадать у всех. */
+  const onРост = useCallback((id: string, h: number) => {
+    const o = st.sheet.objs.find((x) => x.id === id)
+    if (!o || o.kind !== 'text') return
+    if (o.h !== undefined && Math.abs(o.h - h) < 1) return
+    st.putObj({ ...o, h })
+  }, [st])
+
   /* ── буфер обмена ───────────────────────────────────────────────────────── */
 
   const pasteN = useRef(0)
@@ -935,6 +948,7 @@ export function Board({ bus, peers, onOpen }: Props) {
             editing={editing}
             onPick={onPick}
             onText={onText}
+            onРост={onРост}
             onDoneEdit={() => setEditing(null)}
             onPage={st.turnDoc}
             onOpen={onOpen}

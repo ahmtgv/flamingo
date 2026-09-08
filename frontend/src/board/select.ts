@@ -13,7 +13,9 @@ export function objBox(o: Obj): Box {
       x2: Math.max(o.x, o.x2), y2: Math.max(o.y, o.y2),
     }
   }
-  if (o.kind === 'text') return { x1: o.x, y1: o.y, x2: o.x + o.w, y2: o.y + o.size * 1.6 }
+  /* Высота текста — измеренная, если она уже приехала; иначе оценка в одну
+     строку (см. `protocol.ts`, поле `h` у текста). */
+  if (o.kind === 'text') return { x1: o.x, y1: o.y, x2: o.x + o.w, y2: o.y + (o.h ?? o.size * 1.6) }
   return { x1: o.x, y1: o.y, x2: o.x + o.w, y2: o.y + o.h }
 }
 

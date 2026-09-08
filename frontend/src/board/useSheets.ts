@@ -72,7 +72,11 @@ export function useSheets(bus: Bus, peers: number) {
       if (m.t === 'seg') {
         const cur = sh.strokes.find((s) => s.id === m.id)
         if (cur) cur.pts.push(...m.pts)
-        else sh.strokes.push({ id: m.id, color: m.color, width: m.width, pts: [...m.pts] })
+        /* 🔴 `dash` ЧИТАЕТСЯ ТОЖЕ. Отправитель его слал, приёмник — терял, и
+           пунктир доезжал классу сплошным: «обведите пунктиром то, что
+           неточно» переставало что-либо значить (об этом прямо написано в
+           protocol.ts, и всё равно потерялось). Аудит 07.09, находка 22. */
+        else sh.strokes.push({ id: m.id, color: m.color, width: m.width, dash: m.dash, pts: [...m.pts] })
       } else if (m.t === 'erase') {
         sh.strokes = sh.strokes.filter((s) => !m.ids.includes(s.id))
         sh.objs = sh.objs.filter((o) => !m.ids.includes(o.id))

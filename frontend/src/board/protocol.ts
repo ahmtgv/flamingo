@@ -30,7 +30,13 @@ export type Stroke = {
 
 /** Что можно положить на доску помимо штриха. */
 export type Obj =
-  | { id: string; kind: 'text';  x: number; y: number; w: number; text: string; color: string; size: number }
+  /* 🔴 `h` — ИЗМЕРЕННАЯ ВЫСОТА, А НЕ ЗАДАННАЯ. Текст переносится по ширине `w`,
+   *  и сколько строк выйдет, знает только отрисовка. Пока высоты не было,
+   *  рамка выделения считала текст ОДНОСТРОЧНЫМ: у абзаца в четыре строки она
+   *  обнимала первую, обводка не бралась за остальные, а нажатие мимо первой
+   *  строки не попадало в объект вовсе. Аудит 07.09, находка 23. Поле
+   *  необязательное: пока не измерено, работает прежняя оценка. */
+  | { id: string; kind: 'text';  x: number; y: number; w: number; text: string; color: string; size: number; h?: number }
   | { id: string; kind: 'note';  x: number; y: number; w: number; h: number; text: string }
   | { id: string; kind: 'arrow'; x: number; y: number; x2: number; y2: number; color: string; width: number }
   /** Фигура — КОНТУР, а не заливка: доска остаётся тетрадью, а не редактором

@@ -15,6 +15,8 @@ type Props = {
   editing: string | null
   onPick: (id: string, e: React.PointerEvent) => void
   onText: (id: string, text: string) => void
+  /** Измеренная высота текста — сколько строк вышло на самом деле. */
+  onРост: (id: string, h: number) => void
   onDoneEdit: () => void
   /** Перелистнуть документ. Страница общая: доска — общее место. */
   onPage: (id: string, page: number) => void
@@ -148,7 +150,35 @@ function Editable({
   )
 }
 
-export function Objects({ objs, k, selected, editing, onPick, onText, onDoneEdit, onPage, onOpen }: Props) {
+/** Замеряет свою высоту и сообщает её наверх, когда та изменилась заметно.
+ *  🔴 Порог в 1 px не для экономии, а против качелей: без него округление
+ *  ставит 41,4 → 41 → 41,4 и сообщения идут по кругу. */
+function Мерка({ id, k, onРост, children }: {
+  id: string
+  k: number
+  onРост: (id: string, h: number) => void
+  children: React.ReactNode
+}) {
+  const узел = useRef<HTMLDivElement>(null)
+  const былоРef = useRef(0)
+  useEffect(() => {
+    const e = узел.current
+    if (!e) return
+    const мерь = () => {
+      const h = e.getBoundingClientRect().height / (k || 1)
+      if (Math.abs(h - былоРef.current) < 1) return
+      былоРef.current = h
+      onРост(id, h)
+    }
+    мерь()
+    const ro = new ResizeObserver(мерь)
+    ro.observe(e)
+    return () => ro.disconnect()
+  }, [id, k, onРост])
+  return <div ref={узел}>{children}</div>
+}
+
+export function Objects({ objs, k, selected, editing, onPick, onText, onРост, onDoneEdit, onPage, onOpen }: Props) {
   return (
     <>
       {objs.map((o) => {
@@ -184,6 +214,7 @@ export function Objects({ objs, k, selected, editing, onPick, onText, onDoneEdit
         if (o.kind === 'text') {
           return (
             <div key={o.id} {...common} style={{ left: o.x, top: o.y, width: o.w }}>
+              <Мерка id={o.id} k={k} onРост={onРост}>
               <Editable
                 className={s.objText}
                 style={{ fontSize: o.size, color: `var(${o.color})` }}
@@ -193,6 +224,7 @@ export function Objects({ objs, k, selected, editing, onPick, onText, onDoneEdit
                 onText={(t) => onText(o.id, t)}
                 onDone={onDoneEdit}
               />
+              </Мерка>
             </div>
           )
         }
