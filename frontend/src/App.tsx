@@ -76,6 +76,37 @@ export function App() {
   /* День и ночь. Пока человек не выбрал сам — идём за системой и слушаем её. */
   useEffect(() => завестиТему(), [])
 
+  /* 🔴 ИМЯ ВКЛАДКИ. Наряд 5, пункт 7 аудита 07.09: на всех девяти адресах
+     стояло «Flamingo — комната» из `index.html`, и `document.title` не
+     выставлял никто. Что это стоило: у преподавателя открыты кабинет, журнал и
+     комната урока — три вкладки с одинаковым именем и одинаковым значком.
+     Различить их можно только переключившись в каждую. Плюс история браузера,
+     закладки и переключатель окон на телефоне — везде одно и то же слово.
+
+     Имя вкладки — это не украшение: это единственное место, где продукт
+     называет себя, когда его не видно. */
+  useEffect(() => {
+    const имя = (() => {
+      if (path === '/') return 'Flamingo'
+      if (path === '/кабинет') return 'Кабинет — Flamingo'
+      if (path === '/журнал') return 'Журнал — Flamingo'
+      if (path === '/создать-урок') return 'Новый урок — Flamingo'
+      if (path.startsWith('/урок/')) return 'Урок — Flamingo'
+      if (path === '/hub') return 'Хранилище — Flamingo'
+      if (path === '/вход') return 'Вход — Flamingo'
+      if (path === '/регистрация') return 'Регистрация — Flamingo'
+      if (path === '/новый-пароль') return 'Новый пароль — Flamingo'
+      /* Ссылка в журнал — `/у/<ключ>`. Адреса `/зовут/` в продукте нет: он
+         восемь дней стоял в реестре стенда и был выдумкой, а караул этого не
+         видел. Здесь его тоже нет. */
+      if (path.startsWith('/у/')) return 'Приглашение — Flamingo'
+      if (path.startsWith('/r/')) return 'Урок идёт — Flamingo'
+      if (path === '/стенд') return 'Стенд — Flamingo'
+      return 'Flamingo'
+    })()
+    document.title = имя
+  }, [path])
+
   useEffect(() => {
     const onPop = () => setPath(hereNow())
     window.addEventListener('popstate', onPop)
