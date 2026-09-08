@@ -792,6 +792,14 @@ export function Board({ bus, peers, onOpen }: Props) {
     const down = (e: KeyboardEvent) => {
       const el = e.target as HTMLElement
       const inField = el?.tagName === 'INPUT' || el?.tagName === 'TEXTAREA' || el?.isContentEditable
+      /* 🔴 БУКВЫ ПЕРЕКЛЮЧАЮТ ИНСТРУМЕНТ ТОЛЬКО НА ВИДИМОЙ ДОСКЕ. Обработчик
+         висит на документе, а доска в комнате не размонтируется — она прячется
+         показом сцены (`visibility: hidden`). Значит преподаватель, стоящий на
+         показе документа, нажимал «e» в разговоре с классом — и доска под
+         показом молча переключалась на ластик; возвращался он к ней уже с
+         другим инструментом в руке. Аудит 07.09, находка 56. */
+      const рамка = frameRef.current
+      if (рамка && getComputedStyle(рамка).visibility === 'hidden') return
       if ((e.metaKey || e.ctrlKey) && (e.key === 'z' || e.key === 'Z' || e.key === 'я' || e.key === 'Я')) {
         if (inField) return
         e.preventDefault()
