@@ -309,8 +309,13 @@ export function Board({ bus, peers, onOpen }: Props) {
 
   /* ── правка выделенного: сдвиг и растяжение ─────────────────────────────── */
 
+  /* Последнее применённое преобразование: им и уезжает итог правки, вместо
+     листа целиком (см. `protocol.ts`, сообщение `move`). */
+  const последнийСдвиг = useRef<Xform | null>(null)
+
   const applyXform = useCallback(
     (t: Xform, base: Sheet) => {
+      последнийСдвиг.current = t
       const chosen = new Set(selRef.current)
       const next: Sheet = {
         ...base,
@@ -571,9 +576,16 @@ export function Board({ bus, peers, onOpen }: Props) {
     if (sizing.current || moving.current) {
       sizing.current = null
       moving.current = null
-      // Итог правки уезжает остальным одним листом: пересказывать её по частям
-      // дороже и хрупче.
-      st.replaceSheet(st.sheet)
+      /* 🔴 ИТОГ ПРАВКИ УЕЗЖАЕТ ПРЕОБРАЗОВАНИЕМ, А НЕ ЛИСТОМ. Здесь стоял
+         `replaceSheet(st.sheet)` с припиской «пересказывать её по частям дороже
+         и хрупче» — а лист вместе с документами весит сотни килобайт на
+         страницу: аудит 07.09 намерил 1,8 МБ и 210 пакетов на одно движение
+         мышью (находка 9). Пересказывать по частям и правда хрупко, но мы и не
+         пересказываем: уезжают шесть чисел преобразования, и обе стороны
+         применяют к ним одни и те же чистые функции. */
+      const xf = последнийСдвиг.current
+      последнийСдвиг.current = null
+      if (xf) st.sendMove(selRef.current, xf)
       return
     }
     if (marquee.current) {

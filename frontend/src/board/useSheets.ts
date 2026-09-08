@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 
+import { moveObj, moveStroke } from './select'
 import { newId, type Bus, type Msg, type Obj, type Sheet, type Stroke } from './protocol'
 
 /** Досок в комнате может быть несколько; открыта у всех одна и та же.
@@ -87,6 +88,10 @@ export function useSheets(bus: Bus, peers: number) {
         const i = sh.objs.findIndex((o) => o.id === m.o.id)
         if (i >= 0) sh.objs[i] = m.o
         else sh.objs.push(m.o)
+      } else if (m.t === 'move') {
+        const кто = new Set(m.ids)
+        sh.strokes = sh.strokes.map((x) => (кто.has(x.id) ? moveStroke(x, m.xf) : x))
+        sh.objs = sh.objs.map((o) => (кто.has(o.id) ? moveObj(o, m.xf) : o))
       } else if (m.t === 'objdel') {
         sh.objs = sh.objs.filter((o) => !m.ids.includes(o.id))
       } else if (m.t === 'docPage') {
@@ -206,6 +211,15 @@ export function useSheets(bus: Bus, peers: number) {
   }, [bus, sheet, touch])
 
   /** Заменить лист целиком — этим уезжает отмена и возврат. */
+  /** Разослать ПЕРЕМЕЩЕНИЕ выделенного, а не лист целиком. */
+  const sendMove = useCallback(
+    (ids: string[], xf: { ox: number; oy: number; sx: number; sy: number; dx: number; dy: number }) => {
+      if (ids.length === 0) return
+      bus.send({ t: 'move', sheet: sheet().id, ids, xf })
+    },
+    [bus, sheet],
+  )
+
   const replaceSheet = useCallback(
     (next: Sheet, quiet = false) => {
       const i = sheets.current.findIndex((x) => x.id === next.id)
@@ -245,6 +259,7 @@ export function useSheets(bus: Bus, peers: number) {
     wipe,
     loadAll,
     replaceSheet,
+    sendMove,
     touch,
   }
 }
