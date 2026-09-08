@@ -33,6 +33,7 @@ from django.views.decorators.csrf import csrf_exempt
 from . import guard, session
 from .mail import send_reset
 from .models import Person, Reset
+from common.пояс import чистый as чистыйПояс
 
 #: argon2id с настройками по умолчанию argon2-cffi: 3 прохода, 64 МБ памяти, 4 потока.
 #: Память здесь — главное: перебор на видеокарте упирается не в такты, а в неё.
@@ -92,7 +93,8 @@ def _no(reason: str, status: int = 400) -> JsonResponse:
 
 def _said(person: Person, status: int = 200) -> JsonResponse:
     """Ответ + кука. Пароль и отпечаток наружу не уходят никогда."""
-    res = JsonResponse({"id": person.id, "name": person.name, "role": person.role}, status=status)
+    res = JsonResponse({"id": person.id, "name": person.name, "role": person.role,
+                        "пояс": person.tz}, status=status)
     return session.remember(res, person)
 
 
@@ -126,7 +128,11 @@ def register(request: HttpRequest) -> JsonResponse:
     if len(password) < 8:
         return _no("Пароль короче восьми знаков. Длина надёжнее сложности: возьмите четыре слова.")
 
-    person = Person(email=email, name=name, role=role, pass_hash=HASHER.hash(password))
+    #: Пояс приходит от браузера вместе с записью; чужое значение проверяется
+    #: по списку IANA и, если оно не оттуда, просто не сохраняется (пусто —
+    #: законное «не знаем»).
+    person = Person(email=email, name=name, role=role, pass_hash=HASHER.hash(password),
+                    tz=чистыйПояс(body.get("tz")))
     try:
         person.save(force_insert=True)
     except IntegrityError:
@@ -186,6 +192,16 @@ def login(request: HttpRequest) -> JsonResponse:
         person.pass_hash = HASHER.hash(password)
         person.save(update_fields=["pass_hash"])
 
+    #: 🔴 ПОЯС ОБНОВЛЯЕТСЯ ПРИ КАЖДОМ ВХОДЕ, а не пишется однажды. Человек
+    #: переезжает, и «его пояс» — это где он СЕЙЧАС, а не где заводил запись.
+    #: На уже поставленные занятия это не влияет никак: у занятия свой пояс,
+    #: тот, в котором его поставили, — иначе всё расписание уезжало бы вслед
+    #: за преподавателем в отпуске.
+    пояс = чистыйПояс(body.get("tz"))
+    if пояс and пояс != person.tz:
+        person.tz = пояс
+        person.save(update_fields=["tz"])
+
     return _said(person)
 
 
@@ -201,7 +217,8 @@ def me(request: HttpRequest) -> JsonResponse:
     person = _who(request)
     if person is None:
         return JsonResponse({"person": None})
-    return JsonResponse({"person": {"id": person.id, "name": person.name, "role": person.role}})
+    return JsonResponse({"person": {"id": person.id, "name": person.name, "role": person.role,
+                                    "пояс": person.tz}})
 
 
 # ── Забыли пароль ─────────────────────────────────────────────────────────────

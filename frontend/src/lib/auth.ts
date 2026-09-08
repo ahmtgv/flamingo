@@ -1,3 +1,4 @@
+import { мойПояс } from './пояс'
 /** Учётные записи. Разговор с сервером один и тот же на входе и в регистрации. */
 
 /** 🔴 Куда стучаться за учётными записями.
@@ -13,7 +14,13 @@
  *  не пошлёт куку на другой источник и не примет Set-Cookie в ответе. */
 const BASE = String(import.meta.env.VITE_AUTH_URL ?? '').replace(/\/$/, '')
 
-export type Person = { id: string; name: string; role: 'teacher' | 'student' }
+export type Person = {
+  id: string
+  name: string
+  role: 'teacher' | 'student'
+  /** Часовой пояс человека, каким его знает сервер. Пусто — не знает. */
+  пояс?: string
+}
 
 export class AuthError extends Error {}
 
@@ -66,10 +73,15 @@ async function talk<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 export const register = (email: string, name: string, role: Person['role'], password: string) =>
-  talk<Person>('register', { method: 'POST', body: JSON.stringify({ email, name, role, password }) })
+  talk<Person>('register', { method: 'POST',
+    body: JSON.stringify({ email, name, role, password, tz: мойПояс() }) })
 
 export const login = (email: string, password: string) =>
-  talk<Person>('login', { method: 'POST', body: JSON.stringify({ email, password }) })
+  /* 🔴 Пояс уходит при КАЖДОМ входе, а не только при заведении записи: человек
+     переезжает, и «его пояс» — это где он сейчас. Сервер перезапишет, если
+     изменился. Формой пояс не спрашиваем: браузер знает точно. */
+  talk<Person>('login', { method: 'POST',
+    body: JSON.stringify({ email, password, tz: мойПояс() }) })
 
 export const whoAmI = () => talk<{ person: Person | null }>('me')
 

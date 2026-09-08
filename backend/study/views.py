@@ -45,6 +45,7 @@ from people.session import who
 
 from .files import ALL_MAX, Отказ, сохранить, тип
 from .models import Bond, Invite, Lesson, Material, Message, Visit
+from common.пояс import чистый as чистыйПояс
 
 SITE = "https://flamingo.plus"
 MONTH = re.compile(r"^(\d{4})-(\d{2})$")
@@ -94,6 +95,11 @@ def _урок(lesson: Lesson) -> dict:
         "название": lesson.title,
         "дата": lesson.on.isoformat(),
         "время": lesson.at.strftime("%H:%M"),
+        #: 🔴 Пояс, в котором заданы «дата» и «время». Пусто — не знаем, и тогда
+        #: экран не имеет права утверждать, чьё это время. Формат «дата»/«время»
+        #: при этом не изменился: это по-прежнему настенные часы, просто теперь
+        #: известно чьи, — старый клиент от нового ответа не ломается.
+        "пояс": lesson.tz,
         "минут": lesson.minutes,
         "код": lesson.code,
         "материалы": [_пособие(m) for m in lesson.materials.all()],
@@ -160,7 +166,11 @@ def lessons(request: HttpRequest) -> JsonResponse:
     поля, беда = _поля(_body(request))
     if беда:
         return _no(беда)
-    lesson = Lesson.objects.create(teacher=person, **поля)
+    #: 🔴 Пояс занятия — пояс ТОГО, КТО ЕГО ПОСТАВИЛ, и запоминается он сейчас,
+    #: а не вычисляется потом. Если у преподавателя пояс ещё не известен, берём
+    #: присланный браузером в этом же запросе: другого случая узнать не будет.
+    пояс = person.tz or чистыйПояс(_body(request).get("tz"))
+    lesson = Lesson.objects.create(teacher=person, tz=пояс, **поля)
     return JsonResponse({"урок": _урок(lesson)}, status=201)
 
 
@@ -317,6 +327,7 @@ def journal(request: HttpRequest) -> JsonResponse:
     return JsonResponse({
         "уроки": [
             {"id": l.id, "дата": l.on.isoformat(), "время": l.at.strftime("%H:%M"),
+             "пояс": l.tz,
              "название": l.title, "код": l.code,
              "прошёл": (l.on, l.at) <= (сейчас.date(), сейчас.time())}
             for l in уроки
@@ -514,6 +525,7 @@ def _реплика(m: Message, я: Person) -> dict:
             "название": m.lesson.title,
             "дата": m.lesson.on.isoformat(),
             "время": m.lesson.at.strftime("%H:%M"),
+            "пояс": m.lesson.tz,
             "код": m.lesson.code,
         } if m.lesson else None)
     return вышло
