@@ -87,7 +87,10 @@ async function разговор<T>(путь: string, init?: RequestInit): Promis
   } catch {
     throw new НетСервера('ответ не по-нашему')
   }
-  if (!res.ok) throw new Беда(String(тело.error ?? `Сервер отказал (${res.status}).`))
+  if (!res.ok) {
+    console.warn('занятия: сервер отказал, код', res.status)
+    throw new Беда(String(тело.error ?? 'Сервер занятий отказал. Попробуйте ещё раз через минуту.'))
+  }
   return тело as T
 }
 

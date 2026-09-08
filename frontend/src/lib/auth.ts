@@ -51,9 +51,17 @@ async function talk<T>(path: string, init?: RequestInit): Promise<T> {
   try {
     body = await res.json()
   } catch {
-    throw new AuthError(`Сервер ответил не по-нашему (${res.status}).`)
+    /* 🔴 НОМЕР ОТВЕТА — В КОНСОЛЬ, А НЕ В ЛИЦО ЧЕЛОВЕКУ (ПРАВИЛА 6.4). И это не
+       редкий случай: любой посредник — гостиничный вайфай, школьный прокси, сбойный
+       кэш — отдаёт свой HTML вместо нашего JSON, и человек читал «не по-нашему
+       (200)». Аудит 07.09, находки 6 и 14. */
+    console.warn('учётные записи: ответ не разобран, код', res.status)
+    throw new AuthError('Сервер учётных записей ответил непонятно. Похоже, между нами встал посредник — попробуйте ещё раз или откройте сайт в другой сети.')
   }
-  if (!res.ok) throw new AuthError(String(body.error ?? `Сервер отказал (${res.status}).`))
+  if (!res.ok) {
+    console.warn('учётные записи: сервер отказал, код', res.status)
+    throw new AuthError(String(body.error ?? 'Сервер учётных записей отказал. Попробуйте ещё раз через минуту.'))
+  }
   return body as T
 }
 
