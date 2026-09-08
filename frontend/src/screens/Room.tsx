@@ -191,6 +191,10 @@ export function Room({ code, name, onLeave, onHome }: Props) {
   /* Приехала ли сцена хоть каким-то сообщением. Ссылка, а не состояние:
      её читает подписка, которая живёт дольше любого кадра. */
   const сценаПришла = useRef(false)
+  /* 🔴 ЧТО ПОКАЗЫВАЕТ ВЕДУЩИЙ — ПОМНИМ ОТДЕЛЬНО ОТ ТОГО, ЧТО СМОТРЮ Я. Ученик
+     теперь может уйти на доску сам (решение владельца 08.09), и ему надо чем-то
+     вернуться к уроку. Без этой памяти «вернуться» было бы некуда. */
+  const [сценаКласса, setСценаКласса] = useState<Source>('faces')
 
   useEffect(() => bus.subscribe((m) => {
     /* Любое из четырёх — уже ответ: спрашивать больше не о чем. */
@@ -199,7 +203,7 @@ export function Room({ code, name, onLeave, onHome }: Props) {
     }
     if (m.t === 'lead') setВедущий(m.id)
     if (m.t === 'zoom') setМасштаб(m.v)
-    if (m.t === 'stage') setSource(m.source)
+    if (m.t === 'stage') { setSource(m.source); setСценаКласса(m.source) }
     if (m.t === 'live') {
       setLive({ sourceId: m.sourceId, url: m.url, имя: m.имя })
       setWireInk((cur) => ({ ...cur, [-1]: [] }))
@@ -576,7 +580,14 @@ export function Room({ code, name, onLeave, onHome }: Props) {
           </span>
         </span>
 
-        {/* Полка держит центр строки: это главный переключатель урока. */}
+        {/* Полка держит центр строки: это главный переключатель урока.
+            🔴 У УЧЕНИКА В ЭТОМ ЖЕ МЕСТЕ — СВОЯ ОДНА ДВЕРЬ. Полки у него нет и
+            быть не должно: что видит класс, решает ведущий. Но доски у него не
+            было ВООБЩЕ: она показывалась только по команде учителя, а при
+            оборванной связи команда не приходит — и экран при этом письменно
+            обещал ему доску. Осмотр комнаты 08.09, находка 1; решение владельца
+            08.09 — дать кнопку. Своё переключение классу не рассылается: ученик
+            смотрит, а не ведёт, и следующее слово ведущего его вернёт. */}
         {iLead ? (
           <Shelf
             source={source}
@@ -586,7 +597,18 @@ export function Room({ code, name, onLeave, onHome }: Props) {
             onHub={() => setHubOpen(true)}
             onShare={share}
           />
-        ) : <span />}
+        ) : (
+          <span className={s.headMid}>
+            <button
+              type="button"
+              className={s.свояДверь}
+              onClick={() => setSource(source === 'board' ? сценаКласса : 'board')}
+              aria-pressed={source === 'board'}
+            >
+              {source === 'board' ? 'К уроку' : 'Доска'}
+            </button>
+          </span>
+        )}
 
         <span className={s.headRight}>
           <button

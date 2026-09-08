@@ -20,11 +20,9 @@
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
   gap: var(--space-3);
-  /* поле-исключение: комната — рабочая поверхность, доска идёт от края до
-     края кадра, и шапка над ней стоит на краю доски, а не на общем поле
-     страницы. Вопрос владельцу от 08.09 открыт: если решит иначе — строка
-     меняется на var(--поле) и исключение уходит. */
-  padding: var(--space-1) var(--space-4);
+  /* Поле кадра одно на все экраны (ПРАВИЛА 2.2). Комната не исключение:
+     решение владельца 08.09 по паре снимков — «сделать 44, как везде». */
+  padding: var(--space-1) var(--поле);
   border-bottom: 1px solid var(--color-border);
   background: var(--color-bg);
   min-width: 0;
@@ -57,8 +55,7 @@
     display: flex;
     flex-wrap: wrap;
     row-gap: var(--space-2);
-    /* поле-исключение: то же, что у шапки на широком кадре. */
-    padding: var(--space-2) var(--space-3);
+    padding: var(--space-2) var(--поле);
   }
 
   .headLeft {
@@ -445,3 +442,33 @@
   background: var(--color-text);
 }
 
+
+/* Место полки у ученика: одна дверь к доске и обратно. Полки у него нет —
+   что видит класс, решает ведущий (решение владельца 08.09). */
+.headMid {
+  display: flex;
+  justify-content: center;
+  min-width: 0;
+}
+
+.свояДверь {
+  min-height: var(--control-height-sm);
+  padding: 0 var(--space-5);
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--color-border);
+  background: none;
+  color: var(--color-text);
+  font-size: var(--text-small);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.свояДверь:hover {
+  border-color: var(--color-border-strong);
+}
+
+/* Выбранное — нейтральной заливкой, не акцентной (ПРАВИЛА 5.7). */
+.свояДверь[aria-pressed='true'] {
+  background: var(--color-surface-subtle);
+  border-color: var(--color-border-strong);
+}
