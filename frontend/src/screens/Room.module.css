@@ -390,9 +390,17 @@
    Под мышью и под фокусом язычок становится полностью видимым: иначе
    непонятно, попал ты по нему или ещё нет. */
 .pultTab {
+  /* 🔴 ЦЕЛЬ ПОЛНАЯ И БЕЗ ПРОЗРАЧНОСТИ. Язычок был 42×17 при `opacity: 0.6`, а
+     это единственная дверь к микрофону, камере и выходу из урока: пальцем он
+     не брался с первого раза, а прозрачность гасит вместе с фоном и сам смысл
+     (ПРАВИЛА 12.1 — приглушают цвет и вес, не прозрачность; 12.6 — цель
+     остаётся полной). Померено 08.09 в живой комнате. Осмотр, находка 32.
+     Видимая пилюля остаётся тонкой: на неё смотрят, а не любуются; полной
+     цель делает невидимая рамка ниже. */
   position: relative;
   display: grid;
   place-items: center;
+  min-width: var(--tap-min);
   min-height: calc(var(--control-height-sm) / 2);
   padding: 0 var(--space-3);
   border-radius: var(--radius-pill);
@@ -400,25 +408,17 @@
   background: var(--color-surface);
   box-shadow: var(--shadow-md);
   cursor: pointer;
-  opacity: 0.6;
-  transition: opacity var(--duration-fast) ease;
 }
 
+/* Невидимая рамка добирает цель до --tap-min по высоте: 17 видимых плюс
+   дважды по 13,5 невидимых. */
 .pultTab::before {
   content: '';
   position: absolute;
   left: 0;
   right: 0;
-  top: calc(-1 * var(--space-2));
-  bottom: calc(-1 * var(--space-2));
-}
-
-.pultTab:hover,
-.pultTab:focus-visible,
-.pultBox:hover .pultTab,
-.pultBox:focus-within .pultTab,
-.pultBox[data-open='да'] .pultTab {
-  opacity: 1;
+  top: calc((var(--tap-min) - var(--control-height-sm) / 2) / -2);
+  bottom: calc((var(--tap-min) - var(--control-height-sm) / 2) / -2);
 }
 
 .pultTabLine {
@@ -426,11 +426,16 @@
   width: calc(var(--space-6) - var(--space-2));
   height: calc(var(--space-1) * 0.75);
   border-radius: var(--radius-pill);
-  background: var(--color-text-detail);
+  /* Спящий язычок приглушается ЦВЕТОМ линии, а не прозрачностью всей двери. */
+  background: var(--color-text-hint);
   transition: background var(--duration-fast) ease;
 }
 
 .pultTab:hover .pultTabLine,
-.pultTab:focus-visible .pultTabLine {
+.pultTab:focus-visible .pultTabLine,
+.pultBox:hover .pultTabLine,
+.pultBox:focus-within .pultTabLine,
+.pultBox[data-open='да'] .pultTabLine {
   background: var(--color-text);
 }
+

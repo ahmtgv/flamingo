@@ -213,10 +213,14 @@ export function Show({
           </span>
           {lead ? (
             <>
-              <button type="button" className={s.btn} onClick={onPrev} disabled={i === 0}>
+              {/* Имя, а не стрелка: без него читалка называет кнопку «←».
+                  Осмотр комнаты 08.09, находка 30. */}
+              <button type="button" className={s.btn} onClick={onPrev} disabled={i === 0}
+                aria-label="Предыдущая страница" title="Предыдущая страница">
                 ←
               </button>
-              <button type="button" className={s.btn} onClick={onNext} disabled={i >= n - 1}>
+              <button type="button" className={s.btn} onClick={onNext} disabled={i >= n - 1}
+                aria-label="Следующая страница" title="Следующая страница">
                 →
               </button>
               <span className={s.sep} />

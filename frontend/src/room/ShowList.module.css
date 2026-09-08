@@ -109,7 +109,11 @@
   cursor: pointer;
 }
 
-.row:hover {
+/* 🔴 НЕ `.row:hover`, А `.row:not(.rowWait):hover`. Строка пособия, которое на
+   доску не ложится, отдана как `aria-disabled` и `tabindex=-1`, но подсвечивалась
+   под курсором наравне с живой: «мёртвая кнопка, которая выглядит живой, хуже
+   отсутствующей» (ПРАВИЛА 12.5). Осмотр комнаты 08.09, находка 26. */
+.row:not(.rowWait):hover {
   background: var(--color-surface-hover);
 }
 
@@ -163,7 +167,10 @@
   border: none;
   background: none;
   font-size: var(--text-caption);
-  color: var(--color-warning-text);
+  /* 🔴 ПАРА ЦВЕТОВ В КОМНАТЕ ДВА: коралловый и зелёный (ПРАВИЛА 5.5, 5.8).
+     Янтарный `warning` — третий смысл, и прибор `accents`, который считает
+     акцентные надписи, его не видит вовсе. Осмотр комнаты 08.09, находка 22. */
+  color: var(--color-accent-text);
   cursor: pointer;
   white-space: nowrap;
 }
@@ -235,7 +242,11 @@
   font: var(--weight-regular) var(--text-overline) var(--font-mono);
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--color-text-hint);
+  /* 🔴 НЕ `hint`: без этой подписи человек не узнает, что нижняя половина
+     списка живёт только на этом компьютере и завтра с другого не откроется.
+     Порог выбирается по обязательности прочтения (ПРАВИЛА 4.11). Осмотр
+     комнаты 08.09, находка 23. */
+  color: var(--color-text-detail);
 }
 
 /* Место первой страницы у пособия, которое ещё не открывали. Пустая рамка

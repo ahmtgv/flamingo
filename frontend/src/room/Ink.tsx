@@ -25,10 +25,25 @@ export type Tool =
 const PEN_W = 0.006
 const STICKER_R = 0.032
 
+/* 🔴 ЦВЕТА ПОМЕТОК НЕ ЗАВИСЯТ ОТ ТЕМЫ СМОТРЯЩЕГО. Пометка лежит на БУМАГЕ —
+   на белой странице показа, которая тему не знает вовсе. А `--color-go`,
+   `--color-text` и `--color-surface` в тёмной теме другие: наклейка «верно» у
+   одного была аккуратным значком, у другого — чёрным кругом с бледным кольцом
+   поверх белой страницы. Цвет пришит к смыслу (ПРАВИЛА 5.8), а смысл у
+   пометки один на всех, кто смотрит. Поэтому здесь примитивы `--fl-*`, а не
+   тем-зависимые `--color-*`. Осмотр комнаты 08.09, находка 9. */
 const STICKER_FACE: Record<StickerName, { glyph: string; token: string }> = {
-  верно: { glyph: '✓', token: '--color-go' },
-  вопрос: { glyph: '?', token: '--color-text' },
-  сюда: { glyph: '!', token: '--fl-coral-500' },
+  верно: { glyph: '✓', token: '--метка-верно' },
+  вопрос: { glyph: '?', token: '--метка-вопрос' },
+  сюда: { glyph: '!', token: '--метка-сюда' },
+}
+
+/* 🔴 НЕЗНАКОМЫЙ ЦВЕТ НЕ СЪЕДАЕТ МЕТКУ МОЛЧА. `var(#e14e1f)` — недействительное
+   значение, и метка не рисуется вовсе, ничего об этом не сказав: пометка
+   ведущего просто не появляется у класса. Осмотр комнаты 08.09, слой пометок.
+   Имя токена начинается с двух дефисов; всё остальное берём как есть. */
+function цвет(значение: string): string {
+  return значение.startsWith('--') ? `var(${значение}, var(--метка-сюда))` : значение
 }
 
 function Mark({ m, w, h }: { m: Ink; w: number; h: number }) {
@@ -38,7 +53,7 @@ function Mark({ m, w, h }: { m: Ink; w: number; h: number }) {
       <path
         d={d}
         fill="none"
-        stroke={`var(${m.color})`}
+        stroke={цвет(m.color)}
         strokeWidth={Math.max(2, m.w * w)}
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -53,7 +68,7 @@ function Mark({ m, w, h }: { m: Ink; w: number; h: number }) {
     const head = Math.max(10, wid * 3.2)
     const wing = (k: number) => `${bx - head * Math.cos(ang - k)} ${by - head * Math.sin(ang - k)}`
     return (
-      <g stroke={`var(${m.color})`} strokeWidth={wid} strokeLinecap="round" fill="none">
+      <g stroke={цвет(m.color)} strokeWidth={wid} strokeLinecap="round" fill="none">
         <path d={`M${ax} ${ay} L${bx} ${by}`} />
         <path d={`M${wing(0.45)} L${bx} ${by} L${wing(-0.45)}`} />
       </g>
@@ -63,12 +78,12 @@ function Mark({ m, w, h }: { m: Ink; w: number; h: number }) {
   const r = Math.max(14, STICKER_R * w)
   return (
     <g transform={`translate(${m.x * w} ${m.y * h})`}>
-      <circle r={r} fill="var(--color-surface)" stroke={`var(${f.token})`} strokeWidth={Math.max(2, r * 0.09)} />
+      <circle r={r} fill="var(--метка-бумага)" stroke={цвет(f.token)} strokeWidth={Math.max(2, r * 0.09)} />
       <text
         y={r * 0.02}
         textAnchor="middle"
         dominantBaseline="central"
-        fill={`var(${f.token})`}
+        fill={цвет(f.token)}
         fontSize={r * 1.15}
         fontWeight={700}
         style={{ userSelect: 'none' }}

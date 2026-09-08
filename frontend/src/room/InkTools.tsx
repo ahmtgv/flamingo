@@ -68,12 +68,17 @@ export function InkTools({ tool, onTool, onUndo, onWipe, canUndo, canWipe }: {
       >
         Стрелка
       </button>
+      {/* 🔴 ИМЯ, А НЕ ГЛИФ. Содержимое кнопки старше `title` при вычислении
+          имени, поэтому читалка называла эти кнопки «✓», «?» и «!» —
+          преподаватель с читалкой не мог поставить «смотрите сюда».
+          Осмотр комнаты 08.09, находка 30. */}
       {STICKERS.map((st) => (
         <button
           key={st.name}
           type="button"
           className={`${s.btn} ${tool.kind === 'sticker' && tool.name === st.name ? s.on : ''}`}
           aria-pressed={tool.kind === 'sticker' && tool.name === st.name}
+          aria-label={st.title}
           title={st.title}
           onClick={() => onTool({ kind: 'sticker', name: st.name })}
         >

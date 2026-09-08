@@ -1,9 +1,10 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 import { Vitrina } from '../hub/Vitrina'
 import s from './Live.module.css'
 import { InkLayer, type Tool } from './Ink'
 import { FIRST_TOOL, InkTools } from './InkTools'
+import { рамкаПометок, type Прямоугольник } from './рамка'
 import type { Ink } from './shows'
 import { RIGHTS, SOURCES } from '../hub/sources'
 
@@ -57,6 +58,37 @@ export function Live({
   onWipe: () => void
   onClose: () => void
 }) {
+  /* 🔴 СЛОЙ ПОМЕТОК ЛОЖИТСЯ ПО КАРТИНКЕ, А НЕ ПО ВСЕЙ КОРОБКЕ. Раньше он стоял
+     прямо в `.frameBox`, у которой сверху и с боков отступ --space-4, а снизу
+     --space-13 + --space-9 = 176 px под пульт. Доля 0,3/0,3 попадала в
+     0,218/0,412 на 1280×800 и в 0,148/0,394 на 1600×900 — разбег 64 px, а доля
+     0,5/0,9 уходила НИЖЕ картинки вовсе. «Смотрите вот сюда» показывало у
+     ученика не туда, и ведущий об этом не знал. У показа это давно сделано
+     правильно (`рамкаПометок`), у трансляции — не было. Осмотр комнаты 08.09,
+     находка 8. */
+  const коробка = useRef<HTMLDivElement>(null)
+  const медиа = useRef<HTMLElement>(null)
+  const [spot, setSpot] = useState<Прямоугольник | null>(null)
+
+  useEffect(() => {
+    const box = коробка.current
+    const м = медиа.current
+    if (!box || !м) return
+    const place = () => {
+      const a = box.getBoundingClientRect()
+      const b = м.getBoundingClientRect()
+      setSpot(рамкаПометок(
+        { left: a.left, top: a.top, scrollLeft: box.scrollLeft, scrollTop: box.scrollTop },
+        { left: b.left, top: b.top, width: b.width, height: b.height },
+      ))
+    }
+    place()
+    const ro = new ResizeObserver(place)
+    ro.observe(box)
+    ro.observe(м)
+    return () => ro.disconnect()
+  }, [url])
+
   const src = SOURCES.find((x) => x.id === sourceId)
   const подпись = src?.name ?? имя ?? 'Источник'
   const e = embedOf(url)
@@ -64,9 +96,10 @@ export function Live({
 
   return (
     <div className={s.live}>
-      <div className={s.frameBox}>
+      <div className={s.frameBox} ref={коробка}>
         {e.kind === 'frame' ? (
           <iframe
+            ref={медиа as React.RefObject<HTMLIFrameElement>}
             className={s.frame}
             src={e.src}
             title={подпись}
@@ -74,13 +107,18 @@ export function Live({
             sandbox="allow-scripts allow-same-origin allow-presentation"
           />
         ) : null}
-        {e.kind === 'video' ? <video className={s.frame} src={e.src} controls autoPlay /> : null}
-        {e.kind === 'image' ? <img className={s.pic} src={e.src} alt={подпись} /> : null}
-        {e.kind === 'link' ? <Vitrina url={e.src} name={подпись} /> : null}
+        {e.kind === 'video' ? <video ref={медиа as React.RefObject<HTMLVideoElement>} className={s.frame} src={e.src} controls autoPlay /> : null}
+        {e.kind === 'image' ? <img ref={медиа as React.RefObject<HTMLImageElement>} className={s.pic} src={e.src} alt={подпись} /> : null}
+        {e.kind === 'link' ? <span ref={медиа as React.RefObject<HTMLSpanElement>} className={s.витрина}><Vitrina url={e.src} name={подпись} /></span> : null}
 
-        {/* Слой пометок — по рамке трансляции. У потока нет «страницы», поэтому
-            доля координат считается от рамки: у всех она стоит одинаково. */}
-        <InkLayer marks={marks} tool={lead ? tool : null} onMark={onMark} />
+        {/* Слой пометок — ПО САМОЙ КАРТИНКЕ. Доли считаются от неё, а не от
+            коробки с отступами: только тогда «сюда» у всех означает одно
+            место (`рамка.ts`, тот же узел, что у показа). */}
+        {spot ? (
+          <div className={s.spot} style={spot}>
+            <InkLayer marks={marks} tool={lead ? tool : null} onMark={onMark} />
+          </div>
+        ) : null}
       </div>
 
       {lead && tool ? (

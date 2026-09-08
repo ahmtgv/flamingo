@@ -81,8 +81,32 @@ for (const [ш, в, кадр] of КАДРЫ) {
           }
           return false
         }
+        /* 🔴 ЦЕЛЬ МОЖЕТ БЫТЬ БОЛЬШЕ САМОЙ КНОПКИ. Невидимая рамка `::before`
+           с отрицательными отступами — законный приём: видимая пилюля тонкая,
+           а палец берёт полные 44. Прибор, который меряет только сам элемент,
+           докладывает промах там, где его нет, — а ложная находка стоит
+           дороже пропущенной. */
+        const целиком = (e) => {
+          const r = e.getBoundingClientRect()
+          let ш = r.width, в = r.height
+          for (const псевдо of ['::before', '::after']) {
+            const s = getComputedStyle(e, псевдо)
+            if (!s || s.content === 'none' || s.position !== 'absolute') continue
+            const ч = (v) => (v && v.endsWith('px') ? parseFloat(v) : 0)
+            ш += Math.max(0, -ч(s.left)) + Math.max(0, -ч(s.right))
+            в += Math.max(0, -ч(s.top)) + Math.max(0, -ч(s.bottom))
+          }
+          return { ш, в }
+        }
+        /* Поле, спрятанное от глаз, но живое для клавиатуры (`input[type=file]`
+           за своей кнопкой), — законный приём, а не промах: меряется кнопка,
+           которая его зовёт. Такие поля 1×1 и с `clip`. */
+        const спрятано = (e) => {
+          const s = getComputedStyle(e)
+          return s.clipPath !== 'none' || s.clip !== 'auto' || (e.clientWidth <= 1 && e.clientHeight <= 1)
+        }
         const цели = [...document.querySelectorAll('button,a,input,select,textarea,[role="button"],[role="radio"]')]
-          .filter((e) => { const r = e.getBoundingClientRect(); return r.width > 0 && r.height > 0 })
+          .filter((e) => { const r = e.getBoundingClientRect(); return r.width > 0 && r.height > 0 && !спрятано(e) })
         const вне = цели.map((e) => {
           const r = e.getBoundingClientRect()
           const низом = r.bottom > innerHeight + 1
@@ -112,10 +136,12 @@ for (const [ш, в, кадр] of КАДРЫ) {
           областей: прокр, целей: цели.length, вне: вне.length,
           внеИмена: вне.slice(0, 3).map((x) => `${x.и}@${Math.round(x.r.top)}`),
           мелкие: цели.map((e) => {
+            const { ш, в } = целиком(e)
+            if (в >= 44 && ш >= 44) return null
             const r = e.getBoundingClientRect()
-            if (r.height >= 44 && r.width >= 44) return null
             return { и: (e.innerText || e.getAttribute('aria-label') || '').replace(/\s+/g, ' ').trim().slice(0, 22),
-              ш: Math.round(r.width), в: Math.round(r.height),
+              ш: Math.round(ш), в: Math.round(в),
+              видно: `${Math.round(r.width)}×${Math.round(r.height)}`,
               тускл: +getComputedStyle(e).opacity < 0.85 ? +getComputedStyle(e).opacity : null }
           }).filter(Boolean),
           лев: левые.length ? Math.min(...левые) : null,
