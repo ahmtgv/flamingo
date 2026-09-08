@@ -23,7 +23,7 @@
 
 .crumb {
   font: var(--weight-regular) var(--text-caption) var(--font-mono);
-  letter-spacing: 0.08em;
+  letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
   color: var(--color-text-detail);
   white-space: nowrap;
@@ -243,7 +243,7 @@
 
 .colLabel {
   font: var(--weight-regular) var(--text-overline) var(--font-mono);
-  letter-spacing: 0.08em;
+  letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
   color: var(--color-text-detail);
 }
@@ -434,7 +434,7 @@
 
 .wayLabel {
   font: var(--weight-medium) var(--text-overline) / 1 var(--font-mono);
-  letter-spacing: 0.08em;
+  letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
   color: var(--color-text-detail);
 }
@@ -499,7 +499,7 @@
   align-items: center;
   gap: var(--space-4);
   font: var(--weight-regular) var(--text-overline) var(--font-mono);
-  letter-spacing: 0.08em;
+  letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
   color: var(--color-text-hint);
 }

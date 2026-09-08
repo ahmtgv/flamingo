@@ -111,7 +111,7 @@
   align-items: center;
   gap: var(--space-3);
   font: var(--weight-regular) var(--text-caption) var(--font-mono);
-  letter-spacing: 0.06em;
+  letter-spacing: var(--tracking-wide);
   color: var(--color-text-detail);
 }
 
@@ -144,7 +144,7 @@
 .code {
   justify-self: start;
   font: var(--weight-medium) var(--text-small) var(--font-mono);
-  letter-spacing: 0.08em;
+  letter-spacing: var(--tracking-caps);
   color: var(--color-text);
   background: var(--color-surface-subtle);
   border: 1px solid var(--color-border);

@@ -41,7 +41,7 @@
 
 .crumb {
   font: var(--weight-regular) var(--text-caption) var(--font-mono);
-  letter-spacing: 0.08em;
+  letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
   color: var(--color-text-detail);
   white-space: nowrap;
@@ -369,7 +369,7 @@
 
 .weekDay {
   font: var(--weight-regular) var(--text-overline) var(--font-mono);
-  letter-spacing: 0.08em;
+  letter-spacing: var(--tracking-caps);
   color: var(--color-text-hint);
   text-align: center;
 }

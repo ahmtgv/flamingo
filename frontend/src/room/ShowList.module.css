@@ -244,7 +244,7 @@
   margin: 0;
   padding: var(--space-3) var(--space-4) var(--space-1);
   font: var(--weight-regular) var(--text-overline) var(--font-mono);
-  letter-spacing: 0.08em;
+  letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
   /* 🔴 НЕ `hint`: без этой подписи человек не узнает, что нижняя половина
      списка живёт только на этом компьютере и завтра с другого не откроется.

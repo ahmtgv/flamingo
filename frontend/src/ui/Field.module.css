@@ -7,7 +7,7 @@
 /* ПРАВИЛА 4.2: заголовок поля — не второй титул. */
 .label {
   font: var(--weight-medium) var(--text-overline) / 1 var(--font-mono);
-  letter-spacing: 0.08em;
+  letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
   color: var(--color-text-detail);
 }

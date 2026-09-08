@@ -38,7 +38,7 @@
 
 .crumb {
   font: var(--weight-regular) var(--text-caption) var(--font-mono);
-  letter-spacing: 0.08em;
+  letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
   color: var(--color-text-detail);
 }
@@ -193,7 +193,7 @@
 
 .kind {
   font: var(--weight-medium) var(--text-overline) var(--font-mono);
-  letter-spacing: 0.08em;
+  letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
   color: var(--color-text-detail);
 }
@@ -294,7 +294,7 @@
 
 .shownKind {
   font: var(--weight-medium) var(--text-overline) var(--font-mono);
-  letter-spacing: 0.08em;
+  letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
   color: var(--color-text-detail);
 }
@@ -352,7 +352,7 @@
 .rightLabel {
   margin-top: var(--space-2);
   font: var(--weight-medium) var(--text-overline) var(--font-mono);
-  letter-spacing: 0.08em;
+  letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
   color: var(--color-text-detail);
 }
