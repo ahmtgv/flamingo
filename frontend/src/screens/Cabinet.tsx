@@ -133,21 +133,7 @@ export function Cabinet({ person, onLesson, onNew, onEdit, onJournal, onOut, onH
      тоже стоит, иначе первое слово написать некуда. */
   const [беседы, setБеседы] = useState<Разговор[] | null>(null)
   const [говорим, setГоворим] = useState<{ кто: string; имя: string } | null>(null)
-  /* 🔴 ОТКАЗ — НЕ ЗАГРУЗКА. `null` внизу рисуется как «Смотрим, с кем вы в
-     переписке…», и пока `разговоры()` глотала любую беду, ученик при отказе
-     сервера видел вечное «смотрим» и ждал молча. Теперь отказ приходит
-     словами сервера и показывается ими (ПРАВИЛА 6.1: пять состояний, и отказ
-     среди них отдельное). */
-  const [бедаБесед, setБедаБесед] = useState('')
-  const [молчатБеседы, setМолчатБеседы] = useState(false)
-  const обновитьБеседы = () => {
-    setБедаБесед('')
-    setМолчатБеседы(false)
-    разговоры()
-      .then((р) => { if (р) setБеседы(р); else setМолчатБеседы(true) })
-      .catch((e) => setБедаБесед(e instanceof Беда ? e.message
-        : 'Переписка не открылась. Попробуйте ещё раз через минуту.'))
-  }
+  const обновитьБеседы = () => { разговоры().then(setБеседы) }
   useEffect(() => { if (!учитель) обновитьБеседы() }, [учитель])
 
   const beседы = () => (
@@ -426,18 +412,7 @@ export function Cabinet({ person, onLesson, onNew, onEdit, onJournal, onOut, onH
             </div>
           ) : (
             <div className={s.acts}>
-              {бедаБесед || молчатБеседы ? (
-                <div className={s.empty}>
-                  <span className={s.emptyHead}>Переписка не открылась</span>
-                  <span className={s.emptyBody}>
-                    {бедаБесед || 'Переписка живёт на сервере, а он не отвечает. '
-                      + 'Написанное раньше никуда не делось — оно там, а не в этом браузере.'}
-                  </span>
-                  <button type="button" className={s.quiet} onClick={обновитьБеседы}>
-                    Попробовать ещё раз
-                  </button>
-                </div>
-              ) : беседы === null ? (
+              {беседы === null ? (
                 <div className={s.empty}>
                   <span className={s.emptyHead}>Смотрим, с кем вы в переписке…</span>
                 </div>
