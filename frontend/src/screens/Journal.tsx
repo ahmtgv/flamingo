@@ -34,13 +34,18 @@ const ДНИ = ['вс', 'пн', 'вт', 'ср', 'чт', 'пт', 'сб']
 const ключМесяца = (d: Date) =>
   `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
 
-export function Journal({ person, onBack, onHome, onOut, onNew, onLesson }: {
+export function Journal({ person, onBack, onHome, onOut, onNew, onLesson, подложка }: {
   person: Person
   onBack: () => void
   onHome: () => void
   onOut: () => void
   onNew: () => void
   onLesson: (код: string) => void
+  /** 🔴 ТОЛЬКО ДЛЯ СТЕНДА (`screens/Стенд.tsx`, живёт под `import.meta.env.DEV`).
+   *  Готовый журнал вместо запроса: журнал живёт на сервере, и без него на
+   *  стенде виден только отказ. А ломается он не на трёх занятиях, а на
+   *  тридцати — тот же случай, что «кабинет-полный-день». */
+  подложка?: Данные
 }) {
   const [когда, setКогда] = useState(() => new Date())
   const [данные, setДанные] = useState<Данные | null>(null)
@@ -52,11 +57,12 @@ export function Journal({ person, onBack, onHome, onOut, onNew, onLesson }: {
   const обновить = useCallback(() => {
     let живо = true
     setБеда('')
+    if (подложка) { setДанные(подложка); return () => { живо = false } }
     читатьЖурнал(месяц)
       .then((д) => { if (живо) setДанные(д) })
       .catch((e) => { if (живо) setБеда(e instanceof Беда ? e.message : 'Журнал не открылся.') })
     return () => { живо = false }
-  }, [месяц])
+  }, [месяц, подложка])
 
   useEffect(() => обновить(), [обновить])
 
