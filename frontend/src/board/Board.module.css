@@ -524,12 +524,20 @@
   border: 1px solid var(--color-border);
   box-shadow: var(--shadow-md);
   opacity: 0;
+  /* 🔴 НЕВИДИМЫЙ ПУЛЬТ НЕ ЛОВИТ ШТРИХИ. `opacity: 0` прячет от глаз, но не от
+     руки: штрих, проведённый через правый нижний угол, попадал в спящую
+     пилюлю и обрывался — на пустом месте, без видимой причины. Это регресс
+     против решения 01.09 §7, поймано аудитом 07.09 (находка 8). Убираем не
+     `visibility`, а `pointer-events`: `visibility: hidden` заодно лишает пульт
+     фокуса, и клавиатурой до него было бы не добраться вовсе. */
+  pointer-events: none;
   transition: opacity var(--duration-fast) var(--ease-standard);
 }
 
 .canvasWrap:hover .zoom,
 .zoom:focus-within {
   opacity: 1;
+  pointer-events: auto;
 }
 
 /* ПРАВИЛА 7.2: вторичный контрол не ниже --control-height-sm. 32 px казались
