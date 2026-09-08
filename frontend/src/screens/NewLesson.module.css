@@ -423,3 +423,21 @@
     margin: 0;
   }
 }
+
+/* Взведённое «убрать урок?» — единственная коралловая заливка на экране: это
+   аларм, вернуть нельзя (ПРАВИЛА 10.6, 11а). */
+.dropArmed {
+  border-color: var(--color-accent-solid);
+  background: var(--color-accent-solid);
+  color: var(--color-on-accent);
+}
+
+/* Строка, которая называет последствие словами. Она обязана читаться целиком
+   (ПРАВИЛА 12.3): её ради и сделан второй шаг. */
+.dropWhy {
+  margin: var(--space-3) 0 0;
+  font-size: var(--text-small);
+  line-height: var(--leading-body);
+  color: var(--color-text-detail);
+  max-width: 52ch;
+}

@@ -157,8 +157,22 @@ export function NewLesson({ person, урокId, onDone, onCreated, onBack, onOut
     }
   }
 
+  /* 🔴 УРОК УБИРАЕТСЯ В ДВА ШАГА И СО СЛОВАМИ. Кнопка сносила занятие одним
+     щелчком: без подтверждения, без слова о классе, у которого уже есть
+     ссылка, и без возможности вернуть. ПРАВИЛА 10.6 требуют трёх вещей —
+     не было ни одной. Аудит 07.09, находка критика. Взвод сам гаснет через
+     пять секунд: спросили и забыли — значит не хотели. */
+  const [сноситьВзвод, setСноситьВзвод] = useState(false)
+  useEffect(() => {
+    if (!сноситьВзвод) return
+    const метка = setTimeout(() => setСноситьВзвод(false), 5000)
+    return () => clearTimeout(метка)
+  }, [сноситьВзвод])
+
   const убрать = async () => {
     if (!урок) return
+    if (!сноситьВзвод) { setСноситьВзвод(true); return }
+    setСноситьВзвод(false)
     try {
       await убратьУрок(урок.id)
       onDone()
@@ -318,10 +332,25 @@ export function NewLesson({ person, урокId, onDone, onCreated, onBack, onOut
             </button>
 
             {правка ? (
+              <>
               <div className={s.after}>
                 <button type="button" className={s.quiet} onClick={onDone}>Готово</button>
-                <button type="button" className={s.drop} onClick={убрать}>Убрать урок</button>
+                <button
+                  type="button"
+                  className={`${s.drop} ${сноситьВзвод ? s.dropArmed : ''}`}
+                  onClick={убрать}
+                  title="Убрать урок · комната закроется, и ссылка перестанет работать у всех, кому вы её отправили. Вернуть нельзя."
+                >
+                  {сноситьВзвод ? 'убрать урок?' : 'Убрать урок'}
+                </button>
               </div>
+              {сноситьВзвод ? (
+                <p className={s.dropWhy} role="status">
+                  Комната закроется, и ссылка перестанет работать у всех, кому вы её
+                  отправили. Вернуть урок нельзя — только завести заново.
+                </p>
+              ) : null}
+              </>
             ) : null}
           </form>
         </section>

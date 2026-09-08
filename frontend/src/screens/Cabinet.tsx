@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from 'react'
 import type { Person } from '../lib/auth'
 import { Mark } from '../ui/Mark'
 import { сегодняСтрокой } from '../lib/lessons'
-import { гдеЛежат, разговоры, урокСейчас, читатьУроки, type Разговор, type Урок } from '../lib/study'
+import { Беда, гдеЛежат, разговоры, урокСейчас, читатьУроки, type Разговор, type Урок } from '../lib/study'
 import { Переписка } from './Переписка'
 import s from './Cabinet.module.css'
 
@@ -181,13 +181,26 @@ export function Cabinet({ person, onLesson, onNew, onEdit, onJournal, onOut, onH
       {сейчасБеда ? <span className={s.emptyWay}>{сейчасБеда}</span> : null}
     </>
   )
+  /* 🔴 «СЕРВЕР ОТКАЗАЛ» — НЕ «ЗАНЯТИЙ НЕТ». Здесь стояло `.catch(() =>
+     setВсе([]))`, и отказ сервера расписания превращался в спокойное
+     «Занятий на сегодня нет»: репетитор с полным днём читал, что день
+     свободен. Молчание сервера, у которого есть свой запасной путь в браузер,
+     экран уже называет словами (`дом === 'браузер'`); а вот ОТКАЗ — то есть
+     ответ «нет» — терялся целиком. ПРАВИЛА 6.4: причина, что уцелело, одно
+     действие. Аудит 07.09, находки 15 и 16. */
+  const [беда, setБеда] = useState<string | null>(null)
+  const [ещёРаз, setЕщёРаз] = useState(0)
   useEffect(() => {
     let живо = true
     читатьУроки(месяц)
-      .then((у) => { if (живо) setВсе(у) })
-      .catch(() => { if (живо) setВсе([]) })
+      .then((у) => { if (живо) { setВсе(у); setБеда(null) } })
+      .catch((e) => {
+        if (!живо) return
+        setВсе([])
+        setБеда(e instanceof Беда ? e.message : 'Сервер занятий не ответил.')
+      })
     return () => { живо = false }
-  }, [месяц])
+  }, [месяц, ещёРаз])
 
   const дом = гдеЛежат()
   const сегодняСтрока = сегодняСтрокой(сегодня)
@@ -241,6 +254,18 @@ export function Cabinet({ person, onLesson, onNew, onEdit, onJournal, onOut, onH
             <div className={s.rows}>
               <div className={`${s.row} ${s.rowWait}`} aria-hidden />
               <span className={s.emptyWay}>Смотрим расписание на сегодня…</span>
+            </div>
+          ) : беда ? (
+            /* Отказ называет причину и что уцелело, и даёт одно действие. */
+            <div className={s.empty}>
+              <span className={s.emptyHead}>Расписание не открылось</span>
+              <span className={s.emptyBody}>
+                {беда} Занятия никуда не делись — их не удалось прочитать сейчас.
+                Ссылки на уроки, которые вы уже отправили, работают.
+              </span>
+              <button type="button" className={s.quiet} onClick={() => { setВсе(null); setБеда(null); setЕщёРаз((н) => н + 1) }}>
+                Посмотреть ещё раз
+              </button>
             </div>
           ) : наСегодня.length ? (
             <div className={s.rows}>
