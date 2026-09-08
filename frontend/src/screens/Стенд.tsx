@@ -2,6 +2,21 @@ import { useEffect, useState } from 'react'
 
 import { Board } from '../board/Board'
 import { Chat, type Line } from '../room/Chat'
+import { Faces } from '../room/Faces'
+import { HubPick } from '../room/HubPick'
+import { FIRST_TOOL, InkTools } from '../room/InkTools'
+import { Live } from '../room/Live'
+import { Note } from '../room/Note'
+import { Screen } from '../room/Screen'
+import { Shelf } from '../room/Shelf'
+import { Show } from '../room/Show'
+import { ShowList } from '../room/ShowList'
+import { Sleepy } from '../room/Sleepy'
+import { Stage } from '../room/Stage'
+import { Tiles } from '../room/Tiles'
+import type { Face } from '../room/useRoom'
+import type { Ink, ShowDoc } from '../room/shows'
+import type { Пособие } from '../lib/study'
 import { завестиУрок, читатьУроки, type Реплика } from '../lib/study'
 import type { Person } from '../lib/auth'
 import type { Bus, Msg } from '../board/protocol'
@@ -49,6 +64,82 @@ const РЕПЛИКИ: Line[] = [
   { id: '3', who: 'вы', text: 'да', at: Date.now() - 300000, mine: true },
   { id: '4', who: 'Марк', text: 'я не слышу звук, перезайду', at: Date.now() - 60000, mine: false },
 ]
+
+/* ── подложка комнаты урока ───────────────────────────────────────────
+   🔴 Части комнаты заводятся на стенде ПООТДЕЛЬНОСТИ, а не только целой
+   комнатой. Целая поднимается с несуществующим билетом и честно стоит в
+   отказе — а полка, пособия, показ, каталог и пульт в этом состоянии не
+   появляются вовсе. Аудит 07.09 из-за этого не увидел 12 модулей: открыть
+   их было негде. Дорожек видео тут нет — плитка обязана быть читаемой и
+   без картинки (ПРАВИЛА 6.1: пусто — тоже состояние). */
+
+const ЛИЦО = (и: string, имя: string, п: Partial<Face> = {}): Face => ({
+  identity: и, name: имя, isLocal: false, speaking: false,
+  camOn: false, micOn: true, joinedAt: Date.now() - 600000, lead: false, ...п,
+})
+
+const ЛИЦА: Face[] = [
+  ЛИЦО('у1', 'Люция Валерьевна', { isLocal: true, lead: true, speaking: true, camOn: true }),
+  ЛИЦО('у2', 'Аня Ковалёва', { camOn: true }),
+  ЛИЦО('у3', 'Марк Ковалёв', { micOn: false }),
+  ЛИЦО('у4', 'Тимур', { speaking: true, camOn: true }),
+]
+
+/* Страница показа: рисунок прямо в адресе, чтобы стенд не ходил в сеть. */
+const СТРАНИЦА =
+  'data:image/svg+xml;utf8,' +
+  encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1100">' +
+    '<rect width="800" height="1100" fill="#fff"/>' +
+    '<text x="60" y="120" font-family="Georgia" font-size="42">Упражнение 2</text>' +
+    '<text x="60" y="190" font-family="Georgia" font-size="26">Раскройте скобки и поставьте глагол</text>' +
+    '<text x="60" y="230" font-family="Georgia" font-size="26">в нужное время.</text>' +
+    '<line x1="60" y1="300" x2="740" y2="300" stroke="#ccc"/>' +
+    '<line x1="60" y1="380" x2="740" y2="380" stroke="#ccc"/>' +
+    '<line x1="60" y1="460" x2="740" y2="460" stroke="#ccc"/>' +
+    '</svg>',
+  )
+
+const ПОМЕТКИ: Ink[] = [
+  { id: 'п1', kind: 'pen', color: '#e14e1f', w: 0.006, pts: [[0.12, 0.3], [0.4, 0.31], [0.62, 0.29]] },
+  { id: 'п2', kind: 'arrow', color: '#e14e1f', w: 0.006, a: [0.2, 0.5], b: [0.5, 0.42] },
+  { id: 'п3', kind: 'sticker', name: 'верно', x: 0.8, y: 0.35 },
+]
+
+const ПОКАЗЫ: ShowDoc[] = [
+  { id: 'п1', title: 'Времена · разбор.pdf', pages: [СТРАНИЦА, СТРАНИЦА], ink: { 0: ПОМЕТКИ }, at: Date.now() - 86400000 },
+  { id: 'п2', title: 'Домашняя работа Ани.pdf', pages: [СТРАНИЦА], ink: {}, at: Date.now() - 3600000 },
+]
+
+const ПОСОБИЯ: Пособие[] = [
+  { id: 'м1', вид: 'doc', имя: 'Учебник · глава 4.pdf', размер: 2400000, адрес: СТРАНИЦА },
+  { id: 'м2', вид: 'image', имя: 'Карточки слов.png', размер: 480000, адрес: СТРАНИЦА },
+  { id: 'м3', вид: 'link', имя: 'Словарь Мультитран', размер: 0, адрес: 'https://www.multitran.com' },
+]
+
+/* 🔴 ПОКАЗ И ТРАНСЛЯЦИЯ ЖИВУТ В ЦЕЛОМ КАДРЕ, А НЕ В КОРОБКЕ ПО СОДЕРЖИМОМУ.
+   Первые снимки 08.09 вышли двумя одинаковыми белыми прямоугольниками: без
+   заданной высоты `.show` схлопывался в 1280×0, полоса пульта уезжала на
+   y=-59, и осмотр показа не состоялся вовсе — при том что снимки выглядели
+   как снятые. Оснастка, которая молча ничего не показывает, хуже её
+   отсутствия. */
+function ВКадре({ children }: { children: React.ReactNode }) {
+  return (
+    <div style={{ position: 'fixed', inset: 0, display: 'grid', gridTemplateRows: 'minmax(0, 1fr)', background: '#151515' }}>
+      {children}
+    </div>
+  )
+}
+
+/* Части комнаты живут на тёмном холсте сцены, а не на светлом фоне страницы:
+   иначе меряется не тот контраст. */
+function НаСцене({ children }: { children: React.ReactNode }) {
+  return (
+    <div style={{ position: 'fixed', inset: 0, background: '#151515', display: 'grid', placeItems: 'center' }}>
+      {children}
+    </div>
+  )
+}
 
 /* Разговор двоих: сторону панель выбирает ролью, а не полем `мой`. */
 const РАЗГОВОР = (яУчитель: boolean): Реплика[] => {
@@ -162,6 +253,73 @@ export const ЭКРАНЫ: { имя: string; путь: string; рисуй: () =>
   ) },
   { имя: 'переписка-ученик', путь: '/кабинет', рисуй: () => (
     <Переписка кто="у1" имя="Люция Валерьевна" веду={false} подложка={РАЗГОВОР(false)} onClose={ни} />
+  ) },
+  /* ── части комнаты урока (наряд 2) ─────────────────────────────── */
+  { имя: 'полка', путь: '/r/', рисуй: () => (
+    <НаСцене><Shelf source="board" естьПособия onPick={ни} onShow={ни} onHub={ни} onShare={ни} /></НаСцене>
+  ) },
+  { имя: 'полка-без-пособий', путь: '/r/', рисуй: () => (
+    <НаСцене><Shelf source="faces" естьПособия={false} onPick={ни} onShow={ни} onHub={ни} onShare={ни} /></НаСцене>
+  ) },
+  { имя: 'сцена', путь: '/r/', рисуй: () => (
+    <Stage faces={ЛИЦА} alone={false} веду link="flamingo.plus/r/g6rh-ntaf-rzpp" onCopy={ни} phase="live" error="" />
+  ) },
+  { имя: 'сцена-один', путь: '/r/', рисуй: () => (
+    <Stage faces={[ЛИЦА[0]]} alone веду link="flamingo.plus/r/g6rh-ntaf-rzpp" onCopy={ни} phase="live" error="" />
+  ) },
+  { имя: 'сцена-ученик', путь: '/r/', рисуй: () => (
+    <Stage faces={ЛИЦА} alone={false} веду={false} link="flamingo.plus/r/g6rh-ntaf-rzpp" onCopy={ни} phase="live" error="" />
+  ) },
+  { имя: 'сцена-связи-нет', путь: '/r/', рисуй: () => (
+    <Stage faces={[]} alone веду link="flamingo.plus/r/g6rh-ntaf-rzpp" onCopy={ни} phase="failed" error="Медиасервер не отвечает" />
+  ) },
+  { имя: 'лица', путь: '/r/', рисуй: () => (
+    <Faces faces={ЛИЦА} alone={false} link="flamingo.plus/r/g6rh-ntaf-rzpp" onCopy={ни} phase="live" error="" />
+  ) },
+  { имя: 'плитки', путь: '/r/', рисуй: () => <НаСцене><Tiles faces={ЛИЦА} /></НаСцене> },
+  { имя: 'пособия', путь: '/r/', рисуй: () => (
+    <ShowList shows={ПОКАЗЫ} пособия={ПОСОБИЯ} onПособие={ни} activeId="п1" kept onOpen={ни} onAdd={ни} onDrop={ни} onClose={ни} />
+  ) },
+  { имя: 'пособия-пусто', путь: '/r/', рисуй: () => (
+    <ShowList shows={[]} пособия={[]} onПособие={ни} activeId={null} kept={false} onOpen={ни} onAdd={ни} onDrop={ни} onClose={ни} />
+  ) },
+  { имя: 'показ', путь: '/r/', рисуй: () => (
+    <ВКадре><Show title="Времена · разбор.pdf" page={СТРАНИЦА} i={0} n={2} lead масштаб={1} onZoom={ни}
+      marks={ПОМЕТКИ} onMark={ни} onUndo={ни} onWipe={ни} canUndo onShows={ни} onPrev={ни} onNext={ни} onClose={ни} /></ВКадре>
+  ) },
+  { имя: 'показ-ученик', путь: '/r/', рисуй: () => (
+    <ВКадре><Show title="Времена · разбор.pdf" page={СТРАНИЦА} i={1} n={2} lead={false} масштаб={1} onZoom={ни}
+      marks={ПОМЕТКИ} onMark={ни} onUndo={ни} onWipe={ни} canUndo={false} onShows={ни} onPrev={ни} onNext={ни} onClose={ни} /></ВКадре>
+  ) },
+  { имя: 'каталог', путь: '/r/', рисуй: () => <HubPick onGo={ни} onClose={ни} /> },
+  /* Опознаватель источника — настоящий (`iss` из каталога), иначе строка
+     права на снимке не появляется вовсе и мерить её нечем. */
+  { имя: 'трансляция', путь: '/r/', рисуй: () => (
+    <ВКадре><Live sourceId="iss" url="https://www.nasa.gov/live/" lead
+      marks={ПОМЕТКИ} onMark={ни} onUndo={ни} onWipe={ни} onClose={ни} /></ВКадре>
+  ) },
+  { имя: 'мой-экран', путь: '/r/', рисуй: () => <Screen mine who="Люция Валерьевна" onStop={ни} /> },
+  { имя: 'чужой-экран', путь: '/r/', рисуй: () => <Screen mine={false} who="Аня Ковалёва" onStop={ни} /> },
+  { имя: 'пульт', путь: '/r/', рисуй: () => (
+    <НаСцене>
+      <Sleepy side="bottom" label="пульт занятия" open>
+        {/* Цвет — ТОКЕНОМ, как в продукте: с голым hex ни один инструмент не
+            считается выбранным, и состояние «активный инструмент» (ПРАВИЛА 5.7)
+            на снимке не показано ни разу. */}
+        <InkTools tool={FIRST_TOOL} onTool={ни} onUndo={ни} onWipe={ни} canUndo canWipe />
+      </Sleepy>
+    </НаСцене>
+  ) },
+  { имя: 'заметка', путь: '/r/', рисуй: () => (
+    <НаСцене>
+      <Note title="Эфир не поднялся" text="Медиасервер не отвечает. Доска работает, и всё написанное на ней цело."
+        warn code="404" action="Поднять эфир заново" onAction={ни} />
+    </НаСцене>
+  ) },
+  { имя: 'заметка-светлая', путь: '/r/', рисуй: () => (
+    <div style={{ position: 'fixed', inset: 0, background: 'var(--color-bg)', display: 'grid', placeItems: 'center' }}>
+      <Note title="Показ ещё не приехал" text="Ведущий открывает страницу. Доска и чат работают." light />
+    </div>
   ) },
   { имя: 'стенд', путь: '/стенд', рисуй: () => <p style={{ padding: 20 }}>Это и есть стенд.</p> },
 ]

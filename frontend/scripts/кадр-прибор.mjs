@@ -26,16 +26,25 @@
  */
 
 import { chromium } from 'playwright'
-import { writeFileSync } from 'node:fs'
+import { readFileSync, writeFileSync } from 'node:fs'
+import { fileURLToPath } from 'node:url'
 
 /* 🔴 ИМЯ ПЕРЕМЕННОЙ ЛАТИНИЦЕЙ. `export СТЕНД=…` bash не берёт вовсе:
    «not a valid identifier», и прибор молча уходит на порт по умолчанию. */
 const АДРЕС = process.env.STAND || 'http://127.0.0.1:5180'
 
-const ЭКРАНЫ = ['титул', 'титул-молчит', 'вход', 'новый-пароль', 'кабинет',
-  'кабинет-полный-день', 'кабинет-ученик', 'журнал', 'создать-урок',
-  'правка-урока', 'хаб', 'приглашение', 'вход-в-комнату', 'вход-в-комнату-свой',
-  'комната', 'битая-ссылка', 'доска', 'чат', 'переписка', 'переписка-ученик']
+/* 🔴 СПИСОК ЭКРАНОВ ЧИТАЕТСЯ ИЗ РЕЕСТРА СТЕНДА, А НЕ ЛЕЖИТ ЗДЕСЬ КОПИЕЙ.
+   Копия отстаёт молча: в неё не попадают новые экраны, и прибор докладывает
+   «всё чисто» про то, чего не открывал. Ровно так аудит 07.09 не увидел
+   комнату. `fileURLToPath`, а не `.pathname`: кириллица в имени файла
+   превращается в проценты. */
+const СТЕНД_ФАЙЛ = fileURLToPath(new URL('../src/screens/Стенд.tsx', import.meta.url))
+/* Берём только строки реестра — «имя» рядом с «путь». Без этого в список
+   экранов попадают имена подложки (пособия урока тоже названы `имя`), и
+   прибор ходит за несуществующими экранами. */
+const ЭКРАНЫ = [...readFileSync(СТЕНД_ФАЙЛ, 'utf8').matchAll(/имя:\s*'([^']+)',\s*путь:/g)]
+  .map((м) => м[1])
+  .filter((и) => и !== 'стенд')
 
 const ВСЕ_КАДРЫ = [[1280, 800, 'настольный'], [1512, 944, 'широкий'],
   [360, 740, 'android'], [390, 844, 'iphone']]
@@ -102,7 +111,13 @@ for (const [ш, в, кадр] of КАДРЫ) {
           прокрутка: document.documentElement.scrollHeight - document.documentElement.clientHeight,
           областей: прокр, целей: цели.length, вне: вне.length,
           внеИмена: вне.slice(0, 3).map((x) => `${x.и}@${Math.round(x.r.top)}`),
-          мелких: цели.filter((e) => e.getBoundingClientRect?.().height < 44).length,
+          мелкие: цели.map((e) => {
+            const r = e.getBoundingClientRect()
+            if (r.height >= 44 && r.width >= 44) return null
+            return { и: (e.innerText || e.getAttribute('aria-label') || '').replace(/\s+/g, ' ').trim().slice(0, 22),
+              ш: Math.round(r.width), в: Math.round(r.height),
+              тускл: +getComputedStyle(e).opacity < 0.85 ? +getComputedStyle(e).opacity : null }
+          }).filter(Boolean),
           лев: левые.length ? Math.min(...левые) : null,
           спектр: Object.entries(счёт).map(([л, н]) => [+л, н]).sort((a, b) => a[0] - b[0]),
           заг,
@@ -138,6 +153,38 @@ for (const [, , кадр] of КАДРЫ) {
   бед += плохие.length
   console.log(`\n══ ${кадр} ══ недостижимых целей на ${плохие.length} экранах из ${группа.length}`)
   for (const x of плохие) console.log(`   ❌ ${x.экран}: ${x.вне} — ${x.внеИмена.join(', ')}`)
+}
+
+/* ПРАВИЛА 12.6: цель нажатия не меньше --tap-min (44). Мера — МЕНЬШАЯ
+   сторона: кнопка 474×42 промахнулась на два пикселя по высоте, а кружок
+   20×20 не годится вовсе, и валить их в один список — прятать второе за
+   первым. Порог грубого промаха — 32: ниже него палец мажет всегда. */
+const порог = 44
+const грубо = 32
+for (const кадр of КАДРЫ.map((к) => к[2])) {
+  const строки = []
+  const тесные = []
+  for (const x of всё.filter((x) => x.кадр === кадр)) {
+    let n = 0
+    let наим = 99
+    for (const м of x.мелкие || []) {
+      const мера = Math.min(м.ш, м.в)
+      if (мера < грубо) строки.push(`  ${x.экран.padEnd(20)} ${м.ш}×${м.в}${м.тускл ? ` · прозрачность ${м.тускл}` : ''}  «${м.и || '—'}»`)
+      else if (мера < порог) { n += 1; наим = Math.min(наим, мера) }
+    }
+    if (n) тесные.push(`  ${x.экран.padEnd(20)} ${String(n).padStart(3)} целей, самая тесная ${наим}`)
+  }
+  if (строки.length || тесные.length) {
+    console.log(`\n── цели нажатия, ${кадр} ──`)
+    if (строки.length) {
+      console.log(`  грубо мимо (меньшая сторона < ${грубо}):`)
+      for (const с of строки) console.log(с)
+    }
+    if (тесные.length) {
+      console.log(`  тесно (${грубо}…${порог - 1}):`)
+      for (const с of тесные) console.log(с)
+    }
+  }
 }
 
 const первый = КАДРЫ[0][2]
