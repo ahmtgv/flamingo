@@ -108,8 +108,11 @@ const ПЕРЬЯ = ['--color-text', '--color-accent', '--color-go', '--color-inf
 const В_ХАБЕ = ['hubble', 'loc', 'lapalma', 'rijks', 'rumsey', 'usgs']
 const СОСТОЯНИЕ = { ok: 'отвечает', live: 'идёт трансляция', down: 'молчит' } as const
 
-export function Титул({ onSign, onHub, молчит = false, onAgain }: {
+export function Титул({ onSign, onNew, onHub, молчит = false, onAgain }: {
   onSign: () => void
+  /** Отдельная дверь: «завести» и «войти» — разные намерения, и вести им надо
+   *  в разные состояния экрана (ПРАВИЛА 12.4, аудит 07.09 находка 14). */
+  onNew: () => void
   onHub: () => void
   /** Сервер учётных записей не ответил. Титул от этого не ломается: страдают
    *  только двери, и об этом сказано словами, а не молчанием. */
@@ -268,7 +271,7 @@ export function Титул({ onSign, onHub, молчит = false, onAgain }: {
         </nav>
         <span className={s.разрыв} />
         <button type="button" className={s.вход} onClick={onSign}>Войти</button>
-        <button type="button" className={s.дверь} onClick={onSign}>Завести учётную запись</button>
+        <button type="button" className={s.дверь} onClick={onNew}>Завести учётную запись</button>
       </header>
 
       {молчит && (

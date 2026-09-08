@@ -67,8 +67,15 @@ const ИДЁТ: Record<Mode, [string, string]> = {
  *  возвращается к своей комнате; человек, открывший вход прямо или только что
  *  вышедший, возвращаться некуда — и кнопка, ведущая на этот же экран, была бы
  *  дверью в стену. Дороги назад нет — значит её и не рисуем (ПРАВИЛА 14.1). */
-export function Sign({ onDone, onBack }: { onDone: (p: Person) => void; onBack?: () => void }) {
-  const [mode, setMode] = useState<Mode>('in')
+export function Sign({ onDone, onBack, режим = 'in' }: {
+  onDone: (p: Person) => void
+  onBack?: () => void
+  /** 🔴 С ЧЕГО ЭКРАН ОТКРЫВАЕТСЯ. Дверь «Завести учётную запись» вела сюда же,
+   *  куда «Войти», и человек попадал на форму входа: он нажал «завести», а его
+   *  просят пароль, которого у него нет. Аудит 07.09, находка 14. */
+  режим?: Mode
+}) {
+  const [mode, setMode] = useState<Mode>(режим)
   const [email, setEmail] = useState('')
   const [name, setName] = useState('')
   const [role, setRole] = useState<Person['role']>('teacher')
