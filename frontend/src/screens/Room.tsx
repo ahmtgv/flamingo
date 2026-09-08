@@ -112,11 +112,17 @@ export function Room({ code, name, onLeave, onHome }: Props) {
         if (!живо || !о) return
         setПособия(о.пособия)
         setВеду(о.веду)
+        /* 🔴 НАЗВАНИЕ УРОКА ЛЕЖАЛО В ОТВЕТЕ И ВЫБРАСЫВАЛОСЬ. В шапке стоял
+           машинный код вида `g6rh-ntaf-rzpp`: у преподавателя с тремя уроками
+           подряд в трёх вкладках стоят три одинаковых на вид кода, и он входит
+           не в тот урок. Осмотр комнаты 08.09, находка 19. */
+        setНазвание(о.название)
       })
       .catch(() => undefined)
     return () => { живо = false }
   }, [code])
 
+  const [название, setНазвание] = useState('')
   const [copied, setCopied] = useState(false)
   const [неСкопировалось, setНеСкопировалось] = useState(false)
   const [материалНеОткрылся, setМатериалНеОткрылся] = useState<string | null>(null)
@@ -572,7 +578,9 @@ export function Room({ code, name, onLeave, onHome }: Props) {
         <span className={s.headLeft}>
           <Mark onGo={onHome} />
           <span className={s.sep} />
-          <span className={s.code}>{code}</span>
+          {/* Имя урока, а не машинный код. Код остаётся — но подсказкой у
+              кнопки «Скопировать ссылку», где он и нужен. */}
+          <span className={s.имяУрока} title={code}>{название || 'Урок по ссылке'}</span>
           <span className={s.live}>
             {/* ПРАВИЛА 11а: «идёт» зелёное, «связи нет» — аларм и потому коралловое. */}
             <span className={`${s.dot} ${phase === 'failed' ? s.dotAlarm : ''} ${phase === 'connecting' ? s.dotWait : ''}`} />

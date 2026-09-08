@@ -93,6 +93,20 @@
 /* 🔴 Код комнаты — В ОДНУ СТРОКУ. Раньше он переносился («8wyp-t7m3-\n9vr6»)
    и читался как две разные вещи: владелец прислал снимок с вопросом «что это?».
    Адрес, разорванный посередине, перестаёт быть адресом. */
+/* 🔴 В ШАПКЕ — ИМЯ УРОКА, А НЕ ЕГО КОД. Название приходило с сервера в том же
+   ответе и выбрасывалось, а человек читал `g6rh-ntaf-rzpp`: у преподавателя с
+   тремя уроками подряд в трёх вкладках три одинаковых на вид кода, и он входит
+   не в тот. Осмотр комнаты 08.09, находка 19. */
+.имяУрока {
+  font-size: var(--text-small);
+  font-weight: var(--weight-medium);
+  color: var(--color-text);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .code {
   font: var(--weight-medium) var(--text-overline) var(--font-mono);
   letter-spacing: var(--tracking-wide);

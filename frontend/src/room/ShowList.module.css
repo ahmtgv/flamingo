@@ -131,7 +131,11 @@
   width: var(--space-12);
   height: var(--space-10);
   object-fit: contain;
-  background: var(--fl-white);
+  /* 🔴 СЕМАНТИЧЕСКИЙ ТОКЕН, А НЕ ПРИМИТИВ. `--fl-white` не переопределяется ни
+     в одной теме, и в тёмной комнате миниатюра оставалась чисто белым
+     прямоугольником — самым ярким пятном на экране преподавателя, и так у
+     каждой строки списка. Осмотр комнаты 08.09, находка 37. */
+  background: var(--color-surface);
   border-radius: var(--radius-sm);
   border: 1px solid var(--color-border);
   flex: none;

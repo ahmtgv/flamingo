@@ -60,7 +60,11 @@ export function HubPick({ onGo, onClose }: {
                     }}>
               <span className={s.rowName}>{x.name}</span>
               <span className={s.rowGives}>{x.gives}</span>
-              {x.state === 'down' ? <span className={s.silent}>молчит · показываем последнюю проверку</span> : null}
+              {/* 🔴 НЕ ОБЕЩАЕМ ПРОВЕРКУ, КОТОРОЙ НЕ БЫЛО. Состояние источника прибито
+                    константой в каталоге: никакого опроса нет, ни времени, ни запроса,
+                    а слово «проверка» обещает и то и другое. Осмотр комнаты 08.09,
+                    находка 18. Говорим ровно то, что знаем. */}
+                {x.state === 'down' ? <span className={s.silent}>в прошлый раз молчал</span> : null}
             </button>
           </li>
         ))}
