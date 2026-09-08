@@ -1,7 +1,13 @@
 .live {
   position: relative;
   display: grid;
-  grid-template-rows: minmax(0, 1fr);
+  /* 🔴 У ПУЛЬТА СВОЯ СТРОКА, А НЕ ВЫЧИСЛЕННЫЙ ОТСТУП. Пульт стоял `absolute`, а
+     картинка отодвигалась от него посчитанным вручную числом
+     (--space-13 + --space-9 = 176). Стоило строке права перестать резаться
+     многоточием и занять три строки вместо одной — пилюля выросла и легла на
+     текст витрины. Строка грида не устаревает: сколько пульт занял, столько и
+     занял. Осмотр комнаты 08.09, находки 25 и 35. */
+  grid-template-rows: minmax(0, 1fr) auto;
   min-width: 0;
   min-height: 0;
   background: var(--color-surface-video);
@@ -16,11 +22,6 @@
   min-width: 0;
   min-height: 0;
   padding: var(--space-4);
-  /* 🔴 Отступ снизу считается от ВЕРХА пульта, а не от его низа.
-     Пульт стоит на --space-13 от края и тянется вверх на свою высоту: если
-     оставить отступ ровно --space-13, он ложится на нижнюю строку показа —
-     ровно это и случилось с адресом источника (поймано Аделем 31.08). */
-  padding-bottom: calc(var(--space-13) + var(--space-9));
 }
 
 .frame {
@@ -71,10 +72,9 @@
 
 /* Пульт стоит выше зоны, где просыпается пульт занятия. */
 .pult {
-  position: absolute;
-  bottom: var(--space-13);
-  left: 50%;
-  transform: translateX(-50%);
+  justify-self: center;
+  /* Место под пульт занятия комнаты — под этой полосой. */
+  margin-bottom: var(--space-13);
   display: flex;
   align-items: center;
   gap: var(--space-3);
@@ -163,11 +163,18 @@
   position: absolute;
 }
 
-/* Витрина — не картинка, но её рамка тоже держит пометки. */
-.витрина {
-  display: block;
-  width: 100%;
-  height: 100%;
-  min-width: 0;
-  min-height: 0;
+
+/* Весть о ходе трансляции — поверх рамки, по центру: говорит про эту область,
+   а не про весь урок (ПРАВИЛА 6.5). */
+.весть {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: var(--space-6);
+  pointer-events: none;
+}
+
+.весть > * {
+  pointer-events: auto;
 }

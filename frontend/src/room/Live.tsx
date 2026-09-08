@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Vitrina } from '../hub/Vitrina'
 import s from './Live.module.css'
 import { InkLayer, type Tool } from './Ink'
+import { Note } from './Note'
 import { FIRST_TOOL, InkTools } from './InkTools'
 import { рамкаПометок, type Прямоугольник } from './рамка'
 import type { Ink } from './shows'
@@ -72,11 +73,22 @@ export function Live({
 
   useEffect(() => {
     const box = коробка.current
-    const м = медиа.current
-    if (!box || !м) return
+    if (!box) return
     const place = () => {
       const a = box.getBoundingClientRect()
-      const b = м.getBoundingClientRect()
+      const м = медиа.current
+      /* Есть картинка — меряем её; нет (витрина) — берём содержимое коробки
+         без отступов, чтобы слой не залезал под пульт. */
+      const st = getComputedStyle(box)
+      const ч = (v: string) => parseFloat(v) || 0
+      const b = м
+        ? м.getBoundingClientRect()
+        : {
+            left: a.left + ч(st.paddingLeft),
+            top: a.top + ч(st.paddingTop),
+            width: a.width - ч(st.paddingLeft) - ч(st.paddingRight),
+            height: a.height - ч(st.paddingTop) - ч(st.paddingBottom),
+          }
       setSpot(рамкаПометок(
         { left: a.left, top: a.top, scrollLeft: box.scrollLeft, scrollTop: box.scrollTop },
         { left: b.left, top: b.top, width: b.width, height: b.height },
@@ -85,9 +97,17 @@ export function Live({
     place()
     const ro = new ResizeObserver(place)
     ro.observe(box)
-    ro.observe(м)
+    if (медиа.current) ro.observe(медиа.current)
     return () => ro.disconnect()
   }, [url])
+
+  /* 🔴 У ТРАНСЛЯЦИИ ТОЖЕ ПЯТЬ СОСТОЯНИЙ (ПРАВИЛА 6.1). Слова были только у
+     вида «ссылка»: у рамки, видео и картинки не было ни «загружается», ни
+     отказа — ролик не открылся, и класс смотрел на ровное серое поле, а
+     преподаватель тратил минуты урока на «вы видите?». Осмотр комнаты 08.09,
+     находка 20. */
+  const [ход, setХод] = useState<'едет' | 'идёт' | 'беда'>('едет')
+  useEffect(() => { setХод('едет') }, [url])
 
   const src = SOURCES.find((x) => x.id === sourceId)
   const подпись = src?.name ?? имя ?? 'Источник'
@@ -105,11 +125,37 @@ export function Live({
             title={подпись}
             allow="autoplay; fullscreen; picture-in-picture"
             sandbox="allow-scripts allow-same-origin allow-presentation"
+            onLoad={() => setХод('идёт')}
           />
         ) : null}
-        {e.kind === 'video' ? <video ref={медиа as React.RefObject<HTMLVideoElement>} className={s.frame} src={e.src} controls autoPlay /> : null}
-        {e.kind === 'image' ? <img ref={медиа as React.RefObject<HTMLImageElement>} className={s.pic} src={e.src} alt={подпись} /> : null}
-        {e.kind === 'link' ? <span ref={медиа as React.RefObject<HTMLSpanElement>} className={s.витрина}><Vitrina url={e.src} name={подпись} /></span> : null}
+        {e.kind === 'video' ? (
+          <video ref={медиа as React.RefObject<HTMLVideoElement>} className={s.frame} src={e.src} controls autoPlay
+            onLoadedData={() => setХод('идёт')} onError={() => setХод('беда')} />
+        ) : null}
+        {e.kind === 'image' ? (
+          <img ref={медиа as React.RefObject<HTMLImageElement>} className={s.pic} src={e.src} alt={подпись}
+            onLoad={() => setХод('идёт')} onError={() => setХод('беда')} />
+        ) : null}
+        {/* Витрина рисует себя сама и в обёртку не заворачивается: обёртка на
+            всю высоту сдвигала её текст под пульт. Слой пометок в этом случае
+            ложится по содержимому коробки. */}
+        {e.kind === 'link' ? <Vitrina url={e.src} name={подпись} /> : null}
+
+        {/* Пока едет — говорим, что придёт (ПРАВИЛА 6.3); не приехало —
+            называем причину и что уцелело (ПРАВИЛА 6.4). Витрина у вида
+            «ссылка» говорит за себя сама. */}
+        {e.kind !== 'link' && ход !== 'идёт' ? (
+          <div className={s.весть}>
+            <Note
+              title={ход === 'беда' ? 'Источник не открылся' : 'Источник едет'}
+              warn={ход === 'беда'}
+              text={ход === 'беда'
+                ? `«${подпись}» не открылся. Возможно, у него сменился адрес или он не пускает себя в рамку.`
+                : `Открываем «${подпись}». Доска и чат работают.`}
+              цело={ход === 'беда' ? 'Урок идёт: выберите другой источник или откройте его ссылкой.' : undefined}
+            />
+          </div>
+        ) : null}
 
         {/* Слой пометок — ПО САМОЙ КАРТИНКЕ. Доли считаются от неё, а не от
             коробки с отступами: только тогда «сюда» у всех означает одно
