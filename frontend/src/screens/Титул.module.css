@@ -414,10 +414,20 @@
   flex-wrap: wrap;
 }
 .снова {
+  /* 🔴 «СПРОСИТЬ ЕЩЁ РАЗ» — ШАГ ВПЕРЁД, А НЕ АЛАРМ. Те же самые слова на экране
+     ожидания стоят зелёной кнопкой, а здесь были коралловыми: одна и та же
+     надпись двумя цветами читается как два разных смысла (ПРАВИЛА 5.12), да и
+     коралловый принадлежит тому, что горит, — а горит тут полоса отказа, в
+     которой кнопка лежит, а не сама кнопка (ПРАВИЛА 5.8). Вес остаётся тихим:
+     заливка внутри коралловой полосы соревновалась бы с ней (ПРАВИЛА 5.11).
+     Аудит 07.09, находка 35. */
   background: none;
   border: 0;
   padding: 0;
-  color: var(--color-accent-text);
+  color: var(--color-go-text);
+  text-decoration: underline;
+  text-decoration-color: var(--color-border-strong);
+  text-underline-offset: 3px;
   font-size: var(--text-small);
   cursor: pointer;
   min-height: var(--tap-min);

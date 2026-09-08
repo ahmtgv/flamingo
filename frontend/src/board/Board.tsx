@@ -355,12 +355,18 @@ export function Board({ bus, peers, onOpen }: Props) {
 
   const eraseAt = useCallback(
     (p: Point) => {
+      /* 🔴 ЛАСТИК МЕРЯЕТ ПРОМАХ В ПИКСЕЛЯХ ЭКРАНА, А НЕ В МИРОВЫХ ЕДИНИЦАХ.
+         Рядом `pickAt` давно делит допуск на масштаб (`tol()`), а ластик брал
+         голое число: на отдалении k=0,25 его радиус на экране становился 3 px и
+         стереть было нечем, а на увеличении k=3 — 36 px, и он сносил соседние
+         штрихи вместе с нужным. Аудит 07.09, находка 57. */
+      const радиус = ERASE_R / viewRef.current.k
       const hit: string[] = []
       st.sheet.strokes.forEach((stroke) => {
-        if (hitStroke(stroke, p, ERASE_R)) hit.push(stroke.id)
+        if (hitStroke(stroke, p, радиус)) hit.push(stroke.id)
       })
       st.sheet.objs.forEach((o) => {
-        if (hitObj(o, p, ERASE_R)) hit.push(o.id)
+        if (hitObj(o, p, радиус)) hit.push(o.id)
       })
       if (hit.length === 0) return
       mark()
