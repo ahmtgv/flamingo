@@ -266,19 +266,23 @@ export const ЭКРАНЫ: { имя: string; путь: string; рисуй: () =>
     <НаСцене><Shelf source="faces" естьПособия={false} onPick={ни} onShow={ни} onHub={ни} onShare={ни} /></НаСцене>
   ) },
   { имя: 'сцена', путь: '/r/', рисуй: () => (
-    <Stage faces={ЛИЦА} alone={false} веду link="flamingo.plus/r/g6rh-ntaf-rzpp" onCopy={ни} phase="live" error="" />
+    <ВКадре><Stage faces={ЛИЦА} alone={false} веду link="flamingo.plus/r/g6rh-ntaf-rzpp" onCopy={ни} phase="live" error="" /></ВКадре>
   ) },
   { имя: 'сцена-один', путь: '/r/', рисуй: () => (
-    <Stage faces={[ЛИЦА[0]]} alone веду link="flamingo.plus/r/g6rh-ntaf-rzpp" onCopy={ни} phase="live" error="" />
+    <ВКадре><Stage faces={[ЛИЦА[0]]} alone веду link="flamingo.plus/r/g6rh-ntaf-rzpp" onCopy={ни} phase="live" error="" /></ВКадре>
   ) },
-  { имя: 'сцена-ученик', путь: '/r/', рисуй: () => (
-    <Stage faces={ЛИЦА} alone={false} веду={false} link="flamingo.plus/r/g6rh-ntaf-rzpp" onCopy={ни} phase="live" error="" />
+  /* Ведущий ещё не назвался: крупной плитки нет вовсе, решётка ровная. Раньше
+     на его месте стоял первый в списке — то есть сам смотрящий, и ученик первые
+     секунды урока видел во всю половину экрана себя (осмотр 08.09, находка 29). */
+  { имя: 'сцена-без-ведущего', путь: '/r/', рисуй: () => (
+    <ВКадре><Stage faces={ЛИЦА.map((л) => ({ ...л, lead: false }))} alone={false} веду={false}
+      link="flamingo.plus/r/g6rh-ntaf-rzpp" onCopy={ни} phase="live" error="" /></ВКадре>
   ) },
   { имя: 'сцена-связи-нет', путь: '/r/', рисуй: () => (
-    <Stage faces={[]} alone веду link="flamingo.plus/r/g6rh-ntaf-rzpp" onCopy={ни} phase="failed" error="Медиасервер не ответил." />
+    <ВКадре><Stage faces={[]} alone веду link="flamingo.plus/r/g6rh-ntaf-rzpp" onCopy={ни} phase="failed" error="Медиасервер не ответил." /></ВКадре>
   ) },
   { имя: 'лица', путь: '/r/', рисуй: () => (
-    <Faces faces={ЛИЦА} alone={false} link="flamingo.plus/r/g6rh-ntaf-rzpp" onCopy={ни} phase="live" error="" />
+    <ВКадре><Faces faces={ЛИЦА} alone={false} link="flamingo.plus/r/g6rh-ntaf-rzpp" onCopy={ни} phase="live" error="" /></ВКадре>
   ) },
   { имя: 'плитки', путь: '/r/', рисуй: () => <НаСцене><Tiles faces={ЛИЦА} /></НаСцене> },
   { имя: 'пособия', путь: '/r/', рисуй: () => (

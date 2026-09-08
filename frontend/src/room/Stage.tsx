@@ -45,19 +45,35 @@ function Sound({ track }: { track?: Track }) {
 }
 
 function Tile({ face, lead, big }: { face: Face; lead?: boolean; big?: boolean }) {
+  /* 🔴 «КАМЕРА ВЫКЛЮЧЕНА» И «КАДР ЕЩЁ НЕ ПРИШЁЛ» — РАЗНЫЕ СОСТОЯНИЯ (ПРАВИЛА
+     6.1, 6.3). Раньше обе ветки сливались в одни инициалы, и класс не знал,
+     Аня выключила камеру или у неё грузится: учитель зря просил включить
+     камеру, которая уже включена. Выключенный микрофон при этом назывался
+     словами, а камера — ничем. Осмотр комнаты 08.09, находка 27. */
+  const безКамеры = !face.camOn
+  const кадрИдёт = face.camOn && !face.video
   return (
     <div className={`${s.tile} ${big ? s.big : ''} ${face.speaking ? s.speaking : ''}`}>
       <Media track={face.video} />
       <Sound track={face.audio} />
-      {!face.camOn || !face.video ? (
+      {безКамеры || кадрИдёт ? (
         <span className={`${s.ini} ${big ? s.iniBig : ''}`}>{initials(face.name)}</span>
       ) : null}
-      {lead ? <span className={s.mark}>ведёт занятие</span> : null}
+      {/* 🔴 ПЛАШКИ СТОЯТ РЯДОМ, А НЕ ДРУГ НА ДРУГЕ. Пока их было две, хватало
+          «одна слева, другая справа»; с состоянием камеры их стало три, и на
+          узкой плитке «камера выключена» легла на «без звука», а на плитке
+          ведущего — на «ведёт занятие». Строка с переносом решает это раз и
+          навсегда: сколько бы плашек ни завелось, они встают в ряд. */}
+      <span className={s.chips}>
+        {lead ? <span className={s.mark}>ведёт занятие</span> : null}
+        {безКамеры ? <span className={s.state}>камера выключена</span> : null}
+        {кадрИдёт ? <span className={s.state}>кадр идёт</span> : null}
+        {!face.micOn ? <span className={s.state}>без звука</span> : null}
+      </span>
       <span className={s.name}>
         {face.name}
         {face.isLocal ? ' · вы' : ''}
       </span>
-      {!face.micOn ? <span className={s.muted}>без звука</span> : null}
     </div>
   )
 }
@@ -175,6 +191,25 @@ export function Stage({ faces, alone, веду, link, onCopy, phase, error }: {
             />
           </div>
         ) : null}
+      </div>
+    )
+  }
+
+  /* 🔴 ПОКА ВЕДУЩИЙ НЕ НАЗВАН, КРУПНОЙ ПЛИТКИ НЕТ ВОВСЕ. `faces[0]` — всегда
+     я сам (`useRoom` кладёт локального первым), поэтому ученик первые секунды
+     урока смотрел на СЕБЯ во всю половину экрана вместо учителя, а в комнате
+     без занятия — весь урок. Ровная решётка честнее: она не выдаёт случайного
+     человека за ведущего. Осмотр комнаты 08.09, находка 29. */
+  if (!ведёт) {
+    return (
+      <div className={s.stage} ref={boxRef}>
+        <div className={s.half} data-ровно="да">
+          <div className={s.grid} style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}>
+            {faces.map((f) => (
+              <Tile key={f.identity} face={f} />
+            ))}
+          </div>
+        </div>
       </div>
     )
   }
