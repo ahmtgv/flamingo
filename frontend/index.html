@@ -6,7 +6,40 @@
     <link rel="icon" type="image/svg+xml" href="/flamingo-mark.svg" />
     <!-- Шрифты свои (см. main.tsx). Загрузка с Google убрана 02.09:
          подробности в docs/АУДИТ-ИНТЕРФЕЙСА-02.09.md. -->
-    <title>Flamingo — комната</title>
+
+    <!-- 🔴 ЗАГОЛОВОК ЗДЕСЬ — НЕ ЗАПАСНОЙ, А ЕДИНСТВЕННЫЙ ДЛЯ ТЕХ, КТО НЕ
+         ВЫПОЛНЯЕТ СКРИПТЫ. Сборщики превью (Телеграм, ВК, WhatsApp, Слак)
+         читают ровно эту разметку и до React не доходят. Стояло «Flamingo —
+         комната»: ссылку на главную страницу подписывало словом «комната».
+         Живым людям заголовок ставит `App.tsx` по адресу — на «/» то же самое,
+         чтобы имя у страницы было одно, а не два. -->
+    <title>Flamingo — занятие по ссылке</title>
+    <meta name="description"
+          content="Доска, лица и голос в одной ссылке. Ученику ни регистрации, ни установки." />
+
+    <!-- Превью ссылки. og:image ТОЛЬКО абсолютным адресом: относительный
+         большинство сборщиков не разворачивает и картинку не покажет вовсе.
+         Размер 2400×1260 — ровно 2× канонических 1200×630, то же соотношение
+         1,91:1; на плотных экранах не мылится, весит 147 КБ. -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Flamingo" />
+    <meta property="og:locale" content="ru_RU" />
+    <meta property="og:url" content="https://flamingo.plus/" />
+    <meta property="og:title" content="Занятие по ссылке" />
+    <meta property="og:description"
+          content="Доска, лица и голос. Ученику ни регистрации, ни установки." />
+    <meta property="og:image" content="https://flamingo.plus/og.png" />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="2400" />
+    <meta property="og:image:height" content="1260" />
+    <meta property="og:image:alt"
+          content="Доска занятия: теорема Пифагора, вопрос ученицы и ответ преподавателя." />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Занятие по ссылке" />
+    <meta name="twitter:description"
+          content="Доска, лица и голос. Ученику ни регистрации, ни установки." />
+    <meta name="twitter:image" content="https://flamingo.plus/og.png" />
   </head>
   <body>
     <div id="root"></div>

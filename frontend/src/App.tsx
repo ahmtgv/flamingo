@@ -87,7 +87,9 @@ export function App() {
      называет себя, когда его не видно. */
   useEffect(() => {
     const имя = (() => {
-      if (path === '/') return 'Flamingo'
+      /* То же имя, что в `index.html`: у страницы должно быть одно имя, а не
+         два — иначе вкладка меняет подпись через мгновение после открытия. */
+      if (path === '/') return 'Flamingo — занятие по ссылке'
       if (path === '/кабинет') return 'Кабинет — Flamingo'
       if (path === '/журнал') return 'Журнал — Flamingo'
       if (path === '/создать-урок') return 'Новый урок — Flamingo'
