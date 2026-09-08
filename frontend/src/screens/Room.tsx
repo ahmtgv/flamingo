@@ -574,8 +574,8 @@ export function Room({ code, name, onLeave, onHome }: Props) {
     <div className={s.room}>
       {/* Верхняя строка стоит всегда: где я, что за комната, идёт ли урок.
           Всё остальное управление просыпается под рукой. */}
-      <header className={s.head}>
-        <span className={s.headLeft}>
+      <header className={s.полоса}>
+        <span className={s.полосаСлева}>
           <Mark onGo={onHome} />
           <span className={s.sep} />
           {/* Имя урока, а не машинный код. Код остаётся — но подсказкой у
@@ -606,7 +606,7 @@ export function Room({ code, name, onLeave, onHome }: Props) {
             onShare={share}
           />
         ) : (
-          <span className={s.headMid}>
+          <span className={s.полосаПосередине}>
             <button
               type="button"
               className={s.свояДверь}
@@ -618,7 +618,7 @@ export function Room({ code, name, onLeave, onHome }: Props) {
           </span>
         )}
 
-        <span className={s.headRight}>
+        <span className={s.полосаСправа}>
           <button
             type="button"
             className={`${s.chatBtn} ${chatOpen ? s.chatOn : ''}`}
