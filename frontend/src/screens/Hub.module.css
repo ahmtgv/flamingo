@@ -13,7 +13,9 @@
   display: flex;
   align-items: center;
   gap: var(--space-4);
-  padding: var(--space-4) var(--space-6);
+  row-gap: var(--space-2);
+  flex-wrap: wrap;
+  padding: var(--space-4) var(--поле);
   border-bottom: 1px solid var(--color-border);
 }
 
@@ -48,7 +50,7 @@
   display: flex;
   align-items: center;
   gap: var(--space-5);
-  padding: var(--space-6) var(--space-6) var(--space-5);
+  padding: var(--space-6) var(--поле) var(--space-5);
   flex-wrap: wrap;
 }
 
@@ -124,7 +126,7 @@
 /* ── каталог ──────────────────────────────────────────────────────────── */
 .body {
   display: grid;
-  padding: 0 var(--space-6) var(--space-6);
+  padding: 0 var(--поле) var(--space-6);
   min-height: 0;
 }
 

@@ -4,8 +4,10 @@
   height: 100%;
   display: grid;
   place-items: center;
-  padding: var(--space-6);
+  padding: var(--space-8) var(--поле);
   background: var(--color-bg);
+  /* Прокрутка — названная область экрана, а не страница (ПРАВИЛА 1.2). */
+  overflow-y: auto;
 }
 
 .card {

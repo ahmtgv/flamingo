@@ -37,49 +37,51 @@ export function NewPass({ ключ, onDone, onBack }: {
 
   return (
     <main className={s.screen}>
-      <div className={s.card}>
-        <button type="button" className={s.back} onClick={onBack}>
-          ← Ко входу
-        </button>
-        <Mark />
+      <div className={s.один}>
+        <div className={s.card}>
+          <button type="button" className={s.back} onClick={onBack}>
+            ← Ко входу
+          </button>
+          <Mark />
 
-        <h1 className={s.title}>Новый пароль</h1>
-        <p className={s.lead}>
-          {ключ
-            ? 'Задайте новый пароль — и вы сразу войдёте. Старый перестанет работать.'
-            : 'В ссылке нет ключа. Похоже, адрес скопирован не целиком — откройте ссылку из письма ещё раз.'}
-        </p>
+          <h1 className={s.title}>Новый пароль</h1>
+          <p className={s.lead}>
+            {ключ
+              ? 'Задайте новый пароль — и вы сразу войдёте. Старый перестанет работать.'
+              : 'В ссылке нет ключа. Похоже, адрес скопирован не целиком — откройте ссылку из письма ещё раз.'}
+          </p>
 
-        <form
-          className={s.form}
-          noValidate
-          onSubmit={(e) => {
-            e.preventDefault()
-            go()
-          }}
-        >
-          <Field
-            label="Новый пароль"
-            hint="От восьми знаков. Длина надёжнее сложности: четыре обычных слова лучше, чем «Xy7!»"
-            type="password"
-            autoComplete="new-password"
-            autoFocus
-            value={pass}
-            onChange={(e) => setPass(e.target.value)}
-          />
+          <form
+            className={s.form}
+            noValidate
+            onSubmit={(e) => {
+              e.preventDefault()
+              go()
+            }}
+          >
+            <Field
+              label="Новый пароль"
+              hint="От восьми знаков. Длина надёжнее сложности: четыре обычных слова лучше, чем «Xy7!»"
+              type="password"
+              autoComplete="new-password"
+              autoFocus
+              value={pass}
+              onChange={(e) => setPass(e.target.value)}
+            />
 
-          {/* ПРАВИЛА 6.6: строка сообщения стоит всегда — макет не прыгает. */}
-          <span className={s.say} role="status">{said}</span>
+            {/* ПРАВИЛА 6.6: строка сообщения стоит всегда — макет не прыгает. */}
+            <span className={s.say} role="status">{said}</span>
 
-          <Button kind="go" type="submit" disabled={busy || !ключ}>
-            {busy ? 'Меняем…' : 'Задать пароль и войти'}
-          </Button>
-        </form>
+            <Button kind="go" type="submit" disabled={busy || !ключ}>
+              {busy ? 'Меняем…' : 'Задать пароль и войти'}
+            </Button>
+          </form>
 
-        <p className={s.foot}>
-          Ссылка живёт час и срабатывает один раз. Если она уже не работает —
-          попросите новую на экране входа: там есть «Забыли пароль».
-        </p>
+          <p className={s.foot}>
+            Ссылка живёт час и срабатывает один раз. Если она уже не работает —
+            попросите новую на экране входа: там есть «Забыли пароль».
+          </p>
+        </div>
       </div>
     </main>
   )

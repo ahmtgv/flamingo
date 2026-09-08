@@ -4,7 +4,7 @@
   height: 100%;
   display: grid;
   place-items: center;
-  padding: var(--space-6);
+  padding: var(--space-8) var(--поле);
   background: var(--color-bg);
   overflow-y: auto;
 }
@@ -25,7 +25,7 @@
 .title {
   margin: 0;
   font-family: var(--font-heading);
-  font-size: var(--text-h1);
+  font-size: var(--text-h2);
   font-weight: var(--weight-semibold);
   letter-spacing: var(--tracking-tight);
   line-height: var(--leading-heading);

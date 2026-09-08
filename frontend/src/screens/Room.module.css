@@ -41,6 +41,47 @@
   flex: none;
 }
 
+/* ── телефон ─────────────────────────────────────────────────────────
+   🔴 ШАПКА КОМНАТЫ НЕ ВЛЕЗАЕТ В 360. Померено 08.09: левая часть 352 px,
+   «Чат» — 66, и кнопка стояла на 392–459, то есть целиком за правым краем,
+   без единой прокручиваемой области. На телефоне шапка переносится: код и
+   состояние с «Чатом» в одну строку, полка урока — во всю ширину второй.
+   Полка названа не классом, а «всё, что не левая и не правая часть»:
+   порядок детей меняется, смысл — нет. */
+@media (max-width: 720px) {
+  .head {
+    display: flex;
+    flex-wrap: wrap;
+    row-gap: var(--space-2);
+    padding: var(--space-2) var(--space-3);
+  }
+
+  .headLeft {
+    order: 0;
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .headRight {
+    order: 1;
+    flex: 0 0 auto;
+  }
+
+  .head > *:not(.headLeft):not(.headRight) {
+    order: 2;
+    flex: 1 0 100%;
+    min-width: 0;
+  }
+
+  .code {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
 .sep {
   width: 1px;
   height: var(--space-5);

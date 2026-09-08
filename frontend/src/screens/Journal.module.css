@@ -15,7 +15,9 @@
   display: flex;
   align-items: center;
   gap: var(--space-3);
-  padding: var(--space-3) var(--space-5);
+  row-gap: var(--space-2);
+  flex-wrap: wrap;
+  padding: var(--space-3) var(--поле);
   border-bottom: 1px solid var(--color-border);
 }
 
@@ -62,7 +64,7 @@
 .out:hover { color: var(--color-text); }
 
 .body {
-  padding: var(--space-6) var(--space-7);
+  padding: var(--space-6) var(--поле);
   display: grid;
   align-content: start;
   gap: var(--space-5);
@@ -75,7 +77,7 @@
 .title {
   margin: 0;
   font-family: var(--font-heading);
-  font-size: var(--text-h1);
+  font-size: var(--text-h2);
   font-weight: var(--weight-semibold);
   letter-spacing: var(--tracking-tight);
   line-height: var(--leading-heading);
