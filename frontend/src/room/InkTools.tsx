@@ -1,3 +1,5 @@
+import { useEffect, useState } from 'react'
+
 import type { Tool } from './Ink'
 import type { StickerName } from './shows'
 import s from './InkTools.module.css'
@@ -31,6 +33,18 @@ export function InkTools({ tool, onTool, onUndo, onWipe, canUndo, canWipe }: {
   canWipe: boolean
 }) {
   const pen = tool.kind === 'pen' || tool.kind === 'arrow' ? tool : null
+  const [взведено, setВзведено] = useState(false)
+  useEffect(() => {
+    if (!взведено) return
+    const метка = setTimeout(() => setВзведено(false), 4000)
+    return () => clearTimeout(метка)
+  }, [взведено])
+  const стереть = () => {
+    if (!взведено) { setВзведено(true); return }
+    setВзведено(false)
+    onWipe()
+  }
+
   return (
     <div className={s.tools} data-pult="маркер">
       {MARKER.map((c) => (
@@ -70,8 +84,20 @@ export function InkTools({ tool, onTool, onUndo, onWipe, canUndo, canWipe }: {
       <button type="button" className={s.btn} onClick={onUndo} disabled={!canUndo}>
         Отменить
       </button>
-      <button type="button" className={s.btn} onClick={onWipe} disabled={!canWipe}>
-        Стереть всё
+      {/* 🔴 ВТОРОЙ ВОПРОС, КАК У ДОСКИ (ПРАВИЛА 14.2). Раньше одно нажатие
+          стирало пометки у всех и тут же писало опустевший показ в базу:
+          «Отменить» брало последнюю метку страницы, а страница уже пуста —
+          возвращать нечем. Кнопки при этом стоят в 8 px друг от друга. Осмотр
+          комнаты 08.09, находка 5. Взвод сам гаснет через четыре секунды. */}
+      <button
+        type="button"
+        className={`${s.btn} ${взведено ? s.wipeArmed : ''}`}
+        onClick={стереть}
+        disabled={!canWipe}
+        title="Стереть всё · стирает пометки этой страницы у всех, кто в комнате. Вернуть нельзя."
+        aria-label="Стереть всё"
+      >
+        {взведено ? 'стереть?' : 'Стереть всё'}
       </button>
 
       {/* Правило пометок сказано словами прямо на полке (лист «Показ»): иначе

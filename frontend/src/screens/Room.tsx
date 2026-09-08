@@ -13,7 +13,7 @@ import { ShowList } from '../room/ShowList'
 import { deckFrom, pickFiles } from '../room/deck'
 import { планСпроса } from '../room/спрос'
 import { allShows, dropShow, putShow, type Ink, type ShowDoc } from '../room/shows'
-import { Stage } from '../room/Stage'
+import { Stage, ЦЕЛО } from '../room/Stage'
 import { Tiles } from '../room/Tiles'
 import { useRoom } from '../room/useRoom'
 import { roomUrl } from '../lib/code'
@@ -118,6 +118,8 @@ export function Room({ code, name, onLeave, onHome }: Props) {
   }, [code])
 
   const [copied, setCopied] = useState(false)
+  const [неСкопировалось, setНеСкопировалось] = useState(false)
+  const [материалНеОткрылся, setМатериалНеОткрылся] = useState<string | null>(null)
   const [source, setSource] = useState<Source>('faces')
   const [lines, setLines] = useState<Line[]>([])
 
@@ -461,9 +463,12 @@ export function Room({ code, name, onLeave, onHome }: Props) {
         putShow(doc).then((ok) => setKept(ok))
         openShow(doc)
       } catch {
-        /* Сняли пособие или сервер молчит. Урок идёт: не окно с ошибкой,
-           а строка в списке — «не отдалось». Список её и покажет. */
-        setПособия((с) => с.filter((x) => x.id !== п.id))
+        /* 🔴 РАНЬШЕ ЗДЕСЬ СТОЯЛО `setПособия(с => с.filter(...))` — строка
+           молча вычёркивалась из списка, ровно вопреки этому же комментарию.
+           Преподаватель нажимал на учебник, тот пропадал, и человек думал,
+           что удалил файл сам. Осмотр комнаты 08.09, находка 6. Материал
+           остаётся на месте, а о молчании сервера сказано словами. */
+        setМатериалНеОткрылся(п.имя)
       } finally {
         setBusy(false)
       }
@@ -499,8 +504,15 @@ export function Room({ code, name, onLeave, onHome }: Props) {
 
   /** Показать свой экран классу. Сцена переключается сама: делиться экраном
    *  и продолжать смотреть на лица — значит показывать классу не то, что думаешь. */
+  /* 🔴 СЦЕНА ПЕРЕКЛЮЧАЕТСЯ ТОЛЬКО ПОСЛЕ ТОГО, КАК ПОКАЗ ДЕЙСТВИТЕЛЬНО ПОШЁЛ.
+     Раньше `setSource('screen')` и рассылка стояли сразу после `await` без
+     проверки: преподаватель нажимал «Показать экран», передумывал в окне
+     выбора браузера — и весь класс уезжал на чёрный экран с надписью «Экран
+     сейчас появится», из которого у него нет выхода (кнопка «Остановить»
+     рисуется только тому, кто показывает). Осмотр комнаты 08.09, находка 3. */
   const share = useCallback(async () => {
-    await toggleShare()
+    const пошло = await toggleShare()
+    if (!пошло) return
     setSource('screen')
     bus.send({ t: 'stage', source: 'screen' })
   }, [bus, toggleShare])
@@ -519,9 +531,19 @@ export function Room({ code, name, onLeave, onHome }: Props) {
     [bus, name],
   )
 
-  const copy = () => {
-    navigator.clipboard?.writeText(link).catch(() => undefined)
-    setCopied(true)
+  /* 🔴 «СКОПИРОВАНО» ГОВОРИТСЯ ТОЛЬКО ПОСЛЕ ТОГО, КАК СКОПИРОВАЛОСЬ. Раньше
+     `setCopied(true)` стоял безусловно и срабатывал даже там, где буфера у
+     браузера нет вовсе: преподаватель вставлял в мессенджер пустоту и не
+     понимал, почему класс не заходит. Осмотр комнаты 08.09, находка 7. */
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(link)
+      setCopied(true)
+      setНеСкопировалось(false)
+    } catch {
+      setCopied(false)
+      setНеСкопировалось(true)
+    }
   }
 
   useEffect(() => {
@@ -666,6 +688,26 @@ export function Room({ code, name, onLeave, onHome }: Props) {
           <Stage faces={лица} alone={alone} веду={iLead} link={link} onCopy={copy} phase={phase} error={error} />
         ) : null}
 
+        {/* Материал не пришёл с сервера. Урок идёт: карточка называет, что
+            именно не открылось, и что остальное на месте (ПРАВИЛА 6.4). */}
+        {материалНеОткрылся ? (
+          <div className={s.overNote}>
+            <Note light title="Материал не открылся"
+              text={`«${материалНеОткрылся}» не пришёл с сервера — возможно, его сняли с урока. Остальные материалы на месте.`}
+              action="Понятно" onAction={() => setМатериалНеОткрылся(null)} />
+          </div>
+        ) : null}
+
+        {/* Браузер не дал скопировать — это надо сказать, а не показывать
+            галку (ПРАВИЛА 6.4). Ссылка на урок стоит рядом, в шапке. */}
+        {неСкопировалось ? (
+          <div className={s.overNote}>
+            <Note light title="Ссылка не скопировалась"
+              text={`Браузер не дал скопировать. Ссылка на урок: ${link} — выделите её и скопируйте руками.`}
+              action="Понятно" onAction={() => setНеСкопировалось(false)} />
+          </div>
+        ) : null}
+
         {/* Отказ показа экрана. Человек закрыл окно выбора — это не поломка,
             и урок идёт дальше; но молчать нельзя (ПРАВИЛА 6.4). */}
         {shareSaid ? (
@@ -695,7 +737,8 @@ export function Room({ code, name, onLeave, onHome }: Props) {
                 light
                 title="Эфир не поднялся"
                 warn
-                text={`${error} Доска работает, всё написанное на месте.`}
+                text={error}
+                цело={ЦЕЛО}
                 action="Поднять эфир заново"
                 onAction={() => window.location.reload()}
               />

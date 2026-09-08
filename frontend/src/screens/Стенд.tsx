@@ -271,7 +271,7 @@ export const ЭКРАНЫ: { имя: string; путь: string; рисуй: () =>
     <Stage faces={ЛИЦА} alone={false} веду={false} link="flamingo.plus/r/g6rh-ntaf-rzpp" onCopy={ни} phase="live" error="" />
   ) },
   { имя: 'сцена-связи-нет', путь: '/r/', рисуй: () => (
-    <Stage faces={[]} alone веду link="flamingo.plus/r/g6rh-ntaf-rzpp" onCopy={ни} phase="failed" error="Медиасервер не отвечает" />
+    <Stage faces={[]} alone веду link="flamingo.plus/r/g6rh-ntaf-rzpp" onCopy={ни} phase="failed" error="Медиасервер не ответил." />
   ) },
   { имя: 'лица', путь: '/r/', рисуй: () => (
     <Faces faces={ЛИЦА} alone={false} link="flamingo.plus/r/g6rh-ntaf-rzpp" onCopy={ни} phase="live" error="" />

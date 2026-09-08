@@ -152,7 +152,11 @@ export function useRoom(code: string, name: string) {
       .on(RoomEvent.Disconnected, () => {
         if (!alive) return
         setPhase('failed')
-        setError('Связь с комнатой прервалась. Доска и записи не пострадали — их и нет.')
+        /* 🔴 ТЕКСТ ЦЕЛЫЙ, А НЕ ПОЛОВИНА ФРАЗЫ. Раньше он склеивался в Stage
+           с хвостом «Доска работает, и всё написанное на ней цело» и давал
+           «Доска и записи не пострадали — их и нет. Доска работает…» —
+           два предложения, спорящих друг с другом. */
+        setError('Связь с комнатой прервалась.')
       })
       .on(RoomEvent.ConnectionStateChanged, (st: ConnectionState) => {
         if (!alive) return
@@ -192,7 +196,7 @@ export function useRoom(code: string, name: string) {
         setError(
           e instanceof RoomError
             ? e.message
-            : 'Эфир не поднялся: медиасервер не ответил. Доска и комната от этого не пострадали.',
+            : 'Медиасервер не ответил.',
         )
       }
     })()
@@ -259,6 +263,7 @@ export function useRoom(code: string, name: string) {
     try {
       await room.localParticipant.setScreenShareEnabled(next, { audio: false })
       setSharing(next)
+      return next
     } catch (e) {
       // NotAllowedError — человек закрыл окно выбора. Это не поломка.
       const отказ = (e as { name?: string })?.name === 'NotAllowedError'
@@ -266,6 +271,7 @@ export function useRoom(code: string, name: string) {
         ? 'Показ экрана отменён — окно выбора закрыто. Урок идёт дальше.'
         : 'Браузер не дал показать экран. Урок идёт дальше: доска, голос и чат работают.')
       setSharing(false)
+      return false
     }
   }, [sharing])
 

@@ -8,10 +8,16 @@ import s from './Note.module.css'
  *  что работает, что нет, что с данными.
  */
 export function Note({
-  title, text, warn = false, code, action, onAction, light = false,
+  title, text, цело, warn = false, code, action, onAction, light = false,
 }: {
   title: string
   text: string
+  /** 🔴 ХОРОШАЯ НОВОСТЬ НЕ КРАСИТСЯ АЛАРМОМ. `warn` красит весь абзац, а в
+   *  абзац отказа подмешана та единственная строка, ради которой человек
+   *  успокаивается: «написанное на доске цело». Кораллом она читается как
+   *  «всё пропало» — ровно наоборот (ПРАВИЛА 5.8). Осмотр комнаты 08.09,
+   *  находка 8. Причина идёт в `text` и красится, уцелевшее — в `цело`. */
+  цело?: string
   warn?: boolean
   code?: string
   action?: string
@@ -24,6 +30,7 @@ export function Note({
     <div className={`${s.note} ${light ? s.light : ''}`} role="status">
       <span className={s.title}>{title}</span>
       <span className={`${s.text} ${warn ? s.warn : ''}`}>{text}</span>
+      {цело ? <span className={s.text}>{цело}</span> : null}
       {code ? <code className={s.code}>{code}</code> : null}
       {action && onAction ? (
         <button type="button" className={s.act} onClick={onAction}>

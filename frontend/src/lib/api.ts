@@ -29,17 +29,27 @@ export async function fetchTicket(room: string, name: string): Promise<RoomTicke
       body: JSON.stringify({ room, name }),
     })
   } catch {
-    throw new RoomError('Сервер Flamingo не отвечает. Проверьте, запущен ли он.')
+    /* 🔴 ЧЕЛОВЕКУ — ПРИЧИНА И ОДНО ДЕЙСТВИЕ, КОТОРОЕ ОН МОЖЕТ СДЕЛАТЬ
+       (ПРАВИЛА 6.4). «Проверьте, запущен ли он» — распоряжение системному
+       администратору: преподавателю с классом в комнате проверять нечего. */
+    throw new RoomError('Сервер Flamingo не отвечает. Урок и ссылка на месте — попробуйте войти ещё раз через минуту.')
   }
 
   let body: { token?: string; url?: string; identity?: string; name?: string; error?: string } = {}
   try {
     body = await res.json()
   } catch {
-    throw new RoomError(`Сервер ответил не по-нашему (${res.status}).`)
+    /* 🔴 НОМЕР ОТВЕТА — В КОНСОЛЬ, А НЕ В ЛИЦО ЧЕЛОВЕКУ (ПРАВИЛА 6.4).
+       «Сервер ответил не по-нашему (404)» ученик читает как свою вину и не
+       узнаёт ни причины, ни что делать. Поймано осмотром комнаты 08.09. */
+    console.warn('комната: ответ сервера не разобран, код', res.status)
+    throw new RoomError('Сервер комнаты ответил непонятно. Урок и написанное на доске на месте — откройте ссылку ещё раз.')
   }
 
-  if (!res.ok) throw new RoomError(body.error ?? `Сервер отказал (${res.status}).`)
+  if (!res.ok) {
+    console.warn('комната: сервер отказал, код', res.status)
+    throw new RoomError(body.error ?? 'Сервер комнаты не пустил внутрь. Урок никуда не делся — откройте ссылку ещё раз или попросите новую.')
+  }
   if (!body.token || !body.url) throw new RoomError('Сервер не прислал пропуск в комнату.')
 
   return {

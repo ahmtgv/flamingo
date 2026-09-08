@@ -88,3 +88,10 @@
   border-color: var(--color-text);
   background: var(--color-surface-subtle);
 }
+
+/* Подтверждение «стереть?» — единственный коралловый в этой полке: это аларм,
+   вернуть нельзя (ПРАВИЛА 11а, тот же узел, что у доски). */
+.wipeArmed {
+  border-color: var(--color-accent-text);
+  color: var(--color-accent-text);
+}
