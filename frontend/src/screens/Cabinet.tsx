@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from 'react'
 import type { Person } from '../lib/auth'
 import { Mark } from '../ui/Mark'
 import { сегодняСтрокой } from '../lib/lessons'
+import { useСегодня } from '../lib/сутки'
 import { Беда, гдеЛежат, разговоры, урокСейчас, читатьУроки, type Разговор, type Урок } from '../lib/study'
 import { Переписка } from './Переписка'
 import s from './Cabinet.module.css'
@@ -112,7 +113,13 @@ export function Cabinet({ person, onLesson, onNew, onEdit, onJournal, onOut, onH
   /** Домой — то есть в кабинет. На самом кабинете знак обновляет его же. */
   onHome: () => void
 }) {
-  const сегодня = useMemo(() => new Date(), [])
+  /* 🔴 НЕ `useMemo(() => new Date(), [])`. Так было, и кабинет замерзал:
+     «сегодня» считалось один раз при открытии и не менялось никогда — экран,
+     оставленный с вечера, в 00:20 показывал вчера (аудит 07.09, находка 17).
+     `useСегодня` меняет значение ровно при смене суток; от него же считается
+     `месяц`, а от месяца — запрос к серверу, так что в ночь на первое кабинет
+     сам спросит новый месяц. */
+  const сегодня = useСегодня()
   const клетки = useMemo(() => клеткиМесяца(сегодня), [сегодня])
   const учитель = person.role === 'teacher'
   const месяц = `${сегодня.getFullYear()}-${String(сегодня.getMonth() + 1).padStart(2, '0')}`

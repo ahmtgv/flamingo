@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 
 import type { Person } from '../lib/auth'
 import { Mark } from '../ui/Mark'
@@ -6,6 +6,7 @@ import { Беда, сделатьПриглашение, читатьЖурна�
 import { Переписка } from './Переписка'
 import { разговоры } from '../lib/study'
 import { useПоверх } from '../lib/окно'
+import { useСегодня } from '../lib/сутки'
 import s from './Journal.module.css'
 import { Button } from '../ui/Button'
 
@@ -48,7 +49,21 @@ export function Journal({ person, onBack, onHome, onOut, onNew, onLesson, под
    *  тридцати — тот же случай, что «кабинет-полный-день». */
   подложка?: Данные
 }) {
-  const [когда, setКогда] = useState(() => new Date())
+  /* 🔴 В СОСТОЯНИИ ЛЕЖИТ СДВИГ ОТ ТЕКУЩЕГО МЕСЯЦА, А НЕ САМ МЕСЯЦ. Раньше здесь
+     стоял `useState(() => new Date())` — месяц замерзал при открытии, и журнал,
+     оставленный с вечера, в ночь на первое показывал прошлый месяц как текущий
+     (тот же корень, что находка 17 аудита в кабинете).
+     Сдвигом это чинится само и правильно: «ноль» значит «этот месяц» и после
+     полуночи означает уже новый, а если преподаватель ушёл на два месяца
+     вперёд, он и останется на два месяца вперёд — а не уедет назад. */
+  const сегодня = useСегодня()
+  const [сдвигМесяцев, setСдвигМесяцев] = useState(0)
+  const когда = useMemo(() => {
+    const d = new Date(сегодня)
+    d.setDate(1)
+    d.setMonth(d.getMonth() + сдвигМесяцев)
+    return d
+  }, [сегодня, сдвигМесяцев])
   const [данные, setДанные] = useState<Данные | null>(null)
   const [беда, setБеда] = useState('')
   const [зовём, setЗовём] = useState(false)
@@ -68,10 +83,7 @@ export function Journal({ person, onBack, onHome, onOut, onNew, onLesson, под
   useEffect(() => обновить(), [обновить])
 
   const сдвиг = (на: number) => {
-    const d = new Date(когда)
-    d.setDate(1)
-    d.setMonth(d.getMonth() + на)
-    setКогда(d)
+    setСдвигМесяцев((с) => с + на)
     setДанные(null)
   }
 
