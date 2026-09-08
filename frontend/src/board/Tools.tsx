@@ -60,7 +60,7 @@ const I = {
 function Ico({ d }: { d: keyof typeof I }) {
   return (
     <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor"
-         strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+         strokeWidth="1.4" vectorEffect="non-scaling-stroke" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       {I[d]}
     </svg>
   )

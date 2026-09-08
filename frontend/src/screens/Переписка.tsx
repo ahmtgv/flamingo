@@ -128,7 +128,7 @@ export function Переписка({ кто, имя, веду, уроки = [], 
                 aria-label="Закрыть разговор" title="Закрыть разговор">
           {/* Знак рисованный: глиф шрифта на части машин оставляет пустой квадрат. */}
           <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor"
-               strokeWidth="1.6" strokeLinecap="round" aria-hidden="true">
+               strokeWidth="1.4" vectorEffect="non-scaling-stroke" strokeLinecap="round" aria-hidden="true">
             <path d="M6 6l12 12 M18 6L6 18" />
           </svg>
         </button>

@@ -108,7 +108,7 @@ export function Chat({ lines, alive, onClose, onSend, onOpen }: {
         <button type="button" className={s.close} onClick={onClose}
                 aria-label="Закрыть чат" title="Закрыть чат">
           <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor"
-               strokeWidth="1.6" strokeLinecap="round" aria-hidden="true">
+               strokeWidth="1.4" vectorEffect="non-scaling-stroke" strokeLinecap="round" aria-hidden="true">
             <path d="M6 6l12 12 M18 6L6 18" />
           </svg>
         </button>
