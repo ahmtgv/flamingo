@@ -40,6 +40,28 @@ export function осмотр(имя, css, есть) {
   return беды
 }
 
+/** 🔴 АДРЕС РАЗРАБОТЧИКА В БОЕВОЙ СБОРКЕ.
+ *
+ *  Случилось 30.08: забытый локальный `.env` унёс в боевую сборку
+ *  `http://localhost:8080`, и продукт молча ходил в никуда. Заметить это можно
+ *  было только по неработающей комнате — ни ошибки, ни красного, ни строчки в
+ *  журнале. Тогда лечили запретом: боевой код не читал окружение вовсе.
+ *
+ *  09.09 запрет снят — адрес сервера один на весь продукт и берётся из
+ *  окружения. Значит мина вернулась бы, если бы не эта проверка: она смотрит в
+ *  СОБРАННЫЙ файл, то есть туда, где ложь уже материализовалась, и ей всё равно,
+ *  из какого `.env` адрес приехал.
+ *
+ *  Сборку на Cloudflare это не спасает и не должно: там локального `.env` нет
+ *  физически. Спасает того, кто однажды соберёт боевое руками на своей машине. */
+export function адресаРазработчика(js) {
+  const беды = []
+  for (const m of js.matchAll(/https?:\/\/(?:localhost|127\.0\.0\.1|0\.0\.0\.0)(?::\d+)?/g)) {
+    беды.push(m[0])
+  }
+  return [...new Set(беды)]
+}
+
 function run() {
   if (!existsSync(DIST)) {
     console.error('ДЕФЕКТ · нет папки dist — караул смотрит собранное, запускать после vite build')
@@ -55,12 +77,25 @@ function run() {
   const беды = []
   for (const н of css) беды.push(...осмотр('dist/assets/' + н, readFileSync(join(assets, н), 'utf8'), есть))
 
+  const js = existsSync(assets) ? readdirSync(assets).filter((н) => н.endsWith('.js')) : []
+  if (!js.length) {
+    console.error('ДЕФЕКТ · в сборке нет ни одного js — так не бывает')
+    process.exit(1)
+  }
+  for (const н of js) {
+    for (const а of адресаРазработчика(readFileSync(join(assets, н), 'utf8'))) {
+      беды.push(`dist/assets/${н} — в боевой сборке адрес разработчика ${а}. `
+        + 'Проверьте frontend/.env: он не попадает в git, но попадает в сборку, собранную руками')
+    }
+  }
+
   if (беды.length) {
     console.error(`ДЕФЕКТ · ${беды.length}\n`)
     беды.forEach((б) => console.error('  ' + б))
     process.exit(1)
   }
-  console.log(`ok · собранных css ${css.length}, все адреса ведут в существующие файлы`)
+  console.log(`ok · css ${css.length}: все адреса ведут в существующие файлы`)
+  console.log(`ok · js ${js.length}: ни одного адреса разработчика`)
 }
 
 function selftest() {
@@ -74,9 +109,24 @@ function selftest() {
     ['чужой сайт не трогаем', 'src: url(https://cdn.example/x.woff2)', 0],
     ['адрес в кавычках', "src: url('./files/x.woff2')", 1],
   ]
+  const адреса = [
+    ['чистая сборка', 'fetch("https://api.flamingo.plus/api/room/token")', 0],
+    ['та самая мина 30.08', 'const B="http://localhost:8080";', 1],
+    ['она же через 127.0.0.1', 'fetch("http://127.0.0.1:8080/api")', 1],
+    ['без порта тоже ловим', 'x="http://localhost/api"', 1],
+    ['два разных — два раза', 'a="http://localhost:8080";b="http://127.0.0.1:5180"', 2],
+    ['один и тот же дважды — одна беда', 'a="http://localhost:8080";b="http://localhost:8080"', 1],
+    ['слово localhost в тексте — не адрес', 'const т="откройте localhost в браузере"', 0],
+  ]
   let плохо = 0
   for (const [имя, текст, ждали] of случаи) {
     const было = осмотр('образец', текст, есть).length
+    const ок = было === ждали
+    if (!ок) плохо += 1
+    console.log(`${ок ? 'ok  ' : 'ПЛОХО'} ${имя}: ждали ${ждали}, получили ${было}`)
+  }
+  for (const [имя, текст, ждали] of адреса) {
+    const было = адресаРазработчика(текст).length
     const ок = было === ждали
     if (!ок) плохо += 1
     console.log(`${ок ? 'ok  ' : 'ПЛОХО'} ${имя}: ждали ${ждали}, получили ${было}`)
@@ -85,7 +135,7 @@ function selftest() {
     console.error(`\nСАМОПРОВЕРКА ПРОВАЛЕНА · ${плохо}`)
     process.exit(1)
   }
-  console.log(`\nсамопроверка: ${случаи.length} из ${случаи.length}`)
+  console.log(`\nсамопроверка: ${случаи.length + адреса.length} из ${случаи.length + адреса.length}`)
 }
 
 if (process.argv.includes('--selftest')) selftest()
