@@ -92,7 +92,11 @@
 .разворот {
   grid-row: 3;
   display: grid;
-  grid-template-columns: minmax(0, 0.82fr) minmax(0, 1.18fr);
+  /* 🔴 РОЛИК УПИРАЕТСЯ В ШИРИНУ КОЛОНКИ, А НЕ В ВЫСОТУ. После того как из
+     левой колонки ушли заголовок и лид, высоты стало вдоволь, и размер кадра
+     стала диктовать ширина. Доли выровнены — кадр вырос примерно на четверть,
+     доска осталась крупнейшим объектом страницы. */
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: var(--space-7);
   min-height: 0;
   padding: var(--воздух) var(--центр);
@@ -107,54 +111,44 @@
   text-transform: uppercase;
   color: var(--color-text-hint);
 }
-.заголовок {
-  /* 🔴 ЗАГОЛОВОК СТРАНИЦЫ ОДИН НА ВЕСЬ ПРОДУКТ — 24 (ПРАВИЛА 4.1). Титул жил по
-     своей шкале: 32, на широком окне 56. Решение владельца 08.09, по паре
-     снимков: «сделать 24, как везде». Исключение из караула `кадр-check` ушло
-     вместе с ним. */
+/* 🔴 ЗАГОЛОВОК СТРАНИЦЫ ОДИН НА ВЕСЬ ПРОДУКТ — 24 (ПРАВИЛА 4.1). Титул жил по
+   своей шкале: 32, на широком окне 56. Решение владельца 08.09: «сделать 24,
+   как везде». Строка сменилась (10.09), ступень осталась той же. */
+.мысль {
   margin: 0;
   font-size: var(--text-h2);
   line-height: var(--витрина-строка-титул);
   font-weight: 600;
   letter-spacing: var(--витрина-буквы-титул);
+  max-width: 28ch;
 }
 @media (min-width: 1400px) {
     /* 🔴 ОДИН КЕГЛЬ НА ВСЕ ОКНА. Прежде герой рос до 56 на широком: витрина жила
      по своей шкале. Решение владельца 08.09 — «сделать 24, как везде»; значит и
      прибавки на широком окне больше нет. */
 }
-.лид {
-  margin: 0;
-  font-size: var(--text-body);
-  line-height: var(--витрина-строка-проза);
-  color: var(--color-text-detail);
-}
-/* 🔴 ЭТО ЕДИНСТВЕННАЯ СТРОКА, ОТВЕЧАЮЩАЯ НА «А МНЕ ПОДОЙДЁТ?», И ОНА СТОЯЛА
-   САМЫМ ТИХИМ НАБОРОМ СТРАНИЦЫ: 12 моно, прописные, разрядка, `--color-text-hint`
-   — а по ПРАВИЛА 4.11 hint значит «ничего не случится, если это не прочитают».
-   Обещание в 50 знаков читать надо. Обычный набор, ступень тела, вторая
-   ступень цвета; выделение смысловой половины берёт готовый `.кому b`. */
-.кому {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-1) var(--space-3);
-  font-size: var(--text-small);
-  line-height: var(--витрина-строка-проза);
-  color: var(--color-text-detail);
-  align-items: center;
-}
-.кому b { color: var(--color-text); font-weight: var(--weight-medium); }
 
 /* ── проморолик ────────────────────────────────────────────────────── */
-/* Раскладку низа выбирает замер: где хватает высоты — ролик во всю ширину
-   с подписью снизу, где нет — подпись сбоку, чтобы справа не зияла дыра. */
-.проБлок { display: grid; gap: var(--space-4); min-width: 0; min-height: 0; align-content: start; }
-.сбоку { grid-template-columns: auto minmax(0, 1fr); align-items: end; }
-.стопкой { grid-template-columns: minmax(0, 1fr); gap: var(--space-2); }
-.проТекст { display: grid; gap: var(--space-2); min-width: 0; }
-.сбоку .проТекст { align-content: end; }
+/* Подпись строкой, под ней кадр во всю оставшуюся высоту. Ширину кадру
+   считает замер (`подогнать`), высоту — соотношение 16:9. */
+.проБлок {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: var(--space-2);
+  min-width: 0;
+  min-height: 0;
+}
+.проТекст { display: grid; min-width: 0; }
+/* 🔴 ШИРИНА 100 % — ЭТО ОСНОВАНИЕ, А НЕ ЗАПАСНОЙ ВАРИАНТ. На настольном окне
+   её перебивает встроенный стиль от `подогнать()`; там, где замер не работает
+   (телефон), кадр обязан занять колонку целиком. Без этой строки при
+   `justify-self: start` и одном лишь соотношении сторон ширина уходит в ноль,
+   и ролик на телефоне пропадал во второй раз — уже по другой причине. */
 .промо {
   position: relative;
+  width: 100%;
+  align-self: start;
+  justify-self: start;
   aspect-ratio: 16 / 9;
   max-width: 100%;
   /* Потолок по высоте: ширину ролику считает JS, но ДО первого замера он
@@ -191,10 +185,20 @@
   box-shadow: var(--shadow-md);
 }
 .пуск svg { position: static; width: var(--space-4); height: var(--space-4); fill: var(--color-on-media-ink); }
-.проПодпись { display: grid; gap: 2px; font-size: var(--text-small); line-height: var(--витрина-строка-плотно); }
-.проПодпись s { font-family: var(--font-mono); font-size: var(--text-overline); color: var(--color-text-hint); text-decoration: none; }
-.стопкой .проПодпись { display: flex; align-items: baseline; gap: var(--space-3); }
-.стопкой .проПодпись s { margin-left: auto; white-space: nowrap; }
+/* Две строки по замыслу, а не по случайному переносу: первая — о чём ролик и
+   сколько он идёт, вторая — честная оговорка. Одной строкой они не встают:
+   у кадра ширина в 520 px, а у фразы — 74 знака. */
+.проПодпись {
+  display: grid;
+  gap: 2px;
+  font-size: var(--text-small);
+  line-height: var(--витрина-строка-плотно);
+  color: var(--color-text-detail);
+}
+.проСтрока { display: flex; align-items: baseline; gap: var(--space-3); min-width: 0; }
+.проКринж { color: var(--color-text-hint); }
+.проПодпись s { font-family: var(--font-mono); font-size: var(--text-overline);
+  color: var(--color-text-hint); text-decoration: none; margin-left: auto; white-space: nowrap; }
 
 /* ── доска ─────────────────────────────────────────────────────────── */
 .доска {
@@ -297,6 +301,17 @@
    лид и как логотип, — и отличался от соседнего абзаца только весом. На 1280
    «Познавательная наука» и подзаголовок читались одной двухстрочной фразой. */
 .нЗаголовок { margin: 0; font-size: var(--text-h3); font-weight: 600; letter-spacing: var(--tracking-snug); }
+.нПодпись {
+  font-family: var(--font-mono);
+  font-size: var(--text-overline);
+  letter-spacing: var(--витрина-буквы-метка);
+  text-transform: uppercase;
+  color: var(--color-text-hint);
+  white-space: nowrap;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 .всё {
   position: relative; margin-left: auto; font-size: var(--text-caption); color: var(--color-text-detail); background: none; border: 0; cursor: pointer; padding: 0; }
 .всё:hover { color: var(--color-text); }
@@ -527,6 +542,10 @@
     min-height: auto;
   }
 
+  /* В колонке высоту диктует содержимое: тянущаяся строка здесь ни к чему. */
+  .проБлок { grid-template-rows: auto auto; }
+  .промо { max-height: none; }
+
   /* Доска остаётся живой картинкой, но высоту берёт свою, а не «остаток
      кадра»: в колонке остатка нет. */
   .доска {
@@ -655,23 +674,6 @@
   height: var(--space-3);
 }
 
-/* 🔴 ЗАГОЛОВОК И ПОДЗАГОЛОВОК — ОДИН РЕБЁНОК СЕТКИ. `.часть` расписана как
-   `auto minmax(0, 1fr)`: две строки, вторая тянется. Третий ребёнок сдвигал
-   ленту в неявную строку `auto`, и обложки с `height: 100 %` схлопывались в
-   ноль — на экране оставались подписи без картинок. Поймано снимком. */
-.нВерх { display: grid; }
-
-.нЛид {
-  margin: 0 0 var(--space-4);
-  font-size: var(--text-small);
-  color: var(--color-text-detail);
-}
-
-.сноска {
-  margin: var(--space-3) 0 0;
-  font-size: var(--text-caption);
-  color: var(--color-text-hint);
-}
 
 
 /* ═══ ПРАВКИ ПО ГЛУБОКОМУ АУДИТУ ТИТУЛА 10.09 ════════════════════════ */
