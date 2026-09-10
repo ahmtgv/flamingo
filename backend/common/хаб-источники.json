@@ -1,0 +1,182 @@
+[
+ {
+  "id": "apod",
+  "home": "https://apod.nasa.gov/apod/astropix.html",
+  "name": "NASA · снимок дня"
+ },
+ {
+  "id": "hubble",
+  "home": "https://hubblesite.org/images",
+  "name": "Телескоп «Хаббл» · архив"
+ },
+ {
+  "id": "jwst",
+  "home": "https://webbtelescope.org/images",
+  "name": "Телескоп «Джеймс Уэбб»"
+ },
+ {
+  "id": "sdo",
+  "home": "https://sdo.gsfc.nasa.gov/data/",
+  "name": "NASA SDO · Солнце"
+ },
+ {
+  "id": "earth",
+  "home": "https://worldview.earthdata.nasa.gov/",
+  "name": "NASA Earthdata"
+ },
+ {
+  "id": "iss",
+  "home": "https://www.nasa.gov/live/",
+  "name": "МКС · внешняя камера"
+ },
+ {
+  "id": "esa",
+  "home": "https://www.esa.int/ESA_Multimedia/Images",
+  "name": "ESA · Европейское космическое агентство"
+ },
+ {
+  "id": "eso",
+  "home": "https://www.eso.org/public/images/",
+  "name": "ESO · южная обсерватория"
+ },
+ {
+  "id": "lapalma",
+  "home": "https://www.gtc.iac.es/multimedia/webcams.php",
+  "name": "Обсерватория Ла-Пальма"
+ },
+ {
+  "id": "noaa",
+  "home": "https://www.noaa.gov/climate",
+  "name": "NOAA · погода и океан"
+ },
+ {
+  "id": "usgs",
+  "home": "https://earthquake.usgs.gov/earthquakes/map/",
+  "name": "USGS · землетрясения"
+ },
+ {
+  "id": "kvert",
+  "home": "https://glob.emsd.ru/visual-observations/",
+  "name": "Камчатка · камеры на вулканах"
+ },
+ {
+  "id": "met",
+  "home": "https://www.metmuseum.org/art/collection",
+  "name": "Метрополитен-музей · открытая коллекция"
+ },
+ {
+  "id": "rijks",
+  "home": "https://www.rijksmuseum.nl/en/collection",
+  "name": "Рейксмузеум"
+ },
+ {
+  "id": "smith",
+  "home": "https://www.si.edu/openaccess",
+  "name": "Смитсоновский институт"
+ },
+ {
+  "id": "loc",
+  "home": "https://www.loc.gov/collections/",
+  "name": "Библиотека Конгресса"
+ },
+ {
+  "id": "gallica",
+  "home": "https://gallica.bnf.fr/",
+  "name": "Gallica · Национальная библиотека Франции"
+ },
+ {
+  "id": "bl",
+  "home": "https://www.bl.uk/manuscripts/",
+  "name": "Британская библиотека"
+ },
+ {
+  "id": "bodleian",
+  "home": "https://digital.bodleian.ox.ac.uk/",
+  "name": "Бодлианская библиотека"
+ },
+ {
+  "id": "cambridge",
+  "home": "https://cudl.lib.cam.ac.uk/",
+  "name": "Кембриджская цифровая библиотека"
+ },
+ {
+  "id": "gutenberg",
+  "home": "https://www.gutenberg.org/",
+  "name": "Проект «Гутенберг»"
+ },
+ {
+  "id": "archive",
+  "home": "https://archive.org/",
+  "name": "Интернет-архив"
+ },
+ {
+  "id": "europeana",
+  "home": "https://www.europeana.eu/",
+  "name": "Europeana"
+ },
+ {
+  "id": "wiki",
+  "home": "https://commons.wikimedia.org/",
+  "name": "Викисклад"
+ },
+ {
+  "id": "rumsey",
+  "home": "https://www.davidrumsey.com/",
+  "name": "Карты Дэвида Румзи"
+ },
+ {
+  "id": "osm",
+  "home": "https://www.openstreetmap.org/",
+  "name": "OpenStreetMap"
+ },
+ {
+  "id": "gbif",
+  "home": "https://www.gbif.org/",
+  "name": "GBIF · биоразнообразие"
+ },
+ {
+  "id": "inat",
+  "home": "https://www.inaturalist.org/",
+  "name": "iNaturalist"
+ },
+ {
+  "id": "eol",
+  "home": "https://eol.org/",
+  "name": "Энциклопедия жизни"
+ },
+ {
+  "id": "pdb",
+  "home": "https://www.rcsb.org/",
+  "name": "Банк белковых структур"
+ },
+ {
+  "id": "cern",
+  "home": "https://opendata.cern.ch/",
+  "name": "CERN · открытые данные"
+ },
+ {
+  "id": "arxiv",
+  "home": "https://arxiv.org/",
+  "name": "arXiv"
+ },
+ {
+  "id": "pmc",
+  "home": "https://www.ncbi.nlm.nih.gov/pmc/",
+  "name": "PubMed Central"
+ },
+ {
+  "id": "wb",
+  "home": "https://data.worldbank.org/",
+  "name": "Всемирный банк · открытые данные"
+ },
+ {
+  "id": "owid",
+  "home": "https://ourworldindata.org/",
+  "name": "Our World in Data"
+ },
+ {
+  "id": "eurostat",
+  "home": "https://ec.europa.eu/eurostat/data/database",
+  "name": "Eurostat"
+ }
+]

@@ -145,18 +145,24 @@ export function Journal({ person, onBack, onHome, onOut, onNew, onLesson, под
 
   return (
     <main className={s.screen}>
-      {вРаме ? null : (
-        <header className={s.head}>
-          <Mark onGo={onHome} title="Главная — кабинет" />
-          <span className={s.crumb} title="Кабинет преподавателя · Журнал">
-            Кабинет преподавателя · Журнал
-          </span>
+      {/* 🔴 ИМЯ ЛИСТА ОСТАЁТСЯ И В РАМЕ (решение владельца 10.09). При переезде
+          на постоянную навигацию я завернул в «не рисовать» всю шапку целиком —
+          и вместе со знаком и «имя · Выйти», которые уехали в колонку, пропало
+          само имя листа. Человек переставал понимать, где он. Знак и человек
+          рисуются рамой и здесь не повторяются (ПРАВИЛА 4.9: знак один на
+          экран), а имя листа — рисуется всегда. */}
+      <header className={s.head}>
+        {вРаме ? null : <Mark onGo={onHome} title="Главная — кабинет" />}
+        <span className={s.crumb} title="Кабинет преподавателя · Журнал">
+          Кабинет преподавателя · Журнал
+        </span>
+        {вРаме ? null : (
           <span className={s.who}>
             {person.name} ·{' '}
             <button type="button" className={s.out} onClick={onOut}>Выйти</button>
           </span>
-        </header>
-      )}
+        )}
+      </header>
 
       <div className={s.body}>
         <div className={s.top}>

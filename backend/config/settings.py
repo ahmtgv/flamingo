@@ -27,6 +27,9 @@ ALLOWED_HOSTS = _list("ALLOWED_HOSTS", "localhost,127.0.0.1")
 
 INSTALLED_APPS = [
     "corsheaders",
+    # Моделей у `common` нет — приложением он объявлен ради одной вещи:
+    # без этого Django не найдёт `manage.py хаб_снимки`.
+    "common",
     "room",
     "people",
     "study",

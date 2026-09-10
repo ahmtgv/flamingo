@@ -1,3 +1,7 @@
+import { useEffect, useState } from 'react'
+
+import { адресСнимка, снимки } from './превью'
+import к from './Cover.module.css'
 import type { Kind } from './sources'
 
 /** Обложка источника.
@@ -76,6 +80,34 @@ function мотив(kind: Kind, h: number) {
 
 export function Cover({ id, kind }: { id: string; kind: Kind }) {
   const h = семя(id)
+  /* 🔴 НАСТОЯЩИЙ СНИМОК ВСТАЁТ НА ЭТО МЕСТО — ровно как обещал комментарий выше.
+     Его приносит суточный обход на сервере (`manage.py хаб_снимки`), а не сама
+     страница: чужой сайт браузеру с нашего домена не отвечает, да и посылать
+     школьника за картинкой на тридцать шесть чужих серверов мы не станем.
+     Снимка нет — рисуем, как рисовали: обложка не требует картинки. */
+  const [снимок, setСнимок] = useState(false)
+
+  useEffect(() => {
+    let жив = true
+    снимки().then((есть) => { if (жив && есть.has(id)) setСнимок(true) })
+    return () => { жив = false }
+  }, [id])
+
+  if (снимок) {
+    return (
+      <img
+        className={к.снимок}
+        src={адресСнимка(id)}
+        alt=""
+        loading="lazy"
+        decoding="async"
+        /* Файл мог исчезнуть между списком и запросом — тогда молча возвращаемся
+           к рисунку, а не показываем сломанную картинку. */
+        onError={() => setСнимок(false)}
+      />
+    )
+  }
+
   return (
     <svg
       className="cover"
