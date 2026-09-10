@@ -111,7 +111,7 @@ function Строка({ у, onGo, onEdit }: { у: Урок; onGo: () => void; on
   )
 }
 
-export function Cabinet({ person, onLesson, onNew, onEdit, onJournal, onOut, onHome }: {
+export function Cabinet({ person, onLesson, onNew, onEdit, onJournal, onOut, onHome, вРаме = false }: {
   person: Person
   /** Начать урок: кабинет открывает комнату и ведёт в неё. */
   onLesson: (code: string) => void
@@ -123,6 +123,12 @@ export function Cabinet({ person, onLesson, onNew, onEdit, onJournal, onOut, onH
   onOut: () => void
   /** Домой — то есть в кабинет. На самом кабинете знак обновляет его же. */
   onHome: () => void
+  /** 🔴 ЭКРАН ВНУТРИ ПОСТОЯННОЙ НАВИГАЦИИ (`ui/Рама.tsx`, решение владельца
+   *  09–10.09). Тогда знак и «имя · Выйти» рисует рама, и повторять их в
+   *  шапке экрана нельзя: два знака на одном экране — это не украшение,
+   *  а вопрос «какой из них настоящий» (ПРАВИЛА 4.9: знак один на экран).
+   *  Стенд и гость рисуют экран без рамы — там шапка прежняя. */
+  вРаме?: boolean
 }) {
   /* 🔴 НЕ `useMemo(() => new Date(), [])`. Так было, и кабинет замерзал:
      «сегодня» считалось один раз при открытии и не менялось никогда — экран,
@@ -263,19 +269,21 @@ export function Cabinet({ person, onLesson, onNew, onEdit, onJournal, onOut, onH
 
   return (
     <main className={s.screen}>
-      <header className={s.head}>
-        {/* 🔴 Дороги назад из кабинета нет, и это верно: кабинет и ЕСТЬ главная
-            (решение владельца 01.09). Кнопка «← Занятие по ссылке» вела на
-            посадочную страницу, которой больше не существует. */}
-        <Mark onGo={onHome} title="Главная — кабинет" />
-        <span className={s.crumb} title={учитель ? 'Кабинет преподавателя' : 'Мой учебный кабинет'}>
-          {учитель ? 'Кабинет преподавателя' : 'Мой учебный кабинет'}
-        </span>
-        <span className={s.who}>
-          {person.name} ·{' '}
-          <button type="button" className={s.out} onClick={onOut}>Выйти</button>
-        </span>
-      </header>
+      {вРаме ? null : (
+        <header className={s.head}>
+          {/* 🔴 Дороги назад из кабинета нет, и это верно: кабинет и ЕСТЬ главная
+              (решение владельца 01.09). Кнопка «← Занятие по ссылке» вела на
+              посадочную страницу, которой больше не существует. */}
+          <Mark onGo={onHome} title="Главная — кабинет" />
+          <span className={s.crumb} title={учитель ? 'Кабинет преподавателя' : 'Мой учебный кабинет'}>
+            {учитель ? 'Кабинет преподавателя' : 'Мой учебный кабинет'}
+          </span>
+          <span className={s.who}>
+            {person.name} ·{' '}
+            <button type="button" className={s.out} onClick={onOut}>Выйти</button>
+          </span>
+        </header>
+      )}
 
       <div className={s.body}>
         {/* ── слева: работа на сегодня ─────────────────────────────────── */}

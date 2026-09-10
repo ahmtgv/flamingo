@@ -21,7 +21,16 @@ import { Button } from '../ui/Button'
  *  уместнее там, где источник открыт, а не в углу каталога.
  */
 
-export function Hub({ onBack, onHome }: { onBack: () => void; onHome: () => void }) {
+export function Hub({ onBack, onHome, вРаме = false }: {
+  onBack: () => void
+  onHome: () => void
+  /** 🔴 ЭКРАН ВНУТРИ ПОСТОЯННОЙ НАВИГАЦИИ (`ui/Рама.tsx`, решение владельца
+   *  09–10.09). Тогда знак и «имя · Выйти» рисует рама, и повторять их в
+   *  шапке экрана нельзя: два знака на одном экране — это не украшение,
+   *  а вопрос «какой из них настоящий» (ПРАВИЛА 4.9: знак один на экран).
+   *  Стенд и гость рисуют экран без рамы — там шапка прежняя. */
+  вРаме?: boolean
+}) {
   const [kind, setKind] = useState<Kind | null>(null)
   /* Открытый источник показывается ЗДЕСЬ ЖЕ, поверх каталога. Новая вкладка
      уносит человека из Flamingo, и обратно он уже не всегда возвращается. */
@@ -37,7 +46,7 @@ export function Hub({ onBack, onHome }: { onBack: () => void; onHome: () => void
         <button type="button" className={s.back} onClick={onBack}>
           ← Назад
         </button>
-        <Mark onGo={onHome} />
+        {вРаме ? null : <Mark onGo={onHome} />}
         <span className={s.crumb}>Flamingo HUB</span>
       </header>
 

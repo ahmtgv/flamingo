@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useState, type ReactNode } from 'react'
 
 /* 🔴 ВХОД ВЕРНУЛСЯ НА СТАРЫЙ ЗАКОН (решение владельца 04.09: «не уверен, что
    вывезешь без потерь — буду думать»). Пергаментный `пергамент/Вход` не удалён
@@ -18,6 +18,7 @@ import { NewLesson } from './screens/NewLesson'
 import { Journal } from './screens/Journal'
 import { Invite } from './screens/Invite'
 import { Молчание, Wait } from './ui/Wait'
+import { Рама, type Раздел } from './ui/Рама'
 import { codeFromPath } from './lib/code'
 import { rememberName, rememberedName } from './lib/name'
 import { logout, whoAmI, type Person } from './lib/auth'
@@ -196,7 +197,21 @@ export function App() {
     go('/кабинет')
   }, [go])
 
-  const кабинет = (p: Person) => (
+  /** 🔴 ПОСТОЯННАЯ НАВИГАЦИЯ (решение владельца 09–10.09). До неё у продукта
+   *  было около четырнадцати мест и ровно три двери: из кабинета нельзя было
+   *  попасть ни в источники, ни куда-либо ещё, кроме журнала.
+   *
+   *  🔴 В КОМНАТЕ РАМЫ НЕТ, И ЭТО НЕ ЗАБЫВЧИВОСТЬ. Любой пункт меню внутри
+   *  урока — это приглашение уйти с занятия. Выход из комнаты один, как и был.
+   *  Титул, вход, регистрация, приглашение и битая ссылка — тоже без рамы:
+   *  там ещё нет того, кому она принадлежит. */
+  const врама = (p: Person, где: Раздел, что: ReactNode) => (
+    <Рама person={p} где={где} onGo={go} onOut={() => { out(); go('/вход') }}>
+      {что}
+    </Рама>
+  )
+
+  const кабинет = (p: Person) => врама(p, 'кабинет', (
     <Cabinet
       person={p}
       onLesson={(c) => enter(c, p.name)}
@@ -205,8 +220,9 @@ export function App() {
       onJournal={() => go('/журнал')}
       onOut={() => { out(); go('/вход') }}
       onHome={домой}
+      вРаме
     />
-  )
+  ))
 
   /** Ключ приглашения из адреса `/у/<ключ>`. */
   const ключПриглашения = (() => {
@@ -214,7 +230,17 @@ export function App() {
     return m ? decodeURIComponent(m[1]) : null
   })()
 
-  if (path === '/hub') return <Hub onBack={домой} onHome={домой} />
+  /* Источники. Вошедшему — в раме, гостю — как были: рама принадлежит тому,
+     кто вошёл, а каталог открыт всем и учётной записи не требует.
+     🔴 Ждём ответа о том, кто вошёл, ПЕРЕД отрисовкой: иначе вошедший увидит
+     каталог сначала без колонки, а через мгновение с колонкой — макет
+     прыгнет (ПРАВИЛА 6.6). Ожидание короткое и кончается в любом случае:
+     молчание сервера — тоже ответ. */
+  if (path === '/hub') {
+    if (!узнали) return <Wait />
+    const хаб = <Hub onBack={домой} onHome={домой} вРаме={Boolean(person)} />
+    return person ? врама(person, 'избранное', хаб) : хаб
+  }
 
   /* Личный кабинет. Он ЕСТЬ только у того, кто вошёл: без учётной записи
      кабинету неоткуда взяться и нечего в нём показывать. */
@@ -231,7 +257,7 @@ export function App() {
     if (молчит) return <Молчание onAgain={спроситьСнова} />
     if (!person || person.role !== 'teacher') return person ? кабинет(person) : <Sign onDone={вошёл} />
     const id = path.startsWith('/урок/') ? decodeURIComponent(path.slice('/урок/'.length)) : undefined
-    return (
+    return врама(person, 'кабинет', (
       <NewLesson
         key={id ?? 'новый'}
         person={person}
@@ -242,8 +268,9 @@ export function App() {
         onBack={() => go('/кабинет')}
         onOut={() => { out(); go('/вход') }}
         onHome={домой}
+        вРаме
       />
-    )
+    ))
   }
 
   /* Журнал: ученики и занятия. Ведёт его преподаватель. */
@@ -252,7 +279,7 @@ export function App() {
     if (молчит) return <Молчание onAgain={спроситьСнова} />
     if (!person) return <Sign onDone={вошёл} />
     if (person.role !== 'teacher') return кабинет(person)
-    return (
+    return врама(person, 'журнал', (
       <Journal
         person={person}
         onBack={() => go('/кабинет')}
@@ -260,8 +287,9 @@ export function App() {
         onOut={() => { out(); go('/вход') }}
         onNew={() => go('/создать-урок')}
         onLesson={(c) => enter(c, person.name)}
+        вРаме
       />
-    )
+    ))
   }
 
   /* Ссылка в журнал: `/у/<ключ>`. Работает и вошедшему, и пришедшему впервые. */

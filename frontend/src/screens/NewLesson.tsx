@@ -39,7 +39,7 @@ const РАЗМЕР = (b: number) =>
 const ПОЛНОЕ_ВРЕМЯ = /^\d{2}:\d{2}$/
 const ПОЛНАЯ_ДАТА = /^\d{2}\.\d{2}\.\d{4}$/
 
-export function NewLesson({ person, урокId, onDone, onCreated, onBack, onOut, onHome }: {
+export function NewLesson({ person, урокId, onDone, onCreated, onBack, onOut, onHome, вРаме = false }: {
   person: Person
   /** Правим существующий урок — или заводим новый, если пусто. */
   урокId?: string
@@ -49,6 +49,12 @@ export function NewLesson({ person, урокId, onDone, onCreated, onBack, onOut
   onBack: () => void
   onOut: () => void
   onHome: () => void
+  /** 🔴 ЭКРАН ВНУТРИ ПОСТОЯННОЙ НАВИГАЦИИ (`ui/Рама.tsx`, решение владельца
+   *  09–10.09). Тогда знак и «имя · Выйти» рисует рама, и повторять их в
+   *  шапке экрана нельзя: два знака на одном экране — это не украшение,
+   *  а вопрос «какой из них настоящий» (ПРАВИЛА 4.9: знак один на экран).
+   *  Стенд и гость рисуют экран без рамы — там шапка прежняя. */
+  вРаме?: boolean
 }) {
   const [урок, setУрок] = useState<Урок | null>(null)
   const [название, setНазвание] = useState('')
@@ -194,17 +200,19 @@ export function NewLesson({ person, урокId, onDone, onCreated, onBack, onOut
 
   return (
     <main className={s.screen}>
-      <header className={s.head}>
-        <Mark onGo={onHome} title="Главная — кабинет" />
-        <span className={s.crumb}
-              title={`Кабинет преподавателя · ${правка ? 'Урок' : 'Создать урок'}`}>
-          Кабинет преподавателя · {правка ? 'Урок' : 'Создать урок'}
-        </span>
-        <span className={s.who}>
-          {person.name} ·{' '}
-          <button type="button" className={s.out} onClick={onOut}>Выйти</button>
-        </span>
-      </header>
+      {вРаме ? null : (
+        <header className={s.head}>
+          <Mark onGo={onHome} title="Главная — кабинет" />
+          <span className={s.crumb}
+                title={`Кабинет преподавателя · ${правка ? 'Урок' : 'Создать урок'}`}>
+            Кабинет преподавателя · {правка ? 'Урок' : 'Создать урок'}
+          </span>
+          <span className={s.who}>
+            {person.name} ·{' '}
+            <button type="button" className={s.out} onClick={onOut}>Выйти</button>
+          </span>
+        </header>
+      )}
 
       <div className={s.body}>
         {/* Левая колонка — где я, куда вернуться и что сейчас произойдёт. */}

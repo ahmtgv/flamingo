@@ -1,0 +1,263 @@
+/* Постоянная навигация. Решение владельца 09–10.09: у продукта около
+   четырнадцати мест, а дверей на них было три. Колонка слева — это и есть
+   недостающие двери; она видна отовсюду, кроме комнаты. */
+
+.рама {
+  height: 100%;
+  display: grid;
+  grid-template-columns: var(--рама) minmax(0, 1fr);
+  background: var(--color-bg);
+  overflow: hidden;
+}
+
+.колонка {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-5) var(--space-4);
+  background: var(--color-surface);
+  border-right: 1px solid var(--color-border);
+  overflow-y: auto;
+}
+
+.знак {
+  padding: var(--space-1) var(--space-3) var(--space-5);
+}
+
+.группа {
+  font-family: var(--font-mono);
+  font-size: var(--text-overline);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-text-hint);
+  padding: var(--space-5) var(--space-3) var(--space-2);
+}
+
+/* Пункт-дверь и пункт-«скоро» — одна геометрия: меню не должно прыгать,
+   когда раздел появится. */
+.пункт {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  min-height: var(--control-height-sm);
+  padding: var(--space-3);
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text);
+  font: inherit;
+  font-size: var(--text-small);
+  text-align: left;
+  cursor: pointer;
+}
+
+.пункт:hover {
+  background: var(--color-surface-hover);
+}
+
+.пункт:focus-visible {
+  outline: 2px solid var(--color-border-strong);
+  outline-offset: 2px;
+}
+
+.здесь {
+  background: var(--color-surface-subtle);
+  font-weight: 500;
+  cursor: default;
+}
+
+.здесь:hover {
+  background: var(--color-surface-subtle);
+}
+
+/* Точка у того места, где человек сейчас. */
+.точка {
+  width: var(--dot-size);
+  height: var(--dot-size);
+  border-radius: var(--radius-pill);
+  background: var(--color-text);
+  flex-shrink: 0;
+}
+
+.имя {
+  flex-grow: 1;
+}
+
+/* Раздела ещё нет. Он назван, но не притворяется дверью (ПРАВИЛА 14.1). */
+.скоро {
+  cursor: default;
+  color: var(--color-text-hint);
+}
+
+.скоро:hover {
+  background: transparent;
+}
+
+.потом {
+  font-family: var(--font-mono);
+  font-size: var(--text-overline);
+  color: var(--color-text-hint);
+}
+
+.распорка {
+  flex-grow: 1;
+  min-height: var(--space-6);
+}
+
+.человек {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  border-top: 1px solid var(--color-border);
+}
+
+.буквы {
+  display: grid;
+  place-items: center;
+  width: var(--space-7);
+  height: var(--space-7);
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-subtle);
+  font-family: var(--font-mono);
+  font-size: var(--text-overline);
+  color: var(--color-text-secondary);
+  flex-shrink: 0;
+}
+
+.кто {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.чьё {
+  font-size: var(--text-small);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.выйти {
+  align-self: flex-start;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font-family: var(--font-mono);
+  font-size: var(--text-overline);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+}
+
+.выйти:hover {
+  color: var(--color-accent-text);
+}
+
+.лист {
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* ── Узкое окно: колонка становится нижней полосой ──────────────────────
+   Колонка НЕ сужается — словарь меню обязан быть одним и тем же на всех
+   ширинах. Пробовали 224 px: половина пунктов уходит на две строки, высота
+   строк разъезжается, меню начинает выглядеть сломанным.
+   🔴 ГРАНИЦА — 900 px, А НЕ 1100. При 1100 колонка пропадала уже на окне
+   1024, а макет Р9 (одобрен владельцем 10.09) показывает её именно там:
+   на 1024 сужается СОДЕРЖИМОЕ, а не рама. Ниже 900 px места под колонку и
+   лист одновременно уже нет — там она уезжает вниз, а «Ещё» открывает тот же
+   список целиком. */
+@media (max-width: 899px) {
+  .рама {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr) auto;
+  }
+
+  .колонка {
+    display: none;
+  }
+
+  .лист {
+    grid-row: 1;
+  }
+
+  .полоса {
+    display: flex;
+    align-items: stretch;
+    padding: var(--space-2) var(--space-1);
+    background: var(--color-surface);
+    border-top: 1px solid var(--color-border);
+  }
+
+  .кнопка {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-1);
+    min-height: var(--control-height-md);
+    padding: var(--space-2) var(--space-1);
+    border: 0;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--color-text-secondary);
+    font: inherit;
+    font-size: var(--text-overline);
+    cursor: pointer;
+  }
+
+  .кнопкаЗдесь {
+    color: var(--color-text);
+    font-weight: 500;
+  }
+
+  .огонёк {
+    width: var(--space-1);
+    height: var(--space-1);
+    border-radius: var(--radius-pill);
+    background: var(--color-text);
+  }
+
+  .погашен {
+    background: transparent;
+  }
+
+  /* 🔴 `fixed`, а не `absolute`. От полосы высотой в одну кнопку `absolute`
+     считает и «низ», и «70 %»: лист выходил в полсотни пикселей и вылезал
+     под нижний край. Тот же приём, что у подложки, и порядок в разметке
+     ставит лист поверх неё без единого z-index. */
+  .ещё {
+    position: fixed;
+    inset-inline: 0;
+    bottom: 0;
+    max-height: 70%;
+    overflow-y: auto;
+    padding: var(--space-4);
+    background: var(--color-surface);
+    border-top: 1px solid var(--color-border);
+    box-shadow: var(--shadow-lg);
+  }
+
+  .подложка {
+    position: fixed;
+    inset: 0;
+    border: 0;
+    background: var(--color-overlay);
+    cursor: pointer;
+  }
+
+  .низ {
+    position: relative;
+  }
+}
+
+/* Широкое окно: нижней полосы нет. */
+@media (min-width: 900px) {
+  .низ {
+    display: none;
+  }
+}

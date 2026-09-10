@@ -38,13 +38,19 @@ const ДНИ = ['вс', 'пн', 'вт', 'ср', 'чт', 'пт', 'сб']
 const ключМесяца = (d: Date) =>
   `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
 
-export function Journal({ person, onBack, onHome, onOut, onNew, onLesson, подложка }: {
+export function Journal({ person, onBack, onHome, onOut, onNew, onLesson, подложка, вРаме = false }: {
   person: Person
   onBack: () => void
   onHome: () => void
   onOut: () => void
   onNew: () => void
   onLesson: (код: string) => void
+  /** 🔴 ЭКРАН ВНУТРИ ПОСТОЯННОЙ НАВИГАЦИИ (`ui/Рама.tsx`, решение владельца
+   *  09–10.09). Тогда знак и «имя · Выйти» рисует рама, и повторять их в
+   *  шапке экрана нельзя: два знака на одном экране — это не украшение,
+   *  а вопрос «какой из них настоящий» (ПРАВИЛА 4.9: знак один на экран).
+   *  Стенд и гость рисуют экран без рамы — там шапка прежняя. */
+  вРаме?: boolean
   /** 🔴 ТОЛЬКО ДЛЯ СТЕНДА (`screens/Стенд.tsx`, живёт под `import.meta.env.DEV`).
    *  Готовый журнал вместо запроса: журнал живёт на сервере, и без него на
    *  стенде виден только отказ. А ломается он не на трёх занятиях, а на
@@ -139,16 +145,18 @@ export function Journal({ person, onBack, onHome, onOut, onNew, onLesson, под
 
   return (
     <main className={s.screen}>
-      <header className={s.head}>
-        <Mark onGo={onHome} title="Главная — кабинет" />
-        <span className={s.crumb} title="Кабинет преподавателя · Журнал">
-          Кабинет преподавателя · Журнал
-        </span>
-        <span className={s.who}>
-          {person.name} ·{' '}
-          <button type="button" className={s.out} onClick={onOut}>Выйти</button>
-        </span>
-      </header>
+      {вРаме ? null : (
+        <header className={s.head}>
+          <Mark onGo={onHome} title="Главная — кабинет" />
+          <span className={s.crumb} title="Кабинет преподавателя · Журнал">
+            Кабинет преподавателя · Журнал
+          </span>
+          <span className={s.who}>
+            {person.name} ·{' '}
+            <button type="button" className={s.out} onClick={onOut}>Выйти</button>
+          </span>
+        </header>
+      )}
 
       <div className={s.body}>
         <div className={s.top}>
