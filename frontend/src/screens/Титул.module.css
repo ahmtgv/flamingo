@@ -146,10 +146,15 @@
    (телефон), кадр обязан занять колонку целиком. Без этой строки при
    `justify-self: start` и одном лишь соотношении сторон ширина уходит в ноль,
    и ролик на телефоне пропадал во второй раз — уже по другой причине. */
+/* 🔴 НИЖНЯЯ КРОМКА КАДРА И НИЖНЯЯ КРОМКА ДОСКИ — ОДНА ЛИНИЯ (решение владельца
+   10.09). Кадр держит 16:9 и упирается в ширину колонки, поэтому по высоте у
+   него остаётся запас: с `align-self: start` этот запас оказывался снизу, и две
+   половины разворота заканчивались на разной высоте. Теперь запас уходит наверх,
+   под подпись, а кромки сходятся при любой ширине окна. */
 .промо {
   position: relative;
   width: 100%;
-  align-self: start;
+  align-self: end;
   justify-self: start;
   aspect-ratio: 16 / 9;
   max-width: 100%;
@@ -290,7 +295,12 @@
      ровно на 4 px при 1512×944. Поймано стендом. */
   padding: var(--space-3) var(--центр);
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  /* 🔴 ЛЕНТЕ ЧУТЬ БОЛЬШЕ ПОЛОВИНЫ. Имя ролика стоит одной строкой в ширину
+     колонки, а колонка — это шестая часть ленты: при ровных долях под имя
+     оставалось 87 px на 1280, и обрезались все шесть. 1,1 к 0,9 даёт 96 —
+     ровно столько, сколько просят самые длинные имена. Плитки хаба при этом
+     теряют 33 px из 322 и своих строк не роняют (померено). */
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
   gap: var(--space-7);
   min-height: 0;
   overflow: hidden;
@@ -346,28 +356,6 @@
    обрезалась до «математик» — ошибка в русском на главной странице продукта
    про образование. Без разрядки влезает, а многоточие стоит на случай
    более узкого кадра. */
-/* 🔴 БУКВА ПОВЕРХ ФОТОГРАФИИ ПРОМАХИВАЕТСЯ ВСЕГДА — если у неё нет своей
-   подложки: тема переворачивает букву, кадр не переворачивается, и днём мимо
-   порога 4,5 шли все шесть меток (худший пиксель 1,00:1). С подложкой, как у
-   `.скоро`: 4,91 днём и 5,63 ночью, от кадра метка больше не зависит.
-   Разрядка снята: с ней «математика» просила 82 px и обрезалась. */
-.предмет {
-  position: absolute;
-  left: var(--space-1);
-  top: var(--space-1);
-  max-width: calc(100% - var(--space-2));
-  min-width: 0;
-  font-family: var(--font-mono);
-  font-size: var(--text-overline);
-  text-transform: uppercase;
-  color: var(--color-text-detail);
-  background: var(--color-surface);
-  border-radius: var(--radius-xs);
-  padding: 0 var(--space-1);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
 .скоро {
   position: absolute;
   right: var(--space-1);
@@ -379,14 +367,18 @@
   border-radius: var(--radius-xs);
   padding: 0 var(--space-1);
 }
+/* 🔴 ОДНА СТРОКА — И ЭТО НЕ ТОЛЬКО ПРО ТЕКСТ. Нижний ряд карточки `auto`, а
+   обложка берёт 9:16 от того, что осталось: имя во вторую строку делало
+   карточку с длинным именем ниже, и её превью выходило мельче соседних.
+   Ровно одна строка у всех — ровно один размер у всех. */
 .имя {
+  min-width: 0;
   font-size: var(--text-caption);
   line-height: var(--витрина-строка-плотно);
   color: var(--color-text-detail);
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
+  white-space: nowrap;
   overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .хаб { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -733,30 +725,6 @@
 .пускКнопка:hover .пуск { box-shadow: var(--shadow-lg); }
 .перо:hover { border-color: var(--color-border-control); }
 
-/* 🔴 ПРЕДУПРЕЖДЕНИЕ О ЗВУКЕ СТОИТ ДО НАЖАТИЯ, А НЕ ПОСЛЕ. Постер — последнее
-   место, где человек ещё может передумать. Набор и подложка те же, что у
-   метки предмета: это служебная строка кадра, а не новый вид объекта. */
-.звук {
-  position: absolute;
-  right: var(--space-1);
-  bottom: var(--space-1);
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  font-family: var(--font-mono);
-  font-size: var(--text-overline);
-  color: var(--color-text-detail);
-  background: var(--color-surface);
-  border-radius: var(--radius-xs);
-  padding: 0 var(--space-1);
-}
-.звук svg {
-  position: static;
-  width: var(--space-3);
-  height: var(--space-3);
-  fill: currentColor;
-  stroke: currentColor;
-}
 
 /* 🔴 ЦЕЛЬ В 44 px ТАМ, ГДЕ НАЖИМАЮТ ПАЛЬЦЕМ. Невидимая рамка `::before` держит
    цель и на мыши, но у соседних ярлыков сцены рамки перекрываются: на
@@ -769,8 +737,3 @@
   .перо { width: var(--space-6); height: var(--space-6); }
 }
 
-
-/* На карточке ленты под слово места нет — остаётся значок; предупреждение
-   словами живёт в `aria-label`, а на проморолике — и на виду. */
-.обложка .звук { gap: 0; padding: 0 3px; }
-.обложка .звукСлово { display: none; }
