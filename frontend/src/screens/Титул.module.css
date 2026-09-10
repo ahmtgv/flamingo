@@ -592,3 +592,50 @@
   font-weight: var(--weight-regular);
   cursor: default;
 }
+
+/* ── ролики: настоящие кадры вместо нарисованных заглушек (10.09) ─────── */
+.кадр {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.кино {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: var(--color-surface-video);
+}
+/* Кнопка поверх кадра: рамку и скругление держит родитель, ей остаётся
+   только быть целью нажатия во всю площадь. */
+.пускКнопка {
+  position: absolute;
+  inset: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+/* Значок пуска на карточке ролика мельче, чем на проморолике: карточка
+   вчетверо уже, и общий кружок закрывал полкадра. */
+.обложка .пуск {
+  width: var(--space-7);
+  height: var(--space-7);
+}
+/* 🔴 `position: static` здесь ОБЯЗАТЕЛЕН. Правило `.обложка svg` (растянуть
+   мотив на всю обложку) стоит в файле ниже, чем `.пуск svg`, и при равной
+   силе побеждало: треугольник уезжал в левый верхний угол кружка. */
+.обложка .пуск svg {
+  position: static;
+  width: var(--space-3);
+  height: var(--space-3);
+}
+
+.сноска {
+  margin: var(--space-3) 0 0;
+  font-size: var(--text-caption);
+  color: var(--color-text-hint);
+}

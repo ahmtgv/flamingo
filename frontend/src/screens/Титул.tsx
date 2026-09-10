@@ -27,82 +27,13 @@ import s from './Титул.module.css'
  */
 
 const РОЛИКИ = [
-  { предмет: 'химия', имя: 'Огонь без спичек — и почему это безопасно' },
-  { предмет: 'математика', имя: 'Откуда взялся синус и зачем он морю' },
-  { предмет: 'астрономия', имя: 'Как звучит чёрная дыра' },
-  { предмет: 'музыка', имя: 'Восемь тактов, от которых мурашки' },
-  { предмет: 'биология', имя: 'Клетка под настоящим микроскопом' },
+  { предмет: 'физика',      файл: 'short-1', имя: 'Песок показывает, как звучит пластина' },
+  { предмет: 'физика',      файл: 'short-2', имя: 'Тело на наклонной плоскости, по шагам' },
+  { предмет: 'математика',  файл: 'short-3', имя: 'Синус, косинус и тангенс на одной окружности' },
+  { предмет: 'физика',      файл: 'short-4', имя: 'Мотор из двух катушек и магнита' },
+  { предмет: 'физика',      файл: 'short-5', имя: 'Волновой маятник: шары складываются в волну' },
+  { предмет: 'астрономия',  файл: 'short-6', имя: 'Планеты идут не по кругу, а по спирали' },
 ] as const
-
-/** Мотив обложки ролика. Цвет берётся токеном, как и везде. */
-function мотивРолика(предмет: string) {
-  if (предмет === 'химия') {
-    return (
-      <g fill="none" stroke="var(--color-accent)" strokeWidth={3}>
-        <path d="M74 96v40L44 214h92l-30-78V96" />
-        <path d="M68 96h44" />
-      </g>
-    )
-  }
-  if (предмет === 'математика') {
-    return (
-      <>
-        <path d="M-10 190 Q25 90 60 190 T130 190 T200 190" fill="none" stroke="var(--color-go)" strokeWidth={4} />
-        <path d="M0 190h180" stroke="var(--color-border-strong)" strokeWidth={1.5} />
-      </>
-    )
-  }
-  if (предмет === 'астрономия') {
-    return (
-      <>
-        <circle cx={90} cy={160} r={42} fill="none" stroke="var(--color-accent)" strokeWidth={2} />
-        <ellipse cx={90} cy={160} rx={66} ry={16} fill="none" stroke="var(--color-border-strong)" strokeWidth={1.4} />
-      </>
-    )
-  }
-  if (предмет === 'музыка') {
-    return (
-      <g fill="var(--color-info)">
-        {[26, 62, 110, 48, 140, 74, 34, 96, 150, 70, 40, 100].map((h, i) => (
-          <rect key={i} x={16 + i * 13} y={160 - h / 2} width={7} height={h} rx={3.5} />
-        ))}
-      </g>
-    )
-  }
-  return (
-    <>
-      <circle cx={90} cy={160} r={62} fill="none" stroke="var(--color-go)" strokeWidth={3} />
-      <circle cx={90} cy={160} r={22} fill="var(--color-go)" opacity={0.35} />
-    </>
-  )
-}
-
-/** Постер проморолика: миниатюра самой комнаты, а не серая заглушка. */
-function постер() {
-  return (
-    <svg viewBox="0 0 480 270" preserveAspectRatio="xMidYMid slice" aria-hidden>
-      <rect width={480} height={270} fill="var(--color-bg)" />
-      <rect x={18} y={16} width={444} height={176} rx={10} fill="var(--color-surface)" stroke="var(--color-border)" />
-      <g fill="var(--color-border)">
-        {Array.from({ length: 6 }, (_, r) =>
-          Array.from({ length: 17 }, (_, k) => (
-            <circle key={`${r}-${k}`} cx={32 + k * 26} cy={30 + r * 26} r={1.1} />
-          )))}
-      </g>
-      <path d="M60 150 Q108 60 156 150 T252 150" fill="none" stroke="var(--color-go)" strokeWidth={4} />
-      <g fill="none" stroke="var(--color-info)" strokeWidth={2.6}>
-        <ellipse cx={372} cy={104} rx={52} ry={20} />
-        <ellipse cx={372} cy={104} rx={52} ry={20} transform="rotate(60 372 104)" />
-        <ellipse cx={372} cy={104} rx={52} ry={20} transform="rotate(120 372 104)" />
-      </g>
-      <circle cx={372} cy={104} r={7} fill="var(--color-accent)" />
-      {[0, 1, 2, 3, 4].map((i) => (
-        <rect key={i} x={18 + i * 89} y={206} width={78} height={48} rx={7}
-          fill={i ? 'var(--color-surface)' : 'var(--color-surface-subtle)'} stroke="var(--color-border)" />
-      ))}
-    </svg>
-  )
-}
 
 const ПЕРЬЯ = ['--color-text', '--color-accent', '--color-go', '--color-info'] as const
 const В_ХАБЕ = ['hubble', 'loc', 'lapalma', 'rijks', 'rumsey', 'usgs']
@@ -122,12 +53,16 @@ export function Титул({ onSign, onNew, onHub, молчит = false, onAgain
   const левая = useRef<HTMLDivElement>(null)
   const слова = useRef<HTMLDivElement>(null)
   const блок = useRef<HTMLDivElement>(null)
-  const промо = useRef<HTMLButtonElement>(null)
+  const промо = useRef<HTMLDivElement>(null)
   const подпись = useRef<HTMLSpanElement>(null)
   const [сцена, setСцена] = useState(0)
   const [перо, setПеро] = useState(0)
   const пероРеф = useRef(0)
   const [стопкой, setСтопкой] = useState(true)
+  /* Какой ролик сейчас играет. Один за раз: две дорожки звука сразу — это не
+     витрина, а базар. */
+  const [идёт, setИдёт] = useState<string | null>(null)
+  const [промоИдёт, setПромоИдёт] = useState(false)
   const движок = useRef<ReturnType<typeof доска> | null>(null)
 
   const источники = В_ХАБЕ.map((id) => SOURCES.find((x) => x.id === id)).filter(Boolean)
@@ -317,21 +252,29 @@ export function Титул({ onSign, onNew, onHub, молчит = false, onAgain
           </div>
 
           <div className={`${s.проБлок} ${стопкой ? s.стопкой : s.сбоку}`} ref={блок}>
-            {/* Ролика ещё нет — кнопка объявлена немой словами (ПРАВИЛА 14.1). */}
-            {/* 🔴 У КНОПКИ ИЗ ОДНОЙ КАРТИНКИ ИМЕНИ НЕТ ВОВСЕ. Померено 08.09:
-                читалка объявляет её просто «кнопка». `data-still` объясняет
-                молчание нам (ПРАВИЛА 14.1), но человеку у экрана — ничего. */}
-            <button type="button" className={s.промо} ref={промо}
-                    aria-label="Посмотреть, как проходит занятие"
-                    data-still="проморолик снимается">
-              {постер()}
-              <span className={s.пуск}>
-                <svg viewBox="0 0 16 16" aria-hidden><path d="M4 2l10 6-10 6z" fill="var(--color-text)" /></svg>
-              </span>
-            </button>
+            {/* 🔴 РОЛИК СНЯТ И ЛЕЖИТ РЯДОМ (10.09). До этого кнопка была немой и
+                объявляла молчание через `data-still` — теперь ей есть что открыть,
+                и оговорка снята вместе с надписью «скоро».
+                🔴 У КНОПКИ ИЗ ОДНОЙ КАРТИНКИ ИМЕНИ НЕТ ВОВСЕ. Померено 08.09:
+                читалка объявляет её просто «кнопка», поэтому `aria-label`. */}
+            <div className={s.промо} ref={промо}>
+              {промоИдёт ? (
+                <video className={s.кино} src="/video/promo.mp4" poster="/video/promo.jpg"
+                       controls autoPlay playsInline />
+              ) : (
+                <button type="button" className={s.пускКнопка}
+                        aria-label="Посмотреть, как мы делаем фламинго"
+                        onClick={() => setПромоИдёт(true)}>
+                  <img className={s.кадр} src="/video/promo.jpg" alt="" />
+                  <span className={s.пуск}>
+                    <svg viewBox="0 0 16 16" aria-hidden><path d="M4 2l10 6-10 6z" fill="var(--color-text)" /></svg>
+                  </span>
+                </button>
+              )}
+            </div>
             <span className={s.проТекст}>
               <span className={s.проПодпись} ref={подпись}>
-                Посмотрите, как мы делаем фламинго<s>скоро</s>
+                Посмотрите, как мы делаем фламинго<s>2 минуты</s>
               </span>
             </span>
           </div>
@@ -378,20 +321,38 @@ export function Титул({ onSign, onNew, onHub, молчит = false, onAgain
         <div className={s.часть}>
           <div className={s.нШапка}>
             <h2 className={s.нЗаголовок}>Познавательная наука</h2>
-            <span className={s.нПодпись}>готовим</span>
+            <span className={s.нПодпись}>подборка</span>
           </div>
           <div className={s.лента}>
             {РОЛИКИ.map((р) => (
-              <div className={s.ролик} key={р.предмет}>
-                <span className={s.обложка}>
-                  <svg viewBox="0 0 180 320" preserveAspectRatio="xMidYMid slice" aria-hidden>{мотивРолика(р.предмет)}</svg>
-                  <span className={s.предмет}>{р.предмет}</span>
-                  <span className={s.скоро}>скоро</span>
-                </span>
+              <div className={s.ролик} key={р.файл}>
+                <div className={s.обложка}>
+                  {идёт === р.файл ? (
+                    <video className={s.кино} src={`/video/${р.файл}.mp4`}
+                           poster={`/video/${р.файл}.jpg`} controls autoPlay playsInline
+                           onEnded={() => setИдёт(null)} />
+                  ) : (
+                    <button type="button" className={s.пускКнопка}
+                            aria-label={`Посмотреть: ${р.имя}`}
+                            onClick={() => setИдёт(р.файл)}>
+                      <img className={s.кадр} src={`/video/${р.файл}.jpg`} alt="" loading="lazy" />
+                      <span className={s.предмет}>{р.предмет}</span>
+                      <span className={s.пуск}>
+                        <svg viewBox="0 0 16 16" aria-hidden><path d="M4 2l10 6-10 6z" fill="var(--color-text)" /></svg>
+                      </span>
+                    </button>
+                  )}
+                </div>
                 <span className={s.имя}>{р.имя}</span>
               </div>
             ))}
           </div>
+          {/* 🔴 РОЛИКИ ПОКА ЧУЖИЕ, И ЭТО СКАЗАНО ВСЛУХ. Владелец 10.09 назвал их
+              временными; авторы подписаны прямо в кадре, мы их не срезали.
+              Строка снимается вместе с заменой на свои съёмки. */}
+          <p className={s.сноска}>
+            Ролики пока чужие — авторы подписаны прямо в кадре. Свои снимаем.
+          </p>
         </div>
 
         <div className={s.часть}>
