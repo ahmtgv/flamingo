@@ -26,17 +26,47 @@ import s from './Титул.module.css'
  *  состояние — точкой и надписью (решение владельца 31.08).
  */
 
+/* 🔴 ИМЯ РОЛИКА ЖИВЁТ В КОЛОНКЕ 87 px. Померено на 1280: кегль 13, две
+   строки — это 26 знаков, а имена были по 31–44 и обрезались все шесть.
+   Обрезанное имя не говорит, о чём ролик, и раздел перестаёт быть выбором.
+   Держим 16–19 знаков: влезает целиком на всех трёх кадрах. */
 const РОЛИКИ = [
-  { предмет: 'физика',      файл: 'short-1', имя: 'Песок показывает, как звучит пластина' },
-  { предмет: 'физика',      файл: 'short-2', имя: 'Тело на наклонной плоскости, по шагам' },
-  { предмет: 'математика',  файл: 'short-3', имя: 'Синус, косинус и тангенс на одной окружности' },
-  { предмет: 'физика',      файл: 'short-4', имя: 'Мотор из двух катушек и магнита' },
-  { предмет: 'физика',      файл: 'short-5', имя: 'Волновой маятник: шары складываются в волну' },
-  { предмет: 'астрономия',  файл: 'short-6', имя: 'Планеты идут не по кругу, а по спирали' },
+  { предмет: 'физика',      файл: 'short-1', имя: 'Песок рисует звук' },
+  { предмет: 'физика',      файл: 'short-2', имя: 'Наклонная плоскость' },
+  { предмет: 'математика',  файл: 'short-3', имя: 'Синус на окружности' },
+  { предмет: 'физика',      файл: 'short-4', имя: 'Мотор из катушек' },
+  { предмет: 'физика',      файл: 'short-5', имя: 'Волновой маятник' },
+  { предмет: 'астрономия',  файл: 'short-6', имя: 'Планеты по спирали' },
 ] as const
 
-const ПЕРЬЯ = ['--color-text', '--color-accent', '--color-go', '--color-info'] as const
+/* 🔴 ЦВЕТ — НЕ ИМЯ. Перья различались только заливкой, а читалке объявлялись
+   «перо 1…4»: при дейтеранопии коралл и зелень дают контраст 1,02:1 — два
+   одинаковых кружка. Рядом, на плитках хаба, тот же продукт делает верно:
+   право названо словом. Здесь — то же самое. */
+const ПЕРЬЯ = [
+  { токен: '--color-text',   имя: 'чёрное перо' },
+  { токен: '--color-accent', имя: 'коралловое перо' },
+  { токен: '--color-go',     имя: 'зелёное перо' },
+  { токен: '--color-info',   имя: 'синее перо' },
+] as const
 const В_ХАБЕ = ['hubble', 'loc', 'lapalma', 'rijks', 'rumsey', 'usgs']
+/** 🔴 ЗВУК ВКЛЮЧАЛСЯ СРАЗУ И НА ПОЛНУЮ, БЕЗ ЕДИНОГО ПРЕДУПРЕЖДЕНИЯ. Все семь
+ *  видео: `muted false`, `volume 1`, `autoplay`. На кнопке пуска стоял только
+ *  треугольник. Случайное нажатие — мгновенный звук на полную громкость.
+ *  Предупреждать надо ДО нажатия, поэтому значок живёт на постере, а не в
+ *  плеере; то же слово ушло в `aria-label`, чтобы предупреждение было и на слух. */
+function ЗначокЗвука() {
+  return (
+    <span className={s.звук} aria-hidden>
+      <svg viewBox="0 0 16 16">
+        <path d="M3 6h2.5L9 3v10L5.5 10H3z" />
+        <path d="M11 5.5a3.6 3.6 0 010 5" fill="none" strokeWidth="1.4" strokeLinecap="round" />
+      </svg>
+      <span className={s.звукСлово}>со звуком</span>
+    </span>
+  )
+}
+
 export function Титул({ onSign, onNew, onHub, молчит = false, onAgain }: {
   onSign: () => void
   /** Отдельная дверь: «завести» и «войти» — разные намерения, и вести им надо
@@ -59,11 +89,26 @@ export function Титул({ onSign, onNew, onHub, молчит = false, onAgain
   const [перо, setПеро] = useState(0)
   const пероРеф = useRef(0)
   const [стопкой, setСтопкой] = useState(true)
-  /* Какой ролик сейчас играет. Один за раз: две дорожки звука сразу — это не
-     витрина, а базар. */
-  const [идёт, setИдёт] = useState<string | null>(null)
-  const [промоИдёт, setПромоИдёт] = useState(false)
+  /* 🔴 ОДНО СОСТОЯНИЕ НА ВСЮ СТРАНИЦУ: `null`, `'promo'` или имя файла ролика.
+     Было два независимых флага, и код нарушал собственный комментарий —
+     промо и ролик ленты звучали одновременно, обе дорожки на полной
+     громкости. Одно состояние делает «один за раз» не обещанием, а фактом. */
+  const [играет, setИграет] = useState<string | null>(null)
   const движок = useRef<ReturnType<typeof доска> | null>(null)
+  /* 🔴 «МЕНЬШЕ ДВИЖЕНИЯ» СОБЛЮДАЛОСЬ НАПОЛОВИНУ. Доску запрос останавливал, а
+     хвост за курсором крутился безусловно — человек с мигренью получал комету
+     на всю правую половину, ровно там, куда его звала подпись. И читал
+     обещание «рисует сама», которого экран в этом режиме не выполнял.
+     Теперь запрос виден коду: и след, и слова меняются по факту. */
+  const [тихо, setТихо] = useState(false)
+
+  useEffect(() => {
+    const м = window.matchMedia('(prefers-reduced-motion: reduce)')
+    const снять = () => setТихо(м.matches)
+    снять()
+    м.addEventListener('change', снять)
+    return () => м.removeEventListener('change', снять)
+  }, [])
 
   const источники = В_ХАБЕ.map((id) => SOURCES.find((x) => x.id === id)).filter(Boolean)
 
@@ -122,6 +167,17 @@ export function Титул({ onSign, onNew, onHub, молчит = false, onAgain
   const подогнать = useCallback(() => {
     const л = левая.current, сл = слова.current, б = блок.current, пр = промо.current, п = подпись.current
     if (!л || !сл || !б || !пр || !п) return
+    /* 🔴 НИЖЕ ТЕЛЕФОННОГО БРЕЙКПОИНТА СЧИТАТЬ НЕЧЕГО, И СЧЁТ ЗАМЫКАЛСЯ В КРУГ.
+       В колонке `.левая` переходит в `auto`, остаток высоты выходит меньше 86,
+       блок прячется — и остаётся спрятанным навсегда: спрятанный он в остаток
+       уже не просится. Единственное личное видео владельца не видел ни один
+       посетитель с телефона (померено на 600, 430, 390 и 360). В колонке
+       раскладку держит CSS, и мерить нечего. */
+    if (window.matchMedia('(max-width: 720px)').matches) {
+      б.style.display = ''
+      пр.style.width = ''
+      return
+    }
     пр.style.width = ''
     const колW = л.clientWidth
     const остаток = л.clientHeight - сл.getBoundingClientRect().height - 16
@@ -145,7 +201,7 @@ export function Титул({ onSign, onNew, onHub, молчит = false, onAgain
   useEffect(() => {
     const c = следРеф.current
     const осн = холст.current
-    if (!c || !осн) return
+    if (!c || !осн || тихо) return
     const g = c.getContext('2d')
     if (!g) return
     const цвет = палитра(осн).акцент
@@ -191,7 +247,7 @@ export function Титул({ onSign, onNew, onHub, молчит = false, onAgain
       осн.removeEventListener('pointerleave', уход)
       window.removeEventListener('resize', размер)
     }
-  }, [])
+  }, [тихо])
 
   return (
     <main className={s.экран}>
@@ -259,17 +315,18 @@ export function Титул({ onSign, onNew, onHub, молчит = false, onAgain
                 🔴 У КНОПКИ ИЗ ОДНОЙ КАРТИНКИ ИМЕНИ НЕТ ВОВСЕ. Померено 08.09:
                 читалка объявляет её просто «кнопка», поэтому `aria-label`. */}
             <div className={s.промо} ref={промо}>
-              {промоИдёт ? (
+              {играет === 'promo' ? (
                 <video className={s.кино} src="/video/promo.mp4" poster="/video/promo.jpg"
-                       controls autoPlay playsInline />
+                       controls autoPlay playsInline onEnded={() => setИграет(null)} />
               ) : (
                 <button type="button" className={s.пускКнопка}
-                        aria-label="Посмотреть, как мы делаем фламинго"
-                        onClick={() => setПромоИдёт(true)}>
+                        aria-label="Посмотреть, как мы делаем фламинго. Со звуком"
+                        onClick={() => setИграет('promo')}>
                   <img className={s.кадр} src="/video/promo.jpg" alt="" />
                   <span className={s.пуск}>
-                    <svg viewBox="0 0 16 16" aria-hidden><path d="M4 2l10 6-10 6z" fill="var(--color-text)" /></svg>
+                    <svg viewBox="0 0 16 16" aria-hidden><path d="M4 2l10 6-10 6z" /></svg>
                   </span>
+                  <ЗначокЗвука />
                 </button>
               )}
             </div>
@@ -285,21 +342,27 @@ export function Титул({ onSign, onNew, onHub, молчит = false, onAgain
         <div className={s.доска}>
           <div className={s.дШапка}>
             <span>доска занятия</span>
-            <span className={s.живо}><span className={s.огонёк} /> рисует сама, пока вы смотрите</span>
+            <span className={s.живо}>
+              <span className={s.огонёк} />
+              {тихо ? 'сцены переключаются кнопками' : 'рисует сама, пока вы смотрите'}
+            </span>
           </div>
           <div className={s.поле}>
             <canvas className={s.холст} ref={холст} />
             <canvas className={s.след} ref={следРеф} />
-            <span className={s.шёпот}>поводите мышью — или возьмите перо</span>
+            <span className={s.шёпот}>
+              {тихо ? 'нажмите сцену — доска нарисует' : 'поводите мышью — или возьмите перо'}
+            </span>
           </div>
           <div className={s.дНиз}>
-            {ПЕРЬЯ.map((имя, i) => (
+            {ПЕРЬЯ.map((п, i) => (
               <button
-                key={имя}
+                key={п.токен}
                 type="button"
-                aria-label={`перо ${i + 1}`}
+                aria-label={п.имя}
+                aria-pressed={i === перо}
                 className={`${s.перо} ${i === перо ? s.пероВ : ''}`}
-                style={{ background: `var(${имя})` }}
+                style={{ background: `var(${п.токен})` }}
                 onClick={() => { setПеро(i); пероРеф.current = i }}
               />
             ))}
@@ -336,23 +399,34 @@ export function Титул({ onSign, onNew, onHub, молчит = false, onAgain
             {РОЛИКИ.map((р) => (
               <div className={s.ролик} key={р.файл}>
                 <div className={s.обложка}>
-                  {идёт === р.файл ? (
+                  {играет === р.файл ? (
                     <video className={s.кино} src={`/video/${р.файл}.mp4`}
                            poster={`/video/${р.файл}.jpg`} controls autoPlay playsInline
-                           onEnded={() => setИдёт(null)} />
+                           onEnded={() => setИграет(null)} />
                   ) : (
                     <button type="button" className={s.пускКнопка}
-                            aria-label={`Посмотреть: ${р.имя}`}
-                            onClick={() => setИдёт(р.файл)}>
+                            aria-label={`Посмотреть: ${р.имя}. Со звуком`}
+                            onClick={() => setИграет(р.файл)}>
                       <img className={s.кадр} src={`/video/${р.файл}.jpg`} alt="" loading="lazy" />
-                      <span className={s.предмет}>{р.предмет}</span>
                       <span className={s.пуск}>
-                        <svg viewBox="0 0 16 16" aria-hidden><path d="M4 2l10 6-10 6z" fill="var(--color-text)" /></svg>
+                        <svg viewBox="0 0 16 16" aria-hidden><path d="M4 2l10 6-10 6z" /></svg>
                       </span>
+                      <ЗначокЗвука />
                     </button>
                   )}
                 </div>
-                <span className={s.имя}>{р.имя}</span>
+                {/* 🔴 МЕТКА ПРЕДМЕТА УШЛА С КАДРА НА СВОЮ ПОВЕРХНОСТЬ. Поверх
+                    фотографии она промахивалась мимо контраста всегда: тема
+                    переворачивает букву, кадр не переворачивается (днём мимо
+                    порога 4,5 шли все шесть, худший пиксель — 1,00:1). Подложка
+                    спасала контраст, но в колонку 87 px не влезала: «математика»
+                    обрезалась до «математик» — ошибка в русском на главной
+                    странице продукта про образование. Под кадром слово стоит
+                    целиком, на спокойной поверхности и не спорит с картинкой. */}
+                <span className={s.подпись}>
+                  <span className={s.предмет} title={р.предмет}>{р.предмет}</span>
+                  <span className={s.имя}>{р.имя}</span>
+                </span>
               </div>
             ))}
           </div>
@@ -363,14 +437,23 @@ export function Титул({ onSign, onNew, onHub, молчит = false, onAgain
         </div>
 
         <div className={s.часть}>
-          <div className={s.нШапка}>
-            <h2 className={s.нЗаголовок}>Flamingo HUB</h2>
+          {/* 🔴 ЗАГОЛОВОК И ПОДЗАГОЛОВОК — ОДИН РЕБЁНОК СЕТКИ, как и слева:
+              `.часть` расписана как `auto minmax(0, 1fr)`, и третий ребёнок
+              сдвигает плитки в неявную строку `auto`. */}
+          <div className={s.нВерх}>
+            <div className={s.нШапка}>
+              <h2 className={s.нЗаголовок}>Flamingo HUB</h2>
+              <button type="button" className={s.всё} onClick={onHub}>все {SOURCES.length} →</button>
+            </div>
             {/* 🔴 БЫЛО «МОЛЧАТ 1 ИЗ 36» — ЧИСЛО ИЗ НИОТКУДА. Считалось по буквам
                 `state`, набранным руками в каталоге; опроса источников нет вовсе
                 (осмотр 08.09, находка 19). Титул — первое, что видит человек, и
-                первое, что он видит, не имеет права быть выдумкой. */}
-            <span className={s.нПодпись}>источники мира · открыты для урока</span>
-            <button type="button" className={s.всё} onClick={onHub}>все {SOURCES.length} →</button>
+                первое, что он видит, не имеет права быть выдумкой.
+                🔴 ПОДЗАГОЛОВОК УЕХАЛ СО СТРОКИ ЗАГОЛОВКА ВНИЗ, как у соседа слева.
+                Пока он стоял меткой в одну строку, а слева шапка была из двух,
+                половины низа стояли ступенькой в 35,6 px (порог ПРАВИЛА 3.3 — 2)
+                и полоса читалась как два несвязанных куска. */}
+            <p className={s.нЛид}>источники мира — открыты для урока</p>
           </div>
           <div className={s.хаб}>
             {источники.map((и) => и && (

@@ -129,19 +129,21 @@
   line-height: var(--витрина-строка-проза);
   color: var(--color-text-detail);
 }
+/* 🔴 ЭТО ЕДИНСТВЕННАЯ СТРОКА, ОТВЕЧАЮЩАЯ НА «А МНЕ ПОДОЙДЁТ?», И ОНА СТОЯЛА
+   САМЫМ ТИХИМ НАБОРОМ СТРАНИЦЫ: 12 моно, прописные, разрядка, `--color-text-hint`
+   — а по ПРАВИЛА 4.11 hint значит «ничего не случится, если это не прочитают».
+   Обещание в 50 знаков читать надо. Обычный набор, ступень тела, вторая
+   ступень цвета; выделение смысловой половины берёт готовый `.кому b`. */
 .кому {
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-1) var(--space-3);
-  font-family: var(--font-mono);
-  font-size: var(--text-overline);
+  font-size: var(--text-small);
   line-height: var(--витрина-строка-проза);
-  letter-spacing: var(--tracking-wide);
-  text-transform: uppercase;
-  color: var(--color-text-hint);
+  color: var(--color-text-detail);
   align-items: center;
 }
-.кому b { color: var(--color-text-detail); font-weight: 400; }
+.кому b { color: var(--color-text); font-weight: var(--weight-medium); }
 
 /* ── проморолик ────────────────────────────────────────────────────── */
 /* Раскладку низа выбирает замер: где хватает высоты — ролик во всю ширину
@@ -177,12 +179,18 @@
   width: var(--space-9);
   height: var(--space-9);
   border-radius: var(--radius-pill);
-  background: var(--color-surface);
+  /* 🔴 КНОПКА ПОВЕРХ ЧУЖОЙ ФОТОГРАФИИ НЕ БЕРЁТ ЦВЕТ ТЕМЫ. Фотография тему не
+     переворачивает, а кружок переворачивался вместе с интерфейсом: ночью его
+     заливка давала к постеру 1,14–1,80:1 при пороге 3, и от кнопки оставался
+     треугольник, висящий в пустоте. Померено по 12 точкам обода на всех семи
+     постерах. Плюс волосяная обводка — на светлом кадре кружок тоже виден. */
+  background: var(--color-on-media);
+  border: 1px solid var(--color-overlay);
   display: grid;
   place-items: center;
   box-shadow: var(--shadow-md);
 }
-.пуск svg { position: static; width: var(--space-4); height: var(--space-4); }
+.пуск svg { position: static; width: var(--space-4); height: var(--space-4); fill: var(--color-on-media-ink); }
 .проПодпись { display: grid; gap: 2px; font-size: var(--text-small); line-height: var(--витрина-строка-плотно); }
 .проПодпись s { font-family: var(--font-mono); font-size: var(--text-overline); color: var(--color-text-hint); text-decoration: none; }
 .стопкой .проПодпись { display: flex; align-items: baseline; gap: var(--space-3); }
@@ -263,7 +271,7 @@
   background: var(--color-bg);
   cursor: pointer;
 }
-.сцена:hover { border-color: var(--color-border-strong); }
+.сцена:hover { border-color: var(--color-text-secondary); }
 .сценаВ { border-color: var(--color-text); }
 
 /* ── низ: ролики и хаб ─────────────────────────────────────────────── */
@@ -285,14 +293,10 @@
 .нШапка { display: flex; align-items: baseline; gap: var(--space-3); margin-bottom: var(--space-2); }
 /* Подзаголовок раздела — 17 (ПРАВИЛА 4.1, решение владельца 07.09). Раз герой
    стал 24, как везде, то и ступень под ним общая. */
-.нЗаголовок { margin: 0; font-size: var(--text-body); font-weight: 600; letter-spacing: var(--tracking-snug); }
-.нПодпись {
-  font-family: var(--font-mono);
-  font-size: var(--text-overline);
-  letter-spacing: var(--витрина-буквы-метка);
-  text-transform: uppercase;
-  color: var(--color-text-hint);
-}
+/* 🔴 СТУПЕНЬ 19 НЕ БЫЛА ЗАНЯТА ВОВСЕ: заголовок раздела стоял 17 — ровно как
+   лид и как логотип, — и отличался от соседнего абзаца только весом. На 1280
+   «Познавательная наука» и подзаголовок читались одной двухстрочной фразой. */
+.нЗаголовок { margin: 0; font-size: var(--text-h3); font-weight: 600; letter-spacing: var(--tracking-snug); }
 .всё {
   position: relative; margin-left: auto; font-size: var(--text-caption); color: var(--color-text-detail); background: none; border: 0; cursor: pointer; padding: 0; }
 .всё:hover { color: var(--color-text); }
@@ -303,7 +307,11 @@
   position: relative;
   height: 100%;
   aspect-ratio: 9 / 16;
-  justify-self: center;
+  /* 🔴 ПРАВИЛА 2.2: шапка и содержимое стоят на одном левом крае. Колонка
+     ленты — 86,7 px, а обложка при 9:16 и `height: 100%` может быть только
+     60,5: 26 px слака уходили в `center`, и первая обложка стояла на 13 px
+     правее поля кадра — единственный объект страницы, не совпадающий ни с чем. */
+  justify-self: start;
   max-width: 100%;
   border-radius: var(--radius-md);
   overflow: hidden;
@@ -311,15 +319,28 @@
   border: 1px solid var(--color-border);
 }
 .обложка svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+/* 🔴 БУКВА ПОВЕРХ ФОТОГРАФИИ ПРОМАХИВАЕТСЯ ВСЕГДА. Тема переворачивает букву,
+   фотография не переворачивается — днём мимо порога 4,5 шли все шесть меток
+   (1,76 · 3,09 · 2,72 · 3,79 · 2,58 · 3,88), ночью три из шести; худший
+   отдельный пиксель — 1,00:1, буква в точности того же цвета, что кадр под
+   ней. Своя подложка, как у `.скоро`: 5,49 днём и 6,06 ночью, от кадра метка
+   больше не зависит.
+   🔴 РАЗРЯДКА СНЯТА: с ней «математика» просила 82 px в обложку 80 и
+   обрезалась до «математик» — ошибка в русском на главной странице продукта
+   про образование. Без разрядки влезает, а многоточие стоит на случай
+   более узкого кадра. */
+.подпись { display: grid; gap: 2px; min-width: 0; }
 .предмет {
-  position: absolute;
-  left: var(--space-1);
-  top: var(--space-1);
+  /* Многоточие в дочернем элементе сетки без этого не срабатывает: флекс- и
+     грид-ребёнок держит свою ширину по содержимому (см. обрезание-check). */
+  min-width: 0;
   font-family: var(--font-mono);
   font-size: var(--text-overline);
-  letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
   color: var(--color-text-hint);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .скоро {
   position: absolute;
@@ -651,3 +672,92 @@
   font-size: var(--text-caption);
   color: var(--color-text-hint);
 }
+
+
+/* ═══ ПРАВКИ ПО ГЛУБОКОМУ АУДИТУ ТИТУЛА 10.09 ════════════════════════ */
+
+/* 🔴 ФОКУС КЛАВИАТУРЫ НЕ БЫЛО ВИДНО У СЕМИ КНОПОК ИЗ ДВАДЦАТИ ШЕСТИ — и это
+   ровно все кнопки, которые что-то запускают. Померено диффом снимков
+   «до фокуса / после»: за краем кнопки, где и живёт кольцо, 0 изменённых
+   пикселей у всех семи (у «Завести учётную запись» — 1526). Причина: кольцо
+   `box-shadow` внешнее, а `.пускКнопка` ровно равна родителю с
+   `overflow: hidden` и срезается им. Кольцо переезжает на родителя, где
+   срезать его нечему; `outline` вместо тени — он не участвует в раскладке
+   и не спорит с собственной тенью `.промо`. */
+.обложка:has(:focus-visible),
+.промо:has(:focus-visible) {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: 2px;
+}
+.пускКнопка:focus-visible { box-shadow: none; }
+
+/* 🔴 ГРАНИЦА В 1,3:1 НЕ ГОВОРИТ «Я КНОПКА» (порог значащей графики — 3:1).
+   Шесть плиток хаба — главные кнопки нижней полосы, и единственный их признак
+   промахивался вчетверо; три невыбранных ярлыка сцены выглядели подписями. */
+.источник,
+.сцена,
+.обложка,
+.промо { border-color: var(--color-border-control); }
+
+/* 🔴 НАЖАТИЕ НЕ БЫЛО ВИДНО НИГДЕ: ни одного `:active` на всей странице
+   (проверено grep и замером computed style на девяти разнотипных элементах).
+   Человек не получал подтверждения, что клик долетел, — а у видео результат
+   приходит не мгновенно. Карточки отзываются размером, текстовые кнопки —
+   цветом: тем же языком, каким они и живут. */
+.источник:active,
+.пускКнопка:active { transform: scale(0.97); }
+.пункт:active,
+.вход:active,
+.сцена:active,
+.всё:active,
+.снова:active { opacity: 0.7; }
+.дверь:active { transform: scale(0.97); }
+
+/* 🔴 НАВЕДЕНИЕ БЫЛО НЕПОСЛЕДОВАТЕЛЬНЫМ: hover объявлен у `.пункт`, `.вход`,
+   `.дверь`, `.сцена`, `.всё`, `.источник` — и отсутствовал у всех семи
+   карточек с видео и у перьев. Визуально однотипные карточки вели себя
+   под курсором по-разному. */
+.пускКнопка:hover .пуск { box-shadow: var(--shadow-lg); }
+.перо:hover { border-color: var(--color-border-control); }
+
+/* 🔴 ПРЕДУПРЕЖДЕНИЕ О ЗВУКЕ СТОИТ ДО НАЖАТИЯ, А НЕ ПОСЛЕ. Постер — последнее
+   место, где человек ещё может передумать. Набор и подложка те же, что у
+   метки предмета: это служебная строка кадра, а не новый вид объекта. */
+.звук {
+  position: absolute;
+  right: var(--space-1);
+  bottom: var(--space-1);
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-family: var(--font-mono);
+  font-size: var(--text-overline);
+  color: var(--color-text-detail);
+  background: var(--color-surface);
+  border-radius: var(--radius-xs);
+  padding: 0 var(--space-1);
+}
+.звук svg {
+  position: static;
+  width: var(--space-3);
+  height: var(--space-3);
+  fill: currentColor;
+  stroke: currentColor;
+}
+
+/* 🔴 ЦЕЛЬ В 44 px ТАМ, ГДЕ НАЖИМАЮТ ПАЛЬЦЕМ. Невидимая рамка `::before` держит
+   цель и на мыши, но у соседних ярлыков сцены рамки перекрываются: на
+   тачскрине выигрывает последний, и у первого цель остаётся куцей. Аудитория —
+   школьники с телефонами, поэтому на грубом указателе кнопка добирает высоту
+   по-настоящему; композиция витрины на мыши при этом не меняется. */
+@media (pointer: coarse) {
+  .сцена,
+  .всё { min-height: var(--tap-min); }
+  .перо { width: var(--space-6); height: var(--space-6); }
+}
+
+
+/* На карточке ленты под слово места нет — остаётся значок; предупреждение
+   словами живёт в `aria-label`, а на проморолике — и на виду. */
+.обложка .звук { gap: 0; padding: 0 3px; }
+.обложка .звукСлово { display: none; }
