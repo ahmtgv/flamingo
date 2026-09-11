@@ -87,7 +87,7 @@ export const SOURCES: Source[] = [
   { id: 'smith', kind: 'снимки', name: 'Смитсоновский институт', gives: 'Три миллиона предметов: от насекомых до самолётов', right: 'own', home: 'https://www.si.edu/openaccess' },
   { id: 'loc', kind: 'книги', name: 'Библиотека Конгресса', gives: 'Карты, фотографии, газеты, звукозаписи XIX–XX веков', right: 'own', home: 'https://www.loc.gov/collections/' },
   { id: 'gallica', kind: 'книги', name: 'Gallica · Национальная библиотека Франции', gives: 'Рукописи, атласы и газеты, оцифрованные страницами', right: 'show', home: 'https://gallica.bnf.fr/' },
-  { id: 'bl', kind: 'книги', name: 'Британская библиотека', gives: 'Средневековые рукописи и первые печатные книги', right: 'show', home: 'https://www.bl.uk/manuscripts/' },
+  { id: 'bl', kind: 'книги', name: 'Британская библиотека', gives: 'Средневековые рукописи и первые печатные книги', right: 'show', home: 'https://www.bl.uk/collection/digitised-manuscripts-archives' },
   { id: 'bodleian', kind: 'книги', name: 'Бодлианская библиотека', gives: 'Оксфордские собрания: наука и география до XIX века', right: 'show', home: 'https://digital.bodleian.ox.ac.uk/' },
   { id: 'cambridge', kind: 'книги', name: 'Кембриджская цифровая библиотека', gives: 'Тетради Ньютона его почерком, страница за страницей', right: 'show', home: 'https://cudl.lib.cam.ac.uk/' },
   { id: 'gutenberg', kind: 'книги', name: 'Проект «Гутенберг»', gives: '70 тысяч книг, у которых кончился срок охраны', right: 'own', home: 'https://www.gutenberg.org/' },
