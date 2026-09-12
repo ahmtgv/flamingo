@@ -446,16 +446,7 @@
   cursor: pointer;
 }
 
-/* Невидимая рамка добирает цель до --tap-min по высоте: 17 видимых плюс
-   дважды по 13,5 невидимых. */
-.pultTab::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: calc((var(--tap-min) - var(--control-height-sm) / 2) / -2);
-  bottom: calc((var(--tap-min) - var(--control-height-sm) / 2) / -2);
-}
+/* Рамку цели даёт общий лист `styles/base.css`: одно правило на продукт. */
 
 .pultTabLine {
   display: block;

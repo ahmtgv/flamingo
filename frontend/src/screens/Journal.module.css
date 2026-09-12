@@ -243,7 +243,11 @@
   align-items: baseline;
   gap: var(--space-2);
   width: 100%;
-  min-height: var(--control-height-sm);
+  /* 🔴 44, А НЕ 34 (ПРАВИЛА 12.6, --tap-min). Невидимой рамкой тут не обойтись:
+     у самой кнопки `overflow: hidden` ради многоточия в длинном имени, и она
+     срезает собственную рамку. Растёт сама кнопка; строка журнала выше на
+     10 px, столбец и без того прокручивается. Померено 12.09. */
+  min-height: var(--tap-min);
   padding: 0;
   border: none;
   background: none;
