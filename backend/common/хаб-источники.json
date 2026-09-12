@@ -2,181 +2,217 @@
  {
   "id": "apod",
   "home": "https://apod.nasa.gov/apod/astropix.html",
-  "name": "NASA · снимок дня"
+  "name": "NASA · снимок дня",
+  "снимок": true
  },
  {
   "id": "hubble",
   "home": "https://hubblesite.org/images",
-  "name": "Телескоп «Хаббл» · архив"
+  "name": "Телескоп «Хаббл» · архив",
+  "снимок": true
  },
  {
   "id": "jwst",
   "home": "https://webbtelescope.org/images",
-  "name": "Телескоп «Джеймс Уэбб»"
+  "name": "Телескоп «Джеймс Уэбб»",
+  "снимок": true
  },
  {
   "id": "sdo",
   "home": "https://sdo.gsfc.nasa.gov/data/",
-  "name": "NASA SDO · Солнце"
+  "name": "NASA SDO · Солнце",
+  "снимок": true
  },
  {
   "id": "earth",
   "home": "https://worldview.earthdata.nasa.gov/",
-  "name": "NASA Earthdata"
+  "name": "NASA Earthdata",
+  "снимок": true
  },
  {
   "id": "iss",
   "home": "https://www.nasa.gov/live/",
-  "name": "МКС · внешняя камера"
+  "name": "МКС · внешняя камера",
+  "снимок": true
  },
  {
   "id": "esa",
   "home": "https://www.esa.int/ESA_Multimedia/Images",
-  "name": "ESA · Европейское космическое агентство"
+  "name": "ESA · Европейское космическое агентство",
+  "снимок": true
  },
  {
   "id": "eso",
   "home": "https://www.eso.org/public/images/",
-  "name": "ESO · южная обсерватория"
+  "name": "ESO · южная обсерватория",
+  "снимок": true
  },
  {
   "id": "lapalma",
   "home": "https://www.gtc.iac.es/multimedia/webcams.php",
-  "name": "Обсерватория Ла-Пальма"
+  "name": "Обсерватория Ла-Пальма",
+  "снимок": true
  },
  {
   "id": "noaa",
   "home": "https://www.noaa.gov/climate",
-  "name": "NOAA · погода и океан"
+  "name": "NOAA · погода и океан",
+  "снимок": true
  },
  {
   "id": "usgs",
   "home": "https://earthquake.usgs.gov/earthquakes/map/",
-  "name": "USGS · землетрясения"
+  "name": "USGS · землетрясения",
+  "снимок": true
  },
  {
   "id": "kvert",
   "home": "https://glob.emsd.ru/visual-observations/",
-  "name": "Камчатка · камеры на вулканах"
+  "name": "Камчатка · камеры на вулканах",
+  "снимок": true
  },
  {
   "id": "met",
   "home": "https://www.metmuseum.org/art/collection",
-  "name": "Метрополитен-музей · открытая коллекция"
+  "name": "Метрополитен-музей · открытая коллекция",
+  "снимок": true
  },
  {
   "id": "rijks",
   "home": "https://www.rijksmuseum.nl/en/collection",
-  "name": "Рейксмузеум"
+  "name": "Рейксмузеум",
+  "снимок": true
  },
  {
   "id": "smith",
   "home": "https://www.si.edu/openaccess",
-  "name": "Смитсоновский институт"
+  "name": "Смитсоновский институт",
+  "снимок": true
  },
  {
   "id": "loc",
   "home": "https://www.loc.gov/collections/",
-  "name": "Библиотека Конгресса"
+  "name": "Библиотека Конгресса",
+  "снимок": true
  },
  {
   "id": "gallica",
   "home": "https://gallica.bnf.fr/",
-  "name": "Gallica · Национальная библиотека Франции"
+  "name": "Gallica · Национальная библиотека Франции",
+  "снимок": true
  },
  {
   "id": "bl",
   "home": "https://www.bl.uk/collection/digitised-manuscripts-archives",
-  "name": "Британская библиотека"
+  "name": "Британская библиотека",
+  "снимок": true
  },
  {
   "id": "bodleian",
   "home": "https://digital.bodleian.ox.ac.uk/",
-  "name": "Бодлианская библиотека"
+  "name": "Бодлианская библиотека",
+  "снимок": true
  },
  {
   "id": "cambridge",
   "home": "https://cudl.lib.cam.ac.uk/",
-  "name": "Кембриджская цифровая библиотека"
+  "name": "Кембриджская цифровая библиотека",
+  "снимок": true
  },
  {
   "id": "gutenberg",
   "home": "https://www.gutenberg.org/",
-  "name": "Проект «Гутенберг»"
+  "name": "Проект «Гутенберг»",
+  "снимок": true
  },
  {
   "id": "archive",
   "home": "https://archive.org/",
-  "name": "Интернет-архив"
+  "name": "Интернет-архив",
+  "снимок": true
  },
  {
   "id": "europeana",
   "home": "https://www.europeana.eu/",
-  "name": "Europeana"
+  "name": "Europeana",
+  "снимок": false
  },
  {
   "id": "wiki",
   "home": "https://commons.wikimedia.org/",
-  "name": "Викисклад"
+  "name": "Викисклад",
+  "снимок": true
  },
  {
   "id": "rumsey",
   "home": "https://www.davidrumsey.com/",
-  "name": "Карты Дэвида Румзи"
+  "name": "Карты Дэвида Румзи",
+  "снимок": true
  },
  {
   "id": "osm",
   "home": "https://www.openstreetmap.org/",
-  "name": "OpenStreetMap"
+  "name": "OpenStreetMap",
+  "снимок": true
  },
  {
   "id": "gbif",
   "home": "https://www.gbif.org/",
-  "name": "GBIF · биоразнообразие"
+  "name": "GBIF · биоразнообразие",
+  "снимок": true
  },
  {
   "id": "inat",
   "home": "https://www.inaturalist.org/",
-  "name": "iNaturalist"
+  "name": "iNaturalist",
+  "снимок": false
  },
  {
   "id": "eol",
   "home": "https://eol.org/",
-  "name": "Энциклопедия жизни"
+  "name": "Энциклопедия жизни",
+  "снимок": true
  },
  {
   "id": "pdb",
   "home": "https://www.rcsb.org/",
-  "name": "Банк белковых структур"
+  "name": "Банк белковых структур",
+  "снимок": true
  },
  {
   "id": "cern",
   "home": "https://opendata.cern.ch/",
-  "name": "CERN · открытые данные"
+  "name": "CERN · открытые данные",
+  "снимок": true
  },
  {
   "id": "arxiv",
   "home": "https://arxiv.org/",
-  "name": "arXiv"
+  "name": "arXiv",
+  "снимок": true
  },
  {
   "id": "pmc",
   "home": "https://www.ncbi.nlm.nih.gov/pmc/",
-  "name": "PubMed Central"
+  "name": "PubMed Central",
+  "снимок": false
  },
  {
   "id": "wb",
   "home": "https://data.worldbank.org/",
-  "name": "Всемирный банк · открытые данные"
+  "name": "Всемирный банк · открытые данные",
+  "снимок": true
  },
  {
   "id": "owid",
   "home": "https://ourworldindata.org/",
-  "name": "Our World in Data"
+  "name": "Our World in Data",
+  "снимок": false
  },
  {
   "id": "eurostat",
   "home": "https://ec.europa.eu/eurostat/data/database",
-  "name": "Eurostat"
+  "name": "Eurostat",
+  "снимок": true
  }
 ]

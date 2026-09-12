@@ -26,8 +26,12 @@ from . import снимки
 
 @lru_cache(maxsize=1)
 def _каталог() -> set[str]:
+    """Кому снимок вообще положен. Отказ человека (`БЕЗ_СНИМКА` в каталоге
+    витрины) действует и здесь: файл на диске мог остаться с прошлых обходов,
+    но наружу он больше не идёт — иначе отказ был бы отказом только на словах."""
     try:
-        return {и["id"] for и in json.loads(СПИСОК.read_text(encoding="utf-8"))}
+        сп = json.loads(СПИСОК.read_text(encoding="utf-8"))
+        return {и["id"] for и in сп if и.get("снимок", True)}
     except Exception:                                        # noqa: BLE001
         return set()
 
@@ -39,7 +43,8 @@ def список(request: HttpRequest) -> HttpResponse:
     корень = Path(settings.MEDIA_ROOT)
     опись = снимки.прочесть_опись(корень)
     папка = снимки.куда(корень)
-    есть = sorted(id for id in опись if (папка / f"{id}.jpg").exists())
+    можно = _каталог()
+    есть = sorted(id for id in опись if id in можно and (папка / f"{id}.jpg").exists())
     взято = max((str(опись[id].get("взято", "")) for id in есть), default="")
     ответ = JsonResponse({"есть": есть, "взято": взято})
     ответ["Cache-Control"] = "public, max-age=600"
