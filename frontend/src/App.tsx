@@ -1,24 +1,52 @@
-import { useCallback, useEffect, useState, type ReactNode } from 'react'
+import { Suspense, lazy, useCallback, useEffect, useState, type ReactNode } from 'react'
 
 /* 🔴 ВХОД ВЕРНУЛСЯ НА СТАРЫЙ ЗАКОН (решение владельца 04.09: «не уверен, что
    вывезешь без потерь — буду думать»). Пергаментный `пергамент/Вход` не удалён
    и цел; чтобы снова его включить, здесь меняется одна строка ввоза и одно имя
    ниже. Набор `пергамент.css`, караулы и приборы остаются в проекте: пока ни
    один экран не помечен `data-язык="пергамент"`, они ни на что не действуют. */
-import { Enter } from './screens/Enter'
-import { Стенд } from './screens/Стенд'
-import { Cabinet } from './screens/Cabinet'
-import { Hub } from './screens/Hub'
-import { Sign } from './screens/Sign'
 import { Титул } from './screens/Титул'
-import { NewPass } from './screens/NewPass'
-import { Room } from './screens/Room'
-import { BadLink } from './screens/BadLink'
-import { NewLesson } from './screens/NewLesson'
-import { Journal } from './screens/Journal'
-import { Invite } from './screens/Invite'
 import { Молчание, Wait } from './ui/Wait'
-import { Рама, type Раздел } from './ui/Рама'
+import { type Раздел } from './ui/Рама'
+
+/** 🔴 ТИТУЛ ГРУЗИТСЯ СРАЗУ, ОСТАЛЬНОЕ — КОГДА ПОНАДОБИТСЯ.
+ *
+ *  Было: один файл на весь продукт, 921 КБ. Человек заходил на главную просто
+ *  посмотреть, что за Flamingo, — и браузер честно качал ему кабинет, журнал,
+ *  создание урока и всю машинерию видеосвязи, прежде чем показать первое слово.
+ *  Померено на медленном 3G (400 Кбит/с, 400 мс — школьный коридор): заголовок
+ *  появлялся через 7,4 с, скачано 1090 КБ.
+ *
+ *  🔴 ТИТУЛ ОСТАЁТСЯ ОБЫЧНЫМ ВВОЗОМ, И ЭТО НАРОЧНО. Он и есть первый экран:
+ *  сделать его ленивым — значит добавить лишний поход в сеть ровно там, где
+ *  мы боремся за секунды.
+ *
+ *  🔴 `Стенд` — ЛЕНИВЫЙ, НО ТОЛЬКО В РАЗРАБОТКЕ, И ЭТО НЕ ПРИДИРКА. Он ввозит
+ *  ВСЕ экраны разом, чтобы показывать их без сервера. Пока он ввозился обычной
+ *  строкой, сборщик отказывался выносить экраны в отдельные куски и честно
+ *  говорил об этом: «dynamic import will not move module into another chunk».
+ *  Главный кусок оставался 924 КБ, то есть вся эта работа не давала ничего.
+ *  Тройка с `import.meta.env.DEV` решает разом: в боевой сборке это
+ *  константа `false`, и ветку вместе с ввозом сборщик вырезает целиком —
+ *  слова «стенд» в `dist` по-прежнему нет.
+ *
+ *  Остальные экраны въезжают своими кусками. Пока кусок едет, на экране стоит
+ *  `Wait` — тот же самый, что и при ожидании ответа сервера: человек видит
+ *  знакомое ожидание, а не пустоту. */
+const Enter = lazy(() => import('./screens/Enter').then((м) => ({ default: м.Enter })))
+const Cabinet = lazy(() => import('./screens/Cabinet').then((м) => ({ default: м.Cabinet })))
+const Hub = lazy(() => import('./screens/Hub').then((м) => ({ default: м.Hub })))
+const Sign = lazy(() => import('./screens/Sign').then((м) => ({ default: м.Sign })))
+const NewPass = lazy(() => import('./screens/NewPass').then((м) => ({ default: м.NewPass })))
+const Room = lazy(() => import('./screens/Room').then((м) => ({ default: м.Room })))
+const BadLink = lazy(() => import('./screens/BadLink').then((м) => ({ default: м.BadLink })))
+const NewLesson = lazy(() => import('./screens/NewLesson').then((м) => ({ default: м.NewLesson })))
+const Journal = lazy(() => import('./screens/Journal').then((м) => ({ default: м.Journal })))
+const Invite = lazy(() => import('./screens/Invite').then((м) => ({ default: м.Invite })))
+const Рама = lazy(() => import('./ui/Рама').then((м) => ({ default: м.Рама })))
+const Стенд = import.meta.env.DEV
+  ? lazy(() => import('./screens/Стенд').then((м) => ({ default: м.Стенд })))
+  : () => null
 import { codeFromPath } from './lib/code'
 import { rememberName, rememberedName } from './lib/name'
 import { logout, whoAmI, type Person } from './lib/auth'
@@ -39,7 +67,7 @@ const hereNow = () => {
   }
 }
 
-export function App() {
+function Экраны() {
   const [path, setPath] = useState(hereNow)
   const [name, setName] = useState<string | null>(null)
   /* Кто вошёл. Спрашиваем один раз при открытии: комната по ссылке работает и без
@@ -113,7 +141,11 @@ export function App() {
          видел. Здесь его тоже нет. */
       if (path.startsWith('/у/')) return 'Приглашение — Flamingo'
       if (path.startsWith('/r/')) return 'Урок идёт — Flamingo'
-      if (path === '/стенд') return 'Стенд — Flamingo'
+      /* 🔴 ЗА `DEV`, КАК И САМ СТЕНД. Без этой обёртки слово «стенд» уезжало в
+         боевую сборку строкой имени вкладки — а комментарий ниже утверждал, что
+         в `dist` его нет. Утверждение было неверным ещё до дробления сборки:
+         ветку экрана сборщик вырезал, а строку имени — нет. Проверено `grep`. */
+      if (import.meta.env.DEV && path === '/стенд') return 'Стенд — Flamingo'
       return 'Flamingo'
     })()
     document.title = имя
@@ -382,5 +414,18 @@ export function App() {
       onOut={out}
       person={person}
     />
+  )
+}
+
+/** 🔴 ОДНО ОЖИДАНИЕ НА ВСЕ ЛЕНИВЫЕ ЭКРАНЫ. `Suspense` стоит снаружи разбора
+ *  адреса, а не внутри каждой ветки: иначе его пришлось бы повторить
+ *  одиннадцать раз, и одиннадцатый однажды забылся бы. Показываем тот же
+ *  `Wait`, что и при ожидании сервера, — человеку незачем различать, ждём мы
+ *  ответа или догружаем экран. */
+export function App() {
+  return (
+    <Suspense fallback={<Wait />}>
+      <Экраны />
+    </Suspense>
   )
 }
