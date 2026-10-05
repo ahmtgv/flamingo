@@ -34,6 +34,17 @@ const РУЧКИ: { ключ: keyof Пороги; имя: string; шаг: number
 
 const КАЛИБРОВКА_СЕК = 3
 
+/* Выбор «сетка видна / скрыта» помнится в этом браузере: раз выключил —
+   не включать её заново на каждом открытии. Хранилища может не быть
+   (приватное окно) — тогда просто видна. */
+const КЛЮЧ_СЕТКИ = 'flamingo.стенд.сетка'
+function сеткаВидна(): boolean {
+  try { return window.localStorage.getItem(КЛЮЧ_СЕТКИ) !== 'нет' } catch { return true }
+}
+function запомнитьСетку(видна: boolean) {
+  try { window.localStorage.setItem(КЛЮЧ_СЕТКИ, видна ? 'да' : 'нет') } catch { /* нет хранилища — не беда */ }
+}
+
 const время = () => new Date().toLocaleTimeString('ru-RU')
 const кругло = (ч: number, знаков = 0) => ч.toFixed(знаков).replace('-0', '0')
 
@@ -45,6 +56,7 @@ export function СтендВнимания() {
   const кадрКогда = useRef(0)
   const пишемРеф = useRef(false)
   const сборНормы = useRef<Кадр[] | null>(null)
+  const сеткаРеф = useRef(сеткаВидна())
   const работает = useRef(false)
 
   const [ход, setХод] = useState<Ход>('заводим')
@@ -58,6 +70,7 @@ export function СтендВнимания() {
   const [норма, setНорма] = useState<Норма>(БЕЗ_НОРМЫ)
   const [калибровка, setКалибровка] = useState(0)
   const [журнал, setЖурнал] = useState<Строка[]>([])
+  const [сетка, setСетка] = useState(сеткаРеф.current)
 
   /* Модель → камера → цикл распознавания. Всё живёт, пока открыт стенд. */
   useEffect(() => {
@@ -117,7 +130,7 @@ export function СтендВнимания() {
         кадр.current = к
         кадрКогда.current = Date.now()
         if (сборНормы.current && к.лицо) сборНормы.current.push(к)
-        рисовать(холст.current, в, к)
+        рисовать(холст.current, в, сеткаРеф.current ? к : null)
         счёт += 1
         if (сейчас - отсчёт >= 1000) {
           setКадров(счёт)
@@ -191,6 +204,11 @@ export function СтендВнимания() {
     сборНормы.current = []
     setКалибровка(КАЛИБРОВКА_СЕК)
   }
+  const переключитьСетку = () => {
+    сеткаРеф.current = !сеткаРеф.current
+    setСетка(сеткаРеф.current)
+    запомнитьСетку(сеткаРеф.current)
+  }
   const переключитьПишем = () => {
     пишемРеф.current = !пишемРеф.current
     setПишем(пишемРеф.current)
@@ -245,6 +263,9 @@ export function СтендВнимания() {
             </Button>
             <Button kind="quiet" onClick={переключитьПишем} aria-pressed={пишем}>
               {пишем ? 'Режим «пишем» включён' : 'Включить режим «пишем»'}
+            </Button>
+            <Button kind="quiet" onClick={переключитьСетку} aria-pressed={!сетка}>
+              {сетка ? 'Скрыть сетку' : 'Показать сетку'}
             </Button>
             <Button kind="ghost" onClick={сбросить}>Сбросить</Button>
           </div>
@@ -368,14 +389,16 @@ function Пока({ ход, беда }: { ход: Ход; беда: string }) {
 
 /** Сетка и точки лица поверх кадра.
  *
- *  🔴 ВИД — РЕШЕНИЕ ВЛАДЕЛЬЦА 06.10: белые точки с сеткой, прозрачность 50%.
+ *  🔴 ВИД — РЕШЕНИЕ ВЛАДЕЛЬЦА 06.10: белые точки с сеткой. Прозрачность 30%
+ *  (сначала было 50%, владелец поправил) и кнопка «Скрыть сетку»: сетка на
+ *  лице скоро начинает раздражать, и выключить её должно быть можно всегда.
  *  Прозрачность тут не «приглушение двери» (ПРАВИЛА 12.1 про другое), а
  *  способ видеть лицо сквозь сетку: сетка показывает, что модель держит
  *  лицо, и не должна его закрывать. */
 const СЕТКА = FaceLandmarker.FACE_LANDMARKS_TESSELATION
-const ПРОЗРАЧНОСТЬ = 0.5
+const ПРОЗРАЧНОСТЬ = 0.3
 
-function рисовать(х: HTMLCanvasElement | null, в: HTMLVideoElement, к: Кадр) {
+function рисовать(х: HTMLCanvasElement | null, в: HTMLVideoElement, к: Кадр | null) {
   if (!х) return
   const w = в.videoWidth
   const h = в.videoHeight
@@ -385,7 +408,7 @@ function рисовать(х: HTMLCanvasElement | null, в: HTMLVideoElement, к
   const ц = х.getContext('2d')
   if (!ц) return
   ц.clearRect(0, 0, w, h)
-  if (!к.лицо) return
+  if (!к || !к.лицо) return
   const т = к.точки
   const цвет = getComputedStyle(х).color
   ц.globalAlpha = ПРОЗРАЧНОСТЬ
