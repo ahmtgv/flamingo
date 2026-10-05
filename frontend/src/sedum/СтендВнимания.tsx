@@ -7,6 +7,7 @@
  *
  *  Адрес: /стенд?э=внимание (только в разработке).
  */
+import { FaceLandmarker } from '@mediapipe/tasks-vision'
 import { useEffect, useRef, useState } from 'react'
 
 import { Button } from '../ui/Button'
@@ -365,8 +366,15 @@ function Пока({ ход, беда }: { ход: Ход; беда: string }) {
   )
 }
 
-/** Точки лица поверх кадра. Каждая третья — этого хватает, чтобы видеть, что
- *  модель держит лицо, и не превращать кадр в сетку. */
+/** Сетка и точки лица поверх кадра.
+ *
+ *  🔴 ВИД — РЕШЕНИЕ ВЛАДЕЛЬЦА 06.10: белые точки с сеткой, прозрачность 50%.
+ *  Прозрачность тут не «приглушение двери» (ПРАВИЛА 12.1 про другое), а
+ *  способ видеть лицо сквозь сетку: сетка показывает, что модель держит
+ *  лицо, и не должна его закрывать. */
+const СЕТКА = FaceLandmarker.FACE_LANDMARKS_TESSELATION
+const ПРОЗРАЧНОСТЬ = 0.5
+
 function рисовать(х: HTMLCanvasElement | null, в: HTMLVideoElement, к: Кадр) {
   if (!х) return
   const w = в.videoWidth
@@ -378,9 +386,21 @@ function рисовать(х: HTMLCanvasElement | null, в: HTMLVideoElement, к
   if (!ц) return
   ц.clearRect(0, 0, w, h)
   if (!к.лицо) return
-  ц.fillStyle = getComputedStyle(х).color
-  for (let i = 0; i < к.точки.length; i += 3) {
-    const т = к.точки[i]
-    ц.fillRect(т.x * w - 1, т.y * h - 1, 2, 2)
+  const т = к.точки
+  const цвет = getComputedStyle(х).color
+  ц.globalAlpha = ПРОЗРАЧНОСТЬ
+  ц.strokeStyle = цвет
+  ц.fillStyle = цвет
+  ц.lineWidth = 0.6
+  ц.beginPath()
+  for (const { start, end } of СЕТКА) {
+    const а = т[start]
+    const б = т[end]
+    if (!а || !б) continue
+    ц.moveTo(а.x * w, а.y * h)
+    ц.lineTo(б.x * w, б.y * h)
   }
+  ц.stroke()
+  for (const п of т) ц.fillRect(п.x * w - 0.75, п.y * h - 0.75, 1.5, 1.5)
+  ц.globalAlpha = 1
 }

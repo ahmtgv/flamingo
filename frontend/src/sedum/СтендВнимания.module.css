@@ -68,7 +68,7 @@
   transform: scaleX(-1);
 }
 
-.точки { color: var(--color-go-on-video); pointer-events: none; }
+.точки { color: var(--color-text-on-video); pointer-events: none; }
 
 .пока {
   position: absolute;
