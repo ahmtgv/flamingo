@@ -38,6 +38,9 @@
 
 .черта { flex: none; width: 1px; height: var(--space-5); background: var(--color-border); }
 .раздел { font-size: var(--text-small); white-space: nowrap; }
+.разделГлавный { font-size: var(--text-body); font-weight: var(--weight-semibold); }
+.назад { flex: none; }
+.назад svg { width: var(--icon-size-sm); height: var(--icon-size-sm); margin-right: var(--space-2); }
 .счёт { font-family: var(--font-mono); font-size: var(--text-caption); color: var(--color-text-detail); font-variant-numeric: tabular-nums; white-space: nowrap; }
 
 .шапкаСправа {
@@ -977,6 +980,8 @@
 
   /* Шапка на телефоне: знак, счёт шагов и имя — раздел уже назван в полоске доски. */
   .черта, .раздел { display: none; }
+  /* С кнопкой «← назад» шапке тесно: счёт — в заголовке страницы и так виден. */
+  .шапка:has(.назад) .счёт { display: none; }
   .шапка { gap: var(--space-3); }
   .шапкаСправа { overflow: hidden; }
 

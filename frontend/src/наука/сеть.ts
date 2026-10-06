@@ -169,3 +169,84 @@ export class Очередь {
     }
   }
 }
+
+/* ── Кабинет владельца ────────────────────────────────────────────────────
+   Всё — с кукой входа Flamingo (`credentials: 'include'`): кто владелец,
+   решает сервер по почте (science/кабинет.py). Чужому он отвечает 401 или
+   403 словами, и страница показывает эти слова как есть. */
+
+export type ЧеловекКабинета = {
+  код: string
+  имя: string
+  пометка: string
+  анкета: Record<string, string>
+  согласие: string | null
+  по_ссылке: boolean
+  /** Виды проверок, пройденных до конца. */
+  пройдено: string[]
+  проверок: number
+  последняя: string | null
+  заведён: string
+}
+
+export type СводкаКабинета = {
+  люди: ЧеловекКабинета[]
+  всего: { людей: number; проверок: number; секунд: number; байт: number; свободно: number }
+  ссылка: { секрет: string | null; вошло: number; с?: string }
+}
+
+export type ПроверкаКабинета = {
+  id: string
+  вид: string
+  протокол: string
+  начата: string
+  закончена: string | null
+  /** Секунд от начала до конца; не закончена — null. */
+  длина: number | null
+  прервана: boolean
+  перед: Record<string, string>
+  /** Доля кадров, где лицо видно, 0..1 — из итога проверки. Старые записи — null. */
+  лицо: number | null
+  совпало: { да: number; из: number } | null
+  байт: number
+  кусков: number
+}
+
+export type ЧеловекПодробно = Omit<ЧеловекКабинета, 'пройдено' | 'проверок' | 'последняя' | 'заведён' | 'по_ссылке'> & {
+  проверки: ПроверкаКабинета[]
+}
+
+export type ВидКускаКабинета = 'video' | 'frames' | 'events' | 'audio'
+export type ПроверкаПодробно = ПроверкаКабинета & {
+  человек: { код: string; имя: string; анкета: Record<string, string> }
+  устройство: Record<string, unknown>
+  итог: Record<string, unknown>
+  куски: Record<ВидКускаКабинета, { n: number; тип: string; байт: number }[]>
+}
+
+const сКукой: RequestInit = { credentials: 'include' }
+
+export const кабинет = {
+  сводка: () => спросить<СводкаКабинета>('/cabinet', сКукой),
+  человек: (код: string) => спросить<ЧеловекПодробно>(`/cabinet/v/${encodeURIComponent(код)}`, сКукой),
+  проверка: (id: string) => спросить<ПроверкаПодробно>(`/cabinet/runs/${encodeURIComponent(id)}`, сКукой),
+  /** Прежние ссылки гаснут; вошедшие раньше остаются со своими кодами. */
+  сменитьСсылку: () =>
+    спросить<{ ссылка: СводкаКабинета['ссылка']; погашено: number }>('/cabinet/link', { ...json({ сменить: true }), ...сКукой }),
+  /** Архив потоком: браузер сам предложит сохранить файл. */
+  адресАрхива: (сВидео: boolean) => `${BASE}/api/science/cabinet/archive${сВидео ? '?video=1' : ''}`,
+  /** Кусок записи как есть — видео, кадры (gzip), события. */
+  кусок: async (id: string, вид: ВидКускаКабинета, n: number, срок = 60_000): Promise<Blob> => {
+    let res: Response
+    try {
+      res = await fetch(`${BASE}/api/science/cabinet/runs/${encodeURIComponent(id)}/${вид}/${n}`, { ...сКукой, signal: AbortSignal.timeout(срок) })
+    } catch {
+      throw new ОтказНауки('Сервер Flamingo не отвечает. Проверьте интернет и попробуйте ещё раз.', 0)
+    }
+    if (!res.ok) throw new ОтказНауки(`Кусок записи не отдался (${res.status}).`, res.status)
+    return res.blob()
+  },
+}
+
+/** Ссылка для всех — так, как её отправляют людям. */
+export const ссылкаДляВсех = (секрет: string) => `https://flamingo.plus/наука/вход-${секрет}`

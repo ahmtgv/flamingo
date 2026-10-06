@@ -8,25 +8,19 @@
 забрать его на мак одной строкой `scp`. В архив попадает и `участники.json`:
 кто есть кто по нашим пометкам — без него записи не связать с людьми.
 
-🔴 ЧИТАЕТ ДИСК, А НЕ БАЗУ. Папка каждой проверки описывает себя сама
-(`meta.json`), поэтому архив полон, даже если база когда-нибудь разойдётся с
-диском. База нужна только для пометок «кто это».
+То же самое отдаёт кабинет владельца кнопками «Скачать» — потоком, без файла
+на сервере (`science/выгрузка.py`).
 """
 from __future__ import annotations
 
-import io
-import json
-import tarfile
 from datetime import date, datetime, timezone as tz
-from pathlib import Path
 
 from django.core.management.base import BaseCommand, CommandError
 
-from science.models import Volunteer
+from science.выгрузка import в_файл
 from science.хранилище import корень
 
 МБ = 1024 * 1024
-ТЯЖЁЛОЕ = ("video-", "audio-")
 
 
 class Command(BaseCommand):
@@ -52,35 +46,7 @@ class Command(BaseCommand):
         выгрузки.mkdir(exist_ok=True)
         метка = datetime.now(tz.utc).strftime("%Y-%m-%d-%H%M")
         архив = выгрузки / f"наука-{метка}{'-без-видео' if без_видео else ''}.tgz"
-
-        участники = {
-            в.code: {"пометка": в.label, "имя": в.name, "согласие": в.consent, "анкета": в.profile,
-                     "по_общей_ссылке": bool(в.invite_id)}
-            for в in Volunteer.objects.all()
-        }
-        проверок = 0
-        with tarfile.open(архив, "w:gz") as tar:
-            сводка = json.dumps(участники, ensure_ascii=False, indent=1).encode()
-            инфо = tarfile.TarInfo("наука/участники.json")
-            инфо.size = len(сводка)
-            tar.addfile(инфо, io.BytesIO(сводка))
-            for папка_в in sorted(p for p in root.iterdir() if p.is_dir() and p.name != "выгрузки"):
-                vj = папка_в / "volunteer.json"
-                if vj.exists():
-                    tar.add(vj, arcname=f"наука/{папка_в.name}/volunteer.json")
-                for папка_р in sorted(p for p in папка_в.iterdir() if p.is_dir()):
-                    meta = папка_р / "meta.json"
-                    if с and meta.exists():
-                        начата = str(json.loads(meta.read_text("utf-8")).get("начата", ""))[:10]
-                        if начата and начата < с.isoformat():
-                            continue
-                    проверок += 1
-                    for f in sorted(папка_р.iterdir()):
-                        if f.name.startswith("."):
-                            continue
-                        if без_видео and f.name.startswith(ТЯЖЁЛОЕ):
-                            continue
-                        tar.add(f, arcname=f"наука/{папка_в.name}/{папка_р.name}/{f.name}")
+        проверок = в_файл(архив, без_видео=без_видео, с=с)
 
         размер = архив.stat().st_size / МБ
         self.stdout.write(f"Готово: {архив} · {размер:.1f} МБ · проверок {проверок}")

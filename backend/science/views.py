@@ -235,10 +235,10 @@ def runs(request: HttpRequest, код: str) -> JsonResponse:
     тело = _body(request)
     вид = str(тело.get("вид", ""))
     if вид not in ВИДЫ_ПРОВЕРОК:
-        return _no("Такой проверки нет.")
+        return _no("Эта проверка пока не работает: сервер ещё не обновлён. Пройдите другую или напишите Аделю.")
     занято = Run.objects.filter(volunteer=в).aggregate(s=Sum("bytes"))["s"] or 0
     if занято >= ДОБРОВОЛЕЦ_МАКС:
-        return _no("Записей у вас уже очень много — спасибо! Напишите нам, мы освободим место.", 413)
+        return _no("Записей у вас уже очень много — спасибо! Напишите Аделю, он освободит место.", 413)
     р = Run.objects.create(
         volunteer=в,
         kind=вид,

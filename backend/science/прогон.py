@@ -344,6 +344,90 @@ call_command("наука_выгрузка", "--с", "2999-01-01", stdout=выв�
 call_command("наука_список", stdout=вывод)
 да("список: мама, согласие есть, пройдена одна, остановлена одна", re.search(rf"{код}\s+мама\s+согласие есть\s+проверок 2 \(закончено 1, остановлено 1\).*взгляд×1, чтение×1", вывод.getvalue()) is not None, вывод.getvalue())
 
+раздел("Кабинет владельца")
+
+from django.core import signing
+from people.models import Person
+from people.session import COOKIE, SALT
+from science.models import Invite
+
+гость = Client()
+r = гость.get("/api/science/cabinet")
+да("без входа — 401 словами, без имён", r.status_code == 401 and "мама" not in r.content.decode() and "Войдите" in r.json()["error"], r.content)
+
+def вошедший(почта):
+    п = Person.objects.create(email=почта, name=почта.split("@")[0], pass_hash="-")
+    кл = Client()
+    кл.cookies[COOKIE] = signing.dumps({"id": п.id}, salt=SALT)
+    return кл
+
+settings.SCIENCE_OWNERS = []
+хозяин = вошедший("owner@example.com")
+r = хозяин.get("/api/science/cabinet")
+да("владельцы не заданы — кабинет закрыт для всех (403)", r.status_code == 403, r.content)
+settings.SCIENCE_OWNERS = ["Owner@Example.com"]
+чужак = вошедший("teacher@example.com")
+r = чужак.get("/api/science/cabinet")
+да("вошёл не владелец — 403, без имён и счёта", r.status_code == 403 and "мама" not in r.content.decode(), r.content)
+r = чужак.get(f"/api/science/cabinet/runs/{run}/video/0")
+да("…и куска записи не получить", r.status_code == 403)
+
+r = хозяин.get("/api/science/cabinet")
+к = r.json() if r.status_code == 200 else {}
+мама = next((ч for ч in к.get("люди", []) if ч["код"] == код), None)
+да("владелец (почта без учёта регистра) видит людей", r.status_code == 200 and мама is not None, r.content[:300])
+да("…у человека имя, анкета и что пройдено", bool(мама) and мама["имя"] and isinstance(мама["анкета"], dict) and "взгляд" in мама["пройдено"] and "чтение" not in мама["пройдено"], мама)
+да("…итоги: люди, проверки, место на диске", к.get("всего", {}).get("проверок", 0) >= 2 and к["всего"]["свободно"] > 0, к.get("всего"))
+да("…и действующая общая ссылка", к.get("ссылка", {}).get("секрет") == Invite.objects.get(active=True).token, к.get("ссылка"))
+
+r = post(f"/api/science/v/{код}/runs", {"вид": "сон"})
+с_итогом = r.json()["id"]
+post(f"/api/science/v/{код}/runs/{с_итогом}/finish", {"итог": {"кусков": 1, "лицо": 0.973, "совпало": {"да": 9, "из": 11}}})
+r = хозяин.get(f"/api/science/cabinet/v/{код}")
+проверки = {п["id"]: п for п in r.json().get("проверки", [])} if r.status_code == 200 else {}
+да("проверки человека — с длиной, «перед» и тем, что остановлено", r.status_code == 200 and проверки.get(стоп, {}).get("прервана") is True and проверки.get(run, {}).get("перед", {}).get("свет") == "лампа", list(проверки.values())[:2])
+да("…доля кадров с лицом и совпавшие шаги — из итога проверки", проверки.get(с_итогом, {}).get("лицо") == 0.973 and проверки.get(с_итогом, {}).get("совпало") == {"да": 9, "из": 11}, проверки.get(с_итогом))
+r = хозяин.get("/api/science/cabinet/v/zzzzzzzzzzzz")
+да("чужой код — 404", r.status_code == 404)
+
+r = хозяин.get(f"/api/science/cabinet/runs/{run}")
+о = r.json() if r.status_code == 200 else {}
+да("одна проверка: человек, устройство и куски по видам", r.status_code == 200 and о["человек"]["код"] == код and о["устройство"].get("браузер") == "тест" and any(x["n"] == 0 for x in о["куски"]["video"]), str(о)[:300])
+файл = sorted((ПАПКА / код / run).glob("video-000000.*"))[0]
+r = хозяин.get(f"/api/science/cabinet/runs/{run}/video/0")
+да("кусок видео — байт в байт с диском, без кэша по дороге", r.status_code == 200 and b"".join(r.streaming_content) == файл.read_bytes() and "no-store" in r["Cache-Control"], r.status_code)
+r = хозяин.get(f"/api/science/cabinet/runs/{run}/secret/0")
+да("чужой вид куска — 404", r.status_code == 404)
+r = хозяин.get("/api/science/cabinet/runs/..%2F..%2Fetc/video/0")
+да("id с ../ — 404", r.status_code == 404)
+
+старый = Invite.objects.get(active=True).token
+r = хозяин.post("/api/science/cabinet/link", "сменить", content_type="text/plain")
+да("«Сменить» не JSON — 415: с чужого сайта молча не отправить", r.status_code == 415)
+r = хозяин.post("/api/science/cabinet/link", json.dumps({}), content_type="application/json")
+да("…без подтверждения — 400, ссылка та же", r.status_code == 400 and Invite.objects.get(active=True).token == старый)
+r = чужак.post("/api/science/cabinet/link", json.dumps({"сменить": True}), content_type="application/json")
+да("…не владелец сменить не может", r.status_code == 403 and Invite.objects.get(active=True).token == старый)
+r = хозяин.post("/api/science/cabinet/link", json.dumps({"сменить": True}), content_type="application/json")
+новый = r.json().get("ссылка", {}).get("секрет") if r.status_code == 200 else None
+да("владелец сменил — новая ссылка, старая погашена", новый and новый != старый and not Invite.objects.get(token=старый).active, r.content)
+r = get(f"/api/science/join/{старый}")
+да("…по старой больше не войти", r.status_code == 404)
+
+def в_архиве(ответ):
+    данные = b"".join(ответ.streaming_content)
+    with tarfile.open(fileobj=io.BytesIO(данные), mode="r:gz") as t:
+        return [ч.name for ч in t.getmembers()]
+r = хозяин.get("/api/science/cabinet/archive")
+имена = в_архиве(r) if r.status_code == 200 else []
+да("«Скачать без видео» — архив потоком: участники и кадры, без видео", r.status_code == 200 and "наука/участники.json" in имена and not any("/video-" in и for и in имена) and "attachment" in r["Content-Disposition"], имена[:5])
+r = хозяин.get("/api/science/cabinet/archive?video=1")
+имена = в_архиве(r) if r.status_code == 200 else []
+да("«Скачать всё» — с видео", r.status_code == 200 and any("/video-" in и for и in имена), имена[:5])
+r = чужак.get("/api/science/cabinet/archive")
+да("…не владельцу архив не отдаётся", r.status_code == 403)
+settings.SCIENCE_OWNERS = []
+
 раздел("Удаление по просьбе")
 
 вывод = io.StringIO()
