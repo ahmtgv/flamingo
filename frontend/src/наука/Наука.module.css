@@ -1,104 +1,230 @@
-/* Исследование внимания SEduM — страница добровольца.
-   Язык — тот же, что у кабинета и стенда: светлый лист, поле `--поле`,
-   гарнитуры и шкала из tokens.css. Плитка учителя — в языке комнаты:
-   тёмная подложка и токены «на видео». Коралл — только у «Остановить»
-   (уход — коралловой обводкой, ПРАВИЛА 11.3), тревог здесь нет. */
+/* Исследование внимания SEduM — НАША ДОСКА В ТОЧКУ.
+ *
+ * Решение владельца 06.10: «в стиле нашей доски, не школьной — наша доска с
+ * точкой, шрифты тоже наши, используй исключительно наш код дизайна». Значит:
+ * шапка со знаком, как у всего продукта; под ней — доска занятия, как на
+ * титуле (белое поле в точку, полоска «доска …» с огоньком справа); главное
+ * действие — в нижней полосе доски. Значения — только токенами (ПРАВИЛА 2.8).
+ *
+ * 🔴 СТРАНИЦА НЕ ПРОКРУЧИВАЕТСЯ (ПРАВИЛА 1.2, слова владельца: «скрола не
+ * должно быть — всё должно умещаться на странице»). Каждый экран считан под
+ * кадры 1280×800 и 1512×944. Если окно ниже — экран ужимается (медиазапрос по
+ * высоте внизу файла), и только в самом крайнем случае поле доски прокрутится
+ * само: это единственная прокручиваемая область, и она названа (ПРАВИЛА 1.3).
+ * На телефоне — своё правило (ПРАВИЛА 8.6а): лист прокручивается целиком.
+ */
 
-/* ── Лист ───────────────────────────────────────────────────────────── */
+/* ── Рама: шапка и доска ──────────────────────────────────────────────── */
 
-.лист {
-  min-height: 100dvh;
+.экран {
+  height: 100dvh;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
   background: var(--color-bg);
   color: var(--color-text);
-  padding: var(--space-7) var(--поле) var(--space-10);
-  display: grid;
-  gap: var(--space-6);
-  align-content: start;
-  justify-items: start;
+  overflow: hidden;
 }
 
-.лист > * { width: min(100%, 76ch); }
+.шапка {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  min-width: 0;
+  height: var(--control-height-lg);
+  padding: 0 var(--поле);
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+}
 
-.шапка { display: grid; gap: var(--space-2); }
+.черта { flex: none; width: 1px; height: var(--space-5); background: var(--color-border); }
+.раздел { font-size: var(--text-small); white-space: nowrap; }
+.счёт { font-family: var(--font-mono); font-size: var(--text-caption); color: var(--color-text-detail); font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+.шапкаСправа {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+  font-size: var(--text-small);
+  color: var(--color-text-detail);
+}
+
+/* Строчная дверь: «это не я». Цель нажатия полная, вид — подчёркнутое слово. */
+.строчно {
+  min-height: var(--tap-min);
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: var(--color-text);
+  text-decoration: underline;
+  text-decoration-color: var(--color-border-strong);
+  text-underline-offset: var(--space-1);
+  cursor: pointer;
+}
+
+.строчно:hover { text-decoration-color: var(--color-text); }
+
+.участок {
+  min-height: 0;
+  display: grid;
+  padding: var(--space-5) var(--поле) var(--space-6);
+}
+
+.доска {
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+.полоска {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--color-border);
+  font-family: var(--font-mono);
+  font-size: var(--text-overline);
+  line-height: var(--leading-snug);
+  color: var(--color-text-hint);
+  white-space: nowrap;
+}
+
+.полоскаСправа {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+  color: var(--color-text-detail);
+}
+
+.огонёк {
+  flex: none;
+  width: var(--dot-size);
+  height: var(--dot-size);
+  border-radius: var(--radius-pill);
+  background: var(--color-border-strong);
+}
+
+.огонёкИдёт { background: var(--color-go); }
+
+/* Доска в ТОЧКУ — та же сетка, что у доски занятия на титуле. */
+.поле {
+  position: relative;
+  min-height: 0;
+  overflow: auto;
+  background-image: radial-gradient(circle at center, var(--color-border) 1.2px, transparent 1.2px);
+  background-size: var(--space-6) var(--space-6);
+}
+
+.низ {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
+  padding: var(--space-3) var(--space-4) var(--space-3) var(--space-5);
+  border-top: 1px solid var(--color-border);
+}
+
+.низСлова {
+  flex: 1;
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-small);
+  line-height: var(--leading-snug);
+  color: var(--color-text-detail);
+}
+
+.ошибка { color: var(--color-error-text); }
+
+/* ── Общие слова ──────────────────────────────────────────────────────── */
 
 .бровь {
-  font: var(--weight-medium) var(--text-overline) var(--font-mono);
+  font-family: var(--font-mono);
+  font-size: var(--text-overline);
+  font-weight: var(--weight-medium);
+  line-height: var(--leading-snug);
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
   color: var(--color-text-hint);
 }
 
+.бровьЗел { color: var(--color-go-text); }
+
 .заголовок {
   margin: 0;
   font-family: var(--font-heading);
-  font-size: var(--text-h1);
+  font-size: var(--text-h2);
   font-weight: var(--weight-semibold);
   line-height: var(--leading-heading);
   letter-spacing: var(--tracking-snug);
   text-wrap: balance;
 }
 
-.лид { margin: 0; font-size: var(--text-lead); line-height: var(--leading-relaxed); color: var(--color-text-detail); max-width: 64ch; }
-
-.h2 {
+.лид {
   margin: 0;
-  font-family: var(--font-heading);
-  font-size: var(--text-h3);
-  font-weight: var(--weight-semibold);
-  line-height: var(--leading-heading);
+  max-width: 72ch;
+  font-size: var(--text-body);
+  line-height: var(--leading-body);
+  color: var(--color-text-detail);
 }
 
-.тихо { margin: 0; font-size: var(--text-small); line-height: var(--leading-snug); color: var(--color-text-hint); }
+/* Слова на доске стоят на белом, чтобы точки сетки не шли сквозь буквы. */
+.наБелом { align-self: flex-start; justify-self: start; background: var(--color-surface); }
 
-.ряд { display: flex; flex-wrap: wrap; gap: var(--space-3); align-items: center; }
+.тихо { margin: 0; font-size: var(--text-small); line-height: var(--leading-snug); color: var(--color-text-detail); }
+.моно { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.шапкаТекста { display: grid; gap: var(--space-2); }
 
-.действия {
-  display: grid;
-  gap: var(--space-3);
-  justify-items: start;
-  padding-top: var(--space-4);
-  border-top: 1px solid var(--color-border);
-}
-
-/* Строка состояния стоит всегда: кнопки не прыгают между состояниями. */
-.строка { margin: 0; min-height: calc(var(--text-small) * 1.6); font-size: var(--text-small); color: var(--color-text-detail); }
-
-/* ── Согласие и анкеты ──────────────────────────────────────────────── */
-
-.текстСогласия {
-  display: grid;
-  gap: var(--space-3);
-  padding: var(--space-5);
+.листок {
+  background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-card);
-  background: var(--color-surface);
-  font-size: var(--text-body);
-  line-height: var(--leading-relaxed);
+  box-shadow: var(--shadow-sm);
 }
 
-.текстСогласия p { margin: 0; max-width: 68ch; }
-.текстСогласия .h2:not(:first-child) { margin-top: var(--space-2); }
+.ряд { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }
 
-.анкета { display: grid; gap: var(--space-5); }
+/* Рисунки на доске — пером, как на титуле: обводка токенами, без заливок цветом. */
+.перо { fill: none; stroke: var(--color-text); stroke-linecap: round; stroke-linejoin: round; }
+.пероЗел { fill: none; stroke: var(--color-go); stroke-linecap: round; stroke-linejoin: round; }
+.пероСин { fill: none; stroke: var(--color-info); stroke-linecap: round; stroke-linejoin: round; }
+.пероТихо { fill: none; stroke: var(--color-border-strong); stroke-linecap: round; stroke-linejoin: round; }
+.заливкаПеро { fill: var(--color-text); }
+.заливкаЗел { fill: var(--color-go); }
+.заливкаБел { fill: var(--color-surface); }
 
-.поляРяд { display: grid; grid-template-columns: minmax(0, 16ch); }
+/* ── Выбор (как роль при регистрации — нейтральной рамкой, ПРАВИЛА 5.7) ── */
 
 .выбор { margin: 0; padding: 0; border: 0; display: grid; gap: var(--space-2); min-width: 0; }
 
 .подпись {
   padding: 0;
-  margin-bottom: var(--space-2);
-  font: var(--weight-medium) var(--text-overline) / 1.4 var(--font-mono);
+  font-family: var(--font-mono);
+  font-size: var(--text-overline);
+  font-weight: var(--weight-medium);
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
   color: var(--color-text-detail);
 }
 
+.подписьВопрос { padding: 0; margin-bottom: var(--space-1); font-size: var(--text-body); font-weight: var(--weight-semibold); line-height: var(--leading-snug); }
+.пояснение { display: block; margin-top: var(--space-1); font-size: var(--text-small); font-weight: var(--weight-regular); color: var(--color-text-detail); }
+
 .варианты { display: flex; flex-wrap: wrap; gap: var(--space-2); }
 .столбцом { display: grid; grid-template-columns: minmax(0, 1fr); }
 
-/* Выбор — нейтральной рамкой, как роль при регистрации (ПРАВИЛА 5.7):
-   зелёного нет, выбор — не «можно дальше». */
 .вариант {
   display: grid;
   align-content: center;
@@ -107,7 +233,7 @@
   padding: var(--space-2) var(--space-4);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-control);
-  background: none;
+  background: var(--color-surface);
   color: var(--color-text);
   font: inherit;
   font-size: var(--text-body);
@@ -118,7 +244,8 @@
 .вариант:hover { border-color: var(--color-border-strong); }
 .вариант:focus-visible { outline: none; box-shadow: var(--focus-ring); }
 
-.вариантДа {
+/* Выбранный вариант не бледнеет под мышью: :hover выше по весу, поэтому повторяем. */
+.вариантДа, .вариантДа:hover {
   border-color: var(--color-text);
   border-width: 2px;
   padding: calc(var(--space-2) - 1px) calc(var(--space-4) - 1px);
@@ -127,98 +254,240 @@
 
 .вариантЕщё { font-size: var(--text-caption); color: var(--color-text-detail); }
 
-.галка { display: flex; gap: var(--space-3); align-items: center; min-height: var(--tap-min); cursor: pointer; font-size: var(--text-body); }
-.галка input { inline-size: var(--space-5); block-size: var(--space-5); accent-color: var(--color-go-solid); }
+.галка { display: flex; gap: var(--space-3); align-items: flex-start; min-height: var(--tap-min); cursor: pointer; font-size: var(--text-body); line-height: var(--leading-snug); }
+.галка input { flex: none; width: var(--space-5); height: var(--space-5); margin: 2px 0 0; accent-color: var(--color-text); }
+.ряд .галка { align-items: center; }
+.ряд .галка input { margin: 0; }
 
-.приготовьте {
-  margin: 0;
-  padding: var(--space-3) var(--space-4);
-  border-left: 2px solid var(--color-go-line);
-  background: var(--color-go-bg);
-  color: var(--color-text);
-  font-size: var(--text-body);
-}
+/* ── Кто сейчас проходит ──────────────────────────────────────────────── */
 
-/* ── Список проверок ────────────────────────────────────────────────── */
-
-.проверки { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-3); }
-
-.проверка {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: var(--space-4);
-  align-items: center;
-  padding: var(--space-4) var(--space-5);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-card);
-  background: var(--color-surface);
-}
-
-@media (max-width: 640px) {
-  .проверка { grid-template-columns: minmax(0, 1fr); justify-items: start; }
-}
-
-.проверкаТекст { display: grid; gap: var(--space-1); min-width: 0; }
-
-.проверкаИмя {
-  margin: 0;
+.кто {
+  min-height: 100%;
+  box-sizing: border-box;
   display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2);
-  align-items: baseline;
-  font-family: var(--font-heading);
-  font-size: var(--text-h3);
-  font-weight: var(--weight-semibold);
-  line-height: var(--leading-heading);
+  align-items: center;
+  padding: var(--space-8) var(--space-10);
 }
 
-.проверкаСуть { margin: 0; font-size: var(--text-body); line-height: var(--leading-snug); color: var(--color-text-detail); }
+.ктоСлова { position: relative; display: grid; gap: var(--space-8); min-width: 0; }
+.ктоШапка { display: grid; gap: var(--space-2); max-width: 64ch; }
 
-.метка {
-  font: var(--weight-medium) var(--text-overline) var(--font-mono);
-  letter-spacing: var(--tracking-caps);
-  text-transform: uppercase;
-  color: var(--color-text-hint);
+.глазКто {
+  position: absolute;
+  right: var(--space-10);
+  top: 18%;
+  width: min(28%, calc(var(--space-13) * 2.6));
+  height: auto;
 }
 
-/* ── Отправка ───────────────────────────────────────────────────────── */
+.карточки { display: flex; flex-wrap: wrap; gap: var(--space-4); }
 
-.отправка { display: grid; gap: var(--space-3); }
+.человек {
+  width: calc(var(--space-13) + var(--space-12) + var(--space-2));
+  min-height: calc(var(--space-13) + var(--space-9) + var(--space-5));
+  box-sizing: border-box;
+  padding: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  text-align: left;
+  font: inherit;
+  color: var(--color-text);
+  cursor: pointer;
+}
 
-.полоса {
-  display: block;
-  height: var(--space-2);
+.человек:hover { border-color: var(--color-border-strong); }
+.человек:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+
+.человекНовый {
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  border-style: dashed;
+  border-color: var(--color-border-strong);
+  box-shadow: none;
+}
+
+.инициал {
+  width: var(--tap-min);
+  height: var(--tap-min);
+  box-sizing: border-box;
   border-radius: var(--radius-pill);
-  background: var(--color-surface-subtle);
-  overflow: hidden;
+  border: 1.5px solid var(--color-border-strong);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--text-lead);
+  font-weight: var(--weight-semibold);
 }
 
-.полосаЗаливка {
-  display: block;
-  height: 100%;
-  background: var(--color-go-line);
-  transition: width var(--duration-base) var(--ease-standard);
+.человекИмя { font-size: var(--text-lead); font-weight: var(--weight-semibold); overflow-wrap: anywhere; }
+.шарики { display: flex; gap: var(--space-1); }
+
+.шарик {
+  width: calc(var(--space-2) + 2px);
+  height: calc(var(--space-2) + 2px);
+  box-sizing: border-box;
+  border-radius: var(--radius-pill);
+  border: 1.5px solid var(--color-border-strong);
 }
 
-/* ── Подготовка ─────────────────────────────────────────────────────── */
+.шарикДа { background: var(--color-go); border-color: var(--color-go); }
+
+/* ── Знакомство и анкета ──────────────────────────────────────────────── */
+
+.знакомство {
+  min-height: 100%;
+  box-sizing: border-box;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) calc(var(--space-13) * 2 + var(--space-11));
+  gap: var(--space-7);
+  padding: var(--space-7) var(--space-8);
+}
+
+.слеваСтолбец { display: grid; align-content: start; gap: var(--space-5); min-width: 0; }
+.четыре { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-4); }
+
+.блок { display: grid; align-content: start; gap: var(--space-2); padding: var(--space-4) var(--space-5); min-width: 0; }
+.блок h3 { margin: 0; display: flex; align-items: center; gap: var(--space-2); font-size: var(--text-small); font-weight: var(--weight-semibold); }
+.блок p { margin: 0; font-size: var(--text-small); line-height: var(--leading-snug); color: var(--color-text-detail); }
+.значок { flex: none; width: var(--icon-size-md); height: var(--icon-size-md); }
+
+.форма { align-self: start; display: grid; gap: var(--space-5); padding: var(--space-6); }
+.черта2 { border-top: 1px solid var(--color-border); }
+
+.анкета { display: grid; align-content: start; gap: var(--space-6); padding: var(--space-7) var(--space-8); min-height: 100%; box-sizing: border-box; position: relative; }
+.анкетаЛисток { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-6) var(--space-9); padding: var(--space-7) var(--space-8); }
+.очки { position: absolute; right: var(--space-10); top: var(--space-7); width: calc(var(--space-13) * 1.9); height: auto; }
+.возраст { max-width: calc(var(--space-12) + var(--space-6)); }
+
+/* ── Путь ─────────────────────────────────────────────────────────────── */
+
+.путь {
+  min-height: 100%;
+  box-sizing: border-box;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) calc(var(--space-13) * 2 + var(--space-10));
+  gap: var(--space-7);
+  padding: var(--space-7) var(--space-8);
+}
+
+.путьСлева { display: grid; grid-template-rows: auto minmax(0, 1fr); gap: var(--space-4); min-width: 0; min-height: 0; }
+
+/* Карта держит пропорции рисунка: станции стоят в процентах от неё. */
+.картаМесто { min-height: 0; container-type: size; }
+
+.карта {
+  position: relative;
+  width: min(100cqw, 100cqh * 760 / 420);
+  aspect-ratio: 760 / 420;
+}
+
+.картаЛинии { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+.станция {
+  position: absolute;
+  width: calc(var(--space-13) + var(--space-7));
+  margin-left: calc((var(--space-13) + var(--space-7)) / -2);
+  margin-top: calc(var(--space-10) / -2);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: var(--color-text);
+  text-align: center;
+  cursor: pointer;
+}
+
+.станция:focus-visible { outline: none; }
+.станция:focus-visible .кольцо { box-shadow: var(--focus-ring); }
+
+.кольцо {
+  position: relative;
+  width: var(--space-10);
+  height: var(--space-10);
+  box-sizing: border-box;
+  border-radius: var(--radius-pill);
+  border: 2px solid var(--color-border-strong);
+  background: var(--color-surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.кольцоПройдено { border-color: var(--color-go); }
+.кольцоВыбрано { border-color: var(--color-text); box-shadow: 0 0 0 var(--space-2) var(--color-surface-subtle); }
+
+.знакКольца { width: var(--space-7); height: var(--space-7); }
+
+.галочка {
+  position: absolute;
+  right: calc(var(--space-1) * -1.5);
+  top: calc(var(--space-1) * -1.5);
+  width: var(--space-6);
+  height: var(--space-6);
+  border-radius: var(--radius-pill);
+  background: var(--color-go);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.станцияИмя { padding: 0 var(--space-1); background: var(--color-surface); font-size: var(--text-small); font-weight: var(--weight-semibold); line-height: var(--leading-snug); }
+.станцияЕщё { padding: 0 var(--space-1); background: var(--color-surface); font-family: var(--font-mono); font-size: var(--text-caption); color: var(--color-text-detail); white-space: nowrap; }
+
+.путьСправа { display: grid; align-content: start; gap: var(--space-4); min-width: 0; }
+.выбранная { display: grid; gap: var(--space-2); padding: var(--space-5) var(--space-5) var(--space-6); }
+.выбраннаяИмя { font-size: var(--text-lead); font-weight: var(--weight-semibold); }
+.когда { display: grid; gap: var(--space-3); padding: var(--space-4) var(--space-4) var(--space-5); }
+.время { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-2); }
+
+.часть {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-1);
+  padding: var(--space-3) 0;
+  border-radius: var(--radius-control);
+  border: 1px solid var(--color-border);
+  font-size: var(--text-small);
+  font-weight: var(--weight-semibold);
+}
+
+.частьНет { border-style: dashed; border-color: var(--color-border-strong); }
+.частьСчёт { font-family: var(--font-mono); font-size: var(--text-caption); font-weight: var(--weight-regular); color: var(--color-text-detail); }
+
+/* ── Как вы сейчас ────────────────────────────────────────────────────── */
+
+.какВы { min-height: 100%; box-sizing: border-box; display: grid; align-content: start; gap: var(--space-5); padding: var(--space-7) var(--space-8); }
+.какВыЛисток { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: var(--space-6) var(--space-9); padding: var(--space-6) var(--space-7); }
+.шкала { display: grid; grid-template-columns: repeat(9, minmax(0, 1fr)); gap: var(--space-1); }
+.шкалаКнопка { justify-items: center; padding: var(--space-2) 0; text-align: center; font-family: var(--font-mono); }
+.шкалаКонцы { display: flex; justify-content: space-between; font-size: var(--text-caption); color: var(--color-text-detail); }
+.шкалаСлова { min-height: calc(var(--text-small) * var(--leading-snug)); font-size: var(--text-small); font-weight: var(--weight-semibold); }
+.приготовьте { grid-column: 1 / -1; margin: 0; padding-top: var(--space-4); border-top: 1px solid var(--color-border); font-size: var(--text-small); line-height: var(--leading-snug); }
+
+/* ── Подготовка ───────────────────────────────────────────────────────── */
 
 .подготовка {
+  height: 100%;
+  box-sizing: border-box;
   display: grid;
-  grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
-  gap: var(--space-6);
-  align-items: start;
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  gap: var(--space-7);
+  padding: var(--space-6) var(--space-8);
 }
 
-.лист > .подготовка { width: min(100%, 120ch); }
-
-@media (max-width: 900px) {
-  .подготовка { grid-template-columns: minmax(0, 1fr); }
-}
+.окноМесто { min-height: 0; display: grid; align-content: center; container-type: size; }
 
 .окноКамеры {
   position: relative;
+  width: min(100cqw, 100cqh * 4 / 3);
   aspect-ratio: 4 / 3;
-  max-width: 100%;
+  justify-self: center;
   border-radius: var(--radius-card);
   overflow: hidden;
   background: var(--color-surface-video);
@@ -226,14 +495,7 @@
 }
 
 /* Зеркало: человек привык видеть себя как в зеркале. */
-.видео {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transform: scaleX(-1);
-}
+.видео { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
 
 /* Тайник: видео живёт, но не видно и не мешает (не display:none). */
 .тайник {
@@ -259,118 +521,88 @@
   padding: var(--space-4);
   border-radius: var(--radius-card);
   background: var(--color-surface);
-  color: var(--color-text);
-  z-index: var(--z-overlay);
 }
 
 .покаЧто { margin: 0; font-weight: var(--weight-semibold); font-size: var(--text-body); }
 .покаКак { font-size: var(--text-small); line-height: var(--leading-snug); color: var(--color-text-detail); }
 
-.микрофон {
-  display: grid;
-  gap: var(--space-3);
-  padding: var(--space-5);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-card);
-  background: var(--color-surface);
-}
+.микрофон { align-self: center; display: grid; gap: var(--space-3); padding: var(--space-6); }
 
-.пункты { display: grid; gap: var(--space-4); align-content: start; }
-
+.пункты { align-self: center; display: grid; gap: var(--space-4); padding: var(--space-5) var(--space-6); }
 .список { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-3); }
+.пункт { display: grid; grid-template-columns: var(--space-5) minmax(0, 1fr); gap: var(--space-2); font-size: var(--text-body); line-height: var(--leading-snug); color: var(--color-text-detail); }
+.пунктДа { color: var(--color-text); }
+.отметка { width: var(--space-5); height: var(--space-5); margin-top: 2px; }
+.пунктКак { display: block; font-size: var(--text-small); color: var(--color-text-detail); }
 
-.пункт,
-.пунктДа { display: grid; grid-template-columns: var(--space-5) minmax(0, 1fr); gap: var(--space-2); font-size: var(--text-body); line-height: var(--leading-snug); }
-.пункт { color: var(--color-text-detail); }
-.пунктДа .отметка { color: var(--color-go-text); font-weight: var(--weight-bold); }
-.отметка { font-family: var(--font-mono); text-align: center; }
-.пунктКак { display: block; font-size: var(--text-small); color: var(--color-text-hint); }
+.полоса { display: block; height: var(--space-2); border-radius: var(--radius-pill); background: var(--color-surface-subtle); overflow: hidden; }
+.полосаЗаливка { display: block; height: 100%; background: var(--color-border-strong); }
 
-/* ── Ход проверки ───────────────────────────────────────────────────── */
+/* ── Ход проверки ─────────────────────────────────────────────────────── */
 
-.ход {
-  /* Ровно экран, не больше: длинный текст листается внутри сцены, а сцена
-     остаётся той системой координат, в которой стоит точка-стимул. */
-  height: 100dvh;
-  display: grid;
-  grid-template-rows: auto minmax(0, 1fr);
-  background: var(--color-bg);
-  color: var(--color-text);
-}
+.ход { position: relative; height: 100%; overflow: hidden; }
 
-.ходШапка {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2) var(--space-5);
-  align-items: center;
-  padding: var(--space-3) var(--поле);
-  border-bottom: 1px solid var(--color-border);
-  background: var(--color-surface);
-}
+.отрезки { display: inline-flex; align-items: center; gap: var(--space-1); }
+.отрезок { width: var(--space-6); height: var(--space-1); border-radius: var(--radius-pill); background: var(--color-surface-subtle); overflow: hidden; }
+.отрезокПройден { background: var(--color-text); }
+.отрезокЗаливка { display: block; height: 100%; background: var(--color-text); }
 
-.ходИмя { font-family: var(--font-heading); font-weight: var(--weight-semibold); font-size: var(--text-body); }
-.ходСчёт { font-family: var(--font-mono); font-size: var(--text-small); color: var(--color-text-detail); font-variant-numeric: tabular-nums; }
-.ходСтоп { display: flex; flex-wrap: wrap; gap: var(--space-3); align-items: center; margin-inline-start: auto; font-size: var(--text-small); }
-.ходШапка > :last-child { margin-inline-start: auto; }
-
-.запись { display: inline-flex; gap: var(--space-2); align-items: center; font-size: var(--text-small); color: var(--color-text-detail); }
-
-/* Точка записи — зелёная: запись идёт, это «идёт», а не тревога. */
-.записьТочка {
-  inline-size: var(--space-2);
-  block-size: var(--space-2);
-  border-radius: var(--radius-pill);
-  background: var(--color-go);
-  animation: пульс 1.6s var(--ease-standard) infinite;
-}
-
-@keyframes пульс { 50% { opacity: 0.35; } }
-
-@media (prefers-reduced-motion: reduce) {
-  .записьТочка { animation: none; }
-}
-
-.сцена {
-  position: relative;
-  overflow: hidden;
-  display: grid;
-  place-items: center;
-  padding: var(--space-6) var(--поле);
-}
-
-/* Подсказка во время шага — внизу, мелко: не загораживает стимул. */
-.подсказка {
+.подсказкаКрупно {
   position: absolute;
-  inset-inline: var(--поле);
-  inset-block-end: var(--space-5);
+  inset: 0;
   display: grid;
+  place-content: center;
   justify-items: center;
-  gap: var(--space-1);
+  gap: var(--space-4);
+  padding: var(--space-8);
   text-align: center;
   pointer-events: none;
 }
 
-/* Подсказка перед шагом — по центру, крупно: сейчас её и надо прочитать. */
-.подсказкаКрупно {
-  display: grid;
-  justify-items: center;
-  gap: var(--space-3);
-  max-width: min(100%, 52rem);
-  text-align: center;
-  z-index: var(--z-base);
-}
-
-.подсказкаКрупно .подсказкаТекст {
+.крупно {
+  margin: 0;
+  padding: 0 var(--space-3);
+  background: var(--color-surface);
   font-family: var(--font-heading);
-  font-size: var(--text-display);
+  font-size: clamp(var(--text-h1), 4.4vw, var(--text-display));
   font-weight: var(--weight-semibold);
-  line-height: var(--leading-tight);
+  line-height: var(--leading-heading);
+  letter-spacing: var(--tracking-tight);
   text-wrap: balance;
 }
 
+.крупноЕщё { margin: 0; padding: 0 var(--space-3); background: var(--color-surface); font-size: var(--text-lead); line-height: var(--leading-snug); color: var(--color-text-detail); max-width: 52ch; }
+.крупноБровь { padding: 0 var(--space-2); background: var(--color-surface); }
+
+.сигналом {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--tap-min);
+  padding: 0 var(--space-4);
+  border-radius: var(--radius-pill);
+  border: 1px dashed var(--color-border-strong);
+  background: var(--color-surface);
+  font-size: var(--text-small);
+}
+
+.подсказка {
+  position: absolute;
+  left: 50%;
+  bottom: var(--space-5);
+  translate: -50% 0;
+  width: max-content;
+  max-width: calc(100% - var(--space-10));
+  display: grid;
+  justify-items: center;
+  gap: var(--space-1);
+  padding: var(--space-3) var(--space-5);
+  text-align: center;
+  pointer-events: none;
+}
+
 .подсказкаТекст { font-size: var(--text-lead); font-weight: var(--weight-semibold); line-height: var(--leading-snug); }
-.подсказкаЕщё { font-size: var(--text-body); line-height: var(--leading-snug); color: var(--color-text-detail); max-width: 52ch; }
-.подсказкаВремя { font-family: var(--font-mono); font-size: var(--text-lead); color: var(--color-text-detail); font-variant-numeric: tabular-nums; }
+.подсказкаЕщё { font-size: var(--text-small); line-height: var(--leading-snug); color: var(--color-text-detail); }
 
 .точка {
   position: absolute;
@@ -378,37 +610,55 @@
   block-size: var(--space-5);
   translate: -50% -50%;
   border-radius: var(--radius-pill);
-  background: var(--color-go);
-  box-shadow: 0 0 0 var(--space-2) var(--color-go-bg);
+  background: var(--color-text);
+  box-shadow: 0 0 0 var(--space-2) var(--color-surface-subtle);
   pointer-events: none;
 }
 
 .точкаЦентр { left: 50%; top: 50%; }
 
-.доска {
-  width: min(100%, 64ch);
+.камера { position: absolute; left: 50%; top: var(--space-3); translate: -50% 0; width: calc(var(--space-13) * 2.4); height: auto; }
+.камераСлова { font-family: var(--font-mono); font-size: var(--text-caption); fill: var(--color-text-detail); }
+
+.моргай { position: absolute; inset: 0; display: grid; grid-template-columns: auto auto; align-items: center; justify-content: center; gap: var(--space-10); padding: var(--space-8); }
+.моргайГлаз { width: min(30vw, calc(var(--space-13) * 3.3)); height: auto; }
+.моргайСлова { display: grid; gap: var(--space-4); justify-items: start; }
+.счётчик { display: flex; align-items: center; gap: var(--space-5); padding: var(--space-4) var(--space-6); }
+/* Карточка счётчика встаёт по левому краю букв заголовка (у заголовка поля на белом). */
+.моргайСлова .счётчик { margin-inline-start: var(--space-3); }
+.счётчикЧисло { font-family: var(--font-mono); font-size: var(--text-metric); font-weight: var(--weight-medium); line-height: var(--leading-tight); letter-spacing: var(--tracking-tight); font-variant-numeric: tabular-nums; }
+
+.доскаУрока {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: min(80%, 64ch);
+  height: fit-content;
   display: grid;
   gap: var(--space-4);
   padding: var(--space-8) var(--space-7);
-  border: 1px solid var(--color-border-strong);
-  border-radius: var(--radius-card);
-  background: var(--color-surface);
   font-family: var(--font-heading);
   font-size: var(--text-h2);
   line-height: var(--leading-snug);
   text-align: center;
 }
 
-.доска p { margin: 0; }
-.доска p:first-child { font-family: var(--font-mono); font-size: var(--text-h1); }
+.доскаУрока p { margin: 0; }
+.доскаУрока p:first-child { font-family: var(--font-mono); font-size: var(--text-h1); }
 
-.текстНаЭкране { margin: 0; max-width: 56ch; font-size: var(--text-lead); line-height: var(--leading-relaxed); }
+.текстНаЭкране { position: absolute; inset: 0; margin: auto; width: min(80%, 58ch); height: fit-content; padding: var(--space-6) var(--space-7); font-size: var(--text-lead); line-height: var(--leading-relaxed); }
+.текстНаЭкране p { margin: 0; }
 
 .вопрос {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: min(84%, 60ch);
+  height: fit-content;
   display: grid;
   justify-items: center;
   gap: var(--space-4);
-  max-width: 52ch;
+  padding: var(--space-7);
   text-align: center;
 }
 
@@ -421,31 +671,16 @@
   text-wrap: balance;
 }
 
-.чтение {
-  align-self: stretch;
-  justify-self: center;
-  width: min(100%, 66ch);
-  overflow-y: auto;
-  display: grid;
-  align-content: start;
-  gap: var(--space-4);
-  padding-block-end: var(--space-10);
-  font-size: var(--text-lead);
-  line-height: var(--leading-relaxed);
-}
-
-.сцена:has(.чтение),
-.сцена:has(.понимание) { place-items: stretch; }
-.чтение p { margin: 0; }
-.чтениеИмя { margin: 0; font-family: var(--font-heading); font-size: var(--text-h2); font-weight: var(--weight-semibold); line-height: var(--leading-heading); }
+.идётЗапись { display: inline-flex; gap: var(--space-2); align-items: center; font-size: var(--text-small); color: var(--color-text-detail); }
 
 /* Плитка учителя — язык комнаты: тёмная подложка и токены «на видео». */
 .учитель {
   position: absolute;
-  inset-block-start: var(--space-6);
-  inset-inline-end: var(--поле);
-  inline-size: min(40%, 44ch);
-  aspect-ratio: 4 / 3;
+  inset: 0;
+  margin: auto;
+  inline-size: min(46%, 58ch);
+  aspect-ratio: 16 / 10;
+  height: fit-content;
   display: grid;
   place-items: center;
   border-radius: var(--radius-card);
@@ -455,7 +690,7 @@
 }
 
 .учительЛицо {
-  inline-size: 30%;
+  inline-size: 26%;
   aspect-ratio: 1;
   display: grid;
   place-items: center;
@@ -466,23 +701,8 @@
   font-weight: var(--weight-semibold);
 }
 
-.учительИмя {
-  position: absolute;
-  inset-inline-start: var(--space-3);
-  inset-block-end: var(--space-3);
-  font-size: var(--text-small);
-  color: var(--color-text-on-video-quiet);
-}
-
-.говорит {
-  position: absolute;
-  inset-inline-end: var(--space-3);
-  inset-block-end: var(--space-3);
-  display: flex;
-  gap: 2px;
-  align-items: end;
-  block-size: var(--space-4);
-}
+.учительИмя { position: absolute; inset-inline-start: var(--space-3); inset-block-end: var(--space-3); font-size: var(--text-small); color: var(--color-text-on-video-quiet); }
+.говорит { position: absolute; inset-inline-end: var(--space-3); inset-block-end: var(--space-3); display: flex; gap: 2px; align-items: end; block-size: var(--space-4); }
 
 .говорит i {
   inline-size: 3px;
@@ -503,42 +723,168 @@
   .говорит i { animation: none; transform: scaleY(0.7); }
 }
 
-/* Вопрос «где было внимание» — поверх текста, текст прячется. */
+/* ── Чтение: книга разворотами ────────────────────────────────────────── */
+
+.книгаМесто { position: absolute; inset: 0; display: grid; place-items: center; padding: var(--space-6) var(--space-7); }
+
+.книга {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  max-width: calc(var(--space-13) * 9);
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-md);
+}
+
+.книгаОдна { grid-template-columns: minmax(0, 1fr); max-width: calc(var(--space-13) * 5); }
+
+.сгиб { position: absolute; left: 50%; top: var(--space-6); bottom: var(--space-6); border-left: 1px solid var(--color-border); }
+
+.страница {
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-8) var(--space-9) var(--space-6);
+}
+
+.страницаТекст { flex: 1; min-height: 0; overflow: hidden; display: grid; align-content: start; gap: var(--space-3); }
+.страницаТекст p { margin: 0; font-size: var(--text-body); line-height: var(--leading-body); }
+.страницаТекст p.конецКниги { margin-top: var(--space-3); font-size: var(--text-small); line-height: var(--leading-snug); color: var(--color-text-detail); }
+.страницаИмя { margin: 0 0 var(--space-1); font-family: var(--font-heading); font-size: var(--text-h2); font-weight: var(--weight-semibold); line-height: var(--leading-heading); letter-spacing: var(--tracking-snug); }
+.номер { font-family: var(--font-mono); font-size: var(--text-caption); color: var(--color-text-hint); }
+.номерСправа { align-self: flex-end; }
+
+/* Мерило: невидимая страница той же ширины — по ней текст режется на страницы. */
+.мерило { position: absolute; left: 0; top: 0; visibility: hidden; pointer-events: none; }
+
+/* Вопрос «где было внимание» — поверх книги, книга прячется. */
 .вопросПоверх {
   position: absolute;
   inset: 0;
   display: grid;
   place-items: center;
-  padding: var(--space-6) var(--поле);
+  padding: var(--space-6);
   background: var(--color-bg);
   z-index: var(--z-modal);
 }
 
-.вопросКарта {
-  width: min(100%, 60ch);
-  display: grid;
-  gap: var(--space-5);
-  justify-items: start;
-  padding: var(--space-6);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-card);
-  background: var(--color-surface);
-  box-shadow: var(--shadow-md);
-}
-
+.вопросКарта { width: min(100%, 64ch); display: grid; gap: var(--space-5); justify-items: start; padding: var(--space-6) var(--space-7); box-shadow: var(--shadow-md); }
 .вопросКарта > * { width: 100%; }
 .вопросКарта > button { width: auto; }
 
-.понимание {
-  align-self: stretch;
-  justify-self: center;
-  overflow-y: auto;
-  padding-block-end: var(--space-8);
-  width: min(100%, 64ch);
+.понимание { min-height: 100%; box-sizing: border-box; display: grid; align-content: start; gap: var(--space-5); padding: var(--space-7) var(--space-8); }
+.тривопроса { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-4); }
+.тривопроса > * { padding: var(--space-5); }
+/* Вопрос — до двух строк: ответы в трёх колонках начинаются на одной высоте. */
+.тривопроса .подписьВопрос { min-block-size: 2lh; }
+
+/* ── Итог: что система заметила ───────────────────────────────────────── */
+
+.итог {
+  min-height: 100%;
+  box-sizing: border-box;
   display: grid;
-  gap: var(--space-5);
-  justify-items: start;
+  grid-template-columns: minmax(0, 1fr) calc(var(--space-13) + var(--space-12));
+  gap: var(--space-7);
+  padding: var(--space-7) var(--space-8);
 }
 
-.понимание > * { width: 100%; }
-.понимание > button { width: auto; }
+.итогСлева { display: grid; align-content: start; gap: var(--space-5); min-width: 0; }
+.три { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-4); }
+.число { display: grid; align-content: start; gap: var(--space-2); padding: var(--space-5) var(--space-5) var(--space-6); min-width: 0; }
+.числоБольшое { font-family: var(--font-mono); font-size: var(--text-metric); font-weight: var(--weight-medium); line-height: var(--leading-tight); letter-spacing: var(--tracking-tight); font-variant-numeric: tabular-nums; }
+.числоЕд { font-size: var(--text-body); font-weight: var(--weight-semibold); }
+.ленточка { display: grid; gap: var(--space-2); padding: var(--space-4) var(--space-5); }
+.ленточкаРисунок { width: 100%; height: auto; }
+.ленточкаСлова { font-family: var(--font-mono); font-size: var(--text-caption); fill: var(--color-text-hint); }
+.морг { stroke: var(--color-text); stroke-width: 2.2; stroke-linecap: round; }
+.закрыты { fill: var(--color-border-strong); }
+.нить { stroke: var(--color-border); stroke-dasharray: 2 6; }
+
+.значокМесто { align-self: center; display: grid; justify-items: center; gap: var(--space-2); text-align: center; }
+.значокРисунок { width: calc(var(--space-13) + var(--space-8)); height: auto; }
+/* Значок не получен (проверку остановили): тот же рисунок бледным карандашом. */
+.значокНе .перо, .значокНе .пероЗел { stroke: var(--color-text-hint); }
+.значокНе .заливкаПеро { fill: var(--color-text-hint); }
+
+/* ── Отказы ───────────────────────────────────────────────────────────── */
+
+.отказ { min-height: 100%; box-sizing: border-box; display: grid; align-content: center; justify-items: start; gap: var(--space-4); padding: var(--space-8) var(--space-10); }
+
+/* ── Низкое окно: ужимаемся, а не прокручиваем ────────────────────────── */
+
+@media (max-height: 760px) {
+  .участок { padding: var(--space-3) var(--поле) var(--space-4); }
+  .знакомство, .путь, .анкета, .какВы, .итог, .понимание { padding: var(--space-5) var(--space-7); gap: var(--space-5); }
+  .блок { padding: var(--space-3) var(--space-4); }
+  .блок p { font-size: var(--text-caption); }
+  .форма { padding: var(--space-5); gap: var(--space-4); }
+  .анкетаЛисток { padding: var(--space-5) var(--space-6); gap: var(--space-4) var(--space-8); }
+  .страница { padding: var(--space-6) var(--space-8) var(--space-4); }
+  .числоБольшое { font-size: var(--text-display); }
+}
+
+/* ── Телефон: лист прокручивается целиком (ПРАВИЛА 8.6а) ──────────────── */
+
+@media (max-width: 760px) {
+  .экран { height: auto; min-height: 100dvh; overflow: visible; }
+  .участок { padding: var(--space-3) var(--space-3) var(--space-4); }
+  .поле { overflow: visible; }
+  .кто { padding: var(--space-6) var(--space-5); }
+  .глазКто, .очки { display: none; }
+  .знакомство, .путь, .итог, .подготовка { grid-template-columns: minmax(0, 1fr); padding: var(--space-5); }
+  .четыре, .анкетаЛисток, .какВыЛисток, .три, .тривопроса { grid-template-columns: minmax(0, 1fr); }
+  .анкета, .какВы, .понимание { padding: var(--space-5); }
+  .человек { width: 100%; min-height: auto; }
+  .низ { flex-wrap: wrap; }
+  .книга { grid-template-columns: minmax(0, 1fr); }
+  .сгиб { display: none; }
+  .ход { height: 70dvh; }
+
+  /* Шапка на телефоне: знак, счёт шагов и имя — раздел уже назван в полоске доски. */
+  .черта, .раздел { display: none; }
+  .шапка { gap: var(--space-3); }
+  .шапкаСправа { overflow: hidden; }
+
+  /* Полоска: без «доска исследования ·», отрезки шагов — отдельной строкой во всю ширину. */
+  .полоска { flex-wrap: wrap; row-gap: var(--space-2); }
+  .полоска > span:nth-child(-n + 2) { display: none; }
+  .отрезки { order: 3; flex: 1 1 100%; }
+  .отрезок { flex: 1; width: auto; }
+
+  /* Окно камеры в подготовке: высоты у листа нет — окно считается от ширины. */
+  .окноМесто { container-type: normal; }
+  .окноКамеры { width: 100%; }
+
+  /* Путь на телефоне — столбиком сверху вниз, та же пунктирная дорога слева. */
+  .картаМесто { container-type: normal; }
+  .карта { width: 100%; aspect-ratio: auto; display: grid; gap: var(--space-4); padding-block: var(--space-2); }
+  .карта::before {
+    content: '';
+    position: absolute;
+    left: calc(var(--space-10) / 2 - 1px);
+    top: var(--space-6);
+    bottom: var(--space-6);
+    border-left: 2px dotted var(--color-border-strong);
+  }
+  .картаЛинии { display: none; }
+  .станция {
+    position: static; /* left/top из рисунка карты здесь не действуют */
+    width: auto;
+    margin: 0;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    column-gap: var(--space-3);
+    align-items: center;
+    justify-items: start;
+    text-align: left;
+  }
+  .станция .кольцо { grid-row: span 2; }
+  .станцияИмя, .станцияЕщё { padding: 0; white-space: normal; }
+}

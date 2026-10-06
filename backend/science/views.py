@@ -2,14 +2,19 @@
 
 На проводе:
 
-    GET  /api/science/v/<код>                          кто я: согласие, анкета, мои проверки
-    POST /api/science/v/<код>/consent                  согласие и анкета
+    GET  /api/science/join/<секрет>                    жива ли общая ссылка
+    POST /api/science/join/<секрет>                    назваться → свой код
+    GET  /api/science/v/<код>                          кто я: имя, согласие, анкета, мои проверки
+    POST /api/science/v/<код>/consent                  согласие (и анкета, если прислали)
+    POST /api/science/v/<код>/profile                  анкета — по желанию, отдельно
     POST /api/science/v/<код>/runs                     начать проверку → id
     PUT  /api/science/v/<код>/runs/<id>/<вид>/<n>      кусок записи: video, frames, events, audio
     POST /api/science/v/<код>/runs/<id>/finish         проверка закончена
 
 🔴 ПРОПУСК — КОД В АДРЕСЕ, КУКИ НЕТ. Доброволец не заводит учётную запись: его
-ссылку `flamingo.plus/наука/<код>` выдаём мы (`manage.py наука_участник`). Раз
+код выдаём мы — личной ссылкой `flamingo.plus/наука/<код>` (`manage.py
+наука_участник`) или через общую `flamingo.plus/наука/вход-<секрет>`, где
+человек называет себя и получает свой код (`manage.py наука_ссылка`). Раз
 куки нет, подделать запрос «от его имени» с чужого сайта нечем — защищаться от
 этого не нужно, и `csrf_exempt` здесь честный, а не «чтобы заработало».
 
@@ -20,13 +25,15 @@
 from __future__ import annotations
 
 import json
+import re
+from datetime import timedelta
 
 from django.db.models import F, Sum
 from django.http import HttpRequest, JsonResponse
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 
-from .models import Run, Volunteer
+from .models import Invite, Run, Volunteer
 from .хранилище import (
     CODE, ДОБРОВОЛЕЦ_МАКС, ПРОВЕРКА_МАКС, RUN, Отказ, записать_json, записать_кусок, имя_куска,
     папка_добровольца, папка_проверки,
@@ -36,7 +43,13 @@ from .хранилище import (
 #: новая строка здесь: так видно, на что именно согласился каждый.
 СОГЛАСИЯ = {"2026-10-06"}
 #: Виды проверок. Порядок и смысл — в docs/SEDUM-ИССЛЕДОВАНИЕ.md.
-ВИДЫ_ПРОВЕРОК = {"взгляд", "тетрадь", "сон", "думай", "точка", "чтение", "голос"}
+ВИДЫ_ПРОВЕРОК = {"настройка", "взгляд", "тетрадь", "сон", "думай", "точка", "чтение", "голос"}
+#: Секрет общей ссылки — тот же алфавит, что у кода, 8 знаков.
+TOKEN = re.compile(r"^[a-hjkmnp-z2-9]{8}$")
+#: Сколько новых людей может войти по одной общей ссылке за час. Друзей и
+#: близких столько не придёт; если придёт больше — ссылка ушла не туда, и
+#: лучше остановиться, чем завести тысячу пустых строк.
+НОВЫХ_В_ЧАС = 60
 #: Поля анкеты и «как вы сейчас»: что берём и сколько знаков. Остальное отбрасываем —
 #: в базу не должно попадать то, о чём мы не спрашивали.
 АНКЕТА = {"возраст": 8, "пол": 24, "очки": 24, "рука": 24, "зрение": 200, "роль": 24, "заметка": 500}
@@ -92,6 +105,7 @@ def _проверка(в: Volunteer, run_id: str) -> Run | None:
 
 def _о_добровольце(в: Volunteer) -> dict:
     return {
+        "имя": в.name or None,
         "согласие": в.consent or None,
         "анкета": в.profile or None,
         "проверки": [
@@ -100,6 +114,8 @@ def _о_добровольце(в: Volunteer) -> dict:
                 "вид": р.kind,
                 "начата": р.started.isoformat(),
                 "закончена": р.finished.isoformat() if р.finished else None,
+                # Остановил сам: запись есть, но проверка не пройдена — значка нет.
+                "прервана": isinstance(р.summary, dict) and bool(р.summary.get("прервано")),
             }
             for р in в.runs.all()
         ],
@@ -120,6 +136,31 @@ def _meta(р: Run) -> dict:
         "байт": р.bytes,
         "кусков": р.chunks,
     }
+
+
+def _имя(сырое: object) -> str:
+    """Имя одной строкой: без переводов строк и лишних пробелов, до 60 знаков."""
+    return " ".join(str(сырое or "").split())[:60]
+
+
+@csrf_exempt
+def join(request: HttpRequest, токен: str) -> JsonResponse:
+    """Общая ссылка: GET — жива ли она, POST {имя} — завести своего добровольца."""
+    if request.method not in ("GET", "POST"):
+        return _no("Не тот метод.", 405)
+    приглашение = Invite.objects.filter(token=токен, active=True).first() if TOKEN.match(токен or "") else None
+    if not приглашение:
+        return _no("Эта ссылка больше не действует. Попросите новую у того, кто её прислал.", 404)
+    if request.method == "GET":
+        return JsonResponse({"ссылка": "действует"})
+    имя = _имя(_body(request).get("имя"))
+    if not имя:
+        return _no("Напишите, как вас зовут: так Адель поймёт, чьи это записи.")
+    час = timezone.now() - timedelta(hours=1)
+    if Volunteer.objects.filter(invite=приглашение, created__gte=час).count() >= НОВЫХ_В_ЧАС:
+        return _no("По этой ссылке за час пришло слишком много новых людей. Попробуйте через час или напишите Аделю.", 429)
+    в = Volunteer.objects.create(name=имя, label=имя, invite=приглашение)
+    return JsonResponse({"код": в.code, **_о_добровольце(в)}, status=201)
 
 
 @csrf_exempt
@@ -149,6 +190,30 @@ def consent(request: HttpRequest, код: str) -> JsonResponse:
     в.save()
     записать_json(папка_добровольца(в.code) / "volunteer.json", {
         "доброволец": в.code,
+        "имя": в.name,
+        "согласие": в.consent,
+        "согласие_когда": в.consent_at,
+        "анкета": в.profile,
+    })
+    return JsonResponse(_о_добровольце(в))
+
+
+@csrf_exempt
+def profile(request: HttpRequest, код: str) -> JsonResponse:
+    """Анкета — по желанию и отдельно от согласия: согласие даётся на первом
+    экране, анкета — на втором, и её можно пропустить."""
+    if request.method != "POST":
+        return _no("Не тот метод.", 405)
+    в = _доброволец(код)
+    if not в:
+        return _no("Ссылка не найдена. Проверьте, что она скопирована целиком.", 404)
+    if not в.consent:
+        return _no("Сначала нужно согласие на запись.", 403)
+    в.profile = _поля(_body(request).get("анкета"), АНКЕТА)
+    в.save(update_fields=["profile"])
+    записать_json(папка_добровольца(в.code) / "volunteer.json", {
+        "доброволец": в.code,
+        "имя": в.name,
         "согласие": в.consent,
         "согласие_когда": в.consent_at,
         "анкета": в.profile,

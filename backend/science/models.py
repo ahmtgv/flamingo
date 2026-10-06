@@ -34,9 +34,33 @@ def new_code() -> str:
     return "".join(secrets.choice(ALPHABET) for _ in range(12))
 
 
+def new_token() -> str:
+    """Секрет общей ссылки: 8 знаков — 31⁸ ≈ 8,5·10¹¹. Ссылка не для всего
+    мира, а для тех, кому её прислали; если уйдёт не туда — её меняют."""
+    return "".join(secrets.choice(ALPHABET) for _ in range(8))
+
+
 def new_id() -> str:
     """Именованная функция, а не lambda: миграции Django лямбду не сериализуют."""
     return str(uuid.uuid4())
+
+
+class Invite(models.Model):
+    """Общая ссылка `flamingo.plus/наука/вход-<секрет>` — одна на всех.
+
+    Решение владельца 06.10: «нужна одна ссылка для всех, но так, чтобы мы могли
+    данные различать и не путать». Кто открыл её впервые, называет себя — и
+    получает свой код, как если бы мы выдали ему личную ссылку. Действующая
+    ссылка одна: `наука_ссылка --новая` гасит прежние, и по старой больше не
+    войти — а кто уже вошёл, остаётся со своим кодом.
+    """
+    token = models.CharField(primary_key=True, max_length=16, default=new_token)
+    active = models.BooleanField(default=True)
+    created = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "science_invites"
+        ordering = ["-created"]
 
 
 class Volunteer(models.Model):
@@ -46,6 +70,11 @@ class Volunteer(models.Model):
     #: Наша пометка «кто это» (например, «мама Адели»). Видна только в командах
     #: сервера, на страницу не отдаётся.
     label = models.CharField(max_length=120, blank=True)
+    #: Как человек назвал себя сам, войдя по общей ссылке. Это имя страница
+    #: показывает ему же («Ваш путь, Адель») и Аделю в кабинете — и никому больше.
+    name = models.CharField(max_length=60, blank=True)
+    #: По какой общей ссылке пришёл. Пусто — личная ссылка от `наука_участник`.
+    invite = models.ForeignKey(Invite, null=True, blank=True, on_delete=models.SET_NULL, related_name="volunteers")
     #: Версия текста согласия, которое человек принял. Пусто — ещё не принял.
     consent = models.CharField(max_length=20, blank=True)
     consent_at = models.DateTimeField(null=True, blank=True)
@@ -63,7 +92,7 @@ class Volunteer(models.Model):
 class Run(models.Model):
     id = models.CharField(primary_key=True, max_length=36, default=new_id)
     volunteer = models.ForeignKey(Volunteer, on_delete=models.CASCADE, related_name="runs")
-    #: Какая проверка: «взгляд», «тетрадь», «сон», «думай», «точка», «чтение», «голос».
+    #: Какая проверка: «настройка», «взгляд», «тетрадь», «сон», «думай», «точка», «чтение», «голос».
     kind = models.CharField(max_length=24)
     #: Версия протокола: один и тот же вид может меняться, и старые записи
     #: должны читаться по своим правилам.

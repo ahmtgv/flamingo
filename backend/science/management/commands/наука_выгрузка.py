@@ -54,7 +54,8 @@ class Command(BaseCommand):
         архив = выгрузки / f"наука-{метка}{'-без-видео' if без_видео else ''}.tgz"
 
         участники = {
-            в.code: {"пометка": в.label, "согласие": в.consent, "анкета": в.profile}
+            в.code: {"пометка": в.label, "имя": в.name, "согласие": в.consent, "анкета": в.profile,
+                     "по_общей_ссылке": bool(в.invite_id)}
             for в in Volunteer.objects.all()
         }
         проверок = 0

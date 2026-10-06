@@ -20,9 +20,12 @@ export class ОтказНауки extends Error {
 }
 
 export type ОДоброволеце = {
+  /** Как человек назвал себя, войдя по общей ссылке. Личная ссылка — null. */
+  имя: string | null
   согласие: string | null
   анкета: Record<string, string> | null
-  проверки: { id: string; вид: string; начата: string; закончена: string | null }[]
+  /** `прервана` — человек остановил проверку сам: запись есть, но значка нет. */
+  проверки: { id: string; вид: string; начата: string; закончена: string | null; прервана?: boolean }[]
 }
 
 async function спросить<T>(путь: string, init: RequestInit = {}, срок = 10_000): Promise<T> {
@@ -51,7 +54,15 @@ const json = (тело: unknown): RequestInit => ({
 })
 
 export const наука = {
+  /** Жива ли общая ссылка `наука/вход-<секрет>`. Погашена — 404. */
+  ссылка: (секрет: string) => спросить<{ ссылка: string }>(`/join/${encodeURIComponent(секрет)}`),
+  /** Назваться по общей ссылке → свой код. */
+  войти: (секрет: string, имя: string) =>
+    спросить<ОДоброволеце & { код: string }>(`/join/${encodeURIComponent(секрет)}`, json({ имя })),
   кто: (код: string) => спросить<ОДоброволеце>(`/v/${encodeURIComponent(код)}`),
+  /** Анкета отдельно от согласия: согласие даётся на первом экране, анкета — по желанию на втором. */
+  анкета: (код: string, анкета: Record<string, string>) =>
+    спросить<ОДоброволеце>(`/v/${encodeURIComponent(код)}/profile`, json({ анкета })),
   согласие: (код: string, версия: string, анкета: Record<string, string>) =>
     спросить<ОДоброволеце>(`/v/${encodeURIComponent(код)}/consent`, json({ версия, анкета })),
   начать: (код: string, тело: { вид: string; протокол: string; перед: Record<string, string>; устройство: Record<string, unknown> }) =>
