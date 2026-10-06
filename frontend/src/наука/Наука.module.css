@@ -369,6 +369,7 @@
 .анкетаЛисток { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-6) var(--space-9); padding: var(--space-7) var(--space-8); }
 .очки { flex: none; width: calc(var(--space-13) * 1.7); height: auto; margin-right: var(--space-6); }
 .возраст { max-width: calc(var(--space-12) + var(--space-6)); }
+.воВсюШирину { grid-column: 1 / -1; }
 
 /* ── Путь ─────────────────────────────────────────────────────────────── */
 
@@ -608,10 +609,6 @@
 }
 
 .пока {
-  position: absolute;
-  inset: var(--space-4);
-  margin: auto;
-  height: fit-content;
   max-width: 46ch;
   display: grid;
   justify-items: start;
@@ -723,7 +720,36 @@
   pointer-events: none;
 }
 
-.точкаЦентр { left: 50%; top: 50%; }
+.точкаЦентр { left: 50%; top: 50%; animation: пульс 0.86s var(--ease-standard) infinite; }
+
+/* Точка калибровки бьётся как сердце — «тук-тук» и пауза, 70 ударов в минуту
+   (владелец, 06.10): на живой точке взгляд держится сам. Центр точки не сдвигается —
+   меняется только размер, поэтому норма взгляда собирается как прежде.
+   Волна от каждого удара — тихий круг, гаснущий к краю. */
+.точкаЦентр::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius-pill);
+  box-shadow: 0 0 0 0 color-mix(in oklab, var(--color-text) 35%, transparent);
+  animation: волна 0.86s ease-out infinite;
+}
+@keyframes пульс {
+  0%, 46%, 100% { scale: 1; }
+  10% { scale: 1.28; }
+  20% { scale: 1; }
+  30% { scale: 1.14; }
+}
+@keyframes волна {
+  0% { box-shadow: 0 0 0 0 color-mix(in oklab, var(--color-text) 35%, transparent); }
+  55%, 100% { box-shadow: 0 0 0 var(--space-6) transparent; }
+}
+@media (prefers-reduced-motion: reduce) {
+  /* Без движения: тот же ритм — только яркостью. */
+  .точкаЦентр { animation-name: пульсТихо; }
+  .точкаЦентр::after { animation: none; }
+  @keyframes пульсТихо { 0%, 46%, 100% { opacity: 1; } 10%, 30% { opacity: 0.55; } 20% { opacity: 0.9; } }
+}
 
 .камера { position: absolute; left: 50%; top: var(--space-3); translate: -50% 0; width: calc(var(--space-13) * 2.4); height: auto; }
 .камераСлова { font-family: var(--font-mono); font-size: var(--text-caption); fill: var(--color-text-detail); }
@@ -736,12 +762,22 @@
 .моргайСлова .счётчик { margin-inline-start: var(--space-3); }
 .счётчикЧисло { font-family: var(--font-mono); font-size: var(--text-metric); font-weight: var(--weight-medium); line-height: var(--leading-tight); letter-spacing: var(--tracking-tight); font-variant-numeric: tabular-nums; }
 
-.доскаУрока {
+/* Посреди доски — сеткой (см. `Посередине` в Проверка.tsx): Safari не считает
+   высоту `fit-content` у блока с `inset: 0; margin: auto`, и карточка уезжала
+   за края доски вместе с текстом. */
+.сцена {
   position: absolute;
   inset: 0;
-  margin: auto;
+  display: grid;
+  place-items: center;
+  padding: var(--space-6);
+  pointer-events: none;
+}
+.сценаТесно { padding: var(--space-4); }
+.сцена > * { pointer-events: auto; }
+
+.доскаУрока {
   width: min(80%, 64ch);
-  height: fit-content;
   display: grid;
   gap: var(--space-4);
   padding: var(--space-8) var(--space-7);
@@ -754,15 +790,11 @@
 .доскаУрока p { margin: 0; }
 .доскаУрока p:first-child { font-family: var(--font-mono); font-size: var(--text-h1); }
 
-.текстНаЭкране { position: absolute; inset: 0; margin: auto; width: min(80%, 58ch); height: fit-content; padding: var(--space-6) var(--space-7); font-size: var(--text-lead); line-height: var(--leading-relaxed); }
+.текстНаЭкране { width: min(80%, 58ch); padding: var(--space-6) var(--space-7); font-size: var(--text-lead); line-height: var(--leading-relaxed); }
 .текстНаЭкране p { margin: 0; }
 
 .вопрос {
-  position: absolute;
-  inset: 0;
-  margin: auto;
   width: min(84%, 60ch);
-  height: fit-content;
   display: grid;
   justify-items: center;
   gap: var(--space-4);
@@ -783,12 +815,8 @@
 
 /* Плитка учителя — язык комнаты: тёмная подложка и токены «на видео». */
 .учитель {
-  position: absolute;
-  inset: 0;
-  margin: auto;
   inline-size: min(46%, 58ch);
   aspect-ratio: 16 / 10;
-  height: fit-content;
   display: grid;
   place-items: center;
   border-radius: var(--radius-card);
