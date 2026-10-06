@@ -261,29 +261,26 @@
 
 /* ── Кто сейчас проходит ──────────────────────────────────────────────── */
 
+/* Слова и карточки слева, глаз справа — в своём столбце, а не поверх карточек. */
 .кто {
   min-height: 100%;
   box-sizing: border-box;
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) min(26%, calc(var(--space-13) * 2.6));
   align-items: center;
+  gap: var(--space-8);
   padding: var(--space-8) var(--space-10);
 }
 
-.ктоСлова { position: relative; display: grid; gap: var(--space-8); min-width: 0; }
+.ктоСлова { display: grid; gap: var(--space-8); min-width: 0; }
 .ктоШапка { display: grid; gap: var(--space-2); max-width: 64ch; }
 
-.глазКто {
-  position: absolute;
-  right: var(--space-10);
-  top: 18%;
-  width: min(28%, calc(var(--space-13) * 2.6));
-  height: auto;
-}
+.глазКто { order: 2; width: 100%; height: auto; }
 
 .карточки { display: flex; flex-wrap: wrap; gap: var(--space-4); }
 
 .человек {
-  width: calc(var(--space-13) + var(--space-12) + var(--space-2));
+  width: calc(var(--space-13) + var(--space-12));
   min-height: calc(var(--space-13) + var(--space-9) + var(--space-5));
   box-sizing: border-box;
   padding: var(--space-5);
@@ -321,6 +318,8 @@
   font-weight: var(--weight-semibold);
 }
 
+/* Сколько пройдено и когда — двумя строками, а не через точку. */
+.человекЕщё { display: grid; gap: var(--space-1); font-size: var(--text-small); line-height: var(--leading-snug); color: var(--color-text-detail); }
 .человекИмя { font-size: var(--text-lead); font-weight: var(--weight-semibold); overflow-wrap: anywhere; }
 .шарики { display: flex; gap: var(--space-1); }
 
@@ -341,24 +340,31 @@
   box-sizing: border-box;
   display: grid;
   grid-template-columns: minmax(0, 1fr) calc(var(--space-13) * 2 + var(--space-11));
+  align-content: center;
   gap: var(--space-7);
   padding: var(--space-7) var(--space-8);
 }
 
 .слеваСтолбец { display: grid; align-content: start; gap: var(--space-5); min-width: 0; }
-.четыре { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-4); }
+/* Что будет, что пишем, где хранится, добровольно — один лист согласия в четыре
+   клетки, а не четыре карточки: это один документ. Поднята над доской только
+   карточка с галочкой — действие. */
+.четыре { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); box-shadow: none; }
 
-.блок { display: grid; align-content: start; gap: var(--space-2); padding: var(--space-4) var(--space-5); min-width: 0; }
-.блок h3 { margin: 0; display: flex; align-items: center; gap: var(--space-2); font-size: var(--text-small); font-weight: var(--weight-semibold); }
+.блок { display: grid; align-content: start; gap: var(--space-2); padding: var(--space-5) var(--space-6); min-width: 0; }
+.блок:nth-child(even) { border-left: 1px solid var(--color-border); }
+.блок:nth-child(n + 3) { border-top: 1px solid var(--color-border); }
+.блок h2 { margin: 0; display: flex; align-items: center; gap: var(--space-2); font-size: var(--text-small); font-weight: var(--weight-semibold); line-height: var(--leading-snug); }
 .блок p { margin: 0; font-size: var(--text-small); line-height: var(--leading-snug); color: var(--color-text-detail); }
 .значок { flex: none; width: var(--icon-size-md); height: var(--icon-size-md); }
 
 .форма { align-self: start; display: grid; gap: var(--space-5); padding: var(--space-6); }
 .черта2 { border-top: 1px solid var(--color-border); }
 
-.анкета { display: grid; align-content: start; gap: var(--space-6); padding: var(--space-7) var(--space-8); min-height: 100%; box-sizing: border-box; position: relative; }
+.анкета { display: grid; align-content: center; gap: var(--space-6); padding: var(--space-7) var(--space-8); min-height: 100%; box-sizing: border-box; }
+.анкетаШапка { display: flex; align-items: center; justify-content: space-between; gap: var(--space-8); }
 .анкетаЛисток { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-6) var(--space-9); padding: var(--space-7) var(--space-8); }
-.очки { position: absolute; right: var(--space-10); top: var(--space-7); width: calc(var(--space-13) * 1.9); height: auto; }
+.очки { flex: none; width: calc(var(--space-13) * 1.7); height: auto; margin-right: var(--space-6); }
 .возраст { max-width: calc(var(--space-12) + var(--space-6)); }
 
 /* ── Путь ─────────────────────────────────────────────────────────────── */
@@ -615,7 +621,17 @@
 .покаЧто { margin: 0; font-weight: var(--weight-semibold); font-size: var(--text-body); }
 .покаКак { font-size: var(--text-small); line-height: var(--leading-snug); color: var(--color-text-detail); }
 
-.микрофон { align-self: center; display: grid; gap: var(--space-3); padding: var(--space-6); }
+.окноКамеры.микрофон {
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: var(--space-4);
+  padding: var(--space-8) var(--space-10);
+  background: var(--color-surface);
+  text-align: center;
+}
+.микрофон .полоса { width: 100%; }
+.микрофонЗнак { width: var(--space-11); height: var(--space-11); }
 
 .пункты { align-self: center; display: grid; gap: var(--space-4); padding: var(--space-5) var(--space-6); }
 .список { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-3); }
@@ -625,7 +641,7 @@
 .пунктКак { display: block; font-size: var(--text-small); color: var(--color-text-detail); }
 
 .полоса { display: block; height: var(--space-2); border-radius: var(--radius-pill); background: var(--color-surface-subtle); overflow: hidden; }
-.полосаЗаливка { display: block; height: 100%; background: var(--color-border-strong); }
+.полосаЗаливка { display: block; height: 100%; background: var(--color-text); }
 
 /* ── Ход проверки ─────────────────────────────────────────────────────── */
 
@@ -867,7 +883,7 @@
 .вопросКарта > * { width: 100%; }
 .вопросКарта > button { width: auto; }
 
-.понимание { min-height: 100%; box-sizing: border-box; display: grid; align-content: start; gap: var(--space-5); padding: var(--space-7) var(--space-8); }
+.понимание { min-height: 100%; box-sizing: border-box; display: grid; align-content: center; gap: var(--space-5); padding: var(--space-7) var(--space-8); }
 .тривопроса { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-4); }
 .тривопроса > * { padding: var(--space-5); }
 /* Вопрос — до двух строк: ответы в трёх колонках начинаются на одной высоте. */
@@ -880,16 +896,21 @@
   box-sizing: border-box;
   display: grid;
   grid-template-columns: minmax(0, 1fr) calc(var(--space-13) + var(--space-12));
+  align-content: center;
   gap: var(--space-7);
   padding: var(--space-7) var(--space-8);
 }
 
 .итогСлева { display: grid; align-content: start; gap: var(--space-5); min-width: 0; }
-.три { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-4); }
-.число { display: grid; align-content: start; gap: var(--space-2); padding: var(--space-5) var(--space-5) var(--space-6); min-width: 0; }
+/* Три числа и ленточка — один лист: это один итог одной проверки, а не четыре
+   отдельные вещи. Внутри — линейки, как в тетради. */
+.итогЛист { display: grid; }
+.три { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.число { display: grid; align-content: start; gap: var(--space-2); padding: var(--space-5) var(--space-6) var(--space-6); min-width: 0; }
+.число + .число { border-left: 1px solid var(--color-border); }
 .числоБольшое { font-family: var(--font-mono); font-size: var(--text-metric); font-weight: var(--weight-medium); line-height: var(--leading-tight); letter-spacing: var(--tracking-tight); font-variant-numeric: tabular-nums; }
 .числоЕд { font-size: var(--text-body); font-weight: var(--weight-semibold); }
-.ленточка { display: grid; gap: var(--space-2); padding: var(--space-4) var(--space-5); }
+.ленточка { display: grid; gap: var(--space-2); padding: var(--space-5) var(--space-6); border-top: 1px solid var(--color-border); }
 .ленточкаРисунок { width: 100%; height: auto; }
 .ленточкаСлова { font-family: var(--font-mono); font-size: var(--text-caption); fill: var(--color-text-hint); }
 .морг { stroke: var(--color-text); stroke-width: 2.2; stroke-linecap: round; }
@@ -904,15 +925,29 @@
 
 /* ── Отказы ───────────────────────────────────────────────────────────── */
 
-.отказ { min-height: 100%; box-sizing: border-box; display: grid; align-content: center; justify-items: start; gap: var(--space-4); padding: var(--space-8) var(--space-10); }
+.отказ { min-height: 100%; box-sizing: border-box; display: grid; align-content: center; justify-items: center; gap: var(--space-4); padding: var(--space-8) var(--space-10); text-align: center; }
+.отказ .наБелом { justify-self: center; }
+.отказ .лид { max-width: 56ch; text-wrap: balance; }
+
+/* Только для чтения с экрана: главный заголовок хода проверки (глазами — в шапке). */
+.дляЧтения {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
 
 /* ── Низкое окно: ужимаемся, а не прокручиваем ────────────────────────── */
 
 @media (max-height: 760px) {
   .участок { padding: var(--space-3) var(--поле) var(--space-4); }
   .знакомство, .путь, .анкета, .какВы, .итог, .понимание { padding: var(--space-5) var(--space-7); gap: var(--space-5); }
-  .блок { padding: var(--space-3) var(--space-4); }
-  .блок p { font-size: var(--text-caption); }
+  .блок { padding: var(--space-4) var(--space-5); }
   .форма { padding: var(--space-5); gap: var(--space-4); }
   .анкетаЛисток { padding: var(--space-5) var(--space-6); gap: var(--space-4) var(--space-8); }
   .страница { padding: var(--space-6) var(--space-8) var(--space-4); }
@@ -925,10 +960,13 @@
   .экран { height: auto; min-height: 100dvh; overflow: visible; }
   .участок { padding: var(--space-3) var(--space-3) var(--space-4); }
   .поле { overflow: visible; }
-  .кто { padding: var(--space-6) var(--space-5); }
+  .кто { grid-template-columns: minmax(0, 1fr); padding: var(--space-6) var(--space-5); }
   .глазКто, .очки { display: none; }
   .знакомство, .путь, .итог, .подготовка { grid-template-columns: minmax(0, 1fr); padding: var(--space-5); }
   .четыре, .анкетаЛисток, .три, .тривопроса { grid-template-columns: minmax(0, 1fr); }
+  /* Один столбец: линейки между клетками — только сверху. */
+  .блок:nth-child(even), .число + .число { border-left: 0; }
+  .блок + .блок, .число + .число { border-top: 1px solid var(--color-border); }
   .какВыЛисток { padding: var(--space-5); }
   .анкета, .какВы, .понимание { padding: var(--space-5); }
   .человек { width: 100%; min-height: auto; }
