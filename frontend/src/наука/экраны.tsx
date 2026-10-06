@@ -13,7 +13,7 @@
  *  🔴 ВСЁ В ОДНОМ ОКНЕ. «Скрола не должно быть — всё должно умещаться на
  *  странице» (владелец, 06.10). Каждый экран считан под 1280×800 и 1512×944.
  */
-import { useState, type ReactNode } from 'react'
+import { useState, type CSSProperties, type ReactNode } from 'react'
 
 import { Button } from '../ui/Button'
 import { Field } from '../ui/Field'
@@ -456,15 +456,19 @@ export type Перед = Record<string, string>
 
 export function КакВы({ описание, имя, onДальше, onНазад }: { описание: Описание; имя?: string | null; onДальше: (п: Перед) => void; onНазад: () => void }) {
   const [сон, setСон] = useState<number | null>(null)
+  const [бегунок, setБегунок] = useState(5)
   const [свет, setСвет] = useState<string | null>(null)
   const [очки, setОчки] = useState<string | null>(null)
   const [где, setГде] = useState<string | null>(null)
   const готово = сон !== null && свет !== null && (очки !== null || !описание.камера) && где !== null
+  /* Бегунок отвечает, только когда его тронули: щелчок по нему на месте — тоже ответ. */
+  const тронул = (значение: number) => { setБегунок(значение); setСон(значение) }
   const дальше = () => {
     const п: Перед = { сонливость: String(сон), свет: свет!, где: где! }
     if (очки) п['очки'] = очки
     onДальше(п)
   }
+  const словами = сон ? СОНЛИВОСТЬ.find((с) => с.балл === сон)?.слова ?? '' : ''
   return (
     <Рама раздел={описание.название} справа={<КтоЯ имя={имя ?? null} />} место="перед проверкой" право={<Огонёк>камера пока выключена</Огонёк>}
       низ={(
@@ -478,16 +482,24 @@ export function КакВы({ описание, имя, onДальше, onНаз�
       <div className={s.какВы}>
         <div className={s.шапкаТекста}>
           <h1 className={`${s.заголовок} ${s.наБелом}`}>Как вы сейчас?</h1>
-          <p className={`${s.лид} ${s.наБелом}`}>Четыре быстрых вопроса — о том, в каких условиях идёт эта проверка.</p>
+          <p className={`${s.лид} ${s.наБелом}`}>Четыре быстрых вопроса — о том, в каких условиях идёт эта проверка. Ответ запомним на два часа.</p>
         </div>
         <div className={`${s.листок} ${s.какВыЛисток}`}>
-          <div className={s.выбор}>
-            <Выбор подпись="Насколько вас клонит в сон" значение={сон} onВыбор={setСон} className={s.шкала} кнопкаКласс={s.шкалаКнопка}
-              варианты={СОНЛИВОСТЬ.map((с) => ({ ключ: с.балл, слова: String(с.балл) }))} />
+          <div className={s.сонБлок}>
+            <span className={s.подпись} id="как-вы-сон">Насколько вас клонит в сон</span>
+            <span className={`${s.сонСлова} ${сон ? '' : s.сонЖдёт}`} aria-hidden>{сон ? словами : 'Передвиньте бегунок'}</span>
+            <input
+              type="range" min={1} max={9} step={1} value={бегунок}
+              className={`${s.бегунок} ${сон ? s.бегунокДа : ''}`}
+              style={{ '--доля': `${((бегунок - 1) / 8) * 100}%` } as CSSProperties}
+              aria-labelledby="как-вы-сон" aria-valuetext={сон ? словами : 'не выбрано'}
+              onChange={(e) => тронул(Number(e.currentTarget.value))}
+              onPointerUp={(e) => тронул(Number(e.currentTarget.value))}
+            />
+            <span className={s.бегунокМетки} aria-hidden>{СОНЛИВОСТЬ.map((с) => <i key={с.балл} />)}</span>
             <span className={s.шкалаКонцы}><span>совсем бодро</span><span>очень сонно</span></span>
-            <span className={s.шкалаСлова} role="status">{сон ? СОНЛИВОСТЬ.find((с) => с.балл === сон)?.слова : ''}</span>
           </div>
-          <div className={s.выбор} style={{ gap: 'var(--space-5)' }}>
+          <div className={s.какВыРяд}>
             <Выбор подпись="Свет в комнате" значение={свет} onВыбор={setСвет}
               варианты={[{ ключ: 'день', слова: 'Дневной' }, { ключ: 'лампа', слова: 'Лампа' }, { ключ: 'полумрак', слова: 'Полумрак' }]} />
             {описание.камера ? (

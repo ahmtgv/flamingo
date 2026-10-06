@@ -462,13 +462,102 @@
 
 /* ── Как вы сейчас ────────────────────────────────────────────────────── */
 
-.какВы { min-height: 100%; box-sizing: border-box; display: grid; align-content: start; gap: var(--space-5); padding: var(--space-7) var(--space-8); }
-.какВыЛисток { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: var(--space-6) var(--space-9); padding: var(--space-6) var(--space-7); }
-.шкала { display: grid; grid-template-columns: repeat(9, minmax(0, 1fr)); gap: var(--space-1); }
-.шкалаКнопка { justify-items: center; padding: var(--space-2) 0; text-align: center; font-family: var(--font-mono); }
+/* «Как вы сейчас?» — всё по центру (слова владельца 06.10): заголовок, бегунок
+   сонливости во всю ширину листка, под ним три вопроса в ряд. */
+.какВы {
+  min-height: 100%;
+  box-sizing: border-box;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: var(--space-6);
+  padding: var(--space-7) var(--space-8);
+  text-align: center;
+}
+.какВы .шапкаТекста { justify-items: center; }
+.какВы .наБелом { justify-self: center; }
+.какВы .лид { text-wrap: balance; }
+.какВыЛисток {
+  width: min(100%, calc(var(--space-13) * 8));
+  box-sizing: border-box;
+  display: grid;
+  justify-items: center;
+  gap: var(--space-6);
+  padding: var(--space-6) var(--space-8);
+}
+
+/* Бегунок сонливости: Каролинская шкала (KSS) 1–9 без цифр — под бегунком метки
+   ступеней, над ним — ответ словами шкалы. Пока не тронут — бледный, без заливки. */
+.сонБлок { width: min(100%, calc(var(--space-13) * 5)); display: grid; gap: var(--space-2); }
+.сонСлова {
+  min-height: calc(var(--text-lead) * var(--leading-snug));
+  font-size: var(--text-lead);
+  font-weight: var(--weight-semibold);
+  line-height: var(--leading-snug);
+}
+.сонЖдёт { font-weight: var(--weight-regular); color: var(--color-text-hint); }
+
+.бегунок {
+  /* Доля заливки дорожки — ставит сама страница по положению бегунка. */
+  --доля: 50%;
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: var(--tap-min);
+  margin: 0;
+  background: transparent;
+  cursor: pointer;
+}
+.бегунок:focus-visible { outline: none; }
+.бегунок::-webkit-slider-runnable-track { height: var(--space-1); border-radius: var(--radius-pill); background: var(--color-border-strong); }
+.бегунокДа::-webkit-slider-runnable-track {
+  background: linear-gradient(to right, var(--color-text) 0 var(--доля), var(--color-border-strong) var(--доля) 100%);
+}
+.бегунок::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: var(--space-6);
+  height: var(--space-6);
+  margin-top: calc((var(--space-1) - var(--space-6)) / 2);
+  box-sizing: border-box;
+  border: 2px solid var(--color-border-strong);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-sm);
+}
+.бегунокДа::-webkit-slider-thumb { border-color: var(--color-text); }
+.бегунок:focus-visible::-webkit-slider-thumb { box-shadow: var(--focus-ring); }
+.бегунок::-moz-range-track { height: var(--space-1); border-radius: var(--radius-pill); background: var(--color-border-strong); }
+.бегунокДа::-moz-range-progress { height: var(--space-1); border-radius: var(--radius-pill); background: var(--color-text); }
+.бегунок::-moz-range-thumb {
+  width: var(--space-6);
+  height: var(--space-6);
+  box-sizing: border-box;
+  border: 2px solid var(--color-border-strong);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-sm);
+}
+.бегунокДа::-moz-range-thumb { border-color: var(--color-text); }
+.бегунок:focus-visible::-moz-range-thumb { box-shadow: var(--focus-ring); }
+
+/* Метки ступеней — под центрами положений бегунка (отступ — полбегунка). */
+.бегунокМетки {
+  display: flex;
+  justify-content: space-between;
+  margin-top: calc(var(--space-3) * -1);
+  padding-inline: calc(var(--space-6) / 2 - 1px);
+}
+.бегунокМетки i { width: 2px; height: var(--space-2); border-radius: var(--radius-pill); background: var(--color-border-strong); }
+
 .шкалаКонцы { display: flex; justify-content: space-between; font-size: var(--text-caption); color: var(--color-text-detail); }
-.шкалаСлова { min-height: calc(var(--text-small) * var(--leading-snug)); font-size: var(--text-small); font-weight: var(--weight-semibold); }
-.приготовьте { grid-column: 1 / -1; margin: 0; padding-top: var(--space-4); border-top: 1px solid var(--color-border); font-size: var(--text-small); line-height: var(--leading-snug); }
+
+.какВыРяд { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--space-5) var(--space-7); }
+.какВыРяд .выбор { justify-items: center; }
+.какВыРяд legend { margin-inline: auto; }
+.какВыРяд .варианты { justify-content: center; }
+
+.приготовьте { width: 100%; margin: 0; padding-top: var(--space-4); border-top: 1px solid var(--color-border); font-size: var(--text-small); line-height: var(--leading-snug); }
 
 /* ── Подготовка ───────────────────────────────────────────────────────── */
 
@@ -571,7 +660,7 @@
   text-wrap: balance;
 }
 
-.крупноЕщё { margin: 0; padding: 0 var(--space-3); background: var(--color-surface); font-size: var(--text-lead); line-height: var(--leading-snug); color: var(--color-text-detail); max-width: 52ch; }
+.крупноЕщё { margin: 0; padding: 0 var(--space-3); background: var(--color-surface); font-size: var(--text-lead); line-height: var(--leading-snug); color: var(--color-text-detail); max-width: 52ch; text-wrap: balance; }
 .крупноБровь { padding: 0 var(--space-2); background: var(--color-surface); }
 
 .сигналом {
@@ -839,7 +928,8 @@
   .кто { padding: var(--space-6) var(--space-5); }
   .глазКто, .очки { display: none; }
   .знакомство, .путь, .итог, .подготовка { grid-template-columns: minmax(0, 1fr); padding: var(--space-5); }
-  .четыре, .анкетаЛисток, .какВыЛисток, .три, .тривопроса { grid-template-columns: minmax(0, 1fr); }
+  .четыре, .анкетаЛисток, .три, .тривопроса { grid-template-columns: minmax(0, 1fr); }
+  .какВыЛисток { padding: var(--space-5); }
   .анкета, .какВы, .понимание { padding: var(--space-5); }
   .человек { width: 100%; min-height: auto; }
   .низ { flex-wrap: wrap; }
