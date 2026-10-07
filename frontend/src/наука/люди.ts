@@ -46,7 +46,7 @@ export function запомнить(ч: Человек): void {
   }
 }
 
-/** «2 из 8 · вчера вечером» — подпись на карточке человека. */
+/** «2 из 7 · вчера вечером» — подпись на карточке человека. */
 export function когдаСловами(iso: string, сейчас = new Date()): string {
   const д = new Date(iso)
   if (Number.isNaN(д.getTime())) return ''
@@ -171,5 +171,33 @@ export function запомнитьПрочитанное(код: string, тек�
     window.localStorage.setItem(КЛЮЧ_ПРОЧИТАНО, JSON.stringify({ ...всеПрочитанные(), [код]: всё }))
   } catch {
     /* браузер не даёт хранить — после перезагрузки тексты могут повториться */
+  }
+}
+
+/* ── Поздравили ли человека ───────────────────────────────────────────────
+   Конфетти — один раз: в первый раз, когда карта открылась со всеми
+   пройденными проверками. Благодарность словами остаётся навсегда. */
+
+const КЛЮЧ_ПОЗДРАВИЛИ = 'flamingo.наука.поздравили'
+const поздравилиЗдесь = new Set<string>()
+
+export function поздравили(код: string): boolean {
+  if (поздравилиЗдесь.has(код)) return true
+  try {
+    const сырое = JSON.parse(window.localStorage.getItem(КЛЮЧ_ПОЗДРАВИЛИ) ?? '[]')
+    return Array.isArray(сырое) && сырое.includes(код)
+  } catch {
+    return false
+  }
+}
+
+export function запомнитьПоздравление(код: string): void {
+  поздравилиЗдесь.add(код)
+  try {
+    const сырое = JSON.parse(window.localStorage.getItem(КЛЮЧ_ПОЗДРАВИЛИ) ?? '[]')
+    const список = Array.isArray(сырое) ? сырое : []
+    if (!список.includes(код)) window.localStorage.setItem(КЛЮЧ_ПОЗДРАВИЛИ, JSON.stringify([...список, код]))
+  } catch {
+    /* браузер не даёт хранить — после перезагрузки конфетти покажем ещё раз */
   }
 }

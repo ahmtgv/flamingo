@@ -14,7 +14,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { Button } from '../ui/Button'
 import { Wait } from '../ui/Wait'
 import { Огонёк, Отказ, Рама } from './экраны'
-import { ПРОВЕРКИ, СОНЛИВОСТЬ } from './протокол'
+import { НА_ПУТИ, ПРОВЕРКИ, СОНЛИВОСТЬ } from './протокол'
 import { дробь, форма } from './итоги'
 import {
   кабинет, ссылкаДляВсех, ОтказНауки,
@@ -50,6 +50,8 @@ const времяЗаписи = (сек: number) => {
   const м = Math.round((сек % 3600) / 60)
   return ч ? `${ч} ч ${м} мин` : `${м} мин`
 }
+/** Сколько проверок пути пройдено — «Голос учителя» прежних записей не в счёт. */
+const наПути = (пройдено: string[]) => НА_ПУТИ.filter((п) => пройдено.includes(п.вид)).length
 const название = (вид: string) => ПРОВЕРКИ.find((п) => п.вид === вид)?.название ?? вид
 const инициал = (имя: string) => (имя.trim()[0] ?? '?').toUpperCase()
 
@@ -188,7 +190,7 @@ function Люди({ люди, выбран, onВыбор }: { люди: Чело
                   <span className={к.имя}>{ч.имя || 'без имени'}</span>
                   <span className={к.оНём}>{оЧеловеке(ч.анкета)}</span>
                 </span>
-                <span className={к.счёт} aria-label={`пройдено ${ч.пройдено.length} из ${ПРОВЕРКИ.length}`}>{ч.пройдено.length}/{ПРОВЕРКИ.length}</span>
+                <span className={к.счёт} aria-label={`пройдено ${наПути(ч.пройдено)} из ${НА_ПУТИ.length}`}>{наПути(ч.пройдено)}/{НА_ПУТИ.length}</span>
               </button>
             </li>
           ))}

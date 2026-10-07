@@ -1049,3 +1049,13 @@
   .станция .кольцо { grid-row: span 2; }
   .станцияИмя, .станцияЕщё { padding: 0; white-space: normal; }
 }
+
+/* Конфетти, когда пройдены все проверки: холст поверх всего, нажатия — сквозь. */
+.конфетти {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: var(--z-modal);
+}
