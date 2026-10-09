@@ -13,12 +13,10 @@
 """
 from __future__ import annotations
 
-import shutil
-
 from django.core.management.base import BaseCommand, CommandError
 
-from science.models import Run, Volunteer
-from science.хранилище import CODE, корень, папка_добровольца
+from science.хранилище import CODE
+from science.удаление import выгрузок, удалить, что_удалим
 
 МБ = 1024 * 1024
 
@@ -34,25 +32,20 @@ class Command(BaseCommand):
         код = opts["код"]
         if not CODE.match(код):
             raise CommandError("Это не код добровольца: 12 знаков из ссылки flamingo.plus/наука/<код>.")
-        в = Volunteer.objects.filter(code=код).first()
-        папка = папка_добровольца(код)
-        байт = sum(f.stat().st_size for f in папка.rglob("*") if f.is_file()) if папка.exists() else 0
-        проверок = Run.objects.filter(volunteer=в).count() if в else 0
-        if not в and not папка.exists():
+        что = что_удалим(код)
+        if что is None:
             raise CommandError("Такого добровольца нет ни в базе, ни на диске.")
         self.stdout.write(
-            f"{код} · {в.label if в else 'нет в базе'} · проверок {проверок} · на диске {байт / МБ:.1f} МБ в {папка}"
+            f"{код} · {что['пометка'] or ('нет в базе' if not что['в_базе'] else 'без пометки')} · "
+            f"проверок {что['проверок']} · на диске {что['байт'] / МБ:.1f} МБ в {что['папка']}"
         )
         if not opts["да_удалить"]:
             self.stdout.write("Ничего не удалено. Чтобы удалить, повторите с --да-удалить")
             return
-        if папка.exists():
-            shutil.rmtree(папка)
-        if в:
-            в.delete()  # проверки уходят вместе с ним (CASCADE)
+        удалить(код)
         self.stdout.write(f"Удалено: {код}.")
-        выгрузки = sorted((корень() / "выгрузки").glob("*.tgz")) if (корень() / "выгрузки").exists() else []
-        if выгрузки:
+        старые = выгрузок()
+        if старые:
             self.stdout.write("⚠️ Его записи остались в прежних выгрузках — удалите их отдельно или соберите заново:")
-            for f in выгрузки:
+            for f in старые:
                 self.stdout.write(f"   {f}")

@@ -426,6 +426,40 @@ r = хозяин.get("/api/science/cabinet/archive?video=1")
 да("«Скачать всё» — с видео", r.status_code == 200 and any("/video-" in и for и in имена), имена[:5])
 r = чужак.get("/api/science/cabinet/archive")
 да("…не владельцу архив не отдаётся", r.status_code == 403)
+
+# «Удалить» в кабинете (решение владельца 09.10). Черновик — отдельный человек,
+# чтобы следующие разделы шли по прежним данным.
+черновик = Volunteer.objects.create(label="черновик")
+ч_run = Run.objects.create(volunteer=черновик, kind="сон", protocol="сон-2").id
+(ПАПКА / черновик.code / ч_run).mkdir(parents=True)
+(ПАПКА / черновик.code / ч_run / "events-000000.ndjson").write_bytes(b"{}\n")
+ч_путь = f"/api/science/cabinet/v/{черновик.code}/delete"
+def удаление(кто, тело, тип="application/json"):
+    return кто.post(ч_путь, json.dumps(тело) if тип == "application/json" else тело, content_type=тип)
+r = гость.post(ч_путь, json.dumps({"удалить": черновик.code}), content_type="application/json")
+да("удалить без входа — 401", r.status_code == 401 and Volunteer.objects.filter(code=черновик.code).exists())
+r = удаление(чужак, {"удалить": черновик.code})
+да("…не владельцу — 403, человек цел", r.status_code == 403 and Volunteer.objects.filter(code=черновик.code).exists())
+r = хозяин.get(ч_путь)
+да("…GET — 405", r.status_code == 405)
+r = удаление(хозяин, "удалить", тип="text/plain")
+да("…не JSON — 415: с чужого сайта молча не отправить", r.status_code == 415 and Volunteer.objects.filter(code=черновик.code).exists())
+r = удаление(хозяин, {"удалить": True})
+да("…без кода в подтверждении — 400, человек цел", r.status_code == 400 and Volunteer.objects.filter(code=черновик.code).exists())
+r = удаление(хозяин, {"удалить": код})
+да("…код другого человека в подтверждении — 400, оба целы", r.status_code == 400 and Volunteer.objects.filter(code=черновик.code).exists() and Volunteer.objects.filter(code=код).exists())
+да("…папка черновика на диске есть до удаления", (ПАПКА / черновик.code).exists())
+r = удаление(хозяин, {"удалить": черновик.code})
+о = r.json() if r.status_code == 200 else {}
+да("владелец удалил — нет ни папки, ни строк в базе", r.status_code == 200 and о.get("удалено") == черновик.code
+   and not (ПАПКА / черновик.code).exists() and not Volunteer.objects.filter(code=черновик.code).exists()
+   and not Run.objects.filter(volunteer_id=черновик.code).exists(), r.content)
+да("…и сказал, сколько проверок и байт ушло", о.get("проверок") == 1 and о.get("байт") == 3, о)
+r = удаление(хозяин, {"удалить": черновик.code})
+да("…второй раз — 404 словами", r.status_code == 404 and "нет" in r.json().get("error", ""))
+r = хозяин.post("/api/science/cabinet/v/..%2F..%2Fetc/delete", json.dumps({"удалить": "../../etc"}), content_type="application/json")
+да("…код с ../ — 404", r.status_code == 404)
+да("…остальные люди целы", Volunteer.objects.filter(code=код).exists() and Volunteer.objects.filter(code=чужой).exists())
 settings.SCIENCE_OWNERS = []
 
 раздел("Удаление по просьбе")

@@ -9,6 +9,7 @@
     GET  /api/science/cabinet/runs/<id>/<вид>/<n>      кусок записи — видео, кадры, события, звук
     POST /api/science/cabinet/link                     погасить общую ссылку и выдать новую
     GET  /api/science/cabinet/archive?video=0|1        все записи одним архивом, потоком
+    POST /api/science/cabinet/v/<код>/delete           удалить человека и все его записи
 
 🔴 КТО ВЛАДЕЛЕЦ — РЕШАЕТ СЕРВЕР, ПО ПОЧТЕ. В `.env` — `SCIENCE_OWNERS` (почты
 через запятую); пусто — кабинет закрыт для всех. Ролей и прав в продукте нет
@@ -35,6 +36,7 @@ from people.session import who
 
 from .models import Invite, Run, Volunteer
 from .выгрузка import поток
+from .удаление import удалить
 from .хранилище import CODE, RUN, ВИДЫ, корень, свободно
 
 #: Куски на диске: `video-000003.webm`, `frames-000003.fr.gz`, `events-000003.ndjson`.
@@ -254,3 +256,37 @@ def cabinet_archive(request: HttpRequest):
     ответ["Content-Disposition"] = f'attachment; filename="{имя}"'
     ответ["Cache-Control"] = "private, no-store"
     return ответ
+
+
+@csrf_exempt
+def cabinet_delete(request: HttpRequest, код: str) -> JsonResponse:
+    """«Удалить» в кабинете (решение владельца 09.10): черновики и те, кто
+    попросил стереть свои данные. Необратимо — поэтому тело обязано повторить
+    код человека: случайный или чужой запрос его не знает, а JSON с чужого
+    сайта браузер без разрешения не отправит."""
+    if request.method != "POST":
+        return _no("Этот путь отвечает только на POST.", 405)
+    владелец, отказ = _владелец(request)
+    if отказ:
+        return отказ
+    if "application/json" not in (request.content_type or ""):
+        return _no("Нужен JSON.", 415)
+    try:
+        тело = json.loads(request.body or b"{}")
+    except ValueError:
+        тело = {}
+    if not CODE.match(код or ""):
+        return _no("Такого человека нет.", 404)
+    if not isinstance(тело, dict) or тело.get("удалить") != код:
+        return _no("Чтобы удалить, подтвердите кодом человека: {\"удалить\": \"<код>\"}.")
+    итог = удалить(код)
+    if итог is None:
+        return _no("Такого человека нет — возможно, его уже удалили.", 404)
+    # След в журнале службы — без имени и без записей: кто, когда, сколько.
+    print(f"НАУКА: удалён доброволец {код} · проверок {итог['проверок']} · {итог['байт']} байт · удалил {владелец.email}", flush=True)
+    return JsonResponse({
+        "удалено": код,
+        "проверок": итог["проверок"],
+        "байт": итог["байт"],
+        "выгрузок": итог["выгрузок"],
+    })

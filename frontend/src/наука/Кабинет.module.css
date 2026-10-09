@@ -143,6 +143,14 @@
 .смотреть svg { width: var(--icon-size-sm); height: var(--icon-size-sm); }
 .заливка { fill: var(--color-text); }
 
+/* Низ листа проверок: сноска слева, «Удалить человека» справа; на месте этой
+   строки встаёт вопрос «удалить?» — строк в листе столько же, таблица не прыгает. */
+.низПроверок { display: flex; align-items: flex-end; justify-content: space-between; gap: var(--space-3) var(--space-5); flex-wrap: wrap; }
+.низПроверок.вопрос { display: grid; justify-content: stretch; }
+.низПроверок > .сноска { flex: 1 1 40ch; }
+.низПроверок > button { margin-left: auto; }
+.рядУдаления { display: flex; flex-wrap: wrap; gap: var(--space-2); justify-content: flex-end; }
+.воВсюШирину { flex-basis: 100%; }
 .сноска { margin: 0; font-size: var(--text-small); line-height: var(--leading-snug); color: var(--color-text-detail); max-width: 80ch; }
 
 /* ── Справа: всего и ссылка ───────────────────────────────────────────── */
