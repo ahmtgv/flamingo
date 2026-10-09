@@ -1,0 +1,71 @@
+/* Внимание SEduM на плитке — вариант 2 (владелец, 05.10). Те же токены «на
+   видео», что у превью на стенде внимания: тихий текст, тонкая полоска,
+   коралл — только для тревоги.
+
+   🔴 ГДЕ ПОДПИСЬ — РЕШАЕТ ШИРИНА ПЛИТКИ, А НЕ МЕСТО В КОМНАТЕ. Плитка — это
+   контейнер (`container-type` в Stage и Tiles). Широкая: имя слева, причина
+   справа, в одну строку — как утверждено. Узкая (полоса превью над доской,
+   класс из двадцати человек на сцене): в одну строку «Аня Ковалёва» и
+   «71 · мимо экрана» не помещаются, и причина встаёт строкой над именем —
+   у того же края, тем же шрифтом. Самая узкая (две плитки в ряд в полосе
+   превью, около сотни точек): «71 · мимо экрана» не помещается и в свою
+   строку, и над именем остаётся одно число — или слово тревоги; причина —
+   в подсказке под мышью. Инициалам по центру это не мешает: знак приходит
+   только от включённой камеры, а при ней на плитке картинка, а не инициалы.
+   Строки не наезжают друг на друга ни при какой ширине. */
+
+.причина {
+  position: absolute;
+  z-index: 1;
+  right: var(--space-2);
+  bottom: var(--низ-подписи, var(--space-2));
+  max-width: calc(55% - var(--space-3));
+  overflow: hidden;
+  min-width: 0;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font: var(--weight-regular) var(--text-caption) var(--font-mono);
+  color: var(--color-text-on-video-quiet);
+}
+
+@container (width <= 16rem) {
+  .причина {
+    left: var(--space-2);
+    right: auto;
+    bottom: calc(var(--низ-подписи, var(--space-2)) + 1lh);
+    max-width: calc(100% - var(--space-4));
+  }
+}
+
+@container (width <= 9rem) {
+  .хвост {
+    display: none;
+  }
+}
+
+.тревога {
+  color: var(--color-accent-on-video);
+}
+
+.полоса {
+  position: absolute;
+  z-index: 1;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 3px;
+  background: var(--color-surface-on-video);
+  pointer-events: none;
+}
+
+.заливка {
+  display: block;
+  height: 100%;
+  background: var(--color-border-on-video-strong);
+  transition: width var(--duration-slow) var(--ease-standard);
+}
+
+.заливкаТревога {
+  background: var(--color-accent-on-video);
+}
+

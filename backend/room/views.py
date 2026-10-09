@@ -75,7 +75,8 @@ def token(request: HttpRequest) -> JsonResponse:
     # за которые платим мы. Отказ говорит «нет такой комнаты», а не «нельзя»:
     # «нельзя» подтвердило бы, что комната существует (то же правило, что в
     # study/views.py у самого занятия).
-    if not Lesson.objects.filter(code=room).exists():
+    lesson = Lesson.objects.filter(code=room).first()
+    if lesson is None:
         return _bad("Нет такой комнаты. Проверьте ссылку — возможно, урок уже сняли.", status=404)
 
     cfg = getattr(settings, "LIVEKIT", {})
@@ -92,9 +93,21 @@ def token(request: HttpRequest) -> JsonResponse:
 
     # Опознаватель уникален в комнате, имя — нет: двух Ань никто не запрещал.
     identity = f"{secrets.token_urlsafe(9)}"
+    # 🔴 РОЛЬ «ВЕДЁТ» ПОДПИСЫВАЕТ СЕРВЕР — тем же ответом, что `веду` у занятия
+    # (study/views.py): хозяин занятия, и никто другой. Гостю и ученику роли нет.
+    # Своим клиентом её не подделать: `canUpdateOwnMetadata` в пропуске выключен.
+    # На неё опирается внимание SEduM: балл уходит только тому, кого назвал сервер,
+    # а не тому, кто назвал себя сам по каналу (подпись «ведёт занятие» на плитке
+    # по-прежнему едет словом ведущего и прав не даёт).
+    ведёт = bool(person and lesson.teacher_id == person.id)
     return JsonResponse(
         {
-            "token": room_token(identity=identity, room=room, display_name=name),
+            "token": room_token(
+                identity=identity,
+                room=room,
+                display_name=name,
+                metadata=json.dumps({"ведёт": True}, ensure_ascii=False) if ведёт else None,
+            ),
             "url": cfg["url"],
             "identity": identity,
             "name": name,

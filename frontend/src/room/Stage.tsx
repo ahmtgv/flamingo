@@ -4,6 +4,8 @@ import type { Track } from 'livekit-client'
 import { Note } from './Note'
 import s from './Stage.module.css'
 import type { Face } from './useRoom'
+import { знакПлитки, type ВниманиеНаСцене } from './внимание'
+import { ВниманиеНаПлитке } from './ВниманиеНаПлитке'
 
 /** Начало урока: ведущий занимает половину экрана, класс — вторую.
  *
@@ -44,7 +46,7 @@ function Sound({ track }: { track?: Track }) {
   return <audio ref={ref} autoPlay />
 }
 
-function Tile({ face, lead, big }: { face: Face; lead?: boolean; big?: boolean }) {
+function Tile({ face, lead, big, внимание }: { face: Face; lead?: boolean; big?: boolean; внимание?: ВниманиеНаСцене }) {
   /* 🔴 «КАМЕРА ВЫКЛЮЧЕНА» И «КАДР ЕЩЁ НЕ ПРИШЁЛ» — РАЗНЫЕ СОСТОЯНИЯ (ПРАВИЛА
      6.1, 6.3). Раньше обе ветки сливались в одни инициалы, и класс не знал,
      Аня выключила камеру или у неё грузится: учитель зря просил включить
@@ -52,6 +54,7 @@ function Tile({ face, lead, big }: { face: Face; lead?: boolean; big?: boolean }
      словами, а камера — ничем. Осмотр комнаты 08.09, находка 27. */
   const безКамеры = !face.camOn
   const кадрИдёт = face.camOn && !face.video
+  const знак = знакПлитки(face, внимание)
   return (
     <div className={`${s.tile} ${big ? s.big : ''} ${face.speaking ? s.speaking : ''}`}>
       <Media track={face.video} />
@@ -74,6 +77,7 @@ function Tile({ face, lead, big }: { face: Face; lead?: boolean; big?: boolean }
         {face.name}
         {face.isLocal ? ' · вы' : ''}
       </span>
+      {знак ? <ВниманиеНаПлитке знак={знак} сЦифрой={внимание?.вид === 'учитель'} /> : null}
     </div>
   )
 }
@@ -94,7 +98,7 @@ function grid(n: number, w: number, h: number): number {
 export const ЦЕЛО =
   'Написанное на доске цело. Пока связи нет, класс новых записей не видит: доска, чат и голос идут по одной связи.'
 
-export function Stage({ faces, alone, веду, link, onCopy, phase, error }: {
+export function Stage({ faces, alone, веду, link, onCopy, phase, error, внимание }: {
   faces: Face[]
   alone: boolean
   /** Веду ли занятие я. Ответ сервера, а не догадка (Room.tsx). */
@@ -103,6 +107,8 @@ export function Stage({ faces, alone, веду, link, onCopy, phase, error }: {
   onCopy: () => void
   phase: 'connecting' | 'live' | 'failed'
   error: string
+  /** Внимание SEduM. Нет — плитки как были. */
+  внимание?: ВниманиеНаСцене
 }) {
   const boxRef = useRef<HTMLDivElement>(null)
   const [cols, setCols] = useState(2)
@@ -164,7 +170,7 @@ export function Stage({ faces, alone, веду, link, onCopy, phase, error }: {
       <div className={s.stage}>
         <div className={s.solo}>
           <div className={s.soloTile}>
-            {якорь ? <Tile face={якорь} lead={ведёт} big /> : null}
+            {якорь ? <Tile face={якорь} lead={ведёт} big внимание={внимание} /> : null}
           </div>
           {/* 🔴 ССЫЛКУ НА УРОК ВИДИТ ТОЛЬКО ВЕДУЩИЙ. Звать класс — его работа;
               ученику эта карточка предлагала делать не своё дело, да ещё и
@@ -206,7 +212,7 @@ export function Stage({ faces, alone, веду, link, onCopy, phase, error }: {
         <div className={s.half} data-ровно="да">
           <div className={s.grid} style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}>
             {faces.map((f) => (
-              <Tile key={f.identity} face={f} />
+              <Tile key={f.identity} face={f} внимание={внимание} />
             ))}
           </div>
         </div>
@@ -216,13 +222,13 @@ export function Stage({ faces, alone, веду, link, onCopy, phase, error }: {
 
   return (
     <div className={s.stage}>
-      <div className={s.half}>{якорь ? <Tile face={якорь} lead={ведёт} big /> : null}</div>
+      <div className={s.half}>{якорь ? <Tile face={якорь} lead={ведёт} big внимание={внимание} /> : null}</div>
 
       {pupils.length > 0 ? (
         <div className={s.half} ref={boxRef}>
           <div className={s.grid} style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}>
             {pupils.map((f) => (
-              <Tile key={f.identity} face={f} />
+              <Tile key={f.identity} face={f} внимание={внимание} />
             ))}
           </div>
         </div>

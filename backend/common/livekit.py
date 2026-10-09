@@ -21,6 +21,7 @@ def room_token(
     display_name: str | None = None,
     can_publish: bool = True,
     hidden: bool = False,
+    metadata: str | None = None,
     ttl_hours: int = 6,
 ) -> str:
     """Mint a room token.
@@ -36,6 +37,13 @@ def room_token(
     LiveKit keeps a hidden participant out of everyone else's participant list, so a
     projector shows the lesson without appearing in it. Paired with ``can_publish=False`` it
     can only ever watch.
+
+    ``metadata`` — то, что о человеке в комнате говорит СЕРВЕР, а не сам человек.
+    LiveKit кладёт эту строку участнику, и видят её все в комнате. Поменять её
+    своим клиентом нельзя: в пропуске стоит ``canUpdateOwnMetadata: False``.
+    Поэтому на неё можно опереться там, где чужое слово по каналу не годится:
+    ученик отдаёт балл внимания только тому, чью роль подписал сервер
+    (решение владельца 05.10: чужого внимания ученик не видит никогда).
     """
     cfg = getattr(settings, "LIVEKIT", {})
     api_key = cfg.get("api_key") or "devkey"
@@ -57,6 +65,12 @@ def room_token(
             "canPublish": can_publish,
             "canSubscribe": True,
             "hidden": hidden,
+            # 🔴 Явно, а не по умолчанию: подпись роли (`metadata`) держится
+            # ровно на этой строке. Разрешить её — значит дать ученику назвать
+            # себя ведущим и собирать чужое внимание.
+            "canUpdateOwnMetadata": False,
         },
     }
+    if metadata:
+        claims["metadata"] = metadata
     return jwt.encode(claims, secret, algorithm="HS256")

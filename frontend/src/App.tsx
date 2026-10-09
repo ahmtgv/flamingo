@@ -56,9 +56,14 @@ const Стенд = import.meta.env.DEV
   ? lazy(() => import('./screens/Стенд').then((м) => ({ default: м.Стенд })))
   : () => null
 import { codeFromPath } from './lib/code'
+import { запомнитьОпыты } from './lib/опыты'
 import { rememberName, rememberedName } from './lib/name'
 import { logout, whoAmI, type Person } from './lib/auth'
 import { завестиТему } from './lib/theme'
+
+/* Опыты (`lib/опыты.ts`): хвост `?внимание=1` читается до любого перехода —
+   гостя по ссылке `go('/r/<код>')` уводит в урок уже без него. */
+запомнитьОпыты()
 
 /** Экранов немного, значит и маршрутизатора не нужно: адрес — это `/`, `/вход`,
  *  `/кабинет`, `/hub` или `/r/<код>`. Библиотека появится тогда, когда экранов

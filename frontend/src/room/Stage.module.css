@@ -47,6 +47,32 @@
   border: 1px solid var(--color-border-on-video);
   display: grid;
   place-items: center;
+  /* Плитка — контейнер: где встаёт причина внимания, решает её ширина
+     (ВниманиеНаПлитке.module.css). */
+  container-type: inline-size;
+  isolation: isolate;
+}
+
+/* 🔴 ТЕНЬ ПОД ПОДПИСЯМИ — ТОЛЬКО НА ПЛИТКЕ С КАРТИНКОЙ (решение владельца
+   09.10). На светлом низу кадра имя и причина внимания пропадали. Без
+   картинки плитка и так тёмная, и тень ей не нужна. Подписи стоят выше тени
+   (у них `z-index: 1`), а `isolation` держит этот счёт внутри плитки. */
+.tile:has(> .video)::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: min(calc(var(--space-8) * 2), 60%);
+  background: linear-gradient(to top, var(--color-scrim-on-video), var(--color-scrim-on-video-soft) 50%, transparent);
+  pointer-events: none;
+}
+
+/* Широкая плитка: имя и причина в одну строку — имя уступает место справа. */
+@container (width > 16rem) {
+  .tile:has([data-причина]) .name {
+    max-width: calc(45% - var(--space-2));
+  }
 }
 
 .big {
@@ -86,6 +112,7 @@
 
 .name {
   position: absolute;
+  z-index: 1;
   left: var(--space-2);
   bottom: var(--space-2);
   max-width: calc(100% - var(--space-4));
@@ -103,6 +130,7 @@
    переносятся, а не ложатся друг на друга. */
 .chips {
   position: absolute;
+  z-index: 1;
   left: var(--space-2);
   right: var(--space-2);
   top: var(--space-2);

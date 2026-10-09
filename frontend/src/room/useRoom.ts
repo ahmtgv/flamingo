@@ -11,6 +11,7 @@ import {
 import { fetchTicket, RoomError } from '../lib/api'
 import type { Bus, Msg } from '../board/protocol'
 import { joiner, split } from '../board/chunk'
+import { ГАСНЕТ_МС, ТЕМА as ТЕМА_ВНИМАНИЯ, вБайты, изБайтов, type ЗнакВнимания } from './внимание'
 
 const TOPIC = 'board'
 
@@ -32,6 +33,21 @@ export type Face = {
    *  занятий ответил «веду», и НИ ПО ЧЕМУ ДРУГОМУ. Прав не даёт: права каждый
    *  экран берёт из своего ответа сервера. */
   lead: boolean
+  /** Роль «ведёт», подписанная СЕРВЕРОМ в пропуске (`backend/room/views.py`).
+   *  В отличие от `lead`, её нельзя назвать себе самому: поле `metadata`
+   *  своим клиентом не меняется. Нужна там, где чужому слову верить нельзя, —
+   *  кому отдавать балл внимания (room/внимание.ts). */
+  ведётПоСерверу: boolean
+}
+
+/** Что сервер написал о человеке в пропуске. Не JSON или пусто — ничего. */
+function подписано(metadata: unknown): boolean {
+  if (typeof metadata !== 'string' || !metadata) return false
+  try {
+    return (JSON.parse(metadata) as { ведёт?: unknown })?.ведёт === true
+  } catch {
+    return false
+  }
 }
 
 /** Пять состояний экрана начинаются здесь (ПРАВИЛА 6.1): комната знает про себя ровно
@@ -59,6 +75,7 @@ function faceOf(p: any, isLocal: boolean): Face {
     micOn: Boolean(mic && !mic.isMuted),
     joinedAt: p.joinedAt instanceof Date ? p.joinedAt.getTime() : 0,
     lead: false,
+    ведётПоСерверу: подписано(p.metadata),
   }
 }
 
@@ -84,9 +101,20 @@ function faceOf(p: any, isLocal: boolean): Face {
  *  подделать чужим клиентом — прав она не даёт никаких: каждый экран решает
  *  про СВОИ права по своему ответу сервера, а не по чужому слову. */
 
-export function useRoom(code: string, name: string) {
+/** Внимание ученика у учителя: последний знак и когда он пришёл. */
+export type ВниманиеКласса = Record<string, { знак: ЗнакВнимания; когда: number }>
+
+export function useRoom(code: string, name: string, { приниматьВнимание = false }: { приниматьВнимание?: boolean } = {}) {
   const roomRef = useRef<Room | null>(null)
   const listeners = useRef(new Set<(m: Msg) => void>())
+  /* Ссылка, а не зависимость эффекта: роль приходит с сервера позже входа, и
+     переподключать из-за неё комнату нельзя. */
+  const принимать = useRef(приниматьВнимание)
+  принимать.current = приниматьВнимание
+  /* 🔴 ЧУЖОЕ ВНИМАНИЕ ДЕРЖИТ ТОЛЬКО ВЕДУЩИЙ. Ученику его не шлёт никто
+     (room/внимание.ts), а если пришлёт чужой клиент — выбрасываем, не
+     запоминая: «чужого внимания ученик не видит никогда» (решение 05.10). */
+  const [внимание, setВнимание] = useState<ВниманиеКласса>({})
 
   const [phase, setPhase] = useState<Phase>('connecting')
   const [error, setError] = useState('')
@@ -123,7 +151,17 @@ export function useRoom(code: string, name: string) {
 
     // Длинные сообщения (картинка из буфера) приезжают частями — здесь их собирают.
     const join = joiner()
-    const onData = (payload: Uint8Array, _p?: unknown, _k?: unknown, topic?: string) => {
+    const onData = (payload: Uint8Array, участник?: RemoteParticipant, _k?: unknown, topic?: string) => {
+      /* Кто прислал — говорит медиасервер (опознаватель из пропуска), а не
+         само сообщение: выдать свой балл за чужой нельзя. */
+      if (topic === ТЕМА_ВНИМАНИЯ) {
+        if (!принимать.current || !участник) return
+        const знак = изБайтов(payload)
+        if (!знак) return
+        const кто = участник.identity
+        setВнимание((было) => ({ ...было, [кто]: { знак, когда: Date.now() } }))
+        return
+      }
       if (topic !== TOPIC) return
       try {
         const whole = join(JSON.parse(new TextDecoder().decode(payload)))
@@ -144,6 +182,7 @@ export function useRoom(code: string, name: string) {
       .on(RoomEvent.LocalTrackPublished, snapshot)
       .on(RoomEvent.LocalTrackUnpublished, snapshot)
       .on(RoomEvent.ActiveSpeakersChanged, snapshot)
+      .on(RoomEvent.ParticipantMetadataChanged, snapshot)
       .on(RoomEvent.AudioPlaybackStatusChanged, () => {
         if (!alive) return
         setЗвукГлушится(!room.canPlaybackAudio)
@@ -230,6 +269,33 @@ export function useRoom(code: string, name: string) {
     [],
   )
 
+  /* Знак гаснет, когда ученик замолчал: выключил камеру, ушёл, закрыл вкладку.
+     Перестал быть ведущим — забываем весь класс сразу. */
+  useEffect(() => {
+    if (!приниматьВнимание) {
+      setВнимание((было) => (Object.keys(было).length ? {} : было))
+      return
+    }
+    const id = window.setInterval(() => {
+      const край = Date.now() - ГАСНЕТ_МС
+      setВнимание((было) => {
+        const живые = Object.entries(было).filter(([, з]) => з.когда >= край)
+        return живые.length === Object.keys(было).length ? было : Object.fromEntries(живые)
+      })
+    }, 1000)
+    return () => window.clearInterval(id)
+  }, [приниматьВнимание])
+
+  /** Свой знак внимания — одному адресату. Без гарантии доставки: пропущенный
+   *  знак через секунду заменит следующий, а копить очередь незачем. */
+  const отправитьВнимание = useCallback((знак: ЗнакВнимания, кому: string) => {
+    const room = roomRef.current
+    if (!room || room.state !== ConnectionState.Connected) return
+    room.localParticipant
+      .publishData(вБайты(знак), { reliable: false, topic: ТЕМА_ВНИМАНИЯ, destinationIdentities: [кому] })
+      .catch(() => undefined)
+  }, [])
+
   const toggleMic = useCallback(async () => {
     const room = roomRef.current
     if (!room) return
@@ -302,6 +368,8 @@ export function useRoom(code: string, name: string) {
     me: faces.find((f) => f.isLocal)?.identity ?? '',
     peers: Math.max(0, faces.length - 1),
     bus,
+    внимание,
+    отправитьВнимание,
     mic,
     cam,
     toggleMic,

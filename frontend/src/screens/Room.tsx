@@ -16,6 +16,8 @@ import { allShows, dropShow, putShow, type Ink, type ShowDoc } from '../room/sho
 import { Stage, ЦЕЛО } from '../room/Stage'
 import { Tiles } from '../room/Tiles'
 import { useRoom } from '../room/useRoom'
+import { useСвоёВнимание, type ВниманиеНаСцене } from '../room/внимание'
+import { вниманиеВключено } from '../lib/опыты'
 import { roomUrl } from '../lib/code'
 import { читатьТему, следующая, сохранитьТему, type Тема } from '../lib/theme'
 import { взятьПособие, отметиться, пособияКомнаты, type Пособие } from '../lib/study'
@@ -70,7 +72,6 @@ const ВЫХОД = (
 type Props = { code: string; name: string; onLeave: () => void; onHome: () => void }
 
 export function Room({ code, name, onLeave, onHome }: Props) {
-  const { phase, error, faces, me, peers, bus, mic, cam, toggleMic, toggleCam, sharing, shareSaid, toggleShare, звукГлушится, включитьЗвук, leave } = useRoom(code, name)
   /* 🔴 Посещение отмечает КОМНАТА, а не рука преподавателя: она знает, кто
      вошёл. Тихо: если человек без учётной записи или комната не от занятия —
      сервер так и отвечает, и говорить об этом на уроке нечего.
@@ -105,6 +106,9 @@ export function Room({ code, name, onLeave, onHome }: Props) {
    *  «прав нет», иначе первые кадры до ответа сервера снова раздали бы права
    *  всем подряд. */
   const [веду, setВеду] = useState(false)
+  /* Комната — после роли: чужое внимание принимает только тот, кому сервер
+     ответил «веду» (room/внимание.ts). */
+  const { phase, error, faces, me, peers, bus, внимание, отправитьВнимание, mic, cam, toggleMic, toggleCam, sharing, shareSaid, toggleShare, звукГлушится, включитьЗвук, leave } = useRoom(code, name, { приниматьВнимание: веду })
   useEffect(() => {
     let живо = true
     пособияКомнаты(code)
@@ -170,6 +174,23 @@ export function Room({ code, name, onLeave, onHome }: Props) {
   const iLead = веду
 
   const active = shows.find((d) => d.id === activeId) ?? null
+
+  /* 🔴 SEduM · ВНИМАНИЕ (room/внимание.ts; вид — вариант 2, владелец 05.10).
+     Опыт включается по слову (`?внимание=1`, lib/опыты.ts) — пока тестируем на
+     взрослых из команды. Ученик считает себя сам, на своём устройстве, и раз в
+     секунду отдаёт балл и причину ОДНОМУ адресату — тому, чью роль «ведёт»
+     подписал сервер. Нет такого в комнате — не отдаёт никому. Учитель
+     показывает только пришедшее и забывает его через шесть секунд молчания. */
+  const [опыт] = useState(вниманиеВключено)
+  const сам = faces.find((f) => f.isLocal)
+  const мойЗнак = useСвоёВнимание(сам?.video, опыт && !iLead && cam && Boolean(сам?.camOn))
+  const адресат = iLead ? undefined : faces.find((f) => !f.isLocal && f.ведётПоСерверу)?.identity
+  useEffect(() => {
+    if (мойЗнак && адресат && phase === 'live') отправитьВнимание(мойЗнак, адресат)
+  }, [мойЗнак, адресат, phase, отправитьВнимание])
+  const вниманиеНаСцене: ВниманиеНаСцене | undefined = iLead
+    ? { вид: 'учитель', знаки: Object.fromEntries(Object.entries(внимание).map(([кто, з]) => [кто, з.знак])) }
+    : мойЗнак && сам ? { вид: 'ученик', знаки: { [сам.identity]: мойЗнак } } : undefined
 
   /* 🔴 ПОДПИСЬ, А НЕ ПРАВО. Класс должен видеть, на чьей плитке написано
      «ведёт занятие». Знает это только сам ведущий — от сервера, — поэтому он
@@ -715,7 +736,7 @@ export function Room({ code, name, onLeave, onHome }: Props) {
           />
         ) : null}
         {source === 'faces' ? (
-          <Stage faces={лица} alone={alone} веду={iLead} link={link} onCopy={copy} phase={phase} error={error} />
+          <Stage faces={лица} alone={alone} веду={iLead} link={link} onCopy={copy} phase={phase} error={error} внимание={вниманиеНаСцене} />
         ) : null}
 
         {/* Материал не пришёл с сервера. Урок идёт: карточка называет, что
@@ -754,7 +775,7 @@ export function Room({ code, name, onLeave, onHome }: Props) {
         ) : null}
 
         {/* Лица лежат ПОВЕРХ доски: холст под ними бесконечный и ничем не обрезан. */}
-        {source !== 'faces' && phase === 'live' ? <Tiles faces={лица} /> : null}
+        {source !== 'faces' && phase === 'live' ? <Tiles faces={лица} внимание={вниманиеНаСцене} /> : null}
 
         {/* Эфир — своя область (ПРАВИЛА 6.5): пока он не поднялся, об этом говорит
             карточка лиц, а доска продолжает работать. */}

@@ -3,6 +3,8 @@ import type { Track } from 'livekit-client'
 
 import s from './Tiles.module.css'
 import type { Face } from './useRoom'
+import { знакПлитки, type ВниманиеНаСцене } from './внимание'
+import { ВниманиеНаПлитке } from './ВниманиеНаПлитке'
 
 /** Превью лиц ПОВЕРХ доски (решение владельца 30.08).
  *
@@ -42,7 +44,8 @@ function Sound({ track }: { track?: Track }) {
   return <audio ref={ref} autoPlay />
 }
 
-function Tile({ face, lead }: { face: Face; lead?: boolean }) {
+function Tile({ face, lead, внимание }: { face: Face; lead?: boolean; внимание?: ВниманиеНаСцене }) {
+  const знак = знакПлитки(face, внимание)
   return (
     <div className={`${s.tile} ${lead ? s.lead : ''} ${face.speaking ? s.speaking : ''}`}>
       <Media track={face.video} />
@@ -54,13 +57,14 @@ function Tile({ face, lead }: { face: Face; lead?: boolean }) {
         {face.isLocal ? ' · вы' : ''}
       </span>
       {!face.micOn ? <span className={s.muted}>без звука</span> : null}
+      {знак ? <ВниманиеНаПлитке знак={знак} сЦифрой={внимание?.вид === 'учитель'} /> : null}
     </div>
   )
 }
 
 const CAP = 8
 
-export function Tiles({ faces }: { faces: Face[] }) {
+export function Tiles({ faces, внимание }: { faces: Face[]; внимание?: ВниманиеНаСцене }) {
   const [open, setOpen] = useState(true)
   /* 🔴 «Первый в списке» — ЯКОРЬ РАСКЛАДКИ, А НЕ РОЛЬ. Крупная плитка кому-то
      нужна всегда, иначе полоса разъезжается. Но подпись «ведёт занятие» на ней
@@ -86,10 +90,10 @@ export function Tiles({ faces }: { faces: Face[] }) {
       <button type="button" className={s.hide} onClick={() => setOpen(false)}>
         Свернуть превью
       </button>
-      {якорь ? <Tile face={якорь} lead={ведёт} /> : null}
+      {якорь ? <Tile face={якорь} lead={ведёт} внимание={внимание} /> : null}
       <div className={s.pupils}>
         {shown.map((f) => (
-          <Tile key={f.identity} face={f} />
+          <Tile key={f.identity} face={f} внимание={внимание} />
         ))}
       </div>
       {rest > 0 ? (
