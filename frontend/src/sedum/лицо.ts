@@ -84,6 +84,13 @@ export function закрытьОтчёт(): void {
   }
 }
 
+function вСрок<Т>(обещание: Promise<Т>, мс: number, что: string): Promise<Т> {
+  return new Promise((да, нет) => {
+    const id = setTimeout(() => нет(new Error(`модель не завелась за ${мс / 1000} с (${что})`)), мс)
+    обещание.then((x) => { clearTimeout(id); да(x) }, (e) => { clearTimeout(id); нет(e) })
+  })
+}
+
 /** Заводит модель. Пробует видеокарту, потом процессор; ядро — по очереди. */
 export async function завести(модель?: string): Promise<Завод> {
   закрытьОтчёт()
@@ -93,13 +100,16 @@ export async function завести(модель?: string): Promise<Завод>
     for (const ускорение of ['GPU', 'CPU'] as const) {
       try {
         const файлы = await ядро.набор()
-        const лицо = await FaceLandmarker.createFromOptions(файлы, {
+        /* 🔴 СРОК НА КАЖДУЮ ПОПЫТКУ. Видеокарта в Safari иногда не отказывает,
+           а молчит: обещание не исполняется никогда, и до процессора очередь
+           не доходит — внимание просто не появляется, без единой ошибки. */
+        const лицо = await вСрок(FaceLandmarker.createFromOptions(файлы, {
           baseOptions: { modelAssetPath: путь, delegate: ускорение },
           runningMode: 'VIDEO',
           numFaces: 1,
           outputFaceBlendshapes: true,
           outputFacialTransformationMatrixes: true,
-        })
+        }), ускорение === 'GPU' ? 15_000 : 30_000, `${ядро.имя} · ${ускорение}`)
         return { модель: лицо, ядро: ядро.имя, ускорение, откуда: путь === МОДЕЛЬ ? 'Google' : путь }
       } catch (e) {
         последняя = e

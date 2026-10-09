@@ -15,6 +15,7 @@ import { планСпроса } from '../room/спрос'
 import { allShows, dropShow, putShow, type Ink, type ShowDoc } from '../room/shows'
 import { Stage, ЦЕЛО } from '../room/Stage'
 import { Tiles } from '../room/Tiles'
+import { Звуки } from '../room/Звуки'
 import { useRoom } from '../room/useRoom'
 import { useСвоёВнимание, type ВниманиеНаСцене } from '../room/внимание'
 import { Пишем } from '../room/пишем'
@@ -807,6 +808,10 @@ export function Room({ code, name, onLeave, onHome }: Props) {
             <Note light title="Разбираем файл" text="Страницы готовятся прямо в браузере — на сервер файл не уезжает. Первой уедет классу та страница, которую откроете." />
           </div>
         ) : null}
+
+        {/* 🔴 Голоса — одним слоем на всю комнату, а не внутри плиток: свёрнутая
+            полоса превью или смена сцены больше не глушат класс (room/Звуки.tsx). */}
+        <Звуки faces={faces} />
 
         {/* Лица лежат ПОВЕРХ доски: холст под ними бесконечный и ничем не обрезан. */}
         {source !== 'faces' && phase === 'live' ? <Tiles faces={лица} внимание={вниманиеНаСцене} /> : null}

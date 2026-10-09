@@ -30,26 +30,11 @@ function Media({ track }: { track?: Track }) {
   return <video ref={ref} className={s.video} autoPlay playsInline muted />
 }
 
-function Sound({ track }: { track?: Track }) {
-  const ref = useRef<HTMLAudioElement>(null)
-  useEffect(() => {
-    const el = ref.current
-    if (!el || !track) return
-    track.attach(el)
-    return () => {
-      track.detach(el)
-    }
-  }, [track])
-  if (!track) return null
-  return <audio ref={ref} autoPlay />
-}
-
 function Tile({ face, lead, внимание }: { face: Face; lead?: boolean; внимание?: ВниманиеНаСцене }) {
   const знак = знакПлитки(face, внимание)
   return (
     <div className={`${s.tile} ${lead ? s.lead : ''} ${face.speaking ? s.speaking : ''}`}>
       <Media track={face.video} />
-      <Sound track={face.audio} />
       {!face.camOn || !face.video ? <span className={s.ini}>{initials(face.name)}</span> : null}
       {lead || пишутПлитка(face, внимание) ? (
         <span className={s.marks}>

@@ -32,20 +32,6 @@ function Media({ track }: { track?: Track }) {
   return <video ref={ref} className={s.video} autoPlay playsInline muted />
 }
 
-function Sound({ track }: { track?: Track }) {
-  const ref = useRef<HTMLAudioElement>(null)
-  useEffect(() => {
-    const el = ref.current
-    if (!el || !track) return
-    track.attach(el)
-    return () => {
-      track.detach(el)
-    }
-  }, [track])
-  if (!track) return null
-  return <audio ref={ref} autoPlay />
-}
-
 function Tile({ face, lead, big, внимание }: { face: Face; lead?: boolean; big?: boolean; внимание?: ВниманиеНаСцене }) {
   /* 🔴 «КАМЕРА ВЫКЛЮЧЕНА» И «КАДР ЕЩЁ НЕ ПРИШЁЛ» — РАЗНЫЕ СОСТОЯНИЯ (ПРАВИЛА
      6.1, 6.3). Раньше обе ветки сливались в одни инициалы, и класс не знал,
@@ -58,7 +44,6 @@ function Tile({ face, lead, big, внимание }: { face: Face; lead?: boolea
   return (
     <div className={`${s.tile} ${big ? s.big : ''} ${face.speaking ? s.speaking : ''}`}>
       <Media track={face.video} />
-      <Sound track={face.audio} />
       {безКамеры || кадрИдёт ? (
         <span className={`${s.ini} ${big ? s.iniBig : ''}`}>{initials(face.name)}</span>
       ) : null}
