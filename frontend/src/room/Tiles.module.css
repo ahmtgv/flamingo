@@ -120,11 +120,21 @@
   font-size: var(--text-h3);
 }
 
-.mark {
+/* Плашки ведущего — «ведёт занятие» и «пишут в тетради» — встают в ряд и
+   переносятся, а не ложатся друг на друга. */
+.marks {
   position: absolute;
   z-index: 1;
   left: var(--space-2);
+  right: var(--space-2);
   top: var(--space-2);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  pointer-events: none;
+}
+
+.mark {
   padding: 2px var(--space-2);
   border-radius: var(--radius-xs);
   background: var(--color-surface-on-video);

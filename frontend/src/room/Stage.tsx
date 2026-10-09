@@ -4,7 +4,7 @@ import type { Track } from 'livekit-client'
 import { Note } from './Note'
 import s from './Stage.module.css'
 import type { Face } from './useRoom'
-import { знакПлитки, type ВниманиеНаСцене } from './внимание'
+import { знакПлитки, пишутПлитка, type ВниманиеНаСцене } from './внимание'
 import { ВниманиеНаПлитке } from './ВниманиеНаПлитке'
 
 /** Начало урока: ведущий занимает половину экрана, класс — вторую.
@@ -69,6 +69,7 @@ function Tile({ face, lead, big, внимание }: { face: Face; lead?: boolea
           навсегда: сколько бы плашек ни завелось, они встают в ряд. */}
       <span className={s.chips}>
         {lead ? <span className={s.mark}>ведёт занятие</span> : null}
+        {пишутПлитка(face, внимание) ? <span className={s.mark}>пишут в тетради</span> : null}
         {безКамеры ? <span className={s.state}>камера выключена</span> : null}
         {кадрИдёт ? <span className={s.state}>кадр идёт</span> : null}
         {!face.micOn ? <span className={s.state}>без звука</span> : null}

@@ -12,6 +12,11 @@ import { fetchTicket, RoomError } from '../lib/api'
 import type { Bus, Msg } from '../board/protocol'
 import { joiner, split } from '../board/chunk'
 import { ГАСНЕТ_МС, ТЕМА as ТЕМА_ВНИМАНИЯ, вБайты, изБайтов, type ЗнакВнимания } from './внимание'
+import { ТЕМА_ПИШЕМ, пишемВБайты, пишемИзБайтов } from './пишем'
+
+/** Слово ведущего «пишем» держится столько без повтора: ведущий повторяет его
+ *  каждые 10 секунд, ушёл ведущий — режим у класса гаснет сам. */
+const ПИШЕМ_ГАСНЕТ_МС = 30_000
 
 const TOPIC = 'board'
 
@@ -115,6 +120,12 @@ export function useRoom(code: string, name: string, { приниматьВним
      (room/внимание.ts), а если пришлёт чужой клиент — выбрасываем, не
      запоминая: «чужого внимания ученик не видит никогда» (решение 05.10). */
   const [внимание, setВнимание] = useState<ВниманиеКласса>({})
+  /* Режим «пишем» у ученика — слово ведущего (room/пишем.ts). Принимается
+     только от того, чью роль подписал сервер: назвавшийся ведущим сам не
+     может выключить классу балл. */
+  const [пишем, setПишем] = useState<{ да: boolean; когда: number }>({ да: false, когда: 0 })
+  /* Свой микрофон — для слуха ведущего (room/слух.ts). */
+  const [микрофон, setМикрофон] = useState<MediaStreamTrack | undefined>(undefined)
 
   const [phase, setPhase] = useState<Phase>('connecting')
   const [error, setError] = useState('')
@@ -147,6 +158,8 @@ export function useRoom(code: string, name: string, { приниматьВним
       const list: Face[] = [faceOf(room.localParticipant, true)]
       room.remoteParticipants.forEach((p: RemoteParticipant) => list.push(faceOf(p, false)))
       setFaces(list)
+      const мик = pub(room.localParticipant, 'microphone')
+      setМикрофон(мик && !мик.isMuted ? мик.track?.mediaStreamTrack : undefined)
     }
 
     // Длинные сообщения (картинка из буфера) приезжают частями — здесь их собирают.
@@ -160,6 +173,12 @@ export function useRoom(code: string, name: string, { приниматьВним
         if (!знак) return
         const кто = участник.identity
         setВнимание((было) => ({ ...было, [кто]: { знак, когда: Date.now() } }))
+        return
+      }
+      if (topic === ТЕМА_ПИШЕМ) {
+        if (!участник || !подписано(участник.metadata)) return
+        const да = пишемИзБайтов(payload)
+        if (да !== null) setПишем({ да, когда: Date.now() })
         return
       }
       if (topic !== TOPIC) return
@@ -286,6 +305,22 @@ export function useRoom(code: string, name: string, { приниматьВним
     return () => window.clearInterval(id)
   }, [приниматьВнимание])
 
+  /* Слово «пишем» гаснет, если ведущий замолчал: ушёл, закрыл вкладку. */
+  useEffect(() => {
+    if (!пишем.да) return
+    const id = window.setTimeout(() => setПишем({ да: false, когда: Date.now() }), ПИШЕМ_ГАСНЕТ_МС - (Date.now() - пишем.когда))
+    return () => window.clearTimeout(id)
+  }, [пишем])
+
+  /** Ведущий говорит классу «пишем» или «не пишем». Всем, надёжно. */
+  const отправитьПишем = useCallback((да: boolean) => {
+    const room = roomRef.current
+    if (!room || room.state !== ConnectionState.Connected) return
+    room.localParticipant
+      .publishData(пишемВБайты(да), { reliable: true, topic: ТЕМА_ПИШЕМ })
+      .catch(() => undefined)
+  }, [])
+
   /** Свой знак внимания — одному адресату. Без гарантии доставки: пропущенный
    *  знак через секунду заменит следующий, а копить очередь незачем. */
   const отправитьВнимание = useCallback((знак: ЗнакВнимания, кому: string) => {
@@ -370,6 +405,9 @@ export function useRoom(code: string, name: string, { приниматьВним
     bus,
     внимание,
     отправитьВнимание,
+    пишемКласс: пишем.да,
+    отправитьПишем,
+    микрофон,
     mic,
     cam,
     toggleMic,

@@ -17,6 +17,8 @@ import { Stage, ЦЕЛО } from '../room/Stage'
 import { Tiles } from '../room/Tiles'
 import { useRoom } from '../room/useRoom'
 import { useСвоёВнимание, type ВниманиеНаСцене } from '../room/внимание'
+import { Пишем } from '../room/пишем'
+import { useСлух } from '../room/слух'
 import { вниманиеВключено } from '../lib/опыты'
 import { roomUrl } from '../lib/code'
 import { читатьТему, следующая, сохранитьТему, type Тема } from '../lib/theme'
@@ -108,7 +110,7 @@ export function Room({ code, name, onLeave, onHome }: Props) {
   const [веду, setВеду] = useState(false)
   /* Комната — после роли: чужое внимание принимает только тот, кому сервер
      ответил «веду» (room/внимание.ts). */
-  const { phase, error, faces, me, peers, bus, внимание, отправитьВнимание, mic, cam, toggleMic, toggleCam, sharing, shareSaid, toggleShare, звукГлушится, включитьЗвук, leave } = useRoom(code, name, { приниматьВнимание: веду })
+  const { phase, error, faces, me, peers, bus, внимание, отправитьВнимание, пишемКласс, отправитьПишем, микрофон, mic, cam, toggleMic, toggleCam, sharing, shareSaid, toggleShare, звукГлушится, включитьЗвук, leave } = useRoom(code, name, { приниматьВнимание: веду })
   useEffect(() => {
     let живо = true
     пособияКомнаты(code)
@@ -183,13 +185,45 @@ export function Room({ code, name, onLeave, onHome }: Props) {
      показывает только пришедшее и забывает его через шесть секунд молчания. */
   const [опыт] = useState(вниманиеВключено)
   const сам = faces.find((f) => f.isLocal)
-  const мойЗнак = useСвоёВнимание(сам?.video, опыт && !iLead && cam && Boolean(сам?.camOn))
+  const мойЗнак = useСвоёВнимание(сам?.video, опыт && !iLead && cam && Boolean(сам?.camOn), пишемКласс)
   const адресат = iLead ? undefined : faces.find((f) => !f.isLocal && f.ведётПоСерверу)?.identity
   useEffect(() => {
     if (мойЗнак && адресат && phase === 'live') отправитьВнимание(мойЗнак, адресат)
   }, [мойЗнак, адресат, phase, отправитьВнимание])
+
+  /* 🔴 «ПИШЕМ» — ПО СЛОВУ УЧИТЕЛЯ И ПО ГОЛОВАМ КЛАССА (решение 09.10, кнопки
+     нет). Слушает только ведущий, только в опыте и только с включённым
+     микрофоном; речь распознаётся у него же (room/слух.ts). Классу уходит
+     одно слово — «пишем» или «не пишем» — и повторяется раз в 10 секунд:
+     опоздавший тоже должен его знать. */
+  const режим = useRef(new Пишем())
+  const [пишем, setПишем] = useState(false)
+  const слушаем = опыт && iLead && phase === 'live'
+  useСлух(микрофон, слушаем && mic, (текст, t) => {
+    режим.current.фраза(текст, t)
+    setПишем(режим.current.идёт)
+  })
+  const вниманиеРеф = useRef(внимание)
+  вниманиеРеф.current = внимание
+  useEffect(() => {
+    if (!слушаем) { режим.current.выключить(); setПишем(false); return }
+    const id = window.setInterval(() => {
+      const знаки = Object.values(вниманиеРеф.current).map((з) => з.знак)
+      const вниз = знаки.filter((з) => з.состояние === 'смотрит вниз' || з.состояние === 'пишет').length
+      режим.current.класс(знаки.length ? вниз / знаки.length : 0, знаки.length, Date.now())
+      setПишем(режим.current.идёт)
+    }, 1000)
+    return () => window.clearInterval(id)
+  }, [слушаем])
+  useEffect(() => {
+    if (!слушаем) return
+    отправитьПишем(пишем)
+    const id = window.setInterval(() => отправитьПишем(пишем), 10_000)
+    return () => window.clearInterval(id)
+  }, [слушаем, пишем, отправитьПишем])
+
   const вниманиеНаСцене: ВниманиеНаСцене | undefined = iLead
-    ? { вид: 'учитель', знаки: Object.fromEntries(Object.entries(внимание).map(([кто, з]) => [кто, з.знак])) }
+    ? { вид: 'учитель', знаки: Object.fromEntries(Object.entries(внимание).map(([кто, з]) => [кто, з.знак])), пишем: слушаем && пишем }
     : мойЗнак && сам ? { вид: 'ученик', знаки: { [сам.identity]: мойЗнак } } : undefined
 
   /* 🔴 ПОДПИСЬ, А НЕ ПРАВО. Класс должен видеть, на чьей плитке написано
