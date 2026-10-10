@@ -307,8 +307,12 @@ def journal(request: HttpRequest) -> JsonResponse:
     связи = list(Bond.objects.filter(teacher=person).select_related("student"))
     # Приглашённые, но ещё не пришедшие — тоже строки журнала: иначе непонятно,
     # отправил ты ссылку или только собирался.
+    # 🔴 ТОЛЬКО ПИСЬМА. Ссылку в окне «Добавить ученика» сервер делает при каждом
+    # открытии окна, и каждое открытие прибавляло «ждущего» — человека, которого
+    # никто не звал (путь новичка 10.10: открыл окно трижды — «ждут: 3»). Ждёт
+    # тот, кому написали; ссылка без адреса — это ещё не человек.
     ждут = [i for i in Invite.objects.filter(teacher=person, used_at__isnull=True)
-            if i.alive]
+            .exclude(email="") if i.alive]
 
     было = set(Visit.objects.filter(lesson__in=уроки)
                .values_list("lesson_id", "person_id"))

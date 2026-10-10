@@ -67,9 +67,14 @@ const ИДЁТ: Record<Mode, [string, string]> = {
  *  возвращается к своей комнате; человек, открывший вход прямо или только что
  *  вышедший, возвращаться некуда — и кнопка, ведущая на этот же экран, была бы
  *  дверью в стену. Дороги назад нет — значит её и не рисуем (ПРАВИЛА 14.1). */
-export function Sign({ onDone, onBack, режим = 'in' }: {
+export function Sign({ onDone, onBack, куда = 'в комнату', режим = 'in', роль = 'teacher' }: {
   onDone: (p: Person) => void
   onBack?: () => void
+  /** Подпись «Назад …»: к комнате урока или к приглашению. */
+  куда?: string
+  /** Какая роль выбрана заранее. Пришедший по приглашению преподавателя или по
+   *  ссылке на урок — ученик: просить его перещёлкивать «Веду уроки» незачем. */
+  роль?: Person['role']
   /** 🔴 С ЧЕГО ЭКРАН ОТКРЫВАЕТСЯ. Дверь «Завести учётную запись» вела сюда же,
    *  куда «Войти», и человек попадал на форму входа: он нажал «завести», а его
    *  просят пароль, которого у него нет. Аудит 07.09, находка 14. */
@@ -78,7 +83,7 @@ export function Sign({ onDone, onBack, режим = 'in' }: {
   const [mode, setMode] = useState<Mode>(режим)
   const [email, setEmail] = useState('')
   const [name, setName] = useState('')
-  const [role, setRole] = useState<Person['role']>('teacher')
+  const [role, setRole] = useState<Person['role']>(роль)
   const [pass, setPass] = useState('')
   /* Отказ и спокойный ответ — разные вещи: коралловый только когда аларм. */
   const [said, setSaid] = useState('')
@@ -140,7 +145,7 @@ export function Sign({ onDone, onBack, режим = 'in' }: {
         <section className={s.promise}>
           {onBack ? (
             <button type="button" className={s.back} onClick={onBack}>
-              ← Назад в комнату
+              ← Назад {куда}
             </button>
           ) : null}
           <Mark />

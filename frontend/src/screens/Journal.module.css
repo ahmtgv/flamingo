@@ -411,7 +411,13 @@
   color: var(--color-text-detail);
 }
 
-.wayBlock { display: grid; gap: var(--space-3); }
+.wayBlock {
+  display: grid;
+  /* Тот же ноль, что у панели: без него колонка блока снова мерялась по
+     ссылке, и «Скопировать» уезжала за край окна (путь новичка 10.10). */
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-3);
+}
 
 .wayLabel {
   font: var(--weight-medium) var(--text-overline) / 1 var(--font-mono);
@@ -446,6 +452,7 @@
 
 .copy {
   margin-left: auto;
+  flex-shrink: 0;
   padding: 0;
   border: none;
   background: none;
