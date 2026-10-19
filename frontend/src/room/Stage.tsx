@@ -4,7 +4,7 @@ import type { Track } from 'livekit-client'
 import { Note } from './Note'
 import s from './Stage.module.css'
 import type { Face } from './useRoom'
-import { знакПлитки, пишутПлитка, type ВниманиеНаСцене } from './внимание'
+import { знакПлитки, пишутПлитка, положениеПлитки, type ВниманиеНаСцене } from './внимание'
 import { ВниманиеНаПлитке } from './ВниманиеНаПлитке'
 
 /** Начало урока: ведущий занимает половину экрана, класс — вторую.
@@ -41,6 +41,7 @@ function Tile({ face, lead, big, внимание }: { face: Face; lead?: boolea
   const безКамеры = !face.camOn
   const кадрИдёт = face.camOn && !face.video
   const знак = знакПлитки(face, внимание)
+  const положение = положениеПлитки(face, внимание)
   return (
     <div className={`${s.tile} ${big ? s.big : ''} ${face.speaking ? s.speaking : ''}`}>
       <Media track={face.video} />
@@ -63,7 +64,7 @@ function Tile({ face, lead, big, внимание }: { face: Face; lead?: boolea
         {face.name}
         {face.isLocal ? ' · вы' : ''}
       </span>
-      {знак ? <ВниманиеНаПлитке знак={знак} сЦифрой={внимание?.вид === 'учитель'} /> : null}
+      {знак || положение ? <ВниманиеНаПлитке знак={знак} положение={положение} сЦифрой={внимание?.вид === 'учитель'} /> : null}
     </div>
   )
 }

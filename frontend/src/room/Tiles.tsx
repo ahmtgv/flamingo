@@ -3,7 +3,7 @@ import type { Track } from 'livekit-client'
 
 import s from './Tiles.module.css'
 import type { Face } from './useRoom'
-import { знакПлитки, пишутПлитка, type ВниманиеНаСцене } from './внимание'
+import { знакПлитки, пишутПлитка, положениеПлитки, type ВниманиеНаСцене } from './внимание'
 import { ВниманиеНаПлитке } from './ВниманиеНаПлитке'
 
 /** Превью лиц ПОВЕРХ доски (решение владельца 30.08).
@@ -32,6 +32,7 @@ function Media({ track }: { track?: Track }) {
 
 function Tile({ face, lead, внимание }: { face: Face; lead?: boolean; внимание?: ВниманиеНаСцене }) {
   const знак = знакПлитки(face, внимание)
+  const положение = положениеПлитки(face, внимание)
   return (
     <div className={`${s.tile} ${lead ? s.lead : ''} ${face.speaking ? s.speaking : ''}`}>
       <Media track={face.video} />
@@ -47,7 +48,7 @@ function Tile({ face, lead, внимание }: { face: Face; lead?: boolean; в
         {face.isLocal ? ' · вы' : ''}
       </span>
       {!face.micOn ? <span className={s.muted}>без звука</span> : null}
-      {знак ? <ВниманиеНаПлитке знак={знак} сЦифрой={внимание?.вид === 'учитель'} /> : null}
+      {знак || положение ? <ВниманиеНаПлитке знак={знак} положение={положение} сЦифрой={внимание?.вид === 'учитель'} /> : null}
     </div>
   )
 }

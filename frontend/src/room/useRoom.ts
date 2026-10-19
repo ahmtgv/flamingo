@@ -11,7 +11,7 @@ import {
 import { fetchTicket, RoomError } from '../lib/api'
 import type { Bus, Msg } from '../board/protocol'
 import { joiner, split } from '../board/chunk'
-import { ГАСНЕТ_МС, ТЕМА as ТЕМА_ВНИМАНИЯ, вБайты, изБайтов, type ЗнакВнимания } from './внимание'
+import { ГАСНЕТ_МС, ТЕМА as ТЕМА_ВНИМАНИЯ, вБайты, положениеВБайты, разобратьБайты, type ЗнакВнимания, type ПоложениеСчёта } from './внимание'
 import { ТЕМА_ПИШЕМ, пишемВБайты, пишемИзБайтов } from './пишем'
 
 /** Слово ведущего «пишем» держится столько без повтора: ведущий повторяет его
@@ -108,6 +108,8 @@ function faceOf(p: any, isLocal: boolean): Face {
 
 /** Внимание ученика у учителя: последний знак и когда он пришёл. */
 export type ВниманиеКласса = Record<string, { знак: ЗнакВнимания; когда: number }>
+/** У кого из класса балла пока нет и почему (room/внимание.ts). */
+export type ПоложенияКласса = Record<string, { положение: ПоложениеСчёта; когда: number }>
 
 export function useRoom(code: string, name: string, { приниматьВнимание = false }: { приниматьВнимание?: boolean } = {}) {
   const roomRef = useRef<Room | null>(null)
@@ -120,6 +122,7 @@ export function useRoom(code: string, name: string, { приниматьВним
      (room/внимание.ts), а если пришлёт чужой клиент — выбрасываем, не
      запоминая: «чужого внимания ученик не видит никогда» (решение 05.10). */
   const [внимание, setВнимание] = useState<ВниманиеКласса>({})
+  const [положения, setПоложения] = useState<ПоложенияКласса>({})
   /* Режим «пишем» у ученика — слово ведущего (room/пишем.ts). Принимается
      только от того, чью роль подписал сервер: назвавшийся ведущим сам не
      может выключить классу балл. */
@@ -169,10 +172,16 @@ export function useRoom(code: string, name: string, { приниматьВним
          само сообщение: выдать свой балл за чужой нельзя. */
       if (topic === ТЕМА_ВНИМАНИЯ) {
         if (!принимать.current || !участник) return
-        const знак = изБайтов(payload)
-        if (!знак) return
+        const пришло = разобратьБайты(payload)
+        if (!пришло) return
         const кто = участник.identity
-        setВнимание((было) => ({ ...было, [кто]: { знак, когда: Date.now() } }))
+        if ('знак' in пришло) {
+          const знак = пришло.знак
+          setВнимание((было) => ({ ...было, [кто]: { знак, когда: Date.now() } }))
+          setПоложения((было) => { if (!(кто in было)) return было; const { [кто]: _, ...ост } = было; return ост })
+        } else {
+          setПоложения((было) => ({ ...было, [кто]: { положение: пришло.положение, когда: Date.now() } }))
+        }
         return
       }
       if (topic === ТЕМА_ПИШЕМ) {
@@ -293,14 +302,17 @@ export function useRoom(code: string, name: string, { приниматьВним
   useEffect(() => {
     if (!приниматьВнимание) {
       setВнимание((было) => (Object.keys(было).length ? {} : было))
+      setПоложения((было) => (Object.keys(было).length ? {} : было))
       return
     }
-    const id = window.setInterval(() => {
+    const свежие = <Т extends { когда: number }>(было: Record<string, Т>): Record<string, Т> => {
       const край = Date.now() - ГАСНЕТ_МС
-      setВнимание((было) => {
-        const живые = Object.entries(было).filter(([, з]) => з.когда >= край)
-        return живые.length === Object.keys(было).length ? было : Object.fromEntries(живые)
-      })
+      const живые = Object.entries(было).filter(([, з]) => з.когда >= край)
+      return живые.length === Object.keys(было).length ? было : Object.fromEntries(живые)
+    }
+    const id = window.setInterval(() => {
+      setВнимание(свежие)
+      setПоложения(свежие)
     }, 1000)
     return () => window.clearInterval(id)
   }, [приниматьВнимание])
@@ -328,6 +340,15 @@ export function useRoom(code: string, name: string, { приниматьВним
     if (!room || room.state !== ConnectionState.Connected) return
     room.localParticipant
       .publishData(вБайты(знак), { reliable: false, topic: ТЕМА_ВНИМАНИЯ, destinationIdentities: [кому] })
+      .catch(() => undefined)
+  }, [])
+
+  /** Почему балла пока нет — тому же одному адресату и так же без гарантии. */
+  const отправитьПоложение = useCallback((положение: ПоложениеСчёта, кому: string) => {
+    const room = roomRef.current
+    if (!room || room.state !== ConnectionState.Connected) return
+    room.localParticipant
+      .publishData(положениеВБайты(положение), { reliable: false, topic: ТЕМА_ВНИМАНИЯ, destinationIdentities: [кому] })
       .catch(() => undefined)
   }, [])
 
@@ -404,7 +425,9 @@ export function useRoom(code: string, name: string, { приниматьВним
     peers: Math.max(0, faces.length - 1),
     bus,
     внимание,
+    положения,
     отправитьВнимание,
+    отправитьПоложение,
     пишемКласс: пишем.да,
     отправитьПишем,
     микрофон,
