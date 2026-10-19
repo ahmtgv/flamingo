@@ -322,6 +322,7 @@ function Экраны() {
         onBack={() => go('/кабинет')}
         onOut={() => { out(); go('/вход') }}
         onHome={домой}
+        onEnter={(код) => enter(код, person.name)}
         вРаме
       />
     ))

@@ -149,8 +149,9 @@ export function Shelf({ source, естьПособия, onPick, onShow, onHub, o
       {/* ПРАВИЛА 12.4: говорим о сроке, а не о запрете. 12.5: дверь не нажимается
           по-настоящему, и читалка экрана об этом знает. */}
       <p className={s.notYet}>
-        <span className={s.notYetName} aria-disabled="true" tabIndex={-1}>{NOT_YET}</span>
-        <span className={s.notYetWhy}>появится вместе с курсом</span>
+        <span className={s.notYetName} aria-disabled="true" tabIndex={-1} title="Учебник появится вместе с курсом">
+          {NOT_YET} · скоро
+        </span>
       </p>
     </div>
   )

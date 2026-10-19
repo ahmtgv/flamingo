@@ -376,15 +376,17 @@
   margin-left: auto;
   min-height: var(--tap-min);
   padding: 0 var(--space-4);
-  border: 1px solid var(--color-accent-subtle-border);
+  /* Не коралловый: коралловый у нас только тревога («заснул», «ушёл»),
+     решение владельца 30.08. Необратимость называет второй шаг словами. */
+  border: 1px solid var(--color-border-strong);
   border-radius: var(--radius-pill);
   background: none;
-  color: var(--color-accent-text);
+  color: var(--color-text-detail);
   font-size: var(--text-small);
   cursor: pointer;
 }
 
-.drop:hover { border-color: var(--color-accent-text); }
+.drop:hover { border-color: var(--color-text); color: var(--color-text); }
 
 
 
@@ -416,10 +418,11 @@
 
 /* Взведённое «убрать урок?» — единственная коралловая заливка на экране: это
    аларм, вернуть нельзя (ПРАВИЛА 10.6, 11а). */
-.dropArmed {
-  border-color: var(--color-accent-solid);
-  background: var(--color-accent-solid);
-  color: var(--color-on-accent);
+.dropArmed,
+.dropArmed:hover {
+  border-color: var(--color-text);
+  background: var(--color-text);
+  color: var(--color-bg);
 }
 
 /* Строка, которая называет последствие словами. Она обязана читаться целиком
@@ -437,3 +440,54 @@
    `.quiet`. Здесь их больше нет и заводить их заново нельзя — расхождение
    начинается ровно с этой строки. Если кнопке нужен крючок раскладки, он
    передаётся как `className` и содержит ТОЛЬКО раскладку. */
+
+/* ── ссылка на комнату (путь новичка 10.10: ссылку было нечем скопировать) ── */
+.room {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-3);
+  max-width: 46ch;
+}
+
+.roomLabel {
+  font: var(--weight-medium) var(--text-overline) / 1 var(--font-mono);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-text-detail);
+}
+
+.linkBox {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
+  min-height: var(--control-height-lg);
+  padding: 0 var(--space-4);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-control);
+  background: var(--color-surface);
+}
+
+.linkBox code {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font: var(--weight-regular) var(--text-small) var(--font-mono);
+  color: var(--color-text);
+}
+
+.copy {
+  flex-shrink: 0;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--color-text);
+  font-size: var(--text-small);
+  white-space: nowrap;
+  text-decoration: underline;
+  text-decoration-color: var(--color-border-strong);
+  text-underline-offset: 3px;
+  cursor: pointer;
+}

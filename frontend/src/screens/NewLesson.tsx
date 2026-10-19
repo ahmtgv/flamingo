@@ -39,8 +39,10 @@ const РАЗМЕР = (b: number) =>
 const ПОЛНОЕ_ВРЕМЯ = /^\d{2}:\d{2}$/
 const ПОЛНАЯ_ДАТА = /^\d{2}\.\d{2}\.\d{4}$/
 
-export function NewLesson({ person, урокId, onDone, onCreated, onBack, onOut, onHome, вРаме = false }: {
+export function NewLesson({ person, урокId, onDone, onCreated, onBack, onOut, onHome, onEnter, вРаме = false }: {
   person: Person
+  /** Войти в комнату этого урока — прямо отсюда, а не через кабинет. */
+  onEnter?: (код: string) => void
   /** Правим существующий урок — или заводим новый, если пусто. */
   урокId?: string
   onDone: () => void
@@ -56,6 +58,14 @@ export function NewLesson({ person, урокId, onDone, onCreated, onBack, onOut
    *  Стенд и гость рисуют экран без рамы — там шапка прежняя. */
   вРаме?: boolean
 }) {
+  const [скопировано, setСкопировано] = useState(false)
+  const копировать = async (код: string) => {
+    try {
+      await navigator.clipboard.writeText(`${window.location.origin}/r/${код}`)
+      setСкопировано(true)
+      window.setTimeout(() => setСкопировано(false), 2000)
+    } catch { /* буфер не дали — ссылка видна целиком, её можно выделить */ }
+  }
   const [урок, setУрок] = useState<Урок | null>(null)
   const [название, setНазвание] = useState('')
   const начало = useMemo(когдаПоУмолчанию, [])
@@ -235,13 +245,29 @@ export function NewLesson({ person, урокId, onDone, onCreated, onBack, onOut
 
           <span className={s.rule} />
 
-          <p className={s.foot}>
-            {правка && урок
-              ? <>Ссылка на комнату: <b>flamingo.plus/r/{урок.код}</b>. Она рождается вместе
-                с уроком и не меняется от правок — можно отдать классу заранее.</>
-              : <>Материалы урока — учебник, презентацию, картинки — можно приложить сразу
-                после создания: они лягут на полку «Материалы урока», когда класс войдёт.</>}
-          </p>
+          {правка && урок ? (
+            <div className={s.room}>
+              <span className={s.roomLabel}>Ссылка на комнату</span>
+              <div className={s.linkBox} title={`${window.location.host}/r/${урок.код}`}>
+                <code>{window.location.host}/r/{урок.код}</code>
+                <button type="button" className={s.copy} onClick={() => копировать(урок.код)}>
+                  {скопировано ? 'Скопировано' : 'Скопировать'}
+                </button>
+              </div>
+              <p className={s.foot}>
+                Ссылка рождается вместе с уроком и не меняется от правок — можно
+                отдать классу заранее.
+              </p>
+              {onEnter ? (
+                <div><Button kind="go" onClick={() => onEnter(урок.код)}>Войти в комнату</Button></div>
+              ) : null}
+            </div>
+          ) : (
+            <p className={s.foot}>
+              Материалы урока — учебник, презентацию, картинки — можно приложить сразу
+              после создания: они лягут на полку «Материалы урока», когда класс войдёт.
+            </p>
+          )}
         </section>
 
         {/* Правая колонка — одно действие. */}
