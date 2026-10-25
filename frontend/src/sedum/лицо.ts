@@ -1,6 +1,7 @@
 /** SEduM · камера → числа. Обёртка над MediaPipe Face Landmarker.
  *
- *  Где живёт: комната урока (`room/внимание.ts`, опыт по слову, 09.10),
+ *  Где живёт: комната урока (`room/внимание.ts`, с 09.10 опыт по слову,
+ *  с 19.10 включено всегда),
  *  страница исследования и стенд внимания (`СтендВнимания.tsx`).
  *
  *  🔴 ВСЁ СЧИТАЕТСЯ НА УСТРОЙСТВЕ. Кадр с камеры уходит в модель внутри
@@ -31,7 +32,7 @@ export const МОДЕЛЬ =
   'https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task'
 /** Своя копия модели. Нет её — сервер сайта отдаёт вместо неё страницу (html),
  *  и это узнаётся по типу ответа, а не по коду: «200» тут ничего не значит. */
-export const СВОЯ_МОДЕЛЬ = '/модели/face_landmarker.task'
+const СВОЯ_МОДЕЛЬ = '/модели/face_landmarker.task'
 
 type Набор = Awaited<ReturnType<typeof FilesetResolver.forVisionTasks>>
 
@@ -71,7 +72,7 @@ async function своя(): Promise<boolean> {
 const ОТЧЁТ = 'odml.pa.googleapis.com'
 let отчётЗакрыт = false
 
-export function закрытьОтчёт(): void {
+function закрытьОтчёт(): void {
   if (отчётЗакрыт || typeof window === 'undefined' || typeof window.fetch !== 'function') return
   отчётЗакрыт = true
   const родной = window.fetch.bind(window)

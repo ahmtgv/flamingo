@@ -7,7 +7,7 @@ import { Suspense, lazy, useCallback, useEffect, useState, type ReactNode } from
    один экран не помечен `data-язык="пергамент"`, они ни на что не действуют. */
 import { Титул } from './screens/Титул'
 import { Молчание, Wait } from './ui/Wait'
-import { type Раздел } from './ui/Рама'
+import type { Раздел } from './ui/Рама'
 
 /** 🔴 ТИТУЛ ГРУЗИТСЯ СРАЗУ, ОСТАЛЬНОЕ — КОГДА ПОНАДОБИТСЯ.
  *

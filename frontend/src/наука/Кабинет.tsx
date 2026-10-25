@@ -29,7 +29,7 @@ const ОЧКИ: Record<string, string> = { очки: 'очки', линзы: 'л
 const СВЕТ: Record<string, string> = { день: 'день', лампа: 'лампа', полумрак: 'полумрак' }
 
 /** «41 год · очки», «без анкеты». Роль на уроке больше не спрашиваем (06.10). */
-export function оЧеловеке(анкета: Record<string, string>): string {
+function оЧеловеке(анкета: Record<string, string>): string {
   const н = Number(анкета.возраст)
   const лет = анкета.возраст && Number.isFinite(н) ? `${н} ${форма(н, 'год', 'года', 'лет')}` : ''
   const части = [лет, ОЧКИ[анкета.очки ?? '']].filter(Boolean)

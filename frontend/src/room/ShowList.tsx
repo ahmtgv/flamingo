@@ -64,7 +64,7 @@ function подпись(п: Пособие): string {
   }
 }
 
-export function наДоску(п: Пособие): boolean {
+function наДоску(п: Пособие): boolean {
   if (п.вид === 'link' || п.вид === 'image') return true
   return п.имя.toLowerCase().endsWith('.pdf')
 }

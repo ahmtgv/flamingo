@@ -136,14 +136,6 @@
   white-space: nowrap;
 }
 
-.code {
-  font: var(--weight-medium) var(--text-overline) var(--font-mono);
-  letter-spacing: var(--tracking-wide);
-  color: var(--color-text-detail);
-  white-space: nowrap;
-  flex: none;
-}
-
 .live {
   display: inline-flex;
   align-items: center;

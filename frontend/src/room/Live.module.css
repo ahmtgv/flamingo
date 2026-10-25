@@ -39,37 +39,6 @@
   border-radius: var(--radius-md);
 }
 
-.card {
-  display: grid;
-  gap: var(--space-3);
-  justify-items: start;
-  max-width: 52ch;
-  padding: var(--space-5);
-  border-radius: var(--radius-card);
-  border: 1px solid var(--color-border-on-video);
-  background: var(--color-surface-on-video);
-  color: var(--color-text-on-video);
-}
-
-.cardTitle {
-  font-family: var(--font-heading);
-  font-size: var(--text-h3);
-  font-weight: var(--weight-medium);
-  letter-spacing: var(--tracking-snug);
-}
-
-.cardText {
-  font-size: var(--text-small);
-  line-height: var(--leading-snug);
-  color: var(--color-text-on-video-quiet);
-}
-
-.cardLink {
-  font: var(--weight-regular) var(--text-caption) var(--font-mono);
-  color: var(--color-go-on-video);
-  overflow-wrap: anywhere;
-}
-
 /* Пульт стоит выше зоны, где просыпается пульт занятия. */
 .pult {
   /* 🔴 ПОЛОСА ПУЛЬТА ПЕРЕНОСИТСЯ. На 390 она не влезала в одну строку, и

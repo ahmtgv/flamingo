@@ -50,7 +50,6 @@ export type Obj =
    *  `page` — какую страницу видно сейчас; доска общая, поэтому она общая тоже. */
   | { id: string; kind: 'doc'; x: number; y: number; w: number; h: number; name: string; pages: string[]; page: number }
 
-export type ObjKind = Obj['kind']
 
 /** Одна доска: штрихи и объекты. Досок в комнате может быть несколько. */
 export type Sheet = {

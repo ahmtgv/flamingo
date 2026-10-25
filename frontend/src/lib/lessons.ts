@@ -50,18 +50,6 @@ export function уроки(): Урок[] {
   return прочесть().sort((a, b) => `${a.дата} ${a.время}`.localeCompare(`${b.дата} ${b.время}`))
 }
 
-export function урокиНа(дата: string): Урок[] {
-  return уроки().filter((у) => у.дата === дата)
-}
-
-/** Дни месяца, в которые что-то есть. Календарю нужны только числа. */
-export function дниСЗанятиями(год: number, месяц: number): Set<number> {
-  const п = `${год}-${String(месяц + 1).padStart(2, '0')}-`
-  const out = new Set<number>()
-  for (const у of уроки()) if (у.дата.startsWith(п)) out.add(Number(у.дата.slice(8, 10)))
-  return out
-}
-
 function записать(все: Урок[]): void {
   try {
     window.localStorage.setItem(КЛЮЧ, JSON.stringify(все))

@@ -27,7 +27,7 @@ const МЕДИАНА = (ч: number[]): number => {
 }
 
 /** Какой формат видео браузер умеет писать. Chrome и Firefox — webm, Safari — mp4. */
-export function форматВидео(звук: boolean): string {
+function форматВидео(звук: boolean): string {
   const кандидаты = звук
     ? ['video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/webm', 'video/mp4']
     : ['video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm', 'video/mp4']
@@ -35,7 +35,7 @@ export function форматВидео(звук: boolean): string {
   return кандидаты.find((т) => MediaRecorder.isTypeSupported(т)) ?? ''
 }
 
-export function форматЗвука(): string {
+function форматЗвука(): string {
   if (typeof MediaRecorder === 'undefined') return ''
   return ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4', 'audio/ogg'].find((т) => MediaRecorder.isTypeSupported(т)) ?? ''
 }

@@ -20,25 +20,6 @@
   border-bottom: 1px solid var(--color-border);
 }
 
-/* Дорога назад — левый верхний угол, во всех состояниях (ПРАВИЛА 1.4). */
-.back {
-  display: inline-grid;
-  place-items: center;
-  min-height: var(--control-height-sm);
-  padding: 0 var(--space-4);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-pill);
-  background: none;
-  color: var(--color-text);
-  font-size: var(--text-caption);
-  white-space: nowrap;
-  cursor: pointer;
-}
-
-.back:hover {
-  border-color: var(--color-border-strong);
-}
-
 .crumb {
   font: var(--weight-regular) var(--text-caption) var(--font-mono);
   letter-spacing: var(--tracking-caps);
@@ -203,17 +184,6 @@
   font-size: var(--text-caption);
   line-height: var(--leading-snug);
   color: var(--color-text-secondary);
-}
-
-.goQuiet {
-  min-height: var(--tap-min);
-  padding: 0 var(--space-5);
-  border: 1px solid var(--color-border-strong);
-  border-radius: var(--radius-pill);
-  background: none;
-  color: var(--color-text);
-  font-size: var(--text-small);
-  cursor: pointer;
 }
 
 /* ── строки расписания ───────────────────────────────────────────────── */

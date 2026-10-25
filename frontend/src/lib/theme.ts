@@ -33,7 +33,7 @@ export function читатьТему(): Тема {
 }
 
 /** Ставит тему на корень документа. `tokens.css` слушает `[data-theme]`. */
-export function применитьТему(t: Тема): void {
+function применитьТему(t: Тема): void {
   const корень = document.documentElement
   const тёмно = t === 'ночь' || (t === 'как в системе' && ночьВСистеме())
   корень.dataset.theme = тёмно ? 'dark' : 'light'

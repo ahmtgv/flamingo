@@ -9,7 +9,7 @@ const ALPHABET = 'abcdefghjkmnpqrstuvwxyz23456789'
 const GROUPS = 3
 const GROUP_LEN = 4
 
-export const ROOM_CODE = /^[a-hjkmnp-z2-9]{4}-[a-hjkmnp-z2-9]{4}-[a-hjkmnp-z2-9]{4}$/
+const ROOM_CODE = /^[a-hjkmnp-z2-9]{4}-[a-hjkmnp-z2-9]{4}-[a-hjkmnp-z2-9]{4}$/
 
 export function newRoomCode(): string {
   const bytes = new Uint32Array(GROUPS * GROUP_LEN)

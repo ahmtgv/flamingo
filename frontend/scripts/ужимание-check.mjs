@@ -18,8 +18,11 @@
 
 import { readdirSync, readFileSync, statSync } from 'node:fs'
 import { join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 
-const КОРЕНЬ = new URL('../src/', import.meta.url).pathname
+/* `fileURLToPath`, а не `.pathname`: кириллица и пробел в пути превращаются в
+   проценты, и `readdirSync` не находит `src` (как в `guard-check.mjs`). */
+const КОРЕНЬ = fileURLToPath(new URL('../src/', import.meta.url))
 
 function всеФайлы(дир) {
   const из = []

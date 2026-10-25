@@ -99,8 +99,6 @@ export function hitObj(o: Obj, p: Point, tol: number): boolean {
  *  x' = ox + (x - ox) · sx. При сдвиге sx = sy = 1. */
 export type Xform = { ox: number; oy: number; sx: number; sy: number; dx: number; dy: number }
 
-export const IDENT: Xform = { ox: 0, oy: 0, sx: 1, sy: 1, dx: 0, dy: 0 }
-
 const ap = (t: Xform, x: number, y: number): Point => [
   t.ox + (x - t.ox) * t.sx + t.dx,
   t.oy + (y - t.oy) * t.sy + t.dy,

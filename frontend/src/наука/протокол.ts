@@ -164,7 +164,7 @@ export function случай(зерно: number): () => number {
   }
 }
 
-export function перемешать<T>(список: readonly T[], r: () => number): T[] {
+function перемешать<T>(список: readonly T[], r: () => number): T[] {
   const к = [...список]
   for (let i = к.length - 1; i > 0; i--) {
     const j = Math.floor(r() * (i + 1))

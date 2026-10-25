@@ -6,7 +6,7 @@
  *  собирается на той стороне. Части одного сообщения помечены общим `cid`.
  */
 
-export const CHUNK_BYTES = 9000
+const CHUNK_BYTES = 9000
 
 type Part = { __c: string; i: number; n: number; s: string }
 

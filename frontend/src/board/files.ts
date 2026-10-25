@@ -24,7 +24,7 @@ export function pickFile(accept: string): Promise<File | null> {
   })
 }
 
-export function readImage(file: Blob): Promise<HTMLImageElement> {
+function readImage(file: Blob): Promise<HTMLImageElement> {
   return new Promise((res, rej) => {
     const url = URL.createObjectURL(file)
     const img = new Image()

@@ -167,15 +167,6 @@
   position: absolute;
 }
 
-
-
-.dotBtn:hover {
-  border-color: var(--color-border-strong);
-  background: var(--color-surface-hover);
-}
-
-
-
 /* Инструмент: активный отмечается нейтральной заливкой (ПРАВИЛА 5.7),
    акцент на экране урока принадлежит поднятой руке, а не кнопке. */
 .toolBtn {

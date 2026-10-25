@@ -4,12 +4,12 @@ import type { Obj, Stroke } from './protocol'
 
 export type View = { x: number; y: number; k: number }
 
-export const VIEW_HOME: View = { x: 0, y: 0, k: 1 }
+const VIEW_HOME: View = { x: 0, y: 0, k: 1 }
 /** Дальше этих границ масштаб не уходит: за ними штрих либо волосок, либо стена. */
 export const K_MIN = 0.1
 export const K_MAX = 8
 
-export const clampK = (k: number) => Math.min(K_MAX, Math.max(K_MIN, k))
+const clampK = (k: number) => Math.min(K_MAX, Math.max(K_MIN, k))
 
 export const toWorld = (v: View, sx: number, sy: number): [number, number] => [
   (sx - v.x) / v.k,

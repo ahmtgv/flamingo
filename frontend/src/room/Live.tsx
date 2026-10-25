@@ -31,7 +31,7 @@ import { RIGHTS, SOURCES } from '../hub/sources'
 
 type Kind = 'frame' | 'video' | 'image' | 'link'
 
-export function embedOf(raw: string): { kind: Kind; src: string } {
+function embedOf(raw: string): { kind: Kind; src: string } {
   const url = raw.trim()
   const yt = url.match(/(?:youtube\.com\/(?:watch\?v=|live\/|embed\/)|youtu\.be\/)([\w-]{6,})/)
   if (yt) return { kind: 'frame', src: `https://www.youtube-nocookie.com/embed/${yt[1]}` }

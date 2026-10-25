@@ -148,59 +148,6 @@
   font: var(--weight-regular) var(--text-caption) var(--font-mono);
 }
 
-
-.alone {
-  align-self: center;
-  justify-self: center;
-  display: grid;
-  gap: var(--space-3);
-  justify-items: start;
-  max-width: 46ch;
-  padding: var(--space-6);
-  border-radius: var(--radius-card);
-  border: 1px solid var(--color-border-on-video);
-  background: var(--color-surface-on-video);
-}
-
-.aloneTitle {
-  font-family: var(--font-heading);
-  font-size: var(--text-h3);
-  font-weight: var(--weight-medium);
-  letter-spacing: var(--tracking-snug);
-}
-
-.aloneText {
-  font-size: var(--text-small);
-  line-height: var(--leading-snug);
-  color: var(--color-text-on-video-quiet);
-}
-
-.link {
-  font: var(--weight-regular) var(--text-caption) var(--font-mono);
-  color: var(--color-text-on-video);
-  padding: var(--space-2) var(--space-3);
-  border-radius: var(--radius-sm);
-  background: var(--color-surface-on-video);
-  border: 1px solid var(--color-border-on-video);
-  overflow-wrap: anywhere;
-}
-
-.copy {
-  min-height: var(--control-height-sm);
-  padding: 0 var(--space-5);
-  border-radius: var(--radius-pill);
-  border: 1px solid var(--color-go-on-video);
-  background: none;
-  color: var(--color-go-on-video);
-  font-size: var(--text-small);
-  font-weight: var(--weight-medium);
-  cursor: pointer;
-}
-
-.copy:hover {
-  background: var(--color-surface-on-video);
-}
-
 /* Один в комнате: лицо по центру и по кадру, а не половиной экрана.
    Половинки делят между собой ЛИЦА — когда лицо одно, делить нечего. */
 .solo {

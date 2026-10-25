@@ -28,7 +28,7 @@
  */
 import type { Качество, Состояние } from '../sedum/внимание.ts'
 
-export const ВЕРСИЯ_КАДРА = 1
+const ВЕРСИЯ_КАДРА = 1
 export const ТОЧЕК = 478
 export const МИМИКИ = 52
 

@@ -11,6 +11,8 @@ Workers Free даёт 10 мс на запрос: PBKDF2 даже на 100 000 п
     POST /api/auth/login     {email,password}           → {id,name,role} + кука
     GET  /api/auth/me                                    → {person: … | null}
     DELETE /api/auth/me                                  → {ok:true}, кука гаснет
+    POST /api/auth/forgot    {email}                     → {ok:true, said}, письмо со ссылкой
+    POST /api/auth/reset     {key,password}              → {id,name,role} + кука
 """
 from __future__ import annotations
 
@@ -23,8 +25,6 @@ from datetime import timedelta
 
 from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError
-from django.conf import settings
-from django.core import signing
 from django.db import IntegrityError
 from django.http import HttpRequest, JsonResponse
 from django.utils import timezone
@@ -79,11 +79,8 @@ def подходит(password: str, stored: str) -> bool:
 RESET_LIFE = timedelta(hours=1)
 SITE = "https://flamingo.plus"
 # 🔴 Кука и «кто пришёл» переехали в `session.py`: тот же вопрос задают журнал
-# и занятия, и ответ должен быть один. Имена оставлены здесь как псевдонимы,
-# чтобы не переписывать весь файл ради переезда.
-COOKIE = session.COOKIE
-DAYS = session.DAYS
-SALT = session.SALT
+# и занятия, и ответ должен быть один. Здесь куку только кладут (`remember`),
+# читают (`who`) и гасят (`forget`) — всё через тот файл.
 
 
 def _no(reason: str, status: int = 400) -> JsonResponse:
@@ -208,9 +205,7 @@ def login(request: HttpRequest) -> JsonResponse:
 @csrf_exempt
 def me(request: HttpRequest) -> JsonResponse:
     if request.method == "DELETE":
-        res = JsonResponse({"ok": True})
-        res.delete_cookie(COOKIE, domain=settings.SESSION_COOKIE_DOMAIN or None, path="/")
-        return res
+        return session.forget(JsonResponse({"ok": True}))
     if request.method != "GET":
         return _no("Этот путь отвечает на GET и DELETE.", 405)
 

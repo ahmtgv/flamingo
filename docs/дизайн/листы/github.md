@@ -1,3 +1,7 @@
+> ⚠️ Устарел 30.08.2026: карта экранов на код прошлого монорепозитория
+> (`frontend/src/features/…`, `i18n/…`), которого больше нет (`CLAUDE.md` §6).
+> Оставлен как летопись переноса листов; путей из него в проекте не существует.
+
 repo: ahmtgv/flamingo
 branch: main
 path: frontend/src/features/lesson

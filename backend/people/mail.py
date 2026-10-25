@@ -15,8 +15,6 @@ from django.core.mail import send_mail
 
 log = logging.getLogger("flamingo.mail")
 
-ЧАС = 60
-
 
 def send_reset(email: str, name: str, link: str) -> None:
     text = (

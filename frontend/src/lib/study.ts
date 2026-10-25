@@ -294,7 +294,7 @@ export async function пособияКомнаты(код: string): Promise<{
 }
 
 /** Полный адрес пособия: у ссылки он внешний, у файла — на нашем сервере. */
-export function адресПособия(п: Пособие): string {
+function адресПособия(п: Пособие): string {
   return п.вид === 'link' ? п.адрес : BASE + п.адрес
 }
 
@@ -316,11 +316,6 @@ export async function отметиться(код: string): Promise<void> {
   } catch {
     /* журнал подождёт: урок важнее отметки */
   }
-}
-
-export async function моиПреподаватели(): Promise<{ id: string; имя: string; с: string }[]> {
-  const r = await разговор<{ преподаватели: { id: string; имя: string; с: string }[] }>('teachers')
-  return r.преподаватели
 }
 
 // ── переписка между занятиями ──────────────────────────────────────────────
