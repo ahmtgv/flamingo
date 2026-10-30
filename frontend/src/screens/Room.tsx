@@ -23,7 +23,7 @@ import { useСлух } from '../room/слух'
 import { вниманиеВключено } from '../lib/опыты'
 import { roomUrl } from '../lib/code'
 import { читатьТему, следующая, сохранитьТему, type Тема } from '../lib/theme'
-import { взятьПособие, отметиться, пособияКомнаты, type Пособие } from '../lib/study'
+import { Беда, взятьПособие, отметиться, положитьСсылку, пособияКомнаты, type Пособие } from '../lib/study'
 import { Mark } from '../ui/Mark'
 import s from './Room.module.css'
 
@@ -90,6 +90,8 @@ export function Room({ code, name, onLeave, onHome }: Props) {
      Спрашиваем один раз на вход. Пусто — обычное дело: «Начать урок сейчас»
      занятия не заводит, и говорить об этом на уроке нечего. */
   const [пособия, setПособия] = useState<Пособие[]>([])
+  /* Урок этой комнаты — чтобы ведущий мог класть ссылки в материалы прямо отсюда. */
+  const [урокId, setУрокId] = useState<string | null>(null)
   /* 🔴 ВЕДУ ЛИ Я ЗАНЯТИЕ — ОТВЕТ СЕРВЕРА, И БОЛЬШЕ НИЧЕЙ.
    *
    *  Владелец 02.09: «если ученик заходит раньше учителя, он становится в
@@ -118,6 +120,7 @@ export function Room({ code, name, onLeave, onHome }: Props) {
       .then((о) => {
         if (!живо || !о) return
         setПособия(о.пособия)
+        setУрокId(о.id)
         setВеду(о.веду)
         /* 🔴 НАЗВАНИЕ УРОКА ЛЕЖАЛО В ОТВЕТЕ И ВЫБРАСЫВАЛОСЬ. В шапке стоял
            машинный код вида `g6rh-ntaf-rzpp`: у преподавателя с тремя уроками
@@ -559,6 +562,24 @@ export function Room({ code, name, onLeave, onHome }: Props) {
     [goLive, openShow],
   )
 
+  /* Ссылка в материалы урока прямо из комнаты (владелец, 30.10): раньше её
+     можно было положить только со страницы урока в кабинете. Ложится на
+     сервер, как с той страницы, и сразу открывается классу. */
+  const положитьСсылкуСюда = useCallback(
+    async (url: string): Promise<string | null> => {
+      if (!урокId) return 'Комната не от урока — ссылку некуда положить. Откройте её в «Источниках».'
+      try {
+        const п = await положитьСсылку(урокId, url, url)
+        setПособия((с) => [...с, п])
+        void показатьПособие(п)
+        return null
+      } catch (e) {
+        return e instanceof Беда ? e.message : 'Ссылка не легла: сервер не ответил.'
+      }
+    },
+    [урокId, показатьПособие],
+  )
+
   const onLiveMark = useCallback(
     (m: Ink, final: boolean) => {
       void final
@@ -869,6 +890,7 @@ export function Room({ code, name, onLeave, onHome }: Props) {
               if (d) openShow(d)
             }}
             onAdd={addShow}
+            onСсылка={урокId ? положитьСсылкуСюда : undefined}
             onDrop={removeShow}
             onClose={() => setListOpen(false)}
           />

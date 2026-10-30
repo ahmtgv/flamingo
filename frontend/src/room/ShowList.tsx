@@ -70,7 +70,7 @@ function наДоску(п: Пособие): boolean {
 }
 
 export function ShowList({
-  shows, пособия, onПособие, activeId, kept, onOpen, onAdd, onDrop, onClose,
+  shows, пособия, onПособие, activeId, kept, onOpen, onAdd, onСсылка, onDrop, onClose,
 }: {
   shows: ShowDoc[]
   /** Приложенные к занятию заранее. Лежат на сервере, видны с любого устройства. */
@@ -81,12 +81,33 @@ export function ShowList({
   kept: boolean
   onOpen: (id: string) => void
   onAdd: () => void
+  /** Положить ссылку в материалы урока. Ответ — слова отказа или null. Нет у
+   *  комнаты урока — поля нет. */
+  onСсылка?: (url: string) => Promise<string | null>
   onDrop: (id: string) => void
   onClose: () => void
 }) {
   /* Удаление — в два нажатия на месте: отдельное окно «вы уверены?» для одного
      показа — из пушки по воробью, а одно нажатие — потеря без спроса. */
   const [arming, setArming] = useState<string | null>(null)
+  const [ссылка, setСсылка] = useState('')
+  const [кладём, setКладём] = useState(false)
+  const [отказ, setОтказ] = useState('')
+  const положить = async (e: React.FormEvent) => {
+    e.preventDefault()
+    const url = ссылка.trim()
+    if (!url || !onСсылка) return
+    if (!/^https?:\/\/\S+\.\S+/i.test(url)) {
+      setОтказ('Это не похоже на ссылку: она начинается с https://')
+      return
+    }
+    setКладём(true)
+    setОтказ('')
+    const беда = await onСсылка(url)
+    setКладём(false)
+    if (беда) setОтказ(беда)
+    else setСсылка('')
+  }
 
   /* Окно поверх урока: Escape закрывает, фокус не уходит наружу (ПРАВИЛА 7.x,
      аудит 07.09 находка 11). */
@@ -222,6 +243,23 @@ export function ShowList({
       <footer className={s.foot}>
         {/* Слово «показ» ушло из имени панели (ПРАВИЛА 4.9) — уходит и отсюда:
             кнопка называет то, что делает, теми же словами, что и полка. */}
+        {onСсылка ? (
+          <form className={s.ссылка} onSubmit={положить}>
+            <input
+              className={s.ссылкаПоле}
+              type="url"
+              inputMode="url"
+              placeholder="Ссылка на видео или сайт"
+              aria-label="Ссылка в материалы урока"
+              value={ссылка}
+              onChange={(e) => { setСсылка(e.target.value); setОтказ('') }}
+            />
+            <button type="submit" className={s.ссылкаКнопка} disabled={кладём || !ссылка.trim()}>
+              {кладём ? 'Кладём…' : 'В материалы'}
+            </button>
+          </form>
+        ) : null}
+        {отказ ? <p className={s.отказ} role="alert">{отказ}</p> : null}
         <button type="button" className={s.add} onClick={onAdd}>
           Добавить с компьютера
         </button>

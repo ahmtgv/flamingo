@@ -213,6 +213,61 @@
   border-top: 1px solid var(--color-border);
 }
 
+/* Ссылка в материалы урока (владелец, 30.10): поле и тихая кнопка в одну
+   строку над главной. Главная заливка на панели остаётся одна. */
+.ссылка {
+  display: flex;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.ссылкаПоле {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: var(--tap-min);
+  padding: 0 var(--space-3);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-control);
+  background: var(--color-field);
+  color: var(--color-text);
+  font: inherit;
+  font-size: var(--text-small);
+}
+
+.ссылкаПоле:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.ссылкаКнопка {
+  flex-shrink: 0;
+  min-height: var(--tap-min);
+  padding: 0 var(--space-4);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-control);
+  background: none;
+  color: var(--color-text);
+  font-size: var(--text-small);
+  font-weight: var(--weight-medium);
+  cursor: pointer;
+}
+
+.ссылкаКнопка:hover:not(:disabled) {
+  border-color: var(--color-text);
+}
+
+.ссылкаКнопка:disabled {
+  color: var(--color-text-secondary);
+  cursor: default;
+}
+
+.отказ {
+  margin: 0;
+  font-size: var(--text-caption);
+  line-height: var(--leading-body);
+  color: var(--color-text-detail);
+}
+
 /* Главный шаг панели — добавить показ: зелёная заливка (ПРАВИЛА 11.1). */
 .add {
   min-height: var(--tap-min);
