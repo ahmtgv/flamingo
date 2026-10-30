@@ -1,745 +1,425 @@
-/* 🔴 ТИТУЛ ЖИВЁТ ВИТРИННЫМ НАБОРОМ (`styles/витрина.css`, решение владельца
-   08.09). Своих чисел здесь больше нет: у каждой величины есть роль и имя.
-   Если тянет поставить новое число — значит нужна новая роль в наборе, и
-   заводить её надо там, а не здесь. */
+/* Титул — главная flamingo.plus, редизайн, утверждён владельцем 31.10.2026.
+   Значения взяты из артбордов «Главная · светлая» и «Главная · ночная» как
+   есть (решение владельца: «все цвета, размеры и SVG — из макетов»). Это
+   отдельная шкала, не продуктовые токены: страница живёт в стиле рабочего
+   стола, и ей нужны свои цвета и кегли.
 
+   типографика-исключение (14): главная живёт своей шкалой по утверждённому макету */
 
-/* Титульный экран. Один кадр, доска и лента — по утверждённому формату.
-   Значения только токенами (ПРАВИЛА 2.8): голых px и hex здесь нет,
-   волосяные 0–3 px разрешены, кегль берётся шкалой --text-*. */
-
-.экран {
+.корень {
+  position: relative;
+  box-sizing: border-box;
+  width: 100%;
   height: 100vh;
-  display: grid;
-  /* 🔴 НИЗ МЕРЯЕТСЯ ВЫСОТОЙ, А НЕ ШИРИНОЙ. Полоса была `auto`, а обложки —
-     9:16 от ширины колонки: на широком окне колонка растёт, обложка растёт
-     вместе с ней, полоса перестаёт помещаться и её срезает. Теперь у полосы
-     доля экрана, а всё внутри считает размер от неё. */
-  /* Полоса низа — ОПРЕДЕЛЁННАЯ доля экрана, а не `minmax(0, 34vh)`:
-     та позволяла строке сжиматься по содержимому, а содержимое считает высоту
-     от неё же — круг, и полоса схлопывалась в 25 px. Поймано стендом. */
-  grid-template-rows: auto auto minmax(0, 1fr) 34vh;
-  /* Поля кадра. Полосы остаются во всю ширину — линии шапки и низа должны
-     доходить до края окна, иначе экран выглядит обрезанным листом. Внутрь
-     полос кладём отступ: `--поле` растёт с окном, `--центр` на широком окне
-     добавляет ещё, чтобы содержимое собралось в середину, а не растянулось
-     от края до края. `--воздух` — тот же отступ по высоте, считается от неё. */
-  /* `--поле` теперь общий токен кадра (tokens.css, ПРАВИЛА 2.2) —
-     здесь он больше не объявляется, чтобы значение жило в одном месте. */
-  --центр: max(var(--поле), calc((100% - 104rem) / 2));
-  --воздух: clamp(var(--space-4), 2.2vh, var(--space-7));
-  /* 🔴 СТРОКА У КАЖДОГО СВОЯ, А НЕ ПО ПОРЯДКУ. Полоса отказа появляется только
-     при молчании сервера — без неё все дети съезжали на строку вверх: разворот
-     получал `auto`, а низ забирал `1fr`, и полоса роликов вылезала за кадр.
-     Именно это и сломало боевой. Поймано стендом на настоящем CSS. */
-  background: var(--color-bg);
-  color: var(--color-text);
+  min-height: var(--г-860);
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  background: var(--г-bg);
+  color: var(--г-text);
+  font-family: 'Inter Variable', Inter, -apple-system, 'Helvetica Neue', system-ui, sans-serif;
+  letter-spacing: -0.01em;
+  -webkit-font-smoothing: antialiased;
 }
 
-/* ── шапка ─────────────────────────────────────────────────────────── */
-.шапка {
-  grid-row: 1;
-  /* Якорь для облачка отказа: оно висит слоем под шапкой, а не в потоке. */
+/* :where — чтобы правило не перебивало цвет собственных классов кнопок ниже */
+:where(.корень) button {
+  font-family: inherit;
+  letter-spacing: inherit;
+  color: inherit;
+}
+
+/* ── меню ─────────────────────────────────────────────────────────────── */
+.меню {
   position: relative;
+  flex: none;
+  height: var(--г-40);
+  box-sizing: border-box;
   display: flex;
   align-items: center;
-  gap: var(--space-6);
-  height: var(--control-height-lg);
-  padding: 0 var(--центр);
-  border-bottom: 1px solid var(--color-border);
-  background: var(--color-surface);
+  justify-content: space-between;
+  gap: var(--г-20);
+  padding: 0 var(--г-20);
+  background: var(--г-menu-bg);
+  backdrop-filter: saturate(180%) blur(var(--г-30));
+  border-bottom: 0.5px solid var(--г-hairline);
 }
-.меню { display: flex; gap: var(--space-5); }
-.пункт {
-  color: var(--color-text-detail);
-  font-size: var(--text-small);
-  min-height: var(--tap-min);
-  display: inline-grid;
-  align-items: center;
-  background: none;
-  border: 0;
-  padding: 0;
-  cursor: pointer;
-}
-.пункт:hover { color: var(--color-text); }
-.разрыв { flex: 1; }
-.вход {
-  color: var(--color-text-detail);
-  font-size: var(--text-small);
-  min-height: var(--tap-min);
-  display: inline-grid;
-  align-items: center;
-  padding: 0 var(--space-1);
-  background: none;
-  border: 0;
-  cursor: pointer;
-}
-.вход:hover { color: var(--color-text); }
-.дверь {
-  background: var(--color-go-solid);
-  color: var(--color-on-go);
-  border: 0;
-  border-radius: var(--radius-control);
-  min-height: var(--tap-min);
-  padding: 0 var(--space-4);
-  font: 600 var(--text-small) var(--font-heading);
-  cursor: pointer;
-  display: inline-grid;
-  place-items: center;
-}
-.дверь:hover { background: var(--color-go-solid-hover); }
 
-/* ── разворот: слово слева, доска справа ───────────────────────────── */
-.разворот {
-  grid-row: 3;
-  display: grid;
-  /* 🔴 РОЛИК УПИРАЕТСЯ В ШИРИНУ КОЛОНКИ, А НЕ В ВЫСОТУ. После того как из
-     левой колонки ушли заголовок и лид, высоты стало вдоволь, и размер кадра
-     стала диктовать ширина. Доли выровнены — кадр вырос примерно на четверть,
-     доска осталась крупнейшим объектом страницы. */
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: var(--space-7);
-  min-height: 0;
-  padding: var(--воздух) var(--центр);
-  align-items: stretch;
+.менюЛево { display: flex; align-items: center; gap: var(--г-22); min-width: 0; }
+
+.лого {
+  display: flex;
+  align-items: center;
+  gap: var(--г-8);
+  font-size: var(--г-15);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--г-text);
+  text-decoration: none;
 }
-.левая { display: grid; grid-template-rows: auto minmax(0, 1fr); gap: var(--space-4); min-height: 0; }
-.слова { display: grid; align-content: start; gap: var(--space-3); }
-.бровь {
-  font-family: var(--font-mono);
-  font-size: var(--text-overline);
-  letter-spacing: var(--витрина-буквы-бровь);
-  text-transform: uppercase;
-  color: var(--color-text-hint);
-}
-/* 🔴 ЗАГОЛОВОК СТРАНИЦЫ ОДИН НА ВЕСЬ ПРОДУКТ — 24 (ПРАВИЛА 4.1). Титул жил по
-   своей шкале: 32, на широком окне 56. Решение владельца 08.09: «сделать 24,
-   как везде». Строка сменилась (10.09), ступень осталась той же. */
-.мысль {
-  margin: 0;
-  font-size: var(--text-h2);
-  line-height: var(--витрина-строка-титул);
+
+.лого img { width: var(--г-22); height: var(--г-18); object-fit: contain; }
+
+.пункты { display: flex; align-items: center; gap: var(--г-20); font-size: var(--г-13); font-weight: 500; }
+.пункты a { color: var(--г-text); text-decoration: none; }
+
+.менюПраво { display: flex; align-items: center; gap: var(--г-16); font-size: var(--г-13); font-weight: 500; }
+
+.менюВойти { border: 0; padding: 0; background: none; font: inherit; cursor: pointer; }
+
+.пилюля {
+  border: 0;
+  background: var(--г-menu-pill-bg);
+  color: var(--г-menu-pill-fg);
+  border-radius: var(--г-980);
+  padding: 0 var(--г-13);
+  height: var(--г-26);
+  font-size: var(--г-12);
   font-weight: 600;
-  letter-spacing: var(--витрина-буквы-титул);
-  /* 🔴 ШИРИНУ СТРОКЕ ДАЁТ КОЛОНКА, А НЕ ПОТОЛОК В ЗНАКАХ (решение владельца
-     10.09). С `28ch` фраза вставала в три строки и отнимала у кадра высоту;
-     во всю колонку она укладывается в две. */
-}
-@media (min-width: 1400px) {
-    /* 🔴 ОДИН КЕГЛЬ НА ВСЕ ОКНА. Прежде герой рос до 56 на широком: витрина жила
-     по своей шкале. Решение владельца 08.09 — «сделать 24, как везде»; значит и
-     прибавки на широком окне больше нет. */
+  cursor: pointer;
 }
 
-/* ── проморолик ────────────────────────────────────────────────────── */
-/* Подпись строкой, под ней кадр во всю оставшуюся высоту. Ширину кадру
-   считает замер (`подогнать`), высоту — соотношение 16:9. */
-.проБлок {
-  display: grid;
-  grid-template-rows: auto minmax(0, 1fr);
-  gap: var(--space-2);
-  min-width: 0;
-  min-height: 0;
-}
-.проТекст { display: grid; min-width: 0; }
-/* 🔴 ШИРИНА 100 % — ЭТО ОСНОВАНИЕ, А НЕ ЗАПАСНОЙ ВАРИАНТ. На настольном окне
-   её перебивает встроенный стиль от `подогнать()`; там, где замер не работает
-   (телефон), кадр обязан занять колонку целиком. Без этой строки при
-   `justify-self: start` и одном лишь соотношении сторон ширина уходит в ноль,
-   и ролик на телефоне пропадал во второй раз — уже по другой причине. */
-/* 🔴 НИЖНЯЯ КРОМКА КАДРА И НИЖНЯЯ КРОМКА ДОСКИ — ОДНА ЛИНИЯ (решение владельца
-   10.09). Кадр держит 16:9 и упирается в ширину колонки, поэтому по высоте у
-   него остаётся запас: с `align-self: start` этот запас оказывался снизу, и две
-   половины разворота заканчивались на разной высоте. Теперь запас уходит наверх,
-   под подпись, а кромки сходятся при любой ширине окна. */
-.промо {
+.менюВойти[aria-disabled='true'], .пилюля[aria-disabled='true'] { cursor: default; opacity: 0.55; }
+
+/* ── стол ──────────────────────────────────────────────────────────────── */
+.стол {
   position: relative;
-  width: 100%;
-  align-self: end;
-  justify-self: start;
-  aspect-ratio: 16 / 9;
-  max-width: 100%;
-  /* Потолок по высоте: ширину ролику считает JS, но ДО первого замера он
-     занимает всю ширину колонки и раздувает разворот — на первом кадре
-     страницу дёргало. */
-  max-height: 100%;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-card);
-  overflow: hidden;
-  background: var(--color-surface);
-  box-shadow: var(--shadow-sm);
-  cursor: pointer;
-  display: block;
-  padding: 0;
+  flex: 1 1 auto;
+  min-height: 0;
+  box-sizing: border-box;
+  padding: var(--г-20) var(--г-24) var(--г-24);
+  display: grid;
+  grid-template-columns: var(--г-400) minmax(0, 1fr);
+  gap: var(--г-20);
 }
-.промо svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+.левая { min-width: 0; min-height: 0; display: flex; flex-direction: column; gap: var(--г-16); }
+.правая { min-width: 0; min-height: 0; display: flex; flex-direction: column; gap: var(--г-20); }
+.верхнийРяд { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: row; gap: var(--г-20); }
+
+/* ── главная карточка ──────────────────────────────────────────────────── */
+.карточка {
+  flex: none;
+  box-sizing: border-box;
+  padding: var(--г-24) var(--г-26);
+  border-radius: var(--г-24);
+  background: var(--г-widget-bg);
+  backdrop-filter: saturate(180%) blur(var(--г-40));
+  box-shadow: 0 0 0 0.5px var(--г-ring), var(--г-shadow-card);
+  display: flex;
+  flex-direction: column;
+  gap: var(--г-14);
+}
+
+.кикер { font-size: var(--г-11); font-weight: 600; color: var(--г-text-2); letter-spacing: 0.12em; text-transform: uppercase; }
+
+.заголовок { margin: 0; font-size: var(--г-36); line-height: 1.05; font-weight: 700; letter-spacing: -0.035em; }
+
+.подзаголовок { margin: 0; font-size: var(--г-15); line-height: 1.4; color: var(--г-text-lead); font-weight: 500; }
+
+.двери { display: flex; gap: var(--г-10); flex-wrap: wrap; margin-top: var(--г-4); }
+
+.cta {
+  flex: 1 1 auto;
+  border: 0;
+  text-align: center;
+  background: var(--г-cta);
+  color: var(--г-белый);
+  border-radius: var(--г-12);
+  height: var(--г-44);
+  font-size: var(--г-15);
+  font-weight: 600;
+  cursor: pointer;
+  transition: filter 0.15s;
+}
+.cta:hover { filter: brightness(1.08); }
+
+.вторая {
+  flex: none;
+  border: 0;
+  text-align: center;
+  background: var(--г-btn-2);
+  color: var(--г-text);
+  border-radius: var(--г-12);
+  height: var(--г-44);
+  padding: 0 var(--г-20);
+  font-size: var(--г-15);
+  font-weight: 600;
+  box-shadow: inset 0 0 0 0.5px var(--г-btn-2-ring);
+  cursor: pointer;
+}
+
+.cta[aria-disabled='true'], .вторая[aria-disabled='true'] { cursor: default; opacity: 0.55; }
+
+.облачко { margin: 0; font-size: var(--г-12_5); line-height: 1.35; color: var(--г-text-lead); display: flex; flex-wrap: wrap; gap: var(--г-4) var(--г-10); }
+.снова { border: 0; padding: 0; background: none; font: inherit; font-weight: 600; color: var(--г-link); cursor: pointer; text-decoration: underline; }
+
+/* ── тестирование ──────────────────────────────────────────────────────── */
+.тесты {
+  flex: none;
+  box-sizing: border-box;
+  padding: var(--г-16) var(--г-18);
+  border-radius: var(--г-20);
+  background: var(--г-widget-bg);
+  backdrop-filter: saturate(180%) blur(var(--г-40));
+  box-shadow: 0 0 0 0.5px var(--г-ring), var(--г-shadow-tests);
+  display: flex;
+  align-items: center;
+  gap: var(--г-14);
+}
+
+.нейро { flex: none; display: block; }
+.тестыТекст { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 3px; align-items: flex-start; }
+.тестыШапка { display: flex; align-items: center; gap: var(--г-8); flex-wrap: wrap; }
+.тестыЗаголовок { font-size: var(--г-15); font-weight: 700; letter-spacing: -0.02em; }
+.бета { font-size: var(--г-10); font-weight: 700; color: var(--г-beta); background: var(--г-beta-bg); border-radius: var(--г-980); padding: 2px var(--г-7); letter-spacing: 0.02em; }
+.тестыОписание { font-size: var(--г-12_5); line-height: 1.35; color: var(--г-text-lead); }
+
+/* Ссылки «… ›». Пока двери без адреса — объявлены немыми (data-still). */
+.ссылка { margin-top: var(--г-4); border: 0; padding: 0; background: none; font-size: var(--г-14); font-weight: 600; color: var(--г-link); cursor: pointer; }
+.ссылка[aria-disabled='true'] { cursor: default; opacity: 0.6; }
+
+/* ── видео ─────────────────────────────────────────────────────────────── */
+.видео {
+  flex: 1 1 auto;
+  min-height: 0;
+  border-radius: var(--г-16);
+  overflow: hidden;
+  background: var(--г-video-bg);
+  box-shadow: 0 0 0 0.5px var(--г-video-ring), var(--г-shadow-video);
+  display: flex;
+  flex-direction: column;
+}
+
+.видеоШапка { flex: none; height: var(--г-34); display: flex; align-items: center; gap: var(--г-12); padding: 0 var(--г-12); color: rgba(255, 255, 255, 0.85); font-size: var(--г-12); font-weight: 600; }
+.видеоИмя { flex: 1 1 auto; min-width: 0; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.кадр { position: relative; flex: 1 1 auto; min-height: var(--г-180); display: block; background: var(--г-чёрный); border: 0; padding: 0; cursor: pointer; }
+.кадр img { position: absolute; inset: 0; display: block; width: 100%; height: 100%; object-fit: cover; object-position: 50% 50%; }
+.кино { flex: 1 1 auto; min-height: var(--г-180); width: 100%; display: block; background: var(--г-чёрный); object-fit: contain; }
+
 .пуск {
   position: absolute;
   left: 50%;
   top: 50%;
   transform: translate(-50%, -50%);
-  width: var(--space-9);
-  height: var(--space-9);
-  border-radius: var(--radius-pill);
-  /* 🔴 КНОПКА ПОВЕРХ ЧУЖОЙ ФОТОГРАФИИ НЕ БЕРЁТ ЦВЕТ ТЕМЫ. Фотография тему не
-     переворачивает, а кружок переворачивался вместе с интерфейсом: ночью его
-     заливка давала к постеру 1,14–1,80:1 при пороге 3, и от кнопки оставался
-     треугольник, висящий в пустоте. Померено по 12 точкам обода на всех семи
-     постерах. Плюс волосяная обводка — на светлом кадре кружок тоже виден. */
-  background: var(--color-on-media);
-  border: 1px solid var(--color-overlay);
-  display: grid;
-  place-items: center;
-  box-shadow: var(--shadow-md);
-}
-.пуск svg { position: static; width: var(--space-4); height: var(--space-4); fill: var(--color-on-media-ink); }
-/* Две строки по замыслу, а не по случайному переносу: первая — о чём ролик и
-   сколько он идёт, вторая — честная оговорка. Одной строкой они не встают:
-   у кадра ширина в 520 px, а у фразы — 74 знака. */
-.проПодпись {
-  display: grid;
-  gap: 2px;
-  font-size: var(--text-small);
-  line-height: var(--витрина-строка-плотно);
-  color: var(--color-text-detail);
-}
-.проСтрока { display: flex; align-items: baseline; gap: var(--space-3); min-width: 0; }
-.проКринж { color: var(--color-text-hint); }
-.проПодпись s { font-family: var(--font-mono); font-size: var(--text-overline);
-  color: var(--color-text-hint); text-decoration: none; margin-left: auto; white-space: nowrap; }
-
-/* ── доска ─────────────────────────────────────────────────────────── */
-.доска {
-  height: 100%;
-  min-height: 0;
-  display: grid;
-  grid-template-rows: auto minmax(0, 1fr) auto;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  background: var(--color-surface);
-  overflow: hidden;
-  box-shadow: var(--shadow-sm);
-}
-.дШапка {
+  width: var(--г-58);
+  height: var(--г-58);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.28);
+  backdrop-filter: blur(var(--г-16));
+  box-shadow: inset 0 0 0 0.5px rgba(255, 255, 255, 0.5);
   display: flex;
   align-items: center;
-  gap: var(--space-2);
-  padding: var(--space-2) var(--space-3);
-  border-bottom: 1px solid var(--color-border);
-  font-family: var(--font-mono);
-  font-size: var(--text-overline);
-  color: var(--color-text-hint);
+  justify-content: center;
 }
-.живо { margin-left: auto; display: inline-flex; align-items: center; gap: var(--space-1); color: var(--color-text-detail); }
-.огонёк { width: var(--space-1); height: var(--space-1); border-radius: var(--radius-pill); background: var(--color-accent); display: block; }
-/* Доска в ТОЧКУ, а не в клетку: клетка чертит сплошные линии и спорит
-   с рисунком, точки держат ту же сетку, но отступают на задний план. */
+
+.ход {
+  position: absolute;
+  left: var(--г-12);
+  right: var(--г-12);
+  bottom: var(--г-10);
+  display: flex;
+  align-items: center;
+  gap: var(--г-10);
+  padding: var(--г-8) var(--г-12);
+  border-radius: var(--г-12);
+  background: rgba(30, 30, 32, 0.55);
+  backdrop-filter: blur(var(--г-20));
+  color: var(--г-белый);
+  font-size: var(--г-11);
+  font-weight: 600;
+}
+.полоса { flex: 1 1 auto; height: var(--г-4); border-radius: 2px; background: rgba(255, 255, 255, 0.25); display: block; }
+
+.видеоПодпись { flex: none; padding: var(--г-9) var(--г-14) var(--г-11); font-size: var(--г-12); color: rgba(255, 255, 255, 0.6); }
+
+/* ── окна: общая шапка ─────────────────────────────────────────────────── */
+.окноШапка { flex: none; height: var(--г-52); display: flex; align-items: center; gap: var(--г-16); padding: 0 var(--г-12) 0 var(--г-16); border-bottom: 0.5px solid var(--г-hairline); }
+.окноИмя { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.окноЗаголовок { font-size: var(--г-13); font-weight: 700; }
+.окноПодпись { font-size: var(--г-11); color: var(--г-text-2); display: inline-flex; align-items: center; gap: var(--г-5); white-space: nowrap; }
+.распор { flex: 1 1 auto; }
+.акцентОбвод { stroke: var(--г-accent); }
+
+/* ── доска ─────────────────────────────────────────────────────────────── */
+.доска {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  border-radius: var(--г-16);
+  overflow: hidden;
+  background: var(--г-window-bg);
+  backdrop-filter: saturate(180%) blur(var(--г-40));
+  box-shadow: 0 0 0 0.5px var(--г-ring-strong), var(--г-shadow-board);
+  display: flex;
+  flex-direction: column;
+}
+
+.режимы { display: flex; padding: 2px; border-radius: var(--г-9); background: var(--г-seg-bg); }
+.режим { height: var(--г-28); padding: 0 var(--г-11); border: 0; border-radius: var(--г-7); background: transparent; color: var(--г-text); font-size: var(--г-12); font-weight: 500; cursor: pointer; transition: background 0.15s; }
+.режим:hover:not(.режимОн) { background: var(--г-hover); }
+.режим[aria-disabled='true'] { cursor: default; }
+.режимОн { background: var(--г-seg-active); box-shadow: var(--г-seg-shadow); font-weight: 600; }
+
 .поле {
   position: relative;
+  flex: 1 1 auto;
   min-height: 0;
-  background-image: radial-gradient(circle at center, var(--color-border) 1.2px, transparent 1.2px);
-  background-size: var(--space-6) var(--space-6);
+  background-color: var(--г-canvas-bg);
+  background-image: radial-gradient(var(--г-canvas-dot) 1.1px, transparent 1.2px);
+  background-size: var(--г-24) var(--г-24);
+  background-position: var(--г-12) var(--г-12);
+  overflow: hidden;
+  user-select: none;
 }
-.холст { display: block; width: 100%; height: 100%; touch-action: none; cursor: crosshair; }
-/* След указателя живёт на СВОЁМ слое и чистится каждый кадр: на общем холсте
-   он оставался насовсем и ложился поверх рисунка. */
-.след { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
-.шёпот {
+
+.эскиз { position: absolute; left: 0; top: 0; width: 100%; height: 100%; display: block; pointer-events: none; font-family: inherit; }
+.эскизФото { fill: var(--г-sketch-photo); stroke: var(--г-sketch-photo-ring); }
+.эскизКольцо { stroke: var(--г-sketch-ring); }
+.эскизТекст { fill: var(--г-text); }
+.эскизЛиния { stroke: var(--г-text); }
+
+.рисунок { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; cursor: crosshair; }
+.штрих { stroke: currentColor; }
+.перо1 { color: var(--г-pen-1); }
+.перо2 { color: var(--г-accent); }
+.перо3 { color: var(--г-перо-3); }
+.перо4 { color: var(--г-перо-4); }
+
+.палитра {
   position: absolute;
-  left: var(--space-4);
-  bottom: var(--space-3);
-  font-size: var(--text-caption);
-  color: var(--color-text-hint);
-  pointer-events: none;
-  transition: opacity var(--duration-slow);
-}
-.дНиз {
+  left: 50%;
+  bottom: var(--г-14);
+  transform: translateX(-50%);
   display: flex;
   align-items: center;
-  gap: var(--space-2);
-  padding: var(--space-2) var(--space-3);
-  border-top: 1px solid var(--color-border);
-  flex-wrap: wrap;
+  gap: var(--г-12);
+  padding: var(--г-6) var(--г-8) var(--г-6) var(--г-14);
+  border-radius: var(--г-980);
+  background: var(--г-pill-bg);
+  backdrop-filter: blur(var(--г-20));
+  box-shadow: 0 0 0 0.5px var(--г-hairline), var(--г-shadow-pill);
 }
-.перо {
-  position: relative;
-  width: var(--space-5);
-  height: var(--space-5);
-  border-radius: var(--radius-pill);
-  border: 2px solid transparent;
-  cursor: pointer;
-  padding: 0;
-}
-.пероВ { border-color: var(--color-text); }
-.сцены { display: flex; gap: var(--space-1); margin-left: auto; flex-wrap: wrap; }
-.сцена {
-  position: relative;
-  font-family: var(--font-mono);
-  font-size: var(--text-overline);
-  color: var(--color-text);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
-  padding: var(--space-1) var(--space-2);
-  background: var(--color-bg);
-  cursor: pointer;
-}
-.сцена:hover { border-color: var(--color-text-secondary); }
-.сценаВ { border-color: var(--color-text); }
+.палитраПодпись { font-size: var(--г-11_5); color: var(--г-text-2); white-space: nowrap; }
+.перья { display: flex; gap: var(--г-4); }
+.пероКнопка { position: relative; width: var(--г-30); height: var(--г-30); border: 0; padding: 0; border-radius: 50%; background: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+.пероКруг { width: var(--г-18); height: var(--г-18); border-radius: 50%; background: currentColor; display: block; }
+.пероКольцо { position: absolute; inset: 3px; border-radius: 50%; border: 2px solid currentColor; display: block; }
+.палитраЧерта { width: 1px; height: var(--г-20); background: var(--г-pill-divider); }
+.стереть { height: var(--г-30); padding: 0 var(--г-12); border: 0; border-radius: var(--г-980); background: var(--г-erase-bg); color: var(--г-text); font-size: var(--г-12); font-weight: 600; cursor: pointer; }
 
-/* ── низ: ролики и хаб ─────────────────────────────────────────────── */
-.низ {
-  grid-row: 4;
-  border-top: 1px solid var(--color-border);
-  background: var(--color-surface);
-  /* Низ прижат к кромке намеренно: полоса — это дно кадра, а её высота
-     34vh, и лишний отступ снизу съедает строку «что даёт» у плитки хаба
-     ровно на 4 px при 1512×944. Поймано стендом. */
-  padding: var(--space-3) var(--центр);
-  display: grid;
-  /* 🔴 ЛЕНТЕ ЧУТЬ БОЛЬШЕ ПОЛОВИНЫ. Имя ролика стоит одной строкой в ширину
-     колонки, а колонка — это шестая часть ленты: при ровных долях под имя
-     оставалось 87 px на 1280, и обрезались все шесть. 1,1 к 0,9 даёт 96 —
-     ровно столько, сколько просят самые длинные имена. Плитки хаба при этом
-     теряют 33 px из 322 и своих строк не роняют (померено). */
-  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
-  gap: var(--space-7);
+/* ── HUB ───────────────────────────────────────────────────────────────── */
+.хаб {
+  flex: none;
+  width: var(--г-340);
   min-height: 0;
+  border-radius: var(--г-16);
   overflow: hidden;
+  background: var(--г-hub-bg);
+  backdrop-filter: saturate(180%) blur(var(--г-40));
+  box-shadow: 0 0 0 0.5px var(--г-ring-strong), var(--г-shadow-hub);
+  display: flex;
+  flex-direction: column;
 }
-.часть { min-width: 0; min-height: 0; display: grid; grid-template-rows: auto minmax(0, 1fr); }
-.нШапка { display: flex; align-items: baseline; gap: var(--space-3); margin-bottom: var(--space-2); }
-/* Подзаголовок раздела — 17 (ПРАВИЛА 4.1, решение владельца 07.09). Раз герой
-   стал 24, как везде, то и ступень под ним общая. */
-/* 🔴 СТУПЕНЬ 19 НЕ БЫЛА ЗАНЯТА ВОВСЕ: заголовок раздела стоял 17 — ровно как
-   лид и как логотип, — и отличался от соседнего абзаца только весом. На 1280
-   «Познавательная наука» и подзаголовок читались одной двухстрочной фразой. */
-.нЗаголовок { margin: 0; font-size: var(--text-h3); font-weight: 600; letter-spacing: var(--tracking-snug); }
-.нПодпись {
-  font-family: var(--font-mono);
-  font-size: var(--text-overline);
-  letter-spacing: var(--витрина-буквы-метка);
-  text-transform: uppercase;
-  color: var(--color-text-hint);
-  white-space: nowrap;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.всё {
-  position: relative; margin-left: auto; font-size: var(--text-caption); color: var(--color-text-detail); background: none; border: 0; cursor: pointer; padding: 0; }
-.всё:hover { color: var(--color-text); }
+.хаб .окноШапка { padding: 0 var(--г-16); gap: var(--г-14); }
 
-.лента { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: var(--space-3); min-height: 0; }
-.ролик { display: grid; grid-template-rows: minmax(0, 1fr) auto; gap: var(--space-2); min-width: 0; min-height: 0; }
-.обложка {
-  position: relative;
-  height: 100%;
-  aspect-ratio: 9 / 16;
-  /* 🔴 ПРАВИЛА 2.2: шапка и содержимое стоят на одном левом крае. Колонка
-     ленты — 86,7 px, а обложка при 9:16 и `height: 100%` может быть только
-     60,5: 26 px слака уходили в `center`, и первая обложка стояла на 13 px
-     правее поля кадра — единственный объект страницы, не совпадающий ни с чем. */
-  justify-self: start;
-  max-width: 100%;
-  border-radius: var(--radius-md);
-  overflow: hidden;
-  background: var(--color-surface-subtle);
-  border: 1px solid var(--color-border);
-}
-.обложка svg { position: absolute; inset: 0; width: 100%; height: 100%; }
-/* 🔴 БУКВА ПОВЕРХ ФОТОГРАФИИ ПРОМАХИВАЕТСЯ ВСЕГДА. Тема переворачивает букву,
-   фотография не переворачивается — днём мимо порога 4,5 шли все шесть меток
-   (1,76 · 3,09 · 2,72 · 3,79 · 2,58 · 3,88), ночью три из шести; худший
-   отдельный пиксель — 1,00:1, буква в точности того же цвета, что кадр под
-   ней. Своя подложка (`--color-surface`, как была у снятой надписи «скоро»):
-   5,49 днём и 6,06 ночью, от кадра метка больше не зависит.
-   🔴 РАЗРЯДКА СНЯТА: с ней «математика» просила 82 px в обложку 80 и
-   обрезалась до «математик» — ошибка в русском на главной странице продукта
-   про образование. Без разрядки влезает, а многоточие стоит на случай
-   более узкого кадра. */
-/* 🔴 ОДНА СТРОКА — И ЭТО НЕ ТОЛЬКО ПРО ТЕКСТ. Нижний ряд карточки `auto`, а
-   обложка берёт 9:16 от того, что осталось: имя во вторую строку делало
-   карточку с длинным именем ниже, и её превью выходило мельче соседних.
-   Ровно одна строка у всех — ровно один размер у всех. */
-.имя {
-  min-width: 0;
-  font-size: var(--text-caption);
-  line-height: var(--витрина-строка-плотно);
-  color: var(--color-text-detail);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
+.источники { flex: 1 1 auto; min-height: 0; padding: var(--г-10); display: flex; flex-direction: column; justify-content: space-evenly; gap: var(--г-4); overflow: hidden; }
 
-.хаб { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
-  grid-template-rows: repeat(3, minmax(0, 1fr)); gap: var(--space-2); min-height: 0; }
 .источник {
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  background: var(--color-bg);
-  padding: var(--space-2);
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  gap: var(--space-3);
+  display: flex;
   align-items: center;
+  gap: var(--г-12);
+  padding: var(--г-6);
+  border: 0;
+  border-radius: var(--г-12);
   min-width: 0;
-  min-height: 0;
-  overflow: hidden;
-  color: inherit;
+  background: none;
   text-align: left;
   cursor: pointer;
-  transition: border-color var(--duration-fast), transform var(--duration-fast);
+  transition: background 0.15s;
 }
-.источник:hover { border-color: var(--color-border-strong); transform: translateY(-2px); }
-.превью {
-  height: 100%;
-  max-height: var(--space-11);
-  aspect-ratio: 1;
-  border-radius: var(--radius-sm);
-  overflow: hidden;
-  border: 1px solid var(--color-border);
-  display: block;
-  background: var(--color-surface-subtle);
-}
-.превью svg { display: block; width: 100%; height: 100%; }
-.иТекст { display: grid; gap: 2px; min-width: 0; }
-.иВид {
-  font-family: var(--font-mono);
-  font-size: var(--text-overline);
-  letter-spacing: var(--витрина-буквы-метка);
-  text-transform: uppercase;
-  color: var(--color-text-hint);
-}
-.иИмя {
-  min-width: 0;
-  font-size: var(--text-caption);
-  font-weight: 600;
-  letter-spacing: var(--tracking-normal);
-  line-height: var(--витрина-строка-плотно);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.иДаёт {
-  min-width: 0;
-  font-size: var(--text-overline);
-  line-height: var(--витрина-строка-плотно);
-  color: var(--color-text-hint);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-/* Состояние говорит точка и надпись, цветных полос слева нет
-   (решение владельца 31.08, как на экране хаба). */
-/* Цвет по ширине права — теми же тремя ступенями, что в каталоге
-   (Hub.module.css). Одно и то же не имеет права быть на двух экранах двух
-   цветов: аудит 07.09, находка 36. */
-.иПраво { font-family: var(--font-mono); font-size: var(--text-overline); color: var(--color-text-detail); display: flex; align-items: center; gap: var(--space-1); min-width: 0; }
-.иСвободно { color: var(--color-go-text); }
-.иУзко { color: var(--color-accent-text); }
-.иТочка { width: var(--space-1); height: var(--space-1); border-radius: var(--radius-pill); background: currentColor; display: block; }
+.источник:hover { background: var(--г-hover); }
+.превьюХаба { flex: none; display: block; border-radius: var(--г-12); box-shadow: 0 0 0 0.5px var(--г-ring), var(--г-shadow-preview); }
+.источникСлова { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.источникТип { font-size: var(--г-10); font-weight: 600; color: var(--г-text-2); letter-spacing: 0.08em; text-transform: uppercase; }
+.источникИмя { min-width: 0; font-size: var(--г-13_5); font-weight: 600; letter-spacing: -0.015em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.право { font-size: var(--г-11); font-weight: 600; white-space: nowrap; }
+.правоМожно { color: var(--г-ok); }
+.правоУрок { color: var(--г-lesson-only); }
+.правоАвтор { color: var(--г-credit); }
 
-/* Отказ назван ВНУТРИ своей области: полоса под шапкой, а не карточка поверх
-   всего экрана. Карточка поверх врёт, будто не работает ничего (ПРАВИЛА 6.5). */
-/* 🔴 ОБЛАЧКО ВИСИТ НАД ДВЕРЬМИ И НИКОГО НЕ ДВИГАЕТ. Полоса отказа занимала
-   собственную строку сетки экрана во всю ширину: ради редкого состояния вниз
-   съезжала вся страница. Облачко живёт слоем поверх, прижато к правому краю —
-   туда же, где двери, о которых оно говорит, — и исчезает вместе с причиной. */
-.облачко {
-  position: absolute;
-  top: calc(100% + var(--space-2));
-  right: var(--центр);
-  z-index: 4;
-  max-width: min(23rem, calc(100vw - 2 * var(--центр)));
-  padding: var(--space-2) var(--space-3);
-  border: 1px solid var(--color-accent-subtle-border);
-  border-radius: var(--radius-card);
-  background: var(--color-accent-subtle);
-  color: var(--color-text-detail);
-  font-size: var(--text-caption);
-  line-height: var(--витрина-строка-плотно);
-  box-shadow: var(--shadow-lg);
-}
-/* В облачке «спросить ещё раз» идёт той же строкой, что и слова: отдельной
-   строкой она добавляла карточке 44 px высоты ради четырёх слов. */
-.облачко .снова {
-  display: inline;
-  min-height: 0;
-  padding: 0;
-  margin-left: var(--space-1);
-  font-size: var(--text-caption);
-}
-.снова {
-  /* 🔴 «СПРОСИТЬ ЕЩЁ РАЗ» — ШАГ ВПЕРЁД, А НЕ АЛАРМ. Те же самые слова на экране
-     ожидания стоят зелёной кнопкой, а здесь были коралловыми: одна и та же
-     надпись двумя цветами читается как два разных смысла (ПРАВИЛА 5.12), да и
-     коралловый принадлежит тому, что горит, — а горит тут полоса отказа, в
-     которой кнопка лежит, а не сама кнопка (ПРАВИЛА 5.8). Вес остаётся тихим:
-     заливка внутри коралловой полосы соревновалась бы с ней (ПРАВИЛА 5.11).
-     Аудит 07.09, находка 35. */
+.всеИсточники {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--г-12) var(--г-18);
+  border: 0;
+  border-top: 0.5px solid var(--г-hairline);
   background: none;
-  border: 0;
-  padding: 0;
-  color: var(--color-go-text);
-  text-decoration: underline;
-  text-decoration-color: var(--color-border-strong);
-  text-underline-offset: 3px;
-  font-size: var(--text-small);
+  font-size: var(--г-14);
+  font-weight: 600;
+  color: var(--г-link);
   cursor: pointer;
-  min-height: var(--tap-min);
 }
 
-/* В тесном по высоте окне у плитки источника уходит строка «что даёт»:
-   имя и состояние обязательны, описание — нет. Медиазапрос по ВЫСОТЕ,
-   потому что тесно именно ей: полоса низа — доля экрана. */
-@media (max-height: 880px) {
-  .иДаёт { display: none; }
+/* ── наука ─────────────────────────────────────────────────────────────── */
+.наука {
+  flex: none;
+  border-radius: var(--г-16);
+  overflow: hidden;
+  background: var(--г-widget-bg);
+  backdrop-filter: saturate(180%) blur(var(--г-40));
+  box-shadow: 0 0 0 0.5px var(--г-hairline), var(--г-shadow-science);
+  display: flex;
+  flex-direction: column;
+  gap: var(--г-12);
+  padding: var(--г-14) var(--г-16) var(--г-14);
 }
+.наукаШапка { display: flex; align-items: baseline; justify-content: space-between; gap: var(--г-16); flex-wrap: wrap; padding: 0 2px; }
+.наукаШапка .ссылка { margin-top: 0; }
+.наукаИмя { display: flex; align-items: baseline; gap: var(--г-10); flex-wrap: wrap; }
+.наукаЗаголовок { font-size: var(--г-16); font-weight: 700; letter-spacing: -0.02em; }
+.наукаПодпись { font-size: var(--г-12_5); color: var(--г-text-2); }
 
-/* Отступ снизу — только там, где он ничего не отнимает. Полоса низа занимает
-   долю экрана, и на 1512×944 запаса у плитки хаба остаётся 5 px: добавь туда
-   воздух — и «что даёт» вылезет из плитки. На высоком экране запас есть. */
-@media (min-height: 1000px) {
-  .низ { padding-bottom: var(--воздух); }
-}
+.ролики { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: var(--г-12); }
 
-/* ── телефон ─────────────────────────────────────────────────────────
-   🔴 ТИТУЛ ЗАДУМАН ОДНИМ КАДРОМ, А НА 360 ТАКОГО КАДРА НЕТ. Одной шапке
-   нужно 592 px: померено 08.09 — обе двери («Войти», «Завести учётную
-   запись») стояли за правым краем, перо доски — на 377 px ниже кадра, и
-   ни одной прокручиваемой области на экране. На телефоне экран становится
-   КОЛОНКОЙ и получает свою названную прокрутку: страница по-прежнему не
-   прокручивается (ПРАВИЛА 1.2), прокручивается лист. */
-@media (max-width: 720px) {
-  /* 🔴 ВЫСОТА ОСТАЁТСЯ 100vh, А НЕ `auto`. С `auto` экран вырастал под
-     содержимое, а `body` с `overflow: hidden` его срезал: перья доски
-     оказывались на 845 px и не доставались ничем — переполнения ни у кого
-     не было, прокручиваться было нечему. Кадр держит высоту, строки идут
-     по содержимому, переполняется сам экран — он же и прокручивается. */
-  .экран {
-    grid-template-rows: auto auto auto auto;
-    overflow-y: auto;
-  }
-
-  /* Шапка переносится: знак и пункты первой строкой, двери — второй.
-     Распорка между ними на двух строках только рвёт перенос. */
-  .шапка {
-    height: auto;
-    flex-wrap: wrap;
-    gap: var(--space-4);
-    row-gap: var(--space-3);
-    padding-block: var(--space-3);
-  }
-  .разрыв { display: none; }
-
-  /* 🔴 `min-height: 0` СНИМАЕТСЯ ВЕЗДЕ, ГДЕ ОН БЫЛ. В кадре на 100vh ноль
-     нужен: он разрешает частям ужиматься, чтобы всё влезло. В колонке он
-     превращается в яд — часть ужимается до нуля, а её содержимое остаётся
-     на месте и ложится поверх соседа. Померено 08.09 на 390×844: левая
-     колонка получила высоту 0 при содержимом 251 px и легла на доску,
-     обложка ролика ужалась до 2×4 px, подпись «Огонь без спичек» встала
-     поверх соседней. В колонке высоту диктует содержимое. */
-  .разворот {
-    grid-template-columns: minmax(0, 1fr);
-    gap: var(--space-5);
-    min-height: auto;
-  }
-
-  .левая {
-    grid-template-rows: auto auto;
-    min-height: auto;
-  }
-
-  /* В колонке высоту диктует содержимое: тянущаяся строка здесь ни к чему. */
-  .проБлок { grid-template-rows: auto auto; }
-  .промо { max-height: none; }
-
-  /* Доска остаётся живой картинкой, но высоту берёт свою, а не «остаток
-     кадра»: в колонке остатка нет. */
-  .доска {
-    height: 62vh;
-    min-height: auto;
-  }
-
-  .низ {
-    grid-template-columns: minmax(0, 1fr);
-    gap: var(--space-6);
-    padding-block: var(--space-5);
-    overflow: visible;
-    min-height: auto;
-  }
-
-  .часть {
-    grid-template-rows: auto auto;
-    min-height: auto;
-  }
-
-  /* Полоса роликов едет вбок внутри себя, а не тянет колонку. */
-  .лента {
-    grid-auto-columns: 42vw;
-    overflow-x: auto;
-    min-height: auto;
-    padding-bottom: var(--space-2);
-  }
-
-  .ролик {
-    grid-template-rows: auto auto;
-    min-height: auto;
-  }
-
-  .обложка {
-    height: auto;
-    width: 100%;
-  }
-
-  /* Служебные строки переносятся, а не жмут друг друга: на 390 «Flamingo HUB»
-     и «источники мира · молчат 7 из 36» стояли в одну строку и лезли одна
-     на другую. */
-  .нШапка,
-  .дШапка {
-    flex-wrap: wrap;
-    row-gap: var(--space-1);
-  }
-
-  /* 🔴 ПЛИТКИ ХАБА — В ОДНУ КОЛОНКУ. В двух на 390 под текст остаётся 87 px:
-     «Телескоп Хаббла» превращался в «Телескоп», а «отвечает» обрезалось на
-     полуслове прямо у края плитки. Экран теперь прокручивается — высота
-     дешевле обрезанных слов. */
-  .хаб {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: none;
-    grid-auto-rows: auto;
-    min-height: auto;
-  }
-
-  .источник { min-height: auto; }
-}
-
-/* 🔴 ПЕРЬЯ — ЕДИНСТВЕННОЕ МЕСТО, ГДЕ ОБЩЕЕ ПРАВИЛО ПРИХОДИТСЯ ПРИДЕРЖАТЬ.
-   Рамку в 44 всем органам раздаёт `styles/base.css`. У перьев шаг 28 (кружок
-   20 плюс зазор 8), и рамка соседа накрывала бы четыре пикселя видимого
-   кружка: нажатие по левому краю пера выбирало бы предыдущий цвет. Это хуже
-   мелкой цели, поэтому здесь рамка ровно по шагу — 28 в ширину и полные 44 в
-   высоту. Полную цель даст расстояние между перьями, а расстояние — это вид, и
-   его меняет владелец, а не прибор. Замер 12.09. */
-.перо::before {
-  /* Шаг перьев: сам кружок плюс зазор. Числа не пишем — они уже есть в
-     `.перо { width: var(--space-5) }` и `.дНиз { gap: var(--space-2) }`, и
-     если одно из них изменится, рамка должна поехать следом (ПРАВИЛА 2.8). */
-  width: calc(var(--space-5) + var(--space-2));
+.ролик {
+  display: flex;
+  flex-direction: column;
+  gap: var(--г-7);
   min-width: 0;
-}
-
-/* Приглушённая дверь: цвет и вес, а не прозрачность (ПРАВИЛА 12.1); цель
-   остаётся полной (12.6); «почему нельзя» стоит рядом, в полосе отказа (12.3). */
-.вход[data-ждёт='да'],
-.дверь[data-ждёт='да'] {
-  background: var(--color-surface-subtle);
-  border: 1px solid var(--color-border);
-  color: var(--color-text-secondary);
-  font-weight: var(--weight-regular);
-  cursor: default;
-}
-
-/* ── ролики: настоящие кадры вместо нарисованных заглушек (10.09) ─────── */
-.кадр {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-.кино {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  background: var(--color-surface-video);
-}
-/* Кнопка поверх кадра: рамку и скругление держит родитель, ей остаётся
-   только быть целью нажатия во всю площадь. */
-.пускКнопка {
-  position: absolute;
-  inset: 0;
-  padding: 0;
   border: 0;
-  background: transparent;
+  padding: 0;
+  background: none;
+  text-align: left;
   cursor: pointer;
+  transition: transform 0.2s;
 }
-/* Значок пуска на карточке ролика мельче, чем на проморолике: карточка
-   вчетверо уже, и общий кружок закрывал полкадра. */
-.обложка .пуск {
-  width: var(--space-7);
-  height: var(--space-7);
-}
-/* 🔴 `position: static` здесь ОБЯЗАТЕЛЕН. Правило `.обложка svg` (растянуть
-   мотив на всю обложку) стоит в файле ниже, чем `.пуск svg`, и при равной
-   силе побеждало: треугольник уезжал в левый верхний угол кружка. */
-.обложка .пуск svg {
-  position: static;
-  width: var(--space-3);
-  height: var(--space-3);
-}
+button.ролик:hover { transform: translateY(-3px); }
+.роликПревью { position: relative; display: block; border-radius: var(--г-14); overflow: hidden; box-shadow: 0 0 0 0.5px var(--г-ring), var(--г-shadow-clip); }
+.роликПревью svg { display: block; }
+.роликПуск { position: absolute; right: var(--г-7); bottom: var(--г-7); width: var(--г-24); height: var(--г-24); border-radius: 50%; background: rgba(255, 255, 255, 0.9); display: flex; align-items: center; justify-content: center; }
+.роликКино { display: block; width: 100%; aspect-ratio: 160 / 104; border-radius: var(--г-14); background: var(--г-чёрный); object-fit: cover; }
+.роликИмя { min-width: 0; font-size: var(--г-12_5); font-weight: 600; letter-spacing: -0.01em; padding-left: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-
-
-/* ═══ ПРАВКИ ПО ГЛУБОКОМУ АУДИТУ ТИТУЛА 10.09 ════════════════════════ */
-
-/* 🔴 ФОКУС КЛАВИАТУРЫ НЕ БЫЛО ВИДНО У СЕМИ КНОПОК ИЗ ДВАДЦАТИ ШЕСТИ — и это
-   ровно все кнопки, которые что-то запускают. Померено диффом снимков
-   «до фокуса / после»: за краем кнопки, где и живёт кольцо, 0 изменённых
-   пикселей у всех семи (у «Завести учётную запись» — 1526). Причина: кольцо
-   `box-shadow` внешнее, а `.пускКнопка` ровно равна родителю с
-   `overflow: hidden` и срезается им. Кольцо переезжает на родителя, где
-   срезать его нечему; `outline` вместо тени — он не участвует в раскладке
-   и не спорит с собственной тенью `.промо`. */
-.обложка:has(:focus-visible),
-.промо:has(:focus-visible) {
-  outline: var(--focus-ring-width) solid var(--focus-ring-color);
-  outline-offset: 2px;
-}
-.пускКнопка:focus-visible { box-shadow: none; }
-
-/* 🔴 ГРАНИЦА В 1,3:1 НЕ ГОВОРИТ «Я КНОПКА» (порог значащей графики — 3:1).
-   Шесть плиток хаба — главные кнопки нижней полосы, и единственный их признак
-   промахивался вчетверо; три невыбранных ярлыка сцены выглядели подписями. */
-.источник,
-.сцена,
-.обложка,
-.промо { border-color: var(--color-border-control); }
-
-/* 🔴 НАЖАТИЕ НЕ БЫЛО ВИДНО НИГДЕ: ни одного `:active` на всей странице
-   (проверено grep и замером computed style на девяти разнотипных элементах).
-   Человек не получал подтверждения, что клик долетел, — а у видео результат
-   приходит не мгновенно. Карточки отзываются размером, текстовые кнопки —
-   цветом: тем же языком, каким они и живут. */
-.источник:active,
-.пускКнопка:active { transform: scale(0.97); }
-.пункт:active,
-.вход:active,
-.сцена:active,
-.всё:active,
-.снова:active { opacity: 0.7; }
-.дверь:active { transform: scale(0.97); }
-
-/* 🔴 НАВЕДЕНИЕ БЫЛО НЕПОСЛЕДОВАТЕЛЬНЫМ: hover объявлен у `.пункт`, `.вход`,
-   `.дверь`, `.сцена`, `.всё`, `.источник` — и отсутствовал у всех семи
-   карточек с видео и у перьев. Визуально однотипные карточки вели себя
-   под курсором по-разному. */
-.пускКнопка:hover .пуск { box-shadow: var(--shadow-lg); }
-.перо:hover { border-color: var(--color-border-control); }
-
-
-/* 🔴 ЦЕЛЬ В 44 px ТАМ, ГДЕ НАЖИМАЮТ ПАЛЬЦЕМ. Невидимая рамка `::before` держит
-   цель и на мыши, но у соседних ярлыков сцены рамки перекрываются: на
-   тачскрине выигрывает последний, и у первого цель остаётся куцей. Аудитория —
-   школьники с телефонами, поэтому на грубом указателе кнопка добирает высоту
-   по-настоящему; композиция витрины на мыши при этом не меняется. */
-@media (pointer: coarse) {
-  .сцена,
-  .всё { min-height: var(--tap-min); }
-  .перо { width: var(--space-6); height: var(--space-6); }
+/* ── узко: одна колонка, обычная прокрутка ─────────────────────────────── */
+@media (max-width: 1100px) {
+  .корень { height: auto; min-height: 0; overflow: visible; }
+  .стол { grid-template-columns: minmax(0, 1fr); }
+  .верхнийРяд { flex-direction: column; }
+  .хаб { width: auto; }
+  .поле { min-height: var(--г-420); }
+  .пункты { display: none; }
+  .ролики { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 
+/* ── телефон: шапка доски в две строки, режимы прокручиваются вбок ─────── */
+@media (max-width: 640px) {
+  .доска .окноШапка { height: auto; flex-wrap: wrap; row-gap: var(--г-8); padding-top: var(--г-10); padding-bottom: var(--г-10); }
+  .доска .окноИмя { flex: 1 1 100%; }
+  .режимы { max-width: 100%; overflow-x: auto; scrollbar-width: none; }
+  .режимы::-webkit-scrollbar { display: none; }
+  .режим { flex: none; }
+}

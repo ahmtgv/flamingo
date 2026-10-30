@@ -243,7 +243,7 @@ function walk(dir) {
    прибор обязан оба: иначе первый же переведённый экран краснеет весь целиком.
    Сами наборы из проверки на «голое значение» исключены — объявление токена и
    ЕСТЬ то место, где голому значению положено стоять. */
-export const НАБОРЫ = ['styles/tokens.css', 'styles/пергамент.css']
+export const НАБОРЫ = ['styles/tokens.css', 'styles/пергамент.css', 'styles/главная.css']
 
 export function наборы(читать) {
   const out = new Set()
