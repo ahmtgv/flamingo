@@ -159,3 +159,33 @@
 .весть > * {
   pointer-events: auto;
 }
+
+/* Ролик ведёт учитель (30.10): у ученика поверх ролика — прозрачная крышка,
+   пуск, паузу и перемотку нажать нельзя. */
+.крышка {
+  position: absolute;
+  inset: 0;
+  cursor: default;
+}
+
+/* Браузер не дал играть со звуком без нажатия — ролик идёт без звука, и у
+   ученика одна кнопка поверх: включить звук. */
+.звук {
+  position: absolute;
+  left: 50%;
+  bottom: var(--space-6);
+  transform: translateX(-50%);
+  min-height: var(--tap-min);
+  padding: 0 var(--space-5);
+  border: none;
+  border-radius: var(--radius-pill);
+  background: var(--color-go-solid);
+  color: var(--color-on-go);
+  font-size: var(--text-small);
+  font-weight: var(--weight-medium);
+  cursor: pointer;
+}
+
+.звук:hover {
+  background: var(--color-go-solid-hover);
+}

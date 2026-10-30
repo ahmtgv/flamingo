@@ -7,6 +7,7 @@ import { Note } from './Note'
 import { FIRST_TOOL, InkTools } from './InkTools'
 import { рамкаПометок, type Прямоугольник } from './рамка'
 import type { Ink } from './shows'
+import { useВедуВидео, useСледуюВидео, useФайлВидео, useЮтуб, type СловоВидео } from './видео'
 import { RIGHTS, SOURCES } from '../hub/sources'
 
 /** Трансляция классу из Flamingo HUB.
@@ -31,10 +32,10 @@ import { RIGHTS, SOURCES } from '../hub/sources'
 
 type Kind = 'frame' | 'video' | 'image' | 'link'
 
-function embedOf(raw: string): { kind: Kind; src: string } {
+function embedOf(raw: string): { kind: Kind; src: string; ютуб?: boolean } {
   const url = raw.trim()
   const yt = url.match(/(?:youtube\.com\/(?:watch\?v=|live\/|embed\/)|youtu\.be\/)([\w-]{6,})/)
-  if (yt) return { kind: 'frame', src: `https://www.youtube-nocookie.com/embed/${yt[1]}` }
+  if (yt) return { kind: 'frame', src: `https://www.youtube-nocookie.com/embed/${yt[1]}`, ютуб: true }
   const vm = url.match(/vimeo\.com\/(\d+)/)
   if (vm) return { kind: 'frame', src: `https://player.vimeo.com/video/${vm[1]}` }
   const rt = url.match(/rutube\.ru\/video\/([\w]+)/)
@@ -45,13 +46,17 @@ function embedOf(raw: string): { kind: Kind; src: string } {
 }
 
 export function Live({
-  sourceId, url, имя, lead, marks, onMark, onUndo, onWipe, onClose,
+  sourceId, url, имя, lead, видео, onВидео, marks, onMark, onUndo, onWipe, onClose,
 }: {
   sourceId: string
   url: string
   /** Подпись для того, что открыли не из каталога: пособие урока. */
   имя?: string
   lead: boolean
+  /** Ролик ведёт учитель (room/видео.ts): его последнее слово — у ученика. */
+  видео?: { с: СловоВидео; когда: number } | null
+  /** Ведущий говорит классу, что у него с роликом. */
+  onВидео?: (с: СловоВидео) => void
   /** Пометки поверх трансляции. Живут, пока живёт источник. */
   marks: Ink[]
   onMark: (m: Ink, final: boolean) => void
@@ -114,6 +119,21 @@ export function Live({
   const e = embedOf(url)
   const [tool, setTool] = useState<Tool | null>(null)
 
+  /* 🔴 РОЛИК ВЕДЁТ УЧИТЕЛЬ (решение владельца 30.10): «учитель нажал — у
+     учеников показывает; ученики не властны над потоком». У ведущего плеер
+     обычный, его состояние уходит классу; у ученика управления нет, сверху
+     крышка, и плеер сам догоняет учителя (room/видео.ts). Ведём YouTube и
+     прямые файлы; Vimeo и Rutube пока играют у каждого сами. */
+  const ведём = e.ютуб === true || e.kind === 'video'
+  const ютуб = useЮтуб(медиа as React.RefObject<HTMLIFrameElement | null>, e.ютуб === true, url)
+  const файл = useФайлВидео(медиа as React.RefObject<HTMLVideoElement | null>, e.kind === 'video', url)
+  const плеер = e.ютуб ? ютуб : файл
+  useВедуВидео(плеер, url, ведём && lead && Boolean(onВидео), onВидео ?? (() => undefined))
+  const безЗвука = useСледуюВидео(плеер, url, ведём && !lead, видео ?? null)
+  const адресРамки = e.ютуб
+    ? `${e.src}?enablejsapi=1&playsinline=1&rel=0&origin=${encodeURIComponent(window.location.origin)}${lead ? '' : '&controls=0&disablekb=1'}`
+    : e.src
+
   return (
     <div className={s.live}>
       <div className={s.frameBox} ref={коробка}>
@@ -121,7 +141,7 @@ export function Live({
           <iframe
             ref={медиа as React.RefObject<HTMLIFrameElement>}
             className={s.frame}
-            src={e.src}
+            src={адресРамки}
             title={подпись}
             allow="autoplay; fullscreen; picture-in-picture"
             sandbox="allow-scripts allow-same-origin allow-presentation"
@@ -129,7 +149,7 @@ export function Live({
           />
         ) : null}
         {e.kind === 'video' ? (
-          <video ref={медиа as React.RefObject<HTMLVideoElement>} className={s.frame} src={e.src} controls autoPlay
+          <video ref={медиа as React.RefObject<HTMLVideoElement>} className={s.frame} src={e.src} controls={lead} autoPlay={lead} playsInline
             onLoadedData={() => setХод('идёт')} onError={() => setХод('беда')} />
         ) : null}
         {e.kind === 'image' ? (
@@ -140,6 +160,15 @@ export function Live({
             всю высоту сдвигала её текст под пульт. Слой пометок в этом случае
             ложится по содержимому коробки. */}
         {e.kind === 'link' ? <Vitrina url={e.src} name={подпись} /> : null}
+
+        {/* У ученика ролик не нажимается: крышка забирает нажатия, пока
+            маркер не нужен (у ученика маркера нет вовсе). */}
+        {ведём && !lead ? <div className={s.крышка} title="Видео ведёт преподаватель" aria-hidden /> : null}
+        {безЗвука ? (
+          <button type="button" className={s.звук} onClick={() => плеер.соЗвуком()}>
+            Включить звук
+          </button>
+        ) : null}
 
         {/* Пока едет — говорим, что придёт (ПРАВИЛА 6.3); не приехало —
             называем причину и что уцелело (ПРАВИЛА 6.4). Витрина у вида

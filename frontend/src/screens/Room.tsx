@@ -113,7 +113,7 @@ export function Room({ code, name, onLeave, onHome }: Props) {
   const [веду, setВеду] = useState(false)
   /* Комната — после роли: чужое внимание принимает только тот, кому сервер
      ответил «веду» (room/внимание.ts). */
-  const { phase, error, faces, me, peers, bus, внимание, положения, отправитьВнимание, отправитьПоложение, пишемКласс, отправитьПишем, микрофон, mic, cam, toggleMic, toggleCam, sharing, shareSaid, toggleShare, звукГлушится, включитьЗвук, leave } = useRoom(code, name, { приниматьВнимание: веду })
+  const { phase, error, faces, me, peers, bus, внимание, положения, отправитьВнимание, отправитьПоложение, пишемКласс, отправитьПишем, видеоКласса, отправитьВидео, микрофон, mic, cam, toggleMic, toggleCam, sharing, shareSaid, toggleShare, звукГлушится, включитьЗвук, leave } = useRoom(code, name, { приниматьВнимание: веду })
   useEffect(() => {
     let живо = true
     пособияКомнаты(code)
@@ -801,6 +801,8 @@ export function Room({ code, name, onLeave, onHome }: Props) {
             url={live.url}
             имя={live.имя}
             lead={iLead}
+            видео={видеоКласса}
+            onВидео={отправитьВидео}
             marks={iLead ? liveInk : (wireInk[-1] ?? [])}
             onMark={onLiveMark}
             onUndo={onLiveUndo}

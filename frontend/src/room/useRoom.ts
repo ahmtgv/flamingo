@@ -13,6 +13,7 @@ import type { Bus, Msg } from '../board/protocol'
 import { joiner, split } from '../board/chunk'
 import { ГАСНЕТ_МС, ТЕМА as ТЕМА_ВНИМАНИЯ, вБайты, положениеВБайты, разобратьБайты, type ЗнакВнимания, type ПоложениеСчёта } from './внимание'
 import { ТЕМА_ПИШЕМ, пишемВБайты, пишемИзБайтов } from './пишем'
+import { ТЕМА_ВИДЕО, видеоВБайты, видеоИзБайтов, type СловоВидео } from './видео'
 
 /** Слово ведущего «пишем» держится столько без повтора: ведущий повторяет его
  *  каждые 10 секунд, ушёл ведущий — режим у класса гаснет сам. */
@@ -127,6 +128,9 @@ export function useRoom(code: string, name: string, { приниматьВним
      только от того, чью роль подписал сервер: назвавшийся ведущим сам не
      может выключить классу балл. */
   const [пишем, setПишем] = useState<{ да: boolean; когда: number }>({ да: false, когда: 0 })
+  /* Ролик ведёт учитель (room/видео.ts): последнее его слово и когда оно пришло
+     СЮДА — по своим часам, не по его. */
+  const [видео, setВидео] = useState<{ с: СловоВидео; когда: number } | null>(null)
   /* Свой микрофон — для слуха ведущего (room/слух.ts). */
   const [микрофон, setМикрофон] = useState<MediaStreamTrack | undefined>(undefined)
 
@@ -182,6 +186,13 @@ export function useRoom(code: string, name: string, { приниматьВним
         } else {
           setПоложения((было) => ({ ...было, [кто]: { положение: пришло.положение, когда: Date.now() } }))
         }
+        return
+      }
+      if (topic === ТЕМА_ВИДЕО) {
+        /* Тот же замок, что у «пишем»: ведёт ролик только подписанный сервером. */
+        if (!участник || !подписано(участник.metadata)) return
+        const с = видеоИзБайтов(payload)
+        if (с) setВидео({ с, когда: Date.now() })
         return
       }
       if (topic === ТЕМА_ПИШЕМ) {
@@ -324,6 +335,15 @@ export function useRoom(code: string, name: string, { приниматьВним
     return () => window.clearTimeout(id)
   }, [пишем])
 
+  /** Ведущий говорит классу, что у него с роликом. Всем, надёжно. */
+  const отправитьВидео = useCallback((с: СловоВидео) => {
+    const room = roomRef.current
+    if (!room || room.state !== ConnectionState.Connected) return
+    room.localParticipant
+      .publishData(видеоВБайты(с), { reliable: true, topic: ТЕМА_ВИДЕО })
+      .catch(() => undefined)
+  }, [])
+
   /** Ведущий говорит классу «пишем» или «не пишем». Всем, надёжно. */
   const отправитьПишем = useCallback((да: boolean) => {
     const room = roomRef.current
@@ -430,6 +450,8 @@ export function useRoom(code: string, name: string, { приниматьВним
     отправитьПоложение,
     пишемКласс: пишем.да,
     отправитьПишем,
+    видеоКласса: видео,
+    отправитьВидео,
     микрофон,
     mic,
     cam,
