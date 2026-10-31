@@ -34,7 +34,9 @@ import { доска, палитра } from './титул-доска'
  *  экране, ручной переключатель темы.
  */
 
-type Ролик = { файл: string; имя: string; картинка: () => React.ReactNode }
+type Ролик = { файл: string; имя: string; картинка?: () => React.ReactNode }
+
+const ПРОМО: Ролик = { файл: 'promo', имя: 'Каким мы задумали Flamingo в 2020-м' }
 
 /** Шесть источников витрины — порядок и подписи по спецификации 30.10. */
 const В_ХАБЕ: { id: string; имя: string; картинка: () => React.ReactNode }[] = [
@@ -107,55 +109,60 @@ const ГРАДИЕНТ_ХАБА: Record<string, [string, string, boolean?]> = {
 
 const ЦВЕТ_ПРАВА: Record<string, string> = { own: s.правоМожно, live: s.правоУрок, attr: s.правоАвтор, show: s.правоАвтор }
 
+/* Превью «Науки» нарисованы под свой кадр — портрет 160×200, как они стоят на
+   странице (владелец, 31.10: «перерисовать согласно размеров самого превью»). */
 const РОЛИКИ: Ролик[] = [
   { файл: 'short-1', имя: 'Песок и звук', картинка: () => (
     <>
-      <rect x="46" y="14" width="76" height="76" rx="8" fill="#fff" opacity=".95" />
-      <g fill="none" stroke="#c98a3e" strokeWidth="2.2" strokeLinecap="round"><path d="M50 18 Q 84 52 118 18" /><path d="M50 86 Q 84 52 118 86" /><path d="M50 18 Q 84 52 50 86" /><path d="M118 18 Q 84 52 118 86" /><circle cx="84" cy="52" r="13" /></g>
-      <g fill="none" stroke="#fff" strokeWidth="2.6" strokeLinecap="round"><path d="M32 40 Q 26 52 32 64" /><path d="M24 34 Q 15 52 24 70" /></g>
+      <g fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" opacity=".9"><path d="M62 30 Q 80 18 98 30" /><path d="M54 42 Q 80 24 106 42" /></g>
+      <rect x="30" y="62" width="100" height="100" rx="12" fill="#fff" opacity=".95" />
+      <g fill="none" stroke="#c98a3e" strokeWidth="2.6" strokeLinecap="round"><path d="M36 68 Q 80 112 124 68" /><path d="M36 156 Q 80 112 124 156" /><path d="M36 68 Q 80 112 36 156" /><path d="M124 68 Q 80 112 124 156" /><circle cx="80" cy="112" r="17" /></g>
+      <circle cx="80" cy="112" r="4" fill="#c98a3e" />
     </>
   ) },
   { файл: 'short-2', имя: 'Тело на склоне', картинка: () => (
     <>
-      <path d="M22 88 L 138 88 L 138 26 Z" fill="#fff" opacity=".96" />
-      <g transform="translate(94 49) rotate(-28.1)"><rect x="-12" y="-17" width="24" height="17" rx="3" fill="#0a6cff" /></g>
-      <path d="M94 50 L 94 74" stroke="#0a6cff" strokeWidth="2.4" strokeLinecap="round" />
-      <path d="M89 68 L 94 75 L 99 68" fill="none" stroke="#0a6cff" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M46 88 A 24 24 0 0 0 43.2 76.7" fill="none" stroke="#0a6cff" strokeWidth="2" strokeLinecap="round" opacity=".6" />
+      <path d="M16 172 L 144 172 L 144 58 Z" fill="#fff" opacity=".96" />
+      <g transform="translate(96 115) rotate(-41.7)"><rect x="-17" y="-24" width="34" height="24" rx="4" fill="#0a6cff" /></g>
+      <path d="M96 116 L 96 150" stroke="#0a6cff" strokeWidth="3" strokeLinecap="round" />
+      <path d="M89 142 L 96 151 L 103 142" fill="none" stroke="#0a6cff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M48 172 A 32 32 0 0 0 40.1 150.7" fill="none" stroke="#0a6cff" strokeWidth="2.2" strokeLinecap="round" opacity=".6" />
+      <text x="54" y="168" fontSize="11" fontWeight="600" fill="#0a6cff" opacity=".8">α</text>
     </>
   ) },
   { файл: 'short-3', имя: 'Синус на круге', картинка: () => (
     <>
-      <circle cx="46" cy="52" r="26" fill="#fff" fillOpacity=".14" stroke="#fff" strokeWidth="2.6" />
-      <path d="M46 52 L 64.4 33.6" stroke="#fff" strokeWidth="2.4" strokeLinecap="round" />
-      <path d="M84 52 L 150 52" stroke="#fff" strokeOpacity=".45" strokeWidth="1.6" />
-      <path d="M84 52 Q 100.5 0 117 52 Q 133.5 104 150 52" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" />
-      <path d="M64.4 33.6 L 92 33.6" stroke="#fff" strokeWidth="1.6" strokeDasharray="3 4" opacity=".8" />
-      <circle cx="64.4" cy="33.6" r="4.2" fill="#fff" /><circle cx="92" cy="33.6" r="4.2" fill="#fff" />
+      <circle cx="80" cy="60" r="34" fill="#fff" fillOpacity=".14" stroke="#fff" strokeWidth="3" />
+      <path d="M80 60 L 104 36" stroke="#fff" strokeWidth="2.8" strokeLinecap="round" />
+      <circle cx="104" cy="36" r="5" fill="#fff" />
+      <path d="M104 36 L 104 112" stroke="#fff" strokeWidth="1.8" strokeDasharray="3 5" opacity=".8" />
+      <path d="M16 140 L 144 140" stroke="#fff" strokeOpacity=".45" strokeWidth="1.8" />
+      <path d="M16 140 Q 38 80 60 140 Q 82 200 104 140 Q 126 80 148 140" fill="none" stroke="#fff" strokeWidth="3.4" strokeLinecap="round" />
+      <circle cx="104" cy="140" r="5" fill="#fff" />
     </>
   ) },
   { файл: 'short-4', имя: 'Медный мотор', картинка: () => (
     <>
-      <circle cx="80" cy="52" r="32" fill="#fff" fillOpacity=".14" stroke="#fff" strokeOpacity=".7" strokeWidth="2.4" />
+      <circle cx="80" cy="100" r="54" fill="#fff" fillOpacity=".14" stroke="#fff" strokeOpacity=".7" strokeWidth="3" />
       {[0, 120, 240].map((a) => (
-        <g key={a} transform={`rotate(${a} 80 52)`}><rect x="72" y="18" width="16" height="22" rx="4" fill="#fff" /><path d="M72 23 H 88 M72 27 H 88 M72 31 H 88 M72 35 H 88" stroke="#d9702a" strokeWidth="1.6" opacity=".75" /></g>
+        <g key={a} transform={`rotate(${a} 80 100)`}><rect x="68" y="46" width="24" height="34" rx="6" fill="#fff" /><path d="M68 54 H 92 M68 60 H 92 M68 66 H 92 M68 72 H 92" stroke="#d9702a" strokeWidth="2" opacity=".75" /></g>
       ))}
-      <circle cx="80" cy="52" r="8" fill="#fff" /><circle cx="80" cy="52" r="3" fill="#c4561a" />
+      <circle cx="80" cy="100" r="12" fill="#fff" /><circle cx="80" cy="100" r="4.5" fill="#c4561a" />
     </>
   ) },
   { файл: 'short-5', имя: 'Волна из шаров', картинка: () => (
     <>
-      <path d="M20 16 L 140 16" stroke="#fff" strokeWidth="3.2" strokeLinecap="round" />
-      <g stroke="#fff" strokeOpacity=".6" strokeWidth="1.3"><path d="M28 16 V 60" /><path d="M41 16 V 76" /><path d="M54 16 V 82" /><path d="M67 16 V 75" /><path d="M80 16 V 59" /><path d="M93 16 V 43" /><path d="M106 16 V 38" /><path d="M119 16 V 46" /><path d="M132 16 V 63" /></g>
-      <g fill="#fff"><circle cx="28" cy="60" r="6" /><circle cx="41" cy="76" r="6" /><circle cx="54" cy="82" r="6" /><circle cx="67" cy="75" r="6" /><circle cx="80" cy="59" r="6" /><circle cx="93" cy="43" r="6" /><circle cx="106" cy="38" r="6" /><circle cx="119" cy="46" r="6" /><circle cx="132" cy="63" r="6" /></g>
+      <path d="M14 26 L 146 26" stroke="#fff" strokeWidth="4" strokeLinecap="round" />
+      <g stroke="#fff" strokeOpacity=".6" strokeWidth="1.5">{[24, 38, 52, 66, 80, 94, 108, 122, 136].map((x, i) => <path key={x} d={`M${x} 26 V ${[96, 124, 150, 160, 148, 118, 90, 72, 70][i]}`} />)}</g>
+      <g fill="#fff">{[24, 38, 52, 66, 80, 94, 108, 122, 136].map((x, i) => <circle key={x} cx={x} cy={[96, 124, 150, 160, 148, 118, 90, 72, 70][i]} r="7" />)}</g>
     </>
   ) },
   { файл: 'short-6', имя: 'Путь планет', картинка: () => (
     <>
-      <g fill="#fff"><circle cx="18" cy="16" r="1.2" opacity=".8" /><circle cx="142" cy="20" r="1.4" opacity=".8" /><circle cx="26" cy="90" r="1" opacity=".6" /><circle cx="148" cy="86" r="1.2" opacity=".7" /></g>
-      <g fill="none" stroke="#fff" strokeOpacity=".38" strokeWidth="1.6"><ellipse cx="80" cy="52" rx="26" ry="11" /><ellipse cx="80" cy="52" rx="44" ry="19" /><ellipse cx="80" cy="52" rx="64" ry="28" /></g>
-      <circle cx="80" cy="52" r="18" fill="#ffd60a" opacity=".22" /><circle cx="80" cy="52" r="9" fill="#ffd60a" />
-      <circle cx="104" cy="56.5" r="3.6" fill="#fff" /><circle cx="44" cy="40.6" r="4.6" fill="#64d2ff" /><circle cx="132" cy="68" r="5.4" fill="#ff9f0a" />
+      <g fill="#fff"><circle cx="20" cy="22" r="1.4" opacity=".8" /><circle cx="140" cy="30" r="1.6" opacity=".8" /><circle cx="28" cy="176" r="1.2" opacity=".6" /><circle cx="146" cy="168" r="1.4" opacity=".7" /><circle cx="110" cy="14" r="1" opacity=".6" /><circle cx="60" cy="188" r="1.1" opacity=".6" /></g>
+      <g fill="none" stroke="#fff" strokeOpacity=".38" strokeWidth="1.8"><ellipse cx="80" cy="100" rx="30" ry="16" /><ellipse cx="80" cy="100" rx="50" ry="30" /><ellipse cx="80" cy="100" rx="70" ry="46" /></g>
+      <circle cx="80" cy="100" r="22" fill="#ffd60a" opacity=".22" /><circle cx="80" cy="100" r="11" fill="#ffd60a" />
+      <circle cx="107" cy="106" r="4.2" fill="#fff" /><circle cx="42" cy="84" r="5.4" fill="#64d2ff" /><circle cx="136" cy="124" r="6.4" fill="#ff9f0a" />
     </>
   ) },
 ]
@@ -193,7 +200,18 @@ export function Титул({ onSign, onNew, onHub, onCabinet, вошёл = false
   onAgain?: () => void
 }) {
   const uid = useId().replace(/:/g, '')
-  const [играет, setИграет] = useState<string | null>(null)
+  /* Один ролик за раз — промо или клип науки. Открывается в окне посреди
+     экрана поверх размытой страницы (владелец, 31.10: «раскрывается на
+     середине экрана… фон заблюривается, как ликвид гласс»). */
+  const [играет, setИграет] = useState<Ролик | null>(null)
+  const кино = useRef<HTMLVideoElement>(null)
+  useEffect(() => {
+    if (!играет) return
+    const esc = (e: KeyboardEvent) => { if (e.key === 'Escape') setИграет(null) }
+    window.addEventListener('keydown', esc)
+    кино.current?.focus()
+    return () => window.removeEventListener('keydown', esc)
+  }, [играет])
 
   /* ── доска: четыре сцены рисуются сами, взяли перо — молчат ─────────────
      Движок — `титул-доска.ts`, тот же, что в прошлой итерации (решение
@@ -381,17 +399,12 @@ export function Титул({ onSign, onNew, onHub, onCabinet, вошёл = false
           </section>
 
           <section id="видео" className={s.видео} aria-label="Видео 2020 года">
-            <div className={s.видеоШапка}><span className={s.видеоИмя} title="Каким мы задумали Flamingo в 2020-м">Каким мы задумали Flamingo в 2020-м</span></div>
-            {играет === 'promo' ? (
-              <video className={s.кино} src="/video/promo.mp4" poster="/video/promo.jpg" controls autoPlay playsInline onEnded={() => setИграет(null)} />
-            ) : (
-              <button type="button" className={s.кадр} onClick={() => setИграет('promo')} aria-label="Посмотреть видео о Flamingo, 2 минуты, со звуком">
-                <img src="/video/promo.jpg" alt="" />
-                <span className={s.пуск} aria-hidden="true">{ЗНАК_ПУСКА}</span>
-                <span className={s.ход} aria-hidden="true"><span>0:00</span><span className={s.полоса} /><span>2 минуты</span></span>
-              </button>
-            )}
-            <div className={s.видеоПодпись}>Кринж присутствует</div>
+            <button type="button" className={s.кадр} onClick={() => setИграет(ПРОМО)} aria-label="Посмотреть видео о Flamingo, 2 минуты, со звуком">
+              <img src="/video/promo.jpg" alt="" />
+              <span className={s.видеоШапка}><span className={s.видеоИмя} title={ПРОМО.имя}>{ПРОМО.имя}</span><span className={s.видеоПодпись}>Кринж присутствует</span></span>
+              <span className={s.пуск} aria-hidden="true">{ЗНАК_ПУСКА}</span>
+              <span className={s.ход} aria-hidden="true"><span>0:00</span><span className={s.полоса} /><span>2 минуты</span></span>
+            </button>
           </section>
         </div>
 
@@ -481,18 +494,13 @@ export function Титул({ onSign, onNew, onHub, onCabinet, вошёл = false
               {РОЛИКИ.map((р, i) => {
                 const gid = `${uid}-s${i}`
                 const [от, до] = ГРАДИЕНТ_НАУКИ[i]
-                return играет === р.файл ? (
-                  <div key={р.файл} className={s.ролик}>
-                    <video className={s.роликКино} src={`/video/${р.файл}.mp4`} poster={`/video/${р.файл}.jpg`} controls autoPlay playsInline onEnded={() => setИграет(null)} />
-                    <span className={s.роликИмя} title={р.имя}>{р.имя}</span>
-                  </div>
-                ) : (
-                  <button key={р.файл} type="button" className={s.ролик} onClick={() => setИграет(р.файл)} aria-label={`Посмотреть: ${р.имя}. Со звуком`}>
+                return (
+                  <button key={р.файл} type="button" className={s.ролик} onClick={() => setИграет(р)} aria-label={`Посмотреть: ${р.имя}. Со звуком`}>
                     <span className={s.роликПревью}>
-                      <svg viewBox="0 0 160 104" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+                      <svg viewBox="0 0 160 200" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
                         <defs><linearGradient id={gid} x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor={от} /><stop offset="1" stopColor={до} /></linearGradient></defs>
-                        <rect width="160" height="104" fill={`url(#${gid})`} />
-                        {р.картинка()}
+                        <rect width="160" height="200" fill={`url(#${gid})`} />
+                        {р.картинка?.()}
                       </svg>
                       <span className={s.роликПуск} aria-hidden="true"><svg width="8" height="10" viewBox="0 0 12 14"><path d="M1.5 1v12l10-6z" fill="#1d1d1f" /></svg></span>
                     </span>
@@ -504,6 +512,18 @@ export function Титул({ onSign, onNew, onHub, onCabinet, вошёл = false
           </section>
         </div>
       </main>
+
+      {играет ? (
+        <div className={s.стекло} onClick={() => setИграет(null)} role="presentation">
+          <div className={s.окноВидео} role="dialog" aria-modal="true" aria-label={играет.имя} onClick={(e) => e.stopPropagation()}>
+            <video ref={кино} className={s.кино} src={`/video/${играет.файл}.mp4`} poster={`/video/${играет.файл}.jpg`} controls autoPlay playsInline onEnded={() => setИграет(null)} />
+            <div className={s.окноНиз}>
+              <span className={s.окноИмяВидео} title={играет.имя}>{играет.имя}</span>
+              <button type="button" className={s.закрыть} onClick={() => setИграет(null)} aria-label="Закрыть видео">Закрыть</button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   )
 }

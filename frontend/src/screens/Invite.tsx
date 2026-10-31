@@ -77,7 +77,7 @@ export function Invite({ ключ, person, onSign, onDone, onHome }: {
   return (
     <main className={s.screen}>
       <div className={s.card}>
-        <Mark onGo={onHome} title="На главную" />
+        <Mark onGo={onHome} title="Главная" />
 
         {готово ? (
           <>

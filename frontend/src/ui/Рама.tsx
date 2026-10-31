@@ -153,7 +153,7 @@ export function Рама({ person, где, onGo, onOut, children }: {
     <div className={s.рама}>
       <nav className={s.колонка} aria-label="Разделы">
         <div className={s.знак}>
-          <Mark onGo={() => onGo('/кабинет')} title="Главная — кабинет" />
+          <Mark onGo={() => onGo('/')} title="Главная" />
         </div>
         {список}
         <span className={s.распорка} />

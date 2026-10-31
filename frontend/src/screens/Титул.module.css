@@ -181,22 +181,22 @@
 .ссылка[aria-disabled='true'] { cursor: default; opacity: 0.6; }
 
 /* ── видео ─────────────────────────────────────────────────────────────── */
+/* Карточка — сам ролик 16:9, без тёмных полей (владелец, 31.10); название и
+   подпись лежат поверх кадра. */
 .видео {
   flex: none;
   border-radius: var(--г-16);
   overflow: hidden;
-  background: var(--г-video-bg);
   box-shadow: 0 0 0 0.5px var(--г-video-ring), var(--г-shadow-video);
   display: flex;
   flex-direction: column;
 }
 
-.видеоШапка { flex: none; height: var(--г-34); display: flex; align-items: center; gap: var(--г-12); padding: 0 var(--г-12); color: rgba(255, 255, 255, 0.85); font-size: var(--г-12); font-weight: 600; }
-.видеоИмя { flex: 1 1 auto; min-width: 0; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-
-.кадр { position: relative; flex: none; aspect-ratio: 16 / 9; display: block; background: var(--г-чёрный); border: 0; padding: 0; cursor: pointer; }
+.кадр { position: relative; flex: none; aspect-ratio: 16 / 9; display: block; background: var(--г-чёрный); border: 0; padding: 0; cursor: pointer; color: var(--г-белый); }
 .кадр img { position: absolute; inset: 0; display: block; width: 100%; height: 100%; object-fit: cover; object-position: 50% 50%; }
-.кино { flex: none; aspect-ratio: 16 / 9; width: 100%; display: block; background: var(--г-чёрный); object-fit: contain; }
+
+.видеоШапка { position: absolute; left: 0; right: 0; top: 0; height: var(--г-40); display: flex; align-items: center; justify-content: space-between; gap: var(--г-10); padding: 0 var(--г-12); background: linear-gradient(rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0)); color: rgba(255, 255, 255, 0.92); font-size: var(--г-12); font-weight: 600; }
+.видеоИмя { flex: 0 1 auto; min-width: 0; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 .пуск {
   position: absolute;
@@ -213,6 +213,8 @@
   align-items: center;
   justify-content: center;
 }
+
+.видеоПодпись { flex: none; font-size: var(--г-11); font-weight: 500; color: rgba(255, 255, 255, 0.7); white-space: nowrap; }
 
 .ход {
   position: absolute;
@@ -232,7 +234,33 @@
 }
 .полоса { flex: 1 1 auto; height: var(--г-4); border-radius: 2px; background: rgba(255, 255, 255, 0.25); display: block; }
 
-.видеоПодпись { flex: none; padding: var(--г-9) var(--г-14) var(--г-11); font-size: var(--г-12); color: rgba(255, 255, 255, 0.6); }
+/* ── окно просмотра: посреди экрана, страница за ним размыта ────────────── */
+.стекло {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--г-24);
+  background: var(--г-glass);
+  backdrop-filter: saturate(140%) blur(var(--г-24));
+  -webkit-backdrop-filter: saturate(140%) blur(var(--г-24));
+}
+.окноВидео {
+  width: min(var(--г-960), 100%);
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--г-16);
+  overflow: hidden;
+  background: var(--г-чёрный);
+  box-shadow: 0 0 0 0.5px rgba(255, 255, 255, 0.18), var(--г-shadow-glass);
+}
+.кино { display: block; width: 100%; aspect-ratio: 16 / 9; background: var(--г-чёрный); object-fit: contain; }
+.окноНиз { display: flex; align-items: center; justify-content: space-between; gap: var(--г-12); padding: var(--г-10) var(--г-14); color: rgba(255, 255, 255, 0.85); font-size: var(--г-13); font-weight: 600; }
+.окноИмяВидео { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.закрыть { flex: none; height: var(--г-30); padding: 0 var(--г-12); border: 0; border-radius: var(--г-980); background: rgba(255, 255, 255, 0.16); color: var(--г-белый); font-size: var(--г-12); font-weight: 600; cursor: pointer; }
+.закрыть:hover { background: rgba(255, 255, 255, 0.26); }
 
 /* ── окна: общая шапка ─────────────────────────────────────────────────── */
 .окноШапка { flex: none; height: var(--г-52); display: flex; align-items: center; gap: var(--г-16); padding: 0 var(--г-12) 0 var(--г-16); border-bottom: 0.5px solid var(--г-hairline); }
@@ -398,7 +426,6 @@ button.ролик:hover { transform: translateY(-3px); }
 .роликПревью { position: relative; flex: 1 1 auto; min-height: 0; display: block; border-radius: var(--г-14); overflow: hidden; box-shadow: 0 0 0 0.5px var(--г-ring), var(--г-shadow-clip); }
 .роликПревью > svg { display: block; width: 100%; height: 100%; }
 .роликПуск { position: absolute; right: var(--г-7); bottom: var(--г-7); width: var(--г-24); height: var(--г-24); border-radius: 50%; background: rgba(255, 255, 255, 0.9); display: flex; align-items: center; justify-content: center; }
-.роликКино { display: block; flex: 1 1 auto; min-height: 0; width: 100%; border-radius: var(--г-14); background: var(--г-чёрный); object-fit: cover; }
 .роликИмя { min-width: 0; font-size: var(--г-12_5); font-weight: 600; letter-spacing: -0.01em; padding-left: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 /* ── узко: одна колонка, обычная прокрутка ─────────────────────────────── */
@@ -411,7 +438,7 @@ button.ролик:hover { transform: translateY(-3px); }
   .пункты { display: none; }
   .наука { flex: none; }
   .ролики { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  .роликПревью, .роликКино { flex: none; aspect-ratio: 160 / 104; }
+  .роликПревью { flex: none; aspect-ratio: 160 / 200; }
 }
 
 /* ── телефон: шапка доски в две строки, режимы прокручиваются вбок ─────── */

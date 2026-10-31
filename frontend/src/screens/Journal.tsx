@@ -152,7 +152,7 @@ export function Journal({ person, onBack, onHome, onOut, onNew, onLesson, под
           рисуются рамой и здесь не повторяются (ПРАВИЛА 4.9: знак один на
           экран), а имя листа — рисуется всегда. */}
       <header className={s.head}>
-        {вРаме ? null : <Mark onGo={onHome} title="Главная — кабинет" />}
+        {вРаме ? null : <Mark onGo={onHome} title="Главная" />}
         <span className={s.crumb} title="Кабинет преподавателя · Журнал">
           Кабинет преподавателя · Журнал
         </span>
