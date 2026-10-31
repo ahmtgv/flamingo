@@ -436,7 +436,12 @@ button.ролик:hover { transform: translateY(-3px); }
 
 /* ── узко: одна колонка, обычная прокрутка ─────────────────────────────── */
 @media (max-width: 1100px) {
-  .корень { height: auto; min-height: 0; overflow: visible; }
+  /* 🔴 УЗКО — ПРОКРУТКА ВНУТРИ КОРНЯ, А НЕ СТРАНИЦЫ. `body` не прокручивается
+     никогда (ПРАВИЛА 1.2, base.css), поэтому `height: auto` здесь давал
+     колонку длиннее экрана и ни одного места, где её можно прокрутить
+     (владелец, 31.10, снимок Safari). Корень остаётся в рост окна и
+     прокручивает сам себя — это та самая одна названная область. */
+  .корень { height: 100%; min-height: 0; overflow-y: auto; overflow-x: hidden; }
   .стол { grid-template-columns: minmax(0, 1fr); }
   .верхнийРяд { flex-direction: column; }
   .хаб { width: auto; }

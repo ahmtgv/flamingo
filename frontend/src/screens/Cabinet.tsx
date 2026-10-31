@@ -5,6 +5,7 @@ import { Mark } from '../ui/Mark'
 import { сегодняСтрокой } from '../lib/lessons'
 import { useСегодня } from '../lib/сутки'
 import { Беда, гдеЛежат, разговоры, урокСейчас, читатьУроки, type Разговор, type Урок } from '../lib/study'
+import { момент } from '../lib/пояс'
 import { Переписка } from './Переписка'
 import s from './Cabinet.module.css'
 import { Button } from '../ui/Button'
@@ -296,6 +297,11 @@ export function Cabinet({ person, onLesson, onNew, onEdit, onJournal, onOut, onH
     ? `${месяц}-${String(деньПоказа).padStart(2, '0')}`
     : сегодняСтрока
   const наСегодня = (все ?? []).filter((у) => у.дата === датаПоказа)
+  /* 🔴 НА КАКИЕ ЗАНЯТИЯ МОЖНО ЗВАТЬ ИЗ ПЕРЕПИСКИ. Кабинет не передавал уроки
+     в панель вовсе, и она писала «будущих занятий нет» при двух уроках через
+     час (владелец, 31.10, снимок). Будущее — по моменту, а не по дате: урок,
+     который начался и ещё идёт, тоже в списке — на него зовут опоздавших. */
+  const будущие = (все ?? []).filter((у) => момент(у.дата, у.время, у.пояс ?? '').getTime() + у.минут * 60000 > Date.now())
   const занятые = new Set((все ?? []).map((у) => Number(у.дата.slice(8, 10))))
   const всего = (все ?? []).length
   /* 🔴 «ЕЩЁ НЕ СПРОСИЛИ» — НЕ «НИЧЕГО НЕТ». Пока занятия едут, `все` — null,
@@ -542,6 +548,7 @@ export function Cabinet({ person, onLesson, onNew, onEdit, onJournal, onOut, onH
           кто={говорим.кто}
           имя={говорим.имя}
           веду={учитель}
+          уроки={будущие}
           onClose={() => { setГоворим(null); обновитьБеседы() }}
           onПрочитано={обновитьБеседы}
         />
