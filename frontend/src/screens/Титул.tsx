@@ -182,6 +182,8 @@ const ПЕРЬЯ = [
 
 const РЕЖИМЫ = ['рисунок', 'график', 'английский', 'астрономия']
 
+const ммсс = (с: number) => { const n = Math.max(0, Math.floor(с || 0)); return `${Math.floor(n / 60)}:${String(n % 60).padStart(2, '0')}` }
+
 const ЗНАК_ПУСКА = (
   <svg width="20" height="22" viewBox="0 0 12 14" aria-hidden="true"><path d="M1.5 1v12l10-6z" fill="#fff" /></svg>
 )
@@ -205,7 +207,13 @@ export function Титул({ onSign, onNew, onHub, onCabinet, вошёл = false
      середине экрана… фон заблюривается, как ликвид гласс»). */
   const [играет, setИграет] = useState<Ролик | null>(null)
   const кино = useRef<HTMLVideoElement>(null)
+  const [идёт, setИдёт] = useState(false)
+  const [сек, setСек] = useState(0)
+  const [длина, setДлина] = useState(0)
+  const [тихоВидео, setТихоВидео] = useState(false)
+  const пускПауза = () => { const в = кино.current; if (!в) return; if (в.paused) void в.play().catch(() => undefined); else в.pause() }
   useEffect(() => {
+    setСек(0); setДлина(0); setИдёт(false)
     if (!играет) return
     const esc = (e: KeyboardEvent) => { if (e.key === 'Escape') setИграет(null) }
     window.addEventListener('keydown', esc)
@@ -392,8 +400,8 @@ export function Титул({ onSign, onNew, onHub, onCabinet, вошёл = false
               <g fill="#fff"><circle cx="14" cy="16" r="3.2" /><circle cx="14" cy="26" r="3.2" /><circle cx="14" cy="36" r="3.2" /><circle cx="26" cy="14" r="3.2" /><circle cx="26" cy="26" r="4.2" /><circle cx="26" cy="38" r="3.2" /><circle cx="38" cy="18" r="3.2" /><circle cx="38" cy="34" r="3.2" /></g>
             </svg>
             <div className={s.тестыТекст}>
-              <span className={s.тестыШапка}><span className={s.тестыЗаголовок}>Примите участие в тестировании</span><span className={s.бета}>БЕТА</span></span>
-              <span className={s.тестыОписание}>Новые функции на машинном обучении — попробуйте первыми и расскажите, что думаете.</span>
+              <span className={s.тестыШапка}><span className={s.тестыЗаголовок}>Примите участие в тестировании</span><span className={s.бета}>Важно для науки</span></span>
+              <span className={s.тестыОписание}>Примите, пожалуйста, участие в машинном обучении — помогите проекту обучить наши нейросети</span>
               <button type="button" className={s.ссылка} data-still="адрес тестов назовёт владелец" aria-disabled="true">Перейти к тестам ›</button>
             </div>
           </section>
@@ -516,7 +524,24 @@ export function Титул({ onSign, onNew, onHub, onCabinet, вошёл = false
       {играет ? (
         <div className={s.стекло} onClick={() => setИграет(null)} role="presentation">
           <div className={s.окноВидео} role="dialog" aria-modal="true" aria-label={играет.имя} onClick={(e) => e.stopPropagation()}>
-            <video ref={кино} className={s.кино} src={`/video/${играет.файл}.mp4`} poster={`/video/${играет.файл}.jpg`} controls autoPlay playsInline onEnded={() => setИграет(null)} />
+            {/* Без встроенного управления: его полоса легла бы НА кадр, а владелец
+                просил таймлайн под роликом; и чёрных полей нет — окно берёт
+                пропорции самого видео. */}
+            <video ref={кино} className={s.кино} src={`/video/${играет.файл}.mp4`} poster={`/video/${играет.файл}.jpg`} autoPlay playsInline
+              onClick={пускПауза} onPlay={() => setИдёт(true)} onPause={() => setИдёт(false)} onEnded={() => setИграет(null)}
+              onTimeUpdate={(e) => setСек(e.currentTarget.currentTime)} onLoadedMetadata={(e) => setДлина(e.currentTarget.duration)} onVolumeChange={(e) => setТихоВидео(e.currentTarget.muted)} />
+            <div className={s.управление}>
+              <button type="button" className={s.кнопкаВидео} onClick={пускПауза} aria-label={идёт ? 'Пауза' : 'Пуск'}>
+                {идёт ? <svg width="12" height="14" viewBox="0 0 12 14" aria-hidden="true"><path d="M1.5 1h3v12h-3zM7.5 1h3v12h-3z" fill="currentColor" /></svg> : <svg width="12" height="14" viewBox="0 0 12 14" aria-hidden="true"><path d="M1.5 1v12l10-6z" fill="currentColor" /></svg>}
+              </button>
+              <span className={s.времяВидео}>{ммсс(сек)}</span>
+              <input type="range" className={s.таймлайн} min={0} max={длина || 0} step={0.1} value={Math.min(сек, длина || 0)} aria-label="Место в ролике" aria-valuetext={`${ммсс(сек)} из ${ммсс(длина)}`}
+                onChange={(e) => { const в = кино.current; if (в) { в.currentTime = Number(e.target.value); setСек(в.currentTime) } }} />
+              <span className={s.времяВидео}>{ммсс(длина)}</span>
+              <button type="button" className={s.кнопкаВидео} onClick={() => { const в = кино.current; if (в) в.muted = !в.muted }} aria-label={тихоВидео ? 'Включить звук' : 'Выключить звук'} aria-pressed={тихоВидео}>
+                {тихоВидео ? <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M1 5h3l4-3v10l-4-3H1z" fill="currentColor" /><path d="M10 5l3 4M13 5l-3 4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" /></svg> : <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M1 5h3l4-3v10l-4-3H1z" fill="currentColor" /><path d="M10 4.5a3.5 3.5 0 010 5M11.5 2.5a6 6 0 010 9" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" /></svg>}
+              </button>
+            </div>
             <div className={s.окноНиз}>
               <span className={s.окноИмяВидео} title={играет.имя}>{играет.имя}</span>
               <button type="button" className={s.закрыть} onClick={() => setИграет(null)} aria-label="Закрыть видео">Закрыть</button>

@@ -248,7 +248,8 @@
   -webkit-backdrop-filter: saturate(140%) blur(var(--г-24));
 }
 .окноВидео {
-  width: min(var(--г-960), 100%);
+  max-width: min(var(--г-960), 100%);
+  max-height: 100%;
   display: flex;
   flex-direction: column;
   border-radius: var(--г-16);
@@ -256,7 +257,12 @@
   background: var(--г-чёрный);
   box-shadow: 0 0 0 0.5px rgba(255, 255, 255, 0.18), var(--г-shadow-glass);
 }
-.кино { display: block; width: 100%; aspect-ratio: 16 / 9; background: var(--г-чёрный); object-fit: contain; }
+.кино { display: block; flex: 1 1 auto; min-height: 0; max-width: 100%; max-height: calc(100vh - var(--г-180)); width: auto; height: auto; background: var(--г-чёрный); cursor: pointer; }
+.управление { flex: none; display: flex; align-items: center; gap: var(--г-10); padding: var(--г-10) var(--г-14) 0; color: var(--г-белый); }
+.кнопкаВидео { flex: none; width: var(--г-30); height: var(--г-30); border: 0; border-radius: 50%; background: rgba(255, 255, 255, 0.16); color: var(--г-белый); display: flex; align-items: center; justify-content: center; cursor: pointer; }
+.кнопкаВидео:hover { background: rgba(255, 255, 255, 0.26); }
+.времяВидео { flex: none; font-size: var(--г-12); font-weight: 600; font-variant-numeric: tabular-nums; color: rgba(255, 255, 255, 0.85); }
+.таймлайн { flex: 1 1 auto; min-width: 0; height: var(--г-4); margin: 0; accent-color: var(--г-белый); cursor: pointer; }
 .окноНиз { display: flex; align-items: center; justify-content: space-between; gap: var(--г-12); padding: var(--г-10) var(--г-14); color: rgba(255, 255, 255, 0.85); font-size: var(--г-13); font-weight: 600; }
 .окноИмяВидео { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .закрыть { flex: none; height: var(--г-30); padding: 0 var(--г-12); border: 0; border-radius: var(--г-980); background: rgba(255, 255, 255, 0.16); color: var(--г-белый); font-size: var(--г-12); font-weight: 600; cursor: pointer; }
@@ -363,7 +369,7 @@
   transition: background 0.15s;
 }
 .источник:hover { background: var(--г-hover); }
-.превьюХаба { flex: none; display: block; width: var(--г-75); height: var(--г-52); /* хаб ниже на треть (владелец, 31.10) — превью 92×64 из макета ужато в ту же пропорцию */ border-radius: var(--г-12); box-shadow: 0 0 0 0.5px var(--г-ring), var(--г-shadow-preview); }
+.превьюХаба { flex: none; display: block; width: var(--г-70); height: var(--г-48); /* хаб ниже (владелец, 31.10) — превью 92×64 из макета ужато в той же пропорции, чтобы все шесть помещались */ border-radius: var(--г-12); box-shadow: 0 0 0 0.5px var(--г-ring), var(--г-shadow-preview); }
 .источникСлова { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .источникТип { font-size: var(--г-10); font-weight: 600; color: var(--г-text-2); letter-spacing: 0.08em; text-transform: uppercase; }
 .источникИмя { min-width: 0; font-size: var(--г-13_5); font-weight: 600; letter-spacing: -0.015em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -389,7 +395,7 @@
 
 /* ── наука ─────────────────────────────────────────────────────────────── */
 .наука {
-  flex: 0 0 var(--г-270);
+  flex: 0 0 var(--г-298);
   box-sizing: border-box;
   border-radius: var(--г-16);
   overflow: hidden;
@@ -407,7 +413,7 @@
 .наукаЗаголовок { font-size: var(--г-16); font-weight: 700; letter-spacing: -0.02em; }
 .наукаПодпись { font-size: var(--г-12_5); color: var(--г-text-2); }
 
-.ролики { flex: 1 1 auto; min-height: 0; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: var(--г-12); }
+.ролики { flex: 1 1 auto; min-height: 0; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); grid-auto-rows: minmax(0, 1fr); gap: var(--г-12); }
 
 .ролик {
   display: flex;
@@ -423,7 +429,7 @@
   transition: transform 0.2s;
 }
 button.ролик:hover { transform: translateY(-3px); }
-.роликПревью { position: relative; flex: 1 1 auto; min-height: 0; display: block; border-radius: var(--г-14); overflow: hidden; box-shadow: 0 0 0 0.5px var(--г-ring), var(--г-shadow-clip); }
+.роликПревью { position: relative; flex: 1 1 0; min-height: 0; display: block; border-radius: var(--г-14); overflow: hidden; box-shadow: 0 0 0 0.5px var(--г-ring), var(--г-shadow-clip); }
 .роликПревью > svg { display: block; width: 100%; height: 100%; }
 .роликПуск { position: absolute; right: var(--г-7); bottom: var(--г-7); width: var(--г-24); height: var(--г-24); border-radius: 50%; background: rgba(255, 255, 255, 0.9); display: flex; align-items: center; justify-content: center; }
 .роликИмя { min-width: 0; font-size: var(--г-12_5); font-weight: 600; letter-spacing: -0.01em; padding-left: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -439,6 +445,7 @@ button.ролик:hover { transform: translateY(-3px); }
   .наука { flex: none; }
   .ролики { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .роликПревью { flex: none; aspect-ratio: 160 / 200; }
+  .ролики { grid-auto-rows: auto; }
 }
 
 /* ── телефон: шапка доски в две строки, режимы прокручиваются вбок ─────── */
