@@ -1,8 +1,9 @@
-import { useCallback, useId, useRef, useState } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
 
 import { RIGHTS, SOURCES } from '../hub/sources'
 import '../styles/главная.css'
 import s from './Титул.module.css'
+import { доска, палитра } from './титул-доска'
 
 /** Титул — главная flamingo.plus. Редизайн утверждён владельцем 31.10.2026.
  *
@@ -15,17 +16,22 @@ import s from './Титул.module.css'
  *  🔴 ГЛАВНАЯ — ВСЕГДА ГЛАВНАЯ (решение владельца 31.10): вошедший тоже видит
  *  её, а не кабинет; у него вместо двух дверей одна — «Войти в кабинет».
  *
- *  🔴 ДОСКА ЖИВАЯ: поверх эскиза Сатурна можно рисовать четырьмя перьями и
- *  стереть своё; эскиз остаётся. Рисунок никуда не уходит и пропадает с
- *  перезагрузкой — это витрина, а не урок.
+ *  🔴 ДОСКА ЖИВАЯ — КАК В ПРОШЛОЙ ИТЕРАЦИИ (решение владельца 31.10): движок
+ *  `титул-доска.ts` рисует четыре сцены сам, от руки; режимы в шапке окна —
+ *  его сцены, перья внизу — его перья. Взяли перо — сцены молчат, отпустили —
+ *  штрих тает и доска снова показывает сама. Это витрина, а не урок.
+ *
+ *  🔴 РОЛИК 2020-ГО — РОВНО В РАЗМЕР ВИДЕО (владелец, 31.10): окно 16:9 без
+ *  чёрных полей сверху и снизу; освободившуюся высоту берёт блок тестирования.
+ *  Полоса «Познавательной науки» выше на половину, доска и хаб — ниже на столько же.
  *
  *  Хаб и наука — настоящие: те же `SOURCES` и те же ролики, что на `/hub` и в
  *  комнате; подпись права у источника — из `RIGHTS[...]`, а не из головы
  *  (караул `хаб-check`). Шесть источников и их короткие имена — по спецификации.
  *
  *  Чего в макете нет и что ждёт слова владельца (двери помечены `data-still`,
- *  ПРАВИЛА 14.1): адрес «Перейти к тестам», «Все видео», режимы доски кроме
- *  «рисунок», бургер-меню на узком экране, ручной переключатель темы.
+ *  ПРАВИЛА 14.1): адрес «Перейти к тестам», «Все видео», бургер-меню на узком
+ *  экране, ручной переключатель темы.
  */
 
 type Ролик = { файл: string; имя: string; картинка: () => React.ReactNode }
@@ -189,26 +195,120 @@ export function Титул({ onSign, onNew, onHub, onCabinet, вошёл = false
   const uid = useId().replace(/:/g, '')
   const [играет, setИграет] = useState<string | null>(null)
 
-  /* ── доска: рисование поверх эскиза ─────────────────────────────────── */
+  /* ── доска: четыре сцены рисуются сами, взяли перо — молчат ─────────────
+     Движок — `титул-доска.ts`, тот же, что в прошлой итерации (решение
+     владельца 31.10: «интерактивность доски — как была»). Режимы в шапке
+     окна — это его сцены; палитра внизу — его перья. */
+  const холст = useRef<HTMLCanvasElement>(null)
+  const следРеф = useRef<HTMLCanvasElement>(null)
+  const движок = useRef<ReturnType<typeof доска> | null>(null)
+  const [сцена, setСцена] = useState(0)
   const [перо, setПеро] = useState(0)
-  const [штрихи, setШтрихи] = useState<string[]>(['', '', '', ''])
-  const рисуем = useRef(false)
-  const точка = (e: React.PointerEvent<SVGSVGElement>) => {
-    const r = e.currentTarget.getBoundingClientRect()
-    return `${((e.clientX - r.left) / r.width * 1000).toFixed(1)} ${((e.clientY - r.top) / r.height * 1000).toFixed(1)}`
-  }
-  const вниз = useCallback((e: React.PointerEvent<SVGSVGElement>) => {
-    try { e.currentTarget.setPointerCapture(e.pointerId) } catch { /* без захвата тоже рисуется */ }
-    рисуем.current = true
-    const p = точка(e)
-    setШтрихи((d) => d.map((x, i) => (i === перо ? `${x} M${p} L${p}` : x)))
-  }, [перо])
-  const ведём = useCallback((e: React.PointerEvent<SVGSVGElement>) => {
-    if (!рисуем.current) return
-    const p = точка(e)
-    setШтрихи((d) => d.map((x, i) => (i === перо ? `${x} L${p}` : x)))
-  }, [перо])
-  const вверх = useCallback(() => { рисуем.current = false }, [])
+  const пероРеф = useRef(0)
+  const [тихо, setТихо] = useState(false)
+
+  useEffect(() => {
+    const м = window.matchMedia('(prefers-reduced-motion: reduce)')
+    const снять = () => setТихо(м.matches)
+    снять()
+    м.addEventListener('change', снять)
+    return () => м.removeEventListener('change', снять)
+  }, [])
+
+  useEffect(() => {
+    const c = холст.current
+    if (!c) return
+    const д = доска(c, палитра(c))
+    движок.current = д
+    д.размер()
+    д.играть(0, setСцена)
+    д.сторож(setСцена)
+    const П = палитра(c)
+    const цвета = [П.перо, П.акцент, П.зелёный, П.синий]
+    const где = (e: PointerEvent): [number, number] => {
+      const r = c.getBoundingClientRect()
+      return [e.clientX - r.left, e.clientY - r.top]
+    }
+    const вниз = (e: PointerEvent) => {
+      try { c.setPointerCapture(e.pointerId) } catch { /* без захвата тоже рисуется */ }
+      д.взятьПеро()
+      const p = где(e)
+      д.вести(p[0], p[1], цвета[пероРеф.current])
+    }
+    const ведём = (e: PointerEvent) => {
+      if (!(e.buttons & 1)) return
+      const p = где(e)
+      д.вести(p[0], p[1], цвета[пероРеф.current])
+    }
+    const вверх = () => д.отпустить()
+    c.addEventListener('pointerdown', вниз)
+    c.addEventListener('pointermove', ведём)
+    c.addEventListener('pointerup', вверх)
+    c.addEventListener('pointerleave', вверх)
+    const наРазмер = () => { д.размер(); д.играть(д.текущая(), setСцена) }
+    window.addEventListener('resize', наРазмер)
+    return () => {
+      window.removeEventListener('resize', наРазмер)
+      c.removeEventListener('pointerdown', вниз)
+      c.removeEventListener('pointermove', ведём)
+      c.removeEventListener('pointerup', вверх)
+      c.removeEventListener('pointerleave', вверх)
+      д.стоп()
+    }
+  }, [])
+
+  /* След указателя: короткий хвост последних 320 мс на своём слое;
+     при «меньше движения» его нет. */
+  useEffect(() => {
+    const c = следРеф.current
+    const осн = холст.current
+    if (!c || !осн || тихо) return
+    const g = c.getContext('2d')
+    if (!g) return
+    const цвет = палитра(осн).акцент
+    let хвост: Array<[number, number, number]> = []
+    let жив = true
+    const размер = () => {
+      const r = c.getBoundingClientRect(); const k = window.devicePixelRatio || 1
+      c.width = r.width * k; c.height = r.height * k
+      g.setTransform(k, 0, 0, k, 0, 0); g.lineCap = 'round'
+    }
+    const где = (e: PointerEvent): [number, number] => {
+      const r = c.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]
+    }
+    const движение = (e: PointerEvent) => {
+      if (e.buttons & 1) { хвост = []; return }
+      const p = где(e); хвост.push([p[0], p[1], Date.now()])
+    }
+    const уход = () => { хвост = [] }
+    const кадр = () => {
+      if (!жив) return
+      g.save(); g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, c.width, c.height); g.restore()
+      const t = Date.now()
+      хвост = хвост.filter((п) => t - п[2] < 320)
+      for (let i = 1; i < хвост.length; i += 1) {
+        const a = хвост[i - 1], b = хвост[i]
+        if (Math.hypot(b[0] - a[0], b[1] - a[1]) > 90) continue
+        const возраст = (t - b[2]) / 320
+        g.globalAlpha = (1 - возраст) * 0.5
+        g.strokeStyle = цвет
+        g.lineWidth = 3.2 * (1 - возраст * 0.6)
+        g.beginPath(); g.moveTo(a[0], a[1]); g.lineTo(b[0], b[1]); g.stroke()
+      }
+      g.globalAlpha = 1
+      requestAnimationFrame(кадр)
+    }
+    размер(); кадр()
+    осн.addEventListener('pointermove', движение)
+    осн.addEventListener('pointerleave', уход)
+    window.addEventListener('resize', размер)
+    return () => {
+      жив = false
+      осн.removeEventListener('pointermove', движение)
+      осн.removeEventListener('pointerleave', уход)
+      window.removeEventListener('resize', размер)
+    }
+  }, [тихо])
 
   const дверьВхода = молчит
     ? { onClick: undefined, 'aria-disabled': true as const, title: 'Сервер учётных записей молчит — войти сейчас нельзя' }
@@ -310,9 +410,8 @@ export function Титул({ onSign, onNew, onHub, onCabinet, вошёл = false
                 <span className={s.распор} />
                 <div role="group" aria-label="Режим доски" className={s.режимы}>
                   {РЕЖИМЫ.map((р, i) => (
-                    <button key={р} type="button" className={`${s.режим} ${i === 0 ? s.режимОн : ''}`}
-                      aria-pressed={i === 0} aria-disabled={i === 0 ? undefined : true}
-                      data-still={i === 0 ? 'режим уже выбран' : 'эскиз для этого режима назовёт владелец'}>
+                    <button key={р} type="button" className={`${s.режим} ${i === сцена ? s.режимОн : ''}`}
+                      aria-pressed={i === сцена} onClick={() => движок.current?.играть(i, setСцена)}>
                       {р}
                     </button>
                   ))}
@@ -320,41 +419,22 @@ export function Титул({ onSign, onNew, onHub, onCabinet, вошёл = false
               </div>
 
               <div className={s.поле}>
-                <svg viewBox="20 40 780 360" preserveAspectRatio="xMidYMid meet" className={s.эскиз} role="img" aria-label="Эскиз на доске: снимок Сатурна, подписи и формула тяготения">
-                  <text x="40" y="70" fontSize="12" fill="#86868b">фото · телескоп</text>
-                  <rect x="40" y="82" width="320" height="198" rx="18" className={s.эскизФото} />
-                  <g fill="#fff"><circle cx="94" cy="122" r="1.6" /><circle cx="172" cy="106" r="1.4" /><circle cx="280" cy="114" r="1.5" /><circle cx="320" cy="152" r="1.2" /><circle cx="126" cy="236" r="1.4" /><circle cx="222" cy="258" r="1.6" /><circle cx="304" cy="224" r="1.3" /><circle cx="74" cy="196" r="1.2" /></g>
-                  <ellipse cx="200" cy="181" rx="90" ry="23" fill="none" className={s.эскизКольцо} strokeWidth="2" transform="rotate(-14 200 181)" />
-                  <circle cx="200" cy="181" r="46" fill="none" className={s.акцентОбвод} strokeWidth="3" />
-                  <path d="M 376 144 C 420 132, 448 122, 482 116" fill="none" className={s.акцентОбвод} strokeWidth="2.4" strokeLinecap="round" />
-                  <path d="M 472 108 L 484 116 L 473 125" fill="none" className={s.акцентОбвод} strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
-                  <text x="496" y="122" fontSize="19" fontWeight="500" className={s.эскизТекст}>кольцо — лёд и камень</text>
-                  <path d="M 376 216 C 420 228, 448 238, 482 246" fill="none" className={s.акцентОбвод} strokeWidth="2.4" strokeLinecap="round" />
-                  <path d="M 472 237 L 484 246 L 472 254" fill="none" className={s.акцентОбвод} strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
-                  <text x="496" y="252" fontSize="19" fontWeight="500" className={s.эскизТекст}>период обращения</text>
-                  <text x="496" y="338" fontSize="27" fontStyle="italic" fontWeight="500" className={s.эскизТекст}>F = G · m₁m₂ / r²</text>
-                  <path d="M 492 354 L 770 350" fill="none" className={s.эскизЛиния} strokeWidth="2.4" strokeLinecap="round" />
-                </svg>
-
-                <svg role="img" aria-label="Поле для рисования" viewBox="0 0 1000 1000" preserveAspectRatio="none" className={s.рисунок}
-                  onPointerDown={вниз} onPointerMove={ведём} onPointerUp={вверх} onPointerLeave={вверх}>
-                  {штрихи.map((d, i) => (
-                    <path key={i} d={d} fill="none" className={`${s.штрих} ${ПЕРЬЯ[i].класс}`} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
-                  ))}
-                </svg>
+                <canvas className={s.холст} ref={холст} aria-label="Доска занятия: рисует сама, можно рисовать пером" role="img" />
+                <canvas className={s.след} ref={следРеф} aria-hidden="true" />
+                <span className={s.шёпот}>{тихо ? 'нажмите режим — доска нарисует' : 'поводите мышью — или возьмите перо'}</span>
 
                 <div className={s.палитра}>
                   <span className={s.палитраПодпись}>мышью или пером</span>
                   <span className={s.перья} role="group" aria-label="Цвет пера">
                     {ПЕРЬЯ.map((п, i) => (
-                      <button key={п.имя} type="button" aria-label={п.имя} aria-pressed={перо === i} className={s.пероКнопка} onClick={() => setПеро(i)}>
+                      <button key={п.имя} type="button" aria-label={п.имя} aria-pressed={перо === i} className={s.пероКнопка} onClick={() => { setПеро(i); пероРеф.current = i }}>
                         <span className={`${s.пероКруг} ${п.класс}`} />
                         {перо === i ? <span className={`${s.пероКольцо} ${п.класс}`} /> : null}
                       </button>
                     ))}
                   </span>
                   <span aria-hidden="true" className={s.палитраЧерта} />
-                  <button type="button" className={s.стереть} onClick={() => setШтрихи(['', '', '', ''])}>Стереть</button>
+                  <button type="button" className={s.стереть} onClick={() => { const д = движок.current; if (д) { д.отпустить(); д.играть(д.текущая(), setСцена) } }}>Стереть</button>
                 </div>
               </div>
             </section>
@@ -409,7 +489,7 @@ export function Титул({ onSign, onNew, onHub, onCabinet, вошёл = false
                 ) : (
                   <button key={р.файл} type="button" className={s.ролик} onClick={() => setИграет(р.файл)} aria-label={`Посмотреть: ${р.имя}. Со звуком`}>
                     <span className={s.роликПревью}>
-                      <svg viewBox="0 0 160 104" width="100%" aria-hidden="true">
+                      <svg viewBox="0 0 160 104" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
                         <defs><linearGradient id={gid} x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor={от} /><stop offset="1" stopColor={до} /></linearGradient></defs>
                         <rect width="160" height="104" fill={`url(#${gid})`} />
                         {р.картинка()}

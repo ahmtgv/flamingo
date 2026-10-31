@@ -156,7 +156,8 @@
 
 /* ── тестирование ──────────────────────────────────────────────────────── */
 .тесты {
-  flex: none;
+  flex: 1 1 auto;
+  min-height: 0;
   box-sizing: border-box;
   padding: var(--г-16) var(--г-18);
   border-radius: var(--г-20);
@@ -181,8 +182,7 @@
 
 /* ── видео ─────────────────────────────────────────────────────────────── */
 .видео {
-  flex: 1 1 auto;
-  min-height: 0;
+  flex: none;
   border-radius: var(--г-16);
   overflow: hidden;
   background: var(--г-video-bg);
@@ -194,9 +194,9 @@
 .видеоШапка { flex: none; height: var(--г-34); display: flex; align-items: center; gap: var(--г-12); padding: 0 var(--г-12); color: rgba(255, 255, 255, 0.85); font-size: var(--г-12); font-weight: 600; }
 .видеоИмя { flex: 1 1 auto; min-width: 0; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-.кадр { position: relative; flex: 1 1 auto; min-height: var(--г-180); display: block; background: var(--г-чёрный); border: 0; padding: 0; cursor: pointer; }
+.кадр { position: relative; flex: none; aspect-ratio: 16 / 9; display: block; background: var(--г-чёрный); border: 0; padding: 0; cursor: pointer; }
 .кадр img { position: absolute; inset: 0; display: block; width: 100%; height: 100%; object-fit: cover; object-position: 50% 50%; }
-.кино { flex: 1 1 auto; min-height: var(--г-180); width: 100%; display: block; background: var(--г-чёрный); object-fit: contain; }
+.кино { flex: none; aspect-ratio: 16 / 9; width: 100%; display: block; background: var(--г-чёрный); object-fit: contain; }
 
 .пуск {
   position: absolute;
@@ -274,14 +274,9 @@
   user-select: none;
 }
 
-.эскиз { position: absolute; left: 0; top: 0; width: 100%; height: 100%; display: block; pointer-events: none; font-family: inherit; }
-.эскизФото { fill: var(--г-sketch-photo); stroke: var(--г-sketch-photo-ring); }
-.эскизКольцо { stroke: var(--г-sketch-ring); }
-.эскизТекст { fill: var(--г-text); }
-.эскизЛиния { stroke: var(--г-text); }
-
-.рисунок { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; cursor: crosshair; }
-.штрих { stroke: currentColor; }
+.холст { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; cursor: crosshair; }
+.след { position: absolute; inset: 0; width: 100%; height: 100%; display: block; pointer-events: none; }
+.шёпот { position: absolute; left: var(--г-16); top: var(--г-12); font-size: var(--г-11); color: var(--г-text-2); pointer-events: none; }
 .перо1 { color: var(--г-pen-1); }
 .перо2 { color: var(--г-accent); }
 .перо3 { color: var(--г-перо-3); }
@@ -340,7 +335,7 @@
   transition: background 0.15s;
 }
 .источник:hover { background: var(--г-hover); }
-.превьюХаба { flex: none; display: block; border-radius: var(--г-12); box-shadow: 0 0 0 0.5px var(--г-ring), var(--г-shadow-preview); }
+.превьюХаба { flex: none; display: block; width: var(--г-75); height: var(--г-52); /* хаб ниже на треть (владелец, 31.10) — превью 92×64 из макета ужато в ту же пропорцию */ border-radius: var(--г-12); box-shadow: 0 0 0 0.5px var(--г-ring), var(--г-shadow-preview); }
 .источникСлова { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .источникТип { font-size: var(--г-10); font-weight: 600; color: var(--г-text-2); letter-spacing: 0.08em; text-transform: uppercase; }
 .источникИмя { min-width: 0; font-size: var(--г-13_5); font-weight: 600; letter-spacing: -0.015em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -366,7 +361,8 @@
 
 /* ── наука ─────────────────────────────────────────────────────────────── */
 .наука {
-  flex: none;
+  flex: 0 0 var(--г-270);
+  box-sizing: border-box;
   border-radius: var(--г-16);
   overflow: hidden;
   background: var(--г-widget-bg);
@@ -383,13 +379,14 @@
 .наукаЗаголовок { font-size: var(--г-16); font-weight: 700; letter-spacing: -0.02em; }
 .наукаПодпись { font-size: var(--г-12_5); color: var(--г-text-2); }
 
-.ролики { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: var(--г-12); }
+.ролики { flex: 1 1 auto; min-height: 0; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: var(--г-12); }
 
 .ролик {
   display: flex;
   flex-direction: column;
   gap: var(--г-7);
   min-width: 0;
+  min-height: 0;
   border: 0;
   padding: 0;
   background: none;
@@ -398,10 +395,10 @@
   transition: transform 0.2s;
 }
 button.ролик:hover { transform: translateY(-3px); }
-.роликПревью { position: relative; display: block; border-radius: var(--г-14); overflow: hidden; box-shadow: 0 0 0 0.5px var(--г-ring), var(--г-shadow-clip); }
-.роликПревью svg { display: block; }
+.роликПревью { position: relative; flex: 1 1 auto; min-height: 0; display: block; border-radius: var(--г-14); overflow: hidden; box-shadow: 0 0 0 0.5px var(--г-ring), var(--г-shadow-clip); }
+.роликПревью > svg { display: block; width: 100%; height: 100%; }
 .роликПуск { position: absolute; right: var(--г-7); bottom: var(--г-7); width: var(--г-24); height: var(--г-24); border-radius: 50%; background: rgba(255, 255, 255, 0.9); display: flex; align-items: center; justify-content: center; }
-.роликКино { display: block; width: 100%; aspect-ratio: 160 / 104; border-radius: var(--г-14); background: var(--г-чёрный); object-fit: cover; }
+.роликКино { display: block; flex: 1 1 auto; min-height: 0; width: 100%; border-radius: var(--г-14); background: var(--г-чёрный); object-fit: cover; }
 .роликИмя { min-width: 0; font-size: var(--г-12_5); font-weight: 600; letter-spacing: -0.01em; padding-left: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 /* ── узко: одна колонка, обычная прокрутка ─────────────────────────────── */
@@ -412,7 +409,9 @@ button.ролик:hover { transform: translateY(-3px); }
   .хаб { width: auto; }
   .поле { min-height: var(--г-420); }
   .пункты { display: none; }
+  .наука { flex: none; }
   .ролики { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .роликПревью, .роликКино { flex: none; aspect-ratio: 160 / 104; }
 }
 
 /* ── телефон: шапка доски в две строки, режимы прокручиваются вбок ─────── */
