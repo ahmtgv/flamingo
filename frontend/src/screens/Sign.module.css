@@ -207,13 +207,6 @@
 .свитчВвод:checked + .свитчДорожка .свитчРучка { transform: translateX(calc(var(--space-8) - var(--space-5) - var(--space-1))); }
 .свитчВвод:focus-visible + .свитчДорожка { box-shadow: var(--focus-ring); }
 
-.roleWhy {
-  font-size: var(--text-caption);
-  font-weight: var(--weight-regular);
-  line-height: var(--leading-snug);
-  color: var(--color-text-detail);
-}
-
 /* 🔴 Строка сообщения стоит ВСЕГДА, и высота посчитана по самому длинному
    состоянию: кнопка и переключатель режима не двигаются между состояниями
    (ПРАВИЛА 6.6). Раньше отказ появлялся новой строкой и сдвигал кнопку вниз
