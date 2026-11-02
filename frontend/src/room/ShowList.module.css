@@ -325,3 +325,27 @@
 .rowWait { cursor: default; }
 .rowWait .rowName { color: var(--color-text-secondary); font-weight: var(--weight-regular); }
 .rowWait .noFace { border-style: dotted; }
+
+/* Владелец, 02.11, мобильный аудит: лёжа (844×390) на список пособий между
+   шапкой и низом панели оставалось 66 px. На низком окне панель
+   прокручивается целиком — прокрутка по-прежнему одна (ПРАВИЛА 1.3), просто
+   теперь это вся панель, а не её середина. */
+@media (max-height: 30rem) {
+  .panel {
+    display: block;
+    overflow-y: auto;
+  }
+
+  .свиток {
+    overflow: visible;
+  }
+}
+
+/* Владелец, 02.11, мобильный аудит: кегль 14 в поле — iPhone при фокусе
+   увеличивает страницу. На касании кегль общего поля (ui/Field), на
+   компьютере вид прежний. */
+@media (pointer: coarse) {
+  .ссылкаПоле {
+    font-size: var(--text-body);
+  }
+}

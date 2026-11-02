@@ -237,3 +237,12 @@
 .link:hover {
   text-decoration-color: var(--color-go);
 }
+
+/* Владелец, 02.11, мобильный аудит: кегль 14 в строке сообщения — iPhone при
+   фокусе увеличивает всю страницу. На касании кегль общего поля (ui/Field),
+   на компьютере вид прежний. */
+@media (pointer: coarse) {
+  .input {
+    font-size: var(--text-body);
+  }
+}

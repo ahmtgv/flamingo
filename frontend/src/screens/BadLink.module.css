@@ -21,6 +21,14 @@
   background: var(--color-surface);
 }
 
+/* Телефон: тот же отступ, что у карточек входа и приглашения — у одинаковых
+   карточек он один (владелец, 02.11, мобильный аудит, п.7). */
+@media (max-width: 560px) {
+  .card {
+    padding: var(--space-5);
+  }
+}
+
 .title {
   margin: 0;
   font-family: var(--font-heading);

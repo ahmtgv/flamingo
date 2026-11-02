@@ -37,7 +37,11 @@
   border-radius: var(--radius-sm);
   background: var(--color-surface-on-video);
   border: 1px solid var(--color-border-on-video);
-  overflow-wrap: anywhere;
+  /* Владелец, 02.11, мобильный аудит: `anywhere` рвал адрес посередине
+     («flamingo.plus / /r/g6rh-ntaf- / rzpp»), а разорванный адрес перестаёт
+     читаться адресом. `break-word` переносит, только когда строка правда
+     не влезает. */
+  overflow-wrap: break-word;
 }
 
 .act {

@@ -988,7 +988,17 @@
 /* ── Телефон: лист прокручивается целиком (ПРАВИЛА 8.6а) ──────────────── */
 
 @media (max-width: 760px) {
-  .экран { height: auto; min-height: 100dvh; overflow: visible; }
+  /* 🔴 ЛИСТ ПРОКРУЧИВАЕТ САМ СЕБЯ, А НЕ СТРАНИЦУ. `body` не прокручивается
+     никогда (ПРАВИЛА 1.2, base.css), поэтому `height: auto; overflow: visible`
+     давал лист длиннее экрана и ни одного места, где его крутить: на телефоне
+     до «Дальше» и «К пути» было не дотянуться на 20 экранах из 104 (прибор
+     кадр-прибор, 02.11). Лист — в рост окна и прокручивается внутри. */
+  .экран { height: 100dvh; overflow-y: auto; overflow-x: hidden; grid-template-rows: auto auto; }
+  /* …и доска растёт в рост содержимого: её средний ряд `minmax(0, 1fr)` и
+     `min-height: 0` на широком делят высоту окна, а на телефоне ужимали лист
+     до окна — и низ доски срезался её же `overflow: hidden`. */
+  .участок, .доска { min-height: auto; }
+  .доска { grid-template-rows: auto auto auto; }
   .участок { padding: var(--space-3) var(--space-3) var(--space-4); }
   .поле { overflow: visible; }
   .кто { grid-template-columns: minmax(0, 1fr); padding: var(--space-6) var(--space-5); }
@@ -1004,7 +1014,9 @@
   .низ { flex-wrap: wrap; }
   .книга { grid-template-columns: minmax(0, 1fr); }
   .сгиб { display: none; }
-  .ход { height: 70dvh; }
+  /* Высота шага — не меньше 70 % окна (для точки и камеры), но длинный шаг
+     с ответами растёт и прокручивается листом, а не срезается (мобильный аудит, 02.11). */
+  .ход { height: auto; min-height: 70dvh; }
 
   /* Шапка на телефоне: знак, счёт шагов и имя — раздел уже назван в полоске доски. */
   .черта, .раздел { display: none; }

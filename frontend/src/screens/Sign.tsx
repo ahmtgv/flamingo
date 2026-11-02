@@ -53,7 +53,7 @@ const ОБЪЯСНЕНИЕ: Record<Mode, string> = {
  *  и своими словами: он знает, что именно не сошлось, а лист не знает. */
 const ПУСТО: Record<Mode, [string, string]> = {
   in: ['Заполните почту и пароль', 'Без почты мы не поймём, кто входит; без пароля — что это вы.'],
-  new: ['Осталось имя и пароль', 'Имя увидит класс, пароль — от восьми знаков. Роль уже выбрана.'],
+  new: ['Осталось имя и пароль', 'Имя увидит класс, пароль — от восьми знаков. Преподаватель — переключателем.'],
   forgot: ['Нужна почта', 'Та, на которую заведена запись.'],
 }
 
@@ -203,30 +203,28 @@ export function Sign({ onDone, onBack, куда = 'в комнату', режи�
                   onChange={(e) => setName(e.target.value)}
                 />
 
-                {/* Выбор роли — нейтральный: сильная рамка и приглушённая заливка
-                    (ПРАВИЛА 5.7). Зелёного здесь нет, роль — не «можно дальше». */}
-                <div className={s.roles} role="radiogroup" aria-label="Кто вы">
-                  <button
-                    type="button"
-                    role="radio"
+                {/* 🔴 РОЛЬ — ОДНИМ ПЕРЕКЛЮЧАТЕЛЕМ (решение владельца 02.11): вместо
+                    выбора из двух карточек «Веду уроки / Учусь» — одна строка
+                    «Регистрируюсь как преподаватель». Выключен — ученик. Что
+                    стоит по умолчанию, решает пришедший путь (проп `роль`):
+                    по ссылке на урок или приглашению — ученик, иначе — преподаватель. */}
+                <label className={s.свитч}>
+                  <span className={s.свитчСлова}>
+                    Регистрируюсь как преподаватель
+                    <span className={s.roleWhy}>
+                      {role === 'teacher' ? 'открываю комнату и зову класс' : 'выключено — учусь и вхожу по ссылке преподавателя'}
+                    </span>
+                  </span>
+                  <input
+                    type="checkbox"
+                    role="switch"
+                    className={s.свитчВвод}
+                    checked={role === 'teacher'}
                     aria-checked={role === 'teacher'}
-                    className={`${s.role} ${role === 'teacher' ? s.roleOn : ''}`}
-                    onClick={() => setRole('teacher')}
-                  >
-                    Веду уроки
-                    <span className={s.roleWhy}>открываю комнату и зову класс</span>
-                  </button>
-                  <button
-                    type="button"
-                    role="radio"
-                    aria-checked={role === 'student'}
-                    className={`${s.role} ${role === 'student' ? s.roleOn : ''}`}
-                    onClick={() => setRole('student')}
-                  >
-                    Учусь
-                    <span className={s.roleWhy}>вхожу по ссылке преподавателя</span>
-                  </button>
-                </div>
+                    onChange={(e) => setRole(e.target.checked ? 'teacher' : 'student')}
+                  />
+                  <span className={s.свитчДорожка} aria-hidden="true"><span className={s.свитчРучка} /></span>
+                </label>
               </>
             ) : null}
 

@@ -229,7 +229,9 @@ export function Journal({ person, onBack, onHome, onOut, onNew, onLesson, под
                 className={s.grid}
                 style={{
                   ['--скольких' as string]: String(Math.max(уроки.length, 1)),
-                  ['--кто' as string]: '17rem',
+                  /* Ширина столбца имён (`--кто`) живёт в Journal.module.css у
+                     `.grid`: на телефоне она уже (владелец, 02.11, мобильный
+                     аудит), а инлайн CSS-у не перебить. */
                 }}
               >
                 <div className={`${s.row} ${s.headRow}`}>

@@ -82,11 +82,14 @@
   min-width: 0;
 }
 
+/* Надпись по центру и рост 44 (владелец, 02.11, мобильный аудит, п.5): с
+   `baseline` слова стояли у верхней кромки 34-пиксельной пилюли, а 34 —
+   ниже цели нажатия. */
 .filter {
   display: inline-flex;
-  align-items: baseline;
+  align-items: center;
   gap: var(--space-2);
-  min-height: var(--control-height-sm);
+  min-height: var(--control-height-md);
   padding: 0 var(--space-4);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-pill);
@@ -147,6 +150,39 @@
   }
 }
 
+/* Телефон (владелец, 02.11, мобильный аудит, пп.3–4).
+   Одна колонка: в двух по 148 px имя и описание резались посреди слова,
+   а строка права «можно брать себе» уходила на две строки.
+   Фильтры — одним рядом с прокруткой вбок: в три ряда они съедали окно
+   каталога до 375 px из 740. */
+@media (max-width: 560px) {
+  /* Колонка экрана не растёт по ряду фильтров: без этого неразрывный ряд
+     раздувал её до 642 px при окне 360. */
+  .screen {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .list {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .filters {
+    flex: 1 1 100%;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+  }
+
+  .filters::-webkit-scrollbar {
+    display: none;
+  }
+
+  .filter {
+    flex: none;
+  }
+}
+
 /* 🔴 Цветной полосы слева у карточки НЕТ (решение владельца 31.08).
    Состояние говорит точка и надпись: двадцать коралловых полос в решётке
    съедали единственный акцент экрана (ПРАВИЛА 5.4). */
@@ -196,6 +232,12 @@
   line-height: var(--leading-snug);
   color: var(--color-text);
   overflow: hidden;
+  /* Две строки и многоточие, а не срез посреди слова (владелец, 02.11,
+     мобильный аудит, п.3): ряд `.words` и так держит ровно две строки. */
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow-wrap: anywhere;
 }
 
 .gives {
@@ -203,6 +245,11 @@
   line-height: var(--leading-snug);
   color: var(--color-text-secondary);
   overflow: hidden;
+  /* То же, что у имени: две строки и многоточие (мобильный аудит, п.3). */
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow-wrap: anywhere;
 }
 
 /* Строка права: одна строка на карточку, всегда. Высота ряда `.words` задана

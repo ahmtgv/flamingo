@@ -34,6 +34,26 @@ export function useОкно(нач: {
   const [место, setМесто] = useState<Место | null>(null)
   const тянем = useRef<{ вид: 'везём' | 'тянем'; мышьX: number; мышьY: number; было: Место } | null>(null)
 
+  /* 🔴 УЗКОЕ ОКНО — ПАНЕЛЬ НЕПОДВИЖНА (владелец, 02.11, мобильный аудит).
+     На телефоне шапка ловила касание как «везти», и одно протяжное движение
+     уводило панель за край вместе с крестиком: от неё оставался уголок в
+     96 px. Ниже 560 px `position: fixed`-панель (переписка, контакты) стоит
+     там, где её ставит CSS (`@media (max-width: 560px)` в Переписка.module.css),
+     — во весь экран; инлайнового места нет, возить и тянуть нечего. Окно урока
+     (`position: absolute`, room/Chat) это не задевает: у него своей узкой
+     раскладки в CSS нет. Граница — та же, что в CSS. */
+  const [узко, setУзко] = useState(() =>
+    typeof window !== 'undefined' && window.matchMedia('(max-width: 560px)').matches)
+  const [плавает, setПлавает] = useState(false)
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 560px)')
+    const смена = () => setУзко(mq.matches)
+    смена()
+    mq.addEventListener('change', смена)
+    return () => mq.removeEventListener('change', смена)
+  }, [])
+  const неподвижно = узко && плавает
+
   /** Размер вмещающего блока: у `position: absolute` — родитель, у `fixed` — окно. */
   const рамка = useCallback(() => {
     const el = узел.current
@@ -46,6 +66,7 @@ export function useОкно(нач: {
 
   const поставить = useCallback((el: HTMLElement | null) => {
     узел.current = el
+    if (el) setПлавает(getComputedStyle(el).position === 'fixed')
     if (!el || место) return
     const { Ш, В } = рамка()
     const ш = Math.min(ширина, Math.max(минШирина, Ш - 2 * отступ))
@@ -100,17 +121,17 @@ export function useОкно(нач: {
   const взять = useCallback((вид: 'везём' | 'тянем') => (e: React.PointerEvent) => {
     /* По кнопке в шапке (закрыть) окно не возят: нажатие должно доехать до неё. */
     if (вид === 'везём' && (e.target as HTMLElement).closest('button, a, input')) return
-    if (!место || e.button !== 0) return
+    if (!место || e.button !== 0 || неподвижно) return
     тянем.current = { вид, мышьX: e.clientX, мышьY: e.clientY, было: место }
     /* Пока тянем, выделение текста мешает и выглядит поломкой. */
     document.body.style.userSelect = 'none'
     window.addEventListener('pointermove', вести)
     window.addEventListener('pointerup', бросить)
-  }, [место, вести, бросить])
+  }, [место, вести, бросить, неподвижно])
 
   useEffect(() => бросить, [бросить])
 
-  const стиль: React.CSSProperties = место
+  const стиль: React.CSSProperties = место && !неподвижно
     ? { left: место.x, top: место.y, width: место.ш, height: место.в, right: 'auto', bottom: 'auto' }
     : {}
 

@@ -141,6 +141,15 @@
   min-width: 0;
 }
 
+/* Телефон: карточка формы с отступом 20, а не 40 — полям оставалось 230 px
+   из 312, переключатель и ссылки ломались на три строки
+   (владелец, 02.11, мобильный аудит, п.6). */
+@media (max-width: 560px) {
+  .card {
+    padding: var(--space-5);
+  }
+}
+
 .code {
   justify-self: start;
   font: var(--weight-medium) var(--text-small) var(--font-mono);
@@ -187,9 +196,12 @@
   color: var(--color-text-detail);
 }
 
+/* Перенесённая ссылка держит левый край, как строка над ней
+   (владелец, 02.11, мобильный аудит, п.10). */
 .signLink {
   display: inline-grid;
-  place-items: center;
+  place-items: center start;
+  text-align: start;
   min-height: var(--tap-min);
   padding: 0;
   border: none;

@@ -31,6 +31,9 @@
     top: var(--space-3);
     bottom: var(--space-3);
     width: auto;
+    /* Владелец, 02.11, мобильный аудит: без этого ширину резал запасной
+       `max-width` (поля по 16) и панель стояла криво — 12 слева, 20 справа. */
+    max-width: none;
   }
 }
 
@@ -271,14 +274,17 @@
    ниже поверхности, рамка обычная, углы не таблеткой. */
 .поле {
   min-width: 0;
-  min-height: var(--control-height-sm);
+  min-height: var(--control-height-md);
   padding: 0 var(--space-3);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-control);
   background: var(--color-field);
   color: var(--color-text);
   font: inherit;
-  font-size: var(--text-small);
+  /* Владелец, 02.11, мобильный аудит: 17, а не 14 — iPhone приближает
+     страницу при фокусе на поле мельче 16 px. И высота как у стрелки
+     рядом (44), а не 34: поле и кнопка «послать» стоят одной строкой. */
+  font-size: var(--text-body);
 }
 
 /* Стрелка. Цель нажатия полная, заливка чернильная — единственная на панели. */
@@ -301,3 +307,16 @@
 }
 
 .поле::placeholder { color: var(--color-text-hint); }
+
+/* Владелец, 02.11, мобильный аудит: на телефоне панель неподвижна
+   (см. ui/окно.ts) — шапка больше не ручка, угла размера нет. Стоит в конце
+   файла нарочно: иначе обычные `.верх` и `.угол` ниже по тексту перебили бы. */
+@media (max-width: 560px) {
+  .верх,
+  .верх:active {
+    cursor: default;
+    touch-action: auto;
+  }
+
+  .угол { display: none; }
+}
