@@ -1,0 +1,10 @@
+/* Selected visual preview. Preserve original DOM for existing demo listeners. */
+.hero.container{padding-top:20px}
+.hero>h1,.hero>.expansion,.hero>.slogan,.hero>.intro,.hero>.system-overview,.hero>.stage{display:none}
+.approved-top-visual{position:relative;width:100%;aspect-ratio:724 / 1108;overflow:hidden;border-radius:16px}
+.approved-top-visual>img{position:absolute;display:block;width:100%;max-width:none;height:auto;left:0;top:-4.33%}
+.approved-self-action{position:absolute;left:68%;top:91.2%;width:25%;height:4.6%;border:0;background:transparent;border-radius:8px}
+.approved-self-action:focus-visible{outline:2px solid var(--green-text);outline-offset:3px}
+.hero>.capabilities{padding-top:28px;border-top:1px solid var(--line);margin-top:20px}
+.header .brand{font-size:22px;letter-spacing:-.035em;gap:9px}
+@media(max-width:800px){.header .brand{font-size:18px}.approved-top-visual{border-radius:10px}}

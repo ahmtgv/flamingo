@@ -1,0 +1,133 @@
+/* Instrument surfaces only. Page, reference typography and hero untouched. */
+.visual-sheet.iv-sheet::before,.visual-sheet.iv-sheet::after{display:none}
+.sheet-face[data-illustrated^="instrument-"]{--iv-moss:#365d42;--iv-ink:#252925;--iv-muted:#5d665e;--iv-rule:#dfe5dd;--iv-tint:#f2f5ef;box-sizing:border-box;height:auto;min-height:420px;min-width:0;display:flex;flex-direction:column;padding:24px;background:#fff;color:var(--iv-ink);overflow:visible;border-radius:20px;box-shadow:0 12px 30px -22px #25372955,0 1px 3px #25372908}
+.module-visual:hover .sheet-face[data-illustrated^="instrument-"]{transform:none;box-shadow:0 12px 30px -22px #25372955,0 1px 3px #25372908}
+.sheet-face[data-illustrated^="instrument-"] h5{flex:none;margin:0 0 22px;line-height:1.35}
+.sheet-face[data-illustrated^="instrument-"] .visual-caption{flex:none;font-size:13px;line-height:1.55;min-height:0;margin:15px 0 0;color:var(--iv-muted)}
+.sheet-face[data-illustrated^="instrument-"] .visual-subtitle{font-size:13px;margin:16px 0 8px}
+.sheet-face[data-illustrated^="instrument-"] .visual-tabs{gap:6px;flex-wrap:nowrap}
+.sheet-face[data-illustrated^="instrument-"] .visual-tab{font-size:13px;min-height:44px;padding:9px 14px;flex:1}
+.iv-graphic{font-size:14px;line-height:1.45;min-width:0;flex:1;display:flex;flex-direction:column;container-type:inline-size}
+.iv-graphic *{box-sizing:border-box}
+.iv-graphic strong{font-weight:600;letter-spacing:-.015em}
+.iv-graphic p{margin:0;font-size:13px;line-height:1.55;color:var(--iv-muted)}
+.iv-graphic button{font:inherit;text-align:left;color:inherit;cursor:pointer;transition:background-color .25s ease,border-color .25s ease,color .25s ease}
+.iv-graphic button:focus-visible{outline:2px solid var(--iv-moss);outline-offset:3px;position:relative;z-index:2}
+.iv-graphic button:hover{border-color:#90a18c}
+.iv-eyebrow{display:block;color:var(--iv-muted);font-size:12px;font-weight:500;line-height:1.4;letter-spacing:.015em}
+.iv-demo{display:block;color:var(--iv-muted);font-size:12px;line-height:1.5;border-top:1px solid var(--iv-rule);padding-top:11px;margin-top:16px}
+.iv-tag{display:inline-block;width:fit-content;padding:4px 8px;border:1px solid var(--iv-rule);border-radius:6px;color:var(--iv-moss);background:#fff;font-size:12px;line-height:1.4}
+.iv-vector{display:block;width:100%;height:auto;overflow:visible}
+.iv-vector path,.iv-vector circle,.iv-vector rect{vector-effect:non-scaling-stroke}
+.iv-ink{fill:none;stroke:var(--iv-moss);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.iv-grid{fill:none;stroke:#e3e8e0;stroke-width:1}
+.iv-drop{fill:none;stroke:#879880;stroke-width:1;stroke-dasharray:3 4}
+.iv-point{fill:var(--iv-moss);stroke:#fff;stroke-width:2}
+/* Observation: a human silhouette, stable signal and contextual interval. */
+.iv-observation{display:grid;grid-template-columns:minmax(120px,.85fr) minmax(0,1.45fr);gap:20px}
+.iv-camera{padding:12px 10px 10px;background:var(--iv-tint);border:1px solid var(--iv-rule);border-radius:12px;min-width:0}
+.iv-portrait{max-height:180px;margin:7px auto 2px}
+.iv-camera-label{display:block;text-align:center;font-size:12px;color:var(--iv-muted)}
+.iv-corner{stroke:#9ba995;stroke-width:1;fill:none}
+.iv-skin{fill:url(#cmf-face-surface);stroke:#a0aaa0;stroke-width:1}
+.iv-face-line{fill:none;stroke:#55644e;stroke-width:1.4;stroke-linecap:round}
+.iv-gaze{fill:#365d42}
+.iv-landmark{fill:none;stroke:#95a58b;stroke-width:1}
+.iv-gaze-ray{fill:none;stroke:#365d42;stroke-width:1;stroke-dasharray:3 4}
+.iv-gaze-target{fill:#365d42;stroke:#fff;stroke-width:2}
+.iv-gaze-projection{transform-origin:90px 72px;transition:transform .3s ease}
+.iv-landmark-points{fill:#93a18b;stroke:#fff;stroke-width:1}
+.iv-signal{padding-top:12px;min-width:0;display:flex;flex-direction:column}
+.iv-timeline{position:relative;margin:19px 0 12px;isolation:isolate}
+.iv-timeline>.iv-vector{position:relative;z-index:1}
+.iv-window{position:absolute;left:19%;width:25%;inset-block:0;background:#e4ecde;border-radius:6px;z-index:0;transition:left .3s ease}
+.iv-signal-mark{transition:transform .3s ease}
+.iv-interval{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px;padding:9px 0;border-top:1px solid var(--iv-rule);font-size:13px}
+.iv-interval>span{color:var(--iv-muted)}
+.iv-explanation{display:flex;align-items:center;gap:7px;padding-top:14px;font-size:13px;color:var(--iv-moss);margin-top:auto}
+.iv-status-dot{width:6px;height:6px;border-radius:50%;background:var(--iv-moss);flex:none}
+.iv-graphic[data-view-context="writing"] .iv-gaze-projection{transform:rotate(25deg)}
+.iv-graphic[data-view-context="writing"] .iv-window{left:44%}
+.iv-graphic[data-view-context="writing"] .iv-signal-mark{transform:translate(70px,33px)}
+.iv-graphic[data-view-context="board"] .iv-gaze-projection{transform:rotate(-53deg)}
+.iv-graphic[data-view-context="board"] .iv-window{left:70%}
+.iv-graphic[data-view-context="board"] .iv-signal-mark{transform:translate(146px,10px)}
+/* Dossier: source-bearing records drive the detail, without invented scores. */
+.iv-dossier-header{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+.iv-dossier-header strong{display:block;font-size:19px;margin-top:3px}
+.sheet-face[data-illustrated^="instrument-"] .iv-dossier-header .visual-subtitle{margin:0;font-size:12px;font-weight:500;color:var(--iv-muted)}
+.iv-avatar{display:grid;place-items:center;width:44px;height:48px;flex:none;background:var(--iv-tint);border:1px solid var(--iv-rule);border-radius:10px;color:var(--iv-moss)}
+.iv-avatar svg{width:30px;fill:none;stroke:currentColor;stroke-width:1.4}
+.iv-facets{display:flex;flex-wrap:wrap;gap:6px;border-bottom:1px solid var(--iv-rule);padding-bottom:16px;margin-bottom:16px}
+.iv-facets span{font-size:12px;border-right:1px solid var(--iv-rule);padding:2px 8px 2px 0;color:#4c5949}
+.iv-facets span:last-child{border:0}
+.iv-dossier-grid{display:grid;grid-template-columns:1.1fr 1fr;gap:16px}
+.iv-history{min-width:0}.iv-records{display:grid;gap:5px;margin-top:10px}
+.iv-record{position:relative;display:flex;align-items:flex-start;gap:8px;width:100%;border:1px solid transparent;border-radius:8px;background:#fff;padding:10px 8px;min-height:60px}
+.iv-record[aria-pressed="true"]{background:var(--iv-tint);border-color:#c8d5bf}
+.iv-record strong{display:block;font-size:13px;line-height:1.4}
+.iv-record small{display:block;font-size:12px;color:var(--iv-muted);margin-top:3px}
+.iv-record-dot{width:7px;height:7px;margin-top:5px;flex:none;border:1px solid #a2af9b;border-radius:50%;background:white}
+.iv-record[aria-pressed="true"] .iv-record-dot{background:var(--iv-moss);border-color:var(--iv-moss)}
+.iv-source{min-width:0;border:0;border-left:2px solid #7c9970;border-radius:0;padding:4px 0 4px 16px;display:flex;flex-direction:column;align-items:flex-start;gap:10px;background:none}
+.iv-source>strong{font-size:15px;overflow-wrap:anywhere}
+.iv-source-footer{font-size:12px;color:var(--iv-muted);padding-top:12px;margin-top:auto;border-top:1px solid var(--iv-rule);width:100%}
+/* Schedule: stable curve; selected period drives its recommendation. */
+.iv-instrument-top{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.iv-rhythm-plot{position:relative;margin-top:20px;padding:10px 0;isolation:isolate}
+.iv-rhythm-plot>svg{position:relative;z-index:1}
+.iv-period-shade{position:absolute;inset-block:0;left:0;width:33.333%;border-radius:8px;background:var(--iv-tint);border:1px solid #e0e8da;transition:left .35s ease}
+.iv-rhythm-point{transition:transform .35s ease}
+.iv-periods{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin:10px 0 18px}
+.iv-periods button{border:1px solid var(--iv-rule);border-radius:9px;padding:10px 4px;text-align:center;background:#fff;font-size:13px;min-height:69px}
+.iv-periods button[aria-pressed="true"]{background:var(--iv-moss);border-color:var(--iv-moss);color:white}
+.iv-period-symbol{display:block;width:20px;margin:0 auto 6px}
+.iv-period-symbol svg{fill:none;stroke:currentColor;stroke-width:1.3;stroke-linecap:round;stroke-linejoin:round}
+.iv-recommendation{padding:16px;border:1px solid var(--iv-rule);border-radius:10px;background:var(--iv-tint);min-height:143px}
+.iv-recommendation>strong{display:block;font-size:17px;margin:6px 0}
+.iv-provenance{display:block;font-size:12px;color:var(--iv-muted);padding-top:12px;margin-top:12px;border-top:1px solid var(--iv-rule)}
+[data-period="rest"] .iv-period-shade{left:33.333%}
+[data-period="rest"] .iv-rhythm-point{transform:translate(90px,58px)}
+[data-period="review"] .iv-period-shade{left:66.666%}
+[data-period="review"] .iv-rhythm-point{transform:translate(262px,18px)}
+/* Research: two kinds of evidence and an explicit unresolved hypothesis. */
+.iv-study-question{border-left:3px solid var(--iv-moss);padding:2px 0 2px 13px}
+.iv-study-question>strong{display:block;font-size:18px;line-height:1.4;margin:5px 0 10px;max-width:340px}
+.iv-research-tabs{display:flex;gap:4px;padding:4px;margin:20px 0 16px;background:var(--iv-tint);border:1px solid var(--iv-rule);border-radius:9px}
+.iv-research-tabs button{flex:1;min-width:0;min-height:44px;border:1px solid transparent;background:none;border-radius:6px;text-align:center;font-size:12px;padding:6px 3px;overflow-wrap:anywhere}
+.iv-research-tabs button[aria-pressed="true"]{background:white;border-color:#cbd5c5;color:var(--iv-moss);box-shadow:0 1px 2px #2638250a}
+.iv-evidence{border-top:1px solid var(--iv-rule);overflow:hidden}
+.iv-evidence-trace,.iv-evidence-report{padding:12px 14px}
+.iv-evidence-trace svg{height:85px;margin-top:7px}
+.iv-evidence-report{border-top:1px solid var(--iv-rule)}
+.iv-evidence-window{fill:#e2ebdb;opacity:0;transition:opacity .3s ease}
+.iv-report-track{display:grid;grid-template-columns:1fr 1fr 1fr;align-items:center;gap:5px;margin-top:9px;font-size:13px;text-align:center}
+.iv-report-track span,.iv-report-track strong{padding:7px 0;border-radius:5px;background:#f4f6f2;font-weight:400}
+.iv-report-track strong{transition:background-color .3s ease,color .3s ease}
+.iv-research-result{display:flex;align-items:flex-start;gap:10px;border-top:1px solid var(--iv-rule);margin-top:16px;padding-top:14px;min-height:90px}
+.iv-result-mark{color:var(--iv-moss);font-size:23px;line-height:1;flex:none}
+.iv-research-result strong{font-size:15px;display:block;margin-bottom:5px}
+[data-stage="comparison"] .iv-evidence-window,[data-stage="refinement"] .iv-evidence-window{opacity:1}
+[data-stage="comparison"] .iv-report-track strong,[data-stage="refinement"] .iv-report-track strong{background:#e2ebdb;color:#294630}
+[data-stage="refinement"] .iv-research-result{border-top-color:#8da17f}
+/* Text reflows as HTML; it never shrinks with the vector viewport. */
+@container(max-width:340px){
+ .iv-facets{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 12px}
+ .iv-facets span{border:0;padding:2px 0}
+ .iv-observation{grid-template-columns:105px minmax(0,1fr);gap:12px}
+ .iv-camera{padding:10px 6px}.iv-signal{padding-top:10px}.iv-timeline{margin-top:22px}
+ .iv-explanation{align-items:flex-start;font-size:12px}.iv-status-dot{margin-top:6px}
+ .iv-dossier-grid{grid-template-columns:1fr;gap:12px}
+ .iv-records{gap:3px}.iv-record{min-height:50px;padding:8px}
+ .iv-source{gap:7px;padding:12px}.iv-source-footer{padding-top:8px}
+ .iv-periods{gap:4px}.iv-periods button{font-size:12px}
+ .iv-research-tabs{flex-direction:column;gap:2px}.iv-research-tabs button{text-align:left;padding:9px 10px;font-size:13px}
+ .iv-study-question>strong{font-size:17px}.iv-recommendation{padding:12px;min-height:0}
+}
+@media(max-width:480px){
+ .sheet-face[data-illustrated^="instrument-"]{padding:16px;min-height:0;border-radius:16px}
+ .sheet-face[data-illustrated^="instrument-"] h5{margin-bottom:18px;font-size:17px}
+ .sheet-face[data-illustrated^="instrument-"] .visual-tab{padding-inline:7px}
+}
+.motion-off .sheet-face[data-illustrated^="instrument-"],.motion-off .iv-graphic *{animation:none!important;transition:none!important}
+@media(prefers-reduced-motion:reduce){.sheet-face[data-illustrated^="instrument-"],.iv-graphic *{animation:none!important;transition:none!important}}
