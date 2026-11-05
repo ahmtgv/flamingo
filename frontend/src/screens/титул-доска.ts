@@ -203,7 +203,7 @@ export function доска(c: HTMLCanvasElement, П: Палитра) {
   }
 
   const кегль = (п: number, в = 500) => { g!.font = `${в} ${п}px ${getComputedStyle(c).fontFamily}` }
-  const моно = (п: number) => { g!.font = `500 ${п}px ui-monospace, monospace` }
+  const моно = (п: number) => { g!.font = `500 ${п}px "JetBrains Mono Variable", "JetBrains Mono", ui-monospace, monospace` }
   /** Надпись рукой: чуть завалена. */
   function надпись(т: string, x: number, y: number, семя = 23, вцентр = false) {
     g!.save(); g!.translate(x, y); g!.rotate(шум(1, семя) * 0.016)
