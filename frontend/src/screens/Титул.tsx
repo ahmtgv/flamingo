@@ -401,9 +401,9 @@ export function Титул({ onSign, onNew, onHub, onCabinet, вошёл = false
             {/* Неразрывный пробел перед тире: на 360 «—» уходило на строку одно
                 (владелец, 02.11, мобильный аудит, п.14). */}
             <h1 className={s.заголовок}>Одна ссылка{' '}—<br />и урок уже начался.</h1>
-            <p className={s.подзаголовок}>Один кабинет — от первого урока до научной степени.</p>
-            <div className={s.двери}>
-              <button type="button" className={s.cta} onClick={вошёл ? onCabinet : молчит ? undefined : onSign} {...(!вошёл ? дверьВхода : {})}>Войти в кабинет</button>
+            <div className={leftAir.heroAction}>
+              <p className={`${s.подзаголовок} ${leftAir.threeLines}`}><span>Один кабинет —</span>{' '}<span>от первого урока</span>{' '}<span>до научной степени.</span></p>
+              <button type="button" className={`${s.cta} ${leftAir.startTile}`} onClick={вошёл ? onCabinet : молчит ? undefined : onSign} {...(!вошёл ? дверьВхода : {})}>Начать учиться</button>
             </div>
           </section>
 
@@ -416,7 +416,10 @@ export function Титул({ onSign, onNew, onHub, onCabinet, вошёл = false
               <div><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 3 4 2-5 10-4-2Z M10 1l4 2-1 2 M7 15l-1 2 M13 8a6 6 0 0 1 1 11H8 M3 22h18 M9 19v3 M3 17h8"/></svg><span>Test &amp; RND</span></div>
             </div>
             <p className={s.sedumDescription}>AI-система: анализ, тестирование, машинное обучение, исследования и поддержка учеников.</p>
-            <a className={s.sedumLink} href="/sedum/">SEduM и исследование<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h16m-6-6 6 6-6 6"/></svg></a>
+            <div className={leftAir.sedumActions}>
+              <a href="/sedum/">Узнать больше о SEduM</a>
+              <a href="/sedum/research-cabinet.html"><span>Войти в SEduM<br />AI System</span></a>
+            </div>
           </section>
 
           <section id="видео" className={s.видео} aria-label="Видео 2020 года">

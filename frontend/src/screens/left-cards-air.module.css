@@ -46,3 +46,28 @@
 .hero>div>button:first-child[aria-disabled='true']:hover{background:var(--г-air-color-_2867a8);color:var(--г-air-color-_fff);cursor:not-allowed;filter:none}
 .hero button:focus-visible{outline:none;box-shadow:none;text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:var(--г-4)}
 @media(max-width:480px){.hero{padding:var(--г-20)}}
+
+/* Owner-approved action tiles, isolated from board and navigation. */
+.hero .heroAction{display:grid;grid-template-columns:minmax(0,1fr) minmax(var(--г-air-size-100px),34%);align-items:center;gap:var(--г-20);margin-top:var(--г-4)}
+.heroAction p{margin:0;font-size:var(--г-15);line-height:var(--г-air-type-1_5);color:var(--г-air-color-_6e6e73);min-width:0}
+.hero .heroAction .startTile{width:100%;height:auto;min-height:0;aspect-ratio:1;box-sizing:border-box;display:flex;align-items:center;justify-content:center;white-space:normal;padding:var(--г-14);border:0;border-radius:var(--г-14);font-size:var(--г-16);line-height:var(--г-air-type-1_35);font-weight:600;background:var(--г-air-color-_2867a8);color:white}
+.hero .heroAction .startTile:hover{background:var(--г-air-color-_20558a);color:white}
+.hero .heroAction .startTile[aria-disabled='true'],.hero .heroAction .startTile[aria-disabled='true']:hover{background:var(--г-air-color-_2867a8);color:white;cursor:not-allowed}
+.pair .sedumActions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--г-12);width:100%;margin-top:0}
+.sedumActions a{display:flex;align-items:center;justify-content:center;text-align:center;min-width:0;min-height:var(--г-air-size-72px);aspect-ratio:1.75;padding:var(--г-12);border:0;border-radius:var(--г-12);background:var(--г-air-color-_496d4c);color:white;font-size:var(--г-14);line-height:var(--г-air-type-1_4);font-weight:600;text-decoration:none;overflow-wrap:normal}
+.sedumActions a:hover{background:var(--г-air-color-_3c5d3f);color:white}
+.sedumActions a:active{background:var(--г-air-color-_304c33);color:white}
+.sedumActions a:focus-visible,.startTile:focus-visible{outline:none;box-shadow:none;text-decoration:underline;text-underline-offset:var(--г-4);text-decoration-thickness:2px}
+:global([data-theme='dark']) .heroAction p{color:var(--г-air-color-_b3b3b8)}
+@media(max-width:480px){.hero .heroAction{gap:var(--г-14);grid-template-columns:minmax(0,1fr) minmax(var(--г-air-size-96px),36%)}.heroAction p{font-size:var(--г-14)}.hero .heroAction .startTile{font-size:var(--г-14);padding:var(--г-10)}.sedumActions a{font-size:var(--г-13);padding:var(--г-10);min-height:var(--г-air-size-90px);aspect-ratio:1.5}.pair .sedumActions{gap:var(--г-10)}}
+
+/* Match the hero action exactly to one SEduM tile on every viewport. */
+.hero{padding:var(--г-24) var(--г-26);border:1px solid var(--г-air-color-_d9d9d6)}
+.sedumActions a{box-sizing:border-box;width:100%}
+.hero .heroAction{grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--г-12);align-items:stretch}
+.hero .heroAction .startTile{aspect-ratio:1.75;min-height:var(--г-air-size-72px);border-radius:var(--г-12);font-size:var(--г-14);line-height:var(--г-air-type-1_4);padding:var(--г-12)}
+.heroAction .threeLines{display:block;align-self:center;font-size:var(--г-15);line-height:var(--г-air-type-1_5);font-weight:400;padding:0;margin:0}
+.threeLines span{display:block;white-space:normal}
+.sedumActions a:first-child{background:var(--г-air-color-_2867a8);color:white}
+.sedumActions a:first-child:hover,.sedumActions a:first-child:active{background:var(--г-air-color-_20558a);color:white}
+@media(max-width:480px){.hero{padding:var(--г-20)}.hero .heroAction{gap:var(--г-10);grid-template-columns:repeat(2,minmax(0,1fr))}.hero .heroAction .startTile{font-size:var(--г-13);min-height:var(--г-air-size-90px);aspect-ratio:1.5;padding:var(--г-10)}.heroAction .threeLines{font-size:var(--г-15);line-height:var(--г-air-type-1_5)}}

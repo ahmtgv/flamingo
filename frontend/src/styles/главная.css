@@ -183,3 +183,33 @@
   --г-air-color-_20558a: #20558a;
   --г-air-type-_025em: .025em;
 }
+
+/* Approved home preview literals, tokenized without visual changes for release. */
+:root {
+  --г-air-color-_fff: #fff;
+  --г-air-color-_d9d9d6: #d9d9d6;
+  --г-air-color-_1d1d1f: #1d1d1f;
+  --г-air-color-_6e6e73: #6e6e73;
+  --г-air-color-_496d4c: #496d4c;
+  --г-air-color-_3c5d3f: #3c5d3f;
+  --г-air-color-_e9e9e6: #e9e9e6;
+  --г-air-color-_1a1a1c: #1a1a1c;
+  --г-air-color-_2e2e31: #2e2e31;
+  --г-air-color-_f2f2f0: #f2f2f0;
+  --г-air-color-_b3b3b8: #b3b3b8;
+  --г-air-color-_28282b: #28282b;
+  --г-air-color-_98989e: #98989e;
+  --г-air-color-_2867a8: #2867a8;
+  --г-air-color-_20558a: #20558a;
+  --г-air-color-_304c33: #304c33;
+  --г-air-size-100px: 100px;
+  --г-air-size-72px: 72px;
+  --г-air-size-96px: 96px;
+  --г-air-size-90px: 90px;
+  --г-air-type-1_15: 1.15;
+  --г-air-type-__035em: -.035em;
+  --г-air-type-1_5: 1.5;
+  --г-air-type-1_4: 1.4;
+  --г-air-type-_025em: .025em;
+  --г-air-type-1_35: 1.35;
+}
