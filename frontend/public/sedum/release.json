@@ -1,1 +1,1 @@
-{"release":"sedum-2026-11-05","base":"45d1c63e67a2355710e22b42c119b64b8f0cfe00","routes":["/","/sedum/"],"backendChanged":false}
+{"release":"sedum-2026-11-06-cards-cabinet","base":"27f2dbbbac8fc3f6205bf1d63a7a7426fdc569ca","routes":["/","/sedum/","/sedum/research-cabinet.html"],"backendChanged":false}
