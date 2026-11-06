@@ -33,6 +33,8 @@ export function Звуки({ faces }: { faces: Face[] }) {
   return (
     <>
       {faces.map((f) => (f.audio && !f.isLocal ? <Голос key={`${f.identity}-${f.audio.sid ?? ''}`} track={f.audio} /> : null))}
+      {/* Звук вкладки, которую показывает преподаватель (вариант Б, 06.11). */}
+      {faces.map((f) => (f.screenAudio && !f.isLocal ? <Голос key={`${f.identity}-экран-${f.screenAudio.sid ?? ''}`} track={f.screenAudio} /> : null))}
     </>
   )
 }
