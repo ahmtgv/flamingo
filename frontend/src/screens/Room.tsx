@@ -632,18 +632,6 @@ export function Room({ code, name, onLeave, onHome }: Props) {
     bus.send({ t: 'stage', source: 'screen' })
   }, [bus, toggleShare])
 
-  /** Показать классу вкладку с сайтом (вариант Б, 06.11): тот же показ экрана,
-   *  но окно выбора открыто на вкладках и звук вкладки едет классу. */
-  const shareTab = useCallback(async () => {
-    /* Уже показываем — второй показ не начинаем: переключить вкладку можно
-       кнопкой браузера «Поделиться этой вкладкой» (surfaceSwitching). */
-    if (sharing) { setSource('screen'); return }
-    const пошло = await toggleShare({ вкладка: true })
-    if (!пошло) return
-    setSource('screen')
-    bus.send({ t: 'stage', source: 'screen' })
-  }, [bus, sharing, toggleShare])
-
   const stopShare = useCallback(async () => {
     await toggleShare()
     pick('faces')
@@ -835,7 +823,6 @@ export function Room({ code, name, onLeave, onHome }: Props) {
             lead={iLead}
             видео={видеоКласса}
             onВидео={отправитьВидео}
-            onВкладкой={shareTab}
             marks={iLead ? liveInk : (wireInk[-1] ?? [])}
             onMark={onLiveMark}
             onUndo={onLiveUndo}

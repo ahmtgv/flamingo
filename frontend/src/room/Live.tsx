@@ -46,7 +46,7 @@ function embedOf(raw: string): { kind: Kind; src: string; ютуб?: boolean } {
 }
 
 export function Live({
-  sourceId, url, имя, lead, видео, onВидео, onВкладкой, marks, onMark, onUndo, onWipe, onClose,
+  sourceId, url, имя, lead, видео, onВидео, marks, onMark, onUndo, onWipe, onClose,
 }: {
   sourceId: string
   url: string
@@ -57,8 +57,6 @@ export function Live({
   видео?: { с: СловоВидео; когда: number } | null
   /** Ведущий говорит классу, что у него с роликом. */
   onВидео?: (с: СловоВидео) => void
-  /** Показать сайт классу вкладкой браузера — только у ведущего (вариант Б). */
-  onВкладкой?: () => void
   /** Пометки поверх трансляции. Живут, пока живёт источник. */
   marks: Ink[]
   onMark: (m: Ink, final: boolean) => void
@@ -161,7 +159,7 @@ export function Live({
         {/* Витрина рисует себя сама и в обёртку не заворачивается: обёртка на
             всю высоту сдвигала её текст под пульт. Слой пометок в этом случае
             ложится по содержимому коробки. */}
-        {e.kind === 'link' ? <Vitrina url={e.src} name={подпись} onВкладкой={lead ? onВкладкой : undefined} /> : null}
+        {e.kind === 'link' ? <Vitrina url={e.src} name={подпись} /> : null}
 
         {/* У ученика ролик не нажимается: крышка забирает нажатия, пока
             маркер не нужен (у ученика маркера нет вовсе). */}

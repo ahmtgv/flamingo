@@ -30,8 +30,6 @@ export type Face = {
   /** Экран, которым человек делится. Отдельная дорожка, а не подмена камеры:
    *  лицо и экран нужны одновременно — «смотрите сюда» без лица не работает. */
   screen?: Track
-  /** Звук показанной вкладки (вариант Б, 06.11): играет классу, как голос. */
-  screenAudio?: Track
   speaking: boolean
   camOn: boolean
   micOn: boolean
@@ -71,7 +69,6 @@ function faceOf(p: any, isLocal: boolean): Face {
   const cam = pub(p, 'camera')
   const mic = pub(p, 'microphone')
   const scr = pub(p, 'screen_share')
-  const scrЗвук = pub(p, 'screen_share_audio')
   return {
     identity: p.identity,
     name: p.name || p.identity,
@@ -79,7 +76,6 @@ function faceOf(p: any, isLocal: boolean): Face {
     video: cam?.track ?? undefined,
     audio: isLocal ? undefined : (mic?.track ?? undefined),
     screen: scr?.track ?? undefined,
-    screenAudio: isLocal ? undefined : (scrЗвук?.track ?? undefined),
     speaking: Boolean(p.isSpeaking),
     camOn: Boolean(cam && !cam.isMuted),
     micOn: Boolean(mic && !mic.isMuted),
@@ -402,20 +398,13 @@ export function useRoom(code: string, name: string, { приниматьВним
    *
    *  Браузер сам спросит, чем делиться: окном, вкладкой или всем экраном. Отказ
    *  человека — не отказ продукта: говорим словами и продолжаем урок. */
-  const toggleShare = useCallback(async (опции?: { вкладка?: boolean }) => {
+  const toggleShare = useCallback(async () => {
     const room = roomRef.current
     if (!room) return
     const next = !sharing
     setShareSaid('')
     try {
-      /* 🔴 ВКЛАДКА СО ЗВУКОМ — ОТДЕЛЬНЫЙ ПУТЬ (владелец, 06.11, вариант Б:
-         «показ сайтов, которые не встраиваются, — вкладкой в браузере»).
-         Окно выбора сразу открывается на вкладках, свою вкладку урока в нём не
-         предлагает, а звук вкладки (ролик на сайте) едет классу. Обычный
-         «Мой экран» не тронут: как был — без звука (правило трёх). */
-      await room.localParticipant.setScreenShareEnabled(next, next && опции?.вкладка
-        ? { audio: true, video: { displaySurface: 'browser' }, selfBrowserSurface: 'exclude', surfaceSwitching: 'include', systemAudio: 'exclude' }
-        : { audio: false })
+      await room.localParticipant.setScreenShareEnabled(next, { audio: false })
       setSharing(next)
       return next
     } catch (e) {
