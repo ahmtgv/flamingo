@@ -129,7 +129,7 @@ export function Live({
   const файл = useФайлВидео(медиа as React.RefObject<HTMLVideoElement | null>, e.kind === 'video', url)
   const плеер = e.ютуб ? ютуб : файл
   useВедуВидео(плеер, url, ведём && lead && Boolean(onВидео), onВидео ?? (() => undefined))
-  const безЗвука = useСледуюВидео(плеер, url, ведём && !lead, видео ?? null)
+  const ученик = useСледуюВидео(плеер, url, ведём && !lead, видео ?? null)
   const адресРамки = e.ютуб
     ? `${e.src}?enablejsapi=1&playsinline=1&rel=0&origin=${encodeURIComponent(window.location.origin)}${lead ? '' : '&controls=0&disablekb=1'}`
     : e.src
@@ -164,9 +164,13 @@ export function Live({
         {/* У ученика ролик не нажимается: крышка забирает нажатия, пока
             маркер не нужен (у ученика маркера нет вовсе). */}
         {ведём && !lead ? <div className={s.крышка} title="Видео ведёт преподаватель" aria-hidden /> : null}
-        {безЗвука ? (
-          <button type="button" className={s.звук} onClick={() => плеер.соЗвуком()}>
-            Включить звук
+        {/* 🔴 КНОПКА УЧЕНИКА (06.11). Учитель играет, а ролик ученика стоит:
+            браузер не дал запустить без нажатия или плеер не ответил. Нажатие —
+            это и есть разрешение браузера: играем со звуком с места учителя.
+            Без звука играет — та же кнопка со словами «Включить звук». */}
+        {ученик.застрял || ученик.безЗвука ? (
+          <button type="button" className={s.звук} onClick={ученик.смотреть}>
+            {ученик.застрял ? 'Смотреть вместе с классом' : 'Включить звук'}
           </button>
         ) : null}
 
