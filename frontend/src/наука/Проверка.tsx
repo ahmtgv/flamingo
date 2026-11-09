@@ -866,7 +866,7 @@ export function Сцена({ фаза, сценарий, t, осталось, т
     case 'вопрос':
       return (
         <Посередине>
-          <div className={`${s.листок} ${s.вопрос}`}>
+          <div className={`${s.листок} ${s.вопрос}`} data-research-answer>
             <span className={s.бровь}>{шаг.текст}</span>
             <p className={s.вопросТекст}>{с.текст}</p>
             <span className={s.тихо}>{шаг.подробно}</span>
@@ -901,7 +901,7 @@ export function Сцена({ фаза, сценарий, t, осталось, т
 function Урок({ шаг, t, отметить, закончитьУрок }: { шаг: Шаг; t: number; отметить?: () => void; закончитьУрок?: () => void }) {
   const [отмечено, setОтмечено] = useState(0)
   return (
-    <Посередине><div className={`${s.листок} ${s.вопрос}`}>
+    <Посередине><div className={`${s.листок} ${s.вопрос}`} data-research-answer>
       <span className={s.бровь}>{шаг.текст}</span>
       <p className={s.тихо}>{шаг.подробно}</p>
       <span className={`${s.моно} ${s.вопросТекст}`}>{ммсс(шаг.сек - t)}</span>
@@ -1151,7 +1151,7 @@ export function ГдеВнимание({ onОтвет }: { onОтвет: (где
   const [где, setГде] = useState<string | null>(null)
   const [собран, setСобран] = useState<number | null>(null)
   return (
-    <div className={s.вопросПоверх} role="dialog" aria-label="Где было внимание">
+    <div className={s.вопросПоверх} role="dialog" aria-label="Где было внимание" data-research-answer>
       <div className={`${s.листок} ${s.вопросКарта}`}>
         <Выбор столбцом крупно подпись="Где было ваше внимание прямо перед этим вопросом?" значение={где} onВыбор={setГде}
           варианты={ГДЕ_ВНИМАНИЕ.map((в) => ({ ключ: в.ключ, слова: в.слова }))} />
@@ -1176,7 +1176,7 @@ export function Понимание({ текст, onОтвет }: { текст: s
   }, [т, выбор, onОтвет])
   if (!т) return null
   return (
-    <div className={s.понимание}>
+    <div className={s.понимание} data-research-answer>
       <div className={s.шапкаТекста}>
         <h2 className={`${s.заголовок} ${s.наБелом}`}>Три вопроса о тексте «{т.название}»</h2>
       </div>
