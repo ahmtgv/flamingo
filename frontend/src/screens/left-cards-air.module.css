@@ -71,3 +71,6 @@
 .sedumActions a:first-child{background:var(--г-air-color-_2867a8);color:white}
 .sedumActions a:first-child:hover,.sedumActions a:first-child:active{background:var(--г-air-color-_20558a);color:white}
 @media(max-width:480px){.hero{padding:var(--г-20)}.hero .heroAction{gap:var(--г-10);grid-template-columns:repeat(2,minmax(0,1fr))}.hero .heroAction .startTile{font-size:var(--г-13);min-height:var(--г-air-size-90px);aspect-ratio:1.5;padding:var(--г-10)}.heroAction .threeLines{font-size:var(--г-15);line-height:var(--г-air-type-1_5)}}
+/* На самом узком телефоне сохраняем три строки без уменьшения кегля:
+   действие переносится под подпись, остальные размеры не меняются. */
+@media(max-width:359px){.hero .heroAction{grid-template-columns:minmax(0,1fr)}.hero .heroAction .startTile{width:calc((100% - var(--г-10))/2);justify-self:end}}
