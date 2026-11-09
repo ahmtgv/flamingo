@@ -13,7 +13,7 @@
  *  по той же причине.
  */
 
-/** Отправить. Стрелка вверх — как в строке ввода у Cursor (образец владельца). */
+/** Отправить. Стрелка вверх — как в строке ввода у образца пергамента (выбор владельца). */
 export const СТРЕЛКА = (
   <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor"
        strokeWidth="1.4" vectorEffect="non-scaling-stroke" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
