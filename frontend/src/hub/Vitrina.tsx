@@ -31,6 +31,9 @@ export function Vitrina({ url, name }: { url: string; name: string }) {
       />
       <div className={s.foot}>
         <span className={s.host}>{host}</span>
+        <a className={s.external} href={url} target="_blank" rel="noopener noreferrer">
+          Открыть источник в новой вкладке ↗
+        </a>
         <span className={s.why}>
           Пусто? Значит сайт запрещает показ у себя внутри рамки — это его право,
           а не наша поломка. Покажите его экраном или дайте адрес классу.

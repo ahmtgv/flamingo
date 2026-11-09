@@ -1,0 +1,61 @@
+/* All presentation is scoped to the one CMF illustration. */
+#cmf .cmf-photo-surface{padding:24px;container-type:inline-size}
+#cmf .cmf-photo-surface h5{margin-bottom:12px}
+#cmf .cmf-scan{font-family:var(--font);min-width:0}
+#cmf .cmf-scan-toolbar{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:14px}
+#cmf .cmf-mode{display:flex;align-items:center;gap:7px;font-size:12px;color:#526653;line-height:1.4}
+#cmf .cmf-mode i{width:6px;height:6px;border-radius:50%;background:#426b4d;flex:none}
+#cmf .cmf-pause{display:flex;align-items:center;gap:5px;min-height:44px;border:1px solid #e1e6de;border-radius:8px;background:#fff;padding:6px 10px;font-size:12px;color:#394b3c}
+#cmf .cmf-pause:hover:not(:disabled){background:#f4f7f1;border-color:#9aac96}
+#cmf .cmf-pause svg{width:17px;height:17px;stroke:currentColor;stroke-width:1.4}
+#cmf .cmf-pause:disabled{opacity:.7}
+#cmf .cmf-scan-main{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:18px;align-items:stretch}
+#cmf .cmf-camera{position:relative;aspect-ratio:3/4;margin:0;align-self:start;overflow:hidden;border-radius:12px;background:#e4e6df;isolation:isolate}
+#cmf .cmf-camera img{display:block;width:100%;height:100%;object-fit:cover}
+#cmf .cmf-face-overlay{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+#cmf .cmf-face-overlay path,#cmf .cmf-face-overlay circle{vector-effect:non-scaling-stroke}
+#cmf .cmf-reticle{fill:none;stroke:#f2fff1;stroke-width:1;opacity:.72}
+#cmf .cmf-face-mesh{fill:none;stroke:#f3fff1;stroke-width:.55;opacity:.38}
+#cmf .cmf-mesh-nodes{fill:#f3fff0;opacity:.6}
+#cmf .cmf-mesh-flow{fill:none;stroke:#f3fff1;stroke-width:.8;opacity:.5;stroke-linecap:round}
+#cmf .cmf-eye-contours{fill:none;stroke:#f4fff0;stroke-width:.75;opacity:.42;stroke-dasharray:12 6}
+#cmf .cmf-eye-centres{fill:none;stroke:#f6fff5;stroke-width:.7;opacity:.85}
+#cmf .cmf-scan-line{stroke:#edffe7;stroke-width:1;opacity:.8}
+#cmf .cmf-scan-edges{stroke:#e9ffe1;stroke-width:1.5}
+#cmf .cmf-ruler{fill:none;stroke:#f7fff3;stroke-width:.8;opacity:.7}
+#cmf .cmf-camera figcaption{position:absolute;inset:auto 0 0;display:flex;justify-content:space-between;gap:7px;padding:25px 12px 12px;background:linear-gradient(transparent,#18271c80);color:white;font-size:10px;line-height:1.4;letter-spacing:.015em}
+#cmf .cmf-metrics{margin:0;display:grid;grid-template-rows:repeat(4,minmax(0,1fr));gap:8px;min-width:0}
+#cmf .cmf-metric{display:flex;flex-direction:column;justify-content:space-between;border-bottom:1px solid #e8ece5;min-width:0;padding-bottom:6px}
+#cmf .cmf-metric:last-child{border:0;padding-bottom:0}
+#cmf .cmf-metric dt{font-size:13px;line-height:1.35;font-weight:600;color:#303b32}
+#cmf .cmf-metric dt small{display:block;font-size:11px;line-height:1.4;font-weight:400;color:#677267;margin-top:3px}
+#cmf .cmf-metric dd{margin:4px 0;display:flex;align-items:baseline;gap:4px;font-size:24px;line-height:1.1;letter-spacing:-.035em;font-weight:500;font-variant-numeric:tabular-nums;color:#284c32}
+#cmf .cmf-metric dd small{font-size:11px;letter-spacing:0;font-weight:400;color:#667364}
+#cmf .cmf-meter{height:3px;flex-shrink:0;background:#e9eee5;border-radius:2px;overflow:hidden}
+#cmf .cmf-meter i{height:100%;width:100%;display:block;background:#8ca585;transform-origin:left}
+#cmf .cmf-trend{margin-top:19px}
+#cmf .cmf-trend-label{display:flex;justify-content:space-between;gap:10px;font-size:11px;line-height:1.4;color:#637060}
+#cmf .cmf-trend svg{width:100%;height:65px;display:block;margin-top:7px;overflow:visible}
+#cmf .cmf-trend-grid{stroke:#e9ede6;stroke-width:1;fill:none}
+#cmf .cmf-trend-path{stroke:#496d4c;stroke-width:1.6;fill:none;stroke-linejoin:round;stroke-linecap:round}
+#cmf .cmf-trend-fill{fill:#cbdcbe;opacity:.22}
+#cmf .cmf-trend-point{fill:#416645;stroke:white;stroke-width:1.4}
+#cmf .cmf-scan-disclaimer{font-size:11px;line-height:1.5;color:#606b60;border-top:1px solid #e5eae1;margin:8px 0 0;padding-top:10px}
+#cmf .cmf-photo-surface .visual-subtitle{margin-top:15px}
+#cmf .cmf-photo-surface .visual-caption{font-size:12px;line-height:1.55}
+#cmf .cmf-is-paused .cmf-mode i{background:#8a9486}
+#cmf .cmf-image-unavailable .cmf-face-overlay{display:none}
+#cmf .cmf-image-unavailable .cmf-camera img{font-size:14px;padding:12px}
+@container(max-width:460px){
+ #cmf .cmf-scan-main{grid-template-columns:1fr;gap:16px}
+ #cmf .cmf-metrics{grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:repeat(2,auto);gap:16px}
+ #cmf .cmf-metric{padding-bottom:10px}
+ #cmf .cmf-metric:last-child{border-bottom:1px solid #e8ece5;padding-bottom:10px}
+ #cmf .cmf-camera figcaption{font-size:12px}
+}
+@media(max-width:480px){#cmf .cmf-photo-surface{padding:16px}}
+@media(prefers-reduced-motion:reduce){#cmf .cmf-scan *{animation:none!important;transition:none!important}}
+.motion-off #cmf .cmf-scan *{animation:none!important;transition:none!important}
+#cmf .cmf-self-invite{margin-top:18px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+#cmf .cmf-self-invite .button{font-size:14px;padding:11px 16px}
+#cmf .cmf-self-invite p{font-size:12px;line-height:1.5;color:#606b60;margin:0}

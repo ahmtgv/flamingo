@@ -3,6 +3,7 @@ import { useEffect, useId, useRef, useState } from 'react'
 import { RIGHTS, SOURCES } from '../hub/sources'
 import '../styles/главная.css'
 import s from './Титул.module.css'
+import leftAir from './left-cards-air.module.css'
 import { доска, палитра } from './титул-доска'
 
 /** Титул — главная flamingo.plus. Редизайн утверждён владельцем 31.10.2026.
@@ -190,7 +191,7 @@ const ЗНАК_ПУСКА = (
   <svg width="20" height="22" viewBox="0 0 12 14" aria-hidden="true"><path d="M1.5 1v12l10-6z" fill="#fff" /></svg>
 )
 
-export function Титул({ onSign, onNew, onHub, onТесты, onCabinet, вошёл = false, молчит = false, onAgain }: {
+export function Титул({ onSign, onNew, onHub, onCabinet, вошёл = false, молчит = false }: {
   onSign: () => void
   /** Отдельная дверь: «завести» и «войти» — разные намерения (ПРАВИЛА 12.4). */
   onNew: () => void
@@ -211,6 +212,7 @@ export function Титул({ onSign, onNew, onHub, onТесты, onCabinet, во
      середине экрана… фон заблюривается, как ликвид гласс»). */
   const [играет, setИграет] = useState<Ролик | null>(null)
   const кино = useRef<HTMLVideoElement>(null)
+  const диалог = useRef<HTMLDivElement>(null)
   const [идёт, setИдёт] = useState(false)
   const [сек, setСек] = useState(0)
   const [длина, setДлина] = useState(0)
@@ -219,10 +221,30 @@ export function Титул({ onSign, onNew, onHub, onТесты, onCabinet, во
   useEffect(() => {
     setСек(0); setДлина(0); setИдёт(false)
     if (!играет) return
-    const esc = (e: KeyboardEvent) => { if (e.key === 'Escape') setИграет(null) }
+    const окно = диалог.current
+    if (!окно) return
+    const прежнийФокус = document.activeElement instanceof HTMLElement ? document.activeElement : null
+    const фон = Array.from(окно.parentElement?.parentElement?.children ?? [])
+      .filter((el): el is HTMLElement => el instanceof HTMLElement && el !== окно.parentElement)
+    const прежнийInert = фон.map(el => el.inert)
+    фон.forEach(el => { el.inert = true })
+    const кнопки = () => Array.from(окно.querySelectorAll<HTMLElement>('button:not(:disabled), input:not(:disabled), [tabindex="0"]'))
+    const esc = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') { e.preventDefault(); setИграет(null) }
+      if (e.key === 'Tab') {
+        const все = кнопки(), первый = все[0], последний = все[все.length - 1]
+        if (!первый) { e.preventDefault(); окно.focus(); return }
+        if (e.shiftKey && (document.activeElement === первый || document.activeElement === окно)) { e.preventDefault(); последний.focus() }
+        else if (!e.shiftKey && (document.activeElement === последний || !окно.contains(document.activeElement))) { e.preventDefault(); первый.focus() }
+      }
+    }
     window.addEventListener('keydown', esc)
-    кино.current?.focus()
-    return () => window.removeEventListener('keydown', esc)
+    кнопки()[0]?.focus()
+    return () => {
+      window.removeEventListener('keydown', esc)
+      фон.forEach((el, i) => { el.inert = прежнийInert[i] })
+      if (прежнийФокус?.isConnected) прежнийФокус.focus({ preventScroll: true })
+    }
   }, [играет])
 
   /* ── доска: четыре сцены рисуются сами, взяли перо — молчат ─────────────
@@ -374,43 +396,29 @@ export function Титул({ onSign, onNew, onHub, onТесты, onCabinet, во
       <main className={s.стол}>
         {/* ── левая колонка ───────────────────────────────────────────── */}
         <div className={s.левая}>
-          <section id="верх" className={s.карточка}>
+          <section id="верх" className={`${s.карточка} ${leftAir.hero}`}>
             <span className={s.кикер}>Живой урок · образование без скуки</span>
             {/* Неразрывный пробел перед тире: на 360 «—» уходило на строку одно
                 (владелец, 02.11, мобильный аудит, п.14). */}
             <h1 className={s.заголовок}>Одна ссылка{' '}—<br />и урок уже начался.</h1>
-            <p className={s.подзаголовок}>Один кабинет — от первого урока до научной степени.</p>
-            <div className={s.двери}>
-              {вошёл ? (
-                <button type="button" className={s.cta} onClick={onCabinet}>Войти в кабинет</button>
-              ) : (
-                <>
-                  <button type="button" className={s.cta} onClick={молчит ? undefined : onNew} {...дверьВхода}>Завести учётную запись</button>
-                  <button type="button" className={s.вторая} onClick={молчит ? undefined : onSign} {...дверьВхода}>Войти</button>
-                </>
-              )}
+            <div className={leftAir.heroAction}>
+              <p className={`${s.подзаголовок} ${leftAir.threeLines}`}><span>Один кабинет —</span>{' '}<span>от первого урока</span>{' '}<span>до научной степени.</span></p>
+              <button type="button" className={`${s.cta} ${leftAir.startTile}`} onClick={вошёл ? onCabinet : молчит ? undefined : onSign} {...(!вошёл ? дверьВхода : {})}>Начать учиться</button>
             </div>
-            {молчит ? (
-              <p className={s.облачко} role="status">
-                Сервер учётных записей молчит — войти сейчас нельзя. Доска и источники работают.
-                {onAgain ? <button type="button" className={s.снова} onClick={onAgain}>Спросить ещё раз</button> : null}
-              </p>
-            ) : null}
           </section>
 
-          <section id="тесты" className={s.тесты} aria-label="Тестирование">
-            <svg width="52" height="52" viewBox="0 0 52 52" aria-hidden="true" className={s.нейро}>
-              <defs><linearGradient id={`${uid}-gml`} x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#7d5cff" /><stop offset="1" stopColor="#ff5e8a" /></linearGradient></defs>
-              <rect width="52" height="52" rx="13" fill={`url(#${uid}-gml)`} />
-              <g stroke="#fff" strokeOpacity="0.55" strokeWidth="1.4"><path d="M14 16 L26 26 M14 26 L26 26 M14 36 L26 26 M26 26 L38 18 M26 26 L38 34 M14 16 L26 14 M14 36 L26 38 M26 14 L38 18 M26 38 L38 34" /></g>
-              <g fill="#fff"><circle cx="14" cy="16" r="3.2" /><circle cx="14" cy="26" r="3.2" /><circle cx="14" cy="36" r="3.2" /><circle cx="26" cy="14" r="3.2" /><circle cx="26" cy="26" r="4.2" /><circle cx="26" cy="38" r="3.2" /><circle cx="38" cy="18" r="3.2" /><circle cx="38" cy="34" r="3.2" /></g>
-            </svg>
-            <div className={s.тестыТекст}>
-              <span className={s.тестыШапка}><span className={s.тестыЗаголовок}>Примите участие в тестировании</span><span className={s.бета}>Важно для науки</span></span>
-              <span className={s.тестыОписание}>Примите, пожалуйста, участие в машинном обучении — помогите проекту обучить наши нейросети</span>
-              {onТесты
-                ? <button type="button" className={s.ссылка} onClick={onТесты}>Перейти к тестам ›</button>
-                : <button type="button" className={s.ссылка} data-still="на стенде двери нет; в продукте ведёт в исследование внимания" aria-disabled="true">Перейти к тестам ›</button>}
+          <section id="тесты" className={`${s.тесты} ${s.sedumCard} ${leftAir.pair}`} aria-labelledby="sedum-card-title">
+            <div className={s.sedumHeading}><h2 id="sedum-card-title">SEduM AI System</h2><p>Support Education Monitoring</p></div>
+            <div className={s.sedumModules} aria-label="Четыре модуля SEduM">
+              <div><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg><span>CMF</span></div>
+              <div><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="7" r="4"/><path d="M4 21v-2a8 8 0 0 1 16 0v2Z"/></svg><span>BioProfile</span></div>
+              <div><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12h5l3-8 4 16 3-8h5"/></svg><span>Bioimef</span></div>
+              <div><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 3 4 2-5 10-4-2Z M10 1l4 2-1 2 M7 15l-1 2 M13 8a6 6 0 0 1 1 11H8 M3 22h18 M9 19v3 M3 17h8"/></svg><span>Test &amp; RND</span></div>
+            </div>
+            <p className={s.sedumDescription}>AI-система: анализ, тестирование, машинное обучение, исследования и поддержка учеников.</p>
+            <div className={leftAir.sedumActions}>
+              <a href="/sedum/">Узнать больше о SEduM</a>
+              <a href="/sedum/research-cabinet.html"><span>Войти в SEduM<br />AI System</span></a>
             </div>
           </section>
 
@@ -531,7 +539,7 @@ export function Титул({ onSign, onNew, onHub, onТесты, onCabinet, во
 
       {играет ? (
         <div className={s.стекло} onClick={() => setИграет(null)} role="presentation">
-          <div className={s.окноВидео} role="dialog" aria-modal="true" aria-label={играет.имя} onClick={(e) => e.stopPropagation()}>
+          <div ref={диалог} tabIndex={-1} className={s.окноВидео} role="dialog" aria-modal="true" aria-label={играет.имя} onClick={(e) => e.stopPropagation()}>
             {/* Без встроенного управления: его полоса легла бы НА кадр, а владелец
                 просил таймлайн под роликом; и чёрных полей нет — окно берёт
                 пропорции самого видео. */}

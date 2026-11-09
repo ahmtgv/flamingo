@@ -1,0 +1,10 @@
+/* Motion-only hooks. Individual translate composes with existing transforms
+   and ancestor pointer tilt; no layout, typography or global overrides. */
+.sedum-motion-panel {
+  translate: 0 var(--sedum-motion-y, 0px);
+  opacity: var(--sedum-motion-opacity, 1);
+}
+
+.sedum-motion-node {
+  opacity: var(--sedum-motion-node-opacity, .86);
+}

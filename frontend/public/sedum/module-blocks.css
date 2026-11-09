@@ -1,0 +1,25 @@
+/* Content hierarchy: owner-provided summaries, preserved smaller detail lists. */
+.module-wide-heading{grid-column:1 / -1;grid-row:1;min-width:0}
+.module-wide-heading h3{font-size:40px;line-height:1.2;letter-spacing:-.035em;margin:0}
+.module-wide-heading h4{font-size:25px;line-height:1.3;margin:0 0 18px}
+.module-wide-heading .module-summary{margin-bottom:0;max-width:none}
+.module-section.module-wide-intro{align-items:stretch}
+.module-section.module-wide-intro .module-copy{grid-row:2;display:flex;flex-direction:column;justify-content:space-between}
+.module-wide-intro .feature-list{border:0;padding-top:0}
+.module-wide-intro .module-label{align-self:flex-start}
+.module-section.module-wide-intro .cmf-pitchdeck{grid-row:2;display:flex;flex-direction:column;justify-content:space-between}
+#cmf.module-wide-intro .module-visual{grid-row:3}
+@media(max-width:800px){.module-section.module-wide-intro .cmf-pitchdeck{grid-row:3}#cmf.module-wide-intro .module-visual{grid-row:4}.module-wide-heading h3{font-size:35px}}
+.system-overview{margin:36px auto 0;max-width:1050px;padding:30px 36px;text-align:left;border:1px solid #dce4d8;border-radius:20px;background-color:var(--green-soft);background-image:radial-gradient(#8ca58570 1px,transparent 1px);background-size:24px 24px}
+.system-overview h3{font-size:23px;line-height:1.35;letter-spacing:-.025em;margin:0 0 14px}
+.system-overview p{max-width:850px;font-size:18px;line-height:1.6;margin:0;color:#303b32}
+.system-overview nav{display:flex;flex-wrap:wrap;gap:10px;margin-top:22px}
+.system-overview nav a{display:inline-flex;align-items:center;min-height:44px;padding:9px 15px;border:1px solid var(--green-border);border-radius:9px;background:#fff;color:var(--green-text);font-size:14px;font-weight:600}
+.system-overview nav a:hover{background:#f7faf5}
+.module-section.module-with-infographic{padding:44px 28px;margin-top:24px;border:1px solid #e0e4dd;border-radius:20px;background:#fafbf9}
+.module-with-infographic .module-copy{background:transparent}
+.module-summary{font-size:19px;line-height:1.6;color:#28312a;margin:0 0 24px;letter-spacing:-.015em}
+.module-with-infographic .feature-list{gap:10px;border-top:1px solid #dce2d8;padding-top:18px}
+.module-with-infographic .feature-list li{font-size:12.6px;line-height:1.65;color:#596158;letter-spacing:normal}
+@media(max-width:800px){.module-section.module-with-infographic{padding:28px 20px}.module-summary{font-size:18px}.module-with-infographic .feature-list li{font-size:12px}.system-overview{padding:24px}.system-overview h3{font-size:20px}.system-overview p{font-size:17px}}
+@media(max-width:480px){.module-section.module-with-infographic{padding:24px 16px}.system-overview{padding:22px 18px}.system-overview h3{font-size:19px}}

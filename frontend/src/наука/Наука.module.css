@@ -1017,6 +1017,10 @@
   /* Высота шага — не меньше 70 % окна (для точки и камеры), но длинный шаг
      с ответами растёт и прокручивается листом, а не срезается (мобильный аудит, 02.11). */
   .ход { height: auto; min-height: 70dvh; }
+  /* Ответы участвуют в высоте листа, а не выступают из абсолютной сцены
+     под нижнюю панель. Точки, камера и остальные сцены не меняются. */
+  .ход:has(.вопрос), .ход:has(.вопросПоверх) { overflow: visible; }
+  .сцена:has(> .вопрос), .вопросПоверх { position: relative; min-height: 70dvh; }
 
   /* Шапка на телефоне: знак, счёт шагов и имя — раздел уже назван в полоске доски. */
   .черта, .раздел { display: none; }
@@ -1060,6 +1064,25 @@
   }
   .станция .кольцо { grid-row: span 2; }
   .станцияИмя, .станцияЕщё { padding: 0; white-space: normal; }
+}
+
+/* Низкий горизонтальный телефон: только четыре шага с ответами.
+   Ширина уже настольная, но высоты для фиксированной сцены нет. Ответы
+   задают высоту доски; прокручивается один лист, не вложенная карточка.
+   Остальные этапы и настольные кадры остаются без изменений. */
+@media (min-width: 761px) and (max-width: 1180px) and (max-height: 560px) and (orientation: landscape) {
+  .экран:has([data-research-answer]) {
+    overflow-y: auto;
+    overflow-x: hidden;
+    grid-template-rows: auto auto;
+  }
+  .экран:has([data-research-answer]) .участок,
+  .экран:has([data-research-answer]) .доска { min-height: auto; }
+  .экран:has([data-research-answer]) .доска { grid-template-rows: auto auto auto; }
+  .экран:has([data-research-answer]) .поле { overflow: visible; }
+  .экран:has([data-research-answer]) .ход { height: auto; min-height: 70dvh; overflow: visible; }
+  .сцена:has(> [data-research-answer]),
+  .вопросПоверх[data-research-answer] { position: relative; min-height: 70dvh; }
 }
 
 /* Конфетти, когда пройдены все проверки: холст поверх всего, нажатия — сквозь. */

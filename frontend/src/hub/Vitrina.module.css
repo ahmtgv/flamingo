@@ -34,3 +34,14 @@
   line-height: var(--leading-snug);
   color: var(--color-text-detail);
 }
+
+.external {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tap-min);
+  font-size: var(--text-caption);
+  line-height: var(--leading-snug);
+  color: var(--color-text);
+  overflow-wrap: anywhere;
+  text-underline-offset: var(--space-1);
+}
