@@ -3,11 +3,11 @@
 > ⚠️ Устарел 31.08.2026 (аудит 25.10): «техническая проба», «один путь бэкенда» и
 > «вход ждёт D1» — состояние конца августа. Сегодня: пять приложений Django
 > (`people`, `study`, `room`, `science`, `common`), учётные записи и уроки живут на
-> `api.flamingo.plus`, 102 записи на стенде. Актуальное — `CLAUDE.md` §1, §6а, §8
+> `api.flamingo.plus`, 102 записи на стенде. Актуальное — `ПРАВИЛА-РАБОТЫ.md` §1, §6а, §8
 > и `docs/АУДИТ-2026-10/00-ОБЩЕЕ.md` §1 (карта кода). Текст ниже — летопись.
 
 Онлайн-обучение. Проект начат **с нуля** 28–30.08.2026 и собирается кусками.
-Старая версия снесена целиком — см. `CLAUDE.md` §6.
+Старая версия снесена целиком — см. `ПРАВИЛА-РАБОТЫ.md` §6.
 
 **Что это будет — `docs/FLAMINGO-V1.md`.** Одна страница: преподаватель ведёт свой класс
 до 30 человек, зовёт учеников сам, после урока остаются доска с материалами и задание
@@ -23,10 +23,10 @@
 
 ```bash
 # окно 1 — бэкенд
-cd /Users/piu/Claude/Projects/Flamingo/backend && ./.venv/bin/python manage.py runserver 8080
+cd /Users/piu/Projects/Flamingo/backend && ./.venv/bin/python manage.py runserver 8080
 
 # окно 2 — фронт
-cd /Users/piu/Claude/Projects/Flamingo/frontend && npm run dev
+cd /Users/piu/Projects/Flamingo/frontend && npm run dev
 ```
 
 Открывать **http://localhost:5180**. Это техническая проба, не продукт.
@@ -40,7 +40,7 @@ curl http://localhost:8080/api/room/healthz     # {"ok": true, "livekit": true}
 Окружение бэкенда, если его нет:
 
 ```bash
-cd /Users/piu/Claude/Projects/Flamingo/backend
+cd /Users/piu/Projects/Flamingo/backend
 python3 -m venv .venv && ./.venv/bin/pip install -r requirements.txt
 ```
 
@@ -55,7 +55,7 @@ python3 -m venv .venv && ./.venv/bin/pip install -r requirements.txt
 | `docs/ПРАВИЛА-ДИЗАЙНА.md` | закон экранов |
 | `docs/дизайн/` | токены, 24 листа дизайнера, приборы дизайна, знаки, брендбук |
 | `docs/старое/` | летопись решений владельца до 30.08. Не задание — справка |
-| `CLAUDE.md` | порядок работы над проектом |
+| `ПРАВИЛА-РАБОТЫ.md` | порядок работы над проектом |
 
 ## Проверки
 
@@ -71,9 +71,9 @@ cd frontend && npm run check     # типы + приборы с самопров
 
 ```bash
 rm -rf ~/Downloads/УДАЛИТЬ-старый-flamingo-2026-08                       # 5 ГБ, старый монорепозиторий
-rm -rf "/Users/piu/Claude/Projects/Flamingo/УДАЛИТЬ-хлам-2026-08" # битые модули, linux-venv, старый прототип
-rm -rf "/Users/piu/Claude/Projects/Flamingo/.git/мусор-от-монтирования"
-rm -rf "/Users/piu/Claude/Projects/Flamingo/УДАЛИТЬ-старые-сборки"                  # прошлые dist, их нельзя было перезаписать
+rm -rf "/Users/piu/Projects/Flamingo/УДАЛИТЬ-хлам-2026-08" # битые модули, linux-venv, старый прототип
+rm -rf "/Users/piu/Projects/Flamingo/.git/мусор-от-монтирования"
+rm -rf "/Users/piu/Projects/Flamingo/УДАЛИТЬ-старые-сборки"                  # прошлые dist, их нельзя было перезаписать
 ```
 
 И остановить старые серверы на портах 5173, 5174 и 8000 — это ещё старый проект.
