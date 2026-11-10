@@ -2,6 +2,8 @@ import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent as
 
 import { IF_SILENT, RIGHTS, РАЗДЕЛЫ, источникиРаздела, разделИсточника, type Source } from '../hub/sources'
 import { записать, прочесть } from '../hub/избранное'
+import { useПоверх } from '../lib/окно'
+import { Беда, положитьСсылку, читатьУроки, type Урок } from '../lib/study'
 import '../styles/хаб.css'
 import s from './Hub.module.css'
 
@@ -29,6 +31,8 @@ import s from './Hub.module.css'
  */
 
 const ОКОН_НЕ_БОЛЬШЕ = 6
+/** Вкладок браузера тоже не больше шести: каждая — живой чужой сайт. */
+const ВКЛАДОК_НЕ_БОЛЬШЕ = 6
 
 type Окно = { id: string; x: number; y: number; ш: number; в: number; слой: number }
 type Шаг = 'список' | 'источник' | 'браузер'
@@ -57,6 +61,82 @@ function Рамка({ x, раз }: { x: Source; раз: number }) {
   )
 }
 
+/** «Показать на уроке»: учитель выбирает готовый урок, и источник ложится в
+ *  него ссылкой-пособием (владелец, 10.11). В комнате урока он будет среди
+ *  пособий этого урока — как любая приложенная ссылка. */
+function НаУрок({ источник, закрыть }: { источник: Source; закрыть: () => void }) {
+  const [уроки, setУроки] = useState<Урок[] | null>(null)
+  const [беда, setБеда] = useState('')
+  const [кладу, setКладу] = useState<string | null>(null)
+  const [готово, setГотово] = useState<string[]>([])
+  const поверх = useПоверх<HTMLDivElement>(закрыть)
+
+  useEffect(() => {
+    let жив = true
+    читатьУроки()
+      .then((все) => {
+        if (!жив) return
+        const сегодня = new Date().toLocaleDateString('sv')
+        setУроки(все.filter((у) => у.дата >= сегодня).sort((a, b) => (a.дата + a.время).localeCompare(b.дата + b.время)))
+      })
+      .catch((e) => { if (жив) { setУроки([]); setБеда(e instanceof Беда ? e.message : 'Не удалось прочитать уроки.') } })
+    return () => { жив = false }
+  }, [])
+
+  const уже = (у: Урок) => готово.includes(у.id) || у.материалы.some((м) => м.вид === 'link' && м.адрес === источник.home)
+
+  const приложить = (у: Урок) => {
+    setБеда('')
+    setКладу(у.id)
+    положитьСсылку(у.id, источник.home, источник.name)
+      .then(() => setГотово((было) => [...было, у.id]))
+      .catch((e) => setБеда(e instanceof Беда ? e.message : 'Не получилось приложить источник к уроку.'))
+      .finally(() => setКладу(null))
+  }
+
+  return (
+    <div className={s.scrim} onPointerDown={закрыть}>
+      <div
+        ref={поверх}
+        tabIndex={-1}
+        className={s.modal}
+        role="dialog"
+        aria-modal="true"
+        aria-label={`Показать на уроке: ${источник.name}`}
+        onPointerDown={(e) => e.stopPropagation()}
+      >
+        <div className={s.modalBar}>
+          <span className={s.windowName} title={источник.name}>Показать на уроке</span>
+          <button type="button" className={s.windowClose} onClick={закрыть} aria-label="Закрыть">×</button>
+        </div>
+        <div className={s.modalBody}>
+          <p className={s.box}>{источник.name}</p>
+          <p className={s.row}><span className={s.label}>К какому уроку приложить</span></p>
+          {уроки === null ? <p className={s.silent}>Читаю ваши уроки…</p> : null}
+          {уроки && уроки.length === 0 && !беда ? (
+            <p className={s.silent}>
+              Будущих уроков пока нет. <a className={s.link} href="/создать-урок">Создать урок</a> — и вернитесь сюда.
+            </p>
+          ) : null}
+          {уроки?.map((у) => (
+            <button
+              key={у.id}
+              type="button"
+              className={`${s.act} ${уже(у) ? s.actOn : ''}`}
+              disabled={кладу !== null || уже(у)}
+              onClick={() => приложить(у)}
+            >
+              <span>{у.название}</span>
+              <span className={s.actNote}>{уже(у) ? 'приложен' : кладу === у.id ? 'прикладываю…' : `${у.дата.split('-').reverse().join('.')} · ${у.время.slice(0, 5)}`}</span>
+            </button>
+          ))}
+          <p className={s.refuse} role="status">{беда}</p>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export function Hub({ учитель = false }: {
   /** Прежние двери экрана. Свою полосу «← Назад» экран больше не рисует — на
    *  эскизе её нет: дорогу назад даёт верхняя строка сайта или рама кабинета. */
@@ -66,8 +146,9 @@ export function Hub({ учитель = false }: {
   /** Учителю доступно «Показать на уроке» (владелец, 10.11). */
   учитель?: boolean
 }) {
-  const [любимые, setЛюбимые] = useState<string[]>(() => прочесть('избранное'))
-  const [кУроку, setКУроку] = useState<string[]>(() => прочесть('к-уроку'))
+  const [любимые, setЛюбимые] = useState<string[]>(() => прочесть())
+  /* Источник, который учитель прикладывает к уроку: открыта модалка выбора. */
+  const [наУрок, setНаУрок] = useState<Source | null>(null)
 
   const разделы = useMemo(() => РАЗДЕЛЫ.map((р) => ({ id: р.id as string, имя: р.имя, источники: источникиРаздела(р.id) })), [])
   const все = useMemo(() => разделы.flatMap((г) => г.источники), [разделы])
@@ -88,8 +169,7 @@ export function Hub({ учитель = false }: {
   const поиск = useRef<HTMLInputElement>(null)
   const слой = useRef(1)
 
-  useEffect(() => { записать('избранное', любимые) }, [любимые])
-  useEffect(() => { записать('к-уроку', кУроку) }, [кУроку])
+  useEffect(() => { записать(любимые) }, [любимые])
 
   const слово = ищу.trim().toLowerCase()
   const видно = (x: Source) => !слово || x.name.toLowerCase().includes(слово) || x.gives.toLowerCase().includes(слово)
@@ -100,15 +180,24 @@ export function Hub({ учитель = false }: {
     return свои.length ? [{ id: 'избранное', имя: 'Избранное', источники: свои }, ...разделы] : разделы
   }, [любимые, поId, разделы])
 
-  const выбрать = (x: Source) => { setВыбран(x); setОтказ(''); setШаг('источник') }
   const раскрыть = (id: string) => setРаскрыты((было) => (было.includes(id) ? было.filter((р) => р !== id) : [...было, id]))
   const вкл = (список: string[], id: string) => (список.includes(id) ? список.filter((x) => x !== id) : [...список, id])
 
+  /* Вкладка источника в браузере. Старые сверх шести закрываются сами,
+     начиная с самой давней. */
   const вБраузер = (x: Source) => {
-    setОтказ('')
-    setВкладки((было) => (было.includes(x.id) ? было : [...было, x.id]))
+    setВкладки((было) => (было.includes(x.id) ? было : [...было, x.id].slice(-ВКЛАДОК_НЕ_БОЛЬШЕ)))
     setНаВиду(x.id)
-    setШаг('браузер')
+  }
+
+  /* 🔴 ВЫБРАЛ — И ИСТОЧНИК УЖЕ ОТКРЫТ (владелец, 10.11: «открывать в браузере
+     сразу»). Отдельной кнопки «открыть» нет. Источник, вынесенный в окно, во
+     вкладку не дублируется: два живых экземпляра одного сайта ни к чему. */
+  const выбрать = (x: Source) => {
+    setВыбран(x)
+    setОтказ('')
+    if (!окна.some((о) => о.id === x.id)) вБраузер(x)
+    setШаг('источник')
   }
 
   const закрытьВкладку = (id: string) => {
@@ -197,7 +286,6 @@ export function Hub({ учитель = false }: {
   const раздел = РАЗДЕЛЫ.find((р) => р.id === разделИсточника(выбран.id))?.имя ?? ''
   const текущая = наВиду ? поId(наВиду) : undefined
   const любим = любимые.includes(выбран.id)
-  const отложен = кУроку.includes(выбран.id)
 
   return (
     <main className={`${s.screen} ${тащат ? s.тащат : ''}`} ref={экран} data-шаг={шаг}>
@@ -261,18 +349,18 @@ export function Hub({ учитель = false }: {
           </p>
           <p className={s.say}>{право.can}. {право.cant.charAt(0).toUpperCase() + право.cant.slice(1)}.</p>
 
-          <button type="button" className={`${s.act} ${воВкладке(выбран.id) ? s.actOn : ''}`} onClick={() => вБраузер(выбран)}>
-            <span>{воВкладке(выбран.id) ? 'Открыт в браузере' : 'Открыть в браузере'}<span className={s.onlyWide}> справа</span></span>
-            <span className={s.actNote}>{воВкладке(выбран.id) ? `вкладка ${вкладки.indexOf(выбран.id) + 1}` : хозяин(выбран.home)}</span>
+          <button type="button" className={`${s.act} ${s.onlyNarrow}`} onClick={() => setШаг('браузер')}>
+            <span>Открыть</span>
+            <span className={s.actNote}>{хозяин(выбран.home)}</span>
           </button>
-          <button type="button" className={`${s.act} ${s.onlyWide} ${вОкне(выбран.id) ? s.actOn : ''}`} onClick={() => вОкно(выбран)}>
+          <button type="button" className={`${s.act} ${s.onlyWide} ${вОкне(выбран.id) ? s.actOn : ''}`} onClick={() => { if (вОкно(выбран)) закрытьВкладку(выбран.id) }}>
             <span>{вОкне(выбран.id) ? 'Открыт в отдельном окне' : 'Открыть в отдельном окне'}</span>
             <span className={s.actNote}>открыто {окна.length} из {ОКОН_НЕ_БОЛЬШЕ}</span>
           </button>
           {учитель ? (
-            <button type="button" className={`${s.act} ${отложен ? s.actOn : ''}`} aria-pressed={отложен} onClick={() => setКУроку((было) => вкл(было, выбран.id))}>
-              <span>{отложен ? 'Отложен к уроку' : 'Показать на уроке'}</span>
-              <span className={s.actNote}>{отложен ? 'первым в списке комнаты' : 'отложить к уроку'}</span>
+            <button type="button" className={s.act} onClick={() => setНаУрок(выбран)}>
+              <span>Показать на уроке</span>
+              <span className={s.actNote}>приложить к уроку</span>
             </button>
           ) : null}
           <button type="button" className={`${s.act} ${любим ? s.actOn : ''}`} aria-pressed={любим} onClick={() => setЛюбимые((было) => вкл(было, выбран.id))}>
@@ -283,16 +371,11 @@ export function Hub({ учитель = false }: {
 
           <p className={s.silent}><span className={s.silentLabel}>Если источник замолчит:</span> {IF_SILENT[выбран.kind]}</p>
 
+          {/* Поиска по теме пока нет — и поле этого не скрывает: оно не нажимается
+              и подписано «скоро» (владелец, 10.11). */}
           <div className={s.ask}>
-            <button type="button" className={s.askField} onClick={() => { setШаг('список'); поиск.current?.focus() }}>
-              Найти в источниках…
-            </button>
-            <div className={s.askRow}>
-              <span className={s.chip}>{раздел}</span>
-              <button type="button" className={s.askAll} onClick={() => { setИщу(''); setРаскрыты(разделы.map((р) => р.id)); setШаг('список') }}>
-                все разделы ⌄
-              </button>
-            </div>
+            <span className={s.askField}>Поиск по теме с AI Flamingo</span>
+            <div className={s.askRow}><span className={s.chip}>скоро</span></div>
           </div>
         </section>
 
@@ -319,14 +402,14 @@ export function Hub({ учитель = false }: {
             <>
               <div className={s.addr}>
                 {/* Меню вместо стрелок «назад / вперёд» (владелец, 10.11). */}
-                <button type="button" className={s.addrAct} onClick={() => setСвежесть((б) => ({ ...б, [текущая.id]: (б[текущая.id] ?? 0) + 1 }))}>Обновить</button>
+                <button type="button" className={`${s.addrAct} ${s.reload}`} aria-label="Обновить" title="Обновить" onClick={() => setСвежесть((б) => ({ ...б, [текущая.id]: (б[текущая.id] ?? 0) + 1 }))}>
+                  <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M13.2 8a5.2 5.2 0 1 1-1.6-3.75M13.4 2.6v2.9h-2.9" /></svg>
+                </button>
                 <button type="button" className={s.addrAct} aria-pressed={любимые.includes(текущая.id)} onClick={() => setЛюбимые((было) => вкл(было, текущая.id))}>
                   {любимые.includes(текущая.id) ? 'В избранном' : 'В избранное'}
                 </button>
                 {учитель ? (
-                  <button type="button" className={s.addrAct} aria-pressed={кУроку.includes(текущая.id)} onClick={() => setКУроку((было) => вкл(было, текущая.id))}>
-                    {кУроку.includes(текущая.id) ? 'Отложен к уроку' : 'На урок'}
-                  </button>
+                  <button type="button" className={s.addrAct} onClick={() => setНаУрок(текущая)}>На урок</button>
                 ) : null}
                 <span className={s.addrUrl} title={текущая.home}>{текущая.home}</span>
                 <button type="button" className={`${s.addrAct} ${s.onlyWide}`} onClick={() => { if (вОкно(текущая)) закрытьВкладку(текущая.id) }}>
@@ -344,10 +427,12 @@ export function Hub({ учитель = false }: {
               })}
             </>
           ) : (
-            <p className={s.empty}>Выберите источник и нажмите «Открыть в браузере» — он откроется здесь.</p>
+            <p className={s.empty}>Выберите источник слева — он откроется здесь.</p>
           )}
         </section>
       </div>
+
+      {наУрок ? <НаУрок источник={наУрок} закрыть={() => setНаУрок(null)} /> : null}
 
       {окна.length > 0 ? <p className={s.count}>Открыто окон: {окна.length} из {ОКОН_НЕ_БОЛЬШЕ}</p> : null}
 

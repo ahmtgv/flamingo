@@ -115,13 +115,6 @@
   color: var(--color-text-detail);
 }
 
-/* Пометка источника, отложенного учителем к уроку в «Источниках мира». */
-.rowMark {
-  font-size: var(--text-caption);
-  line-height: var(--leading-snug);
-  color: var(--color-go-text);
-}
-
 .foot {
   display: grid;
   gap: var(--space-2);

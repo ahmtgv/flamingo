@@ -223,6 +223,10 @@
   text-transform: uppercase;
 }
 
+.act:disabled {
+  cursor: default;
+}
+
 .act {
   flex: none;
   display: flex;
@@ -237,19 +241,6 @@
   font-weight: var(--х-вес-имя);
   text-align: left;
   cursor: pointer;
-}
-
-/* значок листа перед действием. `::before` у кнопок занят общим правилом
-   цели нажатия (base.css), поэтому значок — `::after`, поставленный первым. */
-.act::after {
-  content: '';
-  order: -1;
-  flex: none;
-  width: var(--х-11);
-  height: var(--х-13);
-  box-sizing: border-box;
-  border: 1px solid var(--х-тихий);
-  border-radius: var(--х-2);
 }
 
 .actOn {
@@ -293,22 +284,8 @@
   background: var(--х-карта);
 }
 
-.askField,
-.askAll {
-  border: 0;
-  padding: 0;
-  background: none;
-  cursor: pointer;
-}
-
 .askField {
   display: block;
-  width: 100%;
-  text-align: left;
-}
-
-.askField,
-.askAll {
   color: var(--х-тихий);
 }
 
@@ -599,8 +576,68 @@
 }
 
 /* Шаги телефона на широком экране не нужны: все три колонки видны сразу. */
-.step {
+.step,
+.onlyNarrow {
   display: none;
+}
+
+/* закруглённая стрелка «обновить» в строке адреса */
+.reload svg {
+  display: block;
+  width: var(--х-16);
+  height: var(--х-16);
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* ── «Показать на уроке»: выбор урока ─────────────────────────────────── */
+.scrim {
+  position: absolute;
+  inset: 0;
+  z-index: var(--z-modal);
+  display: grid;
+  place-items: center;
+  padding: var(--х-16);
+  background: var(--х-пелена);
+}
+
+.modal {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: var(--х-средняя);
+  max-height: 100%;
+  border-radius: var(--х-11);
+  background: var(--х-бумага);
+  box-shadow: var(--х-тень-окна);
+  overflow: hidden;
+}
+
+.modalBar {
+  flex: none;
+  display: flex;
+  align-items: center;
+  height: var(--х-34);
+  padding-left: var(--х-34);
+  border-bottom: 1px solid var(--х-линия);
+  background: var(--х-поле);
+  font-size: var(--х-к-12_5);
+  color: var(--х-второй);
+}
+
+.modalBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--х-8);
+  padding: var(--х-16) var(--х-20);
+  overflow-y: auto;
+}
+
+.link {
+  color: var(--х-текст);
 }
 
 /* ── палец вместо мыши: цели не ниже 44 ───────────────────────────────── */
@@ -660,5 +697,9 @@
   .window,
   .count {
     display: none;
+  }
+
+  .onlyNarrow {
+    display: flex;
   }
 }
