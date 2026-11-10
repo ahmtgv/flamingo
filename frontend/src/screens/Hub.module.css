@@ -1,66 +1,46 @@
-/* Flamingo HUB. Разложен по листу дизайна
-   `docs/дизайн/от-дизайна-31.08/Flamingo HUB.dc.html`. */
+/* «Источники мира» — по эскизам, утверждённым владельцем 10.11.2026.
+   Значения — из `styles/хаб.css` (`--х-…`): они сняты с эскиза как есть.
+
+   типографика-исключение (20): экран живёт шкалой утверждённого эскиза */
 
 .screen {
-  height: 100%;
-  display: grid;
   position: relative;
-  grid-template-rows: auto minmax(0, 1fr);
-  background: var(--color-bg);
-  overflow: hidden;
-}
-
-/* 🔴 ШАПКА ЗДЕСЬ ТА ЖЕ, ЧТО В КАБИНЕТЕ, ЖУРНАЛЕ И «СОЗДАТЬ УРОК» — ДО ЗНАЧЕНИЯ.
-   Стояло 16 и 16 против 12 и 12 у остальных трёх: на глаз почти незаметно, а
-   при переходе кабинет → источники полоса подрастала на восемь точек, и вместе
-   с ней прыгало ВСЁ содержимое экрана. ПРАВИЛА 9.5: шапка стоит на каждом
-   экране и потому заметнее всех, разная высота читается как «другое
-   приложение». Наряд «правило против листов», находки 26–33 аудита 07.09.
-
-   Меряет это `сходство-прибор`, и с сегодняшнего дня он караул: пока все
-   четыре шапки одинаковы, расхождение в любой из них валит сборку. */
-.head {
+  height: 100%;
+  min-height: 0;
   display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  row-gap: var(--space-2);
-  flex-wrap: wrap;
-  padding: var(--space-3) var(--поле);
-  border-bottom: 1px solid var(--color-border);
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--х-бумага);
+  color: var(--х-текст);
+  font-family: 'Inter Variable', Inter, -apple-system, 'Helvetica Neue', system-ui, sans-serif;
+  font-size: var(--х-к-13);
+  font-weight: var(--х-вес);
+  line-height: var(--х-строка);
+  letter-spacing: var(--х-разрядка);
+  -webkit-font-smoothing: antialiased;
 }
 
-.back {
-  display: inline-grid;
-  place-items: center;
-  min-height: var(--tap-min);
-  padding: 0 var(--space-4);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-pill);
-  background: none;
-  color: var(--color-text);
-  font-size: var(--text-small);
-  cursor: pointer;
+:where(.screen) button,
+:where(.screen) input {
+  font: inherit;
+  letter-spacing: inherit;
+  color: inherit;
 }
 
-.back:hover {
-  border-color: var(--color-border-strong);
+.hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 
-.crumb {
-  font: var(--weight-regular) var(--text-caption) var(--font-mono);
-  letter-spacing: var(--tracking-caps);
-  text-transform: uppercase;
-  color: var(--color-text-detail);
-}
-
-/* ── три колонки (решение владельца 10.11.2026, по его эскизам) ─────────
-   Слева названия источников по разделам, в середине выбранный источник,
-   справа браузер источника. Ширины — долями экрана, не точками: экран один
-   и тот же на ноутбуке и на большом мониторе. */
 .cols {
+  flex: 1 1 auto;
   min-height: 0;
   display: grid;
-  grid-template-columns: minmax(0, 22%) minmax(0, 30%) minmax(0, 1fr);
+  grid-template-columns: var(--х-левая) var(--х-средняя) minmax(0, 1fr);
 }
 
 .left,
@@ -74,89 +54,97 @@
 
 .left,
 .mid {
-  border-right: 1px solid var(--color-border);
+  border-right: 1px solid var(--х-линия);
 }
 
 /* ── слева ────────────────────────────────────────────────────────────── */
 .left {
-  background: var(--color-surface-subtle);
-  padding-top: var(--space-4);
-}
-
-.title {
-  margin: 0 var(--space-5) var(--space-3);
-  font-family: var(--font-heading);
-  font-size: var(--text-h3);
-  font-weight: var(--weight-medium);
-  letter-spacing: var(--tracking-tight);
-  line-height: var(--leading-heading);
-  color: var(--color-text);
+  background: var(--х-поле);
+  padding-top: var(--х-14);
 }
 
 .find {
-  margin: 0 var(--space-4) var(--space-3);
-  min-height: var(--control-height-md);
-  padding: 0 var(--space-3);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-control);
-  background: var(--color-surface);
-  color: var(--color-text);
-  font: inherit;
-  font-size: var(--text-small);
+  flex: none;
+  margin: 0 var(--х-14) var(--х-12);
+  padding: var(--х-7) var(--х-10);
+  border: 1px solid var(--х-линия);
+  border-radius: var(--х-8);
+  background: var(--х-карта);
+  font-size: var(--х-к-12_5);
+}
+
+.find::placeholder {
+  color: var(--х-тихий);
 }
 
 .names {
   flex: 1 1 auto;
   min-height: 0;
   overflow-y: auto;
-  padding-bottom: var(--space-4);
+  padding-bottom: var(--х-12);
 }
 
 .group {
-  margin: 0;
   display: flex;
   justify-content: space-between;
-  gap: var(--space-2);
-  padding: var(--space-3) var(--space-5) var(--space-1);
-  font: var(--weight-regular) var(--text-overline) var(--font-mono);
-  letter-spacing: var(--tracking-caps);
+  gap: var(--х-8);
+  width: 100%;
+  padding: var(--х-9) var(--х-18) var(--х-5);
+  border: 0;
+  background: none;
+  font-size: var(--х-к-10_5);
+  letter-spacing: var(--х-разрядка-бровь);
   text-transform: uppercase;
-  color: var(--color-text-detail);
+  text-align: left;
+  cursor: pointer;
 }
 
-.groupN {
-  flex: none;
+.group,
+.group span {
+  color: var(--х-тихий);
 }
 
 .item {
   position: relative;
   display: grid;
   width: 100%;
-  min-height: var(--tap-min);
-  padding: var(--space-2) var(--space-5);
+  padding: var(--х-8) var(--х-18) var(--х-9) var(--х-44);
   border: 0;
   background: none;
-  color: var(--color-text);
   text-align: left;
-  font: inherit;
   cursor: pointer;
 }
 
-.item:hover {
-  background: var(--color-surface-hover);
+/* кружок-метка слева от названия (`::before` занят целью нажатия) */
+.item::after {
+  content: '';
+  position: absolute;
+  left: var(--х-19);
+  top: var(--х-11);
+  width: var(--х-14);
+  height: var(--х-14);
+  box-sizing: border-box;
+  border: 1px solid var(--х-метка);
+  border-radius: 50%;
 }
 
-.itemOn,
-.itemOn:hover {
-  background: var(--color-surface);
-  box-shadow: inset 2px 0 0 var(--color-go);
+.itemOn {
+  background: var(--х-выбор);
+}
+
+.itemOn::after {
+  border-color: var(--х-текст);
+}
+
+.itemOpen::after {
+  border-color: var(--х-зелёный);
+  background: radial-gradient(var(--х-зелёный) 0 var(--х-3), transparent var(--х-4));
 }
 
 .itemName {
   min-width: 0;
-  font-size: var(--text-small);
-  font-weight: var(--weight-medium);
-  line-height: var(--leading-snug);
+  font-size: var(--х-к-13_5);
+  font-weight: var(--х-вес-имя);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -164,149 +152,220 @@
 
 .itemGives {
   min-width: 0;
-  font-size: var(--text-caption);
-  line-height: var(--leading-snug);
-  color: var(--color-text-secondary);
+  font-size: var(--х-к-12);
+  color: var(--х-тихий);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
+/* место под пометку справа — только у тех, у кого она есть */
+.itemOpen .itemName {
+  padding-right: var(--х-44);
+}
+
 .itemMark {
-  font: var(--weight-regular) var(--text-overline) var(--font-mono);
-  color: var(--color-go-text);
+  position: absolute;
+  right: var(--х-16);
+  top: var(--х-9);
+  font-size: var(--х-к-11_5);
+  color: var(--х-тихий);
 }
 
 .none {
-  margin: var(--space-4) var(--space-5);
-  font-size: var(--text-small);
-  color: var(--color-text-secondary);
+  margin: var(--х-14) var(--х-18);
+  color: var(--х-второй);
 }
 
 /* ── в середине ───────────────────────────────────────────────────────── */
 .mid {
-  padding: var(--space-5);
-  gap: var(--space-2);
+  padding: var(--х-16) var(--х-20);
+  gap: var(--х-10);
   overflow-y: auto;
 }
 
-.shot {
-  display: block;
-  flex: none;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  background: var(--color-surface-subtle);
-  overflow: hidden;
-  line-height: 0;
-}
-
 .name {
-  margin: var(--space-2) 0 0;
-  font-family: var(--font-heading);
-  font-size: var(--text-h3);
-  font-weight: var(--weight-medium);
-  letter-spacing: var(--tracking-tight);
-  line-height: var(--leading-heading);
-  color: var(--color-text);
+  margin: 0;
+  font-size: var(--х-к-14);
+  font-weight: var(--х-вес-заголовок);
   overflow-wrap: anywhere;
 }
 
-.gives {
-  margin: 0 0 var(--space-2);
-  font-size: var(--text-small);
-  line-height: var(--leading-snug);
-  color: var(--color-text-secondary);
-}
-
-.line,
-.rule {
+.box {
   margin: 0;
-  font-size: var(--text-small);
-  line-height: var(--leading-snug);
-  color: var(--color-text);
+  padding: var(--х-11) var(--х-13);
+  border: 1px solid var(--х-линия);
+  border-radius: var(--х-10);
+  background: var(--х-карта);
+  font-size: var(--х-к-14);
+  line-height: var(--х-строка-плотная);
 }
 
-.line {
+.row {
+  margin: 0;
   display: flex;
   align-items: baseline;
   flex-wrap: wrap;
-  gap: var(--space-2);
-}
-
-.rule {
-  color: var(--color-text-secondary);
+  gap: var(--х-8);
+  color: var(--х-второй);
 }
 
 .label {
-  margin-right: var(--space-2);
-  font: var(--weight-regular) var(--text-overline) var(--font-mono);
-  letter-spacing: var(--tracking-caps);
-  text-transform: uppercase;
-  color: var(--color-text-detail);
+  color: var(--х-тихий);
 }
 
-.acts {
-  display: grid;
-  gap: var(--space-2);
-  margin: var(--space-3) 0 0;
+.say {
+  margin: 0;
+  font-size: var(--х-к-13_5);
+}
+
+.say::first-letter {
+  text-transform: uppercase;
 }
 
 .act {
+  flex: none;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: var(--space-3);
-  min-height: var(--tap-min);
-  padding: var(--space-2) var(--space-4);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-control);
-  background: var(--color-surface);
-  color: var(--color-text);
-  font: inherit;
-  font-size: var(--text-small);
-  font-weight: var(--weight-medium);
+  gap: var(--х-9);
+  width: 100%;
+  min-height: var(--х-36);
+  padding: var(--х-8) var(--х-12);
+  border: 1px solid var(--х-линия);
+  border-radius: var(--х-9);
+  background: var(--х-карта);
+  font-weight: var(--х-вес-имя);
   text-align: left;
-  text-decoration: none;
   cursor: pointer;
 }
 
-.act:hover {
-  border-color: var(--color-border-strong);
+/* значок листа перед действием. `::before` у кнопок занят общим правилом
+   цели нажатия (base.css), поэтому значок — `::after`, поставленный первым. */
+.act::after {
+  content: '';
+  order: -1;
+  flex: none;
+  width: var(--х-11);
+  height: var(--х-13);
+  box-sizing: border-box;
+  border: 1px solid var(--х-тихий);
+  border-radius: var(--х-2);
 }
 
 .actOn {
-  border-color: var(--color-go-border);
-  background: var(--color-go-bg);
-  color: var(--color-go-text);
+  border-color: var(--х-зелёная-линия);
+  background: var(--х-зелёный-фон);
+  color: var(--х-зелёный-текст);
 }
 
 .actNote {
+  margin-left: auto;
   flex: none;
-  font: var(--weight-regular) var(--text-overline) var(--font-mono);
-  color: var(--color-text-detail);
+  font-size: var(--х-к-12);
+  font-weight: var(--х-вес);
+  color: var(--х-тихий);
 }
 
 /* Строка отказа стоит всегда, пустая или нет: текст в ней не двигает экран. */
 .refuse {
   margin: 0;
-  min-height: var(--space-6);
-  font-size: var(--text-caption);
-  line-height: var(--leading-snug);
-  color: var(--color-accent-text);
+  min-height: var(--х-18);
+  font-size: var(--х-к-12_5);
+  color: var(--х-тревога);
+}
+
+.silent {
+  margin: 0;
+  font-size: var(--х-к-12_5);
+  color: var(--х-второй);
+}
+
+.silentLabel {
+  color: var(--х-тихий);
+}
+
+.ask {
+  margin-top: auto;
+  flex: none;
+  padding: var(--х-11) var(--х-13) var(--х-9);
+  border: 1px solid var(--х-линия);
+  border-radius: var(--х-11);
+  background: var(--х-карта);
+}
+
+.askField,
+.askAll {
+  border: 0;
+  padding: 0;
+  background: none;
+  cursor: pointer;
+}
+
+.askField {
+  display: block;
+  width: 100%;
+  text-align: left;
+}
+
+.askField,
+.askAll {
+  color: var(--х-тихий);
+}
+
+.askRow {
+  display: flex;
+  align-items: center;
+  gap: var(--х-8);
+  margin-top: var(--х-12);
+  font-size: var(--х-к-12);
+}
+
+.chip {
+  padding: var(--х-3) var(--х-10);
+  border-radius: var(--х-99);
+  background: var(--х-янтарь-фон);
+  color: var(--х-янтарь-текст);
+}
+
+/* право: зелёная точка и слова — как на эскизе */
+.can {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--х-6);
+  font-size: var(--х-к-12);
+}
+
+.can::before {
+  content: '';
+  width: var(--х-6);
+  height: var(--х-6);
+  border-radius: 50%;
+  background: currentColor;
+}
+
+/* 🔴 ЦВЕТ ГОВОРИТ РОВНО ОДНУ ВЕЩЬ: НАСКОЛЬКО СВОБОДНО ПРАВО. Зелёный — берите
+   и пользуйтесь; спокойный — есть условие; тревожный — самое узкое: только
+   внутри урока, копий не остаётся. */
+.can_own {
+  color: var(--х-зелёный-текст);
+}
+
+.can_attr,
+.can_show {
+  color: var(--х-второй);
+}
+
+.can_live {
+  color: var(--х-тревога);
 }
 
 /* ── справа: браузер ──────────────────────────────────────────────────── */
-.right {
-  background: var(--color-bg);
-}
-
 .tabs {
   flex: none;
   display: flex;
-  align-items: stretch;
-  min-height: var(--tap-min);
-  border-bottom: 1px solid var(--color-border);
-  background: var(--color-surface-subtle);
+  height: var(--х-42);
+  border-bottom: 1px solid var(--х-линия);
+  background: var(--х-поле);
   overflow-x: auto;
   overflow-y: hidden;
 }
@@ -315,92 +374,151 @@
   flex: none;
   display: flex;
   align-items: center;
-  border-right: 1px solid var(--color-border);
-  color: var(--color-text-secondary);
+  border-right: 1px solid var(--х-линия);
+  color: var(--х-тихий);
 }
 
 .tabOn {
-  background: var(--color-bg);
-  color: var(--color-text);
+  background: var(--х-бумага);
+  color: var(--х-текст);
+}
+
+.tabNone {
+  padding: 0 var(--х-16);
 }
 
 .tabName,
 .tabClose,
+.tabPlus,
 .addrAct,
 .step,
 .windowClose {
   border: 0;
   background: none;
-  color: inherit;
-  font: inherit;
-  font-size: var(--text-small);
   cursor: pointer;
 }
 
 .tabName {
-  min-height: var(--tap-min);
-  padding: 0 var(--space-2) 0 var(--space-4);
+  height: 100%;
+  padding: 0 var(--х-6) 0 var(--х-16);
   white-space: nowrap;
 }
 
 .tabClose,
+.tabPlus {
+  height: 100%;
+  padding: 0 var(--х-14);
+}
+
+.tabClose,
+.tabPlus,
 .windowClose {
-  min-width: var(--tap-min);
-  min-height: var(--tap-min);
-  color: var(--color-text-detail);
+  color: var(--х-тихий);
+}
+
+.tabPlus {
+  flex: none;
+  border-right: 1px solid var(--х-линия);
 }
 
 .addr {
   flex: none;
   display: flex;
   align-items: center;
-  gap: var(--space-3);
-  min-height: var(--tap-min);
-  padding: 0 var(--space-2) 0 var(--space-4);
-  border-bottom: 1px solid var(--color-border);
+  gap: var(--х-14);
+  height: var(--х-42);
+  padding: 0 var(--х-16);
+  border-bottom: 1px solid var(--х-линия);
+  white-space: nowrap;
+}
+
+.addrAct {
+  flex: none;
+  height: 100%;
+  padding: 0;
+}
+
+.addrAct {
+  color: var(--х-тихий);
+}
+
+.addrAct:hover,
+.addrAct[aria-pressed='true'] {
+  color: var(--х-текст);
 }
 
 .addrUrl {
   flex: 1 1 auto;
   min-width: 0;
-  font: var(--weight-regular) var(--text-caption) var(--font-mono);
-  color: var(--color-text);
-  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-}
-
-.addrAct {
-  flex: none;
-  min-height: var(--tap-min);
-  padding: 0 var(--space-3);
-  color: var(--color-text-secondary);
 }
 
 .view {
   flex: 1 1 auto;
   min-height: 0;
-  padding: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  background: var(--х-страница);
+}
+
+/* Спрятанная вкладка не занимает места: `display: flex` выше перебил бы
+   атрибут `hidden`. */
+.view[hidden] {
+  display: none;
+}
+
+.frame {
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  border: 0;
+  background: var(--х-страница);
+}
+
+.blank {
+  flex: none;
+  margin: 0;
+  padding: var(--х-5) var(--х-16);
+  border-top: 1px solid var(--х-линия);
+  background: var(--х-поле);
+  font-size: var(--х-к-11_5);
+  color: var(--х-тихий);
+}
+
+.blank a {
+  color: var(--х-второй);
 }
 
 .empty {
   margin: auto;
   max-width: 60%;
   text-align: center;
-  font-size: var(--text-small);
-  line-height: var(--leading-snug);
-  color: var(--color-text-secondary);
+  color: var(--х-тихий);
 }
 
 /* ── окна ─────────────────────────────────────────────────────────────── */
+.count {
+  position: absolute;
+  right: var(--х-16);
+  top: var(--х-10);
+  z-index: var(--z-sticky);
+  margin: 0;
+  padding: var(--х-5) var(--х-12);
+  border-radius: var(--х-99);
+  background: var(--х-плашка);
+  color: var(--х-на-плашке);
+  font-size: var(--х-к-12);
+  pointer-events: none;
+}
+
 .window {
   position: absolute;
   display: flex;
   flex-direction: column;
-  border: 1px solid var(--color-border-strong);
-  border-radius: var(--radius-md);
-  background: var(--color-surface);
-  box-shadow: var(--shadow-lg);
+  border-radius: var(--х-11);
+  background: var(--х-бумага);
+  box-shadow: var(--х-тень-окна);
   overflow: hidden;
 }
 
@@ -408,41 +526,66 @@
   flex: none;
   display: flex;
   align-items: center;
-  min-height: var(--tap-min);
-  padding-left: var(--space-4);
-  border-bottom: 1px solid var(--color-border);
-  background: var(--color-surface-subtle);
+  height: var(--х-34);
+  padding-left: var(--х-12);
+  border-bottom: 1px solid var(--х-линия);
+  background: var(--х-поле);
+  font-size: var(--х-к-12_5);
+  color: var(--х-второй);
   cursor: grab;
   touch-action: none;
   user-select: none;
 }
 
+.dots {
+  flex: none;
+  display: flex;
+  gap: var(--х-6);
+}
+
+.dots i {
+  display: block;
+  width: var(--х-10);
+  height: var(--х-10);
+  border-radius: 50%;
+  background: var(--х-точки);
+}
+
 .windowName {
   flex: 1 1 auto;
   min-width: 0;
-  font-size: var(--text-small);
-  font-weight: var(--weight-medium);
-  color: var(--color-text);
+  text-align: center;
+  font-weight: var(--х-вес-имя);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
+.windowClose {
+  flex: none;
+  width: var(--х-34);
+  height: var(--х-34);
+}
+
 .windowBody {
   flex: 1 1 auto;
   min-height: 0;
-  padding: var(--space-2);
+  display: flex;
+  flex-direction: column;
 }
 
 .windowGrip {
   position: absolute;
-  right: 0;
-  bottom: 0;
-  width: var(--space-5);
-  height: var(--space-5);
+  right: var(--х-3);
+  bottom: var(--х-3);
+  width: var(--х-14);
+  height: var(--х-14);
+  box-sizing: border-box;
+  border-right: 2px solid var(--х-метка);
+  border-bottom: 2px solid var(--х-метка);
+  border-radius: 0 0 var(--х-4) 0;
   cursor: nwse-resize;
   touch-action: none;
-  background: linear-gradient(135deg, transparent 50%, var(--color-border-strong) 50%, var(--color-border-strong) 60%, transparent 60%, transparent 72%, var(--color-border-strong) 72%, var(--color-border-strong) 82%, transparent 82%);
 }
 
 /* Пока окно тащат, чужие рамки не перехватывают мышь — иначе окно «залипает»,
@@ -460,44 +603,24 @@
   display: none;
 }
 
-/* Строка права: одна строка на карточку, всегда. Высота ряда `.words` задана
-   числом строк (ПРАВИЛА 3.3, 6.7а) — метка обязана влезать в одну. */
-.can {
-  display: flex;
-  align-items: baseline;
-  gap: var(--space-2);
-  font: var(--weight-regular) var(--text-caption) var(--font-mono);
-  line-height: var(--leading-snug);
-  min-width: 0;
-}
+/* ── палец вместо мыши: цели не ниже 44 ───────────────────────────────── */
+@media (pointer: coarse) {
+  .act,
+  .find,
+  .group {
+    min-height: var(--х-44);
+  }
 
-.canDot {
-  flex: none;
-  width: var(--dot-size);
-  height: var(--dot-size);
-  border-radius: var(--radius-pill);
-  background: currentColor;
-  transform: translateY(-1px);
-}
+  .tabs,
+  .addr,
+  .windowBar {
+    height: var(--х-44);
+  }
 
-/* 🔴 ЦВЕТ ГОВОРИТ РОВНО ОДНУ ВЕЩЬ: НАСКОЛЬКО СВОБОДНО ПРАВО.
-   Зелёный — берите и пользуйтесь; спокойный серый — есть условие (назвать
-   автора, только показать); коралловый — самое узкое: только внутри урока,
-   копий не остаётся (ПРАВИЛА 11.8 — портится от ожидания, а не «ошибка»;
-   `error` — другой смысл, ПРАВИЛА 5.13). Тем же коралловым это право набрано
-   на титуле: одно и то же не имеет права быть на двух экранах двух цветов
-   (аудит 07.09, находка 36). */
-.can_own {
-  color: var(--color-go-text);
-}
-
-.can_attr,
-.can_show {
-  color: var(--color-text-detail);
-}
-
-.can_live {
-  color: var(--color-accent-text);
+  .windowClose {
+    width: var(--х-44);
+    height: var(--х-44);
+  }
 }
 
 /* ── телефон: три шага вместо трёх колонок ────────────────────────────────
@@ -524,17 +647,18 @@
     display: inline-flex;
     align-items: center;
     flex: none;
-    min-height: var(--tap-min);
-    padding: 0 var(--space-4) 0 0;
-    color: var(--color-text-secondary);
+    min-height: var(--х-44);
+    padding: 0 var(--х-16) 0 0;
+    color: var(--х-тихий);
   }
 
   .tabs .step {
-    padding-left: var(--space-4);
+    padding-left: var(--х-16);
   }
 
-  .actWindow,
-  .window {
+  .onlyWide,
+  .window,
+  .count {
     display: none;
   }
 }

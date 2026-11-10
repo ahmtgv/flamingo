@@ -13,13 +13,7 @@ import s from './Vitrina.module.css'
  *  и держать адрес под рукой. Строка стоит всегда, а не появляется по ошибке
  *  (ПРАВИЛА 6.6): иначе макет прыгает ровно в ту секунду, когда человек растерян.
  */
-export function Vitrina({ url, name, кратко = false }: {
-  url: string
-  name: string
-  /** Тесное место — окно источника или браузер каталога, где адрес уже назван
-   *  рядом: подпись под рамкой сжимается в одну строку. Смысл тот же. */
-  кратко?: boolean
-}) {
+export function Vitrina({ url, name }: { url: string; name: string }) {
   let host = url
   try {
     host = new URL(url).host
@@ -35,25 +29,16 @@ export function Vitrina({ url, name, кратко = false }: {
         allow="autoplay; fullscreen; picture-in-picture"
         sandbox="allow-scripts allow-same-origin allow-presentation allow-forms allow-popups"
       />
-      {кратко ? (
-        <div className={s.brief}>
-          <span className={s.why}>Пусто? Значит сайт запрещает показ внутри рамки — это его право.</span>
-          <a className={s.external} href={url} target="_blank" rel="noopener noreferrer">
-            Открыть в новой вкладке ↗
-          </a>
-        </div>
-      ) : (
-        <div className={s.foot}>
-          <span className={s.host}>{host}</span>
-          <a className={s.external} href={url} target="_blank" rel="noopener noreferrer">
-            Открыть источник в новой вкладке ↗
-          </a>
-          <span className={s.why}>
-            Пусто? Значит сайт запрещает показ у себя внутри рамки — это его право,
-            а не наша поломка. Покажите его экраном или дайте адрес классу.
-          </span>
-        </div>
-      )}
+      <div className={s.foot}>
+        <span className={s.host}>{host}</span>
+        <a className={s.external} href={url} target="_blank" rel="noopener noreferrer">
+          Открыть источник в новой вкладке ↗
+        </a>
+        <span className={s.why}>
+          Пусто? Значит сайт запрещает показ у себя внутри рамки — это его право,
+          а не наша поломка. Покажите его экраном или дайте адрес классу.
+        </span>
+      </div>
     </div>
   )
 }

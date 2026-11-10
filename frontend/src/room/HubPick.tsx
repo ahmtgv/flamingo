@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 
 import { KINDS, RIGHTS, SOURCES, type Kind } from '../hub/sources'
+import { прочесть } from '../hub/избранное'
 import { useПоверх } from '../lib/окно'
 import s from './HubPick.module.css'
 import { Button } from '../ui/Button'
@@ -19,7 +20,14 @@ export function HubPick({ onGo, onClose }: {
   const [pick, setPick] = useState<string | null>(null)
   const [url, setUrl] = useState('')
 
-  const list = useMemo(() => (kind ? SOURCES.filter((x) => x.kind === kind) : SOURCES), [kind])
+  /* Отложенные к уроку в «Источниках мира» стоят первыми: учитель выбрал их
+     заранее, и на уроке ему остаётся одно нажатие (владелец, 10.11.2026).
+     Остальной список — в прежнем порядке. */
+  const кУроку = useMemo(() => new Set(прочесть('к-уроку')), [])
+  const list = useMemo(() => {
+    const свои = kind ? SOURCES.filter((x) => x.kind === kind) : SOURCES
+    return [...свои.filter((x) => кУроку.has(x.id)), ...свои.filter((x) => !кУроку.has(x.id))]
+  }, [kind, кУроку])
   const chosen = SOURCES.find((x) => x.id === pick)
 
   const поверх = useПоверх<HTMLElement>(onClose)
@@ -61,6 +69,7 @@ export function HubPick({ onGo, onClose }: {
                     }}>
               <span className={s.rowName}>{x.name}</span>
               <span className={s.rowGives}>{x.gives}</span>
+              {кУроку.has(x.id) ? <span className={s.rowMark}>отложен к уроку</span> : null}
               {/* 🔴 НИ СЛОВА О ДОСТУПНОСТИ. Стояло «в прошлый раз молчал» — и это
                     тоже обещание проверки: «в прошлый раз» значит, что был какой-то
                     раз. Его не было: буква `state` набиралась руками в каталоге, и

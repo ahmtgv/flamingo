@@ -1,35 +1,32 @@
-import { useCallback, useMemo, useRef, useState, type PointerEvent as Нажатие } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent as Нажатие } from 'react'
 
-import { Cover } from '../hub/Cover'
-import { Vitrina } from '../hub/Vitrina'
 import { IF_SILENT, RIGHTS, РАЗДЕЛЫ, источникиРаздела, разделИсточника, type Source } from '../hub/sources'
-import { Mark } from '../ui/Mark'
+import { записать, прочесть } from '../hub/избранное'
+import '../styles/хаб.css'
 import s from './Hub.module.css'
 
-/** Flamingo HUB — каталог чужих открытых источников.
+/** Flamingo HUB — «Источники мира».
  *
- *  🔴 Разложен по листу `docs/дизайн/от-дизайна-31.08/Flamingo HUB.dc.html`:
- *  фильтры стоят в строке заголовка, «Ответили 29 из 36» сжато в одну строку
- *  справа, правого рельса нет, у карточки есть обложка, а цветных полос слева
- *  нет вовсе — состояние говорит точка и надпись (решение владельца 31.08).
+ *  🔴 ЭКРАН ПОСТРОЕН ПО ЭСКИЗАМ, УТВЕРЖДЁННЫМ ВЛАДЕЛЬЦЕМ 10.11.2026, «ОДИН В
+ *  ОДИН». Первая постройка взяла детали кабинета вместо эскиза и вышла другим
+ *  экраном — владелец вернул её. Эскиз здесь — задание: цвета, кегли и
+ *  плотность лежат в `styles/хаб.css` и взяты с него как есть.
  *
- *  🔴 Право и «что будет, если замолчит» переехали в ВИТРИНУ, а не пропали
- *  вместе с рельсом: ПРАВИЛА 8.10 требуют, чтобы у источника были названы
- *  четыре человеческие формулировки права и строка про молчание. Читать их
- *  уместнее там, где источник открыт, а не в углу каталога.
- */
-
-/** 🔴 ТРИ КОЛОНКИ И ОКНА (решение владельца 10.11.2026, по его эскизам).
  *  Слева — названия источников по разделам-предметам. В середине — выбранный
  *  источник: что даёт, что с ним можно, и действия. Справа — браузер источника
  *  со вкладками. Источник можно вынести в отдельное окно: двигать за заголовок,
  *  менять размер за уголок, закрыть; окон не больше шести.
  *
+ *  🔴 ВМЕСТО СТРЕЛОК «НАЗАД / ВПЕРЁД» — МЕНЮ ДЕЙСТВИЙ (владелец, 10.11). Чужим
+ *  сайтом внутри рамки управлять нельзя, и стрелки были бы нарисованы зря.
+ *
+ *  🔴 ЧУЖОЙ САЙТ ПОКАЗЫВАЕТСЯ В РАМКЕ, И ОН ВПРАВЕ ОТКАЗАТЬ. Снаружи этого не
+ *  видно: браузер не говорит, что рамка пуста. Поэтому под рамкой заранее
+ *  сказано, что делать, если пусто, — и дана ссылка «в новой вкладке».
+ *
  *  На телефоне колонки не помещаются — там три шага: список, источник, браузер;
  *  окон на телефоне нет.
- *
- *  🔴 ЧУЖОЙ САЙТ ПОКАЗЫВАЕТСЯ В РАМКЕ, И ОН ВПРАВЕ ОТКАЗАТЬ. Тогда рамка пуста,
- *  и под ней сказано почему и дана ссылка «в новой вкладке» (`hub/Vitrina`). */
+ */
 
 const ОКОН_НЕ_БОЛЬШЕ = 6
 
@@ -40,38 +37,72 @@ function хозяин(адрес: string): string {
   try { return new URL(адрес).host.replace(/^www\./, '') } catch { return адрес }
 }
 
-export function Hub({ onBack, onHome, вРаме = false }: {
-  onBack: () => void
-  onHome: () => void
-  /** 🔴 ЭКРАН ВНУТРИ ПОСТОЯННОЙ НАВИГАЦИИ (`ui/Рама.tsx`, решение владельца
-   *  09–10.09). Тогда знак и «имя · Выйти» рисует рама, и повторять их в
-   *  шапке экрана нельзя: два знака на одном экране — это не украшение,
-   *  а вопрос «какой из них настоящий» (ПРАВИЛА 4.9: знак один на экран).
-   *  Стенд и гость рисуют экран без рамы — там шапка прежняя. */
+/** Чужая страница в рамке. Права рамки — те же, что у витрины урока. */
+function Рамка({ x, раз }: { x: Source; раз: number }) {
+  return (
+    <>
+      <iframe
+        key={раз}
+        className={s.frame}
+        src={x.home}
+        title={x.name}
+        allow="autoplay; fullscreen; picture-in-picture"
+        sandbox="allow-scripts allow-same-origin allow-presentation allow-forms allow-popups"
+      />
+      <p className={s.blank}>
+        Пусто? Значит сайт запрещает показ внутри рамки — это его право.{' '}
+        <a href={x.home} target="_blank" rel="noopener noreferrer">Открыть в новой вкладке ↗</a>
+      </p>
+    </>
+  )
+}
+
+export function Hub({ учитель = false }: {
+  /** Прежние двери экрана. Свою полосу «← Назад» экран больше не рисует — на
+   *  эскизе её нет: дорогу назад даёт верхняя строка сайта или рама кабинета. */
+  onBack?: () => void
+  onHome?: () => void
   вРаме?: boolean
+  /** Учителю доступно «Показать на уроке» (владелец, 10.11). */
+  учитель?: boolean
 }) {
-  const группы = useMemo(() => РАЗДЕЛЫ.map((р) => ({ ...р, источники: источникиРаздела(р.id) })), [])
-  const все = useMemo(() => группы.flatMap((г) => г.источники), [группы])
+  const [любимые, setЛюбимые] = useState<string[]>(() => прочесть('избранное'))
+  const [кУроку, setКУроку] = useState<string[]>(() => прочесть('к-уроку'))
+
+  const разделы = useMemo(() => РАЗДЕЛЫ.map((р) => ({ id: р.id as string, имя: р.имя, источники: источникиРаздела(р.id) })), [])
+  const все = useMemo(() => разделы.flatMap((г) => г.источники), [разделы])
+  const поId = useCallback((id: string) => все.find((x) => x.id === id), [все])
 
   const [ищу, setИщу] = useState('')
   const [выбран, setВыбран] = useState<Source>(все[0])
+  const [раскрыты, setРаскрыты] = useState<string[]>(() => [разделИсточника(все[0].id)])
   const [шаг, setШаг] = useState<Шаг>('список')
-  /* Вкладки браузера справа: какие источники открыты и какой на виду. */
   const [вкладки, setВкладки] = useState<string[]>([])
   const [наВиду, setНаВиду] = useState<string | null>(null)
+  const [свежесть, setСвежесть] = useState<Record<string, number>>({})
   const [окна, setОкна] = useState<Окно[]>([])
   const [отказ, setОтказ] = useState('')
   /* Пока окно тащат, рамки чужих сайтов не должны перехватывать мышь. */
   const [тащат, setТащат] = useState(false)
   const экран = useRef<HTMLElement>(null)
+  const поиск = useRef<HTMLInputElement>(null)
   const слой = useRef(1)
 
-  const поId = useCallback((id: string) => все.find((x) => x.id === id), [все])
+  useEffect(() => { записать('избранное', любимые) }, [любимые])
+  useEffect(() => { записать('к-уроку', кУроку) }, [кУроку])
 
   const слово = ищу.trim().toLowerCase()
   const видно = (x: Source) => !слово || x.name.toLowerCase().includes(слово) || x.gives.toLowerCase().includes(слово)
 
+  /* Избранное — первой группой, когда в нём что-то есть. */
+  const группы = useMemo(() => {
+    const свои = любимые.map(поId).filter((x): x is Source => Boolean(x))
+    return свои.length ? [{ id: 'избранное', имя: 'Избранное', источники: свои }, ...разделы] : разделы
+  }, [любимые, поId, разделы])
+
   const выбрать = (x: Source) => { setВыбран(x); setОтказ(''); setШаг('источник') }
+  const раскрыть = (id: string) => setРаскрыты((было) => (было.includes(id) ? было.filter((р) => р !== id) : [...было, id]))
+  const вкл = (список: string[], id: string) => (список.includes(id) ? список.filter((x) => x !== id) : [...список, id])
 
   const вБраузер = (x: Source) => {
     setОтказ('')
@@ -92,28 +123,29 @@ export function Hub({ onBack, onHome, вРаме = false }: {
     setОкна((было) => было.map((о) => (о.id === id ? { ...о, слой: верх } : о)))
   }
 
-  const вОкно = (x: Source) => {
-    if (окна.some((о) => о.id === x.id)) { наверх(x.id); return }
+  const вОкно = (x: Source): boolean => {
+    if (окна.some((о) => о.id === x.id)) { наверх(x.id); return true }
     if (окна.length >= ОКОН_НЕ_БОЛЬШЕ) {
       setОтказ('Открыто шесть окон — закройте одно, чтобы открыть ещё.')
-      return
+      return false
     }
     setОтказ('')
     const поле = экран.current?.getBoundingClientRect()
     const ширь = поле?.width ?? 1200
     const высь = поле?.height ?? 800
-    /* Окно встаёт над браузером справа, а не над списком и действиями:
-       иначе первое же окно закрывает кнопку, которой открывают второе. */
-    const ш = Math.min(620, Math.round(ширь * 0.42))
-    const в = Math.min(460, Math.round(высь * 0.6))
-    const сдвиг = окна.length * 28
+    const ш = Math.min(560, Math.round(ширь * 0.42))
+    const в = Math.min(430, Math.round(высь * 0.55))
+    const сдвиг = окна.length * 34
     слой.current += 1
     setОкна((было) => [...было, {
       id: x.id,
-      x: Math.max(8, Math.min(ширь - ш - 8, Math.round(ширь * 0.54) + сдвиг)),
-      y: Math.max(8, Math.min(высь - в - 8, Math.round(высь * 0.14) + сдвиг)),
+      /* Окно встаёт над браузером справа, а не над списком и действиями:
+         иначе первое же окно закрывает кнопку, которой открывают второе. */
+      x: Math.max(8, Math.min(ширь - ш - 8, Math.round(ширь * 0.53) + сдвиг)),
+      y: Math.max(8, Math.min(высь - в - 8, Math.round(высь * 0.1) + сдвиг)),
       ш, в, слой: слой.current,
     }])
+    return true
   }
 
   const закрытьОкно = (id: string) => { setОкна((было) => было.filter((о) => о.id !== id)); setОтказ('') }
@@ -121,15 +153,14 @@ export function Hub({ onBack, onHome, вРаме = false }: {
   /* Таскание и размер: одна и та же механика, разница — что меняется. */
   const тащить = (id: string, что: 'место' | 'размер') => (e: Нажатие<HTMLElement>) => {
     if (e.button !== 0) return
-    const окно = окна.find((о) => о.id === id)
+    const было = окна.find((о) => о.id === id)
     const поле = экран.current?.getBoundingClientRect()
-    if (!окно || !поле) return
+    if (!было || !поле) return
     e.preventDefault()
     наверх(id)
     setТащат(true)
     const x0 = e.clientX
     const y0 = e.clientY
-    const было = окно
     const движение = (д: PointerEvent) => {
       const dx = д.clientX - x0
       const dy = д.clientY - y0
@@ -138,7 +169,7 @@ export function Hub({ onBack, onHome, вРаме = false }: {
         if (что === 'место') {
           return {
             ...о,
-            x: Math.max(0, Math.min(поле.width - 80, было.x + dx)),
+            x: Math.max(0, Math.min(поле.width - 120, было.x + dx)),
             y: Math.max(0, Math.min(поле.height - 40, было.y + dy)),
           }
         }
@@ -161,26 +192,21 @@ export function Hub({ onBack, onHome, вРаме = false }: {
   }
 
   const вОкне = (id: string) => окна.some((о) => о.id === id)
+  const воВкладке = (id: string) => вкладки.includes(id)
   const право = RIGHTS[выбран.right]
   const раздел = РАЗДЕЛЫ.find((р) => р.id === разделИсточника(выбран.id))?.имя ?? ''
   const текущая = наВиду ? поId(наВиду) : undefined
+  const любим = любимые.includes(выбран.id)
+  const отложен = кУроку.includes(выбран.id)
 
   return (
     <main className={`${s.screen} ${тащат ? s.тащат : ''}`} ref={экран} data-шаг={шаг}>
-      <header className={s.head}>
-        {/* ПРАВИЛА 1.4: дорога назад — левый верхний угол, во всех состояниях. */}
-        <button type="button" className={s.back} onClick={onBack}>
-          ← Назад
-        </button>
-        {вРаме ? null : <Mark onGo={onHome} />}
-        <span className={s.crumb}>Flamingo HUB</span>
-      </header>
-
       <div className={s.cols}>
         {/* ── слева: названия источников по разделам ─────────────────────── */}
         <nav className={s.left} aria-label="Источники по разделам">
-          <h1 className={s.title}>Источники мира</h1>
+          <h1 className={s.hidden}>Источники мира</h1>
           <input
+            ref={поиск}
             className={s.find}
             type="search"
             value={ищу}
@@ -192,26 +218,27 @@ export function Hub({ onBack, onHome, вРаме = false }: {
             {группы.map((г) => {
               const свои = г.источники.filter(видно)
               if (свои.length === 0) return null
+              const открыта = Boolean(слово) || раскрыты.includes(г.id) || г.id === 'избранное'
               return (
                 <section key={г.id} aria-label={г.имя}>
-                  <h2 className={s.group}>
+                  <button type="button" className={s.group} aria-expanded={открыта} onClick={() => раскрыть(г.id)}>
                     <span>{г.имя}</span>
-                    <span className={s.groupN}>{свои.length}</span>
-                  </h2>
-                  {свои.map((x) => (
+                    <span>{свои.length}</span>
+                  </button>
+                  {открыта ? свои.map((x) => (
                     <button
                       key={x.id}
                       type="button"
-                      className={`${s.item} ${x.id === выбран.id ? s.itemOn : ''}`}
+                      className={`${s.item} ${x.id === выбран.id ? s.itemOn : ''} ${воВкладке(x.id) || вОкне(x.id) ? s.itemOpen : ''}`}
                       aria-current={x.id === выбран.id ? 'true' : undefined}
                       onClick={() => выбрать(x)}
                     >
                       <span className={s.itemName} title={x.name}>{x.name}</span>
                       <span className={s.itemGives} title={x.gives}>{x.gives}</span>
                       {вОкне(x.id) ? <span className={s.itemMark}>в окне</span>
-                        : вкладки.includes(x.id) ? <span className={s.itemMark}>во вкладке</span> : null}
+                        : воВкладке(x.id) ? <span className={s.itemMark}>открыт</span> : null}
                     </button>
-                  ))}
+                  )) : null}
                 </section>
               )
             })}
@@ -222,37 +249,51 @@ export function Hub({ onBack, onHome, вРаме = false }: {
         {/* ── в середине: сам источник ───────────────────────────────────── */}
         <section className={s.mid} aria-label={`Источник: ${выбран.name}`}>
           <button type="button" className={s.step} onClick={() => setШаг('список')}>← К списку</button>
-          <span className={s.shot}><Cover id={выбран.id} kind={выбран.kind} /></span>
           <h2 className={s.name}>{выбран.name}</h2>
-          <p className={s.gives}>{выбран.gives}</p>
-          <p className={s.line}><span className={s.label}>Раздел</span>{раздел} · {выбран.kind}</p>
+          <p className={s.box}>{выбран.gives}</p>
+          <p className={s.row}><span className={s.label}>Раздел</span>{раздел} · {выбран.kind}</p>
           {/* 🔴 НЕ «ОТВЕЧАЕТ · ПРОВЕРЕНО СЕГОДНЯ», А «ЧТО С ЭТИМ МОЖНО». Про
               доступность мы не знаем ничего (см. `hub/sources.ts`), а про право
               знаем всё: оно записано словами (ПРАВИЛА 8.10). */}
-          <p className={s.line}>
+          <p className={s.row}>
             <span className={s.label}>Право</span>
-            <span className={`${s.can} ${s[`can_${выбран.right}`]}`}><span className={s.canDot} />{право.tag}</span>
+            <span className={`${s.can} ${s[`can_${выбран.right}`]}`}>{право.tag}</span>
           </p>
-          <p className={s.rule}>{право.can}</p>
-          <p className={s.rule}>{право.cant}</p>
+          <p className={s.say}>{право.can}. {право.cant.charAt(0).toUpperCase() + право.cant.slice(1)}.</p>
 
-          <div className={s.acts}>
-            <button type="button" className={`${s.act} ${наВиду === выбран.id ? s.actOn : ''}`} onClick={() => вБраузер(выбран)}>
-              <span>{вкладки.includes(выбран.id) ? 'Показать в браузере' : 'Открыть в браузере'}</span>
-              <span className={s.actNote}>{вкладки.includes(выбран.id) ? 'вкладка открыта' : хозяин(выбран.home)}</span>
+          <button type="button" className={`${s.act} ${воВкладке(выбран.id) ? s.actOn : ''}`} onClick={() => вБраузер(выбран)}>
+            <span>{воВкладке(выбран.id) ? 'Открыт в браузере' : 'Открыть в браузере'}<span className={s.onlyWide}> справа</span></span>
+            <span className={s.actNote}>{воВкладке(выбран.id) ? `вкладка ${вкладки.indexOf(выбран.id) + 1}` : хозяин(выбран.home)}</span>
+          </button>
+          <button type="button" className={`${s.act} ${s.onlyWide} ${вОкне(выбран.id) ? s.actOn : ''}`} onClick={() => вОкно(выбран)}>
+            <span>{вОкне(выбран.id) ? 'Открыт в отдельном окне' : 'Открыть в отдельном окне'}</span>
+            <span className={s.actNote}>открыто {окна.length} из {ОКОН_НЕ_БОЛЬШЕ}</span>
+          </button>
+          {учитель ? (
+            <button type="button" className={`${s.act} ${отложен ? s.actOn : ''}`} aria-pressed={отложен} onClick={() => setКУроку((было) => вкл(было, выбран.id))}>
+              <span>{отложен ? 'Отложен к уроку' : 'Показать на уроке'}</span>
+              <span className={s.actNote}>{отложен ? 'первым в списке комнаты' : 'отложить к уроку'}</span>
             </button>
-            <button type="button" className={`${s.act} ${s.actWindow} ${вОкне(выбран.id) ? s.actOn : ''}`} onClick={() => вОкно(выбран)}>
-              <span>{вОкне(выбран.id) ? 'Показать окно' : 'Открыть в отдельном окне'}</span>
-              <span className={s.actNote}>окон {окна.length} из {ОКОН_НЕ_БОЛЬШЕ}</span>
-            </button>
-            <a className={s.act} href={выбран.home} target="_blank" rel="noopener noreferrer">
-              <span>Открыть в новой вкладке ↗</span>
-              <span className={s.actNote}>уйти на сайт источника</span>
-            </a>
-          </div>
+          ) : null}
+          <button type="button" className={`${s.act} ${любим ? s.actOn : ''}`} aria-pressed={любим} onClick={() => setЛюбимые((было) => вкл(было, выбран.id))}>
+            <span>{любим ? 'В избранном' : 'Добавить в избранное'}</span>
+            <span className={s.actNote}>{любим ? 'убрать' : 'в этом браузере'}</span>
+          </button>
           <p className={s.refuse} role="status">{отказ}</p>
 
-          <p className={s.rule}><span className={s.label}>Если замолчит</span>{IF_SILENT[выбран.kind]}</p>
+          <p className={s.silent}><span className={s.silentLabel}>Если источник замолчит:</span> {IF_SILENT[выбран.kind]}</p>
+
+          <div className={s.ask}>
+            <button type="button" className={s.askField} onClick={() => { setШаг('список'); поиск.current?.focus() }}>
+              Найти в источниках…
+            </button>
+            <div className={s.askRow}>
+              <span className={s.chip}>{раздел}</span>
+              <button type="button" className={s.askAll} onClick={() => { setИщу(''); setРаскрыты(разделы.map((р) => р.id)); setШаг('список') }}>
+                все разделы ⌄
+              </button>
+            </div>
+          </div>
         </section>
 
         {/* ── справа: браузер источника ──────────────────────────────────── */}
@@ -271,13 +312,25 @@ export function Hub({ onBack, onHome, вРаме = false }: {
                 </span>
               )
             })}
+            {вкладки.length === 0 ? <span className={`${s.tab} ${s.tabOn} ${s.tabNone}`}>Нет открытых вкладок</span> : null}
+            <button type="button" className={s.tabPlus} onClick={() => { setШаг('список'); поиск.current?.focus() }} aria-label="Открыть ещё источник">+</button>
           </div>
           {текущая ? (
             <>
               <div className={s.addr}>
+                {/* Меню вместо стрелок «назад / вперёд» (владелец, 10.11). */}
+                <button type="button" className={s.addrAct} onClick={() => setСвежесть((б) => ({ ...б, [текущая.id]: (б[текущая.id] ?? 0) + 1 }))}>Обновить</button>
+                <button type="button" className={s.addrAct} aria-pressed={любимые.includes(текущая.id)} onClick={() => setЛюбимые((было) => вкл(было, текущая.id))}>
+                  {любимые.includes(текущая.id) ? 'В избранном' : 'В избранное'}
+                </button>
+                {учитель ? (
+                  <button type="button" className={s.addrAct} aria-pressed={кУроку.includes(текущая.id)} onClick={() => setКУроку((было) => вкл(было, текущая.id))}>
+                    {кУроку.includes(текущая.id) ? 'Отложен к уроку' : 'На урок'}
+                  </button>
+                ) : null}
                 <span className={s.addrUrl} title={текущая.home}>{текущая.home}</span>
-                <button type="button" className={`${s.addrAct} ${s.actWindow}`} onClick={() => { вОкно(текущая); закрытьВкладку(текущая.id) }}>
-                  в окно
+                <button type="button" className={`${s.addrAct} ${s.onlyWide}`} onClick={() => { if (вОкно(текущая)) закрытьВкладку(текущая.id) }}>
+                  ⧉ в окно
                 </button>
               </div>
               {вкладки.map((id) => {
@@ -285,18 +338,18 @@ export function Hub({ onBack, onHome, вРаме = false }: {
                 if (!x) return null
                 return (
                   <div key={id} className={s.view} hidden={id !== наВиду}>
-                    <Vitrina url={x.home} name={x.name} кратко />
+                    <Рамка x={x} раз={свежесть[id] ?? 0} />
                   </div>
                 )
               })}
             </>
           ) : (
-            <p className={s.empty}>
-              Выберите источник и нажмите «Открыть в браузере» — он откроется здесь.
-            </p>
+            <p className={s.empty}>Выберите источник и нажмите «Открыть в браузере» — он откроется здесь.</p>
           )}
         </section>
       </div>
+
+      {окна.length > 0 ? <p className={s.count}>Открыто окон: {окна.length} из {ОКОН_НЕ_БОЛЬШЕ}</p> : null}
 
       {/* ── окна: до шести, двигаются и меняют размер ───────────────────── */}
       {окна.map((о) => {
@@ -312,6 +365,7 @@ export function Hub({ onBack, onHome, вРаме = false }: {
             onPointerDown={() => наверх(о.id)}
           >
             <div className={s.windowBar} onPointerDown={тащить(о.id, 'место')}>
+              <span className={s.dots} aria-hidden="true"><i /><i /><i /></span>
               <span className={s.windowName} title={x.name}>{x.name}</span>
               <button
                 type="button"
@@ -321,7 +375,7 @@ export function Hub({ onBack, onHome, вРаме = false }: {
                 aria-label={`Закрыть окно: ${x.name}`}
               >×</button>
             </div>
-            <div className={s.windowBody}><Vitrina url={x.home} name={x.name} кратко /></div>
+            <div className={s.windowBody}><Рамка x={x} раз={0} /></div>
             <span className={s.windowGrip} onPointerDown={тащить(о.id, 'размер')} aria-hidden="true" />
           </div>
         )
