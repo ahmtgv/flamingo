@@ -22,7 +22,8 @@
   var stage = document.querySelector('[data-fl-stage]')
   var inner = stage && stage.firstElementChild
   if (!inner) return
-  var wide = window.matchMedia('(min-width: 901px)')
+  /* телефон (узко или низко) прокручивается; планшет и всё крупнее — нет */
+  var wide = window.matchMedia('(min-width: 701px) and (min-height: 501px)')
   function fit() {
     if (!wide.matches) {
       document.documentElement.removeAttribute('data-fl-fit')

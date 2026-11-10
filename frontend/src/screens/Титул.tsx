@@ -192,6 +192,10 @@ const ЗНАК_ПУСКА = (
   <svg width="20" height="22" viewBox="0 0 12 14" aria-hidden="true"><path d="M1.5 1v12l10-6z" fill="#fff" /></svg>
 )
 
+/** Телефон, стоймя и лёжа: стол в одну колонку с обычной прокруткой. Та же
+ *  граница — в `Титул.module.css`. Всё остальное, включая планшет, — ровно в экран. */
+const ТЕЛЕФОН = '(max-width: 700px), (max-height: 500px)'
+
 /** Наименьшая ширина, на которой двухколоночный стол главной не тесен. */
 const ШИРИНА_СТОЛА = 1180
 
@@ -383,7 +387,7 @@ export function Титул({ onSign, onNew, onHub, onCabinet, вошёл = false
     const с = столРеф.current
     if (!я || !с) return
     const мерить = () => {
-      if (window.matchMedia('(max-width: 900px)').matches) {
+      if (window.matchMedia(ТЕЛЕФОН).matches) {
         с.style.width = ''; с.style.height = ''; с.style.transform = ''
         return
       }
