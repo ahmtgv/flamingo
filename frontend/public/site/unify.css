@@ -1,0 +1,64 @@
+/* Единый стиль статичных страниц /sedum/ — приведение к главной.
+   Образец — главная flamingo.plus (утверждена владельцем 31.10.2026):
+     заголовок страницы   36 / 600 / −0.035em
+     заголовок раздела    28 / 600 / −0.035em
+     подзаголовок         20 / 600 / −0.025em
+     кнопка               14 / 600, скругление 12, рост не меньше 44
+     текст #1d1d1f, второй #6e6e73, зелёный #496d4c
+   Файл подключён ПОСЛЕДНИМ и ничего в чужих файлах не правит: убрать одну
+   строку <link> — и страницы вернутся к прежнему виду. */
+
+:root {
+  --u-ink: #1d1d1f;
+  --u-dim: #6e6e73;
+  --u-green: #496d4c;
+  --u-green-hover: #3c5d3f;
+  --u-line: rgba(0, 0, 0, 0.1);
+  --u-h1: clamp(28px, 3.2vw, 36px);
+  --u-h2: clamp(24px, 2.6vw, 28px);
+  --u-h3: 20px;
+}
+
+/* ── заголовки: один вес, одна плотность, одна шкала ───────────────────── */
+:root h1, :root h2, :root h3, :root h4 { font-weight: 600; }
+
+/* описание модулей */
+:root .top-intro h1,
+:root .top-intro h2,
+:root .section-head h2,
+:root .participation h2 { font-size: var(--u-h1); letter-spacing: -0.035em; line-height: 1.12; }
+:root .module-wide-heading h3 { font-size: var(--u-h2); letter-spacing: -0.035em; line-height: 1.15; }
+:root .module-wide-heading h4 { font-size: var(--u-h3); letter-spacing: -0.025em; line-height: 1.3; }
+:root .module-avatar h3 { letter-spacing: -0.025em; }
+
+/* кабинет исследований — мельче и легче остальных (владелец, 10.11:
+   «компактнее и изящнее; больших и жирных шрифтов избегаем») */
+:root .page-header h1 { font-size: clamp(26px, 2.9vw, 33px); font-weight: 500; letter-spacing: -0.03em; line-height: 1.15; }
+:root .research h2 { font-size: 17px; font-weight: 500; letter-spacing: -0.018em; }
+:root .research h3 { font-size: 21px; font-weight: 500; letter-spacing: -0.029em; }
+:root .future h2, :root .profile h2 { font-size: 19px; font-weight: 500; letter-spacing: -0.024em; }
+:root .study h3 { font-weight: 500; }
+
+/* ── кнопки: одна форма ────────────────────────────────────────────────── */
+:root .button, :root .primary {
+  min-height: 44px;
+  border-radius: 12px;
+  background: var(--u-green);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  box-shadow: none;
+}
+:root .button:hover, :root .primary:hover { background: var(--u-green-hover); transform: none; box-shadow: none; }
+
+/* ── фокус: видно всегда, и не тревожным цветом ────────────────────────── */
+:root a:focus-visible, :root button:focus-visible, :root summary:focus-visible {
+  outline: 2px solid var(--u-ink);
+  outline-offset: 3px;
+  text-decoration: none;
+}
+
+/* ── кабинет исследований: строка, рабочая область и подвал — в один экран ─ */
+@media (min-width: 901px) {
+  :root .shell { min-height: calc(100svh - 96px); }
+}
