@@ -19,7 +19,7 @@ const ПУНКТЫ: { имя: string; куда: string; раздел?: Разд�
   { имя: 'Источники мира', куда: '/hub', раздел: 'источники', внутри: true },
   /* Эти две страницы статичные: переход настоящий, не внутри приложения. */
   { имя: 'о SEduM', куда: '/sedum/', внутри: false },
-  { имя: 'Test. AI. RND', куда: '/sedum/research-cabinet.html', внутри: false },
+  { имя: 'SEduM: AI & RND', куда: '/sedum/research-cabinet.html', внутри: false },
 ]
 
 export function Шапка({ где, вошёл, молчит = false, go }: {
