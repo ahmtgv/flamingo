@@ -18,8 +18,8 @@ const ПУНКТЫ: { имя: string; куда: string; раздел?: Разд�
   { имя: 'Главная', куда: '/', раздел: 'главная', внутри: true },
   { имя: 'Источники мира', куда: '/hub', раздел: 'источники', внутри: true },
   /* Эти две страницы статичные: переход настоящий, не внутри приложения. */
-  { имя: 'SEduM', куда: '/sedum/', внутри: false },
-  { имя: 'Исследования', куда: '/sedum/research-cabinet.html', внутри: false },
+  { имя: 'о SEduM', куда: '/sedum/', внутри: false },
+  { имя: 'Test. AI. RND', куда: '/sedum/research-cabinet.html', внутри: false },
 ]
 
 export function Шапка({ где, вошёл, молчит = false, go }: {
@@ -100,25 +100,5 @@ export function Шапка({ где, вошёл, молчит = false, go }: {
         </details>
       </div>
     </header>
-  )
-}
-
-/** Общий подвал сайта: те же разделы, что в верхней строке. Стиль — там же,
- *  `public/site/site.css`; на статичных страницах `/sedum/` разметка та же. */
-export function Подвал({ go }: { go: (to: string) => void }) {
-  const внутрь = (куда: string) => (e: MouseEvent<HTMLAnchorElement>) => {
-    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return
-    e.preventDefault()
-    go(куда)
-  }
-  return (
-    <footer className="flfoot">
-      <span>© Flamingo, 2026</span>
-      <nav aria-label="Разделы сайта, внизу">
-        {ПУНКТЫ.map((п) => (
-          <a key={п.куда} href={п.куда} onClick={п.внутри ? внутрь(п.куда) : undefined}>{п.имя}</a>
-        ))}
-      </nav>
-    </footer>
   )
 }

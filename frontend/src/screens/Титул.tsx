@@ -4,7 +4,7 @@ import { RIGHTS, SOURCES } from '../hub/sources'
 import '../styles/главная.css'
 import s from './Титул.module.css'
 import leftAir from './left-cards-air.module.css'
-import { Подвал, Шапка } from '../ui/Шапка'
+import { Шапка } from '../ui/Шапка'
 import { доска, палитра } from './титул-доска'
 
 /** Титул — главная flamingo.plus. Редизайн утверждён владельцем 31.10.2026.
@@ -525,7 +525,6 @@ export function Титул({ onSign, onNew, onHub, onCabinet, вошёл = false
           </section>
         </div>
       </main>
-      <Подвал go={поАдресу} />
 
       {играет ? (
         <div className={s.стекло} onClick={() => setИграет(null)} role="presentation">

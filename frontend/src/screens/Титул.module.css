@@ -41,7 +41,9 @@
   flex: 1 0 auto;
   min-height: calc(var(--г-860) - var(--г-44));
   box-sizing: border-box;
-  padding: var(--г-20) var(--г-24) var(--г-24);
+  /* Сверху 16, а не 20: единая строка сайта выше прежней на 4, и страница
+     обязана остаться того же роста — ровно в экран (владелец, 10.11). */
+  padding: var(--г-16) var(--г-24) var(--г-24);
   display: grid;
   grid-template-columns: var(--г-400) minmax(0, 1fr);
   gap: var(--г-20);

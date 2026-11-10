@@ -58,7 +58,16 @@
   text-decoration: none;
 }
 
-/* ── кабинет исследований: строка, рабочая область и подвал — в один экран ─ */
+/* ── кабинет исследований: строка и рабочая область — ровно в один экран ── */
 @media (min-width: 901px) {
-  :root .shell { min-height: calc(100svh - 96px); }
+  :root .shell { min-height: calc(100svh - 44px); }
+  /* строка сайта и заголовок выше прежних на 13 — столько же снято сверху,
+     чтобы страница осталась того же роста */
+  :root .main { padding-top: 17px; }
+}
+@media (min-width: 1600px) {
+  :root .main { padding-top: 21px; }
+}
+@media (min-width: 901px) and (max-width: 1200px) {
+  :root .main { padding-top: 15px; }
 }
