@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState } from 'react'
+import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
 
 import { RIGHTS, SOURCES } from '../hub/sources'
 import '../styles/главная.css'
@@ -192,6 +192,9 @@ const ЗНАК_ПУСКА = (
   <svg width="20" height="22" viewBox="0 0 12 14" aria-hidden="true"><path d="M1.5 1v12l10-6z" fill="#fff" /></svg>
 )
 
+/** Наименьшая ширина, на которой двухколоночный стол главной не тесен. */
+const ШИРИНА_СТОЛА = 1180
+
 export function Титул({ onSign, onNew, onHub, onCabinet, вошёл = false, молчит = false }: {
   onSign: () => void
   /** Отдельная дверь: «завести» и «войти» — разные намерения (ПРАВИЛА 12.4). */
@@ -366,6 +369,52 @@ export function Титул({ onSign, onNew, onHub, onCabinet, вошёл = false
   /* Единая строка сайта ходит адресами; у титула двери розданы снаружи —
      сводим одно к другому здесь, чтобы не менять, как титул зовут. */
   const корень = useRef<HTMLDivElement>(null)
+
+  /* 🔴 СТОЛ ВСЕГДА РОВНО В ЭКРАН (владелец, 10.11: «должна помещаться и на
+     ноутбучных экранах, и на всех остальных, кроме мобильных»). Содержимому
+     стола нужна своя высота, и на невысоком экране оно не помещалось — корень
+     прокручивался. Теперь стол целиком уменьшается ровно настолько, чтобы
+     войти: раскладка, пропорции и доска остаются теми же, меняется только
+     масштаб. Узко (одна колонка, телефон) — как было: обычная прокрутка. */
+  const рамаСтола = useRef<HTMLDivElement>(null)
+  const столРеф = useRef<HTMLElement>(null)
+  useLayoutEffect(() => {
+    const я = рамаСтола.current
+    const с = столРеф.current
+    if (!я || !с) return
+    const мерить = () => {
+      if (window.matchMedia('(max-width: 900px)').matches) {
+        с.style.width = ''; с.style.height = ''; с.style.transform = ''
+        return
+      }
+      const ш = я.clientWidth
+      const в = я.clientHeight
+      if (!ш || !в) return
+      /* Свой рост стола при данной ширине: высота отпущена — блоки встают
+         в полный рост, никто не сжат и не обрезан. */
+      const рост = (м: number) => {
+        с.style.width = `${ш / м}px`
+        с.style.height = 'auto'
+        return с.offsetHeight
+      }
+      /* Рост зависит от ширины, ширина — от масштаба: три шага приближения
+         сходятся с запасом (левая колонка постоянной ширины). */
+      /* Столу нужна и ширина: в окне уже 1180 две колонки тесны, поэтому
+         узкое окно тоже уменьшает стол, а не ломает раскладку. */
+      const поШирине = Math.min(1, ш / ШИРИНА_СТОЛА)
+      let м = поШирине
+      for (let i = 0; i < 3; i += 1) м = Math.min(поШирине, в / рост(м))
+      /* Запас в точку — от дробных размеров. */
+      if (м < поШирине) м = Math.min(поШирине, в / (рост(м) + 1))
+      с.style.height = `${в / м}px`
+      с.style.transform = м === 1 ? '' : `scale(${м})`
+    }
+    мерить()
+    const глаз = new ResizeObserver(мерить)
+    глаз.observe(я)
+    void document.fonts?.ready.then(мерить)
+    return () => глаз.disconnect()
+  }, [])
   const поАдресу = (to: string) => {
     if (to === '/') корень.current?.scrollTo({ top: 0 })
     else if (to === '/hub') onHub()
@@ -382,7 +431,8 @@ export function Титул({ onSign, onNew, onHub, onCabinet, вошёл = false
     <div className={s.корень} ref={корень}>
       <Шапка где="главная" вошёл={вошёл} молчит={молчит} go={поАдресу} />
 
-      <main className={s.стол}>
+      <div className={s.сцена} ref={рамаСтола}>
+      <main className={s.стол} ref={столРеф}>
         {/* ── левая колонка ───────────────────────────────────────────── */}
         <div className={s.левая}>
           <section id="верх" className={`${s.карточка} ${leftAir.hero}`}>
@@ -525,6 +575,7 @@ export function Титул({ onSign, onNew, onHub, onCabinet, вошёл = false
           </section>
         </div>
       </main>
+      </div>
 
       {играет ? (
         <div className={s.стекло} onClick={() => setИграет(null)} role="presentation">
