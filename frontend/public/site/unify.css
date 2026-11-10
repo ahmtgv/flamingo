@@ -74,5 +74,9 @@
 
 /* ── страница ровно в экран: сцена под строкой сайта, содержимое в ней
    уменьшается целиком, если не входит (site.js ставит data-fl-fit) ────── */
-html[data-fl-fit] [data-fl-stage] { position: relative; height: calc(100svh - 44px); overflow: hidden; }
+/* svh — видимая высота без полосы адреса Safari; строка с vh — для браузеров,
+   которые svh не знают. Сама страница в этом режиме не прокручивается и не
+   «пружинит» на айпаде. */
+html[data-fl-fit], html[data-fl-fit] body { height: 100%; overflow: hidden; overscroll-behavior: none; }
+html[data-fl-fit] [data-fl-stage] { position: relative; height: calc(100vh - 44px); height: calc(100svh - 44px); overflow: hidden; }
 html[data-fl-fit] [data-fl-stage] > * { position: absolute; left: 0; top: 0; width: 100%; height: 100%; min-height: 0; transform-origin: 0 0; }
