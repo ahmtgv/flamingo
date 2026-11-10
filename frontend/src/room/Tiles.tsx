@@ -71,16 +71,25 @@ export function Tiles({ faces, внимание }: { faces: Face[]; вниман
   if (!open) {
     return (
       <button type="button" className={s.show} onClick={() => setOpen(true)}>
-        Показать превью · {faces.length}
+        Участники · {faces.length}
       </button>
     )
   }
 
   return (
-    <div className={s.rail} aria-label="Участники">
-      <button type="button" className={s.hide} onClick={() => setOpen(false)}>
-        Свернуть превью
-      </button>
+    /* 🔴 ЛИЦА СВОРАЧИВАЮТСЯ НАЖАТИЕМ ПО НИМ САМИМ (владелец, 10.11.2026). Стояла
+       кнопка «Свернуть превью»: на телефоне она закрывала показанное классу и
+       сама не срабатывала. Теперь надписи нет — нажал на лица, и они ушли;
+       вернуть их можно кнопкой «Участники». */
+    <div
+      className={s.rail}
+      role="button"
+      tabIndex={0}
+      aria-label="Участники. Нажмите, чтобы свернуть"
+      title="Нажмите, чтобы свернуть"
+      onClick={() => setOpen(false)}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setOpen(false) } }}
+    >
       {якорь ? <Tile face={якорь} lead={ведёт} внимание={внимание} /> : null}
       <div className={s.pupils}>
         {shown.map((f) => (

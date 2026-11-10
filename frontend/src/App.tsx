@@ -40,6 +40,7 @@ const Sign = lazy(() => import('./screens/Sign').then((м) => ({ default: м.Sig
 const NewPass = lazy(() => import('./screens/NewPass').then((м) => ({ default: м.NewPass })))
 const Room = lazy(() => import('./screens/Room').then((м) => ({ default: м.Room })))
 const BadLink = lazy(() => import('./screens/BadLink').then((м) => ({ default: м.BadLink })))
+const Чаты = lazy(() => import('./screens/Чаты').then((м) => ({ default: м.Чаты })))
 const Админ = lazy(() => import('./screens/Админ').then((м) => ({ default: м.Админ })))
 const NewLesson = lazy(() => import('./screens/NewLesson').then((м) => ({ default: м.NewLesson })))
 const Journal = lazy(() => import('./screens/Journal').then((м) => ({ default: м.Journal })))
@@ -157,6 +158,7 @@ function Экраны() {
       if (path === '/') return 'Flamingo — живые уроки, источники мира и SEduM'
       if (path === '/кабинет') return 'Кабинет — Flamingo'
       if (path === '/журнал') return 'Журнал — Flamingo'
+      if (path === '/чаты') return 'Сообщения — Flamingo'
       if (path === '/создать-урок') return 'Новый урок — Flamingo'
       if (path.startsWith('/урок/')) return 'Урок — Flamingo'
       /* 🔴 «ИСТОЧНИКИ МИРА», А НЕ «ХРАНИЛИЩЕ». Слова «хранилище» на этом экране
@@ -365,6 +367,15 @@ function Экраны() {
   }
 
   /* Журнал: ученики и занятия. Ведёт его преподаватель. */
+  /* Сообщения — переписка своей страницей (владелец, 10.11). Есть только у
+     вошедшего, как и кабинет. */
+  if (path === '/чаты') {
+    if (!узнали) return <Wait />
+    if (молчит) return <Молчание onAgain={спроситьСнова} />
+    if (!person) return <Sign onDone={вошёл} />
+    return врама(person, 'чаты', <Чаты person={person} />)
+  }
+
   if (path === '/журнал') {
     if (!узнали) return <Wait />
     if (молчит) return <Молчание onAgain={спроситьСнова} />

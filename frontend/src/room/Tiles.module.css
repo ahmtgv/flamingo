@@ -14,11 +14,15 @@
   scrollbar-width: none;
 }
 
+/* Полоса лиц сворачивается нажатием по ней самой. */
+.rail {
+  cursor: pointer;
+}
+
 .rail::-webkit-scrollbar {
   display: none;
 }
 
-.hide,
 .show {
   flex: 0 0 auto;
   align-self: flex-end;
@@ -33,7 +37,6 @@
   box-shadow: var(--shadow-sm);
 }
 
-.hide:hover,
 .show:hover {
   color: var(--color-text);
   border-color: var(--color-border-strong);
