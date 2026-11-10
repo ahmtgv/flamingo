@@ -64,6 +64,7 @@ import { codeFromPath } from './lib/code'
 import { запомнитьОпыты } from './lib/опыты'
 import { rememberName, rememberedName } from './lib/name'
 import { logout, whoAmI, type Person } from './lib/auth'
+import { Шапка } from './ui/Шапка'
 import { завестиТему } from './lib/theme'
 
 /* Опыты (`lib/опыты.ts`): хвост `?внимание=1` читается до любого перехода —
@@ -116,6 +117,19 @@ function Экраны() {
     return () => { живо = false }
   }, [спрос])
 
+  /* Подсказка статичным страницам `/sedum/`: вошёл человек или нет. Они живут
+     вне приложения и спросить сервер не могут, а верхняя строка у них та же —
+     с «Войти в кабинет» вместо двух дверей входа. Это не пропуск, а надпись
+     на кнопке: кабинет всё равно спросит сервер сам. Пока ответа нет —
+     подсказку не трогаем. */
+  useEffect(() => {
+    if (!узнали || молчит) return
+    try {
+      if (person) window.localStorage.setItem('fl-in', '1')
+      else window.localStorage.removeItem('fl-in')
+    } catch { /* хранилище закрыто — строка покажет двери входа */ }
+  }, [узнали, молчит, person])
+
   /* Спросить ещё раз: возвращаемся в незнание и повторяем запрос. */
   const спроситьСнова = useCallback(() => {
     setУзнали(false)
@@ -139,7 +153,7 @@ function Экраны() {
     const имя = (() => {
       /* То же имя, что в `index.html`: у страницы должно быть одно имя, а не
          два — иначе вкладка меняет подпись через мгновение после открытия. */
-      if (path === '/') return 'Flamingo — занятие по ссылке'
+      if (path === '/') return 'Flamingo — живые уроки, источники мира и SEduM'
       if (path === '/кабинет') return 'Кабинет — Flamingo'
       if (path === '/журнал') return 'Журнал — Flamingo'
       if (path === '/создать-урок') return 'Новый урок — Flamingo'
@@ -302,8 +316,15 @@ function Экраны() {
      молчание сервера — тоже ответ. */
   if (path === '/hub') {
     if (!узнали) return <Wait />
-    const хаб = <Hub onBack={домой} onHome={домой} вРаме={Boolean(person)} />
-    return person ? врама(person, 'избранное', хаб) : хаб
+    if (person) return врама(person, 'избранное', <Hub onBack={домой} onHome={домой} вРаме />)
+    /* Гостю — под единой строкой сайта. Знак рисует строка, поэтому свой знак
+       каталог не повторяет (ПРАВИЛА 4.9: знак один на экран). */
+    return (
+      <div className="flpage">
+        <Шапка где="источники" вошёл={false} молчит={молчит} go={go} />
+        <Hub onBack={домой} onHome={домой} вРаме />
+      </div>
+    )
   }
 
   /* Личный кабинет. Он ЕСТЬ только у того, кто вошёл: без учётной записи

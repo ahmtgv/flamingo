@@ -32,68 +32,14 @@
   color: inherit;
 }
 
-/* ── меню ─────────────────────────────────────────────────────────────── */
-.меню {
-  position: relative;
-  flex: none;
-  height: var(--г-40);
-  box-sizing: border-box;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--г-20);
-  padding: 0 var(--г-20);
-  background: var(--г-menu-bg);
-  backdrop-filter: saturate(180%) blur(var(--г-30));
-  border-bottom: 0.5px solid var(--г-hairline);
-}
-
-.менюЛево { display: flex; align-items: center; gap: var(--г-22); min-width: 0; }
-
-.лого {
-  display: flex;
-  align-items: center;
-  gap: var(--г-8);
-  font-size: var(--г-15);
-  font-weight: 600;
-  letter-spacing:var(--г-air-type-_0_02em);
-  color: var(--г-text);
-  text-decoration: none;
-}
-
-.лого img { width: var(--г-22); height: var(--г-18); object-fit: contain; }
-
-.пункты { display: flex; align-items: center; gap: var(--г-20); font-size: var(--г-13); font-weight: 500; }
-.пункты a { color: var(--г-text); text-decoration: none; }
-
-.менюПраво { display: flex; align-items: center; gap: var(--г-16); font-size: var(--г-13); font-weight: 500; }
-
-.менюВойти { border: 0; padding: 0; background: none; font: inherit; cursor: pointer; }
-
-.пилюля {
-  border: 0;
-  background: var(--г-menu-pill-bg);
-  color: var(--г-menu-pill-fg);
-  border-radius: var(--г-980);
-  padding: 0 var(--г-13);
-  height: var(--г-26);
-  font-size: var(--г-12);
-  font-weight: 600;
-  cursor: pointer;
-  /* Надпись в одну строку и пилюля не сжимается (владелец, 02.11, мобильный
-     аудит, п.1): на 360 «Завести учётную запись» переносилась на две строки
-     и вылезала из пилюли ростом 26 — содержимому нужно было 35. */
-  white-space: nowrap;
-  flex: none;
-}
-
-.менюВойти[aria-disabled='true'], .пилюля[aria-disabled='true'] { cursor: default; opacity: 0.55; }
+/* Верхняя строка — общая для всего сайта: `ui/Шапка.tsx`, стиль в
+   `public/site/site.css`. Здесь её правил нет. */
 
 /* ── стол ──────────────────────────────────────────────────────────────── */
 .стол {
   position: relative;
   flex: 1 0 auto;
-  min-height: calc(var(--г-860) - var(--г-40));
+  min-height: calc(var(--г-860) - var(--г-44));
   box-sizing: border-box;
   padding: var(--г-20) var(--г-24) var(--г-24);
   display: grid;
@@ -489,7 +435,6 @@ button.ролик:hover { transform: translateY(-3px); }
   .верхнийРяд { flex-direction: column; }
   .хаб { width: auto; }
   .поле { min-height: var(--г-420); }
-  .пункты { display: none; }
   .наука { flex: none; }
   .ролики { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .роликПревью { flex: none; aspect-ratio: 160 / 200; }
@@ -505,12 +450,6 @@ button.ролик:hover { transform: translateY(-3px); }
   .режимы { max-width: 100%; overflow-x: auto; overflow-y: hidden; scrollbar-width: none; }
   .режимы::-webkit-scrollbar { display: none; }
   .режим { flex: none; }
-
-  /* Полоса меню на телефоне: зазоры ужаты, чтобы «Войти» и пилюля в одну
-     строку вошли в 360 — ничего не убрано (владелец, 02.11, мобильный аудит, п.1). */
-  .меню { gap: var(--г-10); padding: 0 var(--г-16); }
-  .менюПраво { gap: var(--г-10); }
-  .пилюля { padding: 0 var(--г-10); }
 
   /* Палитра доски была шире самой доски (367 против 312 на 360) и срезалась
      с обоих краёв. На телефоне она переносится внутри себя: подпись первой
@@ -533,11 +472,4 @@ button.ролик:hover { transform: translateY(-3px); }
    (владелец, 02.11, мобильный аудит, п.8). */
 @media (max-width: 480px) {
   .ролики { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-}
-
-/* Keep every account action, wrapping rather than overlapping the logo. */
-@media (max-width: 359px) {
-  .меню { height: auto; min-height: var(--г-40); flex-wrap: wrap; padding-block: var(--г-8); }
-  .менюЛево { flex: none; }
-  .менюПраво { margin-left: auto; flex-wrap: wrap; justify-content: flex-end; }
 }

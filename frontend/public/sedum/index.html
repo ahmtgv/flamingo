@@ -8,6 +8,13 @@
   <meta name="color-scheme" content="light">
   <meta name="description" content="SEduM — Supporting, Education, Monitoring. Система поддержки обучения, индивидуального контекста и исследований Flamingo.">
   <title>SEduM AI System — Flamingo</title>
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Flamingo">
+  <meta property="og:locale" content="ru_RU">
+  <meta property="og:url" content="https://flamingo.plus/sedum/">
+  <meta property="og:title" content="SEduM AI System">
+  <meta property="og:description" content="Система поддержки обучения, индивидуального контекста и исследований Flamingo.">
+  <meta property="og:image" content="https://flamingo.plus/og.png">
   <link rel="icon" href="assets/flamingo-bird.svg" type="image/svg+xml">
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="polish.css">
@@ -21,6 +28,8 @@
   <link rel="stylesheet" href="top-fidelity.css">
   <link rel="stylesheet" href="system-wordmark.css">
   <link rel="stylesheet" href="module-avatar-row.css">
+  <link rel="stylesheet" href="/site/site.css">
+  <script src="/site/site.js"></script>
   <script src="app.js" defer></script>
   <script src="illustrations.js" defer></script>
   <script src="cmf-scan.js" defer></script>
@@ -31,10 +40,14 @@
 </head>
 <body>
   <a class="skip" href="#main">Перейти к содержанию</a>
-  <header class="header">
-    <a class="brand" href="#system" aria-label="Flamingo SEduM AI — в начало"><img src="assets/flamingo-bird.svg" alt="" width="37" height="36">Flamingo SEduM AI</a>
-    <nav aria-label="Основная навигация"><a href="#system">Система</a><a href="#modules">Модули</a><a href="#research">Исследования</a></nav>
-    <button class="button header-cta" data-participate>Участвовать в тестировании</button>
+  <header class="flnav">
+    <a class="flnav__logo" href="/" aria-label="Flamingo — на главную"><img src="/flamingo-bird.svg" alt="" width="22" height="20"><span>flamingo<b>.</b></span></a>
+    <nav class="flnav__items" aria-label="Разделы сайта"><a href="/">Главная</a><a href="/hub">Источники мира</a><a href="/sedum/" aria-current="page">SEduM</a><a href="/sedum/research-cabinet.html">Исследования</a></nav>
+    <div class="flnav__side"><a class="flnav__in" href="/вход" data-out>Войти</a><a class="flnav__pill" href="/регистрация" data-out>Завести учётную запись</a><a class="flnav__pill" href="/кабинет" data-in>Войти в кабинет</a>
+      <details class="flnav__more"><summary aria-label="Меню"><svg class="flnav__bars" viewBox="0 0 20 20" aria-hidden="true"><path d="M3 6h14M3 10h14M3 14h14"/></svg><svg class="flnav__x" viewBox="0 0 20 20" aria-hidden="true"><path d="m5 5 10 10M15 5 5 15"/></svg></summary>
+        <nav class="flnav__panel" aria-label="Разделы сайта"><a href="/">Главная</a><a href="/hub">Источники мира</a><a href="/sedum/" aria-current="page">SEduM</a><a href="/sedum/research-cabinet.html">Исследования</a><a class="flnav__pill" href="/регистрация" data-out>Завести учётную запись</a></nav>
+      </details>
+    </div>
   </header>
   <main id="main">
     <section class="hero container" id="system" aria-labelledby="hero-title">
@@ -46,7 +59,7 @@
             <h2>Искусственный интеллект на стороне <span>ученика.</span></h2>
             <p class="top-lead">Изучаем внимание, ритм и результаты обучения. Объединяем AI, анализ данных и исследования для персональной поддержки ученика.</p>
           </div>
-          <img class="top-editorial" src="assets/sedum-student-editorial.png" alt="Ученица за открытой книгой." width="1200" height="900" decoding="async">
+          <img class="top-editorial" src="assets/sedum-student-editorial.webp" alt="Ученица за открытой книгой." width="1200" height="900" decoding="async" fetchpriority="high">
         </div>
 
       </div>

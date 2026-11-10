@@ -10,7 +10,7 @@
 .top-system{position:relative;isolation:isolate}
 .top-system .top-node{display:flex;align-items:center;justify-content:center;gap:18px;min-width:0;background:transparent;border:0;padding:8px;min-height:0;border-radius:14px}
 .top-system .top-node:hover{background:var(--green-soft)}
-.top-node-art{display:block;flex:0 0 145px;width:145px;height:145px;border-radius:50%;background-image:url('assets/sedum-module-illustrations.png');background-size:200% 200%;background-repeat:no-repeat}
+.top-node-art{display:block;flex:0 0 145px;width:145px;height:145px;border-radius:50%;background-image:url('assets/sedum-module-illustrations.webp');background-size:200% 200%;background-repeat:no-repeat}
 .art-cmf{background-position:0 0}.art-profile{background-position:100% 0}.art-rhythm{background-position:0 100%}.art-research{background-position:100% 100%}
 .top-system .top-node h3{font-size:21px}.top-system .top-node p{font-size:13px;max-width:17ch}
 .node-cmf{grid-column:1;grid-row:1}.node-profile{grid-column:1;grid-row:2}.node-rhythm{grid-column:3;grid-row:1}.node-research{grid-column:3;grid-row:2}

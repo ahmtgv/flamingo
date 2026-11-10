@@ -39,7 +39,7 @@
     <div class="cmf-scan-toolbar"><span class="cmf-mode"><i></i><span data-cmf-status>Сканирование · демо</span></span></div>
     <div class="cmf-scan-main">
       <figure class="cmf-camera" aria-describedby="cmf-scan-disclaimer">
-        <img src="assets/cmf-student-portrait.png" width="1086" height="1448" alt="Синтетический реалистичный портрет девушки для демонстрации CMF." loading="lazy" decoding="async">
+        <img src="assets/cmf-student-portrait.webp" width="1086" height="1448" alt="Синтетический реалистичный портрет девушки для демонстрации CMF." loading="lazy" decoding="async">
         <svg class="cmf-face-overlay" viewBox="0 0 1000 1333.333" aria-hidden="true" focusable="false">
           <defs><linearGradient id="cmf-scan-band" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#e6ffe2" stop-opacity="0"/><stop offset=".8" stop-color="#e6ffe2" stop-opacity=".08"/><stop offset="1" stop-color="#f4fff2" stop-opacity=".25"/></linearGradient></defs>
           <defs><clipPath id="cmf-mesh-sweep"><rect data-cmf-mesh-band x="0" y="300" width="1100" height="100"/></clipPath></defs>

@@ -4,6 +4,7 @@ import { RIGHTS, SOURCES } from '../hub/sources'
 import '../styles/главная.css'
 import s from './Титул.module.css'
 import leftAir from './left-cards-air.module.css'
+import { Шапка } from '../ui/Шапка'
 import { доска, палитра } from './титул-доска'
 
 /** Титул — главная flamingo.plus. Редизайн утверждён владельцем 31.10.2026.
@@ -362,36 +363,24 @@ export function Титул({ onSign, onNew, onHub, onCabinet, вошёл = false
     }
   }, [тихо])
 
+  /* Единая строка сайта ходит адресами; у титула двери розданы снаружи —
+     сводим одно к другому здесь, чтобы не менять, как титул зовут. */
+  const корень = useRef<HTMLDivElement>(null)
+  const поАдресу = (to: string) => {
+    if (to === '/') корень.current?.scrollTo({ top: 0 })
+    else if (to === '/hub') onHub()
+    else if (to === '/вход') onSign()
+    else if (to === '/регистрация') onNew()
+    else if (to === '/кабинет') onCabinet?.()
+  }
+
   const дверьВхода = молчит
     ? { onClick: undefined, 'aria-disabled': true as const, title: 'Сервер учётных записей молчит — войти сейчас нельзя' }
     : {}
 
   return (
-    <div className={s.корень}>
-      <nav className={s.меню} aria-label="Главное меню">
-        <div className={s.менюЛево}>
-          <a href="#верх" className={s.лого} onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0 }) }}>
-            <img src="/flamingo-mark.svg" alt="" aria-hidden="true" />
-            <span>flamingo.</span>
-          </a>
-          <div className={s.пункты}>
-            <a href="#доска">Доска занятия</a>
-            <a href="#наука">Познавательная наука</a>
-            <a href="#хаб">Источники мира</a>
-            <a href="#тесты">Тестирование</a>
-          </div>
-        </div>
-        <div className={s.менюПраво}>
-          {вошёл ? (
-            <button type="button" className={s.пилюля} onClick={onCabinet}>Войти в кабинет</button>
-          ) : (
-            <>
-              <button type="button" className={s.менюВойти} onClick={молчит ? undefined : onSign} aria-disabled={молчит || undefined}>Войти</button>
-              <button type="button" className={s.пилюля} onClick={молчит ? undefined : onNew} aria-disabled={молчит || undefined}>Завести учётную запись</button>
-            </>
-          )}
-        </div>
-      </nav>
+    <div className={s.корень} ref={корень}>
+      <Шапка где="главная" вошёл={вошёл} молчит={молчит} go={поАдресу} />
 
       <main className={s.стол}>
         {/* ── левая колонка ───────────────────────────────────────────── */}
