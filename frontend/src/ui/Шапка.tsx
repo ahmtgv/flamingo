@@ -22,9 +22,11 @@ const ПУНКТЫ: { имя: string; куда: string; раздел?: Разд�
   { имя: 'SEduM: AI & RND', куда: '/sedum/research-cabinet.html', внутри: false },
 ]
 
-export function Шапка({ где, вошёл, молчит = false, go }: {
+export function Шапка({ где, вошёл, админ = false, молчит = false, go }: {
   где: Раздел
   вошёл: boolean
+  /** Владельцу — дверь в админку. Только в приложении: статичные страницы её не знают. */
+  админ?: boolean
   /** Сервер учётных записей молчит: двери входа видны, но не нажимаются. */
   молчит?: boolean
   go: (to: string) => void
@@ -55,11 +57,12 @@ export function Шапка({ где, вошёл, молчит = false, go }: {
     if (!заперто) go(куда)
   }
 
-  const пункты = ПУНКТЫ.map((п) => (
+  const разделы = админ ? [...ПУНКТЫ, { имя: 'Админка', куда: '/админ', внутри: true }] : ПУНКТЫ
+  const пункты = разделы.map((п) => (
     <a
       key={п.куда}
       href={п.куда}
-      aria-current={п.раздел === где ? 'page' : undefined}
+      aria-current={'раздел' in п && п.раздел === где ? 'page' : undefined}
       onClick={п.внутри ? внутрь(п.куда) : undefined}
     >
       {п.имя}

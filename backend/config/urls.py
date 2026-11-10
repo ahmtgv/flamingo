@@ -3,6 +3,8 @@ from django.urls import include, path
 urlpatterns = [
     path("api/room/", include("room.urls")),
     path("api/auth/", include("people.urls")),
+    # Админка владельца: люди, проверка преподавателей, блокировка, журнал.
+    path("api/admin/", include("people.urls_admin")),
     path("api/study/", include("study.urls")),
     # Исследование внимания SEduM: приём записей от добровольцев.
     path("api/science/", include("science.urls")),

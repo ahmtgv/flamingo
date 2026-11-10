@@ -39,6 +39,25 @@ class Person(models.Model):
     tz = models.CharField(max_length=64, blank=True, default="")
     made_at = models.DateTimeField(auto_now_add=True)
 
+    # ── проверка и блокировка (решение владельца 10.11.2026) ───────────────
+    #: 🔴 ПРОВЕРКА ПРЕПОДАВАТЕЛЯ. Новый преподаватель заводить занятия не может,
+    #: пока владелец его не подтвердил: иначе подтверждение ничего не защищает.
+    #: По умолчанию — `ok`: все, кто был до этого поля, уже работают, и ломать
+    #: им занятия нельзя; `new` ставит сама регистрация преподавателя. Ученику
+    #: поле ничего не значит и остаётся `ok`.
+    VET_NEW, VET_OK, VET_NO = "new", "ok", "no"
+    VETS = [(VET_NEW, "ждёт проверки"), (VET_OK, "подтверждён"), (VET_NO, "отклонён")]
+    vet = models.CharField(max_length=8, choices=VETS, default=VET_OK)
+    #: Почту подтверждает владелец руками, пока письма с сервера не ходят.
+    email_ok = models.BooleanField(default=False)
+    phone = models.CharField(max_length=32, blank=True, default="")
+    #: Заблокированный не входит, и открытые сеансы гаснут сразу: `session.who`
+    #: его больше не узнаёт. Пусто — не заблокирован.
+    blocked_at = models.DateTimeField(null=True, blank=True)
+    blocked_why = models.CharField(max_length=200, blank=True, default="")
+    #: Заметка владельца о проверке. Наружу не уходит никому, кроме админки.
+    note = models.TextField(blank=True, default="")
+
     class Meta:
         db_table = "people"
 
@@ -85,3 +104,26 @@ class Reset(models.Model):
 
     class Meta:
         db_table = "resets"
+
+
+class Deed(models.Model):
+    """Журнал действий владельца в админке: кто, когда, над кем, что.
+
+    🔴 Запись НЕ УДАЛЯЕТСЯ вместе с человеком (`SET_NULL`), и почта админа
+    лежит строкой, а не ссылкой: журнал должен пережить и того, над кем
+    действовали, и того, кто действовал. Иначе «кто заблокировал» исчезает
+    ровно тогда, когда этот вопрос задают.
+    """
+
+    id = models.BigAutoField(primary_key=True)
+    admin = models.CharField(max_length=254)
+    person = models.ForeignKey(Person, null=True, on_delete=models.SET_NULL, related_name="deeds")
+    #: Кого касалось — словами, на случай если человека уже нет.
+    whom = models.CharField(max_length=320, blank=True, default="")
+    what = models.CharField(max_length=32)
+    detail = models.CharField(max_length=300, blank=True, default="")
+    at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "deeds"
+        ordering = ["-at", "-id"]

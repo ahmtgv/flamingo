@@ -128,8 +128,10 @@ def register(request: HttpRequest) -> JsonResponse:
     #: Пояс приходит от браузера вместе с записью; чужое значение проверяется
     #: по списку IANA и, если оно не оттуда, просто не сохраняется (пусто —
     #: законное «не знаем»).
+    # Новый преподаватель ждёт проверки владельцем; ученику проверка не нужна.
     person = Person(email=email, name=name, role=role, pass_hash=HASHER.hash(password),
-                    tz=чистыйПояс(body.get("tz")))
+                    tz=чистыйПояс(body.get("tz")),
+                    vet=Person.VET_NEW if role == Person.TEACHER else Person.VET_OK)
     try:
         person.save(force_insert=True)
     except IntegrityError:
@@ -183,6 +185,12 @@ def login(request: HttpRequest) -> JsonResponse:
 
     guard.hit(email, ip)
 
+    # 🔴 О БЛОКИРОВКЕ ГОВОРИМ ТОЛЬКО ТОМУ, КТО ЗНАЕТ ПАРОЛЬ. Проверка стоит после
+    # пароля нарочно: иначе ответ «заблокирована» подтверждал бы чужому, что
+    # такая почта у нас есть.
+    if person.blocked_at is not None:
+        return _no("Эта учётная запись заблокирована. Если это ошибка — напишите нам.", 403)
+
     # Отпечаток из Cloudflare переписываем на argon2id, а свои — если настройки
     # argon2 с тех пор окрепли. И то и другое можно только сейчас: пароль в руках.
     if not person.pass_hash.startswith("$argon2") or HASHER.check_needs_rehash(person.pass_hash):
@@ -212,8 +220,13 @@ def me(request: HttpRequest) -> JsonResponse:
     person = _who(request)
     if person is None:
         return JsonResponse({"person": None})
+    from .админка import админ_ли
     return JsonResponse({"person": {"id": person.id, "name": person.name, "role": person.role,
-                                    "пояс": person.tz}})
+                                    "пояс": person.tz,
+                                    # Экрану: ждёт ли преподаватель проверки и
+                                    # показывать ли дверь в админку. Права это
+                                    # не даёт — их каждый раз решает сервер.
+                                    "проверка": person.vet, "админ": админ_ли(person)}})
 
 
 # ── Забыли пароль ─────────────────────────────────────────────────────────────

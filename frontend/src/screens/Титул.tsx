@@ -199,7 +199,10 @@ const ТЕЛЕФОН = '(max-width: 700px), (max-height: 500px)'
 /** Наименьшая ширина, на которой двухколоночный стол главной не тесен. */
 const ШИРИНА_СТОЛА = 1180
 
-export function Титул({ onSign, onNew, onHub, onCabinet, вошёл = false, молчит = false }: {
+export function Титул({ onSign, onNew, onHub, onCabinet, onАдмин, вошёл = false, админ = false, молчит = false }: {
+  /** Владельцу в верхней строке видна дверь в админку. */
+  админ?: boolean
+  onАдмин?: () => void
   onSign: () => void
   /** Отдельная дверь: «завести» и «войти» — разные намерения (ПРАВИЛА 12.4). */
   onNew: () => void
@@ -425,6 +428,7 @@ export function Титул({ onSign, onNew, onHub, onCabinet, вошёл = false
     else if (to === '/вход') onSign()
     else if (to === '/регистрация') onNew()
     else if (to === '/кабинет') onCabinet?.()
+    else if (to === '/админ') onАдмин?.()
   }
 
   const дверьВхода = молчит
@@ -433,7 +437,7 @@ export function Титул({ onSign, onNew, onHub, onCabinet, вошёл = false
 
   return (
     <div className={s.корень} ref={корень}>
-      <Шапка где="главная" вошёл={вошёл} молчит={молчит} go={поАдресу} />
+      <Шапка где="главная" вошёл={вошёл} админ={админ} молчит={молчит} go={поАдресу} />
 
       <div className={s.сцена} ref={рамаСтола}>
       <main className={s.стол} ref={столРеф}>

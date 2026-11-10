@@ -49,4 +49,7 @@ def who(request: HttpRequest) -> Person | None:
         data = signing.loads(raw, salt=SALT, max_age=DAYS * 24 * 3600)
     except signing.BadSignature:
         return None
-    return Person.objects.filter(id=data.get("id")).first()
+    # 🔴 ЗАБЛОКИРОВАННОГО НЕ УЗНАЁМ. Кука у него цела и подпись верна, но ответ —
+    # «никого»: так блокировка гасит уже открытые сеансы сразу, на следующем же
+    # запросе, а не через тридцать дней, когда кука истечёт сама.
+    return Person.objects.filter(id=data.get("id"), blocked_at__isnull=True).first()

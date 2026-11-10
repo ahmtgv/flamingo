@@ -40,6 +40,7 @@ const Sign = lazy(() => import('./screens/Sign').then((м) => ({ default: м.Sig
 const NewPass = lazy(() => import('./screens/NewPass').then((м) => ({ default: м.NewPass })))
 const Room = lazy(() => import('./screens/Room').then((м) => ({ default: м.Room })))
 const BadLink = lazy(() => import('./screens/BadLink').then((м) => ({ default: м.BadLink })))
+const Админ = lazy(() => import('./screens/Админ').then((м) => ({ default: м.Админ })))
 const NewLesson = lazy(() => import('./screens/NewLesson').then((м) => ({ default: м.NewLesson })))
 const Journal = lazy(() => import('./screens/Journal').then((м) => ({ default: м.Journal })))
 const Invite = lazy(() => import('./screens/Invite').then((м) => ({ default: м.Invite })))
@@ -176,6 +177,7 @@ function Экраны() {
          видел. Здесь его тоже нет. */
       if (path.startsWith('/у/')) return 'Приглашение — Flamingo'
       if (path.startsWith('/r/')) return 'Урок идёт — Flamingo'
+      if (path === '/админ') return 'Админка — Flamingo'
       if (path === '/наука/кабинет' || path === '/наука/кабинет/') return 'Кабинет исследования — Flamingo'
       /* Разбор одной проверки — своё имя: владелец держит кабинет и пару
          разборов в соседних вкладках и различает их по подписи. */
@@ -395,6 +397,15 @@ function Экраны() {
   /* Исследование внимания: ни учётной записи, ни рамы — у добровольца есть
      только ссылка, и она же пропуск. Кода нет или он не из нашего алфавита —
      страница сама скажет «ссылка не найдена». */
+  /* Админка владельца. Дверь открыта тому, кого сервер назвал админом; это
+     только вежливость экрана — права на каждом запросе решает сервер сам. */
+  if (path === '/админ') {
+    if (!узнали) return <Wait />
+    if (молчит) return <Молчание onAgain={спроситьСнова} />
+    if (!person) return <Sign onDone={(p) => { setPerson(p); setУзнали(true) }} />
+    return <Админ person={person} onHome={домой} onOut={() => { out(); go('/') }} onНаука={() => go('/наука/кабинет')} />
+  }
+
   if (path === '/наука/кабинет' || path === '/наука/кабинет/') {
     return <КабинетНауки onВойти={() => { setПосле('/наука/кабинет'); go('/вход') }} onРазбор={(id) => go(`/наука/кабинет/${id}`)} />
   }
@@ -494,6 +505,8 @@ function Экраны() {
         onТесты={() => go(АДРЕС_ТЕСТОВ)}
         onCabinet={() => go('/кабинет')}
         вошёл={Boolean(person)}
+        админ={Boolean(person?.админ)}
+        onАдмин={() => go('/админ')}
         молчит={молчит}
         onAgain={спроситьСнова}
       />

@@ -1,0 +1,483 @@
+/* Админка владельца — по эскизу, утверждённому 10.11.2026. Значения — из
+   `styles/хаб.css` (`--х-…`): та же шкала, что у «Источников мира». */
+
+.screen {
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--х-бумага);
+  color: var(--х-текст);
+  font-family: 'Inter Variable', Inter, -apple-system, 'Helvetica Neue', system-ui, sans-serif;
+  font-size: var(--х-к-13);
+  font-weight: var(--х-вес);
+  line-height: var(--х-строка);
+  letter-spacing: var(--х-разрядка);
+  -webkit-font-smoothing: antialiased;
+}
+
+:where(.screen) button,
+:where(.screen) input,
+:where(.screen) textarea {
+  font: inherit;
+  letter-spacing: inherit;
+  color: inherit;
+}
+
+/* ── верхняя строка ───────────────────────────────────────────────────── */
+.bar {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: var(--х-20);
+  height: var(--х-44);
+  padding: 0 var(--х-20);
+  border-bottom: 1px solid var(--х-линия);
+  background: var(--х-карта);
+}
+
+.logo,
+.barOut {
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+
+.logo {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--х-7);
+  padding: 0;
+  font-size: var(--х-к-14);
+  font-weight: var(--х-вес-заголовок);
+}
+
+.logo b {
+  font-weight: inherit;
+  color: var(--х-тревога);
+}
+
+.barOn {
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  font-weight: var(--х-вес-заголовок);
+  box-shadow: inset 0 -2px 0 var(--х-зелёный);
+}
+
+.barSpace {
+  flex: 1 1 auto;
+}
+
+.barWho {
+  min-width: 0;
+  color: var(--х-тихий);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.barOut {
+  flex: none;
+  padding: var(--х-5) var(--х-13);
+  border-radius: var(--х-99);
+  background: var(--х-плашка);
+  font-size: var(--х-к-12);
+  font-weight: var(--х-вес-заголовок);
+}
+
+.barOut,
+.barOut:hover {
+  color: var(--х-на-плашке);
+}
+
+/* ── колонки ──────────────────────────────────────────────────────────── */
+.cols {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 16% 28% minmax(0, 1fr);
+}
+
+.left,
+.mid,
+.right {
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.left,
+.mid {
+  border-right: 1px solid var(--х-линия);
+}
+
+/* слева: разделы */
+.left {
+  background: var(--х-поле);
+  padding-top: var(--х-8);
+  overflow-y: auto;
+}
+
+.group {
+  margin: 0;
+  padding: var(--х-14) var(--х-16) var(--х-5);
+  font-size: var(--х-к-10_5);
+  font-weight: var(--х-вес);
+  letter-spacing: var(--х-разрядка-бровь);
+  text-transform: uppercase;
+  color: var(--х-тихий);
+}
+
+.sec {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--х-8);
+  width: 100%;
+  padding: var(--х-9) var(--х-16);
+  border: 0;
+  background: none;
+  font-size: var(--х-к-13_5);
+  text-align: left;
+  cursor: pointer;
+}
+
+.sec {
+  color: var(--х-второй);
+}
+
+.secOn {
+  background: var(--х-выбор);
+  font-weight: var(--х-вес-заголовок);
+  box-shadow: inset 2px 0 0 var(--х-зелёный);
+}
+
+.secOn {
+  color: var(--х-текст);
+}
+
+.secN {
+  font-size: var(--х-к-12);
+  color: var(--х-тихий);
+}
+
+.secAmber {
+  padding: 0 var(--х-8);
+  border-radius: var(--х-99);
+  background: var(--х-янтарь-фон);
+  font-size: var(--х-к-11_5);
+  color: var(--х-янтарь-текст);
+}
+
+/* середина: список */
+.mid {
+  padding-top: var(--х-14);
+}
+
+.midTitle {
+  margin: 0 var(--х-18) var(--х-10);
+  font-size: var(--х-к-14);
+  font-weight: var(--х-вес-заголовок);
+}
+
+.find {
+  flex: none;
+  margin: 0 var(--х-16) var(--х-10);
+  padding: var(--х-7) var(--х-10);
+  border: 1px solid var(--х-линия);
+  border-radius: var(--х-8);
+  background: var(--х-карта);
+  font-size: var(--х-к-12_5);
+}
+
+.find::placeholder,
+.askInput::placeholder,
+.askArea::placeholder {
+  color: var(--х-тихий);
+}
+
+.list {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.item {
+  position: relative;
+  display: grid;
+  width: 100%;
+  padding: var(--х-8) var(--х-18) var(--х-9) var(--х-44);
+  border: 0;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+}
+
+/* кружок-метка: цвет говорит статус (`::before` занят целью нажатия) */
+.item::after {
+  content: '';
+  position: absolute;
+  left: var(--х-19);
+  top: var(--х-11);
+  width: var(--х-14);
+  height: var(--х-14);
+  box-sizing: border-box;
+  border: 1px solid var(--х-метка);
+  border-radius: 50%;
+}
+
+.item.stWait::after {
+  border-color: var(--х-янтарь-текст);
+  background: radial-gradient(var(--х-янтарь-текст) 0 var(--х-3), transparent var(--х-4));
+}
+
+.item.stOk::after {
+  border-color: var(--х-зелёный);
+  background: radial-gradient(var(--х-зелёный) 0 var(--х-3), transparent var(--х-4));
+}
+
+.item.stBad::after {
+  border-color: var(--х-тревога);
+  background: linear-gradient(45deg, transparent 44%, var(--х-тревога) 44%, var(--х-тревога) 56%, transparent 56%);
+}
+
+.itemOn {
+  background: var(--х-выбор);
+}
+
+.itemName {
+  min-width: 0;
+  padding-right: var(--х-44);
+  font-size: var(--х-к-13_5);
+  font-weight: var(--х-вес-имя);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.itemSub {
+  min-width: 0;
+  font-size: var(--х-к-12);
+  color: var(--х-тихий);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.itemWhen {
+  position: absolute;
+  right: var(--х-16);
+  top: var(--х-9);
+  font-size: var(--х-к-11_5);
+  color: var(--х-тихий);
+}
+
+.hint {
+  margin: var(--х-8) var(--х-18);
+  color: var(--х-тихий);
+}
+
+/* справа: подробно */
+.right {
+  padding: var(--х-16) var(--х-26) var(--х-20);
+  gap: var(--х-11);
+  overflow-y: auto;
+}
+
+.right .hint {
+  margin: 0;
+}
+
+.trouble {
+  margin: 0;
+  min-height: var(--х-18);
+  font-size: var(--х-к-12_5);
+  color: var(--х-тревога);
+}
+
+.name {
+  margin: 0;
+  font-size: var(--х-18);
+  font-weight: var(--х-вес-заголовок);
+  letter-spacing: var(--х-разрядка-заголовок);
+  overflow-wrap: anywhere;
+}
+
+.row {
+  margin: 0;
+  color: var(--х-второй);
+  overflow-wrap: anywhere;
+}
+
+.label {
+  margin-right: var(--х-8);
+  color: var(--х-тихий);
+}
+
+.row .label:not(:first-child) {
+  margin-left: var(--х-16);
+}
+
+.st {
+  padding: var(--х-2) var(--х-9);
+  border-radius: var(--х-99);
+  font-size: var(--х-к-12);
+}
+
+.st.stWait {
+  background: var(--х-янтарь-фон);
+  color: var(--х-янтарь-текст);
+}
+
+.st.stOk {
+  background: var(--х-зелёный-фон);
+  color: var(--х-зелёный-текст);
+}
+
+.st.stBad {
+  background: var(--х-тревога-фон);
+  color: var(--х-тревога);
+}
+
+.st.stPlain {
+  background: var(--х-выбор);
+  color: var(--х-второй);
+}
+
+.docs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--х-9);
+}
+
+.doc {
+  margin: 0;
+  display: flex;
+  justify-content: space-between;
+  gap: var(--х-9);
+  padding: var(--х-9) var(--х-12);
+  border: 1px solid var(--х-линия);
+  border-radius: var(--х-9);
+  background: var(--х-карта);
+  font-weight: var(--х-вес-имя);
+}
+
+.docNote {
+  flex: none;
+  font-size: var(--х-к-12);
+  font-weight: var(--х-вес);
+  color: var(--х-тихий);
+}
+
+.btns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--х-8);
+}
+
+.btn {
+  flex: none;
+  padding: var(--х-8) var(--х-13);
+  border: 1px solid var(--х-линия);
+  border-radius: var(--х-9);
+  background: var(--х-карта);
+  font-weight: var(--х-вес-имя);
+  cursor: pointer;
+}
+
+.btn:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.btnGo {
+  border-color: var(--х-зелёный);
+  background: var(--х-зелёный);
+}
+
+.btnGo,
+.btnGo:hover {
+  color: var(--х-на-зелёном);
+}
+
+.btnBad {
+  border-color: var(--х-тревога-линия);
+}
+
+.btnBad,
+.btnBad:hover {
+  color: var(--х-тревога);
+}
+
+.ask {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--х-8);
+  padding: var(--х-11) var(--х-13);
+  border: 1px solid var(--х-линия);
+  border-radius: var(--х-11);
+  background: var(--х-карта);
+}
+
+.askNote {
+  flex: 1 1 100%;
+  margin: 0;
+  font-size: var(--х-к-12_5);
+  color: var(--х-второй);
+}
+
+.askInput,
+.askArea {
+  flex: 1 1 60%;
+  min-width: 0;
+  padding: var(--х-7) var(--х-10);
+  border: 1px solid var(--х-линия);
+  border-radius: var(--х-8);
+  background: var(--х-бумага);
+}
+
+.askArea {
+  flex-basis: 100%;
+  resize: vertical;
+}
+
+.log {
+  margin-top: auto;
+  padding-top: var(--х-10);
+  border-top: 1px solid var(--х-линия);
+  font-size: var(--х-к-12);
+  color: var(--х-второй);
+}
+
+.log p {
+  margin: var(--х-2) 0;
+}
+
+/* ── узко: колонки встают друг под другом, прокручивается весь экран ──── */
+@media (max-width: 900px) {
+  .screen {
+    overflow-y: auto;
+  }
+
+  .cols {
+    display: block;
+  }
+
+  .left,
+  .mid {
+    border-right: 0;
+    border-bottom: 1px solid var(--х-линия);
+  }
+
+  .list {
+    max-height: 40vh;
+  }
+
+  .docs {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
