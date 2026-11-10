@@ -234,6 +234,18 @@
   "снимок": false
  },
  {
+  "id": "phet",
+  "home": "https://phet.colorado.edu/",
+  "name": "PhET · интерактивные опыты",
+  "снимок": true
+ },
+ {
+  "id": "openstax",
+  "home": "https://openstax.org/",
+  "name": "OpenStax · учебники",
+  "снимок": true
+ },
+ {
   "id": "wb",
   "home": "https://data.worldbank.org/",
   "name": "Всемирный банк · открытые данные",

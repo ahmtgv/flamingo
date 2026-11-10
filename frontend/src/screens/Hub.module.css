@@ -4,7 +4,8 @@
 .screen {
   height: 100%;
   display: grid;
-  grid-template-rows: auto auto minmax(0, 1fr);
+  position: relative;
+  grid-template-rows: auto minmax(0, 1fr);
   background: var(--color-bg);
   overflow: hidden;
 }
@@ -52,204 +53,411 @@
   color: var(--color-text-detail);
 }
 
-/* ── строка заголовка ─────────────────────────────────────────────────────
-   Заголовок, фильтры и строка опроса стоят В ОДНОЙ строке (лист, 31.08):
-   раньше они занимали четыре этажа и отодвигали каталог за нижний край. */
-.top {
+/* ── три колонки (решение владельца 10.11.2026, по его эскизам) ─────────
+   Слева названия источников по разделам, в середине выбранный источник,
+   справа браузер источника. Ширины — долями экрана, не точками: экран один
+   и тот же на ноутбуке и на большом мониторе. */
+.cols {
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 22%) minmax(0, 30%) minmax(0, 1fr);
+}
+
+.left,
+.mid,
+.right {
+  min-width: 0;
+  min-height: 0;
   display: flex;
-  align-items: center;
-  gap: var(--space-5);
-  padding: var(--space-6) var(--поле) var(--space-5);
-  flex-wrap: wrap;
+  flex-direction: column;
+}
+
+.left,
+.mid {
+  border-right: 1px solid var(--color-border);
+}
+
+/* ── слева ────────────────────────────────────────────────────────────── */
+.left {
+  background: var(--color-surface-subtle);
+  padding-top: var(--space-4);
 }
 
 .title {
-  margin: 0;
+  margin: 0 var(--space-5) var(--space-3);
   font-family: var(--font-heading);
-  font-size: var(--text-h2);
-  font-weight: var(--weight-semibold);
+  font-size: var(--text-h3);
+  font-weight: var(--weight-medium);
   letter-spacing: var(--tracking-tight);
   line-height: var(--leading-heading);
   color: var(--color-text);
-  white-space: nowrap;
 }
 
-.filters {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  flex-wrap: wrap;
-  min-width: 0;
-}
-
-/* Надпись по центру и рост 44 (владелец, 02.11, мобильный аудит, п.5): с
-   `baseline` слова стояли у верхней кромки 34-пиксельной пилюли, а 34 —
-   ниже цели нажатия. */
-.filter {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
+.find {
+  margin: 0 var(--space-4) var(--space-3);
   min-height: var(--control-height-md);
-  padding: 0 var(--space-4);
+  padding: 0 var(--space-3);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-pill);
-  background: none;
+  border-radius: var(--radius-control);
+  background: var(--color-surface);
   color: var(--color-text);
+  font: inherit;
   font-size: var(--text-small);
-  cursor: pointer;
 }
 
-.filter:hover {
-  border-color: var(--color-border-strong);
-}
-
-/* Выбранный фильтр — сильная рамка и белая подложка, не акцент: это выбор,
-   а не «можно дальше» (ПРАВИЛА 5.7). */
-.filterOn {
-  border-color: var(--color-border-strong);
-  background: var(--color-surface);
-  box-shadow: var(--shadow-xs);
-}
-
-.filterN {
-  font: var(--weight-medium) var(--text-caption) var(--font-mono);
-  color: var(--color-text-detail);
-}
-
-/* Строка опроса: сколько источников ответило. Точка — графика, её порог 3,0
-   (ПРАВИЛА 4.10); слово рядом делает её читаемой без цвета. */
-/* ── каталог ──────────────────────────────────────────────────────────── */
-.body {
-  display: grid;
-  padding: 0 var(--поле) var(--space-6);
+.names {
+  flex: 1 1 auto;
   min-height: 0;
+  overflow-y: auto;
+  padding-bottom: var(--space-4);
 }
 
-.list {
+.group {
   margin: 0;
-  padding: 0;
-  list-style: none;
-  min-height: 0;
-  overflow: auto;
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  grid-auto-rows: max-content;
-  gap: var(--space-4);
-  align-content: start;
-}
-
-@media (max-width: 1180px) {
-  .list {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-}
-
-@media (max-width: 860px) {
-  .list {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-/* Телефон (владелец, 02.11, мобильный аудит, пп.3–4).
-   Одна колонка: в двух по 148 px имя и описание резались посреди слова,
-   а строка права «можно брать себе» уходила на две строки.
-   Фильтры — одним рядом с прокруткой вбок: в три ряда они съедали окно
-   каталога до 375 px из 740. */
-@media (max-width: 560px) {
-  /* Колонка экрана не растёт по ряду фильтров: без этого неразрывный ряд
-     раздувал её до 642 px при окне 360. */
-  .screen {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .list {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .filters {
-    flex: 1 1 100%;
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    overflow-y: hidden;
-    scrollbar-width: none;
-  }
-
-  .filters::-webkit-scrollbar {
-    display: none;
-  }
-
-  .filter {
-    flex: none;
-  }
-}
-
-/* 🔴 Цветной полосы слева у карточки НЕТ (решение владельца 31.08).
-   Состояние говорит точка и надпись: двадцать коралловых полос в решётке
-   съедали единственный акцент экрана (ПРАВИЛА 5.4). */
-.card {
-  display: grid;
-  grid-template-rows: var(--space-13) auto;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-card);
-  background: var(--color-surface);
-  min-width: 0;
-  overflow: hidden;
-}
-
-.shot {
-  display: block;
-  background: var(--color-surface-subtle);
-  border-bottom: 1px solid var(--color-border);
-  overflow: hidden;
-  line-height: 0;
-}
-
-/* Высота строк задана числом строк текста: карточки одного ряда обязаны
-   совпадать верхними и нижними кромками (ПРАВИЛА 3.3, 6.7а). */
-.words {
-  display: grid;
-  grid-template-rows:
-    auto
-    calc(2 * var(--text-body) * var(--leading-snug))
-    calc(2 * var(--text-small) * var(--leading-snug))
-    auto
-    auto;
+  display: flex;
+  justify-content: space-between;
   gap: var(--space-2);
-  padding: var(--space-4) var(--space-5);
-  min-width: 0;
-}
-
-.kind {
-  font: var(--weight-medium) var(--text-overline) var(--font-mono);
+  padding: var(--space-3) var(--space-5) var(--space-1);
+  font: var(--weight-regular) var(--text-overline) var(--font-mono);
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
   color: var(--color-text-detail);
 }
 
-.name {
-  font-size: var(--text-body);
+.groupN {
+  flex: none;
+}
+
+.item {
+  position: relative;
+  display: grid;
+  width: 100%;
+  min-height: var(--tap-min);
+  padding: var(--space-2) var(--space-5);
+  border: 0;
+  background: none;
+  color: var(--color-text);
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+}
+
+.item:hover {
+  background: var(--color-surface-hover);
+}
+
+.itemOn,
+.itemOn:hover {
+  background: var(--color-surface);
+  box-shadow: inset 2px 0 0 var(--color-go);
+}
+
+.itemName {
+  min-width: 0;
+  font-size: var(--text-small);
   font-weight: var(--weight-medium);
   line-height: var(--leading-snug);
-  color: var(--color-text);
+  white-space: nowrap;
   overflow: hidden;
-  /* Две строки и многоточие, а не срез посреди слова (владелец, 02.11,
-     мобильный аудит, п.3): ряд `.words` и так держит ровно две строки. */
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
+  text-overflow: ellipsis;
+}
+
+.itemGives {
+  min-width: 0;
+  font-size: var(--text-caption);
+  line-height: var(--leading-snug);
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.itemMark {
+  font: var(--weight-regular) var(--text-overline) var(--font-mono);
+  color: var(--color-go-text);
+}
+
+.none {
+  margin: var(--space-4) var(--space-5);
+  font-size: var(--text-small);
+  color: var(--color-text-secondary);
+}
+
+/* ── в середине ───────────────────────────────────────────────────────── */
+.mid {
+  padding: var(--space-5);
+  gap: var(--space-2);
+  overflow-y: auto;
+}
+
+.shot {
+  display: block;
+  flex: none;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-subtle);
+  overflow: hidden;
+  line-height: 0;
+}
+
+.name {
+  margin: var(--space-2) 0 0;
+  font-family: var(--font-heading);
+  font-size: var(--text-h3);
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--tracking-tight);
+  line-height: var(--leading-heading);
+  color: var(--color-text);
   overflow-wrap: anywhere;
 }
 
 .gives {
+  margin: 0 0 var(--space-2);
   font-size: var(--text-small);
   line-height: var(--leading-snug);
   color: var(--color-text-secondary);
+}
+
+.line,
+.rule {
+  margin: 0;
+  font-size: var(--text-small);
+  line-height: var(--leading-snug);
+  color: var(--color-text);
+}
+
+.line {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.rule {
+  color: var(--color-text-secondary);
+}
+
+.label {
+  margin-right: var(--space-2);
+  font: var(--weight-regular) var(--text-overline) var(--font-mono);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-text-detail);
+}
+
+.acts {
+  display: grid;
+  gap: var(--space-2);
+  margin: var(--space-3) 0 0;
+}
+
+.act {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  min-height: var(--tap-min);
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  font-size: var(--text-small);
+  font-weight: var(--weight-medium);
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.act:hover {
+  border-color: var(--color-border-strong);
+}
+
+.actOn {
+  border-color: var(--color-go-border);
+  background: var(--color-go-bg);
+  color: var(--color-go-text);
+}
+
+.actNote {
+  flex: none;
+  font: var(--weight-regular) var(--text-overline) var(--font-mono);
+  color: var(--color-text-detail);
+}
+
+/* Строка отказа стоит всегда, пустая или нет: текст в ней не двигает экран. */
+.refuse {
+  margin: 0;
+  min-height: var(--space-6);
+  font-size: var(--text-caption);
+  line-height: var(--leading-snug);
+  color: var(--color-accent-text);
+}
+
+/* ── справа: браузер ──────────────────────────────────────────────────── */
+.right {
+  background: var(--color-bg);
+}
+
+.tabs {
+  flex: none;
+  display: flex;
+  align-items: stretch;
+  min-height: var(--tap-min);
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface-subtle);
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.tab {
+  flex: none;
+  display: flex;
+  align-items: center;
+  border-right: 1px solid var(--color-border);
+  color: var(--color-text-secondary);
+}
+
+.tabOn {
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+.tabName,
+.tabClose,
+.addrAct,
+.step,
+.windowClose {
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-size: var(--text-small);
+  cursor: pointer;
+}
+
+.tabName {
+  min-height: var(--tap-min);
+  padding: 0 var(--space-2) 0 var(--space-4);
+  white-space: nowrap;
+}
+
+.tabClose,
+.windowClose {
+  min-width: var(--tap-min);
+  min-height: var(--tap-min);
+  color: var(--color-text-detail);
+}
+
+.addr {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: var(--tap-min);
+  padding: 0 var(--space-2) 0 var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.addrUrl {
+  flex: 1 1 auto;
+  min-width: 0;
+  font: var(--weight-regular) var(--text-caption) var(--font-mono);
+  color: var(--color-text);
+  white-space: nowrap;
   overflow: hidden;
-  /* То же, что у имени: две строки и многоточие (мобильный аудит, п.3). */
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  overflow-wrap: anywhere;
+  text-overflow: ellipsis;
+}
+
+.addrAct {
+  flex: none;
+  min-height: var(--tap-min);
+  padding: 0 var(--space-3);
+  color: var(--color-text-secondary);
+}
+
+.view {
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: var(--space-3);
+}
+
+.empty {
+  margin: auto;
+  max-width: 60%;
+  text-align: center;
+  font-size: var(--text-small);
+  line-height: var(--leading-snug);
+  color: var(--color-text-secondary);
+}
+
+/* ── окна ─────────────────────────────────────────────────────────────── */
+.window {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+}
+
+.windowBar {
+  flex: none;
+  display: flex;
+  align-items: center;
+  min-height: var(--tap-min);
+  padding-left: var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface-subtle);
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+
+.windowName {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: var(--text-small);
+  font-weight: var(--weight-medium);
+  color: var(--color-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.windowBody {
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: var(--space-2);
+}
+
+.windowGrip {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: var(--space-5);
+  height: var(--space-5);
+  cursor: nwse-resize;
+  touch-action: none;
+  background: linear-gradient(135deg, transparent 50%, var(--color-border-strong) 50%, var(--color-border-strong) 60%, transparent 60%, transparent 72%, var(--color-border-strong) 72%, var(--color-border-strong) 82%, transparent 82%);
+}
+
+/* Пока окно тащат, чужие рамки не перехватывают мышь — иначе окно «залипает»,
+   стоит курсору зайти на сайт внутри. */
+.тащат iframe {
+  pointer-events: none;
+}
+
+.тащат {
+  user-select: none;
+}
+
+/* Шаги телефона на широком экране не нужны: все три колонки видны сразу. */
+.step {
+  display: none;
 }
 
 /* Строка права: одна строка на карточку, всегда. Высота ряда `.words` задана
@@ -292,101 +500,41 @@
   color: var(--color-accent-text);
 }
 
-.foot {
-  display: flex;
-  align-items: center;
-  padding-top: var(--space-3);
-  border-top: 1px solid var(--color-border);
-  min-width: 0;
+/* ── телефон: три шага вместо трёх колонок ────────────────────────────────
+   Список → источник → браузер. Окон на телефоне нет: двигать их негде. */
+@media (max-width: 900px) {
+  .cols {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .left,
+  .mid,
+  .right {
+    display: none;
+    border-right: 0;
+  }
+
+  .screen[data-шаг='список'] .left,
+  .screen[data-шаг='источник'] .mid,
+  .screen[data-шаг='браузер'] .right {
+    display: flex;
+  }
+
+  .step {
+    display: inline-flex;
+    align-items: center;
+    flex: none;
+    min-height: var(--tap-min);
+    padding: 0 var(--space-4) 0 0;
+    color: var(--color-text-secondary);
+  }
+
+  .tabs .step {
+    padding-left: var(--space-4);
+  }
+
+  .actWindow,
+  .window {
+    display: none;
+  }
 }
-
-
-
-/* ── витрина источника поверх каталога ────────────────────────────────── */
-.shown {
-  position: absolute;
-  inset: 0;
-  z-index: 5;
-  display: grid;
-  grid-template-rows: auto minmax(0, 1fr) auto;
-  background: var(--color-bg);
-}
-
-.shownHead {
-  display: flex;
-  align-items: baseline;
-  gap: var(--space-3);
-  padding: var(--space-4) var(--space-6);
-  border-bottom: 1px solid var(--color-border);
-}
-
-.shownKind {
-  font: var(--weight-medium) var(--text-overline) var(--font-mono);
-  letter-spacing: var(--tracking-caps);
-  text-transform: uppercase;
-  color: var(--color-text-detail);
-}
-
-.shownName {
-  font-size: var(--text-body);
-  font-weight: var(--weight-medium);
-  color: var(--color-text);
-}
-
-.shownHost {
-  font: var(--weight-regular) var(--text-caption) var(--font-mono);
-  color: var(--color-text-detail);
-}
-
-.shownClose {
-  margin-left: auto;
-  display: inline-grid;
-  place-items: center;
-  min-height: var(--tap-min);
-  padding: 0 var(--space-5);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-pill);
-  background: none;
-  color: var(--color-text);
-  font-size: var(--text-small);
-  cursor: pointer;
-}
-
-.shownClose:hover {
-  border-color: var(--color-border-strong);
-}
-
-/* Право и молчание — под рамкой источника, там где их читают (ПРАВИЛА 8.10). */
-.rights {
-  display: grid;
-  gap: var(--space-1);
-  padding: var(--space-4) var(--space-6);
-  border-top: 1px solid var(--color-border);
-  background: var(--color-surface-subtle);
-}
-
-.rightShort {
-  font-size: var(--text-small);
-  font-weight: var(--weight-medium);
-  color: var(--color-text);
-}
-
-.rightLine {
-  font-size: var(--text-caption);
-  line-height: var(--leading-snug);
-  color: var(--color-text-detail);
-}
-
-.rightLabel {
-  margin-top: var(--space-2);
-  font: var(--weight-medium) var(--text-overline) var(--font-mono);
-  letter-spacing: var(--tracking-caps);
-  text-transform: uppercase;
-  color: var(--color-text-detail);
-}
-
-/* 🔴 `.go` И `.quiet` ОТСЮДА УБРАНЫ (решение владельца 08.09: экраны берут
-   общую кнопку). Кнопка живёт в `ui/Button`: геометрия в `.b`, цвет в `.go` /
-   `.quiet`. Здесь их больше нет и заводить их заново нельзя — расхождение
-   начинается ровно с этой строки. Если кнопке нужен крючок раскладки, он
-   передаётся как `className` и содержит ТОЛЬКО раскладку. */
