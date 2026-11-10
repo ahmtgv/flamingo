@@ -156,7 +156,7 @@ export function Hub({ учитель = false }: {
 
   const [ищу, setИщу] = useState('')
   const [выбран, setВыбран] = useState<Source>(все[0])
-  const [раскрыты, setРаскрыты] = useState<string[]>(() => [разделИсточника(все[0].id)])
+  const [раскрыты, setРаскрыты] = useState<string[]>(() => ['избранное', разделИсточника(все[0].id)])
   const [шаг, setШаг] = useState<Шаг>('список')
   const [вкладки, setВкладки] = useState<string[]>([])
   const [наВиду, setНаВиду] = useState<string | null>(null)
@@ -174,10 +174,13 @@ export function Hub({ учитель = false }: {
   const слово = ищу.trim().toLowerCase()
   const видно = (x: Source) => !слово || x.name.toLowerCase().includes(слово) || x.gives.toLowerCase().includes(слово)
 
-  /* Избранное — первой группой, когда в нём что-то есть. */
+  /* 🔴 ИЗБРАННОЕ — ВСЕГДА ПЕРВОЙ ГРУППОЙ, ПО ОБЩИМ ПРАВИЛАМ (владелец, 10.11):
+     тот же заголовок со счётчиком, так же сворачивается. Источники в нём —
+     дубли: из своих разделов они никуда не уходят. Пустая группа тоже стоит
+     на месте — иначе неоткуда узнать, что избранное вообще есть. */
   const группы = useMemo(() => {
     const свои = любимые.map(поId).filter((x): x is Source => Boolean(x))
-    return свои.length ? [{ id: 'избранное', имя: 'Избранное', источники: свои }, ...разделы] : разделы
+    return [{ id: 'избранное', имя: 'Избранное', источники: свои }, ...разделы]
   }, [любимые, поId, разделы])
 
   const раскрыть = (id: string) => setРаскрыты((было) => (было.includes(id) ? было.filter((р) => р !== id) : [...было, id]))
@@ -305,10 +308,11 @@ export function Hub({ учитель = false }: {
           <div className={s.names}>
             {группы.map((г) => {
               const свои = г.источники.filter(видно)
-              if (свои.length === 0) return null
-              const открыта = Boolean(слово) || раскрыты.includes(г.id) || г.id === 'избранное'
+              const моя = г.id === 'избранное'
+              if (свои.length === 0 && !(моя && !слово)) return null
+              const открыта = Boolean(слово) || раскрыты.includes(г.id)
               return (
-                <section key={г.id} aria-label={г.имя}>
+                <section key={г.id} aria-label={г.имя} className={моя ? s.mine : undefined}>
                   <button type="button" className={s.group} aria-expanded={открыта} onClick={() => раскрыть(г.id)}>
                     <span>{г.имя}</span>
                     <span>{свои.length}</span>
@@ -327,6 +331,8 @@ export function Hub({ учитель = false }: {
                         : воВкладке(x.id) ? <span className={s.itemMark}>открыт</span> : null}
                     </button>
                   )) : null}
+                  {открыта && моя && свои.length === 0
+                    ? <p className={s.none}>Пока пусто. У любого источника нажмите «Добавить в избранное».</p> : null}
                 </section>
               )
             })}

@@ -55,8 +55,24 @@ function Tile({ face, lead, внимание }: { face: Face; lead?: boolean; в
 
 const CAP = 8
 
-export function Tiles({ faces, внимание }: { faces: Face[]; внимание?: ВниманиеНаСцене }) {
+/** Как стоят лица. `рейка` — обычная колонка справа. `кружок` — телефон лёжа:
+ *  один человек круглым окошком, его двигают пальцем и убирают нажатием.
+ *  `полоса` — телефон стоймя: лица строкой под показанным (владелец, 10.11). */
+export type ВидЛиц = 'рейка' | 'кружок' | 'полоса'
+
+export function Tiles({ faces, внимание, вид = 'рейка', зван = true }: {
+  faces: Face[]
+  внимание?: ВниманиеНаСцене
+  вид?: ВидЛиц
+  /** Управление вызвано. В «кружке» кнопка «Участники» видна только тогда:
+   *  чистый экран остаётся чистым. */
+  зван?: boolean
+}) {
   const [open, setOpen] = useState(true)
+  /* Куда кружок унесли пальцем — сдвиг от его места в углу. */
+  const [сдвиг, setСдвиг] = useState({ x: 0, y: 0 })
+  const несут = useRef<{ x0: number; y0: number; было: { x: number; y: number }; ушёл: boolean
+                         поле: DOMRect; сам: DOMRect } | null>(null)
   /* 🔴 «Первый в списке» — ЯКОРЬ РАСКЛАДКИ, А НЕ РОЛЬ. Крупная плитка кому-то
      нужна всегда, иначе полоса разъезжается. Но подпись «ведёт занятие» на ней
      появляется, ТОЛЬКО если ведущий назван (Room.tsx, `ведущий`). Раньше здесь
@@ -68,11 +84,65 @@ export function Tiles({ faces, внимание }: { faces: Face[]; вниман
   const shown = pupils.slice(0, CAP)
   const rest = pupils.length - shown.length
 
-  if (!open) {
+  if (вид === 'полоса') {
+    /* Стоймя лица стоят строкой и не сворачиваются: под ними чат, и дыра на
+       месте строки была бы просто дырой. */
     return (
-      <button type="button" className={s.show} onClick={() => setOpen(true)}>
+      <div className={s.strip} aria-label="Участники">
+        {якорь ? <Tile face={якорь} lead={ведёт} внимание={внимание} /> : null}
+        {pupils.map((f) => <Tile key={f.identity} face={f} внимание={внимание} />)}
+      </div>
+    )
+  }
+
+  if (!open) {
+    if (вид === 'кружок' && !зван) return null
+    return (
+      <button type="button" className={`${s.show} ${вид === 'кружок' ? s.showLow : ''}`} onClick={() => setOpen(true)}>
         Участники · {faces.length}
       </button>
+    )
+  }
+
+  if (вид === 'кружок') {
+    /* Себя в кружке учителю видеть незачем: ему показываем того, кто говорит. */
+    const вКружке = якорь?.isLocal ? (pupils.find((f) => f.speaking) ?? pupils[0] ?? якорь) : якорь
+    if (!вКружке) return null
+    return (
+      <div
+        className={s.bubble}
+        role="button"
+        tabIndex={0}
+        aria-label={`${вКружке.name}. Двигайте пальцем; нажмите, чтобы убрать`}
+        style={{ transform: `translate(${сдвиг.x}px, ${сдвиг.y}px)` }}
+        onPointerDown={(e) => {
+          const поле = e.currentTarget.parentElement?.getBoundingClientRect()
+          if (!поле) return
+          e.currentTarget.setPointerCapture(e.pointerId)
+          несут.current = { x0: e.clientX, y0: e.clientY, было: сдвиг, ушёл: false, поле, сам: e.currentTarget.getBoundingClientRect() }
+        }}
+        onPointerMove={(e) => {
+          const н = несут.current
+          if (!н) return
+          const dx = e.clientX - н.x0
+          const dy = e.clientY - н.y0
+          if (!н.ушёл && Math.hypot(dx, dy) < 6) return
+          н.ушёл = true
+          /* Кружок не уходит за край показанного. */
+          const x = Math.max(н.поле.left - н.сам.left, Math.min(н.поле.right - н.сам.right, dx))
+          const y = Math.max(н.поле.top - н.сам.top, Math.min(н.поле.bottom - н.сам.bottom, dy))
+          setСдвиг({ x: н.было.x + x, y: н.было.y + y })
+        }}
+        onPointerUp={() => {
+          const н = несут.current
+          несут.current = null
+          if (н && !н.ушёл) setOpen(false)
+        }}
+        onPointerCancel={() => { несут.current = null }}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setOpen(false) } }}
+      >
+        <Tile face={вКружке} />
+      </div>
     )
   }
 

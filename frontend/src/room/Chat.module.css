@@ -265,3 +265,29 @@
     border-radius: 0;
   }
 }
+
+/* 🔴 ТЕЛЕФОН СТОЙМЯ — ЧАТ ОТКРЫТ ВСЕГДА (владелец, 10.11.2026, вариант «В»).
+   Он занимает место между лицами и управлением; откуда и докуда — говорит
+   сцена (`Room.module.css`: `--чат-верх`, `--низ`). Заголовка с крестиком и
+   уголка нет: закрывать и двигать здесь нечего. Условие повторяет
+   `room/телефон.ts` слово в слово. */
+@media (max-width: 700px) and (orientation: portrait) {
+  .chat {
+    left: 0 !important;
+    right: 0 !important;
+    top: var(--чат-верх, 0) !important;
+    bottom: var(--низ, 0) !important;
+    width: auto !important;
+    height: auto !important;
+    max-width: none;
+    border-radius: 0;
+    border-left: 0;
+    border-right: 0;
+    box-shadow: none;
+  }
+
+  .head,
+  .grip {
+    display: none;
+  }
+}

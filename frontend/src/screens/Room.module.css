@@ -511,3 +511,114 @@
   background: var(--color-surface-subtle);
   border-color: var(--color-border-strong);
 }
+
+/* ══ УРОК С ТЕЛЕФОНА (решение владельца 10.11.2026) ═══════════════════════
+   Условия повторяют `room/телефон.ts` слово в слово — меняются только вместе.
+   Компьютер и планшет под эти условия не попадают: для них выше всё как было. */
+
+/* ── А. Телефон лёжа: чистый экран ─────────────────────────────────────────
+   Показанное классу занимает всё. Верхняя строка спрятана и ложится поверх
+   только когда управление вызвано: касанием по показанному или язычком. Через
+   пять секунд без касаний оно уходит само (Room.tsx). */
+@media (max-height: 500px) and (orientation: landscape) {
+  .room {
+    position: relative;
+    grid-template-rows: minmax(0, 1fr);
+  }
+
+  .room:has(> .звукМолчит) {
+    grid-template-rows: auto minmax(0, 1fr);
+  }
+
+  .полоса {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    z-index: 5;
+    box-shadow: var(--shadow-md);
+  }
+
+  .room[data-зван='нет'] .полоса {
+    display: none;
+  }
+
+  /* 🔴 НА ТЕЛЕФОНЕ `:hover` ЛИПНЕТ: после касания он держится, пока не тронешь
+     другое место. Пульт, раскрытый «под мышью», поэтому не ушёл бы никогда.
+     Здесь его держит только вызов (`data-open`). */
+  .pultBox:not([data-open='да']):hover .pult,
+  .pultBox:not([data-open='да']):focus-within .pult {
+    visibility: hidden;
+    opacity: 0;
+    transform: translateY(var(--space-2));
+  }
+}
+
+/* ── В. Телефон стоймя: урок как мессенджер ────────────────────────────────
+   Сверху показанное, под ним лица строкой, ниже чат, который всегда открыт,
+   внизу управление — оно стоит всегда, язычок не нужен. */
+@media (max-width: 700px) and (orientation: portrait) {
+  .stage {
+    --показ: 36%;
+    --лица: calc(var(--space-10) + var(--space-3));
+    --низ: calc(var(--tap-min) + var(--space-3));
+    --чат-верх: calc(var(--показ) + var(--лица));
+    grid-template-rows: var(--показ) minmax(0, 1fr);
+  }
+
+  .безЛиц {
+    --чат-верх: var(--показ);
+  }
+
+  /* Пока эфира нет, наверху стоят слова о связи и кнопка «поднять заново» —
+     им нужно больше места, чем показанному, иначе кнопку срезает чат. */
+  .безЭфира {
+    --показ: 56%;
+  }
+
+  .scene {
+    bottom: auto;
+    height: var(--показ);
+  }
+
+  .pultBox,
+  .pultOverStrip {
+    left: 0;
+    right: 0;
+    bottom: 0;
+    transform: none;
+    max-width: none;
+    height: var(--низ);
+    justify-content: center;
+    border-top: 1px solid var(--color-border);
+    background: var(--color-bg);
+  }
+
+  .pultTab {
+    display: none;
+  }
+
+  .pult {
+    visibility: visible;
+    opacity: 1;
+    transform: none;
+    padding: 0;
+    border: 0;
+    background: none;
+    box-shadow: none;
+  }
+
+  .overNote {
+    left: var(--space-3);
+    right: var(--space-3);
+    top: var(--space-3);
+    max-width: none;
+    /* Слово о беде важнее чата: оно ложится поверх него, а не под него. */
+    z-index: 4;
+  }
+
+  /* Чат открыт всегда — дверь в него не нужна. */
+  .чатДверь {
+    display: none;
+  }
+}

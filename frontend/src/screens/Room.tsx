@@ -28,6 +28,7 @@ import { Mark } from '../ui/Mark'
 import { Контакты } from './Контакты'
 import { Переписка, type УрокДляЗова } from './Переписка'
 import s from './Room.module.css'
+import { useТелефон } from '../room/телефон'
 
 /* Знаки пульта занятия. Рисованные, а не глифы шрифта: глиф на части машин
    не отрисовывается и оставляет пустой квадрат (тот же довод, что у крестика
@@ -178,6 +179,25 @@ export function Room({ code, name, onLeave, onHome }: Props) {
   /* Пульт вызван пальцем. Мышь и клавиатура обходятся без состояния —
      их держит CSS (:hover и :focus-within), а нажатие состояние требует. */
   const [пультЗван, setПультЗван] = useState(false)
+  /* Урок с телефона: лёжа — чистый экран, стоймя — урок как мессенджер
+     (владелец, 10.11; см. `room/телефон.ts`). На компьютере и планшете — null,
+     и всё ниже работает как раньше. */
+  const телефон = useТелефон()
+  /* Стоймя чат открыт всегда: закрывать его там нечем и незачем. */
+  const чатВиден = chatOpen || телефон === 'стоймя'
+  /* Лёжа управление уходит само — через пять секунд после последнего касания. */
+  const [касание, setКасание] = useState(0)
+  useEffect(() => {
+    if (телефон !== 'лёжа' || !пультЗван) return
+    const t = window.setTimeout(() => {
+      setПультЗван(false)
+      /* Фокус внутри пульта держит его раскрытым (`:focus-within`). */
+      if (document.activeElement instanceof HTMLElement && document.activeElement.closest('[data-пульт]')) {
+        document.activeElement.blur()
+      }
+    }, 5000)
+    return () => window.clearTimeout(t)
+  }, [телефон, пультЗван, касание])
   const [тема, setТема] = useState<Тема>(читатьТему)
   const [unread, setUnread] = useState(0)
   const link = roomUrl(code)
@@ -342,8 +362,8 @@ export function Room({ code, name, onLeave, onHome }: Props) {
   }), [bus])
 
   useEffect(() => {
-    if (chatOpen) setUnread(0)
-  }, [chatOpen, lines.length])
+    if (чатВиден) setUnread(0)
+  }, [чатВиден, lines.length])
 
   /* Вошедшему позже сцену рассказывает ведущий, не дожидаясь вопроса: `ask`
      умеет задавать только смонтированная доска, а человек входит на «Лица». */
@@ -676,7 +696,12 @@ export function Room({ code, name, onLeave, onHome }: Props) {
   const marks = iLead ? (active?.ink[shown.i] ?? []) : (wireInk[shown.i] ?? [])
 
   return (
-    <div className={s.room}>
+    <div
+      className={s.room}
+      data-телефон={телефон ?? undefined}
+      data-зван={пультЗван ? 'да' : 'нет'}
+      onPointerDownCapture={телефон === 'лёжа' ? () => setКасание((n) => n + 1) : undefined}
+    >
       {/* Верхняя строка стоит всегда: где я, что за комната, идёт ли урок.
           Всё остальное управление просыпается под рукой. */}
       <header className={s.полоса}>
@@ -735,13 +760,13 @@ export function Room({ code, name, onLeave, onHome }: Props) {
           </button>
           <button
             type="button"
-            className={`${s.chatBtn} ${chatOpen ? s.chatOn : ''}`}
+            className={`${s.chatBtn} ${s.чатДверь} ${chatOpen ? s.chatOn : ''}`}
             onClick={() => setChatOpen((v) => !v)}
           >
             Чат
             {/* ПРАВИЛА 11.8: непрочитанное в чате ИДУЩЕГО занятия портится от ожидания —
                 вопрос живёт до конца урока. Поэтому коралловая надпись, но не заливка. */}
-            {unread > 0 && !chatOpen ? <span className={s.unread}>{unread}</span> : null}
+            {unread > 0 && !чатВиден ? <span className={s.unread}>{unread}</span> : null}
           </button>
         </span>
       </header>
@@ -762,8 +787,15 @@ export function Room({ code, name, onLeave, onHome }: Props) {
       ) : null}
 
       <div
-        className={`${s.stage} ${chatOpen ? s.withChat : ''}`}
+        className={`${s.stage} ${chatOpen ? s.withChat : ''} ${source !== 'faces' && phase === 'live' ? '' : s.безЛиц} ${phase === 'live' ? '' : s.безЭфира}`}
         ref={stageRef}
+        /* Лёжа: касание по показанному зовёт управление и прячет его. Нажатие
+           по кнопке, полю, ссылке или холсту доски — не зов: там своё дело. */
+        onClick={телефон === 'лёжа' ? (e) => {
+          const цель = e.target as HTMLElement
+          if (цель.closest('button, a, input, textarea, select, canvas, svg, iframe, video[controls], [role="button"], [contenteditable]')) return
+          setПультЗван((v) => !v)
+        } : undefined}
         /* Первое же касание сцены — тоже разрешение браузера. Пробуем тихо: если
            сработало, полоса уйдёт сама и человек даже не заметит, что была. */
         onPointerDownCapture={звукГлушится ? включитьЗвук : undefined}
@@ -874,7 +906,10 @@ export function Room({ code, name, onLeave, onHome }: Props) {
         <Звуки faces={faces} />
 
         {/* Лица лежат ПОВЕРХ доски: холст под ними бесконечный и ничем не обрезан. */}
-        {source !== 'faces' && phase === 'live' ? <Tiles faces={лица} внимание={вниманиеНаСцене} /> : null}
+        {source !== 'faces' && phase === 'live' ? (
+          <Tiles faces={лица} внимание={вниманиеНаСцене} зван={пультЗван}
+                 вид={телефон === 'лёжа' ? 'кружок' : телефон === 'стоймя' ? 'полоса' : 'рейка'} />
+        ) : null}
 
         {/* Эфир — своя область (ПРАВИЛА 6.5): пока он не поднялся, об этом говорит
             карточка лиц, а доска продолжает работать. */}
@@ -936,7 +971,7 @@ export function Room({ code, name, onLeave, onHome }: Props) {
           />
         ) : null}
 
-        {chatOpen ? (
+        {чатВиден ? (
           <Chat
             lines={lines}
             alive={phase === 'live'}
@@ -957,6 +992,7 @@ export function Room({ code, name, onLeave, onHome }: Props) {
         <div
           className={`${s.pultBox} ${source === 'show' ? s.pultOverStrip : ''}`}
           data-open={пультЗван ? 'да' : 'нет'}
+          data-пульт
           onKeyDown={(e) => {
             if (e.key !== 'Escape') return
             setПультЗван(false)

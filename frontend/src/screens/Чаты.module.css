@@ -1,36 +1,184 @@
-/* «Сообщения» — страница переписки внутри рамы кабинета. Строки списка — из
-   листа кабинета (`Cabinet.module.css`), здесь только место страницы. */
+/* «Сообщения». Колонки, вкладки и окна — из листа «Источников мира»
+   (`Hub.module.css`): экран тот же (владелец, 10.11). Здесь только сам
+   разговор — лента и поле ввода. Значения — из `styles/хаб.css` (`--х-…`). */
 
-.page {
-  height: 100%;
+/* ── лента ────────────────────────────────────────────────────────────── */
+.thread {
+  flex: 1 1 auto;
   min-height: 0;
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
-  padding: var(--space-6) var(--поле);
-  background: var(--color-bg);
+  gap: var(--х-10);
+  padding: var(--х-16) var(--х-20);
   overflow-y: auto;
+  background: var(--х-бумага);
 }
 
-.title {
+.quietLine {
+  margin: auto;
+  max-width: 76%;
+  text-align: center;
+  color: var(--х-тихий);
+}
+
+.msg {
+  flex: none;
+  display: grid;
+  gap: var(--х-3);
+  max-width: 76%;
+  justify-self: start;
+  align-self: flex-start;
+}
+
+.msgMine {
+  align-self: flex-end;
+  justify-items: end;
+}
+
+.msgWhen {
+  font-size: var(--х-к-11_5);
+  color: var(--х-тихий);
+}
+
+.msgText {
+  padding: var(--х-8) var(--х-12);
+  border: 1px solid var(--х-линия);
+  border-radius: var(--х-10);
+  background: var(--х-карта);
+  font-size: var(--х-к-13_5);
+  line-height: var(--х-строка-плотная);
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.msgMine .msgText {
+  background: var(--х-выбор);
+}
+
+/* приглашение на занятие */
+.call {
+  display: grid;
+  gap: var(--х-3);
+  white-space: normal;
+}
+
+.callHead {
+  font-size: var(--х-к-10_5);
+  letter-spacing: var(--х-разрядка-бровь);
+  text-transform: uppercase;
+  color: var(--х-тихий);
+}
+
+.callName {
+  font-weight: var(--х-вес-имя);
+}
+
+.callWhen {
+  font-size: var(--х-к-12);
+  color: var(--х-второй);
+}
+
+.callDoor {
+  margin-top: var(--х-4);
+  color: var(--х-зелёный-текст);
+}
+
+/* ── поле ввода ───────────────────────────────────────────────────────── */
+.trouble {
+  flex: none;
   margin: 0;
-  font-family: var(--font-heading);
-  font-size: var(--text-h2);
-  font-weight: var(--weight-medium);
-  letter-spacing: var(--tracking-tight);
-  line-height: var(--leading-heading);
-  color: var(--color-text);
+  padding: 0 var(--х-20);
+  font-size: var(--х-к-12_5);
+  color: var(--х-тревога);
+  background: var(--х-бумага);
 }
 
-.lead {
-  margin: 0;
-  font-size: var(--text-small);
-  line-height: var(--leading-snug);
-  color: var(--color-text-secondary);
+.write {
+  flex: none;
+  display: flex;
+  gap: var(--х-8);
+  padding: var(--х-10) var(--х-16);
+  border-top: 1px solid var(--х-линия);
+  background: var(--х-поле);
 }
 
-.list {
-  margin-top: var(--space-3);
-  width: 100%;
-  max-width: calc(var(--space-13) * 5);
+.writeField {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: var(--х-8) var(--х-12);
+  border: 1px solid var(--х-линия);
+  border-radius: var(--х-9);
+  background: var(--х-карта);
+}
+
+.writeField::placeholder {
+  color: var(--х-тихий);
+}
+
+.send {
+  flex: none;
+  padding: var(--х-8) var(--х-13);
+  border: 1px solid var(--х-зелёный);
+  border-radius: var(--х-9);
+  background: var(--х-зелёный);
+  font-weight: var(--х-вес-имя);
+  cursor: pointer;
+}
+
+.send,
+.send:hover {
+  color: var(--х-на-зелёном);
+}
+
+.send:disabled {
+  border-color: var(--х-линия);
+  background: var(--х-карта);
+  color: var(--х-тихий);
+  cursor: default;
+}
+
+/* ── мелочи списка и середины ─────────────────────────────────────────── */
+
+/* у кого есть непрочитанное — кружок зелёный, пометка «новых: N» заметнее */
+.fresh > span:last-child {
+  color: var(--х-зелёный-текст);
+}
+
+.again {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--х-текст);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* уроки под «Позвать на занятие» — те же строки, чуть глубже */
+.lesson {
+  width: auto;
+  margin-left: var(--х-16);
+}
+
+/* «Действия» в строке разговора нужны только телефону: там середины не видно */
+.narrowAct {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .narrowAct {
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .msg,
+  .quietLine {
+    max-width: 88%;
+  }
+}
+
+@media (pointer: coarse) {
+  .writeField,
+  .send {
+    min-height: var(--х-44);
+  }
 }

@@ -172,6 +172,20 @@
   color: var(--х-тихий);
 }
 
+/* «Избранное» (в сообщениях — «Непрочитанные»): первая группа, отделена
+   линией от разделов. Внутри — дубли, сплошным списком. */
+.mine {
+  margin-bottom: var(--х-6);
+  padding-bottom: var(--х-6);
+  border-bottom: 1px solid var(--х-линия);
+}
+
+.mine .none {
+  margin: var(--х-4) var(--х-18) var(--х-6) var(--х-44);
+  font-size: var(--х-к-12);
+  color: var(--х-тихий);
+}
+
 .none {
   margin: var(--х-14) var(--х-18);
   color: var(--х-второй);

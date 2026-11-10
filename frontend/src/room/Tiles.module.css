@@ -192,3 +192,88 @@
     aspect-ratio: 1;
   }
 }
+
+/* ══ УРОК С ТЕЛЕФОНА (владелец, 10.11.2026) ═══════════════════════════════ */
+
+/* Лёжа: один человек круглым окошком в углу. Его двигают пальцем и убирают
+   нажатием (Tiles.tsx). Подписи в кружок не помещаются — их нет. */
+.bubble {
+  position: absolute;
+  right: var(--space-3);
+  bottom: var(--space-3);
+  z-index: 2;
+  width: calc(var(--space-11) - var(--space-1));
+  height: calc(var(--space-11) - var(--space-1));
+  border-radius: 50%;
+  overflow: hidden;
+  border: 2px solid var(--color-border-on-video);
+  box-shadow: var(--shadow-md);
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.bubble > .tile {
+  width: 100%;
+  height: 100%;
+  aspect-ratio: auto;
+  min-height: 0;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.bubble > .tile::after,
+.bubble > .tile > :not(.video):not(.ini) {
+  display: none;
+}
+
+/* «Участники» при чистом экране — внизу: сверху в это время лежит строка. */
+.showLow {
+  top: auto;
+  bottom: var(--space-3);
+  right: var(--space-3);
+}
+
+/* Стоймя: лица строкой под показанным. Высота и место — от сцены
+   (`Room.module.css`: `--показ`, `--лица`). */
+.strip {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: var(--показ, 0);
+  z-index: 2;
+  height: var(--лица, calc(var(--space-10) + var(--space-3)));
+  display: flex;
+  gap: var(--space-2);
+  padding: var(--space-2);
+  background: var(--color-surface-video);
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+}
+
+.strip::-webkit-scrollbar {
+  display: none;
+}
+
+.strip > .tile {
+  height: 100%;
+  min-height: 0;
+  aspect-ratio: 4 / 3;
+  box-shadow: none;
+}
+
+.strip > .lead {
+  aspect-ratio: 16 / 10;
+}
+
+.strip .ini {
+  font-size: var(--text-small);
+}
+
+.strip .marks,
+.strip .muted {
+  display: none;
+}
