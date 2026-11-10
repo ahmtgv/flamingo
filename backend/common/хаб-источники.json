@@ -90,6 +90,42 @@
   "снимок": true
  },
  {
+  "id": "artic",
+  "home": "https://www.artic.edu/collection",
+  "name": "Чикагский институт искусств",
+  "снимок": true
+ },
+ {
+  "id": "cleveland",
+  "home": "https://www.clevelandart.org/art/collection/search",
+  "name": "Кливлендский музей искусств",
+  "снимок": true
+ },
+ {
+  "id": "nga",
+  "home": "https://www.nga.gov/collection/collection-search.html",
+  "name": "Национальная галерея искусства · Вашингтон",
+  "снимок": true
+ },
+ {
+  "id": "getty",
+  "home": "https://www.getty.edu/about/whatwedo/opencontent.html",
+  "name": "Музей Гетти",
+  "снимок": true
+ },
+ {
+  "id": "parismusees",
+  "home": "https://www.parismuseescollections.paris.fr/",
+  "name": "Музеи Парижа",
+  "снимок": true
+ },
+ {
+  "id": "britishmuseum",
+  "home": "https://www.britishmuseum.org/collection",
+  "name": "Британский музей",
+  "снимок": true
+ },
+ {
   "id": "loc",
   "home": "https://www.loc.gov/collections/",
   "name": "Библиотека Конгресса",
