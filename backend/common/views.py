@@ -116,3 +116,119 @@ def избранное(request: HttpRequest) -> HttpResponse:
         я.stars.all().delete()
         Star.objects.bulk_create([Star(person=я, source=x) for x in чисто])
     return JsonResponse({"избранное": чисто})
+
+
+# ── свой браузер: настоящий хром на сервере (`common/браузерная.py`) ─────────
+
+import subprocess                                             # noqa: E402
+import sys                                                    # noqa: E402
+import time                                                   # noqa: E402
+import urllib.error                                           # noqa: E402
+import urllib.request                                         # noqa: E402
+from urllib.parse import urlencode                            # noqa: E402
+
+from . import браузерная                                      # noqa: E402
+
+_БРАУЗЕРНАЯ = f"http://127.0.0.1:{браузерная.ПОРТ}"
+
+
+def _поднять_браузерную() -> None:
+    """Запустить браузерную отдельным процессом. Двое сразу не поднимутся:
+    порт один, второй процесс увидит, что он занят, и молча уйдёт."""
+    subprocess.Popen(
+        [sys.executable, str(Path(settings.BASE_DIR) / "manage.py"), "хаб_браузер"],
+        stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+        start_new_session=True, cwd=str(settings.BASE_DIR),
+    )
+
+
+def _к_браузерной(путь: str, тело: dict | None = None, срок: float = 14):
+    """Запрос к браузерной. Возвращает (код, заголовки, тело). Службы нет —
+    поднимаем и ждём её несколько секунд."""
+    данные = json.dumps(тело, ensure_ascii=False).encode() if тело is not None else None
+    for попытка in range(14):
+        запрос = urllib.request.Request(_БРАУЗЕРНАЯ + путь, data=данные,
+                                        headers={"Content-Type": "application/json"} if данные else {})
+        try:
+            with urllib.request.urlopen(запрос, timeout=срок) as о:
+                return о.status, о.headers, о.read()
+        except urllib.error.HTTPError as e:
+            return e.code, e.headers, e.read()
+        except (urllib.error.URLError, ConnectionError, TimeoutError):
+            if попытка == 0:
+                _поднять_браузерную()
+            time.sleep(0.5)
+    return 503, {}, json.dumps({"error": "Браузер на сервере не поднялся."}, ensure_ascii=False).encode()
+
+
+def _слова(код: int, тело: bytes) -> HttpResponse:
+    return HttpResponse(тело or b"{}", status=код, content_type="application/json")
+
+
+@lru_cache(maxsize=1)
+def _дома() -> dict[str, str]:
+    try:
+        return {и["id"]: и["home"] for и in json.loads(СПИСОК.read_text(encoding="utf-8"))}
+    except Exception:                                        # noqa: BLE001
+        return {}
+
+
+@csrf_exempt
+def браузер_открыть(request: HttpRequest) -> HttpResponse:
+    """Открыть источник в браузере на сервере.
+
+    🔴 ТОЛЬКО ВОШЕДШЕМУ И ТОЛЬКО ИСТОЧНИК ИЗ КАТАЛОГА. Окно — это живой хром на
+    нашем сервере; открытое любому встречному и на любой адрес, оно стало бы
+    бесплатным чужим браузером. Начальный адрес поэтому берётся из каталога по
+    имени источника, а не из запроса.
+    """
+    я = who(request)
+    if я is None:
+        return JsonResponse({"error": "Сначала войдите."}, status=401)
+    if request.method != "POST":
+        return JsonResponse({"error": "Так нельзя."}, status=405)
+    try:
+        тело = json.loads(request.body or b"{}")
+    except ValueError:
+        тело = {}
+    дом = _дома().get(str(тело.get("id", "")))
+    if not дом:
+        return JsonResponse({"error": "Такого источника в каталоге нет."}, status=404)
+    код, _, ответ = _к_браузерной("/open", {"хозяин": str(я.id), "дом": дом, "ш": тело.get("ш"), "в": тело.get("в")})
+    return _слова(код, ответ)
+
+
+def браузер_кадр(request: HttpRequest) -> HttpResponse:
+    """Кадр окна. 204 — с прошлого раза ничего не изменилось."""
+    я = who(request)
+    if я is None:
+        return JsonResponse({"error": "Сначала войдите."}, status=401)
+    путь = "/frame?" + urlencode({"окно": request.GET.get("w", ""), "знаю": request.GET.get("h", ""), "хозяин": str(я.id)})
+    код, заголовки, ответ = _к_браузерной(путь, срок=8)
+    if код not in (200, 204):
+        return _слова(код, ответ)
+    итог = HttpResponse(ответ, status=код, content_type="image/jpeg")
+    итог["X-Hub-Hash"] = заголовки.get("X-Hub-Hash", "")
+    итог["X-Hub-Url"] = заголовки.get("X-Hub-Url", "")
+    итог["Cache-Control"] = "no-store"
+    return итог
+
+
+@csrf_exempt
+def браузер_действие(request: HttpRequest) -> HttpResponse:
+    """Нажатие, прокрутка, клавиша, назад, обновить, размер — или закрыть окно."""
+    я = who(request)
+    if я is None:
+        return JsonResponse({"error": "Сначала войдите."}, status=401)
+    if request.method != "POST":
+        return JsonResponse({"error": "Так нельзя."}, status=405)
+    try:
+        тело = json.loads(request.body or b"{}")
+    except ValueError:
+        тело = {}
+    if not isinstance(тело, dict):
+        тело = {}
+    тело["хозяин"] = str(я.id)          # чьё окно — говорит кука, а не запрос
+    тело["окно"] = str(тело.get("w", ""))
+    код, _, ответ = _к_браузерной("/close" if тело.get("что") == "close" else "/act", тело)
+    return _слова(код, ответ)
