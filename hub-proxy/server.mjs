@@ -35,6 +35,8 @@ const СВОЙ_АДРЕС = (process.env.HUB_PROXY_ORIGIN ?? 'https://hub.flamin
 const РОДИТЕЛИ = process.env.HUB_PROXY_PARENTS ?? 'https://flamingo.plus https://www.flamingo.plus'
 /** Сервер учётных записей — рядом, на этой же машине. */
 const УЧЁТКИ = (process.env.HUB_PROXY_AUTH ?? 'http://127.0.0.1:8000').replace(/\/$/, '')
+/** Под каким именем сервер учётных записей нас ждёт. */
+const ИМЯ_УЧЁТОК = process.env.HUB_PROXY_AUTH_HOST ?? 'api.flamingo.plus'
 /** Только для прибора: пустить без входа и к своему пробному сайту. */
 const ПРОБА = process.env.HUB_PROXY_TEST === '1'
 const КАТАЛОГ = resolve(ЗДЕСЬ, process.env.HUB_PROXY_SOURCES ?? '../backend/common/хаб-источники.json')
@@ -78,11 +80,25 @@ async function вошёл(кука) {
   if (!знак) return false
   const было = знакомые.get(знак)
   if (было && было.до > Date.now()) return было.вошёл
-  let да = false
-  try {
-    const о = await fetch(`${УЧЁТКИ}/api/auth/me`, { headers: { Cookie: `fl_ses=${знак}` }, signal: AbortSignal.timeout(5000) })
-    да = о.ok && Boolean((await о.json()).person)
-  } catch { да = false }
+  const да = await new Promise((готово) => {
+    /* 🔴 ИМЯ САЙТА — БОЕВОЕ, ХОТЯ ИДЁМ ПО ВНУТРЕННЕМУ АДРЕСУ. Сервер учётных
+       записей отвечает только на свои имена (`ALLOWED_HOSTS`); запрос «на
+       127.0.0.1» он отверг бы, и вошедший выглядел бы гостем. */
+    const з = http.request(`${УЧЁТКИ}/api/auth/me`, {
+      headers: { Host: ИМЯ_УЧЁТОК, Cookie: `fl_ses=${знак}`, 'X-Forwarded-Proto': 'https' },
+      timeout: 5000,
+    }, (о) => {
+      let тело = ''
+      о.setEncoding('utf8')
+      о.on('data', (к) => { тело += к })
+      о.on('end', () => {
+        try { готово(о.statusCode === 200 && Boolean(JSON.parse(тело).person)) } catch { готово(false) }
+      })
+    })
+    з.on('timeout', () => з.destroy())
+    з.on('error', () => готово(false))
+    з.end()
+  })
   if (знакомые.size > 5000) знакомые.clear()
   знакомые.set(знак, { до: Date.now() + 60_000, вошёл: да })
   return да

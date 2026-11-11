@@ -1,0 +1,13 @@
+
+# Посредник «Источников мира»: источник, запретивший рамку, открывается через него.
+# Служба — flamingo-hub (systemd), слушает на адресе моста docker, порт 8031.
+hub.flamingo.plus {
+	encode zstd gzip
+
+	reverse_proxy 172.18.0.1:8031
+
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		-Server
+	}
+}

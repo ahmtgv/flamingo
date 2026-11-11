@@ -55,15 +55,34 @@
 
     const провод = new BareMux.BareMuxConnection('/baremux/worker.js')
     const тоннель = (location.protocol === 'https:' ? 'wss://' : 'ws://') + location.host + '/wisp/'
-    await провод.setTransport('/libcurl/index.mjs', [{ websocket: тоннель }])
+    await провод.setTransport('/epoxy/index.mjs', [{ wisp: тоннель }])
 
     const окно = движок.createFrame()
     окно.frame.id = 'рамка'
     окно.frame.title = источник.name
     document.body.append(окно.frame)
     окно.addEventListener('urlchange', (с) => родителю({ адрес: String(с.url ?? '') }))
+    /* 🔴 ПЕРВЫЙ ЗАХОД МОЖЕТ ОПЕРЕДИТЬ ТОННЕЛЬ. Шифрование в браузере поднимается
+       долю секунды, и самый первый запрос иногда приходит раньше — движок тогда
+       рисует свою страницу ошибки. Человеку её показывать незачем: видим её —
+       ждём и открываем источник ещё раз, до трёх раз. */
+    let попыток = 0
+    let открылся = false
+    окно.frame.style.visibility = 'hidden'
+    окно.frame.addEventListener('load', () => {
+      if (открылся) return
+      let ошибка = false
+      try { ошибка = Boolean(окно.frame.contentDocument?.getElementById('errorTrace')) } catch { /* страница уже не наша */ }
+      if (ошибка && попыток < 3) {
+        попыток += 1
+        setTimeout(() => окно.go(источник.home), 600 * попыток)
+        return
+      }
+      открылся = true
+      слова.hidden = true
+      окно.frame.style.visibility = ''
+    })
     окно.go(источник.home)
-    слова.hidden = true
     родителю({ адрес: источник.home, готово: true })
 
     window.addEventListener('message', (с) => {

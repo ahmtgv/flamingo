@@ -20,6 +20,7 @@ node server.mjs          # слушает 127.0.0.1:8031
 | `HUB_PROXY_ORIGIN` | `https://hub.flamingo.plus` | наш адрес; тоннель открыт только страницам отсюда |
 | `HUB_PROXY_PARENTS` | `https://flamingo.plus https://www.flamingo.plus` | кому можно вставлять нас в рамку |
 | `HUB_PROXY_AUTH` | `http://127.0.0.1:8000` | сервер учётных записей: у него спрашиваем, вошёл ли человек |
+| `HUB_PROXY_AUTH_HOST` | `api.flamingo.plus` | под каким именем этот сервер нас ждёт |
 | `HUB_PROXY_SOURCES` | `../backend/common/хаб-источники.json` | каталог источников |
 
 `HUB_PROXY_TEST=1` — пробный режим для прибора: без входа и с доступом к своему

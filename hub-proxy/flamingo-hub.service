@@ -1,0 +1,22 @@
+[Unit]
+Description=Flamingo · посредник «Источников мира» (hub.flamingo.plus)
+After=network-online.target docker.service flamingo.service
+Wants=network-online.target
+
+[Service]
+User=www-data
+WorkingDirectory=/opt/flamingo-v2/hub-proxy
+# Caddy живёт в docker и ходит к серверу через адрес моста — как и к серверу уроков.
+Environment=HUB_PROXY_BIND=172.18.0.1
+Environment=HUB_PROXY_PORT=8031
+ExecStart=/usr/bin/node server.mjs
+Restart=on-failure
+RestartSec=3
+# Служба только читает свои файлы и ходит в сеть.
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

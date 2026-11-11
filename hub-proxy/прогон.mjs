@@ -39,7 +39,13 @@ const запуск = (ещё) => spawn(process.execPath, ['server.mjs'], {
   env: { ...process.env, HUB_PROXY_SOURCES: '/tmp/прогон-посредник-каталог.json', ...ещё }, stdio: 'inherit',
 })
 const посредник = запуск({ HUB_PROXY_PORT: '8042', HUB_PROXY_TEST: '1' })
-const строгий = запуск({ HUB_PROXY_PORT: '8043', HUB_PROXY_ORIGIN: 'http://localhost:8043', HUB_PROXY_AUTH: 'http://127.0.0.1:1' })
+/* Пробный сервер учётных записей: знает одну куку и отвечает только на своё имя. */
+const учётки = http.createServer((з, о) => {
+  const свой = з.headers.host === 'api.flamingo.plus' && з.url === '/api/auth/me'
+  о.writeHead(свой ? 200 : 400, { 'Content-Type': 'application/json' })
+  о.end(JSON.stringify({ person: свой && /fl_ses=nastoyaschaya/.test(з.headers.cookie ?? '') ? { name: 'Аня' } : null }))
+}).listen(8044, '127.0.0.1')
+const строгий = запуск({ HUB_PROXY_PORT: '8043', HUB_PROXY_ORIGIN: 'http://localhost:8043', HUB_PROXY_AUTH: 'http://127.0.0.1:8044' })
 await new Promise((г) => setTimeout(г, 900))
 
 const б = await chromium.launch()
@@ -94,8 +100,10 @@ try {
   есть((await код({ Origin: 'https://evil.example' })) === 403, 'тоннель с чужой страницы закрыт')
   есть((await код({ Origin: 'http://localhost:8043' })) === 401, 'тоннель без входа закрыт')
   есть((await код({ Origin: 'http://localhost:8043', Cookie: 'fl_ses=poddelka' })) === 401, 'поддельная кука не проходит')
+  есть((await код({ Origin: 'http://localhost:8043', Cookie: 'a=1; fl_ses=nastoyaschaya' })) === 101, 'вошедшему со страницы посредника тоннель открыт')
+  есть((await код({ Origin: 'https://evil.example', Cookie: 'fl_ses=nastoyaschaya' })) === 403, 'вошедшему с чужой страницы — закрыт')
 } finally {
-  await б.close(); посредник.kill(); строгий.kill(); сайт.close()
+  await б.close(); посредник.kill(); строгий.kill(); сайт.close(); учётки.close()
 }
 console.log(`\n${бед ? '❌' : '✅'} бед ${бед} · проверок ${проверок}`)
 process.exit(бед ? 1 : 0)
