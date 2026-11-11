@@ -126,6 +126,42 @@
   "снимок": true
  },
  {
+  "id": "hermitage",
+  "home": "https://www.hermitagemuseum.org/explore/artworks",
+  "name": "Эрмитаж",
+  "снимок": true
+ },
+ {
+  "id": "tretyakov",
+  "home": "https://my.tretyakov.ru/app/gallery",
+  "name": "Третьяковская галерея",
+  "снимок": true
+ },
+ {
+  "id": "pushkin",
+  "home": "https://collection.pushkinmuseum.art/entity/OBJECT?uniq=true",
+  "name": "Пушкинский музей",
+  "снимок": true
+ },
+ {
+  "id": "rusmuseum",
+  "home": "https://rusmuseumvrm.ru/collections/",
+  "name": "Русский музей",
+  "снимок": true
+ },
+ {
+  "id": "louvre",
+  "home": "https://collections.louvre.fr/en/",
+  "name": "Лувр",
+  "снимок": true
+ },
+ {
+  "id": "vangogh",
+  "home": "https://www.vangoghmuseum.nl/en/collection",
+  "name": "Музей Ван Гога",
+  "снимок": true
+ },
+ {
   "id": "loc",
   "home": "https://www.loc.gov/collections/",
   "name": "Библиотека Конгресса",

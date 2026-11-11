@@ -127,3 +127,19 @@ class Deed(models.Model):
     class Meta:
         db_table = "deeds"
         ordering = ["-at", "-id"]
+
+
+class Star(models.Model):
+    """Избранный источник «Источников мира»: человек отметил — и видит его
+    первым с любого устройства. Имя источника — строкой из каталога витрины
+    (`common/хаб-источники.json`); порядок — порядок добавления."""
+
+    id = models.BigAutoField(primary_key=True)
+    person = models.ForeignKey(Person, on_delete=models.CASCADE, related_name="stars")
+    source = models.CharField(max_length=40)
+    at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "stars"
+        ordering = ["id"]
+        constraints = [models.UniqueConstraint(fields=["person", "source"], name="star_once")]

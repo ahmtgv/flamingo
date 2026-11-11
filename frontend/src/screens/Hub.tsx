@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent as Нажатие } from 'react'
 
 import { IF_SILENT, RIGHTS, РАЗДЕЛЫ, источникиРаздела, разделИсточника, type Source } from '../hub/sources'
-import { записать, прочесть } from '../hub/избранное'
+import { записать, наСервер, прочесть, сСервера } from '../hub/избранное'
+import { КнопкиОкна, местоОкна, type ВидОкна } from '../hub/КнопкиОкна'
 import { useПоверх } from '../lib/окно'
 import { Беда, положитьСсылку, читатьУроки, type Урок } from '../lib/study'
 import '../styles/хаб.css'
@@ -34,7 +35,7 @@ const ОКОН_НЕ_БОЛЬШЕ = 6
 /** Вкладок браузера тоже не больше шести: каждая — живой чужой сайт. */
 const ВКЛАДОК_НЕ_БОЛЬШЕ = 6
 
-type Окно = { id: string; x: number; y: number; ш: number; в: number; слой: number }
+type Окно = { id: string; x: number; y: number; ш: number; в: number; слой: number; вид?: ВидОкна }
 type Шаг = 'список' | 'источник' | 'браузер'
 
 function хозяин(адрес: string): string {
@@ -137,7 +138,7 @@ function НаУрок({ источник, закрыть }: { источник: 
   )
 }
 
-export function Hub({ учитель = false }: {
+export function Hub({ учитель = false, вошёл = false }: {
   /** Прежние двери экрана. Свою полосу «← Назад» экран больше не рисует — на
    *  эскизе её нет: дорогу назад даёт верхняя строка сайта или рама кабинета. */
   onBack?: () => void
@@ -145,6 +146,8 @@ export function Hub({ учитель = false }: {
   вРаме?: boolean
   /** Учителю доступно «Показать на уроке» (владелец, 10.11). */
   учитель?: boolean
+  /** Вошедшему избранное хранит сервер — оно одно на все устройства. */
+  вошёл?: boolean
 }) {
   const [любимые, setЛюбимые] = useState<string[]>(() => прочесть())
   /* Источник, который учитель прикладывает к уроку: открыта модалка выбора. */
@@ -169,7 +172,30 @@ export function Hub({ учитель = false }: {
   const поиск = useRef<HTMLInputElement>(null)
   const слой = useRef(1)
 
-  useEffect(() => { записать(любимые) }, [любимые])
+  /* 🔴 ИЗБРАННОЕ ВОШЕДШЕГО — НА СЕРВЕРЕ (владелец, 11.11). При входе на экран
+     серверный список соединяется с местным: отмеченное гостем до входа не
+     пропадает. Дальше каждая правка идёт и в браузер, и на сервер. Пока
+     сервер не ответил, на него ничего не шлём — иначе пустой местный список
+     затёр бы настоящий. */
+  const сверено = useRef(false)
+  useEffect(() => {
+    if (!вошёл) return
+    let жив = true
+    сСервера().then((сервер) => {
+      if (!жив || сервер === null) return
+      сверено.current = true
+      setЛюбимые((мои) => {
+        const вместе = [...сервер, ...мои.filter((x) => !сервер.includes(x))]
+        return вместе.length === мои.length && вместе.every((x, i) => x === мои[i]) ? мои : вместе
+      })
+    })
+    return () => { жив = false }
+  }, [вошёл])
+
+  useEffect(() => {
+    записать(любимые)
+    if (вошёл && сверено.current) void наСервер(любимые)
+  }, [любимые, вошёл])
 
   const слово = ищу.trim().toLowerCase()
   const видно = (x: Source) => !слово || x.name.toLowerCase().includes(слово) || x.gives.toLowerCase().includes(слово)
@@ -240,6 +266,7 @@ export function Hub({ учитель = false }: {
     return true
   }
 
+  const видОкна = (id: string, вид: ВидОкна | undefined) => { наверх(id); setОкна((было) => было.map((о) => (о.id === id ? { ...о, вид } : о))) }
   const закрытьОкно = (id: string) => { setОкна((было) => было.filter((о) => о.id !== id)); setОтказ('') }
 
   /* Таскание и размер: одна и та же механика, разница — что меняется. */
@@ -371,7 +398,7 @@ export function Hub({ учитель = false }: {
           ) : null}
           <button type="button" className={`${s.act} ${любим ? s.actOn : ''}`} aria-pressed={любим} onClick={() => setЛюбимые((было) => вкл(было, выбран.id))}>
             <span>{любим ? 'В избранном' : 'Добавить в избранное'}</span>
-            <span className={s.actNote}>{любим ? 'убрать' : 'в этом браузере'}</span>
+            <span className={s.actNote}>{любим ? 'убрать' : вошёл ? 'на всех устройствах' : 'в этом браузере'}</span>
           </button>
           <p className={s.refuse} role="status">{отказ}</p>
 
@@ -449,25 +476,18 @@ export function Hub({ учитель = false }: {
         return (
           <div
             key={о.id}
-            className={s.window}
+            className={`${s.window} ${о.вид === 'свёрнуто' ? s.windowMin : ''}`}
             role="dialog"
             aria-label={`Окно источника: ${x.name}`}
-            style={{ left: о.x, top: о.y, width: о.ш, height: о.в, zIndex: о.слой }}
+            style={{ ...местоОкна(о), zIndex: о.слой }}
             onPointerDown={() => наверх(о.id)}
           >
-            <div className={s.windowBar} onPointerDown={тащить(о.id, 'место')}>
-              <span className={s.dots} aria-hidden="true"><i /><i /><i /></span>
+            <div className={s.windowBar} onPointerDown={о.вид === 'развёрнуто' ? undefined : тащить(о.id, 'место')}>
+              <КнопкиОкна имя={x.name} вид={о.вид} закрыть={() => закрытьОкно(о.id)} сменить={(вид) => видОкна(о.id, вид)} />
               <span className={s.windowName} title={x.name}>{x.name}</span>
-              <button
-                type="button"
-                className={s.windowClose}
-                onPointerDown={(e) => e.stopPropagation()}
-                onClick={() => закрытьОкно(о.id)}
-                aria-label={`Закрыть окно: ${x.name}`}
-              >×</button>
             </div>
             <div className={s.windowBody}><Рамка x={x} раз={0} /></div>
-            <span className={s.windowGrip} onPointerDown={тащить(о.id, 'размер')} aria-hidden="true" />
+            {о.вид ? null : <span className={s.windowGrip} onPointerDown={тащить(о.id, 'размер')} aria-hidden="true" />}
           </div>
         )
       })}

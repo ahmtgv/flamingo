@@ -9,6 +9,7 @@ import { когдаУрок } from '../lib/пояс'
 import '../styles/хаб.css'
 import х from './Hub.module.css'
 import s from './Чаты.module.css'
+import { КнопкиОкна, местоОкна, type ВидОкна } from '../hub/КнопкиОкна'
 
 /** «Сообщения» — переписка своей страницей.
  *
@@ -29,7 +30,7 @@ import s from './Чаты.module.css'
 const ОКОН_НЕ_БОЛЬШЕ = 6
 const ВКЛАДОК_НЕ_БОЛЬШЕ = 6
 
-type Окно = { id: string; x: number; y: number; ш: number; в: number; слой: number }
+type Окно = { id: string; x: number; y: number; ш: number; в: number; слой: number; вид?: ВидОкна }
 type Шаг = 'список' | 'источник' | 'браузер'
 
 const миг = (когда: string) => {
@@ -267,6 +268,7 @@ export function Чаты({ person, подложка, подложкаЛенты 
     return true
   }
 
+  const видОкна = (id: string, вид: ВидОкна | undefined) => { наверх(id); setОкна((было) => было.map((о) => (о.id === id ? { ...о, вид } : о))) }
   const закрытьОкно = (id: string) => { setОкна((было) => было.filter((о) => о.id !== id)); setОтказ('') }
 
   /* Таскание и размер — та же механика, что у окон источников. */
@@ -507,27 +509,20 @@ export function Чаты({ person, подложка, подложкаЛенты 
         return (
           <div
             key={о.id}
-            className={х.window}
+            className={`${х.window} ${о.вид === 'свёрнуто' ? х.windowMin : ''}`}
             role="dialog"
             aria-label={`Окно разговора: ${б.имя}`}
-            style={{ left: о.x, top: о.y, width: о.ш, height: о.в, zIndex: о.слой }}
+            style={{ ...местоОкна(о), zIndex: о.слой }}
             onPointerDown={() => наверх(о.id)}
           >
-            <div className={х.windowBar} onPointerDown={тащить(о.id, 'место')}>
-              <span className={х.dots} aria-hidden="true"><i /><i /><i /></span>
+            <div className={х.windowBar} onPointerDown={о.вид === 'развёрнуто' ? undefined : тащить(о.id, 'место')}>
+              <КнопкиОкна имя={б.имя} вид={о.вид} закрыть={() => закрытьОкно(о.id)} сменить={(вид) => видОкна(о.id, вид)} />
               <span className={х.windowName} title={б.имя}>{б.имя}</span>
-              <button
-                type="button"
-                className={х.windowClose}
-                onPointerDown={(e) => e.stopPropagation()}
-                onClick={() => закрытьОкно(о.id)}
-                aria-label={`Закрыть окно: ${б.имя}`}
-              >×</button>
             </div>
             <div className={х.windowBody}>
               <Лента key={свежесть[о.id] ?? 0} кто={б.кто} имя={б.имя} веду={учитель} подложка={подложкаЛенты} onПрочитано={обновить} />
             </div>
-            <span className={х.windowGrip} onPointerDown={тащить(о.id, 'размер')} aria-hidden="true" />
+            {о.вид ? null : <span className={х.windowGrip} onPointerDown={тащить(о.id, 'размер')} aria-hidden="true" />}
           </div>
         )
       })}

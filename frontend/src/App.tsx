@@ -329,7 +329,7 @@ function Экраны() {
     return (
       <div className="flpage">
         <Шапка где="источники" вошёл={Boolean(person)} админ={Boolean(person?.админ)} молчит={молчит} go={go} />
-        <Hub onBack={домой} onHome={домой} учитель={person?.role === 'teacher'} />
+        <Hub onBack={домой} onHome={домой} учитель={person?.role === 'teacher'} вошёл={Boolean(person)} />
       </div>
     )
   }

@@ -118,6 +118,18 @@ export const SOURCES: Source[] = [
   { id: 'getty', kind: 'снимки', name: 'Музей Гетти', gives: 'Рукописи, античность, старые мастера и ранняя фотография', right: 'own', home: 'https://www.getty.edu/about/whatwedo/opencontent.html' },
   { id: 'parismusees', kind: 'снимки', name: 'Музеи Парижа', gives: 'Собрания городских музеев Парижа: от Средневековья до моды', right: 'own', home: 'https://www.parismuseescollections.paris.fr/' },
   { id: 'britishmuseum', kind: 'снимки', name: 'Британский музей', gives: 'Почти два миллиона снимков вещей всех эпох и континентов', right: 'attr', home: 'https://www.britishmuseum.org/collection' },
+  /* 🔴 РУССКИЕ МУЗЕИ — «МОЖНО ПОКАЗЫВАТЬ», НЕ БОЛЬШЕ (владелец, 11.11: «давай их
+     подключай»). Собрания открыты для просмотра, но воспроизводить музейные
+     предметы у нас можно только с разрешения музея — поэтому на уроке смотрим
+     на их сайте, а в свою работу не берём. Адреса проверены 11.11.2026. */
+  { id: 'hermitage', kind: 'снимки', name: 'Эрмитаж', gives: 'Собрание Эрмитажа: живопись, скульптура, древности — с поиском по коллекции', right: 'show', home: 'https://www.hermitagemuseum.org/explore/artworks' },
+  { id: 'tretyakov', kind: 'снимки', name: 'Третьяковская галерея', gives: 'Русское искусство от икон до авангарда: тысячи произведений с описаниями', right: 'show', home: 'https://my.tretyakov.ru/app/gallery' },
+  { id: 'pushkin', kind: 'снимки', name: 'Пушкинский музей', gives: 'Шедевры ГМИИ: Древний мир, старые мастера, импрессионисты', right: 'show', home: 'https://collection.pushkinmuseum.art/entity/OBJECT?uniq=true' },
+  { id: 'rusmuseum', kind: 'снимки', name: 'Русский музей', gives: 'Виртуальный Русский музей: коллекция онлайн и прогулки по залам', right: 'show', home: 'https://rusmuseumvrm.ru/collections/' },
+  /* Лувр: снимки вещей, на которые уже нет авторского права, разрешено брать для
+     учёбы бесплатно — с подписью и постоянной ссылкой (условия сайта собраний). */
+  { id: 'louvre', kind: 'снимки', name: 'Лувр', gives: 'Почти полмиллиона вещей Лувра — от Месопотамии до XIX века', right: 'attr', home: 'https://collections.louvre.fr/en/' },
+  { id: 'vangogh', kind: 'снимки', name: 'Музей Ван Гога', gives: 'Картины, рисунки и письма Ван Гога в высоком разрешении', right: 'show', home: 'https://www.vangoghmuseum.nl/en/collection' },
   { id: 'loc', kind: 'книги', name: 'Библиотека Конгресса', gives: 'Карты, фотографии, газеты, звукозаписи XIX–XX веков', right: 'own', home: 'https://www.loc.gov/collections/' },
   { id: 'gallica', kind: 'книги', name: 'Gallica · Национальная библиотека Франции', gives: 'Рукописи, атласы и газеты, оцифрованные страницами', right: 'show', home: 'https://gallica.bnf.fr/' },
   { id: 'bl', kind: 'книги', name: 'Британская библиотека', gives: 'Средневековые рукописи и первые печатные книги', right: 'show', home: 'https://www.bl.uk/collection/digitised-manuscripts-archives' },
@@ -182,7 +194,8 @@ export const РАЗДЕЛЫ: { id: Раздел; имя: string }[] = [
 ]
 
 const ПО_РАЗДЕЛАМ: Record<Раздел, string[]> = {
-  музеи: ['met', 'rijks', 'smith', 'artic', 'cleveland', 'nga', 'getty', 'parismusees', 'britishmuseum'],
+  музеи: ['met', 'rijks', 'smith', 'artic', 'cleveland', 'nga', 'getty', 'parismusees', 'britishmuseum',
+    'hermitage', 'tretyakov', 'pushkin', 'rusmuseum', 'louvre', 'vangogh'],
   космос: ['apod', 'hubble', 'jwst', 'sdo', 'esa', 'eso'],
   земля: ['earth', 'noaa', 'usgs'],
   природа: ['gbif', 'inat', 'eol', 'pdb'],

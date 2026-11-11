@@ -534,12 +534,65 @@
   gap: var(--х-6);
 }
 
-.dots i {
+/* Три кнопки окна: закрыть, свернуть, развернуть (`hub/КнопкиОкна.tsx`).
+   Цвет спокойный — коралловый у нас только на тревогу. Знак проступает под
+   мышью; на сенсорном экране он виден всегда (ниже, `pointer: coarse`). */
+.dot {
+  display: grid;
+  place-items: center;
+  width: var(--х-12);
+  height: var(--х-12);
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--х-точки);
+  color: var(--х-текст);
+  cursor: pointer;
+}
+
+/* 🔴 ЦЕЛЬ НАЖАТИЯ У ТОЧЕК — СВОЯ. Общая цель 44 px (`base.css`) у трёх кнопок,
+   стоящих в 18 px друг от друга, налезает на соседей, и в нахлёсте выигрывает
+   правая: «свернуть» разворачивало окно. Под мышью цель — сама точка; на
+   сенсорном экране точки крупнее и стоят шагом 34, цель ровно в шаг. */
+.dot::before {
+  min-width: 0;
+  min-height: 0;
+}
+
+.dot svg {
   display: block;
   width: var(--х-10);
   height: var(--х-10);
-  border-radius: 50%;
-  background: var(--х-точки);
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.3;
+  stroke-linecap: round;
+  opacity: 0;
+}
+
+.dots:hover .dot svg,
+.dot:focus-visible svg,
+.dot[aria-pressed='true'] svg {
+  opacity: 1;
+}
+
+.dot:hover {
+  background: var(--х-метка);
+}
+
+/* Имя окна стоит по середине заголовка: справа столько же места, сколько
+   слева занимают кнопки. */
+.window .windowName {
+  padding-right: calc(var(--х-44) + var(--х-16));
+}
+
+/* Свёрнутое окно — один заголовок; содержимое живо, просто не показано. */
+.windowMin .windowBody {
+  display: none;
+}
+
+.windowMin .windowBar {
+  border-bottom: 0;
 }
 
 .windowName {
@@ -666,6 +719,30 @@
   .addr,
   .windowBar {
     height: var(--х-44);
+  }
+
+  .dots {
+    gap: var(--х-14);
+  }
+
+  .dot {
+    width: var(--х-20);
+    height: var(--х-20);
+  }
+
+  .dot::before {
+    min-width: var(--х-34);
+    min-height: var(--х-34);
+  }
+
+  .dot svg {
+    width: var(--х-14);
+    height: var(--х-14);
+    opacity: 1;
+  }
+
+  .window .windowName {
+    padding-right: calc(var(--х-99) + var(--х-13));
   }
 
   .windowClose {
