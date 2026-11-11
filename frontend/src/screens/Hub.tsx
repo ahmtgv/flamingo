@@ -2,8 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent as
 
 import { IF_SILENT, RIGHTS, РАЗДЕЛЫ, источникиРаздела, разделИсточника, type Source } from '../hub/sources'
 import { записать, наСервер, прочесть, сСервера } from '../hub/избранное'
-import { СвойБраузер } from '../hub/СвойБраузер'
-import { безРамки } from '../hub/окноСервера'
+import { ПОСРЕДНИК, безРамки } from '../hub/посредник'
 import { КнопкиОкна, местоОкна, type ВидОкна } from '../hub/КнопкиОкна'
 import { useПоверх } from '../lib/окно'
 import { Беда, положитьСсылку, читатьУроки, type Урок } from '../lib/study'
@@ -44,15 +43,61 @@ function хозяин(адрес: string): string {
   try { return new URL(адрес).host.replace(/^www\./, '') } catch { return адрес }
 }
 
-/** Чужая страница в рамке. Права рамки — те же, что у витрины урока. */
-function Рамка({ x, раз, свой = false, активна = true }: {
+function ЧерезПосредник({ x, раз }: { x: Source; раз: number }) {
+  const рамка = useRef<HTMLIFrameElement>(null)
+  const [адрес, setАдрес] = useState(x.home)
+
+  /* Страница посредника сообщает, что сейчас открыто, — отсюда верная ссылка
+     «в новой вкладке» после того, как человек ушёл по сайту вглубь. */
+  useEffect(() => {
+    const слушать = (с: MessageEvent) => {
+      if (с.origin !== ПОСРЕДНИК || с.source !== рамка.current?.contentWindow) return
+      const д = с.data as { flamingoHub?: boolean; адрес?: unknown } | null
+      if (д?.flamingoHub && typeof д.адрес === 'string' && /^https?:\/\//.test(д.адрес)) setАдрес(д.адрес)
+    }
+    window.addEventListener('message', слушать)
+    return () => window.removeEventListener('message', слушать)
+  }, [])
+
+  const сказать = (что: 'назад' | 'обновить') => рамка.current?.contentWindow?.postMessage({ flamingoHub: true, что }, ПОСРЕДНИК)
+
+  /* «Обновить» в строке адреса перечитывает открытую страницу, а не возвращает к началу. */
+  const первый = useRef(true)
+  useEffect(() => {
+    if (первый.current) { первый.current = false; return }
+    сказать('обновить')
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [раз])
+
+  return (
+    <>
+      <iframe
+        ref={рамка}
+        className={s.frame}
+        src={`${ПОСРЕДНИК}/#${encodeURIComponent(x.id)}`}
+        title={x.name}
+        allow="autoplay; fullscreen; picture-in-picture; clipboard-write"
+      />
+      <p className={s.blank}>
+        Открыто через Flamingo{хозяин(адрес) ? ` · ${хозяин(адрес)}` : ''}.{' '}
+        <button type="button" className={s.ownAgain} onClick={() => сказать('назад')}>← Назад</button>{' '}
+        <a href={адрес} target="_blank" rel="noopener noreferrer">Открыть в новой вкладке ↗</a>
+      </p>
+    </>
+  )
+}
+
+/** Чужая страница в рамке. Права рамки — те же, что у витрины урока.
+ *
+ *  🔴 ИСТОЧНИК, ЗАПРЕТИВШИЙ РАМКУ, ОТКРЫВАЕТСЯ ЧЕРЕЗ ПОСРЕДНИК (владелец, 11.11):
+ *  настоящим сайтом, в этой же колонке (`hub/посредник.ts`, `hub-proxy/`). */
+function Рамка({ x, раз, свой = false }: {
   x: Source
   раз: number
-  /** Открыть браузером на нашем сервере: сайт запрещает рамку или человек так выбрал. */
+  /** Открыть через посредник: сайт запрещает рамку или человек так выбрал. */
   свой?: boolean
-  активна?: boolean
 }) {
-  if (свой) return <СвойБраузер x={x} раз={раз} активна={активна} />
+  if (свой) return <ЧерезПосредник x={x} раз={раз} />
   return (
     <>
       <iframe
@@ -177,10 +222,10 @@ export function Hub({ учитель = false, вошёл = false }: {
   const [отказ, setОтказ] = useState('')
   /* Пока окно тащат, рамки чужих сайтов не должны перехватывать мышь. */
   const [тащат, setТащат] = useState(false)
-  /* 🔴 СВОЙ БРАУЗЕР (владелец, 11.11): источник, запретивший рамку, открывается
-     браузером на нашем сервере — внутри этой же колонки. Кто запрещает, знает
-     сервер; человек может и сам переключить любой источник кнопкой в строке
-     адреса. Только вошедшему: окно — живой хром на сервере, их там немного. */
+  /* 🔴 ИСТОЧНИК, ЗАПРЕТИВШИЙ РАМКУ, ОТКРЫВАЕТСЯ ЧЕРЕЗ ПОСРЕДНИК (владелец, 11.11)
+     — в этой же колонке и настоящим сайтом. Кто запрещает, знает сервер; любой
+     источник человек может переключить и сам, кнопкой в строке адреса. Только
+     вошедшему: посредник — это выход в сеть с нашего сервера, гостям он закрыт. */
   const [запрет, setЗапрет] = useState<string[]>([])
   const [выбор, setВыбор] = useState<Record<string, boolean>>({})
   useEffect(() => {
@@ -189,7 +234,7 @@ export function Hub({ учитель = false, вошёл = false }: {
     void безРамки().then((список) => { if (жив) setЗапрет(список) })
     return () => { жив = false }
   }, [вошёл])
-  const свой = (id: string) => вошёл && (выбор[id] ?? запрет.includes(id))
+  const свой = (id: string) => вошёл && Boolean(ПОСРЕДНИК) && (выбор[id] ?? запрет.includes(id))
   const экран = useRef<HTMLElement>(null)
   const поиск = useRef<HTMLInputElement>(null)
   const слой = useRef(1)
@@ -466,15 +511,15 @@ export function Hub({ учитель = false, вошёл = false }: {
                 {учитель ? (
                   <button type="button" className={s.addrAct} onClick={() => setНаУрок(текущая)}>На урок</button>
                 ) : null}
-                {вошёл ? (
+                {вошёл && ПОСРЕДНИК ? (
                   <button
                     type="button"
                     className={s.addrAct}
                     aria-pressed={свой(текущая.id)}
-                    title="Открыть источник браузером Flamingo — если в рамке пусто"
+                    title="Открыть источник через Flamingo — если в рамке пусто"
                     onClick={() => setВыбор((б) => ({ ...б, [текущая.id]: !свой(текущая.id) }))}
                   >
-                    Браузер Flamingo
+                    Через Flamingo
                   </button>
                 ) : null}
                 <span className={s.addrUrl} title={текущая.home}>{текущая.home}</span>
@@ -487,7 +532,7 @@ export function Hub({ учитель = false, вошёл = false }: {
                 if (!x) return null
                 return (
                   <div key={id} className={s.view} hidden={id !== наВиду}>
-                    <Рамка x={x} раз={свежесть[id] ?? 0} свой={свой(id)} активна={id === наВиду && шаг !== 'список'} />
+                    <Рамка x={x} раз={свежесть[id] ?? 0} свой={свой(id)} />
                   </div>
                 )
               })}
@@ -519,7 +564,7 @@ export function Hub({ учитель = false, вошёл = false }: {
               <КнопкиОкна имя={x.name} вид={о.вид} закрыть={() => закрытьОкно(о.id)} сменить={(вид) => видОкна(о.id, вид)} />
               <span className={s.windowName} title={x.name}>{x.name}</span>
             </div>
-            <div className={s.windowBody}><Рамка x={x} раз={0} свой={свой(о.id)} активна={о.вид !== 'свёрнуто'} /></div>
+            <div className={s.windowBody}><Рамка x={x} раз={0} свой={свой(о.id)} /></div>
             {о.вид ? null : <span className={s.windowGrip} onPointerDown={тащить(о.id, 'размер')} aria-hidden="true" />}
           </div>
         )

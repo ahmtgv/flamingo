@@ -1,0 +1,10 @@
+Посредник «Источников мира» Flamingo открывает страницы источников с помощью
+открытых программ, которые мы используем без изменений:
+
+  Scramjet 1.1.0             https://github.com/MercuryWorkshop/scramjet            (AGPL-3.0)
+  libcurl-transport 1.5.2    https://github.com/MercuryWorkshop/CurlTransport       (AGPL-3.0)
+  epoxy-transport 2.1.28     https://github.com/MercuryWorkshop/EpoxyTransport      (AGPL-3.0)
+  bare-mux 2.1.9             https://github.com/MercuryWorkshop/bare-mux            (MIT)
+  wisp-js 0.5.3              https://github.com/MercuryWorkshop/wisp-js             (LGPL-3.0-or-later)
+
+Исходные тексты этих программ доступны по указанным адресам.

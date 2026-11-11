@@ -111,5 +111,17 @@ print("\nРамки: что сайт объявил о показе внутри
 о = гость.get("/api/hub/previews").json()
 есть(о.get("без_рамки") == ["met"], f"витрина узнаёт, кто запрещает рамку: {о.get('без_рамки')}")
 
+print("\nИзменения — только со своих страниц")
+settings.CORS_ALLOWED_ORIGINS = ["https://flamingo.plus"]
+def с(откуда):
+    ш = {"HTTP_ORIGIN": откуда} if откуда else {}
+    return тимур.put("/api/hub/stars", json.dumps({"избранное": ["apod"]}), content_type="application/json", **ш).status_code
+есть(с("https://flamingo.plus") == 200, "со своей страницы — можно")
+есть(с("https://hub.flamingo.plus") == 403, "со страницы посредника — нельзя")
+есть(с("https://evil.example") == 403 and с("null") == 403, "с чужой страницы — нельзя")
+есть(с(None) == 200, "не из браузера (без Origin) — как раньше")
+есть(тимур.get("/api/hub/stars", HTTP_ORIGIN="https://hub.flamingo.plus").status_code == 200,
+     "чтение не трогаем: его держит CORS")
+
 print(f"\n{'❌' if бед else '✅'} бед {бед} · проверок {проверок}")
 sys.exit(1 if бед else 0)

@@ -40,6 +40,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
+    "config.откуда.ТолькоСвоиСтраницы",
     "django.middleware.common.CommonMiddleware",
 ]
 
@@ -51,11 +52,6 @@ SESSION_COOKIE_DOMAIN = os.getenv("SESSION_COOKIE_DOMAIN", "")
 
 # Без этого браузер не пошлёт куку на чужой источник и не примет Set-Cookie в ответ.
 CORS_ALLOW_CREDENTIALS = True
-
-# Кадр своего браузера («Источники мира») несёт в заголовках отпечаток кадра и
-# адрес страницы. Странице с другого источника браузер покажет их только по
-# этому списку.
-CORS_EXPOSE_HEADERS = ["X-Hub-Hash", "X-Hub-Url"]
 
 CORS_ALLOWED_ORIGINS = _list(
     "CORS_ALLOWED_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173"

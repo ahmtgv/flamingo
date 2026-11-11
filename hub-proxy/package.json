@@ -1,0 +1,17 @@
+{
+  "name": "flamingo-hub-proxy",
+  "private": true,
+  "type": "module",
+  "description": "Посредник «Источников мира»: открывает источник, запретивший рамку, внутри Flamingo",
+  "scripts": {
+    "start": "node server.mjs",
+    "test": "node прогон.mjs"
+  },
+  "dependencies": {
+    "@mercuryworkshop/bare-mux": "2.1.9",
+    "@mercuryworkshop/epoxy-transport": "2.1.28",
+    "@mercuryworkshop/libcurl-transport": "1.5.2",
+    "@mercuryworkshop/scramjet": "1.1.0",
+    "@mercuryworkshop/wisp-js": "0.5.3"
+  }
+}

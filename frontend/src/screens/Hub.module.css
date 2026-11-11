@@ -477,48 +477,7 @@
   color: var(--х-тихий);
 }
 
-/* ── свой браузер: картинка окна, открытого на сервере (`hub/СвойБраузер.tsx`) ── */
-.own {
-  position: relative;
-  flex: 1 1 auto;
-  min-height: 0;
-  display: flex;
-  overflow: hidden;
-  background: var(--х-страница);
-  outline: none;
-  touch-action: none;
-  user-select: none;
-  -webkit-user-select: none;
-}
-
-.own:focus-visible {
-  box-shadow: inset 0 0 0 2px var(--х-зелёный);
-}
-
-.shot {
-  display: block;
-  width: 100%;
-  height: 100%;
-  max-width: none;
-  object-fit: contain;
-  object-position: 0 0;
-  pointer-events: none;
-}
-
-.ownNote {
-  position: absolute;
-  inset: 0;
-  margin: auto;
-  width: fit-content;
-  height: fit-content;
-  max-width: 70%;
-  padding: var(--х-10) var(--х-14);
-  border-radius: var(--х-10);
-  background: var(--х-карта);
-  text-align: center;
-  color: var(--х-второй);
-}
-
+/* кнопка-ссылка в нижней строке рамки («← Назад») */
 .ownAgain {
   padding: 0;
   border: 0;
