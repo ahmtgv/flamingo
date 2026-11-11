@@ -13,7 +13,12 @@ import s from './Vitrina.module.css'
  *  и держать адрес под рукой. Строка стоит всегда, а не появляется по ошибке
  *  (ПРАВИЛА 6.6): иначе макет прыгает ровно в ту секунду, когда человек растерян.
  */
-export function Vitrina({ url, name }: { url: string; name: string }) {
+export function Vitrina({ url, name, через }: {
+  url: string
+  name: string
+  /** Адрес того же источника через посредник — когда сам сайт рамку запрещает. */
+  через?: string
+}) {
   let host = url
   try {
     host = new URL(url).host
@@ -22,13 +27,19 @@ export function Vitrina({ url, name }: { url: string; name: string }) {
   }
   return (
     <div className={s.box}>
-      <iframe
-        className={s.frame}
-        src={url}
-        title={name}
-        allow="autoplay; fullscreen; picture-in-picture"
-        sandbox="allow-scripts allow-same-origin allow-presentation allow-forms allow-popups"
-      />
+      {через ? (
+        /* Страница посредника — наша, ей песочница не нужна; сам источник
+           внутри неё открыт уже её средствами. */
+        <iframe className={s.frame} src={через} title={name} allow="autoplay; fullscreen; picture-in-picture; clipboard-write" />
+      ) : (
+        <iframe
+          className={s.frame}
+          src={url}
+          title={name}
+          allow="autoplay; fullscreen; picture-in-picture"
+          sandbox="allow-scripts allow-same-origin allow-presentation allow-forms allow-popups"
+        />
+      )}
       <div className={s.foot}>
         <span className={s.host}>{host}</span>
         <a className={s.external} href={url} target="_blank" rel="noopener noreferrer">

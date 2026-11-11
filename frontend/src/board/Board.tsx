@@ -17,6 +17,7 @@ import {
   strokeBox, unionBox, type Box, type Handle, type Xform,
 } from './select'
 import { contentBox, fitView, K_MAX, K_MIN, toWorld, zoomAt, type View } from './view'
+import { useТелефон } from '../room/телефон'
 
 /** Насколько близко ластик считает штрих задетым. В мировых единицах. */
 const ERASE_R = 12
@@ -83,6 +84,19 @@ export function Board({ bus, peers, onOpen }: Props) {
 
   const drawing = useRef<{ id: string; unsent: Point[] } | null>(null)
   const panning = useRef<{ sx: number; sy: number; vx: number; vy: number } | null>(null)
+  /* 🔴 ДОСКА НА ТЕЛЕФОНЕ (владелец, 11.11.2026). Ученик с телефона видел меньше
+     четверти того, что видит учитель: доска бесконечная, у каждого свой вид, а
+     экран телефона мал. Теперь на телефоне доска сама умещает всё написанное
+     и держит это, пока человек не взялся за неё сам; двумя пальцами — увеличить
+     и подвинуть. «Показать всё» возвращает слежение. */
+  const телефон = useТелефон()
+  const следим = useRef(true)
+  const пальцы = useRef(new Map<number, { x: number; y: number }>())
+  const щипок = useRef<{ d: number; cx: number; cy: number; вид: View } | null>(null)
+  /* После щипка оставшийся на экране палец не рисует: иначе каждый щипок
+     кончался бы случайным штрихом. */
+  const послеЩипка = useRef(false)
+  const [размер, setРазмер] = useState(0)
   /* Здесь лежит то, что сейчас тянут из ничего: стрелка или фигура. Один ящик
      на оба, потому что жест один и тот же — протяжка от угла до угла. */
   const тянем = useRef<Obj | null>(null)
@@ -384,6 +398,26 @@ export function Board({ bus, peers, onOpen }: Props) {
     // 🔴 Пульты лежат ВНУТРИ рамы, и их нажатие всплывает сюда. Если рама заберёт
     // указатель себе, браузер не выдаст кнопке click — пульт станет мёртвым.
     if ((e.target as HTMLElement).closest('[data-pult]')) return
+    следим.current = false
+    if (e.pointerType === 'touch') {
+      const r = wrapRef.current!.getBoundingClientRect()
+      пальцы.current.set(e.pointerId, { x: e.clientX - r.left, y: e.clientY - r.top })
+      if (пальцы.current.size === 2) {
+        /* Второй палец — это уже не письмо, а щипок. Начатое первым пальцем
+           снимается: штрих длиной в долю секунды никому не нужен. */
+        const начатое = drawing.current?.id
+        if (начатое && начатое !== 'eraser') st.eraseIds([начатое])
+        drawing.current = null
+        panning.current = sizing.current = moving.current = marquee.current = тянем.current = гасим.current = null
+        setMarq(null)
+        const [a, b] = [...пальцы.current.values()]
+        щипок.current = { d: Math.max(1, Math.hypot(a.x - b.x, a.y - b.y)), cx: (a.x + b.x) / 2, cy: (a.y + b.y) / 2, вид: viewRef.current }
+        ;(e.currentTarget as HTMLElement).setPointerCapture(e.pointerId)
+        redraw()
+        return
+      }
+      if (пальцы.current.size > 2 || послеЩипка.current) return
+    }
     const t = toolRef.current
     if (space || t === 'hand' || e.button === 1) {
       ;(e.currentTarget as HTMLElement).setPointerCapture(e.pointerId)
@@ -494,6 +528,21 @@ export function Board({ bus, peers, onOpen }: Props) {
   }
 
   const onMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (e.pointerType === 'touch' && пальцы.current.has(e.pointerId)) {
+      const r = wrapRef.current!.getBoundingClientRect()
+      пальцы.current.set(e.pointerId, { x: e.clientX - r.left, y: e.clientY - r.top })
+      const щ = щипок.current
+      if (щ && пальцы.current.size >= 2) {
+        const [a, b] = [...пальцы.current.values()]
+        const cx = (a.x + b.x) / 2
+        const cy = (a.y + b.y) / 2
+        const k = Math.min(K_MAX, Math.max(K_MIN, щ.вид.k * (Math.hypot(a.x - b.x, a.y - b.y) / щ.d)))
+        /* Точка доски, что была между пальцами, под ними и остаётся. */
+        setView({ k, x: cx - (щ.cx - щ.вид.x) * (k / щ.вид.k), y: cy - (щ.cy - щ.вид.y) * (k / щ.вид.k) })
+        return
+      }
+      if (послеЩипка.current) return
+    }
     if (panning.current) {
       const q = panning.current
       setView((v) => ({ ...v, x: q.vx + (e.clientX - q.sx), y: q.vy + (e.clientY - q.sy) }))
@@ -568,7 +617,19 @@ export function Board({ bus, peers, onOpen }: Props) {
     redraw()
   }
 
-  const onUp = () => {
+  const onUp = (e?: React.PointerEvent<HTMLDivElement>) => {
+    if (e?.pointerType === 'touch') {
+      пальцы.current.delete(e.pointerId)
+      if (щипок.current) {
+        щипок.current = null
+        послеЩипка.current = пальцы.current.size > 0
+        return
+      }
+      if (послеЩипка.current) {
+        if (пальцы.current.size === 0) послеЩипка.current = false
+        return
+      }
+    }
     if (panning.current) {
       panning.current = null
       return
@@ -633,6 +694,7 @@ export function Board({ bus, peers, onOpen }: Props) {
     if (!wrap) return
     const onWheel = (e: WheelEvent) => {
       e.preventDefault()
+      следим.current = false
       const r = wrap.getBoundingClientRect()
       if (e.ctrlKey || e.metaKey) {
         const v = viewRef.current
@@ -645,16 +707,35 @@ export function Board({ bus, peers, onOpen }: Props) {
     return () => wrap.removeEventListener('wheel', onWheel)
   }, [])
 
+  /* Телефон повернули или место доски изменилось — умещаем заново. */
+  useEffect(() => {
+    const wrap = wrapRef.current
+    if (!wrap) return
+    const смотрю = new ResizeObserver(() => setРазмер((n) => n + 1))
+    смотрю.observe(wrap)
+    return () => смотрю.disconnect()
+  }, [])
+
+  /* На телефоне доска сама умещает всё написанное — пока человек её не тронул. */
+  useEffect(() => {
+    const wrap = wrapRef.current
+    if (!телефон || !следим.current || !wrap || !wrap.clientWidth) return
+    setView(fitView(contentBox(st.sheet.strokes, st.sheet.objs), wrap.clientWidth, wrap.clientHeight, 16))
+  }, [телефон, размер, st.sheet])
+
   const zoomBy = (mul: number) => {
     const wrap = wrapRef.current
     if (!wrap) return
+    следим.current = false
     setView((v) => zoomAt(v, wrap.clientWidth / 2, wrap.clientHeight / 2, v.k * mul))
   }
-  const home = () => setView({ x: 0, y: 0, k: 1 })
+  const home = () => { следим.current = false; setView({ x: 0, y: 0, k: 1 }) }
   const showAll = () => {
     const wrap = wrapRef.current
     if (!wrap) return
-    setView(fitView(contentBox(st.sheet.strokes, st.sheet.objs), wrap.clientWidth, wrap.clientHeight))
+    /* На телефоне «Показать всё» ещё и возвращает слежение за написанным. */
+    следим.current = true
+    setView(fitView(contentBox(st.sheet.strokes, st.sheet.objs), wrap.clientWidth, wrap.clientHeight, телефон ? 16 : 48))
   }
 
   /* ── объекты: выбрать, править ──────────────────────────────────────────── */

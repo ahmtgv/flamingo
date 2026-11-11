@@ -46,6 +46,27 @@ def _bad(reason: str, status: int = 400) -> JsonResponse:
     return JsonResponse({"error": reason}, status=status)
 
 
+def пропуск_хаба(lesson: Lesson) -> str:
+    """Пропуск участника урока к посреднику «Источников мира».
+
+    🔴 ВРЕМЕННОЕ РЕШЕНИЕ ВЛАДЕЛЬЦА (11.11.2026): ученик, вошедший на урок по
+    ссылке без входа, тоже должен видеть источник. Пропуск подписан сервером,
+    живёт три часа и выдаётся только для занятия, которое стоит в расписании
+    вчера, сегодня или завтра: старая ссылка на прошлый урок посредник не
+    открывает. К релизу гостей не станет — и пропуск уйдёт вместе с ними.
+    """
+    from datetime import date, timedelta
+    from django.core import signing
+
+    if abs((lesson.on - date.today()).days) > 1:
+        return ""
+    return signing.dumps({"r": lesson.code}, salt=СОЛЬ_ХАБА)
+
+
+СОЛЬ_ХАБА = "flamingo.hub.pass"
+ПРОПУСК_ЖИВЁТ = 3 * 3600
+
+
 @csrf_exempt
 @require_POST
 def token(request: HttpRequest) -> JsonResponse:
@@ -111,6 +132,9 @@ def token(request: HttpRequest) -> JsonResponse:
             "url": cfg["url"],
             "identity": identity,
             "name": name,
+            # Пропуск к посреднику источников — чтобы источник на уроке видел и
+            # тот, кто вошёл по ссылке без учётной записи (`common/views.py`).
+            "хаб": пропуск_хаба(lesson),
         }
     )
 

@@ -22,7 +22,13 @@
   }
   const родителю = (д) => { try { window.parent.postMessage({ flamingoHub: true, ...д }, '*') } catch { /* родителя нет */ } }
 
-  const имя = decodeURIComponent(location.hash.slice(1))
+  /* После решётки — имя источника и, на уроке, пропуск участника:
+     #met  или  #met&p=<пропуск>. Пропуск кладём кукой этого адреса — так его
+     увидит тоннель; живёт он столько же, сколько сам пропуск. */
+  const [сырое, ...прочее] = location.hash.slice(1).split('&')
+  const имя = decodeURIComponent(сырое)
+  const пропуск = прочее.map((ч) => /^p=([A-Za-z0-9_:.\-]+)$/.exec(ч)?.[1]).find(Boolean)
+  if (пропуск) document.cookie = `fl_hub=${пропуск}; path=/; max-age=10800; SameSite=Strict${location.protocol === 'https:' ? '; Secure' : ''}`
   let источник
   try { источник = (await (await fetch('/sources.json')).json())[имя] } catch { /* ниже */ }
   if (!источник) { сказать('Такого источника в каталоге нет.'); return }

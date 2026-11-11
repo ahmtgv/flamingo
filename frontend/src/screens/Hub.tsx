@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent as
 
 import { IF_SILENT, RIGHTS, РАЗДЕЛЫ, источникиРаздела, разделИсточника, type Source } from '../hub/sources'
 import { записать, наСервер, прочесть, сСервера } from '../hub/избранное'
-import { ПОСРЕДНИК, безРамки } from '../hub/посредник'
+import { ПОСРЕДНИК, безРамки, черезПосредник } from '../hub/посредник'
 import { КнопкиОкна, местоОкна, type ВидОкна } from '../hub/КнопкиОкна'
 import { useПоверх } from '../lib/окно'
 import { Беда, положитьСсылку, читатьУроки, type Урок } from '../lib/study'
@@ -74,7 +74,7 @@ function ЧерезПосредник({ x, раз }: { x: Source; раз: number
       <iframe
         ref={рамка}
         className={s.frame}
-        src={`${ПОСРЕДНИК}/#${encodeURIComponent(x.id)}`}
+        src={черезПосредник(x.id)}
         title={x.name}
         allow="autoplay; fullscreen; picture-in-picture; clipboard-write"
       />

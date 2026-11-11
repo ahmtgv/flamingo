@@ -41,9 +41,11 @@ const запуск = (ещё) => spawn(process.execPath, ['server.mjs'], {
 const посредник = запуск({ HUB_PROXY_PORT: '8042', HUB_PROXY_TEST: '1' })
 /* Пробный сервер учётных записей: знает одну куку и отвечает только на своё имя. */
 const учётки = http.createServer((з, о) => {
-  const свой = з.headers.host === 'api.flamingo.plus' && з.url === '/api/auth/me'
+  const свой = з.headers.host === 'api.flamingo.plus'
   о.writeHead(свой ? 200 : 400, { 'Content-Type': 'application/json' })
-  о.end(JSON.stringify({ person: свой && /fl_ses=nastoyaschaya/.test(з.headers.cookie ?? '') ? { name: 'Аня' } : null }))
+  о.end(з.url.startsWith('/api/hub/pass')
+    ? JSON.stringify({ годен: свой && з.url.endsWith('p=propusk-uroka') })
+    : JSON.stringify({ person: свой && /fl_ses=nastoyaschaya/.test(з.headers.cookie ?? '') ? { name: 'Аня' } : null }))
 }).listen(8044, '127.0.0.1')
 const строгий = запуск({ HUB_PROXY_PORT: '8043', HUB_PROXY_ORIGIN: 'http://localhost:8043', HUB_PROXY_AUTH: 'http://127.0.0.1:8044' })
 await new Promise((г) => setTimeout(г, 900))
@@ -102,6 +104,12 @@ try {
   есть((await код({ Origin: 'http://localhost:8043', Cookie: 'fl_ses=poddelka' })) === 401, 'поддельная кука не проходит')
   есть((await код({ Origin: 'http://localhost:8043', Cookie: 'a=1; fl_ses=nastoyaschaya' })) === 101, 'вошедшему со страницы посредника тоннель открыт')
   есть((await код({ Origin: 'https://evil.example', Cookie: 'fl_ses=nastoyaschaya' })) === 403, 'вошедшему с чужой страницы — закрыт')
+  есть((await код({ Origin: 'http://localhost:8043', Cookie: 'fl_hub=propusk-uroka' })) === 101, 'участнику урока с пропуском тоннель открыт')
+  есть((await код({ Origin: 'http://localhost:8043', Cookie: 'fl_hub=chuzhoy' })) === 401, 'с негодным пропуском — закрыт')
+  const спропуском = await б.newPage()
+  await спропуском.goto('http://localhost:8043/#проба&p=propusk-uroka')
+  await спропуском.waitForTimeout(1200)
+  есть((await спропуском.evaluate(() => fetch('/я').then((о) => о.json()))).вошёл === true, 'страница посредника принимает пропуск из адреса')
 } finally {
   await б.close(); посредник.kill(); строгий.kill(); сайт.close(); учётки.close()
 }

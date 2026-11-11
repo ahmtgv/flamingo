@@ -9,6 +9,7 @@ import {
 } from 'livekit-client'
 
 import { fetchTicket, RoomError } from '../lib/api'
+import { запомнитьПропуск } from '../hub/посредник'
 import type { Bus, Msg } from '../board/protocol'
 import { joiner, split } from '../board/chunk'
 import { ГАСНЕТ_МС, ТЕМА as ТЕМА_ВНИМАНИЯ, вБайты, положениеВБайты, разобратьБайты, type ЗнакВнимания, type ПоложениеСчёта } from './внимание'
@@ -245,6 +246,7 @@ export function useRoom(code: string, name: string, { приниматьВним
     ;(async () => {
       try {
         const ticket = await fetchTicket(code, name)
+        запомнитьПропуск(ticket.хаб ?? '')
         if (!alive) return
         await room.connect(ticket.url, ticket.token)
         // Экран мог уйти, пока поднималась связь (в разработке React делает это нарочно).

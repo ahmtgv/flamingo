@@ -111,6 +111,26 @@ print("\nРамки: что сайт объявил о показе внутри
 о = гость.get("/api/hub/previews").json()
 есть(о.get("без_рамки") == ["met"], f"витрина узнаёт, кто запрещает рамку: {о.get('без_рамки')}")
 
+print("\nПропуск участника урока к посреднику")
+from datetime import date, timedelta
+from django.core import signing
+from study.models import Lesson
+from room.views import пропуск_хаба, СОЛЬ_ХАБА
+учитель = Person.objects.get(email="t@example.com")
+сегодня = Lesson.objects.create(teacher=учитель, title="Сегодня", on=date.today(), at="10:00")
+давно = Lesson.objects.create(teacher=учитель, title="Давно", on=date.today() - timedelta(days=9), at="10:00")
+п = пропуск_хаба(сегодня)
+есть(bool(п) and гость.get("/api/hub/pass", {"p": п}).json() == {"годен": True}, "пропуск сегодняшнего урока годен")
+есть(пропуск_хаба(давно) == "", "для давнего урока пропуск не выдаётся")
+есть(гость.get("/api/hub/pass", {"p": п + "x"}).json() == {"годен": False}
+     and гость.get("/api/hub/pass").json() == {"годен": False}, "поддельный и пустой пропуск не годны")
+есть(гость.get("/api/hub/pass", {"p": signing.dumps({"r": "x"}, salt="другая.соль")}).json() == {"годен": False},
+     "подпись для другого дела не подходит")
+рамки.записать(корень, {"met": {"рамка": "неизвестно", "почему": "403"}, "apod": {"рамка": "можно", "почему": ""},
+                        "rijks": {"рамка": "нельзя", "почему": "X-Frame-Options"}})
+есть(гость.get("/api/hub/previews").json().get("без_рамки") == ["met", "rijks"],
+     "кого не узнали — тоже через посредник; напрямую только те, кому точно можно")
+
 print("\nИзменения — только со своих страниц")
 settings.CORS_ALLOWED_ORIGINS = ["https://flamingo.plus"]
 def с(откуда):

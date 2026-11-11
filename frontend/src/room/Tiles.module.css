@@ -200,7 +200,8 @@
 .bubble {
   position: absolute;
   right: var(--space-3);
-  bottom: var(--space-3);
+  /* Сверху, а не снизу: в нижнем правом углу доски стоит «Показать всё». */
+  top: var(--space-3);
   z-index: 2;
   width: calc(var(--space-11) - var(--space-1));
   height: calc(var(--space-11) - var(--space-1));

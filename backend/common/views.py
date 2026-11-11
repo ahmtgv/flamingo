@@ -53,8 +53,12 @@ def список(request: HttpRequest) -> HttpResponse:
     взято = max((str(опись[id].get("взято", "")) for id in есть), default="")
     # Кто из источников запрещает показ в рамке (`manage.py хаб_рамки`).
     # Пусто, пока проверку не запускали.
+    # 🔴 «НЕ УЗНАЛИ» СЧИТАЕТСЯ ЗАПРЕТОМ (владелец, 11.11): сайт, отказавший
+    # нашему замеру, почти всегда и рамку запрещает, а человеку пустая рамка
+    # хуже, чем лишний ход через посредник. В рамке напрямую открываются только
+    # те, про кого точно известно «можно».
     нельзя = sorted(id for id, з in рамки.прочесть(корень).items()
-                    if isinstance(з, dict) and з.get("рамка") == рамки.НЕЛЬЗЯ)
+                    if isinstance(з, dict) and з.get("рамка") != рамки.МОЖНО)
     ответ = JsonResponse({"есть": есть, "взято": взято, "без_рамки": нельзя})
     ответ["Cache-Control"] = "public, max-age=600"
     return ответ
@@ -117,3 +121,15 @@ def избранное(request: HttpRequest) -> HttpResponse:
         Star.objects.bulk_create([Star(person=я, source=x) for x in чисто])
     return JsonResponse({"избранное": чисто})
 
+
+def пропуск(request: HttpRequest) -> HttpResponse:
+    """Годен ли пропуск участника урока к посреднику (`room/views.py`).
+    Спрашивает сам посредник — со своего сервера, не из браузера."""
+    from django.core import signing
+    from room.views import ПРОПУСК_ЖИВЁТ, СОЛЬ_ХАБА
+
+    try:
+        signing.loads(request.GET.get("p", ""), salt=СОЛЬ_ХАБА, max_age=ПРОПУСК_ЖИВЁТ)
+        return JsonResponse({"годен": True})
+    except signing.BadSignature:
+        return JsonResponse({"годен": False})
