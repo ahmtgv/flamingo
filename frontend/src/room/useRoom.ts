@@ -166,7 +166,19 @@ export function useRoom(code: string, name: string, { приниматьВним
 
   useEffect(() => {
     let alive = true
-    const room = new Room({ adaptiveStream: true, dynacast: true })
+    /* 🔴 БЕЗ «ИЗОЛЯЦИИ ГОЛОСА» (владелец, 12.11.2026: «не могут одновременно
+       разговаривать учитель и ученик — один пропадает целиком»). Библиотека
+       эфира по умолчанию просит у браузера и системы изоляцию голоса — на
+       маке и айфоне это системная обработка, которая оставляет «один главный
+       голос» и глушит остальное, в том числе собеседника, долетевшего из
+       динамика. Получалась рация. Подавление эха и шума остаются: без них
+       класс слышал бы сам себя. Звонки (Meet, Zoom) системную изоляцию тоже
+       не включают — её выбирает человек сам. */
+    const room = new Room({
+      adaptiveStream: true,
+      dynacast: true,
+      audioCaptureDefaults: { voiceIsolation: false, echoCancellation: true, noiseSuppression: true, autoGainControl: true },
+    })
     roomRef.current = room
 
     const snapshot = () => {
