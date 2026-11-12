@@ -156,12 +156,12 @@ class Material(models.Model):
 
     🔴 Видео у нас НЕ ХРАНИТСЯ, и это не жадность. Час записи — это гигабайты,
     а раздача без CDN упирается в канал сервера на третьем зрителе. Поэтому
-    видео — ссылкой (`kind='link'`), как и всё крупное. Диск занимают документы
-    и картинки, которых на урок нужны единицы.
+    видео — ссылкой (`kind='link'`), как и всё крупное. Диск занимают документы,
+    картинки и звук (12.11.2026), которых на урок нужны единицы.
     """
 
-    DOC, IMAGE, LINK = "doc", "image", "link"
-    KINDS = [(DOC, "документ"), (IMAGE, "картинка"), (LINK, "ссылка")]
+    DOC, IMAGE, LINK, AUDIO = "doc", "image", "link", "audio"
+    KINDS = [(DOC, "документ"), (IMAGE, "картинка"), (LINK, "ссылка"), (AUDIO, "звук")]
 
     id = models.CharField(primary_key=True, max_length=36, default=new_id)
     lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE, related_name="materials")

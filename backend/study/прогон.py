@@ -137,6 +137,16 @@ r = У.post(f"/api/study/lessons/{урок['id']}/materials",
 да("pdf принимается", r.status_code == 201 and r.json()["пособие"]["вид"] == "doc", r.content[:200])
 пос = r.json()["пособие"]
 
+for имя, тип in (("Песня.mp3", "audio/mpeg"), ("Диктант.m4a", "audio/mp4"), ("Шум.wav", "audio/wav")):
+    r = У.post(f"/api/study/lessons/{урок['id']}/materials",
+               {"файл": SimpleUploadedFile(имя, b"ID3" + b"\x00" * 200, тип)})
+    да(f"звук {имя.rsplit('.', 1)[1]} принимается видом «audio»",
+       r.status_code == 201 and r.json()["пособие"]["вид"] == "audio", r.content[:200])
+звук = r.json()["пособие"]
+r = У.get(f"/api/study/file/{звук['id']}")
+да("звук отдаётся своим типом", r.status_code == 200 and r.headers.get("Content-Type", "").startswith("audio/"),
+   r.headers.get("Content-Type"))
+
 r = У.post(f"/api/study/lessons/{урок['id']}/materials",
            {"файл": SimpleUploadedFile("урок.mp4", b"\x00" * 100, "video/mp4")})
 да("видео отказывается СЛОВАМИ и предлагает ссылку",

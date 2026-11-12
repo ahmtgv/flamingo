@@ -6,6 +6,8 @@ import {
   RoomEvent,
   type Track,
   type TrackPublication,
+  AudioPresets,
+  Track as Дорожка,
 } from 'livekit-client'
 
 import { fetchTicket, RoomError } from '../lib/api'
@@ -28,6 +30,9 @@ export type Face = {
   isLocal: boolean
   video?: Track
   audio?: Track
+  /** Звук пособия, который включил учитель (`room/Звук.tsx`). */
+  пособие?: Track
+  пособиеИмя?: string
   /** Экран, которым человек делится. Отдельная дорожка, а не подмена камеры:
    *  лицо и экран нужны одновременно — «смотрите сюда» без лица не работает. */
   screen?: Track
@@ -70,6 +75,7 @@ function faceOf(p: any, isLocal: boolean): Face {
   const cam = pub(p, 'camera')
   const mic = pub(p, 'microphone')
   const scr = pub(p, 'screen_share')
+  const зв = pub(p, 'screen_share_audio')
   return {
     identity: p.identity,
     name: p.name || p.identity,
@@ -77,6 +83,8 @@ function faceOf(p: any, isLocal: boolean): Face {
     video: cam?.track ?? undefined,
     audio: isLocal ? undefined : (mic?.track ?? undefined),
     screen: scr?.track ?? undefined,
+    пособие: isLocal ? undefined : (зв?.track ?? undefined),
+    пособиеИмя: зв?.trackName || undefined,
     speaking: Boolean(p.isSpeaking),
     camOn: Boolean(cam && !cam.isMuted),
     micOn: Boolean(mic && !mic.isMuted),
@@ -423,6 +431,33 @@ export function useRoom(code: string, name: string, { приниматьВним
   /** Включить звук. Зовётся ТОЛЬКО из обработчика нажатия: браузер разрешает
    *  играть звук лишь в ответ на действие человека, и вызов «просто так» он
    *  отклонит молча. */
+  /* 🔴 ЗВУК ПОСОБИЯ ИДЁТ КЛАССУ ПО ЭФИРУ УРОКА (владелец, 12.11.2026: «учитель
+     включает у себя — ученики слышат»). Файл скачивает только учитель; классу
+     уходит его звук отдельной дорожкой — с музыкальным качеством и без
+     вырезания тишины, которое годится для голоса, но рвёт музыку. Так звук
+     слышит и гость без учётной записи, и все слышат одно и то же мгновение. */
+  const звукПособия = useRef<MediaStreamTrack | null>(null)
+  const пустьЗвучит = useCallback(async (дорожка: MediaStreamTrack, имя: string) => {
+    const room = roomRef.current
+    if (!room) return
+    if (звукПособия.current) await room.localParticipant.unpublishTrack(звукПособия.current, false).catch(() => undefined)
+    звукПособия.current = дорожка
+    await room.localParticipant.publishTrack(дорожка, {
+      source: Дорожка.Source.ScreenShareAudio,
+      name: имя.slice(0, 120),
+      audioPreset: AudioPresets.musicHighQualityStereo,
+      dtx: false,
+      red: false,
+      forceStereo: true,
+    })
+  }, [])
+  const замолчи = useCallback(async () => {
+    const room = roomRef.current
+    const дорожка = звукПособия.current
+    звукПособия.current = null
+    if (room && дорожка) await room.localParticipant.unpublishTrack(дорожка, false).catch(() => undefined)
+  }, [])
+
   const включитьЗвук = useCallback(async () => {
     const room = roomRef.current
     if (!room) return
@@ -465,6 +500,8 @@ export function useRoom(code: string, name: string, { приниматьВним
     toggleShare,
     звукГлушится,
     включитьЗвук,
+    пустьЗвучит,
+    замолчи,
     leave,
   }
 }

@@ -18,7 +18,7 @@ const BASE = String(import.meta.env.VITE_AUTH_URL ?? '').replace(/\/$/, '')
 
 export type Пособие = {
   id: string
-  вид: 'doc' | 'image' | 'link'
+  вид: 'doc' | 'image' | 'link' | 'audio'
   имя: string
   размер: number
   адрес: string

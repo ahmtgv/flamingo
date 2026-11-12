@@ -35,6 +35,7 @@ import { NewLesson } from './NewLesson'
 import { NewPass } from './NewPass'
 import { Room } from './Room'
 import { Sign } from './Sign'
+import { ЗвукКласса, ЗвукУчителя } from '../room/Звук'
 import { Молчание, Wait } from '../ui/Wait'
 import { Титул } from './Титул'
 import { Переписка } from './Переписка'
@@ -240,6 +241,7 @@ const ПОСОБИЯ: Пособие[] = [
   { id: 'м1', вид: 'doc', имя: 'Учебник · глава 4.pdf', размер: 2400000, адрес: СТРАНИЦА },
   { id: 'м2', вид: 'image', имя: 'Карточки слов.png', размер: 480000, адрес: СТРАНИЦА },
   { id: 'м3', вид: 'link', имя: 'Словарь Мультитран', размер: 0, адрес: 'https://www.multitran.com' },
+  { id: 'м4', вид: 'audio', имя: 'Диктант · урок 4.mp3', размер: 3_400_000, адрес: '/api/study/file/м4' },
 ]
 
 /** Журнал на тридцать занятий и двадцать учеников.
@@ -340,6 +342,22 @@ function ВКадре({ children }: { children: React.ReactNode }) {
       {children}
     </div>
   )
+}
+
+/** Три секунды тона 440 Гц в WAV — звук для стенда плеера. */
+let тон = ''
+function ТОН(): string {
+  if (тон) return тон
+  const частота = 22050, n = частота * 3
+  const б = new DataView(new ArrayBuffer(44 + n * 2))
+  const с = (o: number, т: string) => { for (let i = 0; i < т.length; i++) б.setUint8(o + i, т.charCodeAt(i)) }
+  с(0, 'RIFF'); б.setUint32(4, 36 + n * 2, true); с(8, 'WAVE'); с(12, 'fmt ')
+  б.setUint32(16, 16, true); б.setUint16(20, 1, true); б.setUint16(22, 1, true)
+  б.setUint32(24, частота, true); б.setUint32(28, частота * 2, true); б.setUint16(32, 2, true); б.setUint16(34, 16, true)
+  с(36, 'data'); б.setUint32(40, n * 2, true)
+  for (let i = 0; i < n; i++) б.setInt16(44 + i * 2, Math.round(Math.sin((2 * Math.PI * 440 * i) / частота) * 9000), true)
+  тон = URL.createObjectURL(new Blob([б], { type: 'audio/wav' }))
+  return тон
 }
 
 /* Части комнаты живут на тёмном холсте сцены, а не на светлом фоне страницы:
@@ -651,6 +669,18 @@ export const ЭКРАНЫ: { имя: string; путь: string; рисуй: () =>
   /* Урок с телефона (владелец, 10.11): лица кружком — лёжа, строкой — стоймя. */
   { имя: 'плитки-кружок', путь: '/r/', рисуй: () => <НаСцене><div style={{ position: 'absolute', inset: 0 }}><Tiles faces={ЛИЦА} вид="кружок" /></div></НаСцене> },
   { имя: 'плитки-полоса', путь: '/r/', рисуй: () => <НаСцене><div style={{ position: 'absolute', inset: 0 }}><Tiles faces={ЛИЦА} вид="полоса" /></div></НаСцене> },
+  /* Звук пособия (владелец, 12.11): плеер учителя и строка ученика. Звук —
+     сгенерированный тон: на стенде нет ни сервера, ни эфира, а дорожку,
+     уходящую классу, прибор проверяет сам (`window.__звукКлассу`). */
+  { имя: 'звук-учитель', путь: '/r/', рисуй: () => (
+    <НаСцене><div style={{ position: 'absolute', inset: 0 }}>
+      <ЗвукУчителя имя="Диктант · урок 4.mp3" адрес={ТОН()} onClose={ни} замолчи={async () => undefined}
+        пустьЗвучит={async (д) => { (window as unknown as { __звукКлассу?: MediaStreamTrack }).__звукКлассу = д }} />
+    </div></НаСцене>
+  ) },
+  { имя: 'звук-класс', путь: '/r/', рисуй: () => (
+    <НаСцене><div style={{ position: 'absolute', inset: 0 }}><ЗвукКласса имя="Диктант · урок 4.mp3" /></div></НаСцене>
+  ) },
   { имя: 'плитки', путь: '/r/', рисуй: () => <НаСцене><Tiles faces={ЛИЦА} /></НаСцене> },
   { имя: 'пособия', путь: '/r/', рисуй: () => (
     <ShowList shows={ПОКАЗЫ} пособия={ПОСОБИЯ} onПособие={ни} activeId="п1" kept onOpen={ни} onAdd={ни} onСсылка={async () => null} onDrop={ни} onClose={ни} />

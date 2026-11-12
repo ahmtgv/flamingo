@@ -28,6 +28,7 @@ import { Mark } from '../ui/Mark'
 import { Контакты } from './Контакты'
 import { Переписка, type УрокДляЗова } from './Переписка'
 import s from './Room.module.css'
+import { ЗвукКласса, ЗвукУчителя } from '../room/Звук'
 import { useТелефон } from '../room/телефон'
 
 /* Знаки пульта занятия. Рисованные, а не глифы шрифта: глиф на части машин
@@ -124,7 +125,7 @@ export function Room({ code, name, onLeave, onHome }: Props) {
   const [веду, setВеду] = useState(false)
   /* Комната — после роли: чужое внимание принимает только тот, кому сервер
      ответил «веду» (room/внимание.ts). */
-  const { phase, error, faces, me, peers, bus, внимание, положения, отправитьВнимание, отправитьПоложение, пишемКласс, отправитьПишем, видеоКласса, отправитьВидео, микрофон, mic, cam, toggleMic, toggleCam, sharing, shareSaid, toggleShare, звукГлушится, включитьЗвук, leave } = useRoom(code, name, { приниматьВнимание: веду })
+  const { phase, error, faces, me, peers, bus, внимание, положения, отправитьВнимание, отправитьПоложение, пишемКласс, отправитьПишем, видеоКласса, отправитьВидео, микрофон, mic, cam, toggleMic, toggleCam, sharing, shareSaid, toggleShare, звукГлушится, включитьЗвук, пустьЗвучит, замолчи, leave } = useRoom(code, name, { приниматьВнимание: веду })
   useEffect(() => {
     let живо = true
     пособияКомнаты(code)
@@ -173,7 +174,12 @@ export function Room({ code, name, onLeave, onHome }: Props) {
   const pageOf = useRef(new Map<string, number>())
 
   const [busy, setBusy] = useState(false)
+  /* Что сейчас готовится: страницы показа или звук. Слова разные. */
+  const [грузимЗвук, setГрузимЗвук] = useState(false)
   const [hubOpen, setHubOpen] = useState(false)
+  /* Звук пособия, который учитель включил классу (`room/Звук.tsx`). */
+  const [звук, setЗвук] = useState<{ имя: string; адрес: string } | null>(null)
+  useEffect(() => () => { if (звук) URL.revokeObjectURL(звук.адрес) }, [звук])
   const [live, setLive] = useState<{ sourceId: string; url: string; имя?: string } | null>(null)
   const [chatOpen, setChatOpen] = useState(false)
   /* Пульт вызван пальцем. Мышь и клавиатура обходятся без состояния —
@@ -571,8 +577,15 @@ export function Room({ code, name, onLeave, onHome }: Props) {
         return
       }
       setBusy(true)
+      setГрузимЗвук(п.вид === 'audio')
       try {
         const файл = await взятьПособие(п)
+        /* Звук не ложится на доску: он звучит. Плеер — у учителя, класс
+           слышит его по эфиру урока. Сцена при этом не меняется. */
+        if (п.вид === 'audio') {
+          setЗвук({ имя: п.имя, адрес: URL.createObjectURL(файл) })
+          return
+        }
         const deck = await deckFrom([файл])
         if (!deck) return
         const doc: ShowDoc = { id: newId(), title: п.имя, pages: deck.pages, ink: {}, at: Date.now() }
@@ -897,13 +910,28 @@ export function Room({ code, name, onLeave, onHome }: Props) {
         {/* ПРАВИЛА 6.3: пока страницы разбираются, сказано, что придёт первым. */}
         {busy ? (
           <div className={s.overNote}>
-            <Note light title="Разбираем файл" text="Страницы готовятся прямо в браузере — на сервер файл не уезжает. Первой уедет классу та страница, которую откроете." />
+            {грузимЗвук
+              ? <Note light title="Загружаем звук" text="Файл скачивается к вам в браузер. Нажмите «Играть» — и класс услышит." />
+              : <Note light title="Разбираем файл" text="Страницы готовятся прямо в браузере — на сервер файл не уезжает. Первой уедет классу та страница, которую откроете." />}
           </div>
         ) : null}
 
         {/* 🔴 Голоса — одним слоем на всю комнату, а не внутри плиток: свёрнутая
             полоса превью или смена сцены больше не глушат класс (room/Звуки.tsx). */}
         <Звуки faces={faces} />
+        {звук ? (
+          <ЗвукУчителя
+            key={звук.адрес}
+            имя={звук.имя}
+            адрес={звук.адрес}
+            пустьЗвучит={пустьЗвучит}
+            замолчи={замолчи}
+            onClose={() => setЗвук(null)}
+          />
+        ) : (() => {
+          const звучит = faces.find((f) => !f.isLocal && f.пособие)
+          return звучит ? <ЗвукКласса имя={звучит.пособиеИмя ?? 'Звук урока'} /> : null
+        })()}
 
         {/* Лица лежат ПОВЕРХ доски: холст под ними бесконечный и ничем не обрезан. */}
         {source !== 'faces' && phase === 'live' ? (

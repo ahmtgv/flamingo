@@ -33,6 +33,7 @@ const ВИД: Record<Пособие['вид'], string> = {
   doc: 'документ',
   image: 'картинка',
   link: 'ссылка — откроется в занятии',
+  audio: 'звук — включите, и класс услышит',
 }
 
 /** Ложится ли пособие на доску.
@@ -65,7 +66,7 @@ function подпись(п: Пособие): string {
 }
 
 function наДоску(п: Пособие): boolean {
-  if (п.вид === 'link' || п.вид === 'image') return true
+  if (п.вид === 'link' || п.вид === 'image' || п.вид === 'audio') return true
   return п.имя.toLowerCase().endsWith('.pdf')
 }
 

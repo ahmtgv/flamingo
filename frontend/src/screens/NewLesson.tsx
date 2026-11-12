@@ -264,7 +264,7 @@ export function NewLesson({ person, урокId, onDone, onCreated, onBack, onOut
             </div>
           ) : (
             <p className={s.foot}>
-              Материалы урока — учебник, презентацию, картинки — можно приложить сразу
+              Материалы урока — учебник, презентацию, картинки, звук — можно приложить сразу
               после создания: они лягут на полку «Материалы урока», когда класс войдёт.
             </p>
           )}
@@ -347,7 +347,7 @@ export function NewLesson({ person, урокId, onDone, onCreated, onBack, onOut
                     type="button" className={s.chip}
                     onClick={() => файлВход.current?.click()}
                   >
-                    + Документ или картинка
+                    + Документ, картинка или звук
                   </button>
                   <button
                     type="button" className={s.chip}

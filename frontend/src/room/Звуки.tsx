@@ -33,6 +33,8 @@ export function Звуки({ faces }: { faces: Face[] }) {
   return (
     <>
       {faces.map((f) => (f.audio && !f.isLocal ? <Голос key={`${f.identity}-${f.audio.sid ?? ''}`} track={f.audio} /> : null))}
+      {/* Звук пособия, который включил учитель (`room/Звук.tsx`). */}
+      {faces.map((f) => (f.пособие && !f.isLocal ? <Голос key={`${f.identity}-зв-${f.пособие.sid ?? ''}`} track={f.пособие} /> : null))}
     </>
   )
 }

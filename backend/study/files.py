@@ -43,6 +43,16 @@ ALLOWED = {
     ".jpeg": ("image", "image/jpeg"),
     ".webp": ("image", "image/webp"),
     ".gif":  ("image", "image/gif"),
+    # Звук (владелец, 12.11.2026): учитель включает у себя — класс слышит.
+    # Файл скачивает только учитель; классу звук идёт по эфиру урока.
+    ".mp3":  ("audio", "audio/mpeg"),
+    ".m4a":  ("audio", "audio/mp4"),
+    ".aac":  ("audio", "audio/aac"),
+    ".wav":  ("audio", "audio/wav"),
+    ".ogg":  ("audio", "audio/ogg"),
+    ".oga":  ("audio", "audio/ogg"),
+    ".opus": ("audio", "audio/ogg"),
+    ".flac": ("audio", "audio/flac"),
 }
 
 #: То, что люди приносят чаще всего и чему у нас есть готовый ответ словами.
@@ -68,8 +78,9 @@ def разобрать(имя: str) -> tuple[str, str, str]:
     if ext not in ALLOWED:
         raise Отказ(
             f"Файлы «{ext or 'без расширения'}» мы не принимаем. Берём документы "
-            "(pdf, doc, docx, ppt, pptx, xls, xlsx, odt, odp, txt, md, csv) и "
-            "картинки (png, jpg, webp, gif). Остальное — ссылкой."
+            "(pdf, doc, docx, ppt, pptx, xls, xlsx, odt, odp, txt, md, csv), "
+            "картинки (png, jpg, webp, gif) и звук (mp3, m4a, aac, wav, ogg, opus, "
+            "flac). Остальное — ссылкой."
         )
     kind, mime = ALLOWED[ext]
     return kind, mime, ext

@@ -1,0 +1,135 @@
+/* Звук пособия на уроке (`room/Звук.tsx`). Плеер лежит над сценой слева внизу,
+   там, где его не перекрывает ни пульт (по центру), ни лица (справа). */
+
+.плеер {
+  position: absolute;
+  left: var(--space-4);
+  bottom: var(--space-4);
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: min(22rem, calc(100% - var(--space-8)));
+  padding: var(--space-2) var(--space-3) var(--space-2) var(--space-2);
+  border-radius: var(--radius-card);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-md);
+  color: var(--color-text);
+}
+
+.слушаю {
+  width: auto;
+  max-width: calc(100% - var(--space-8));
+  padding-right: var(--space-4);
+}
+
+.кнопка,
+.закрыть {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: var(--control-height-sm);
+  height: var(--control-height-sm);
+  padding: 0;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.кнопка {
+  border: 0;
+  background: var(--color-go-solid);
+  color: var(--color-on-go);
+}
+
+.кнопка:hover {
+  background: var(--color-go-solid-hover);
+}
+
+.закрыть {
+  border: 0;
+  background: none;
+  color: var(--color-text-secondary);
+}
+
+.закрыть:hover {
+  color: var(--color-text);
+}
+
+.кнопка svg,
+.закрыть svg,
+.нота svg {
+  display: block;
+  width: var(--space-4);
+  height: var(--space-4);
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.кнопка svg path[d^='M5 3.2'] {
+  fill: currentColor;
+}
+
+.нота {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: var(--control-height-sm);
+  height: var(--control-height-sm);
+  border-radius: 50%;
+  background: var(--color-bg);
+  color: var(--color-go-solid);
+}
+
+.середина {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.имя {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--text-small);
+  font-weight: var(--weight-medium);
+}
+
+.подпись {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--text-caption);
+  color: var(--color-text-secondary);
+}
+
+.дорожка {
+  width: 100%;
+  margin: 0;
+  accent-color: var(--color-go-solid);
+}
+
+@media (pointer: coarse) {
+  .кнопка,
+  .закрыть {
+    width: var(--tap-min);
+    height: var(--tap-min);
+  }
+}
+
+/* Телефон стоймя: внизу сцены — открытый чат и пульт, плеер встаёт наверх,
+   поверх показанного. Условие повторяет `room/телефон.ts`. */
+@media (max-width: 700px) and (orientation: portrait) {
+  .плеер {
+    top: var(--space-3);
+    bottom: auto;
+    left: var(--space-3);
+    width: calc(100% - var(--space-6));
+  }
+}
