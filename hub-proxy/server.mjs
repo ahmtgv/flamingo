@@ -139,7 +139,7 @@ function шапки(тип, путь) {
 }
 
 const тоннели = new Map() // адрес → сколько тоннелей открыто
-const ТОННЕЛЕЙ_С_АДРЕСА = Number(process.env.HUB_PROXY_PER_IP ?? 12)
+const ТОННЕЛЕЙ_С_АДРЕСА = Number(process.env.HUB_PROXY_PER_IP ?? 60)
 
 const сервер = http.createServer(async (запрос, ответ) => {
   let путь
@@ -178,9 +178,11 @@ const сервер = http.createServer(async (запрос, ответ) => {
      вошедшего человека, получил бы выход в сеть за его счёт. */
   if (!ПРОБА && запрос.headers.origin !== СВОЙ_АДРЕС) return отказ(403, 'Forbidden')
   if (!(await вошёл(запрос.headers.cookie))) return отказ(401, 'Unauthorized')
-  /* С одного адреса — не больше нескольких тоннелей разом: одному человеку
-     хватает одного-двух, а десятки — это уже не урок. */
-  const откуда = String(запрос.headers['x-forwarded-for'] ?? сокет.remoteAddress ?? '').split(',')[0].trim()
+  /* С одного адреса — не больше нескольких десятков тоннелей разом. 🔴 НЕ
+     ДВЕНАДЦАТИ: класс в школе выходит в сеть одним адресом, и каждый ученик —
+     это свой тоннель; при двенадцати тринадцатый ученик получал бы отказ.
+     Адрес человека: за Cloudflare — из его заголовка, иначе — от Caddy. */
+  const откуда = String(запрос.headers['cf-connecting-ip'] ?? запрос.headers['x-forwarded-for'] ?? сокет.remoteAddress ?? '').split(',')[0].trim()
   const уже = тоннели.get(откуда) ?? 0
   if (уже >= ТОННЕЛЕЙ_С_АДРЕСА) return отказ(429, 'Too Many Requests')
   тоннели.set(откуда, уже + 1)
