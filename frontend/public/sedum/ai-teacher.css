@@ -26,3 +26,17 @@
 @media(max-width:600px){.module-avatar-row{grid-template-columns:repeat(2,minmax(0,1fr))}.ai-teacher{padding:24px 18px;--teacher-gap:24px}.ai-teacher__steps{grid-template-columns:1fr;gap:20px}.ai-teacher__steps li+li{border-left:0;padding-left:0;border-top:1px solid #dce4d8;padding-top:20px}.ai-teacher__lead{font-size:18px}}
 
 .ai-teacher__diagram img{aspect-ratio:3/2;object-fit:contain;background:#faf6ef}.ai-teacher__diagram figcaption a{text-decoration:underline;text-underline-offset:3px}
+
+/* Infographics must retain their intrinsic proportions, without portrait cropping. */
+#ai-teacher .ai-teacher__portrait > a{display:block;width:100%;overflow:visible}
+#ai-teacher .ai-teacher__portrait img{
+  display:block!important;
+  width:100%!important;
+  max-width:100%!important;
+  height:auto!important;
+  min-height:0!important;
+  max-height:none!important;
+  aspect-ratio:auto!important;
+  object-fit:contain!important;
+  object-position:center!important;
+}
