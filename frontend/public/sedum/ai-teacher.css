@@ -24,3 +24,5 @@
 .ai-teacher__status strong{color:#1d1d1f}
 @media(max-width:800px){.ai-teacher{padding:24px}.ai-teacher__body{grid-template-columns:1fr}.ai-teacher__portrait{max-width:600px}.ai-teacher h3{font-size:35px}}
 @media(max-width:600px){.module-avatar-row{grid-template-columns:repeat(2,minmax(0,1fr))}.ai-teacher{padding:24px 18px;--teacher-gap:24px}.ai-teacher__steps{grid-template-columns:1fr;gap:20px}.ai-teacher__steps li+li{border-left:0;padding-left:0;border-top:1px solid #dce4d8;padding-top:20px}.ai-teacher__lead{font-size:18px}}
+
+.ai-teacher__diagram img{aspect-ratio:3/2;object-fit:contain;background:#faf6ef}.ai-teacher__diagram figcaption a{text-decoration:underline;text-underline-offset:3px}
