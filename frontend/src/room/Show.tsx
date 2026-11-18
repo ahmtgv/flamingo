@@ -7,6 +7,7 @@ import { FIRST_TOOL, InkTools } from './InkTools'
 import type { Ink } from './shows'
 import { Note } from './Note'
 import { СТУПЕНИ, вписать, рамкаПометок, ступень } from './рамка'
+import { тр } from '../lib/язык.ts'
 
 /** Что учитель показывает классу: картинка или страница презентации.
  *
@@ -142,7 +143,7 @@ export function Show({
             : undefined}
           onLoad={() => setПришла((n) => n + 1)}
           src={page}
-          alt={`${title}, страница ${i + 1} из ${n}`}
+          alt={тр("{1}, страница {2} из {3}", { 1: title, 2: i + 1, 3: n })}
         />
       ) : (
         /* ПРАВИЛА 6.3: загрузка говорит, что придёт первым, и не мигает пустотой. */
@@ -151,11 +152,10 @@ export function Show({
            читал буквально « · страница 1 из 0» — и пульта в этом состоянии
            тоже нет (`n > 0` ниже). Осмотр комнаты 08.09, находка 13. */
         <Note
-          title={n > 0 ? 'Страница едет' : 'Показ ещё не приехал'}
+          title={n > 0 ? тр("Страница едет") : тр("Показ ещё не приехал")}
           text={n > 0
-            ? `${title}, страница ${i + 1} из ${n}. Каждая страница уезжает классу отдельно —
-              так канал остаётся свободным для голоса.`
-            : 'Ведущий открывает документ. Доска и чат работают.'}
+            ? тр("{1}, страница {2} из {3}. Каждая страница уезжает классу отдельно —\n              так канал остаётся свободным для голоса.", { 1: title, 2: i + 1, 3: n })
+            : тр("Ведущий открывает документ. Доска и чат работают.")}
         />
       )}
 
@@ -192,8 +192,8 @@ export function Show({
               type="button" className={s.btn}
               onClick={() => onZoom(ступень(масштаб, -1))}
               disabled={масштаб <= СТУПЕНИ[0]}
-              aria-label={`Уменьшить. Сейчас ${Math.round(масштаб * 100)}%`}
-              title="Уменьшить"
+              aria-label={тр("Уменьшить. Сейчас {1}%", { 1: Math.round(масштаб * 100) })}
+              title={тр("Уменьшить")}
             >
               −
             </button>
@@ -201,26 +201,26 @@ export function Show({
               type="button" className={s.btn}
               onClick={() => onZoom(ступень(масштаб, 1))}
               disabled={масштаб >= СТУПЕНИ[СТУПЕНИ.length - 1]}
-              aria-label={`Увеличить. Сейчас ${Math.round(масштаб * 100)}%`}
-              title="Увеличить"
+              aria-label={тр("Увеличить. Сейчас {1}%", { 1: Math.round(масштаб * 100) })}
+              title={тр("Увеличить")}
             >
               +
             </button>
           </span>
           <span className={s.title} title={title}>{title}</span>
           <span className={s.count}>
-            {i + 1} из {n}
+            {i + 1} {тр("из")} {n}
           </span>
           {lead ? (
             <>
               {/* Имя, а не стрелка: без него читалка называет кнопку «←».
                   Осмотр комнаты 08.09, находка 30. */}
               <button type="button" className={s.btn} onClick={onPrev} disabled={i === 0}
-                aria-label="Предыдущая страница" title="Предыдущая страница">
+                aria-label={тр("Предыдущая страница")} title={тр("Предыдущая страница")}>
                 ←
               </button>
               <button type="button" className={s.btn} onClick={onNext} disabled={i >= n - 1}
-                aria-label="Следующая страница" title="Следующая страница">
+                aria-label={тр("Следующая страница")} title={тр("Следующая страница")}>
                 →
               </button>
               <span className={s.sep} />
@@ -230,7 +230,7 @@ export function Show({
                 aria-pressed={Boolean(tool)}
                 onClick={() => setTool(tool ? null : FIRST_TOOL)}
               >
-                Маркер
+                {тр("Маркер")}
               </button>
               <button type="button" className={s.toolBtn} onClick={onShows}>
                 {ИМЕНА.show}
@@ -239,12 +239,12 @@ export function Show({
                   уход — не аларм (ПРАВИЛА 11а), и заливка на экране одна. */}
               <span className={s.pultEnd}>
                 <button type="button" className={s.stop} onClick={onClose}>
-                  Закончить показ
+                  {тр("Закончить показ")}
                 </button>
               </span>
             </>
           ) : (
-            <span className={s.follow}>листает преподаватель</span>
+            <span className={s.follow}>{тр("листает преподаватель")}</span>
           )}
         </div>
       ) : null}

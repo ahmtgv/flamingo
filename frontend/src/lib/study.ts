@@ -13,6 +13,7 @@
 
 import * as местные from './lessons'
 import { мойПояс } from './пояс'
+import { тр } from './язык.ts'
 
 const BASE = String(import.meta.env.VITE_AUTH_URL ?? '').replace(/\/$/, '')
 
@@ -68,7 +69,7 @@ export class Беда extends Error {}
 class НетСервера extends Error {}
 
 async function разговор<T>(путь: string, init?: RequestInit): Promise<T> {
-  if (!BASE) throw new НетСервера('сервер не задан')
+  if (!BASE) throw new НетСервера(тр("сервер не задан"))
   let res: Response
   try {
     /* 🔴 СРОК ОТВЕТА — как и у учётных записей (auth.ts). У `fetch` его нет,
@@ -82,20 +83,20 @@ async function разговор<T>(путь: string, init?: RequestInit): Promis
       ...init,
     })
   } catch {
-    throw new НетСервера('сервер не отвечает')
+    throw new НетСервера(тр("сервер не отвечает"))
   }
   if (res.status === 404 && !res.headers.get('content-type')?.includes('json')) {
-    throw new НетСервера('пути нет')
+    throw new НетСервера(тр("пути нет"))
   }
   let тело: { error?: string } & Record<string, unknown> = {}
   try {
     тело = await res.json()
   } catch {
-    throw new НетСервера('ответ не по-нашему')
+    throw new НетСервера(тр("ответ не по-нашему"))
   }
   if (!res.ok) {
     console.warn('занятия: сервер отказал, код', res.status)
-    throw new Беда(String(тело.error ?? 'Сервер занятий отказал. Попробуйте ещё раз через минуту.'))
+    throw new Беда(String(тело.error ?? тр("Сервер занятий отказал. Попробуйте ещё раз через минуту.")))
   }
   return тело as T
 }
@@ -164,7 +165,7 @@ export async function урокСейчас(now: Date = new Date()): Promise<Ур
   const п = (n: number) => String(n).padStart(2, '0')
   try {
     const r = await json<{ урок: Урок }>('lessons', 'POST', {
-      название: 'Занятие',
+      название: тр("Занятие"),
       дата: `${now.getFullYear()}-${п(now.getMonth() + 1)}-${п(now.getDate())}`,
       время: `${п(now.getHours())}:${п(now.getMinutes())}`,
       минут: 45,
@@ -213,8 +214,8 @@ export async function положитьФайл(урок: string, файл: File)
     method: 'POST', body: форма,
   }).catch((e) => {
     if (e instanceof Беда) throw e
-    throw new Беда('Пособия нужно куда-то класть, а сервер занятий не отвечает. '
-      + 'Урок при этом сохранится, материалы приложите позже.')
+    throw new Беда(тр("Пособия нужно куда-то класть, а сервер занятий не отвечает. ")
+      + тр("Урок при этом сохранится, материалы приложите позже."))
   })
   return r.пособие
 }
@@ -227,7 +228,7 @@ export async function положитьСсылку(урок: string, url: string
     method: 'POST', body: форма,
   }).catch((e) => {
     if (e instanceof Беда) throw e
-    throw new Беда('Сервер занятий не отвечает — ссылку пока некуда положить.')
+    throw new Беда(тр("Сервер занятий не отвечает — ссылку пока некуда положить."))
   })
   return r.пособие
 }
@@ -241,8 +242,8 @@ export async function снятьПособие(id: string): Promise<void> {
 export async function читатьЖурнал(месяц: string): Promise<Журнал> {
   const r = await разговор<Журнал>(`journal?month=${месяц}`).catch((e) => {
     if (e instanceof Беда) throw e
-    throw new Беда('Журнал живёт на сервере, а он не отвечает. Расписание в этом '
-      + 'браузере при этом работает.')
+    throw new Беда(тр("Журнал живёт на сервере, а он не отвечает. Расписание в этом ")
+      + тр("браузере при этом работает."))
   })
   дом = 'сервер'
   return r
@@ -310,7 +311,7 @@ function адресПособия(п: Пособие): string {
  *  на файл нужны одному человеку, а не всем. */
 export async function взятьПособие(п: Пособие): Promise<File> {
   const r = await fetch(адресПособия(п), { credentials: 'include' })
-  if (!r.ok) throw new Беда('Пособие не отдалось. Возможно, его сняли.')
+  if (!r.ok) throw new Беда(тр("Пособие не отдалось. Возможно, его сняли."))
   const b = await r.blob()
   return new File([b], п.имя, { type: b.type })
 }

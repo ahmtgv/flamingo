@@ -7,6 +7,7 @@
  */
 import type { ВидПроверки } from './протокол'
 import s from './Наука.module.css'
+import { тр } from '../lib/язык.ts'
 
 /** Знак проверки — в кольце станции на пути и в значке итога. */
 export function ЗнакПроверки({ вид, className }: { вид: ВидПроверки; className?: string }) {
@@ -105,7 +106,7 @@ export function КСамере() {
       <circle cx="150" cy="16" r="9" className={s.заливкаПеро} />
       <circle cx="150" cy="16" r="16" className={s.перо} strokeWidth={2.4} />
       <path className={s.пероЗел} strokeWidth={3.4} d="M150 140 C 148 112, 152 78, 150 44 M134 62 C 140 56, 145 50, 150 42 C 154 50, 159 56, 166 62" />
-      <text x="174" y="21" className={s.камераСлова}>камера здесь</text>
+      <text x="174" y="21" className={s.камераСлова}>{тр("камера здесь")}</text>
     </svg>
   )
 }

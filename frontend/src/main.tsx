@@ -18,10 +18,16 @@ import './styles/пергамент.css'
 /* Витринный набор: второй набор типографики, только титул (решение владельца 08.09). */
 import './styles/витрина.css'
 import './styles/base.css'
-import { App } from './App'
+import { подготовитьЯзык } from './lib/язык.ts'
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <App />
-  </StrictMode>,
-)
+/* Словарь языка — до первого кадра и до того, как загрузятся сами экраны:
+   часть текстов собирается при загрузке модуля (каталог источников,
+   сценарии теста), и переводиться им не из чего, пока нет словаря. */
+void подготовитьЯзык().finally(async () => {
+  const { App } = await import('./App')
+  createRoot(document.getElementById('root')!).render(
+    <StrictMode>
+      <App />
+    </StrictMode>,
+  )
+})

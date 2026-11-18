@@ -4,6 +4,7 @@ import { KINDS, RIGHTS, SOURCES, type Kind } from '../hub/sources'
 import { useПоверх } from '../lib/окно'
 import s from './HubPick.module.css'
 import { Button } from '../ui/Button'
+import { тр } from '../lib/язык.ts'
 
 /** Выбор источника для показа классу — прямо из комнаты, не уходя с урока.
  *
@@ -25,25 +26,25 @@ export function HubPick({ onGo, onClose }: {
   const поверх = useПоверх<HTMLElement>(onClose)
 
   return (
-    <aside ref={поверх} tabIndex={-1} role="dialog" aria-modal="true" className={s.panel} aria-label="Показать классу из Flamingo HUB">
+    <aside ref={поверх} tabIndex={-1} role="dialog" aria-modal="true" className={s.panel} aria-label={тр("Показать классу из Flamingo HUB")}>
       <header className={s.head}>
-        <span className={s.title}>Показать из Flamingo HUB</span>
-        <button type="button" className={s.close} onClick={onClose} aria-label="Закрыть">
+        <span className={s.title}>{тр("Показать из Flamingo HUB")}</span>
+        <button type="button" className={s.close} onClick={onClose} aria-label={тр("Закрыть")}>
           ✕
         </button>
       </header>
 
-      <div className={s.filters} role="tablist" aria-label="Вид источника">
+      <div className={s.filters} role="tablist" aria-label={тр("Вид источника")}>
         <button type="button" role="tab" aria-selected={kind === null}
                 className={`${s.filter} ${kind === null ? s.filterOn : ''}`}
                 onClick={() => setKind(null)}>
-          все
+          {тр("все")}
         </button>
         {KINDS.map((k) => (
           <button key={k} type="button" role="tab" aria-selected={kind === k}
                   className={`${s.filter} ${kind === k ? s.filterOn : ''}`}
                   onClick={() => setKind(k)}>
-            {k}
+            {тр(k)}
           </button>
         ))}
       </div>
@@ -84,15 +85,14 @@ export function HubPick({ onGo, onClose }: {
           className={s.input}
           value={url}
           onChange={(e) => setUrl(e.target.value)}
-          placeholder="Ссылка на страницу или поток"
-          aria-label="Ссылка на страницу или поток"
+          placeholder={тр("Ссылка на страницу или поток")}
+          aria-label={тр("Ссылка на страницу или поток")}
         />
         <span className={s.hint}>
-          Каталог знает, что за источник и что с ним можно. Какую именно страницу показать
-          сегодня — решаете вы.
+          {тр("Каталог знает, что за источник и что с ним можно. Какую именно страницу показать сегодня — решаете вы.")}
         </span>
         <Button kind="go" type="submit" disabled={!pick || !url.trim()}>
-          Показать классу
+          {тр("Показать классу")}
         </Button>
       </form>
     </aside>

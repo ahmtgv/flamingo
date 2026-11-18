@@ -18,6 +18,7 @@ import {
 } from './select'
 import { contentBox, fitView, K_MAX, K_MIN, toWorld, zoomAt, type View } from './view'
 import { useТелефон } from '../room/телефон'
+import { тр } from '../lib/язык.ts'
 
 /** Насколько близко ластик считает штрих задетым. В мировых единицах. */
 const ERASE_R = 12
@@ -867,7 +868,7 @@ export function Board({ bus, peers, onOpen }: Props) {
       e.clipboardData?.setData('application/x-flamingo', JSON.stringify(o))
       e.clipboardData?.setData(
         'text/plain',
-        o.kind === 'text' || o.kind === 'note' ? o.text : o.kind === 'video' ? o.url : 'картинка с доски Flamingo',
+        o.kind === 'text' || o.kind === 'note' ? o.text : o.kind === 'video' ? o.url : тр("картинка с доски Flamingo"),
       )
       if (cut) {
         mark()
@@ -989,12 +990,12 @@ export function Board({ bus, peers, onOpen }: Props) {
   const addDoc = async () => {
     const f = await pickFile('application/pdf')
     if (!f) return
-    setDocSay({ вид: 'идёт', голова: 'Разбираем файл', тело: `${f.name}. Страницы делаются прямо в браузере — файл никуда не уезжает.` })
+    setDocSay({ вид: 'идёт', голова: тр("Разбираем файл"), тело: тр("{1}. Страницы делаются прямо в браузере — файл никуда не уезжает.", { 1: f.name }) })
     try {
       const { pagesOfPdf } = await import('../room/deck')
       const pages = await pagesOfPdf(f)
       if (pages.length === 0) {
-        setDocSay({ вид: 'отказ', голова: 'В файле нет страниц', тело: 'Похоже, это не PDF или он повреждён. Доска цела, всё остальное на месте.' })
+        setDocSay({ вид: 'отказ', голова: тр("В файле нет страниц"), тело: тр("Похоже, это не PDF или он повреждён. Доска цела, всё остальное на месте.") })
         return
       }
       const p0 = centerWorld()
@@ -1009,14 +1010,14 @@ export function Board({ bus, peers, onOpen }: Props) {
       console.error('документ на доску:', e)
       setDocSay({
         вид: 'отказ',
-        голова: 'Файл не разобрался',
-        тело: 'Это не PDF, он повреждён или слишком тяжёлый для браузера. Доска цела — попробуйте другой файл или возьмите нужные страницы отдельно.',
+        голова: тр("Файл не разобрался"),
+        тело: тр("Это не PDF, он повреждён или слишком тяжёлый для браузера. Доска цела — попробуйте другой файл или возьмите нужные страницы отдельно."),
       })
     }
   }
 
   const addVideo = () => {
-    const url = window.prompt('Ссылка на видео — YouTube, Rutube или прямой файл:')
+    const url = window.prompt(тр("Ссылка на видео — YouTube, Rutube или прямой файл:"))
     if (!url) return
     const p = centerWorld()
     mark()
@@ -1053,8 +1054,8 @@ export function Board({ bus, peers, onOpen }: Props) {
           role="img"
           aria-label={
             empty
-              ? 'Доска занятия, пустая'
-              : `Доска занятия: штрихов ${st.sheet.strokes.length}, объектов ${st.sheet.objs.length}`
+              ? тр("Доска занятия, пустая")
+              : тр("Доска занятия: штрихов {1}, объектов {2}", { 1: st.sheet.strokes.length, 2: st.sheet.objs.length })
           }
         />
 
@@ -1094,14 +1095,12 @@ export function Board({ bus, peers, onOpen }: Props) {
 
         {empty ? (
           <div className={s.empty}>
-            <span className={s.emptyTitle}>Доска пустая — и это нормально</span>
+            <span className={s.emptyTitle}>{тр("Доска пустая — и это нормально")}</span>
             <span className={s.emptyText}>
-              Начните писать: остальные увидят штрих сразу. Можно вставить картинку или текст
-              прямо из буфера — Ctrl+V. Доска бесконечная: её двигают пробелом, масштаб —
-              Cmd/Ctrl и колесо.
+              {тр("Начните писать: остальные увидят штрих сразу. Можно вставить картинку или текст прямо из буфера — Ctrl+V. Доска бесконечная: её двигают пробелом, масштаб — Cmd/Ctrl и колесо.")}
             </span>
             <span className={s.emptyKeys}>
-              перо — P · ластик — E · стрелка — A · пунктир — D · текст — T · выбрать — V
+              {тр("перо — P · ластик — E · стрелка — A · пунктир — D · текст — T · выбрать — V")}
             </span>
           </div>
         ) : null}
@@ -1130,7 +1129,7 @@ export function Board({ bus, peers, onOpen }: Props) {
           <span className={s.docSayBody}>{docSay.тело}</span>
           {docSay.вид === 'отказ' ? (
             <button type="button" className={s.docSayGo} onClick={() => setDocSay(null)}>
-              Понятно
+              {тр("Понятно")}
             </button>
           ) : null}
         </div>
@@ -1153,15 +1152,15 @@ export function Board({ bus, peers, onOpen }: Props) {
           К 100 % возвращает щелчок по самой цифре или двойной щелчок по пустому месту. */}
       <div className={s.zoom} data-pult="масштаб">
         <button type="button" className={s.zoomBtn} onClick={() => zoomBy(1 / 1.25)}
-                disabled={view.k <= K_MIN} title="Отдалить">−</button>
-        <button type="button" className={s.zoomNum} onClick={home} title="Вернуть 100 %">
+                disabled={view.k <= K_MIN} title={тр("Отдалить")}>−</button>
+        <button type="button" className={s.zoomNum} onClick={home} title={тр("Вернуть 100 %")}>
           {Math.round(view.k * 100)} %
         </button>
         <button type="button" className={s.zoomBtn} onClick={() => zoomBy(1.25)}
-                disabled={view.k >= K_MAX} title="Приблизить">+</button>
+                disabled={view.k >= K_MAX} title={тр("Приблизить")}>+</button>
         <span className={s.zoomSep} />
         <button type="button" className={s.zoomFit} onClick={showAll}
-                disabled={empty} title="Уместить всё написанное">Показать всё</button>
+                disabled={empty} title={тр("Уместить всё написанное")}>{тр("Показать всё")}</button>
       </div>
     </div>
   )

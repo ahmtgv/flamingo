@@ -1,3 +1,4 @@
+import { тр } from '../lib/язык.ts'
 /** Flamingo HUB — чужие открытые источники мира.
  *
  *  Источники, у каждого сказано словами: что даёт, что можно,
@@ -57,115 +58,115 @@ export type Source = {
  *  Проверено глазами на боевых снимках 12.09.
  */
 export const БЕЗ_СНИМКА: Record<string, string> = {
-  inat: 'логотип на белом фоне',
-  owid: 'слайд с лозунгом, ни одной картинки',
-  europeana: 'фирменная рисованная карта Европы со значками',
-  pmc: 'постановочное фото с юридической оговоркой мелким шрифтом',
+  inat: тр("логотип на белом фоне"),
+  owid: тр("слайд с лозунгом, ни одной картинки"),
+  europeana: тр("фирменная рисованная карта Европы со значками"),
+  pmc: тр("постановочное фото с юридической оговоркой мелким шрифтом"),
 }
 
 export const RIGHTS: Record<Right, { tag: string; short: string; can: string; cant: string }> = {
   own: {
-    tag: 'можно брать себе',
-    short: 'можно брать в свою работу',
-    can: 'можно: показывать, скачивать, вставлять в свою работу и публиковать её',
-    cant: 'нельзя: выдавать за своё — источник называется рядом',
+    tag: тр("можно брать себе"),
+    short: тр("можно брать в свою работу"),
+    can: тр("можно: показывать, скачивать, вставлять в свою работу и публиковать её"),
+    cant: тр("нельзя: выдавать за своё — источник называется рядом"),
   },
   attr: {
-    tag: 'можно, назвав автора',
-    short: 'можно, если назвать автора',
-    can: 'можно: показывать и вставлять в работу, назвав автора и источник',
-    cant: 'нельзя: продавать и убирать имя автора',
+    tag: тр("можно, назвав автора"),
+    short: тр("можно, если назвать автора"),
+    can: тр("можно: показывать и вставлять в работу, назвав автора и источник"),
+    cant: тр("нельзя: продавать и убирать имя автора"),
   },
   show: {
-    tag: 'можно показывать',
-    short: 'можно показывать классу',
-    can: 'можно: открыть на уроке и на проекторе, читать вслух',
-    cant: 'нельзя: копировать в свою работу и раздавать файлом',
+    tag: тр("можно показывать"),
+    short: тр("можно показывать классу"),
+    can: тр("можно: открыть на уроке и на проекторе, читать вслух"),
+    cant: тр("нельзя: копировать в свою работу и раздавать файлом"),
   },
   live: {
-    tag: 'только на уроке',
-    short: 'только внутри урока, копий не остаётся',
-    can: 'можно: вывести живой поток классу на время урока',
-    cant: 'нельзя: записывать и пересматривать — записей у нас нет вообще',
+    tag: тр("только на уроке"),
+    short: тр("только внутри урока, копий не остаётся"),
+    can: тр("можно: вывести живой поток классу на время урока"),
+    cant: тр("нельзя: записывать и пересматривать — записей у нас нет вообще"),
   },
 }
 
 export const KINDS: Kind[] = ['снимки', 'данные', 'карты', 'книги', 'трансляции']
 
 export const SOURCES: Source[] = [
-  { id: 'apod', kind: 'снимки', name: 'NASA · снимок дня', gives: 'Один астрономический снимок в сутки с объяснением на английском', right: 'own', home: 'https://apod.nasa.gov/apod/astropix.html' },
-  { id: 'hubble', kind: 'снимки', name: 'Телескоп «Хаббл» · архив', gives: 'Тридцать лет снимков галактик, туманностей и планет', right: 'own', home: 'https://hubblesite.org/images' },
-  { id: 'jwst', kind: 'снимки', name: 'Телескоп «Джеймс Уэбб»', gives: 'Инфракрасные снимки: видно то, что не видно в обычный свет', right: 'own', home: 'https://webbtelescope.org/images' },
-  { id: 'sdo', kind: 'данные', name: 'NASA SDO · Солнце', gives: 'Снимок Солнца каждые 12 секунд, десять длин волн', right: 'own', home: 'https://sdo.gsfc.nasa.gov/data/' },
-  { id: 'earth', kind: 'карты', name: 'NASA Earthdata', gives: 'Спутниковые снимки Земли: пожары, лёд, облака, растительность', right: 'own', home: 'https://worldview.earthdata.nasa.gov/' },
-  { id: 'iss', kind: 'трансляции', name: 'МКС · внешняя камера', gives: 'Живой вид Земли со станции, звук отсутствует', right: 'live', home: 'https://www.nasa.gov/live/' },
-  { id: 'esa', kind: 'снимки', name: 'ESA · Европейское космическое агентство', gives: 'Снимки миссий и Земли из космоса, подписи на английском', right: 'attr', home: 'https://www.esa.int/ESA_Multimedia/Images' },
-  { id: 'eso', kind: 'снимки', name: 'ESO · южная обсерватория', gives: 'Снимки Чили: Млечный Путь, экзопланеты, телескопы', right: 'attr', home: 'https://www.eso.org/public/images/' },
-  { id: 'lapalma', kind: 'трансляции', name: 'Обсерватория Ла-Пальма', gives: 'Живая картинка с площадки телескопов, задержка около 8 секунд', right: 'live', home: 'https://www.gtc.iac.es/multimedia/webcams.php' },
-  { id: 'noaa', kind: 'данные', name: 'NOAA · погода и океан', gives: 'Температура, ветер, ураганы — числа и карты за 40 лет', right: 'own', home: 'https://www.noaa.gov/climate' },
-  { id: 'usgs', kind: 'данные', name: 'USGS · землетрясения', gives: 'Все землетрясения мира, обновление каждые пять минут', right: 'own', home: 'https://earthquake.usgs.gov/earthquakes/map/' },
-  { id: 'kvert', kind: 'трансляции', name: 'Камчатка · камеры на вулканах', gives: 'Живая картинка с вулканов, ночью почти ничего не видно', right: 'live', home: 'https://glob.emsd.ru/visual-observations/' },
-  { id: 'met', kind: 'снимки', name: 'Метрополитен-музей · открытая коллекция', gives: '490 тысяч изображений вещей и картин', right: 'own', home: 'https://www.metmuseum.org/art/collection' },
-  { id: 'rijks', kind: 'снимки', name: 'Рейксмузеум', gives: 'Голландская живопись в очень высоком разрешении', right: 'own', home: 'https://www.rijksmuseum.nl/en/collection' },
-  { id: 'smith', kind: 'снимки', name: 'Смитсоновский институт', gives: 'Три миллиона предметов: от насекомых до самолётов', right: 'own', home: 'https://www.si.edu/openaccess' },
+  { id: 'apod', kind: 'снимки', name: тр("NASA · снимок дня"), gives: тр("Один астрономический снимок в сутки с объяснением на английском"), right: 'own', home: 'https://apod.nasa.gov/apod/astropix.html' },
+  { id: 'hubble', kind: 'снимки', name: тр("Телескоп «Хаббл» · архив"), gives: тр("Тридцать лет снимков галактик, туманностей и планет"), right: 'own', home: 'https://hubblesite.org/images' },
+  { id: 'jwst', kind: 'снимки', name: тр("Телескоп «Джеймс Уэбб»"), gives: тр("Инфракрасные снимки: видно то, что не видно в обычный свет"), right: 'own', home: 'https://webbtelescope.org/images' },
+  { id: 'sdo', kind: 'данные', name: тр("NASA SDO · Солнце"), gives: тр("Снимок Солнца каждые 12 секунд, десять длин волн"), right: 'own', home: 'https://sdo.gsfc.nasa.gov/data/' },
+  { id: 'earth', kind: 'карты', name: 'NASA Earthdata', gives: тр("Спутниковые снимки Земли: пожары, лёд, облака, растительность"), right: 'own', home: 'https://worldview.earthdata.nasa.gov/' },
+  { id: 'iss', kind: 'трансляции', name: тр("МКС · внешняя камера"), gives: тр("Живой вид Земли со станции, звук отсутствует"), right: 'live', home: 'https://www.nasa.gov/live/' },
+  { id: 'esa', kind: 'снимки', name: тр("ESA · Европейское космическое агентство"), gives: тр("Снимки миссий и Земли из космоса, подписи на английском"), right: 'attr', home: 'https://www.esa.int/ESA_Multimedia/Images' },
+  { id: 'eso', kind: 'снимки', name: тр("ESO · южная обсерватория"), gives: тр("Снимки Чили: Млечный Путь, экзопланеты, телескопы"), right: 'attr', home: 'https://www.eso.org/public/images/' },
+  { id: 'lapalma', kind: 'трансляции', name: тр("Обсерватория Ла-Пальма"), gives: тр("Живая картинка с площадки телескопов, задержка около 8 секунд"), right: 'live', home: 'https://www.gtc.iac.es/multimedia/webcams.php' },
+  { id: 'noaa', kind: 'данные', name: тр("NOAA · погода и океан"), gives: тр("Температура, ветер, ураганы — числа и карты за 40 лет"), right: 'own', home: 'https://www.noaa.gov/climate' },
+  { id: 'usgs', kind: 'данные', name: тр("USGS · землетрясения"), gives: тр("Все землетрясения мира, обновление каждые пять минут"), right: 'own', home: 'https://earthquake.usgs.gov/earthquakes/map/' },
+  { id: 'kvert', kind: 'трансляции', name: тр("Камчатка · камеры на вулканах"), gives: тр("Живая картинка с вулканов, ночью почти ничего не видно"), right: 'live', home: 'https://glob.emsd.ru/visual-observations/' },
+  { id: 'met', kind: 'снимки', name: тр("Метрополитен-музей · открытая коллекция"), gives: тр("490 тысяч изображений вещей и картин"), right: 'own', home: 'https://www.metmuseum.org/art/collection' },
+  { id: 'rijks', kind: 'снимки', name: тр("Рейксмузеум"), gives: тр("Голландская живопись в очень высоком разрешении"), right: 'own', home: 'https://www.rijksmuseum.nl/en/collection' },
+  { id: 'smith', kind: 'снимки', name: тр("Смитсоновский институт"), gives: тр("Три миллиона предметов: от насекомых до самолётов"), right: 'own', home: 'https://www.si.edu/openaccess' },
   /* Музеи с открытыми собраниями — добавлены по слову владельца 10.11.2026.
      Право сверено по страницам самих музеев: CC0 или общественное достояние —
      «можно брать себе»; у Британского музея лицензия некоммерческая и с
      указанием автора — «можно, назвав автора». */
-  { id: 'artic', kind: 'снимки', name: 'Чикагский институт искусств', gives: 'Больше 50 тысяч картин и вещей: импрессионисты, Хокусай', right: 'own', home: 'https://www.artic.edu/collection' },
-  { id: 'cleveland', kind: 'снимки', name: 'Кливлендский музей искусств', gives: 'Искусство от Древнего Египта до модерна в высоком разрешении', right: 'own', home: 'https://www.clevelandart.org/art/collection/search' },
-  { id: 'nga', kind: 'снимки', name: 'Национальная галерея искусства · Вашингтон', gives: 'Европейская и американская живопись: Леонардо, Вермеер, Ван Гог', right: 'own', home: 'https://www.nga.gov/collection/collection-search.html' },
-  { id: 'getty', kind: 'снимки', name: 'Музей Гетти', gives: 'Рукописи, античность, старые мастера и ранняя фотография', right: 'own', home: 'https://www.getty.edu/about/whatwedo/opencontent.html' },
-  { id: 'parismusees', kind: 'снимки', name: 'Музеи Парижа', gives: 'Собрания городских музеев Парижа: от Средневековья до моды', right: 'own', home: 'https://www.parismuseescollections.paris.fr/' },
-  { id: 'britishmuseum', kind: 'снимки', name: 'Британский музей', gives: 'Почти два миллиона снимков вещей всех эпох и континентов', right: 'attr', home: 'https://www.britishmuseum.org/collection' },
+  { id: 'artic', kind: 'снимки', name: тр("Чикагский институт искусств"), gives: тр("Больше 50 тысяч картин и вещей: импрессионисты, Хокусай"), right: 'own', home: 'https://www.artic.edu/collection' },
+  { id: 'cleveland', kind: 'снимки', name: тр("Кливлендский музей искусств"), gives: тр("Искусство от Древнего Египта до модерна в высоком разрешении"), right: 'own', home: 'https://www.clevelandart.org/art/collection/search' },
+  { id: 'nga', kind: 'снимки', name: тр("Национальная галерея искусства · Вашингтон"), gives: тр("Европейская и американская живопись: Леонардо, Вермеер, Ван Гог"), right: 'own', home: 'https://www.nga.gov/collection/collection-search.html' },
+  { id: 'getty', kind: 'снимки', name: тр("Музей Гетти"), gives: тр("Рукописи, античность, старые мастера и ранняя фотография"), right: 'own', home: 'https://www.getty.edu/about/whatwedo/opencontent.html' },
+  { id: 'parismusees', kind: 'снимки', name: тр("Музеи Парижа"), gives: тр("Собрания городских музеев Парижа: от Средневековья до моды"), right: 'own', home: 'https://www.parismuseescollections.paris.fr/' },
+  { id: 'britishmuseum', kind: 'снимки', name: тр("Британский музей"), gives: тр("Почти два миллиона снимков вещей всех эпох и континентов"), right: 'attr', home: 'https://www.britishmuseum.org/collection' },
   /* 🔴 РУССКИЕ МУЗЕИ — «МОЖНО ПОКАЗЫВАТЬ», НЕ БОЛЬШЕ (владелец, 11.11: «давай их
      подключай»). Собрания открыты для просмотра, но воспроизводить музейные
      предметы у нас можно только с разрешения музея — поэтому на уроке смотрим
      на их сайте, а в свою работу не берём. Адреса проверены 11.11.2026. */
-  { id: 'hermitage', kind: 'снимки', name: 'Эрмитаж', gives: 'Собрание Эрмитажа: живопись, скульптура, древности — с поиском по коллекции', right: 'show', home: 'https://www.hermitagemuseum.org/explore/artworks' },
-  { id: 'tretyakov', kind: 'снимки', name: 'Третьяковская галерея', gives: 'Русское искусство от икон до авангарда: тысячи произведений с описаниями', right: 'show', home: 'https://my.tretyakov.ru/app/gallery' },
-  { id: 'pushkin', kind: 'снимки', name: 'Пушкинский музей', gives: 'Шедевры ГМИИ: Древний мир, старые мастера, импрессионисты', right: 'show', home: 'https://collection.pushkinmuseum.art/entity/OBJECT?uniq=true' },
-  { id: 'rusmuseum', kind: 'снимки', name: 'Русский музей', gives: 'Виртуальный Русский музей: коллекция онлайн и прогулки по залам', right: 'show', home: 'https://rusmuseumvrm.ru/collections/' },
+  { id: 'hermitage', kind: 'снимки', name: тр("Эрмитаж"), gives: тр("Собрание Эрмитажа: живопись, скульптура, древности — с поиском по коллекции"), right: 'show', home: 'https://www.hermitagemuseum.org/explore/artworks' },
+  { id: 'tretyakov', kind: 'снимки', name: тр("Третьяковская галерея"), gives: тр("Русское искусство от икон до авангарда: тысячи произведений с описаниями"), right: 'show', home: 'https://my.tretyakov.ru/app/gallery' },
+  { id: 'pushkin', kind: 'снимки', name: тр("Пушкинский музей"), gives: тр("Шедевры ГМИИ: Древний мир, старые мастера, импрессионисты"), right: 'show', home: 'https://collection.pushkinmuseum.art/entity/OBJECT?uniq=true' },
+  { id: 'rusmuseum', kind: 'снимки', name: тр("Русский музей"), gives: тр("Виртуальный Русский музей: коллекция онлайн и прогулки по залам"), right: 'show', home: 'https://rusmuseumvrm.ru/collections/' },
   /* Лувр: снимки вещей, на которые уже нет авторского права, разрешено брать для
      учёбы бесплатно — с подписью и постоянной ссылкой (условия сайта собраний). */
-  { id: 'louvre', kind: 'снимки', name: 'Лувр', gives: 'Почти полмиллиона вещей Лувра — от Месопотамии до XIX века', right: 'attr', home: 'https://collections.louvre.fr/en/' },
-  { id: 'vangogh', kind: 'снимки', name: 'Музей Ван Гога', gives: 'Картины, рисунки и письма Ван Гога в высоком разрешении', right: 'show', home: 'https://www.vangoghmuseum.nl/en/collection' },
-  { id: 'loc', kind: 'книги', name: 'Библиотека Конгресса', gives: 'Карты, фотографии, газеты, звукозаписи XIX–XX веков', right: 'own', home: 'https://www.loc.gov/collections/' },
-  { id: 'gallica', kind: 'книги', name: 'Gallica · Национальная библиотека Франции', gives: 'Рукописи, атласы и газеты, оцифрованные страницами', right: 'show', home: 'https://gallica.bnf.fr/' },
-  { id: 'bl', kind: 'книги', name: 'Британская библиотека', gives: 'Средневековые рукописи и первые печатные книги', right: 'show', home: 'https://www.bl.uk/collection/digitised-manuscripts-archives' },
-  { id: 'bodleian', kind: 'книги', name: 'Бодлианская библиотека', gives: 'Оксфордские собрания: наука и география до XIX века', right: 'show', home: 'https://digital.bodleian.ox.ac.uk/' },
-  { id: 'cambridge', kind: 'книги', name: 'Кембриджская цифровая библиотека', gives: 'Тетради Ньютона его почерком, страница за страницей', right: 'show', home: 'https://cudl.lib.cam.ac.uk/' },
-  { id: 'gutenberg', kind: 'книги', name: 'Проект «Гутенберг»', gives: '70 тысяч книг, у которых кончился срок охраны', right: 'own', home: 'https://www.gutenberg.org/' },
-  { id: 'archive', kind: 'книги', name: 'Интернет-архив', gives: 'Книги, звук, старое видео и копии исчезнувших сайтов', right: 'attr', home: 'https://archive.org/' },
-  { id: 'europeana', kind: 'книги', name: 'Europeana', gives: 'Собрания музеев и архивов Европы в одном поиске', right: 'attr', home: 'https://www.europeana.eu/' },
-  { id: 'wiki', kind: 'снимки', name: 'Викисклад', gives: 'Сто миллионов файлов, право у каждого своё и указано', right: 'attr', home: 'https://commons.wikimedia.org/' },
-  { id: 'rumsey', kind: 'карты', name: 'Карты Дэвида Румзи', gives: 'Сто тысяч старых карт, наложенных на современную Землю', right: 'attr', home: 'https://www.davidrumsey.com/' },
-  { id: 'osm', kind: 'карты', name: 'OpenStreetMap', gives: 'Карта мира, которую можно разобрать на слои и данные', right: 'attr', home: 'https://www.openstreetmap.org/' },
-  { id: 'gbif', kind: 'данные', name: 'GBIF · биоразнообразие', gives: 'Где и когда каких животных и растений видели — два миллиарда записей', right: 'own', home: 'https://www.gbif.org/' },
-  { id: 'inat', kind: 'снимки', name: 'iNaturalist', gives: 'Фотографии живого, снятые людьми и определённые сообществом', right: 'attr', home: 'https://www.inaturalist.org/' },
-  { id: 'eol', kind: 'книги', name: 'Энциклопедия жизни', gives: 'Статья на каждый известный вид, с фотографиями', right: 'attr', home: 'https://eol.org/' },
-  { id: 'pdb', kind: 'данные', name: 'Банк белковых структур', gives: 'Трёхмерные модели белков и вирусов, можно вертеть', right: 'own', home: 'https://www.rcsb.org/' },
-  { id: 'cern', kind: 'данные', name: 'CERN · открытые данные', gives: 'Настоящие данные столкновений частиц и инструменты к ним', right: 'own', home: 'https://opendata.cern.ch/' },
-  { id: 'arxiv', kind: 'книги', name: 'arXiv', gives: 'Свежие научные статьи по физике и математике до журнала', right: 'show', home: 'https://arxiv.org/' },
-  { id: 'pmc', kind: 'книги', name: 'PubMed Central', gives: 'Медицинские и биологические статьи в открытом доступе', right: 'show', home: 'https://www.ncbi.nlm.nih.gov/pmc/' },
+  { id: 'louvre', kind: 'снимки', name: тр("Лувр"), gives: тр("Почти полмиллиона вещей Лувра — от Месопотамии до XIX века"), right: 'attr', home: 'https://collections.louvre.fr/en/' },
+  { id: 'vangogh', kind: 'снимки', name: тр("Музей Ван Гога"), gives: тр("Картины, рисунки и письма Ван Гога в высоком разрешении"), right: 'show', home: 'https://www.vangoghmuseum.nl/en/collection' },
+  { id: 'loc', kind: 'книги', name: тр("Библиотека Конгресса"), gives: тр("Карты, фотографии, газеты, звукозаписи XIX–XX веков"), right: 'own', home: 'https://www.loc.gov/collections/' },
+  { id: 'gallica', kind: 'книги', name: тр("Gallica · Национальная библиотека Франции"), gives: тр("Рукописи, атласы и газеты, оцифрованные страницами"), right: 'show', home: 'https://gallica.bnf.fr/' },
+  { id: 'bl', kind: 'книги', name: тр("Британская библиотека"), gives: тр("Средневековые рукописи и первые печатные книги"), right: 'show', home: 'https://www.bl.uk/collection/digitised-manuscripts-archives' },
+  { id: 'bodleian', kind: 'книги', name: тр("Бодлианская библиотека"), gives: тр("Оксфордские собрания: наука и география до XIX века"), right: 'show', home: 'https://digital.bodleian.ox.ac.uk/' },
+  { id: 'cambridge', kind: 'книги', name: тр("Кембриджская цифровая библиотека"), gives: тр("Тетради Ньютона его почерком, страница за страницей"), right: 'show', home: 'https://cudl.lib.cam.ac.uk/' },
+  { id: 'gutenberg', kind: 'книги', name: тр("Проект «Гутенберг»"), gives: тр("70 тысяч книг, у которых кончился срок охраны"), right: 'own', home: 'https://www.gutenberg.org/' },
+  { id: 'archive', kind: 'книги', name: тр("Интернет-архив"), gives: тр("Книги, звук, старое видео и копии исчезнувших сайтов"), right: 'attr', home: 'https://archive.org/' },
+  { id: 'europeana', kind: 'книги', name: 'Europeana', gives: тр("Собрания музеев и архивов Европы в одном поиске"), right: 'attr', home: 'https://www.europeana.eu/' },
+  { id: 'wiki', kind: 'снимки', name: тр("Викисклад"), gives: тр("Сто миллионов файлов, право у каждого своё и указано"), right: 'attr', home: 'https://commons.wikimedia.org/' },
+  { id: 'rumsey', kind: 'карты', name: тр("Карты Дэвида Румзи"), gives: тр("Сто тысяч старых карт, наложенных на современную Землю"), right: 'attr', home: 'https://www.davidrumsey.com/' },
+  { id: 'osm', kind: 'карты', name: 'OpenStreetMap', gives: тр("Карта мира, которую можно разобрать на слои и данные"), right: 'attr', home: 'https://www.openstreetmap.org/' },
+  { id: 'gbif', kind: 'данные', name: тр("GBIF · биоразнообразие"), gives: тр("Где и когда каких животных и растений видели — два миллиарда записей"), right: 'own', home: 'https://www.gbif.org/' },
+  { id: 'inat', kind: 'снимки', name: 'iNaturalist', gives: тр("Фотографии живого, снятые людьми и определённые сообществом"), right: 'attr', home: 'https://www.inaturalist.org/' },
+  { id: 'eol', kind: 'книги', name: тр("Энциклопедия жизни"), gives: тр("Статья на каждый известный вид, с фотографиями"), right: 'attr', home: 'https://eol.org/' },
+  { id: 'pdb', kind: 'данные', name: тр("Банк белковых структур"), gives: тр("Трёхмерные модели белков и вирусов, можно вертеть"), right: 'own', home: 'https://www.rcsb.org/' },
+  { id: 'cern', kind: 'данные', name: тр("CERN · открытые данные"), gives: тр("Настоящие данные столкновений частиц и инструменты к ним"), right: 'own', home: 'https://opendata.cern.ch/' },
+  { id: 'arxiv', kind: 'книги', name: 'arXiv', gives: тр("Свежие научные статьи по физике и математике до журнала"), right: 'show', home: 'https://arxiv.org/' },
+  { id: 'pmc', kind: 'книги', name: 'PubMed Central', gives: тр("Медицинские и биологические статьи в открытом доступе"), right: 'show', home: 'https://www.ncbi.nlm.nih.gov/pmc/' },
   /* Добавлены по слову владельца 10.11.2026. У обоих лицензия некоммерческая:
      учителю на уроке — свободно, поэтому право здесь — «можно показывать».
      PhET с 30.03.2026 — CC BY-NC; OpenStax — CC BY-NC-SA. Письма о размещении
      на площадке владелец пишет сам. */
-  { id: 'phet', kind: 'данные', name: 'PhET · интерактивные опыты', gives: 'Опыты по физике, химии и математике, которые можно крутить руками', right: 'show', home: 'https://phet.colorado.edu/' },
-  { id: 'openstax', kind: 'книги', name: 'OpenStax · учебники', gives: 'Университетские и школьные учебники на английском, целиком', right: 'show', home: 'https://openstax.org/' },
-  { id: 'wb', kind: 'данные', name: 'Всемирный банк · открытые данные', gives: 'Население, доходы, электричество — по странам и годам', right: 'own', home: 'https://data.worldbank.org/' },
-  { id: 'owid', kind: 'данные', name: 'Our World in Data', gives: 'Готовые графики по климату, здоровью, энергии с источниками', right: 'attr', home: 'https://ourworldindata.org/' },
-  { id: 'eurostat', kind: 'данные', name: 'Eurostat', gives: 'Статистика Европы: цены, работа, транспорт, учёба', right: 'own', home: 'https://ec.europa.eu/eurostat/data/database' },
+  { id: 'phet', kind: 'данные', name: тр("PhET · интерактивные опыты"), gives: тр("Опыты по физике, химии и математике, которые можно крутить руками"), right: 'show', home: 'https://phet.colorado.edu/' },
+  { id: 'openstax', kind: 'книги', name: тр("OpenStax · учебники"), gives: тр("Университетские и школьные учебники на английском, целиком"), right: 'show', home: 'https://openstax.org/' },
+  { id: 'wb', kind: 'данные', name: тр("Всемирный банк · открытые данные"), gives: тр("Население, доходы, электричество — по странам и годам"), right: 'own', home: 'https://data.worldbank.org/' },
+  { id: 'owid', kind: 'данные', name: 'Our World in Data', gives: тр("Готовые графики по климату, здоровью, энергии с источниками"), right: 'attr', home: 'https://ourworldindata.org/' },
+  { id: 'eurostat', kind: 'данные', name: 'Eurostat', gives: тр("Статистика Европы: цены, работа, транспорт, учёба"), right: 'own', home: 'https://ec.europa.eu/eurostat/data/database' },
 ]
 
 /** Что будет, если источник замолчит — сказано у каждого вида отдельно. */
 export const IF_SILENT: Record<Kind, string> = {
-  снимки: 'Уже вставленные в урок снимки останутся: они лежат в самом уроке. Новых не будет, пока источник не ответит.',
-  данные: 'Числа, которые вы уже показали классу, никуда не денутся. Свежие перестанут обновляться.',
-  карты: 'Открытая карта доживёт до конца урока. Новые слои не подгрузятся.',
-  книги: 'Открытая страница останется на экране. Перелистнуть дальше не выйдет.',
-  трансляции: 'Трансляция оборвётся сразу: она идёт сейчас и нигде не хранится. Записей у нас нет вообще.',
+  снимки: тр("Уже вставленные в урок снимки останутся: они лежат в самом уроке. Новых не будет, пока источник не ответит."),
+  данные: тр("Числа, которые вы уже показали классу, никуда не денутся. Свежие перестанут обновляться."),
+  карты: тр("Открытая карта доживёт до конца урока. Новые слои не подгрузятся."),
+  книги: тр("Открытая страница останется на экране. Перелистнуть дальше не выйдет."),
+  трансляции: тр("Трансляция оборвётся сразу: она идёт сейчас и нигде не хранится. Записей у нас нет вообще."),
 }
 
 /** 🔴 РАЗДЕЛ — ПО ПРЕДМЕТУ, ВИД — ПО СУЩНОСТИ (владелец, 10.11.2026: «наведи
@@ -181,16 +182,16 @@ export const IF_SILENT: Record<Kind, string> = {
 export type Раздел = 'музеи' | 'космос' | 'земля' | 'природа' | 'точные' | 'история' | 'карты' | 'общество' | 'учебники' | 'камеры'
 
 export const РАЗДЕЛЫ: { id: Раздел; имя: string }[] = [
-  { id: 'музеи', имя: 'Музеи' },
-  { id: 'космос', имя: 'Космос' },
-  { id: 'земля', имя: 'Земля и погода' },
-  { id: 'природа', имя: 'Живая природа' },
-  { id: 'точные', имя: 'Физика, химия, математика' },
-  { id: 'история', имя: 'История и библиотеки' },
-  { id: 'карты', имя: 'Карты' },
-  { id: 'общество', имя: 'Общество и числа' },
-  { id: 'учебники', имя: 'Учебники и статьи' },
-  { id: 'камеры', имя: 'Живые камеры' },
+  { id: 'музеи', имя: тр("Музеи") },
+  { id: 'космос', имя: тр("Космос") },
+  { id: 'земля', имя: тр("Земля и погода") },
+  { id: 'природа', имя: тр("Живая природа") },
+  { id: 'точные', имя: тр("Физика, химия, математика") },
+  { id: 'история', имя: тр("История и библиотеки") },
+  { id: 'карты', имя: тр("Карты") },
+  { id: 'общество', имя: тр("Общество и числа") },
+  { id: 'учебники', имя: тр("Учебники и статьи") },
+  { id: 'камеры', имя: тр("Живые камеры") },
 ]
 
 const ПО_РАЗДЕЛАМ: Record<Раздел, string[]> = {

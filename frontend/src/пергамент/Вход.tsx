@@ -9,6 +9,7 @@ import { useState } from 'react'
 
 import type { Person } from '../lib/auth'
 import s from './Вход.module.css'
+import { тр } from '../lib/язык.ts'
 
 type Props = {
   /** Код из адреса. Он здесь ВСЕГДА: без кода этого экрана не бывает. */
@@ -69,7 +70,7 @@ export function Вход({ invited, initialName, onGo, onHub, onSign, onCabinet,
     <main className={s.экран} data-язык="пергамент">
       <header className={s.верх}>
         {person ? (
-          <button type="button" className={s.знакДверь} onClick={onCabinet} aria-label="На главную">{знак}</button>
+          <button type="button" className={s.знакДверь} onClick={onCabinet} aria-label={тр("На главную")}>{знак}</button>
         ) : (
           <span className={s.знак}>{знак}</span>
         )}
@@ -78,10 +79,10 @@ export function Вход({ invited, initialName, onGo, onHub, onSign, onCabinet,
         {person ? (
           <>
             <button type="button" className={s.верхняяСсылка} onClick={onCabinet}>
-              {person.role === 'teacher' ? 'Кабинет' : 'Мой учебный кабинет'}
+              {person.role === 'teacher' ? тр("Кабинет") : тр("Мой учебный кабинет")}
             </button>
             <span className={s.кто}>
-              {person.name} · <button type="button" className={s.выйти} onClick={onOut}>Выйти</button>
+              {person.name} · <button type="button" className={s.выйти} onClick={onOut}>{тр("Выйти")}</button>
             </span>
           </>
         ) : null}
@@ -90,19 +91,17 @@ export function Вход({ invited, initialName, onGo, onHub, onSign, onCabinet,
       <div className={s.тело} data-geo="кадр-первой-страницы">
         {/* Левая колонка — обещание. Вес несёт кегль и трекинг, а не полужирный. */}
         <section className={s.обещание}>
-          <h1 className={s.заголовок}>Вас ждут в комнате</h1>
-          <p className={s.подзаголовок}>Назовитесь — и входите. Ни регистрации, ни установки.</p>
+          <h1 className={s.заголовок}>{тр("Вас ждут в комнате")}</h1>
+          <p className={s.подзаголовок}>{тр("Назовитесь — и входите. Ни регистрации, ни установки.")}</p>
 
           <span className={s.черта} />
           {/* Слова владельца, 31.08. */}
           <span className={s.трое}>
-            лицо<span className={s.разделитель}>·</span>голос<span className={s.разделитель}>·</span>аналитика
+            {тр("лицо")}<span className={s.разделитель}>·</span>{тр("голос")}<span className={s.разделитель}>·</span>{тр("аналитика")}
           </span>
 
           <p className={s.сноска}>
-            В комнате включаются камера и микрофон — браузер спросит разрешение. Урок не
-            записывается, а доска живёт, пока в комнате есть хоть один человек: чтобы она
-            осталась после урока, её сохраняют в файл.
+            {тр("В комнате включаются камера и микрофон — браузер спросит разрешение. Урок не записывается, а доска живёт, пока в комнате есть хоть один человек: чтобы она осталась после урока, её сохраняют в файл.")}
           </p>
         </section>
 
@@ -112,11 +111,11 @@ export function Вход({ invited, initialName, onGo, onHub, onSign, onCabinet,
 
           <form className={s.форма} onSubmit={(e) => { e.preventDefault(); войти() }}>
             <div className={s.поле}>
-              <label className={s.метка} htmlFor="имя-входа">Как вас зовут</label>
+              <label className={s.метка} htmlFor="имя-входа">{тр("Как вас зовут")}</label>
               <input
                 id="имя-входа"
                 className={s.ввод}
-                placeholder="Например, Аня"
+                placeholder={тр("Например, Аня")}
                 value={имя}
                 maxLength={40}
                 autoFocus
@@ -129,25 +128,25 @@ export function Вход({ invited, initialName, onGo, onHub, onSign, onCabinet,
               <div className={s.подПолем} data-geo="строка-сообщения" role="status">
                 {сказано ? (
                   <span className={s.речь}>
-                    <span className={s.речьГлава}>Сначала имя</span>
+                    <span className={s.речьГлава}>{тр("Сначала имя")}</span>
                     <span className={s.речьТело}>
-                      Без имени класс не поймёт, кто открыл комнату. Одного слова достаточно.
+                      {тр("Без имени класс не поймёт, кто открыл комнату. Одного слова достаточно.")}
                     </span>
                   </span>
                 ) : (
-                  <span className={s.подсказка}>Под этим именем вас увидит класс. Без него войти нельзя.</span>
+                  <span className={s.подсказка}>{тр("Под этим именем вас увидит класс. Без него войти нельзя.")}</span>
                 )}
               </div>
             </div>
 
-            <button type="submit" className={s.главное} data-geo="главное-действие">Войти в комнату</button>
+            <button type="submit" className={s.главное} data-geo="главное-действие">{тр("Войти в комнату")}</button>
           </form>
 
           {person ? null : (
             <p className={s.вопрос}>
-              Уже есть учётная запись?{' '}
+              {тр("Уже есть учётная запись?")}{' '}
               <button type="button" className={s.ссылка} onClick={onSign}>
-                Войти или завести учётную запись
+                {тр("Войти или завести учётную запись")}
               </button>
             </p>
           )}

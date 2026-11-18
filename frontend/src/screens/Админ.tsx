@@ -5,6 +5,7 @@ import type { Действие, Группа, Запись, Сводка, Уро
 import type { Person } from '../lib/auth'
 import '../styles/хаб.css'
 import s from './Админ.module.css'
+import { ЛОКАЛЬ, тр } from '../lib/язык.ts'
 
 /** Админка владельца (решение 10.11.2026, по утверждённому эскизу).
  *
@@ -24,36 +25,36 @@ import s from './Админ.module.css'
 type Раздел = Группа | 'subjects' | 'lessons' | 'science' | 'log'
 
 const РАЗДЕЛЫ: { группа: string; пункты: { id: Раздел; имя: string; счёт?: keyof Сводка; скоро?: boolean }[] }[] = [
-  { группа: 'Люди', пункты: [
-    { id: 'wait', имя: 'Ждут проверки', счёт: 'ждут' },
-    { id: 'teachers', имя: 'Учителя', счёт: 'учителей' },
-    { id: 'students', имя: 'Ученики', счёт: 'учеников' },
-    { id: 'blocked', имя: 'Заблокированы', счёт: 'заблокировано' },
+  { группа: тр("Люди"), пункты: [
+    { id: 'wait', имя: тр("Ждут проверки"), счёт: 'ждут' },
+    { id: 'teachers', имя: тр("Учителя"), счёт: 'учителей' },
+    { id: 'students', имя: тр("Ученики"), счёт: 'учеников' },
+    { id: 'blocked', имя: тр("Заблокированы"), счёт: 'заблокировано' },
   ] },
-  { группа: 'Учёба', пункты: [
-    { id: 'subjects', имя: 'Предметы', скоро: true },
-    { id: 'lessons', имя: 'Уроки', счёт: 'уроков' },
+  { группа: тр("Учёба"), пункты: [
+    { id: 'subjects', имя: тр("Предметы"), скоро: true },
+    { id: 'lessons', имя: тр("Уроки"), счёт: 'уроков' },
   ] },
-  { группа: 'SEduM', пункты: [{ id: 'science', имя: 'Кабинет исследования', счёт: 'добровольцев' }] },
-  { группа: 'Служебное', пункты: [{ id: 'log', имя: 'Журнал действий' }] },
+  { группа: 'SEduM', пункты: [{ id: 'science', имя: тр("Кабинет исследования"), счёт: 'добровольцев' }] },
+  { группа: тр("Служебное"), пункты: [{ id: 'log', имя: тр("Журнал действий") }] },
 ]
 
-const ДОКУМЕНТЫ = ['Паспорт', 'Резюме', 'Диплом об образовании', 'Степени и регалии', 'Рекомендации', 'Примеры уроков']
+const ДОКУМЕНТЫ = [тр("Паспорт"), тр("Резюме"), тр("Диплом об образовании"), тр("Степени и регалии"), тр("Рекомендации"), тр("Примеры уроков")]
 
 const ЧТО: Record<string, string> = {
-  verify: 'подтвердил преподавателя', reject: 'отклонил преподавателя', block: 'заблокировал',
-  unblock: 'разблокировал', email_ok: 'подтвердил почту', email_no: 'снял подтверждение почты',
-  note: 'записал заметку', reset_link: 'выдал ссылку на смену пароля',
+  verify: тр("подтвердил преподавателя"), reject: тр("отклонил преподавателя"), block: 'заблокировал',
+  unblock: 'разблокировал', email_ok: тр("подтвердил почту"), email_no: тр("снял подтверждение почты"),
+  note: тр("записал заметку"), reset_link: тр("выдал ссылку на смену пароля"),
 }
 
 const людской = (р: Раздел): р is Группа => р === 'wait' || р === 'teachers' || р === 'students' || р === 'blocked'
 const день = (исо: string) => исо.slice(0, 10).split('-').reverse().join('.')
-const миг = (исо: string) => `${день(исо).slice(0, 5)} ${new Date(исо).toLocaleTimeString('ru', { hour: '2-digit', minute: '2-digit' })}`
+const миг = (исо: string) => `${день(исо).slice(0, 5)} ${new Date(исо).toLocaleTimeString(ЛОКАЛЬ, { hour: '2-digit', minute: '2-digit' })}`
 
 function статус(ч: Человек): { слово: string; вид: string } {
   if (ч.заблокирован) return { слово: 'заблокирован', вид: s.stBad }
   if (ч.роль === 'teacher') {
-    if (ч.проверка === 'new') return { слово: 'ждёт проверки', вид: s.stWait }
+    if (ч.проверка === 'new') return { слово: тр("ждёт проверки"), вид: s.stWait }
     if (ч.проверка === 'no') return { слово: 'отклонён', вид: s.stPlain }
     return { слово: 'подтверждён', вид: s.stOk }
   }
@@ -83,7 +84,7 @@ export function Админ({ person, onHome, onOut, onНаука }: {
   const [заметка, setЗаметка] = useState('')
   const [скопировано, setСкопировано] = useState(false)
 
-  const ошибка = (e: unknown) => setБеда(e instanceof Error ? e.message : 'Что-то пошло не так.')
+  const ошибка = (e: unknown) => setБеда(e instanceof Error ? e.message : тр("Что-то пошло не так."))
 
   const обновитьЧисла = useCallback(() => { сервер.сводка().then(setЧисла).catch(ошибка) }, [])
   useEffect(() => { обновитьЧисла() }, [обновитьЧисла])
@@ -141,19 +142,19 @@ export function Админ({ person, onHome, onOut, onНаука }: {
   return (
     <main className={s.screen}>
       <header className={s.bar}>
-        <button type="button" className={s.logo} onClick={onHome} aria-label="Flamingo — на главную">
+        <button type="button" className={s.logo} onClick={onHome} aria-label={тр("Flamingo — на главную")}>
           <img src="/flamingo-bird.svg" alt="" width={22} height={20} />
           <span>flamingo<b>.</b></span>
         </button>
-        <span className={s.barOn}>Админка</span>
+        <span className={s.barOn}>{тр("Админка")}</span>
         <span className={s.barSpace} />
         <span className={s.barWho} title={person.name}>{person.name}</span>
-        <button type="button" className={s.barOut} onClick={onOut}>Выйти</button>
+        <button type="button" className={s.barOut} onClick={onOut}>{тр("Выйти")}</button>
       </header>
 
       <div className={s.cols}>
         {/* ── слева: разделы ─────────────────────────────────────────────── */}
-        <nav className={s.left} aria-label="Разделы админки">
+        <nav className={s.left} aria-label={тр("Разделы админки")}>
           {РАЗДЕЛЫ.map((г) => (
             <section key={г.группа} aria-label={г.группа}>
               <h2 className={s.group}>{г.группа}</h2>
@@ -168,7 +169,7 @@ export function Админ({ person, onHome, onOut, onНаука }: {
                     onClick={() => выбратьРаздел(п.id)}
                   >
                     <span>{п.имя}</span>
-                    {п.скоро ? <span className={s.secN}>скоро</span>
+                    {п.скоро ? <span className={s.secN}>{тр("скоро")}</span>
                       : n === null ? null
                         : <span className={п.id === 'wait' && n > 0 ? s.secAmber : s.secN}>{n}</span>}
                   </button>
@@ -183,27 +184,27 @@ export function Админ({ person, onHome, onOut, onНаука }: {
           <h1 className={s.midTitle}>{имяРаздела}{людской(раздел) && список ? ` · ${список.length}` : ''}</h1>
           {людской(раздел) ? (
             <input className={s.find} type="search" value={ищу} onChange={(e) => setИщу(e.target.value)}
-                   placeholder="Найти по имени или почте…" aria-label="Найти по имени или почте" />
+                   placeholder={тр("Найти по имени или почте…")} aria-label={тр("Найти по имени или почте")} />
           ) : null}
           <div className={s.list}>
             {людской(раздел) ? (
-              список === null ? <p className={s.hint}>Читаю…</p>
-                : список.length === 0 ? <p className={s.hint}>{ищу ? 'Никого не нашлось.' : 'Здесь пока никого.'}</p>
+              список === null ? <p className={s.hint}>{тр("Читаю…")}</p>
+                : список.length === 0 ? <p className={s.hint}>{ищу ? тр("Никого не нашлось.") : тр("Здесь пока никого.")}</p>
                   : список.map((л) => {
                     const ст = статус(л)
                     return (
                       <button key={л.id} type="button" className={`${s.item} ${л.id === кто ? s.itemOn : ''} ${ст.вид}`}
                               aria-current={л.id === кто ? 'true' : undefined} onClick={() => setКто(л.id)}>
                         <span className={s.itemName} title={л.имя}>{л.имя}</span>
-                        <span className={s.itemSub} title={л.почта}>{л.роль === 'teacher' ? 'учитель' : 'ученик'} · {л.почта}</span>
+                        <span className={s.itemSub} title={л.почта}>{л.роль === 'teacher' ? тр("учитель") : тр("ученик")} · {л.почта}</span>
                         <span className={s.itemWhen}>{день(л.снами).slice(0, 5)}</span>
                       </button>
                     )
                   })
             ) : null}
             {раздел === 'lessons' ? (
-              уроки === null ? <p className={s.hint}>Читаю…</p>
-                : уроки.length === 0 ? <p className={s.hint}>Уроков пока нет.</p>
+              уроки === null ? <p className={s.hint}>{тр("Читаю…")}</p>
+                : уроки.length === 0 ? <p className={s.hint}>{тр("Уроков пока нет.")}</p>
                   : уроки.map((у) => (
                     <button key={у.id} type="button" className={`${s.item} ${s.stPlain} ${урок?.id === у.id ? s.itemOn : ''}`} onClick={() => setУрок(у)}>
                       <span className={s.itemName} title={у.название}>{у.название}</span>
@@ -213,8 +214,8 @@ export function Админ({ person, onHome, onOut, onНаука }: {
                   ))
             ) : null}
             {раздел === 'log' ? (
-              записи === null ? <p className={s.hint}>Читаю…</p>
-                : записи.length === 0 ? <p className={s.hint}>Действий пока не было.</p>
+              записи === null ? <p className={s.hint}>{тр("Читаю…")}</p>
+                : записи.length === 0 ? <p className={s.hint}>{тр("Действий пока не было.")}</p>
                   : записи.map((з, i) => (
                     <button key={`${з.когда}-${i}`} type="button" className={`${s.item} ${s.stPlain} ${запись === з ? s.itemOn : ''}`} onClick={() => setЗапись(з)}>
                       <span className={s.itemName} title={з.над}>{ЧТО[з.что] ?? з.что}</span>
@@ -223,94 +224,94 @@ export function Админ({ person, onHome, onOut, onНаука }: {
                     </button>
                   ))
             ) : null}
-            {раздел === 'science' ? <p className={s.hint}>Записи добровольцев исследования внимания — в отдельном кабинете. Он открывается справа.</p> : null}
-            {раздел === 'subjects' ? <p className={s.hint}>Предметов как отдельного списка пока нет — раздел появится позже.</p> : null}
+            {раздел === 'science' ? <p className={s.hint}>{тр("Записи добровольцев исследования внимания — в отдельном кабинете. Он открывается справа.")}</p> : null}
+            {раздел === 'subjects' ? <p className={s.hint}>{тр("Предметов как отдельного списка пока нет — раздел появится позже.")}</p> : null}
           </div>
         </section>
 
         {/* ── справа: выбранное в середине ───────────────────────────────── */}
-        <section className={s.right} aria-label="Подробно">
+        <section className={s.right} aria-label={тр("Подробно")}>
           <p className={s.trouble} role="status">{беда}</p>
           {людской(раздел) && ч ? (
             <>
               <h2 className={s.name}>{ч.имя}</h2>
               <p className={s.row}>
-                {ч.роль === 'teacher' ? 'Учитель' : 'Ученик'} · <span className={`${s.st} ${статус(ч).вид}`}>{статус(ч).слово}</span>
-                {ч.роль === 'teacher' && ч.проверка !== 'ok' && !ч.заблокирован ? ' — уроки создавать не может' : ''}
+                {ч.роль === 'teacher' ? тр("Учитель") : тр("Ученик")} · <span className={`${s.st} ${статус(ч).вид}`}>{статус(ч).слово}</span>
+                {ч.роль === 'teacher' && ч.проверка !== 'ok' && !ч.заблокирован ? тр(" — уроки создавать не может") : ''}
                 {ч.заблокирован ? ` — ${ч.причина}` : ''}
               </p>
               <p className={s.row}>
-                <span className={s.label}>Почта</span>{ч.почта} — {ч.почтаПодтверждена ? 'подтверждена' : 'не подтверждена'}
-                <span className={s.label}>Телефон</span>{ч.телефон || 'не указан'}
-                <span className={s.label}>С нами с</span>{день(ч.снами)}
-                {ч.уроков !== null && ч.роль === 'teacher' ? <><span className={s.label}>Уроков</span>{ч.уроков}</> : null}
+                <span className={s.label}>{тр("Почта")}</span>{ч.почта} — {ч.почтаПодтверждена ? 'подтверждена' : тр("не подтверждена")}
+                <span className={s.label}>{тр("Телефон")}</span>{ч.телефон || тр("не указан")}
+                <span className={s.label}>{тр("С нами с")}</span>{день(ч.снами)}
+                {ч.уроков !== null && ч.роль === 'teacher' ? <><span className={s.label}>{тр("Уроков")}</span>{ч.уроков}</> : null}
               </p>
               {ч.роль === 'teacher' ? (
                 <div className={s.docs}>
-                  {ДОКУМЕНТЫ.map((д) => <p key={д} className={s.doc}><span>{д}</span><span className={s.docNote}>не приложен</span></p>)}
+                  {ДОКУМЕНТЫ.map((д) => <p key={д} className={s.doc}><span>{д}</span><span className={s.docNote}>{тр("не приложен")}</span></p>)}
                 </div>
               ) : null}
               <div className={s.btns}>
-                {ч.роль === 'teacher' && ч.проверка !== 'ok' ? <button type="button" className={`${s.btn} ${s.btnGo}`} disabled={занят} onClick={() => делаю('verify')}>Подтвердить учителя</button> : null}
-                {ч.роль === 'teacher' && ч.проверка !== 'no' ? <button type="button" className={s.btn} disabled={занят} onClick={() => делаю('reject')}>Отклонить</button> : null}
-                <button type="button" className={s.btn} disabled={занят} onClick={() => делаю('reset_link')}>Ссылка на смену пароля</button>
+                {ч.роль === 'teacher' && ч.проверка !== 'ok' ? <button type="button" className={`${s.btn} ${s.btnGo}`} disabled={занят} onClick={() => делаю('verify')}>{тр("Подтвердить учителя")}</button> : null}
+                {ч.роль === 'teacher' && ч.проверка !== 'no' ? <button type="button" className={s.btn} disabled={занят} onClick={() => делаю('reject')}>{тр("Отклонить")}</button> : null}
+                <button type="button" className={s.btn} disabled={занят} onClick={() => делаю('reset_link')}>{тр("Ссылка на смену пароля")}</button>
                 <button type="button" className={s.btn} disabled={занят} onClick={() => делаю(ч.почтаПодтверждена ? 'email_no' : 'email_ok')}>
-                  {ч.почтаПодтверждена ? 'Снять подтверждение почты' : 'Подтвердить почту'}
+                  {ч.почтаПодтверждена ? тр("Снять подтверждение почты") : тр("Подтвердить почту")}
                 </button>
                 {ч.заблокирован
-                  ? <button type="button" className={s.btn} disabled={занят} onClick={() => делаю('unblock')}>Разблокировать</button>
-                  : <button type="button" className={`${s.btn} ${s.btnBad}`} disabled={занят} onClick={() => setПричина(причина === null ? '' : null)}>Заблокировать</button>}
+                  ? <button type="button" className={s.btn} disabled={занят} onClick={() => делаю('unblock')}>{тр("Разблокировать")}</button>
+                  : <button type="button" className={`${s.btn} ${s.btnBad}`} disabled={занят} onClick={() => setПричина(причина === null ? '' : null)}>{тр("Заблокировать")}</button>}
               </div>
               {причина !== null ? (
                 <form className={s.ask} onSubmit={(e) => { e.preventDefault(); делаю('block', причина) }}>
                   <input className={s.askInput} value={причина} onChange={(e) => setПричина(e.target.value)} autoFocus
-                         placeholder="За что блокируем — причина останется в журнале" aria-label="Причина блокировки" />
-                  <button type="submit" className={`${s.btn} ${s.btnBad}`} disabled={занят || !причина.trim()}>Заблокировать</button>
+                         placeholder={тр("За что блокируем — причина останется в журнале")} aria-label={тр("Причина блокировки")} />
+                  <button type="submit" className={`${s.btn} ${s.btnBad}`} disabled={занят || !причина.trim()}>{тр("Заблокировать")}</button>
                 </form>
               ) : null}
               {ссылка ? (
                 <div className={s.ask}>
-                  <p className={s.askNote}>Одноразовая ссылка, живёт час. Передайте её человеку сами — пароль при этом не видит никто.</p>
-                  <input className={s.askInput} readOnly value={ссылка} onFocus={(e) => e.target.select()} aria-label="Ссылка на смену пароля" />
-                  <button type="button" className={s.btn} onClick={скопировать}>{скопировано ? 'Скопировано' : 'Скопировать'}</button>
+                  <p className={s.askNote}>{тр("Одноразовая ссылка, живёт час. Передайте её человеку сами — пароль при этом не видит никто.")}</p>
+                  <input className={s.askInput} readOnly value={ссылка} onFocus={(e) => e.target.select()} aria-label={тр("Ссылка на смену пароля")} />
+                  <button type="button" className={s.btn} onClick={скопировать}>{скопировано ? тр("Скопировано") : тр("Скопировать")}</button>
                 </div>
               ) : null}
               <form className={s.ask} onSubmit={(e) => { e.preventDefault(); делаю('note', заметка) }}>
                 <textarea className={s.askArea} value={заметка} onChange={(e) => setЗаметка(e.target.value)} rows={3}
-                          placeholder="Заметка о проверке — видна только тебе…" aria-label="Заметка о проверке" />
-                <button type="submit" className={s.btn} disabled={занят || заметка === (ч.заметка ?? '')}>Сохранить заметку</button>
+                          placeholder={тр("Заметка о проверке — видна только тебе…")} aria-label={тр("Заметка о проверке")} />
+                <button type="submit" className={s.btn} disabled={занят || заметка === (ч.заметка ?? '')}>{тр("Сохранить заметку")}</button>
               </form>
               <div className={s.log}>
-                {карта.журнал.length === 0 ? <p>Действий над этим человеком пока не было.</p>
+                {карта.журнал.length === 0 ? <p>{тр("Действий над этим человеком пока не было.")}</p>
                   : карта.журнал.map((з, i) => <p key={`${з.когда}-${i}`}><span className={s.label}>{миг(з.когда)}</span>{ЧТО[з.что] ?? з.что}{з.подробно ? ` — ${з.подробно}` : ''}</p>)}
               </div>
             </>
           ) : null}
-          {людской(раздел) && !ч ? <p className={s.hint}>Выберите человека в середине — здесь будут его данные и действия.</p> : null}
+          {людской(раздел) && !ч ? <p className={s.hint}>{тр("Выберите человека в середине — здесь будут его данные и действия.")}</p> : null}
           {раздел === 'lessons' ? (урок ? (
             <>
               <h2 className={s.name}>{урок.название}</h2>
-              <p className={s.row}><span className={s.label}>Когда</span>{день(урок.дата)} · {урок.время} · {урок.минут} мин</p>
-              <p className={s.row}><span className={s.label}>Учитель</span>{урок.учитель} · {урок.почта}</p>
+              <p className={s.row}><span className={s.label}>{тр("Когда")}</span>{день(урок.дата)} · {урок.время} · {урок.минут} {тр("мин")}</p>
+              <p className={s.row}><span className={s.label}>{тр("Учитель")}</span>{урок.учитель} · {урок.почта}</p>
             </>
-          ) : <p className={s.hint}>Выберите урок в середине.</p>) : null}
+          ) : <p className={s.hint}>{тр("Выберите урок в середине.")}</p>) : null}
           {раздел === 'log' ? (запись ? (
             <>
               <h2 className={s.name}>{ЧТО[запись.что] ?? запись.что}</h2>
-              <p className={s.row}><span className={s.label}>Когда</span>{миг(запись.когда)}</p>
-              <p className={s.row}><span className={s.label}>Кто</span>{запись.кто}</p>
-              <p className={s.row}><span className={s.label}>Над кем</span>{запись.над}</p>
-              {запись.подробно ? <p className={s.row}><span className={s.label}>Подробно</span>{запись.подробно}</p> : null}
+              <p className={s.row}><span className={s.label}>{тр("Когда")}</span>{миг(запись.когда)}</p>
+              <p className={s.row}><span className={s.label}>{тр("Кто")}</span>{запись.кто}</p>
+              <p className={s.row}><span className={s.label}>{тр("Над кем")}</span>{запись.над}</p>
+              {запись.подробно ? <p className={s.row}><span className={s.label}>{тр("Подробно")}</span>{запись.подробно}</p> : null}
             </>
-          ) : <p className={s.hint}>Выберите запись в середине.</p>) : null}
+          ) : <p className={s.hint}>{тр("Выберите запись в середине.")}</p>) : null}
           {раздел === 'science' ? (
             <>
-              <h2 className={s.name}>Кабинет исследования</h2>
-              <p className={s.row}>Записи добровольцев исследования внимания SEduM: видео, кадры, события и разбор каждой проверки.</p>
-              <div className={s.btns}><button type="button" className={`${s.btn} ${s.btnGo}`} onClick={onНаука}>Открыть кабинет исследования</button></div>
+              <h2 className={s.name}>{тр("Кабинет исследования")}</h2>
+              <p className={s.row}>{тр("Записи добровольцев исследования внимания SEduM: видео, кадры, события и разбор каждой проверки.")}</p>
+              <div className={s.btns}><button type="button" className={`${s.btn} ${s.btnGo}`} onClick={onНаука}>{тр("Открыть кабинет исследования")}</button></div>
             </>
           ) : null}
-          {раздел === 'subjects' ? <p className={s.hint}>Скоро.</p> : null}
+          {раздел === 'subjects' ? <p className={s.hint}>{тр("Скоро.")}</p> : null}
         </section>
       </div>
     </main>

@@ -98,6 +98,10 @@ class Run(models.Model):
     #: Версия протокола: один и тот же вид может меняться, и старые записи
     #: должны читаться по своим правилам.
     protocol = models.CharField(max_length=24)
+    #: На каком языке шла проверка: «ru» или «en». Тексты, фразы и вопросы
+    #: на разных языках — разные, поэтому записи разбирают раздельно.
+    #: Всё, что записано до английской версии, — русское.
+    language = models.CharField(max_length=2, default="ru")
     started = models.DateTimeField(auto_now_add=True)
     finished = models.DateTimeField(null=True, blank=True)
     #: «Как вы сейчас»: сонливость, свет, очки, где сидите.

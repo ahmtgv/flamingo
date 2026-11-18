@@ -8,6 +8,7 @@ import { useПоверх } from '../lib/окно'
 import { Беда, положитьСсылку, читатьУроки, type Урок } from '../lib/study'
 import '../styles/хаб.css'
 import s from './Hub.module.css'
+import { тр } from '../lib/язык.ts'
 
 /** Flamingo HUB — «Источники мира».
  *
@@ -79,9 +80,9 @@ function ЧерезПосредник({ x, раз }: { x: Source; раз: number
         allow="autoplay; fullscreen; picture-in-picture; clipboard-write"
       />
       <p className={s.blank}>
-        Открыто через Flamingo{хозяин(адрес) ? ` · ${хозяин(адрес)}` : ''}.{' '}
-        <button type="button" className={s.ownAgain} onClick={() => сказать('назад')}>← Назад</button>{' '}
-        <a href={адрес} target="_blank" rel="noopener noreferrer">Открыть в новой вкладке ↗</a>
+        {тр("Открыто через Flamingo")}{хозяин(адрес) ? ` · ${хозяин(адрес)}` : ''}.{' '}
+        <button type="button" className={s.ownAgain} onClick={() => сказать('назад')}>{тр("← Назад")}</button>{' '}
+        <a href={адрес} target="_blank" rel="noopener noreferrer">{тр("Открыть в новой вкладке ↗")}</a>
       </p>
     </>
   )
@@ -109,8 +110,8 @@ function Рамка({ x, раз, свой = false }: {
         sandbox="allow-scripts allow-same-origin allow-presentation allow-forms allow-popups"
       />
       <p className={s.blank}>
-        Пусто? Значит сайт запрещает показ внутри рамки — это его право.{' '}
-        <a href={x.home} target="_blank" rel="noopener noreferrer">Открыть в новой вкладке ↗</a>
+        {тр("Пусто? Значит сайт запрещает показ внутри рамки — это его право.")}{' '}
+        <a href={x.home} target="_blank" rel="noopener noreferrer">{тр("Открыть в новой вкладке ↗")}</a>
       </p>
     </>
   )
@@ -134,7 +135,7 @@ function НаУрок({ источник, закрыть }: { источник: 
         const сегодня = new Date().toLocaleDateString('sv')
         setУроки(все.filter((у) => у.дата >= сегодня).sort((a, b) => (a.дата + a.время).localeCompare(b.дата + b.время)))
       })
-      .catch((e) => { if (жив) { setУроки([]); setБеда(e instanceof Беда ? e.message : 'Не удалось прочитать уроки.') } })
+      .catch((e) => { if (жив) { setУроки([]); setБеда(e instanceof Беда ? e.message : тр("Не удалось прочитать уроки.")) } })
     return () => { жив = false }
   }, [])
 
@@ -145,7 +146,7 @@ function НаУрок({ источник, закрыть }: { источник: 
     setКладу(у.id)
     положитьСсылку(у.id, источник.home, источник.name)
       .then(() => setГотово((было) => [...было, у.id]))
-      .catch((e) => setБеда(e instanceof Беда ? e.message : 'Не получилось приложить источник к уроку.'))
+      .catch((e) => setБеда(e instanceof Беда ? e.message : тр("Не получилось приложить источник к уроку.")))
       .finally(() => setКладу(null))
   }
 
@@ -157,20 +158,20 @@ function НаУрок({ источник, закрыть }: { источник: 
         className={s.modal}
         role="dialog"
         aria-modal="true"
-        aria-label={`Показать на уроке: ${источник.name}`}
+        aria-label={тр("Показать на уроке: {1}", { 1: источник.name })}
         onPointerDown={(e) => e.stopPropagation()}
       >
         <div className={s.modalBar}>
-          <span className={s.windowName} title={источник.name}>Показать на уроке</span>
-          <button type="button" className={s.windowClose} onClick={закрыть} aria-label="Закрыть">×</button>
+          <span className={s.windowName} title={источник.name}>{тр("Показать на уроке")}</span>
+          <button type="button" className={s.windowClose} onClick={закрыть} aria-label={тр("Закрыть")}>×</button>
         </div>
         <div className={s.modalBody}>
           <p className={s.box}>{источник.name}</p>
-          <p className={s.row}><span className={s.label}>К какому уроку приложить</span></p>
-          {уроки === null ? <p className={s.silent}>Читаю ваши уроки…</p> : null}
+          <p className={s.row}><span className={s.label}>{тр("К какому уроку приложить")}</span></p>
+          {уроки === null ? <p className={s.silent}>{тр("Читаю ваши уроки…")}</p> : null}
           {уроки && уроки.length === 0 && !беда ? (
             <p className={s.silent}>
-              Будущих уроков пока нет. <a className={s.link} href="/создать-урок">Создать урок</a> — и вернитесь сюда.
+              {тр("Будущих уроков пока нет.")} <a className={s.link} href="/создать-урок">{тр("Создать урок")}</a> {тр("— и вернитесь сюда.")}
             </p>
           ) : null}
           {уроки?.map((у) => (
@@ -182,7 +183,7 @@ function НаУрок({ источник, закрыть }: { источник: 
               onClick={() => приложить(у)}
             >
               <span>{у.название}</span>
-              <span className={s.actNote}>{уже(у) ? 'приложен' : кладу === у.id ? 'прикладываю…' : `${у.дата.split('-').reverse().join('.')} · ${у.время.slice(0, 5)}`}</span>
+              <span className={s.actNote}>{уже(у) ? 'приложен' : кладу === у.id ? тр("прикладываю…") : `${у.дата.split('-').reverse().join('.')} · ${у.время.slice(0, 5)}`}</span>
             </button>
           ))}
           <p className={s.refuse} role="status">{беда}</p>
@@ -273,7 +274,7 @@ export function Hub({ учитель = false, вошёл = false }: {
      на месте — иначе неоткуда узнать, что избранное вообще есть. */
   const группы = useMemo(() => {
     const свои = любимые.map(поId).filter((x): x is Source => Boolean(x))
-    return [{ id: 'избранное', имя: 'Избранное', источники: свои }, ...разделы]
+    return [{ id: 'избранное', имя: тр("Избранное"), источники: свои }, ...разделы]
   }, [любимые, поId, разделы])
 
   const раскрыть = (id: string) => setРаскрыты((было) => (было.includes(id) ? было.filter((р) => р !== id) : [...было, id]))
@@ -311,7 +312,7 @@ export function Hub({ учитель = false, вошёл = false }: {
   const вОкно = (x: Source): boolean => {
     if (окна.some((о) => о.id === x.id)) { наверх(x.id); return true }
     if (окна.length >= ОКОН_НЕ_БОЛЬШЕ) {
-      setОтказ('Открыто шесть окон — закройте одно, чтобы открыть ещё.')
+      setОтказ(тр("Открыто шесть окон — закройте одно, чтобы открыть ещё."))
       return false
     }
     setОтказ('')
@@ -388,16 +389,16 @@ export function Hub({ учитель = false, вошёл = false }: {
     <main className={`${s.screen} ${тащат ? s.тащат : ''}`} ref={экран} data-шаг={шаг}>
       <div className={s.cols}>
         {/* ── слева: названия источников по разделам ─────────────────────── */}
-        <nav className={s.left} aria-label="Источники по разделам">
-          <h1 className={s.hidden}>Источники мира</h1>
+        <nav className={s.left} aria-label={тр("Источники по разделам")}>
+          <h1 className={s.hidden}>{тр("Источники мира")}</h1>
           <input
             ref={поиск}
             className={s.find}
             type="search"
             value={ищу}
             onChange={(e) => setИщу(e.target.value)}
-            placeholder="Найти источник…"
-            aria-label="Найти источник по названию"
+            placeholder={тр("Найти источник…")}
+            aria-label={тр("Найти источник по названию")}
           />
           <div className={s.names}>
             {группы.map((г) => {
@@ -421,68 +422,68 @@ export function Hub({ учитель = false, вошёл = false }: {
                     >
                       <span className={s.itemName} title={x.name}>{x.name}</span>
                       <span className={s.itemGives} title={x.gives}>{x.gives}</span>
-                      {вОкне(x.id) ? <span className={s.itemMark}>в окне</span>
-                        : воВкладке(x.id) ? <span className={s.itemMark}>открыт</span> : null}
+                      {вОкне(x.id) ? <span className={s.itemMark}>{тр("в окне")}</span>
+                        : воВкладке(x.id) ? <span className={s.itemMark}>{тр("открыт")}</span> : null}
                     </button>
                   )) : null}
                   {открыта && моя && свои.length === 0
-                    ? <p className={s.none}>Пока пусто. У любого источника нажмите «Добавить в избранное».</p> : null}
+                    ? <p className={s.none}>{тр("Пока пусто. У любого источника нажмите «Добавить в избранное».")}</p> : null}
                 </section>
               )
             })}
-            {все.some(видно) ? null : <p className={s.none}>Ничего не нашлось. Попробуйте другое слово.</p>}
+            {все.some(видно) ? null : <p className={s.none}>{тр("Ничего не нашлось. Попробуйте другое слово.")}</p>}
           </div>
         </nav>
 
         {/* ── в середине: сам источник ───────────────────────────────────── */}
-        <section className={s.mid} aria-label={`Источник: ${выбран.name}`}>
-          <button type="button" className={s.step} onClick={() => setШаг('список')}>← К списку</button>
+        <section className={s.mid} aria-label={тр("Источник: {1}", { 1: выбран.name })}>
+          <button type="button" className={s.step} onClick={() => setШаг('список')}>{тр("← К списку")}</button>
           <h2 className={s.name}>{выбран.name}</h2>
           <p className={s.box}>{выбран.gives}</p>
-          <p className={s.row}><span className={s.label}>Раздел</span>{раздел} · {выбран.kind}</p>
+          <p className={s.row}><span className={s.label}>{тр("Раздел")}</span>{раздел} · {тр(выбран.kind)}</p>
           {/* 🔴 НЕ «ОТВЕЧАЕТ · ПРОВЕРЕНО СЕГОДНЯ», А «ЧТО С ЭТИМ МОЖНО». Про
               доступность мы не знаем ничего (см. `hub/sources.ts`), а про право
               знаем всё: оно записано словами (ПРАВИЛА 8.10). */}
           <p className={s.row}>
-            <span className={s.label}>Право</span>
+            <span className={s.label}>{тр("Право")}</span>
             <span className={`${s.can} ${s[`can_${выбран.right}`]}`}>{право.tag}</span>
           </p>
           <p className={s.say}>{право.can}. {право.cant.charAt(0).toUpperCase() + право.cant.slice(1)}.</p>
 
           <button type="button" className={`${s.act} ${s.onlyNarrow}`} onClick={() => setШаг('браузер')}>
-            <span>Открыть</span>
+            <span>{тр("Открыть")}</span>
             <span className={s.actNote}>{хозяин(выбран.home)}</span>
           </button>
           <button type="button" className={`${s.act} ${s.onlyWide} ${вОкне(выбран.id) ? s.actOn : ''}`} onClick={() => { if (вОкно(выбран)) закрытьВкладку(выбран.id) }}>
-            <span>{вОкне(выбран.id) ? 'Открыт в отдельном окне' : 'Открыть в отдельном окне'}</span>
-            <span className={s.actNote}>открыто {окна.length} из {ОКОН_НЕ_БОЛЬШЕ}</span>
+            <span>{вОкне(выбран.id) ? тр("Открыт в отдельном окне") : тр("Открыть в отдельном окне")}</span>
+            <span className={s.actNote}>{тр("открыто")} {окна.length} {тр("из")} {ОКОН_НЕ_БОЛЬШЕ}</span>
           </button>
           {учитель ? (
             <button type="button" className={s.act} onClick={() => setНаУрок(выбран)}>
-              <span>Показать на уроке</span>
-              <span className={s.actNote}>приложить к уроку</span>
+              <span>{тр("Показать на уроке")}</span>
+              <span className={s.actNote}>{тр("приложить к уроку")}</span>
             </button>
           ) : null}
           <button type="button" className={`${s.act} ${любим ? s.actOn : ''}`} aria-pressed={любим} onClick={() => setЛюбимые((было) => вкл(было, выбран.id))}>
-            <span>{любим ? 'В избранном' : 'Добавить в избранное'}</span>
-            <span className={s.actNote}>{любим ? 'убрать' : вошёл ? 'на всех устройствах' : 'в этом браузере'}</span>
+            <span>{любим ? тр("В избранном") : тр("Добавить в избранное")}</span>
+            <span className={s.actNote}>{любим ? 'убрать' : вошёл ? тр("на всех устройствах") : тр("в этом браузере")}</span>
           </button>
           <p className={s.refuse} role="status">{отказ}</p>
 
-          <p className={s.silent}><span className={s.silentLabel}>Если источник замолчит:</span> {IF_SILENT[выбран.kind]}</p>
+          <p className={s.silent}><span className={s.silentLabel}>{тр("Если источник замолчит:")}</span> {IF_SILENT[выбран.kind]}</p>
 
           {/* Поиска по теме пока нет — и поле этого не скрывает: оно не нажимается
               и подписано «скоро» (владелец, 10.11). */}
           <div className={s.ask}>
-            <span className={s.askField}>Поиск по теме с AI Flamingo</span>
-            <div className={s.askRow}><span className={s.chip}>скоро</span></div>
+            <span className={s.askField}>{тр("Поиск по теме с AI Flamingo")}</span>
+            <div className={s.askRow}><span className={s.chip}>{тр("скоро")}</span></div>
           </div>
         </section>
 
         {/* ── справа: браузер источника ──────────────────────────────────── */}
-        <section className={s.right} aria-label="Браузер источника">
-          <div className={s.tabs} role="tablist" aria-label="Открытые источники">
-            <button type="button" className={s.step} onClick={() => setШаг('источник')}>← К источнику</button>
+        <section className={s.right} aria-label={тр("Браузер источника")}>
+          <div className={s.tabs} role="tablist" aria-label={тр("Открытые источники")}>
+            <button type="button" className={s.step} onClick={() => setШаг('источник')}>{тр("← К источнику")}</button>
             {вкладки.map((id) => {
               const x = поId(id)
               if (!x) return null
@@ -491,40 +492,40 @@ export function Hub({ учитель = false, вошёл = false }: {
                   <button type="button" role="tab" aria-selected={id === наВиду} className={s.tabName} onClick={() => setНаВиду(id)}>
                     {хозяин(x.home)}
                   </button>
-                  <button type="button" className={s.tabClose} onClick={() => закрытьВкладку(id)} aria-label={`Закрыть вкладку: ${x.name}`}>×</button>
+                  <button type="button" className={s.tabClose} onClick={() => закрытьВкладку(id)} aria-label={тр("Закрыть вкладку: {1}", { 1: x.name })}>×</button>
                 </span>
               )
             })}
-            {вкладки.length === 0 ? <span className={`${s.tab} ${s.tabOn} ${s.tabNone}`}>Нет открытых вкладок</span> : null}
-            <button type="button" className={s.tabPlus} onClick={() => { setШаг('список'); поиск.current?.focus() }} aria-label="Открыть ещё источник">+</button>
+            {вкладки.length === 0 ? <span className={`${s.tab} ${s.tabOn} ${s.tabNone}`}>{тр("Нет открытых вкладок")}</span> : null}
+            <button type="button" className={s.tabPlus} onClick={() => { setШаг('список'); поиск.current?.focus() }} aria-label={тр("Открыть ещё источник")}>+</button>
           </div>
           {текущая ? (
             <>
               <div className={s.addr}>
                 {/* Меню вместо стрелок «назад / вперёд» (владелец, 10.11). */}
-                <button type="button" className={`${s.addrAct} ${s.reload}`} aria-label="Обновить" title="Обновить" onClick={() => setСвежесть((б) => ({ ...б, [текущая.id]: (б[текущая.id] ?? 0) + 1 }))}>
+                <button type="button" className={`${s.addrAct} ${s.reload}`} aria-label={тр("Обновить")} title={тр("Обновить")} onClick={() => setСвежесть((б) => ({ ...б, [текущая.id]: (б[текущая.id] ?? 0) + 1 }))}>
                   <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M13.2 8a5.2 5.2 0 1 1-1.6-3.75M13.4 2.6v2.9h-2.9" /></svg>
                 </button>
                 <button type="button" className={s.addrAct} aria-pressed={любимые.includes(текущая.id)} onClick={() => setЛюбимые((было) => вкл(было, текущая.id))}>
-                  {любимые.includes(текущая.id) ? 'В избранном' : 'В избранное'}
+                  {любимые.includes(текущая.id) ? тр("В избранном") : тр("В избранное")}
                 </button>
                 {учитель ? (
-                  <button type="button" className={s.addrAct} onClick={() => setНаУрок(текущая)}>На урок</button>
+                  <button type="button" className={s.addrAct} onClick={() => setНаУрок(текущая)}>{тр("На урок")}</button>
                 ) : null}
                 {вошёл && ПОСРЕДНИК ? (
                   <button
                     type="button"
                     className={s.addrAct}
                     aria-pressed={свой(текущая.id)}
-                    title="Открыть источник через Flamingo — если в рамке пусто"
+                    title={тр("Открыть источник через Flamingo — если в рамке пусто")}
                     onClick={() => setВыбор((б) => ({ ...б, [текущая.id]: !свой(текущая.id) }))}
                   >
-                    Через Flamingo
+                    {тр("Через Flamingo")}
                   </button>
                 ) : null}
                 <span className={s.addrUrl} title={текущая.home}>{текущая.home}</span>
                 <button type="button" className={`${s.addrAct} ${s.onlyWide}`} onClick={() => { if (вОкно(текущая)) закрытьВкладку(текущая.id) }}>
-                  ⧉ в окно
+                  {тр("⧉ в окно")}
                 </button>
               </div>
               {вкладки.map((id) => {
@@ -538,14 +539,14 @@ export function Hub({ учитель = false, вошёл = false }: {
               })}
             </>
           ) : (
-            <p className={s.empty}>Выберите источник слева — он откроется здесь.</p>
+            <p className={s.empty}>{тр("Выберите источник слева — он откроется здесь.")}</p>
           )}
         </section>
       </div>
 
       {наУрок ? <НаУрок источник={наУрок} закрыть={() => setНаУрок(null)} /> : null}
 
-      {окна.length > 0 ? <p className={s.count}>Открыто окон: {окна.length} из {ОКОН_НЕ_БОЛЬШЕ}</p> : null}
+      {окна.length > 0 ? <p className={s.count}>{тр("Открыто окон:")} {окна.length} {тр("из")} {ОКОН_НЕ_БОЛЬШЕ}</p> : null}
 
       {/* ── окна: до шести, двигаются и меняют размер ───────────────────── */}
       {окна.map((о) => {
@@ -556,7 +557,7 @@ export function Hub({ учитель = false, вошёл = false }: {
             key={о.id}
             className={`${s.window} ${о.вид === 'свёрнуто' ? s.windowMin : ''}`}
             role="dialog"
-            aria-label={`Окно источника: ${x.name}`}
+            aria-label={тр("Окно источника: {1}", { 1: x.name })}
             style={{ ...местоОкна(о), zIndex: о.слой }}
             onPointerDown={() => наверх(о.id)}
           >

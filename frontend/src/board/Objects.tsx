@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react'
 
 import s from './Board.module.css'
 import type { Obj } from './protocol'
+import { тр } from '../lib/язык.ts'
 
 /** Слой объектов лежит НАД холстом штрихов и живёт в тех же мировых координатах:
  *  один общий transform на слой, каждый объект стоит на своём месте мира.
@@ -220,7 +221,7 @@ export function Objects({ objs, k, selected, editing, onPick, onText, onРост
                 style={{ fontSize: o.size, color: `var(${o.color})` }}
                 value={o.text}
                 editing={ed}
-                hint="Текст"
+                hint={тр("Текст")}
                 onText={(t) => onText(o.id, t)}
                 onDone={onDoneEdit}
               />
@@ -235,7 +236,7 @@ export function Objects({ objs, k, selected, editing, onPick, onText, onРост
                 className={s.objNote}
                 value={o.text}
                 editing={ed}
-                hint="Заметка" 
+                hint={тр("Заметка")} 
                 onText={(t) => onText(o.id, t)}
                 onDone={onDoneEdit}
               />
@@ -248,16 +249,16 @@ export function Objects({ objs, k, selected, editing, onPick, onText, onРост
           return (
             <div key={o.id} {...common} style={{ left: o.x, top: o.y, width: o.w, height: o.h }}>
               <div className={s.objDoc}>
-                <img className={s.objDocPage} src={o.pages[i]} alt={`${o.name}, страница ${i + 1} из ${n}`} draggable={false} />
+                <img className={s.objDocPage} src={o.pages[i]} alt={тр("{1}, страница {2} из {3}", { 1: o.name, 2: i + 1, 3: n })} draggable={false} />
                 {/* Полоса листания — часть объекта, а не плавающий пульт:
                     документ двигают за неё же, и она уезжает вместе с ним. */}
                 <div className={s.objDocFoot} onPointerDown={(e) => e.stopPropagation()}>
                   <span className={s.objDocName} title={o.name}>{o.name}</span>
                   <button type="button" className={s.objDocBtn} disabled={i === 0}
-                          aria-label="Страница назад" onClick={() => onPage(o.id, i - 1)}>←</button>
+                          aria-label={тр("Страница назад")} onClick={() => onPage(o.id, i - 1)}>←</button>
                   <span className={s.objDocNum}>{i + 1} / {n}</span>
                   <button type="button" className={s.objDocBtn} disabled={i >= n - 1}
-                          aria-label="Страница вперёд" onClick={() => onPage(o.id, i + 1)}>→</button>
+                          aria-label={тр("Страница вперёд")} onClick={() => onPage(o.id, i + 1)}>→</button>
                 </div>
               </div>
             </div>
@@ -267,7 +268,7 @@ export function Objects({ objs, k, selected, editing, onPick, onText, onРост
         if (o.kind === 'image') {
           return (
             <div key={o.id} {...common} style={{ left: o.x, top: o.y, width: o.w, height: o.h }}>
-              <img className={s.objImg} src={o.src} alt={o.name ?? 'Картинка на доске'} draggable={false} />
+              <img className={s.objImg} src={o.src} alt={o.name ?? тр("Картинка на доске")} draggable={false} />
             </div>
           )
         }
@@ -276,7 +277,7 @@ export function Objects({ objs, k, selected, editing, onPick, onText, onРост
             {/* Видео на доске — ссылка, а не файл: хранилища у комнаты пока нет,
                 и класс смотрит его там же, где оно лежит. */}
             <div className={s.objVideo}>
-              <span className={s.objVideoTitle}>{o.name ?? 'Видео'}</span>
+              <span className={s.objVideoTitle}>{o.name ?? тр("Видео")}</span>
               {/* 🔴 Открывается В ЗАНЯТИИ рамкой, а не новой вкладкой: новая вкладка
                   уносит класс из урока (решение владельца 31.08, то же правило,
                   что у ссылок из HUB и из чата). */}
@@ -285,7 +286,7 @@ export function Objects({ objs, k, selected, editing, onPick, onText, onРост
                       onClick={() => onOpen(o.url)}>
                 {o.url}
               </button>
-              <span className={s.objVideoHint}>откроется рамкой в занятии · масштаб {Math.round(k * 100)} %</span>
+              <span className={s.objVideoHint}>{тр("откроется рамкой в занятии · масштаб")} {Math.round(k * 100)} %</span>
             </div>
           </div>
         )

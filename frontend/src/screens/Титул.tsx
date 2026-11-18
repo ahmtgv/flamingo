@@ -6,6 +6,7 @@ import s from './Титул.module.css'
 import leftAir from './left-cards-air.module.css'
 import { Шапка } from '../ui/Шапка'
 import { доска, палитра } from './титул-доска'
+import { тр } from '../lib/язык.ts'
 
 /** Титул — главная flamingo.plus. Редизайн утверждён владельцем 31.10.2026.
  *
@@ -40,11 +41,11 @@ import { доска, палитра } from './титул-доска'
 
 type Ролик = { файл: string; имя: string; картинка?: () => React.ReactNode }
 
-const ПРОМО: Ролик = { файл: 'promo', имя: 'Каким мы задумали Flamingo в 2020-м' }
+const ПРОМО: Ролик = { файл: 'promo', имя: тр("Каким мы задумали Flamingo в 2020-м") }
 
 /** Шесть источников витрины — порядок и подписи по спецификации 30.10. */
 const В_ХАБЕ: { id: string; имя: string; картинка: () => React.ReactNode }[] = [
-  { id: 'hubble', имя: 'Телескоп «Хаббл»', картинка: () => (
+  { id: 'hubble', имя: тр("Телескоп «Хаббл»"), картинка: () => (
     <>
       <g fill="#fff"><circle cx="22" cy="20" r="1.4" opacity=".8" /><circle cx="146" cy="24" r="1.6" opacity=".9" /><circle cx="30" cy="92" r="1.2" opacity=".7" /><circle cx="140" cy="94" r="1.3" opacity=".7" /><circle cx="58" cy="14" r="1" opacity=".6" /><circle cx="118" cy="104" r="1" opacity=".6" /></g>
       <circle cx="84" cy="58" r="22" fill="#fff" opacity=".18" />
@@ -54,7 +55,7 @@ const В_ХАБЕ: { id: string; имя: string; картинка: () => React.R
       <circle cx="84" cy="58" r="8" fill="#fff" />
     </>
   ) },
-  { id: 'loc', имя: 'Библиотека Конгресса', картинка: () => (
+  { id: 'loc', имя: тр("Библиотека Конгресса"), картинка: () => (
     <>
       <path d="M84 36 C 70 28, 50 28, 34 32 L 34 86 C 50 82, 70 82, 84 90 Z" fill="#fff" />
       <path d="M84 36 C 98 28, 118 28, 134 32 L 134 86 C 118 82, 98 82, 84 90 Z" fill="#fff" opacity=".86" />
@@ -62,7 +63,7 @@ const В_ХАБЕ: { id: string; имя: string; картинка: () => React.R
       <path d="M84 36 L 84 90" stroke="#e86a32" strokeWidth="1.5" opacity=".5" />
     </>
   ) },
-  { id: 'lapalma', имя: 'Обсерватория Ла-Пальма', картинка: () => (
+  { id: 'lapalma', имя: тр("Обсерватория Ла-Пальма"), картинка: () => (
     <>
       <g fill="#fff"><circle cx="24" cy="22" r="1.4" opacity=".8" /><circle cx="62" cy="14" r="1.1" opacity=".7" /><circle cx="96" cy="26" r="1.3" opacity=".7" /><circle cx="40" cy="44" r="1" opacity=".6" /></g>
       <path d="M0 96 C 40 78, 110 76, 168 90 L 168 116 L 0 116 Z" fill="#1a1238" opacity=".45" />
@@ -74,7 +75,7 @@ const В_ХАБЕ: { id: string; имя: string; картинка: () => React.R
       <text x="129" y="26" fontSize="9.5" fontWeight="700" fill="#241b57" fontFamily="Inter, system-ui, sans-serif">LIVE</text>
     </>
   ) },
-  { id: 'rijks', имя: 'Рейксмузеум', картинка: () => (
+  { id: 'rijks', имя: тр("Рейксмузеум"), картинка: () => (
     <>
       <rect x="44" y="20" width="80" height="76" rx="6" fill="#fff" />
       <rect x="53" y="29" width="62" height="58" rx="3" fill="#fde4d6" />
@@ -82,7 +83,7 @@ const В_ХАБЕ: { id: string; имя: string; картинка: () => React.R
       <path d="M53 87 L 53 70 C 66 60, 78 62, 88 70 C 96 64, 106 62, 115 68 L 115 87 Z" fill="#c2335d" opacity=".75" />
     </>
   ) },
-  { id: 'rumsey', имя: 'Карты Дэвида Румзи', картинка: () => (
+  { id: 'rumsey', имя: тр("Карты Дэвида Румзи"), картинка: () => (
     <>
       <path d="M34 30 L 64 22 L 104 30 L 134 22 L 134 88 L 104 96 L 64 88 L 34 96 Z" fill="#fff" />
       <path d="M64 22 L 64 88 M104 30 L 104 96" stroke="#2a6fdb" strokeWidth="1.5" opacity=".22" />
@@ -91,7 +92,7 @@ const В_ХАБЕ: { id: string; имя: string; картинка: () => React.R
       <circle cx="112" cy="41" r="4" fill="#fff" />
     </>
   ) },
-  { id: 'usgs', имя: 'USGS · землетрясения', картинка: () => (
+  { id: 'usgs', имя: тр("USGS · землетрясения"), картинка: () => (
     <>
       <circle cx="84" cy="58" r="36" fill="#fff" fillOpacity=".14" stroke="#fff" strokeOpacity=".55" strokeWidth="2" />
       <ellipse cx="84" cy="58" rx="16" ry="36" fill="none" stroke="#fff" strokeOpacity=".35" strokeWidth="1.6" />
@@ -116,7 +117,7 @@ const ЦВЕТ_ПРАВА: Record<string, string> = { own: s.правоМожн�
 /* Превью «Науки» нарисованы под свой кадр — портрет 160×200, как они стоят на
    странице (владелец, 31.10: «перерисовать согласно размеров самого превью»). */
 const РОЛИКИ: Ролик[] = [
-  { файл: 'short-1', имя: 'Песок и звук', картинка: () => (
+  { файл: 'short-1', имя: тр("Песок и звук"), картинка: () => (
     <>
       <g fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" opacity=".9"><path d="M62 30 Q 80 18 98 30" /><path d="M54 42 Q 80 24 106 42" /></g>
       <rect x="30" y="62" width="100" height="100" rx="12" fill="#fff" opacity=".95" />
@@ -124,7 +125,7 @@ const РОЛИКИ: Ролик[] = [
       <circle cx="80" cy="112" r="4" fill="#c98a3e" />
     </>
   ) },
-  { файл: 'short-2', имя: 'Тело на склоне', картинка: () => (
+  { файл: 'short-2', имя: тр("Тело на склоне"), картинка: () => (
     <>
       <path d="M16 172 L 144 172 L 144 58 Z" fill="#fff" opacity=".96" />
       <g transform="translate(96 115) rotate(-41.7)"><rect x="-17" y="-24" width="34" height="24" rx="4" fill="#0a6cff" /></g>
@@ -134,7 +135,7 @@ const РОЛИКИ: Ролик[] = [
       <text x="54" y="168" fontSize="11" fontWeight="600" fill="#0a6cff" opacity=".8">α</text>
     </>
   ) },
-  { файл: 'short-3', имя: 'Синус на круге', картинка: () => (
+  { файл: 'short-3', имя: тр("Синус на круге"), картинка: () => (
     <>
       <circle cx="80" cy="60" r="34" fill="#fff" fillOpacity=".14" stroke="#fff" strokeWidth="3" />
       <path d="M80 60 L 104 36" stroke="#fff" strokeWidth="2.8" strokeLinecap="round" />
@@ -145,7 +146,7 @@ const РОЛИКИ: Ролик[] = [
       <circle cx="104" cy="140" r="5" fill="#fff" />
     </>
   ) },
-  { файл: 'short-4', имя: 'Медный мотор', картинка: () => (
+  { файл: 'short-4', имя: тр("Медный мотор"), картинка: () => (
     <>
       <circle cx="80" cy="100" r="54" fill="#fff" fillOpacity=".14" stroke="#fff" strokeOpacity=".7" strokeWidth="3" />
       {[0, 120, 240].map((a) => (
@@ -154,14 +155,14 @@ const РОЛИКИ: Ролик[] = [
       <circle cx="80" cy="100" r="12" fill="#fff" /><circle cx="80" cy="100" r="4.5" fill="#c4561a" />
     </>
   ) },
-  { файл: 'short-5', имя: 'Волна из шаров', картинка: () => (
+  { файл: 'short-5', имя: тр("Волна из шаров"), картинка: () => (
     <>
       <path d="M14 26 L 146 26" stroke="#fff" strokeWidth="4" strokeLinecap="round" />
       <g stroke="#fff" strokeOpacity=".6" strokeWidth="1.5">{[24, 38, 52, 66, 80, 94, 108, 122, 136].map((x, i) => <path key={x} d={`M${x} 26 V ${[96, 124, 150, 160, 148, 118, 90, 72, 70][i]}`} />)}</g>
       <g fill="#fff">{[24, 38, 52, 66, 80, 94, 108, 122, 136].map((x, i) => <circle key={x} cx={x} cy={[96, 124, 150, 160, 148, 118, 90, 72, 70][i]} r="7" />)}</g>
     </>
   ) },
-  { файл: 'short-6', имя: 'Путь планет', картинка: () => (
+  { файл: 'short-6', имя: тр("Путь планет"), картинка: () => (
     <>
       <g fill="#fff"><circle cx="20" cy="22" r="1.4" opacity=".8" /><circle cx="140" cy="30" r="1.6" opacity=".8" /><circle cx="28" cy="176" r="1.2" opacity=".6" /><circle cx="146" cy="168" r="1.4" opacity=".7" /><circle cx="110" cy="14" r="1" opacity=".6" /><circle cx="60" cy="188" r="1.1" opacity=".6" /></g>
       <g fill="none" stroke="#fff" strokeOpacity=".38" strokeWidth="1.8"><ellipse cx="80" cy="100" rx="30" ry="16" /><ellipse cx="80" cy="100" rx="50" ry="30" /><ellipse cx="80" cy="100" rx="70" ry="46" /></g>
@@ -178,10 +179,10 @@ const ГРАДИЕНТ_НАУКИ: [string, string][] = [
 
 /** Перья доски — по спецификации; первое и второе берут цвет темы и акцент. */
 const ПЕРЬЯ = [
-  { имя: 'Чёрное перо', класс: s.перо1 },
-  { имя: 'Коралловое перо', класс: s.перо2 },
-  { имя: 'Зелёное перо', класс: s.перо3 },
-  { имя: 'Синее перо', класс: s.перо4 },
+  { имя: тр("Чёрное перо"), класс: s.перо1 },
+  { имя: тр("Коралловое перо"), класс: s.перо2 },
+  { имя: тр("Зелёное перо"), класс: s.перо3 },
+  { имя: тр("Синее перо"), класс: s.перо4 },
 ]
 
 const РЕЖИМЫ = ['рисунок', 'график', 'английский', 'астрономия']
@@ -432,7 +433,7 @@ export function Титул({ onSign, onNew, onHub, onCabinet, onАдмин, во
   }
 
   const дверьВхода = молчит
-    ? { onClick: undefined, 'aria-disabled': true as const, title: 'Сервер учётных записей молчит — войти сейчас нельзя' }
+    ? { onClick: undefined, 'aria-disabled': true as const, title: тр("Сервер учётных записей молчит — войти сейчас нельзя") }
     : {}
 
   return (
@@ -444,37 +445,37 @@ export function Титул({ onSign, onNew, onHub, onCabinet, onАдмин, во
         {/* ── левая колонка ───────────────────────────────────────────── */}
         <div className={s.левая}>
           <section id="верх" className={`${s.карточка} ${leftAir.hero}`}>
-            <span className={s.кикер}>Живой урок · образование без скуки</span>
+            <span className={s.кикер}>{тр("Живой урок · образование без скуки")}</span>
             {/* Неразрывный пробел перед тире: на 360 «—» уходило на строку одно
                 (владелец, 02.11, мобильный аудит, п.14). */}
-            <h1 className={s.заголовок}>Одна ссылка{' '}—<br />и урок уже начался.</h1>
+            <h1 className={s.заголовок}>{тр("Одна ссылка")}{' '}—<br />{тр("и урок уже начался.")}</h1>
             <div className={leftAir.heroAction}>
-              <p className={`${s.подзаголовок} ${leftAir.threeLines}`}><span>Один кабинет —</span>{' '}<span>от первого урока</span>{' '}<span>до научной степени.</span></p>
-              <button type="button" className={`${s.cta} ${leftAir.startTile}`} onClick={вошёл ? onCabinet : молчит ? undefined : onSign} {...(!вошёл ? дверьВхода : {})}>Начать учиться</button>
+              <p className={`${s.подзаголовок} ${leftAir.threeLines}`}><span>{тр("Один кабинет —")}</span>{' '}<span>{тр("от первого урока")}</span>{' '}<span>{тр("до научной степени.")}</span></p>
+              <button type="button" className={`${s.cta} ${leftAir.startTile}`} onClick={вошёл ? onCabinet : молчит ? undefined : onSign} {...(!вошёл ? дверьВхода : {})}>{тр("Начать учиться")}</button>
             </div>
           </section>
 
           <section id="тесты" className={`${s.тесты} ${s.sedumCard} ${leftAir.pair}`} aria-labelledby="sedum-card-title">
             <div className={s.sedumHeading}><h2 id="sedum-card-title">SEduM AI System</h2><p>Support Education Monitoring</p></div>
-            <div className={s.sedumModules} aria-label="Четыре модуля SEduM">
+            <div className={s.sedumModules} aria-label={тр("Четыре модуля SEduM")}>
               <div><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg><span>CMF</span></div>
               <div><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="7" r="4"/><path d="M4 21v-2a8 8 0 0 1 16 0v2Z"/></svg><span>BioProfile</span></div>
               <div><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12h5l3-8 4 16 3-8h5"/></svg><span>Bioimef</span></div>
               <div><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 3 4 2-5 10-4-2Z M10 1l4 2-1 2 M7 15l-1 2 M13 8a6 6 0 0 1 1 11H8 M3 22h18 M9 19v3 M3 17h8"/></svg><span>Test &amp; RND</span></div>
             </div>
-            <p className={s.sedumDescription}>AI-система: анализ, тестирование, машинное обучение, исследования и поддержка учеников.</p>
+            <p className={s.sedumDescription}>{тр("AI-система: анализ, тестирование, машинное обучение, исследования и поддержка учеников.")}</p>
             <div className={leftAir.sedumActions}>
-              <a href="/sedum/">Узнать больше о SEduM</a>
-              <a href="/sedum/research-cabinet.html"><span>Войти в SEduM<br />AI System</span></a>
+              <a href="/sedum/">{тр("Узнать больше о SEduM")}</a>
+              <a href="/sedum/research-cabinet.html"><span>{тр("Войти в SEduM")}<br />AI System</span></a>
             </div>
           </section>
 
-          <section id="видео" className={s.видео} aria-label="Видео 2020 года">
-            <button type="button" className={s.кадр} onClick={() => setИграет(ПРОМО)} aria-label="Посмотреть видео о Flamingo, 2 минуты, со звуком">
+          <section id="видео" className={s.видео} aria-label={тр("Видео 2020 года")}>
+            <button type="button" className={s.кадр} onClick={() => setИграет(ПРОМО)} aria-label={тр("Посмотреть видео о Flamingo, 2 минуты, со звуком")}>
               <img src="/video/promo.jpg" alt="" />
-              <span className={s.видеоШапка}><span className={s.видеоИмя} title={ПРОМО.имя}>{ПРОМО.имя}</span><span className={s.видеоПодпись}>Кринж присутствует</span></span>
+              <span className={s.видеоШапка}><span className={s.видеоИмя} title={ПРОМО.имя}>{ПРОМО.имя}</span><span className={s.видеоПодпись}>{тр("Кринж присутствует")}</span></span>
               <span className={s.пуск} aria-hidden="true">{ЗНАК_ПУСКА}</span>
-              <span className={s.ход} aria-hidden="true"><span>0:00</span><span className={s.полоса} /><span>2 минуты</span></span>
+              <span className={s.ход} aria-hidden="true"><span>0:00</span><span className={s.полоса} /><span>{тр("2 минуты")}</span></span>
             </button>
           </section>
         </div>
@@ -482,34 +483,34 @@ export function Титул({ onSign, onNew, onHub, onCabinet, onАдмин, во
         {/* ── правая колонка ──────────────────────────────────────────── */}
         <div className={s.правая}>
           <div className={s.верхнийРяд}>
-            <section id="доска" className={s.доска} aria-label="Доска занятия">
+            <section id="доска" className={s.доска} aria-label={тр("Доска занятия")}>
               <div className={s.окноШапка}>
                 <span className={s.окноИмя}>
-                  <span className={s.окноЗаголовок}>Доска занятия</span>
+                  <span className={s.окноЗаголовок}>{тр("Доска занятия")}</span>
                   <span className={s.окноПодпись}>
                     <svg width="11" height="11" viewBox="0 0 12 12" aria-hidden="true"><path d="M2 10l1-3 5.5-5.5a1.4 1.4 0 012 2L5 9z" fill="none" className={s.акцентОбвод} strokeWidth="1.4" strokeLinejoin="round" /></svg>
-                    Попробуйте нарисовать сами
+                    {тр("Попробуйте нарисовать сами")}
                   </span>
                 </span>
                 <span className={s.распор} />
-                <div role="group" aria-label="Режим доски" className={s.режимы}>
+                <div role="group" aria-label={тр("Режим доски")} className={s.режимы}>
                   {РЕЖИМЫ.map((р, i) => (
                     <button key={р} type="button" className={`${s.режим} ${i === сцена ? s.режимОн : ''}`}
                       aria-pressed={i === сцена} onClick={() => движок.current?.играть(i, setСцена)}>
-                      {р}
+                      {тр(р)}
                     </button>
                   ))}
                 </div>
               </div>
 
               <div className={s.поле}>
-                <canvas className={s.холст} ref={холст} aria-label="Доска занятия: рисует сама, можно рисовать пером" role="img" />
+                <canvas className={s.холст} ref={холст} aria-label={тр("Доска занятия: рисует сама, можно рисовать пером")} role="img" />
                 <canvas className={s.след} ref={следРеф} aria-hidden="true" />
-                <span className={s.шёпот}>{тихо ? 'нажмите режим — доска нарисует' : 'поводите мышью — или возьмите перо'}</span>
+                <span className={s.шёпот}>{тихо ? тр("нажмите режим — доска нарисует") : тр("поводите мышью — или возьмите перо")}</span>
 
                 <div className={s.палитра}>
-                  <span className={s.палитраПодпись}>мышью или пером</span>
-                  <span className={s.перья} role="group" aria-label="Цвет пера">
+                  <span className={s.палитраПодпись}>{тр("мышью или пером")}</span>
+                  <span className={s.перья} role="group" aria-label={тр("Цвет пера")}>
                     {ПЕРЬЯ.map((п, i) => (
                       <button key={п.имя} type="button" aria-label={п.имя} aria-pressed={перо === i} className={s.пероКнопка} onClick={() => { setПеро(i); пероРеф.current = i }}>
                         <span className={`${s.пероКруг} ${п.класс}`} />
@@ -518,7 +519,7 @@ export function Титул({ onSign, onNew, onHub, onCabinet, onАдмин, во
                     ))}
                   </span>
                   <span aria-hidden="true" className={s.палитраЧерта} />
-                  <button type="button" className={s.стереть} onClick={() => { const д = движок.current; if (д) { д.отпустить(); д.играть(д.текущая(), setСцена) } }}>Стереть</button>
+                  <button type="button" className={s.стереть} onClick={() => { const д = движок.current; if (д) { д.отпустить(); д.играть(д.текущая(), setСцена) } }}>{тр("Стереть")}</button>
                 </div>
               </div>
             </section>
@@ -527,7 +528,7 @@ export function Титул({ onSign, onNew, onHub, onCabinet, onАдмин, во
               <div className={s.окноШапка}>
                 <span className={s.окноИмя}>
                   <span className={s.окноЗаголовок}>Flamingo HUB</span>
-                  <span className={s.окноПодпись}>Источники мира · открыты для урока</span>
+                  <span className={s.окноПодпись}>{тр("Источники мира · открыты для урока")}</span>
                 </span>
               </div>
               <div className={s.источники}>
@@ -544,7 +545,7 @@ export function Титул({ onSign, onNew, onHub, onCabinet, onАдмин, во
                         {в.картинка()}
                       </svg>
                       <span className={s.источникСлова}>
-                        <span className={s.источникТип}>{и.kind}</span>
+                        <span className={s.источникТип}>{тр(и.kind)}</span>
                         <span className={s.источникИмя} title={в.имя}>{в.имя}</span>
                         <span className={`${s.право} ${ЦВЕТ_ПРАВА[и.right]}`}>● {RIGHTS[и.right].tag}</span>
                       </span>
@@ -552,21 +553,21 @@ export function Титул({ onSign, onNew, onHub, onCabinet, onАдмин, во
                   )
                 })}
               </div>
-              <button type="button" className={s.всеИсточники} onClick={onHub}>Все {SOURCES.length} источников <span aria-hidden="true">›</span></button>
+              <button type="button" className={s.всеИсточники} onClick={onHub}>{тр("Все {1} источников", { 1: SOURCES.length })} <span aria-hidden="true">›</span></button>
             </section>
           </div>
 
-          <section id="наука" className={s.наука} aria-label="Познавательная наука">
+          <section id="наука" className={s.наука} aria-label={тр("Познавательная наука")}>
             <div className={s.наукаШапка}>
-              <span className={s.наукаИмя}><span className={s.наукаЗаголовок}>Познавательная наука</span><span className={s.наукаПодпись}>Короткие опыты, которые можно включить прямо на уроке</span></span>
-              <button type="button" className={s.ссылка} data-still="страницу всех видео назовёт владелец" aria-disabled="true">Все видео ›</button>
+              <span className={s.наукаИмя}><span className={s.наукаЗаголовок}>{тр("Познавательная наука")}</span><span className={s.наукаПодпись}>{тр("Короткие опыты, которые можно включить прямо на уроке")}</span></span>
+              <button type="button" className={s.ссылка} data-still="страницу всех видео назовёт владелец" aria-disabled="true">{тр("Все видео ›")}</button>
             </div>
             <div className={s.ролики}>
               {РОЛИКИ.map((р, i) => {
                 const gid = `${uid}-s${i}`
                 const [от, до] = ГРАДИЕНТ_НАУКИ[i]
                 return (
-                  <button key={р.файл} type="button" className={s.ролик} onClick={() => setИграет(р)} aria-label={`Посмотреть: ${р.имя}. Со звуком`}>
+                  <button key={р.файл} type="button" className={s.ролик} onClick={() => setИграет(р)} aria-label={тр("Посмотреть: {1}. Со звуком", { 1: р.имя })}>
                     <span className={s.роликПревью}>
                       <svg viewBox="0 0 160 200" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
                         <defs><linearGradient id={gid} x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor={от} /><stop offset="1" stopColor={до} /></linearGradient></defs>
@@ -595,20 +596,20 @@ export function Титул({ onSign, onNew, onHub, onCabinet, onАдмин, во
               onClick={пускПауза} onPlay={() => setИдёт(true)} onPause={() => setИдёт(false)} onEnded={() => setИграет(null)}
               onTimeUpdate={(e) => setСек(e.currentTarget.currentTime)} onLoadedMetadata={(e) => setДлина(e.currentTarget.duration)} onVolumeChange={(e) => setТихоВидео(e.currentTarget.muted)} />
             <div className={s.управление}>
-              <button type="button" className={s.кнопкаВидео} onClick={пускПауза} aria-label={идёт ? 'Пауза' : 'Пуск'}>
+              <button type="button" className={s.кнопкаВидео} onClick={пускПауза} aria-label={идёт ? тр("Пауза") : тр("Пуск")}>
                 {идёт ? <svg width="12" height="14" viewBox="0 0 12 14" aria-hidden="true"><path d="M1.5 1h3v12h-3zM7.5 1h3v12h-3z" fill="currentColor" /></svg> : <svg width="12" height="14" viewBox="0 0 12 14" aria-hidden="true"><path d="M1.5 1v12l10-6z" fill="currentColor" /></svg>}
               </button>
               <span className={s.времяВидео}>{ммсс(сек)}</span>
-              <input type="range" className={s.таймлайн} min={0} max={длина || 0} step={0.1} value={Math.min(сек, длина || 0)} aria-label="Место в ролике" aria-valuetext={`${ммсс(сек)} из ${ммсс(длина)}`}
+              <input type="range" className={s.таймлайн} min={0} max={длина || 0} step={0.1} value={Math.min(сек, длина || 0)} aria-label={тр("Место в ролике")} aria-valuetext={тр("{1} из {2}", { 1: ммсс(сек), 2: ммсс(длина) })}
                 onChange={(e) => { const в = кино.current; if (в) { в.currentTime = Number(e.target.value); setСек(в.currentTime) } }} />
               <span className={s.времяВидео}>{ммсс(длина)}</span>
-              <button type="button" className={s.кнопкаВидео} onClick={() => { const в = кино.current; if (в) в.muted = !в.muted }} aria-label={тихоВидео ? 'Включить звук' : 'Выключить звук'} aria-pressed={тихоВидео}>
+              <button type="button" className={s.кнопкаВидео} onClick={() => { const в = кино.current; if (в) в.muted = !в.muted }} aria-label={тихоВидео ? тр("Включить звук") : тр("Выключить звук")} aria-pressed={тихоВидео}>
                 {тихоВидео ? <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M1 5h3l4-3v10l-4-3H1z" fill="currentColor" /><path d="M10 5l3 4M13 5l-3 4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" /></svg> : <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M1 5h3l4-3v10l-4-3H1z" fill="currentColor" /><path d="M10 4.5a3.5 3.5 0 010 5M11.5 2.5a6 6 0 010 9" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" /></svg>}
               </button>
             </div>
             <div className={s.окноНиз}>
               <span className={s.окноИмяВидео} title={играет.имя}>{играет.имя}</span>
-              <button type="button" className={s.закрыть} onClick={() => setИграет(null)} aria-label="Закрыть видео">Закрыть</button>
+              <button type="button" className={s.закрыть} onClick={() => setИграет(null)} aria-label={тр("Закрыть видео")}>{тр("Закрыть")}</button>
             </div>
           </div>
         </div>

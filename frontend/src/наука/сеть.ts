@@ -1,3 +1,4 @@
+import { тр } from '../lib/язык.ts'
 /** Исследование внимания SEduM: разговор с сервером и очередь отправки.
  *
  *  🔴 ЗАПИСЬ УХОДИТ КУСКАМИ ПО ХОДУ ПРОВЕРКИ, А НЕ ОДНИМ ФАЙЛОМ В КОНЦЕ.
@@ -33,7 +34,7 @@ async function спросить<T>(путь: string, init: RequestInit = {}, с�
   try {
     res = await fetch(`${BASE}/api/science${путь}`, { ...init, signal: AbortSignal.timeout(срок) })
   } catch {
-    throw new ОтказНауки('Сервер Flamingo не отвечает. Проверьте интернет и попробуйте ещё раз через минуту.', 0)
+    throw new ОтказНауки(тр("Сервер Flamingo не отвечает. Проверьте интернет и попробуйте ещё раз через минуту."), 0)
   }
   let тело: Record<string, unknown> = {}
   try {
@@ -42,7 +43,7 @@ async function спросить<T>(путь: string, init: RequestInit = {}, с�
     console.warn('наука: ответ сервера не разобран, код', res.status)
   }
   if (!res.ok) {
-    throw new ОтказНауки(String(тело.error ?? 'Сервер не принял запрос. Попробуйте ещё раз.'), res.status)
+    throw new ОтказНауки(String(тело.error ?? тр("Сервер не принял запрос. Попробуйте ещё раз.")), res.status)
   }
   return тело as T
 }
@@ -65,7 +66,7 @@ export const наука = {
     спросить<ОДоброволеце>(`/v/${encodeURIComponent(код)}/profile`, json({ анкета })),
   согласие: (код: string, версия: string, анкета: Record<string, string>) =>
     спросить<ОДоброволеце>(`/v/${encodeURIComponent(код)}/consent`, json({ версия, анкета })),
-  начать: (код: string, тело: { вид: string; протокол: string; перед: Record<string, string>; устройство: Record<string, unknown> }) =>
+  начать: (код: string, тело: { вид: string; протокол: string; язык: string; перед: Record<string, string>; устройство: Record<string, unknown> }) =>
     спросить<{ id: string }>(`/v/${encodeURIComponent(код)}/runs`, json(тело)),
   закончить: (код: string, id: string, итог: Record<string, unknown>) =>
     спросить<{ кусков: number; байт: number }>(`/v/${encodeURIComponent(код)}/runs/${id}/finish`, json({ итог })),
@@ -153,7 +154,7 @@ export class Очередь {
           return
         }
         if (res.status === 413 || res.status === 404 || res.status === 400) {
-          let слова = 'Сервер не принял запись.'
+          let слова = тр("Сервер не принял запись.")
           try { слова = String((await res.json()).error ?? слова) } catch { /* слова по умолчанию */ }
           this.состояние = { ...this.состояние, ошибка: слова }
           this.сообщить()
@@ -163,7 +164,7 @@ export class Очередь {
         /* сеть моргнула — повторим */
       }
       к.попыток += 1
-      this.состояние = { ...this.состояние, ошибка: 'Связь с сервером прервалась — повторяем…' }
+      this.состояние = { ...this.состояние, ошибка: тр("Связь с сервером прервалась — повторяем…") }
       this.сообщить()
       await new Promise((r) => setTimeout(r, Math.min(30_000, 1000 * 2 ** Math.min(5, к.попыток - 1))))
     }
@@ -199,6 +200,8 @@ export type ПроверкаКабинета = {
   id: string
   вид: string
   протокол: string
+  /** На каком языке шла проверка: «ru» или «en». */
+  язык?: string
   начата: string
   закончена: string | null
   /** Секунд от начала до конца; не закончена — null. */
@@ -247,9 +250,9 @@ export const кабинет = {
     try {
       res = await fetch(`${BASE}/api/science/cabinet/runs/${encodeURIComponent(id)}/${вид}/${n}`, { ...сКукой, signal: AbortSignal.timeout(срок) })
     } catch {
-      throw new ОтказНауки('Сервер Flamingo не отвечает. Проверьте интернет и попробуйте ещё раз.', 0)
+      throw new ОтказНауки(тр("Сервер Flamingo не отвечает. Проверьте интернет и попробуйте ещё раз."), 0)
     }
-    if (!res.ok) throw new ОтказНауки(`Кусок записи не отдался (${res.status}).`, res.status)
+    if (!res.ok) throw new ОтказНауки(тр("Кусок записи не отдался ({1}).", { 1: res.status }), res.status)
     return res.blob()
   },
 }

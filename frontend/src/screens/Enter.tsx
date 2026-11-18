@@ -5,6 +5,7 @@ import { Field } from '../ui/Field'
 import { Mark } from '../ui/Mark'
 import type { Person } from '../lib/auth'
 import s from './Enter.module.css'
+import { тр } from '../lib/язык.ts'
 
 type Props = {
   /** Код из адреса. Он здесь ВСЕГДА: без кода этого экрана не бывает. */
@@ -58,11 +59,11 @@ export function Enter({ invited, initialName, onGo, onHub, onSign, onCabinet, on
         {person ? (
           <>
             <button type="button" className={s.topLink} onClick={onCabinet}>
-              {person.role === 'teacher' ? 'Кабинет' : 'Мой учебный кабинет'}
+              {person.role === 'teacher' ? тр("Кабинет") : тр("Мой учебный кабинет")}
             </button>
             <span className={s.who}>
               {person.name} ·{' '}
-              <button type="button" className={s.out} onClick={onOut}>Выйти</button>
+              <button type="button" className={s.out} onClick={onOut}>{тр("Выйти")}</button>
             </span>
           </>
         ) : null}
@@ -71,23 +72,21 @@ export function Enter({ invited, initialName, onGo, onHub, onSign, onCabinet, on
       <div className={s.body} data-geo="кадр-первой-страницы">
         {/* Левая колонка — обещание. Вес несёт типографика, а не цвет (ПРАВИЛА 5.6). */}
         <section className={s.promise}>
-          <h1 className={s.title}>Вас ждут в комнате</h1>
+          <h1 className={s.title}>{тр("Вас ждут в комнате")}</h1>
           <p className={s.lead}>
-            Назовитесь — и входите. Ни регистрации, ни установки.
+            {тр("Назовитесь — и входите. Ни регистрации, ни установки.")}
           </p>
 
           <span className={s.rule} />
           {/* Слова владельца, 31.08. */}
           <span className={s.three}>
-            лицо<span className={s.dot}>·</span>голос<span className={s.dot}>·</span>аналитика
+            {тр("лицо")}<span className={s.dot}>·</span>{тр("голос")}<span className={s.dot}>·</span>{тр("аналитика")}
           </span>
 
           {/* Сказано один раз и словами: и про камеру, и про то, что урок нигде
               не остаётся. Это сноска — она не спорит по весу с абзацем выше. */}
           <p className={s.foot}>
-            В комнате включаются камера и микрофон — браузер спросит разрешение. Урок не
-            записывается, а доска живёт, пока в комнате есть хоть один человек: чтобы она
-            осталась после урока, её сохраняют в файл.
+            {тр("В комнате включаются камера и микрофон — браузер спросит разрешение. Урок не записывается, а доска живёт, пока в комнате есть хоть один человек: чтобы она осталась после урока, её сохраняют в файл.")}
           </p>
         </section>
 
@@ -103,9 +102,9 @@ export function Enter({ invited, initialName, onGo, onHub, onSign, onCabinet, on
             }}
           >
             <Field
-              label="Как вас зовут"
-              hint="Под этим именем вас увидит класс. Без него войти нельзя."
-              placeholder="Например, Аня"
+              label={тр("Как вас зовут")}
+              hint={тр("Под этим именем вас увидит класс. Без него войти нельзя.")}
+              placeholder={тр("Например, Аня")}
               value={name}
               maxLength={40}
               autoFocus
@@ -121,16 +120,16 @@ export function Enter({ invited, initialName, onGo, onHub, onSign, onCabinet, on
             <div className={s.say} data-geo="строка-сообщения" role="status">
               {said ? (
                 <>
-                  <span className={s.sayHead}>Сначала имя</span>
+                  <span className={s.sayHead}>{тр("Сначала имя")}</span>
                   <span className={s.sayBody}>
-                    Без имени класс не поймёт, кто открыл комнату. Одного слова достаточно.
+                    {тр("Без имени класс не поймёт, кто открыл комнату. Одного слова достаточно.")}
                   </span>
                 </>
               ) : null}
             </div>
 
             <Button kind="go" type="submit" data-geo="главное-действие">
-              Войти в комнату
+              {тр("Войти в комнату")}
             </Button>
           </form>
 
@@ -138,9 +137,9 @@ export function Enter({ invited, initialName, onGo, onHub, onSign, onCabinet, on
               заливка на экране одна и принадлежит входу в комнату (ПРАВИЛА 11.4). */}
           {person ? null : (
             <p className={s.ask}>
-              Уже есть учётная запись?{' '}
+              {тр("Уже есть учётная запись?")}{' '}
               <button type="button" className={s.signLink} onClick={onSign}>
-                Войти или завести учётную запись
+                {тр("Войти или завести учётную запись")}
               </button>
             </p>
           )}

@@ -5,6 +5,7 @@ import { ИМЕНА } from './Shelf'
 import type { Пособие } from '../lib/study'
 import type { ShowDoc } from './shows'
 import s from './ShowList.module.css'
+import { ЛОКАЛЬ, тр } from '../lib/язык.ts'
 
 /** Панель показов: их несколько, и они сохраняются (решение владельца 31.08).
  *
@@ -22,18 +23,18 @@ import s from './ShowList.module.css'
  *  подписи значит соврать про половину. */
 
 function when(at: number): string {
-  return new Date(at).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })
+  return new Date(at).toLocaleDateString(ЛОКАЛЬ, { day: 'numeric', month: 'long' })
 }
 
 const ВЕС = (b: number) =>
-  b >= 1024 * 1024 ? `${Math.round(b / (1024 * 1024))} МБ`
-    : b >= 1024 ? `${Math.round(b / 1024)} КБ` : `${b} Б`
+  b >= 1024 * 1024 ? тр("{1} МБ", { 1: Math.round(b / (1024 * 1024)) })
+    : b >= 1024 ? тр("{1} КБ", { 1: Math.round(b / 1024) }) : тр("{1} Б", { 1: b })
 
 const ВИД: Record<Пособие['вид'], string> = {
-  doc: 'документ',
-  image: 'картинка',
-  link: 'ссылка — откроется в занятии',
-  audio: 'звук — включите, и класс услышит',
+  doc: тр("документ"),
+  image: тр("картинка"),
+  link: тр("ссылка — откроется в занятии"),
+  audio: тр("звук — включите, и класс услышит"),
 }
 
 /** Ложится ли пособие на доску.
@@ -99,7 +100,7 @@ export function ShowList({
     const url = ссылка.trim()
     if (!url || !onСсылка) return
     if (!/^https?:\/\/\S+\.\S+/i.test(url)) {
-      setОтказ('Это не похоже на ссылку: она начинается с https://')
+      setОтказ(тр("Это не похоже на ссылку: она начинается с https://"))
       return
     }
     setКладём(true)
@@ -123,7 +124,7 @@ export function ShowList({
             месяц вопрос «это один экран или два». Имя берётся оттуда же,
             откуда его берёт полка, — из ИМЕНА, чтобы разойтись было нельзя. */}
         <span className={s.title}>{ИМЕНА.show}</span>
-        <button type="button" className={s.close} onClick={onClose} aria-label="Закрыть">
+        <button type="button" className={s.close} onClick={onClose} aria-label={тр("Закрыть")}>
           ✕
         </button>
       </header>
@@ -138,7 +139,7 @@ export function ShowList({
       <div className={s.свиток}>
       {пособия.length ? (
         <>
-          <p className={s.group}>Приложены к уроку</p>
+          <p className={s.group}>{тр("Приложены к уроку")}</p>
           <ul className={s.list}>
             {пособия.map((п) => {
               /* У пособия нет первой страницы, пока его не открыли: лица у
@@ -151,7 +152,7 @@ export function ShowList({
                     <span className={s.rowMeta}>
                       {наДоску(п)
                         ? `${ВИД[п.вид]}${п.вид === 'link' ? '' : ` · ${ВЕС(п.размер)}`}`
-                        : 'на доску ложатся pdf и картинки — этот файл пока только хранится'}
+                        : тр("на доску ложатся pdf и картинки — этот файл пока только хранится")}
                     </span>
                   </span>
                 </>
@@ -179,20 +180,20 @@ export function ShowList({
         <div className={s.empty}>
           <p className={s.emptyWords}>
             {пособия.length
-              ? 'С этого компьютера пока ничего не добавляли. Материалы урока — выше: они лежат на сервере и открываются с любого устройства.'
+              ? тр("С этого компьютера пока ничего не добавляли. Материалы урока — выше: они лежат на сервере и открываются с любого устройства.")
               /* 🔴 ПУСТОЕ СОСТОЯНИЕ ЗНАЕТ ПРО `kept`. Раньше оно обещало
                  «можно вернуться на следующем занятии», а подвал в четырёх
                  сантиметрах ниже сообщал «доживут только до перезагрузки» —
                  два текста на одном экране, спорящие друг с другом. Осмотр
                  комнаты 08.09, находка 15. */
               : kept
-                ? 'Здесь будет то, что вы показываете классу: картинки и PDF, разобранные по страницам. Добавленное сохраняется — «Закончить показ» его не стирает, и к нему можно вернуться на следующем занятии.'
-                : 'Здесь будет то, что вы показываете классу: картинки и PDF, разобранные по страницам. Браузер не дал места для хранения — добавленное сегодня исчезнет при перезагрузке страницы.'}
+                ? тр("Здесь будет то, что вы показываете классу: картинки и PDF, разобранные по страницам. Добавленное сохраняется — «Закончить показ» его не стирает, и к нему можно вернуться на следующем занятии.")
+                : тр("Здесь будет то, что вы показываете классу: картинки и PDF, разобранные по страницам. Браузер не дал места для хранения — добавленное сегодня исчезнет при перезагрузке страницы.")}
           </p>
         </div>
       ) : (
         <>
-        <p className={s.group}>С этого компьютера</p>
+        <p className={s.group}>{тр("С этого компьютера")}</p>
         <ul className={s.list}>
           {shows.map((d) => (
             <li key={d.id} className={s.rowBox}>
@@ -207,8 +208,8 @@ export function ShowList({
                 <span className={s.rowWords}>
                   <span className={s.rowName} title={d.title}>{d.title}</span>
                   <span className={s.rowMeta}>
-                    {d.pages.length} стр. · {when(d.at)}
-                    {d.id === activeId ? ' · показывается' : ''}
+                    {d.pages.length} {тр("стр. ·")} {when(d.at)}
+                    {d.id === activeId ? тр(" · показывается") : ''}
                   </span>
                 </span>
               </button>
@@ -220,18 +221,18 @@ export function ShowList({
               {arming === d.id ? (
                 <span className={s.confirm}>
                   <button type="button" className={s.drop} onClick={() => { setArming(null); onDrop(d.id) }}
-                          aria-label={`Точно удалить: ${d.title}`}>
-                    Точно удалить
+                          aria-label={тр("Точно удалить: {1}", { 1: d.title })}>
+                    {тр("Точно удалить")}
                   </button>
                   <button type="button" className={s.keep} onClick={() => setArming(null)}
-                          aria-label={`Оставить: ${d.title}`}>
-                    Оставить
+                          aria-label={тр("Оставить: {1}", { 1: d.title })}>
+                    {тр("Оставить")}
                   </button>
                 </span>
               ) : (
                 <button type="button" className={s.dropAsk} onClick={() => setArming(d.id)}
-                        aria-label={`Удалить: ${d.title}`}>
-                  Удалить
+                        aria-label={тр("Удалить: {1}", { 1: d.title })}>
+                  {тр("Удалить")}
                 </button>
               )}
             </li>
@@ -250,25 +251,25 @@ export function ShowList({
               className={s.ссылкаПоле}
               type="url"
               inputMode="url"
-              placeholder="Ссылка на видео или сайт"
-              aria-label="Ссылка в материалы урока"
+              placeholder={тр("Ссылка на видео или сайт")}
+              aria-label={тр("Ссылка в материалы урока")}
               value={ссылка}
               onChange={(e) => { setСсылка(e.target.value); setОтказ('') }}
             />
             <button type="submit" className={s.ссылкаКнопка} disabled={кладём || !ссылка.trim()}>
-              {кладём ? 'Кладём…' : 'В материалы'}
+              {кладём ? тр("Кладём…") : тр("В материалы")}
             </button>
           </form>
         ) : null}
         {отказ ? <p className={s.отказ} role="alert">{отказ}</p> : null}
         <button type="button" className={s.add} onClick={onAdd}>
-          Добавить с компьютера
+          {тр("Добавить с компьютера")}
         </button>
         {/* Молчание про место хранения — враньё по устройству (shows.ts). */}
         <p className={s.where}>
           {kept
-            ? 'Добавленное с компьютера хранится на нём же. С другого компьютера этого не видно.'
-            : 'Браузер не дал места: добавленное с этого компьютера доживёт только до перезагрузки страницы.'}
+            ? тр("Добавленное с компьютера хранится на нём же. С другого компьютера этого не видно.")
+            : тр("Браузер не дал места: добавленное с этого компьютера доживёт только до перезагрузки страницы.")}
         </p>
       </footer>
     </aside>

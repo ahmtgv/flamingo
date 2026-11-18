@@ -4,6 +4,7 @@ import { newId } from '../board/protocol'
 import type { Point } from '../board/protocol'
 import type { Ink, StickerName } from './shows'
 import s from './Ink.module.css'
+import { тр } from '../lib/язык.ts'
 
 /** Прозрачный слой пометок поверх страницы показа.
  *
@@ -186,7 +187,7 @@ export function InkLayer({ marks, tool, onMark }: {
       onPointerUp={up}
       onPointerCancel={up}
       aria-hidden={tool ? undefined : true}
-      aria-label={tool ? 'Пометки поверх страницы' : undefined}
+      aria-label={tool ? тр("Пометки поверх страницы") : undefined}
     >
       {w > 0
         ? marks.filter((m) => m.id !== wip?.id).map((m) => <Mark key={m.id} m={m} w={w} h={h} />)

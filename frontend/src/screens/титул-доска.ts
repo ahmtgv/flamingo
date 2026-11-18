@@ -1,3 +1,4 @@
+import { тр } from '../lib/язык.ts'
 /** Доска титульного экрана: четыре сцены о том, что она умеет.
  *
  *  🔴 РИСУЕТ РУКА, А НЕ ЛИНЕЙКА. Ломаная сначала дробится на шаги, потом точки
@@ -297,7 +298,7 @@ export function доска(c: HTMLCanvasElement, П: Палитра) {
         g!.lineTo(vx + vw / 2 + vh * 0.09, vy + vh / 2)
         g!.lineTo(vx + vw / 2 - vh * 0.05, vy + vh / 2 + vh * 0.085)
         g!.closePath(); g!.fill()
-        моно(10); g!.fillStyle = П.тихо; g!.fillText('видео · 0:42', vx, vy - 9)
+        моно(10); g!.fillStyle = П.тихо; g!.fillText(тр("видео · 0:42"), vx, vy - 9)
         g!.globalAlpha = 1
       }
       const стик: Array<[string, string]> = [['Present Perfect', П.охра], ['have + V3', П.зелёный], ['since / for', П.акцент]]
@@ -339,11 +340,11 @@ export function доска(c: HTMLCanvasElement, П: Палитра) {
         g!.strokeStyle = П.ось; g!.lineWidth = 1.4
         g!.beginPath(); g!.ellipse(fx + fw * 0.52, fy + fh * 0.5, fh * 0.44, fh * 0.11, -0.22, 0, 7); g!.stroke()
         g!.restore()
-        моно(10); g!.fillStyle = П.тихо; g!.fillText('фото · телескоп', fx, fy - 9)
+        моно(10); g!.fillStyle = П.тихо; g!.fillText(тр("фото · телескоп"), fx, fy - 9)
         g!.globalAlpha = 1
       }
       const цx = fx + fw + Math.min(78 * S, w * 0.09)
-      const подписи: Array<[string, number]> = [['кольцо — лёд и камень', fy + fh * 0.3], ['период обращения', fy + fh * 0.68]]
+      const подписи: Array<[string, number]> = [[тр("кольцо — лёд и камень"), fy + fh * 0.3], [тр("период обращения"), fy + fh * 0.68]]
       подписи.forEach((п, i) => {
         const q = шкала(p, 0.2 + i * 0.16, 0.42 + i * 0.16)
         if (q <= 0) return

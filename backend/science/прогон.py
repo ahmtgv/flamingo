@@ -183,6 +183,13 @@ run = r.json()["id"]
 meta = ПАПКА / код / run / "meta.json"
 да("meta.json записан сразу", meta.exists() and json.loads(meta.read_text())["вид"] == "взгляд")
 да("«перед» — только спрошенное, и когда спросили", json.loads(meta.read_text())["перед"] == {"сонливость": "3", "свет": "лампа", "спрошено": "2026-10-06T18:40:00.000Z"}, meta.read_text())
+да("язык не сказан — проверка русская", json.loads(meta.read_text())["язык"] == "ru" and Run.objects.get(id=run).language == "ru")
+r = post(f"/api/science/v/{код}/runs", {"вид": "чтение", "протокол": "чтение-1", "язык": "en"})
+да("английская проверка помечена «en»", r.status_code == 201 and Run.objects.get(id=r.json()["id"]).language == "en", r.content)
+Run.objects.filter(id=r.json().get("id")).delete()
+r = post(f"/api/science/v/{код}/runs", {"вид": "чтение", "протокол": "чтение-1", "язык": "de"})
+да("незнакомый язык — русский, а не что прислали", r.status_code == 201 and Run.objects.get(id=r.json()["id"]).language == "ru", r.content)
+Run.objects.filter(id=r.json().get("id")).delete()
 
 раздел("Куски записи")
 

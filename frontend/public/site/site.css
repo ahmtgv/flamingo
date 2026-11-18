@@ -124,6 +124,14 @@ html[data-fl-in] .flnav [data-in] { display: inline-flex; }
 html[data-fl-in] .flnav [data-out] { display: none; }
 
 /* телефон: разделы уходят под кнопку меню */
+/* Язык: RU · EN (владелец, 18.11.2026). Тихо, как «Войти»: выбранный — цветом
+   текста, второй — приглушённым. На телефоне — внутри меню. */
+.flnav__lang { display: inline-flex; align-items: center; gap: 2px; margin-right: 4px; color: var(--fn-dim); font-size: 12px; letter-spacing: 0.02em; }
+.flnav__lang > span { opacity: 0.6; }
+.flnav__lang button { height: 44px; min-width: 28px; padding: 0 4px; border: 0; background: none; color: inherit; font: inherit; letter-spacing: inherit; cursor: pointer; }
+.flnav__lang button:hover { color: var(--fn-ink); }
+.flnav__lang button[aria-pressed='true'] { color: var(--fn-ink); font-weight: 600; cursor: default; }
+.flnav__lang--panel { display: none; }
 .flnav__more { display: none; }
 .flnav__more > summary {
   list-style: none;
@@ -169,6 +177,9 @@ html[data-fl-in] .flnav [data-out] { display: none; }
 .flpage { height: 100%; display: grid; grid-template-rows: auto minmax(0, 1fr); }
 
 @media (max-width: 860px) {
+  .flnav__side > .flnav__lang { display: none; }
+  .flnav__lang--panel { display: flex; justify-content: center; margin-top: 8px; font-size: 14px; }
+  .flnav__lang--panel button { height: 44px; min-width: 44px; }
   .flnav { gap: 12px; padding: 0 16px; }
   .flnav__items { display: none; }
   .flnav__side > .flnav__pill[data-out] { display: none; }

@@ -40,6 +40,9 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
+    # Язык запроса и английские слова в ответах (config/язык.py). Стоит снаружи
+    # «своих страниц», чтобы и их отказ приходил на языке страницы.
+    "config.язык.ПереводОтветов",
     "config.откуда.ТолькоСвоиСтраницы",
     "django.middleware.common.CommonMiddleware",
 ]

@@ -5,6 +5,7 @@ import { Button } from '../ui/Button'
 import { Field } from '../ui/Field'
 import { Mark } from '../ui/Mark'
 import s from './Sign.module.css'
+import { тр } from '../lib/язык.ts'
 
 /** Новый пароль по ссылке из письма.
  *
@@ -29,7 +30,7 @@ export function NewPass({ ключ, onDone, onBack }: {
     try {
       onDone(await resetPass(ключ, pass))
     } catch (e) {
-      setSaid(e instanceof AuthError ? e.message : 'Не вышло сменить пароль.')
+      setSaid(e instanceof AuthError ? e.message : тр("Не вышло сменить пароль."))
     } finally {
       setBusy(false)
     }
@@ -40,15 +41,15 @@ export function NewPass({ ключ, onDone, onBack }: {
       <div className={s.один}>
         <div className={s.card}>
           <button type="button" className={s.back} onClick={onBack}>
-            ← Ко входу
+            {тр("← Ко входу")}
           </button>
           <Mark />
 
-          <h1 className={s.title}>Новый пароль</h1>
+          <h1 className={s.title}>{тр("Новый пароль")}</h1>
           <p className={s.lead}>
             {ключ
-              ? 'Задайте новый пароль — и вы сразу войдёте. Старый перестанет работать.'
-              : 'В ссылке нет ключа. Похоже, адрес скопирован не целиком — откройте ссылку из письма ещё раз.'}
+              ? тр("Задайте новый пароль — и вы сразу войдёте. Старый перестанет работать.")
+              : тр("В ссылке нет ключа. Похоже, адрес скопирован не целиком — откройте ссылку из письма ещё раз.")}
           </p>
 
           <form
@@ -60,8 +61,8 @@ export function NewPass({ ключ, onDone, onBack }: {
             }}
           >
             <Field
-              label="Новый пароль"
-              hint="От восьми знаков. Длина надёжнее сложности: четыре обычных слова лучше, чем «Xy7!»"
+              label={тр("Новый пароль")}
+              hint={тр("От восьми знаков. Длина надёжнее сложности: четыре обычных слова лучше, чем «Xy7!»")}
               type="password"
               autoComplete="new-password"
               autoFocus
@@ -73,13 +74,12 @@ export function NewPass({ ключ, onDone, onBack }: {
             <span className={s.say} role="status">{said}</span>
 
             <Button kind="go" type="submit" disabled={busy || !ключ}>
-              {busy ? 'Меняем…' : 'Задать пароль и войти'}
+              {busy ? тр("Меняем…") : тр("Задать пароль и войти")}
             </Button>
           </form>
 
           <p className={s.foot}>
-            Ссылка живёт час и срабатывает один раз. Если она уже не работает —
-            попросите новую на экране входа: там есть «Забыли пароль».
+            {тр("Ссылка живёт час и срабатывает один раз. Если она уже не работает — попросите новую на экране входа: там есть «Забыли пароль».")}
           </p>
         </div>
       </div>

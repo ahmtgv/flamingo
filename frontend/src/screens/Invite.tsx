@@ -5,6 +5,7 @@ import { Mark } from '../ui/Mark'
 import { Беда, ктоЗовёт, принятьПриглашение } from '../lib/study'
 import s from './Invite.module.css'
 import { Button } from '../ui/Button'
+import { тр } from '../lib/язык.ts'
 
 /** Ссылка в журнал: `/у/<ключ>`.
  *
@@ -44,7 +45,7 @@ export function Invite({ ключ, person, onSign, onDone, onHome }: {
       .catch((e) => {
         if (e instanceof Беда) { setБеда(e.message); return }
         setМолчит(true)
-        setБеда('Сервер занятий не ответил. Ссылка, скорее всего, цела — подождите минуту и спросите ещё раз.')
+        setБеда(тр("Сервер занятий не ответил. Ссылка, скорее всего, цела — подождите минуту и спросите ещё раз."))
       })
   }, [ключ])
 
@@ -56,7 +57,7 @@ export function Invite({ ключ, person, onSign, onDone, onHome }: {
         if (!живо) return
         if (e instanceof Беда) { setБеда(e.message); return }
         setМолчит(true)
-        setБеда('Сервер занятий не ответил. Ссылка, скорее всего, цела — подождите минуту и спросите ещё раз.')
+        setБеда(тр("Сервер занятий не ответил. Ссылка, скорее всего, цела — подождите минуту и спросите ещё раз."))
       })
     return () => { живо = false }
   }, [ключ])
@@ -68,7 +69,7 @@ export function Invite({ ключ, person, onSign, onDone, onHome }: {
       const имя = await принятьПриглашение(ключ)
       setГотово(имя)
     } catch (e) {
-      setБеда(e instanceof Беда ? e.message : 'Не вышло принять приглашение.')
+      setБеда(e instanceof Беда ? e.message : тр("Не вышло принять приглашение."))
     } finally {
       setЖдём(false)
     }
@@ -77,63 +78,58 @@ export function Invite({ ключ, person, onSign, onDone, onHome }: {
   return (
     <main className={s.screen}>
       <div className={s.card}>
-        <Mark onGo={onHome} title="Главная" />
+        <Mark onGo={onHome} title={тр("Главная")} />
 
         {готово ? (
           <>
-            <h1 className={s.title}>Готово</h1>
+            <h1 className={s.title}>{тр("Готово")}</h1>
             <p className={s.lead}>
-              Вы записаны к преподавателю: {готово}. Занятия появятся в вашем
-              кабинете, а ссылку на урок больше искать не придётся.
+              {тр("Вы записаны к преподавателю:")} {готово}{тр(". Занятия появятся в вашем кабинете, а ссылку на урок больше искать не придётся.")}
             </p>
-            <Button kind="go" onClick={onDone}>В мой кабинет</Button>
+            <Button kind="go" onClick={onDone}>{тр("В мой кабинет")}</Button>
           </>
         ) : беда ? (
           <>
-            <h1 className={s.title}>{молчит ? 'Сервер занятий не ответил' : 'Ссылка не работает'}</h1>
+            <h1 className={s.title}>{молчит ? тр("Сервер занятий не ответил") : тр("Ссылка не работает")}</h1>
             <p className={s.lead}>{беда}</p>
             {молчит ? null : (
               <p className={s.foot}>
-                Ссылка в журнал живёт семь дней и срабатывает один раз. Попросите
-                преподавателя прислать новую — это одно нажатие.
+                {тр("Ссылка в журнал живёт семь дней и срабатывает один раз. Попросите преподавателя прислать новую — это одно нажатие.")}
               </p>
             )}
             <div className={s.row}>
               {молчит ? (
-                <Button kind="go" onClick={спросить}>Спросить ещё раз</Button>
+                <Button kind="go" onClick={спросить}>{тр("Спросить ещё раз")}</Button>
               ) : null}
-              <Button kind="quiet" onClick={onHome}>На главную</Button>
+              <Button kind="quiet" onClick={onHome}>{тр("На главную")}</Button>
             </div>
           </>
         ) : зовёт === null ? (
-          <p className={s.lead}>Смотрим, кто зовёт…</p>
+          <p className={s.lead}>{тр("Смотрим, кто зовёт…")}</p>
         ) : (
           <>
-            <h1 className={s.title}>{зовёт} зовёт вас на занятия</h1>
+            <h1 className={s.title}>{зовёт} {тр("зовёт вас на занятия")}</h1>
             <p className={s.lead}>
-              Согласитесь — и вы увидите друг друга: преподаватель увидит вас
-              в журнале, а вы его — в своём кабинете. Занятия начнут появляться
-              там сами.
+              {тр("Согласитесь — и вы увидите друг друга: преподаватель увидит вас в журнале, а вы его — в своём кабинете. Занятия начнут появляться там сами.")}
             </p>
 
             {person ? (
               <div className={s.row}>
                 <Button kind="go" onClick={принять} disabled={ждём}>
-                  {ждём ? 'Записываем…' : 'Согласиться'}
+                  {ждём ? тр("Записываем…") : тр("Согласиться")}
                 </Button>
-                <Button kind="quiet" onClick={onHome}>Не сейчас</Button>
+                <Button kind="quiet" onClick={onHome}>{тр("Не сейчас")}</Button>
               </div>
             ) : (
               <>
                 <div className={s.row}>
                   <Button kind="go" onClick={onSign}>
-                    Войти или завести учётную запись
+                    {тр("Войти или завести учётную запись")}
                   </Button>
-                  <Button kind="quiet" onClick={onHome}>Не сейчас</Button>
+                  <Button kind="quiet" onClick={onHome}>{тр("Не сейчас")}</Button>
                 </div>
                 <p className={s.foot}>
-                  Учётная запись нужна, чтобы вы с преподавателем не терялись
-                  после урока. На сам урок по ссылке она не нужна.
+                  {тр("Учётная запись нужна, чтобы вы с преподавателем не терялись после урока. На сам урок по ссылке она не нужна.")}
                 </p>
               </>
             )}

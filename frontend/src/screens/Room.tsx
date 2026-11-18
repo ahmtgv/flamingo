@@ -30,6 +30,7 @@ import { Переписка, type УрокДляЗова } from './Перепи�
 import s from './Room.module.css'
 import { ЗвукКласса, ЗвукУчителя } from '../room/Звук'
 import { useТелефон } from '../room/телефон'
+import { тр } from '../lib/язык.ts'
 
 /* Знаки пульта занятия. Рисованные, а не глифы шрифта: глиф на части машин
    не отрисовывается и оставляет пустой квадрат (тот же довод, что у крестика
@@ -611,14 +612,14 @@ export function Room({ code, name, onLeave, onHome }: Props) {
      сервер, как с той страницы, и сразу открывается классу. */
   const положитьСсылкуСюда = useCallback(
     async (url: string): Promise<string | null> => {
-      if (!урокId) return 'Комната не от урока — ссылку некуда положить. Откройте её в «Источниках».'
+      if (!урокId) return тр("Комната не от урока — ссылку некуда положить. Откройте её в «Источниках».")
       try {
         const п = await положитьСсылку(урокId, url, url)
         setПособия((с) => [...с, п])
         void показатьПособие(п)
         return null
       } catch (e) {
-        return e instanceof Беда ? e.message : 'Ссылка не легла: сервер не ответил.'
+        return e instanceof Беда ? e.message : тр("Ссылка не легла: сервер не ответил.")
       }
     },
     [урокId, показатьПособие],
@@ -723,11 +724,11 @@ export function Room({ code, name, onLeave, onHome }: Props) {
           <span className={s.sep} />
           {/* Имя урока, а не машинный код. Код остаётся — но подсказкой у
               кнопки «Скопировать ссылку», где он и нужен. */}
-          <span className={s.имяУрока} title={code}>{название || 'Урок по ссылке'}</span>
+          <span className={s.имяУрока} title={code}>{название || тр("Урок по ссылке")}</span>
           <span className={s.live}>
             {/* ПРАВИЛА 11а: «идёт» зелёное, «связи нет» — аларм и потому коралловое. */}
             <span className={`${s.dot} ${phase === 'failed' ? s.dotAlarm : ''} ${phase === 'connecting' ? s.dotWait : ''}`} />
-            {phase === 'live' ? 'идёт' : phase === 'connecting' ? 'подключаемся' : 'связи нет'}
+            {phase === 'live' ? 'идёт' : phase === 'connecting' ? 'подключаемся' : тр("связи нет")}
           </span>
         </span>
 
@@ -756,7 +757,7 @@ export function Room({ code, name, onLeave, onHome }: Props) {
               onClick={() => setSource(source === 'board' ? сценаКласса : 'board')}
               aria-pressed={source === 'board'}
             >
-              {source === 'board' ? 'К уроку' : 'Доска'}
+              {source === 'board' ? тр("К уроку") : тр("Доска")}
             </button>
           </span>
         )}
@@ -767,16 +768,16 @@ export function Room({ code, name, onLeave, onHome }: Props) {
             type="button"
             className={`${s.chatBtn} ${контактыОткрыты || пишу ? s.chatOn : ''}`}
             onClick={() => { if (пишу) setПишу(null); else setКонтактыОткрыты((v) => !v) }}
-            title="Написать ученику или преподавателю, которого нет на уроке"
+            title={тр("Написать ученику или преподавателю, которого нет на уроке")}
           >
-            Написать
+            {тр("Написать")}
           </button>
           <button
             type="button"
             className={`${s.chatBtn} ${s.чатДверь} ${chatOpen ? s.chatOn : ''}`}
             onClick={() => setChatOpen((v) => !v)}
           >
-            Чат
+            {тр("Чат")}
             {/* ПРАВИЛА 11.8: непрочитанное в чате ИДУЩЕГО занятия портится от ожидания —
                 вопрос живёт до конца урока. Поэтому коралловая надпись, но не заливка. */}
             {unread > 0 && !чатВиден ? <span className={s.unread}>{unread}</span> : null}
@@ -792,9 +793,9 @@ export function Room({ code, name, onLeave, onHome }: Props) {
           подсказка, без неё урока нет. */}
       {звукГлушится ? (
         <p className={s.звукМолчит} role="status">
-          <span>Браузер не даёт включить звук, пока вы не нажмёте. Это его защита, не наша поломка.</span>
+          <span>{тр("Браузер не даёт включить звук, пока вы не нажмёте. Это его защита, не наша поломка.")}</span>
           <button type="button" className={s.звукКнопка} onClick={включитьЗвук}>
-            Включить звук
+            {тр("Включить звук")}
           </button>
         </p>
       ) : null}
@@ -855,7 +856,7 @@ export function Room({ code, name, onLeave, onHome }: Props) {
           <Screen
             track={faces.find((f) => f.screen)?.screen}
             mine={sharing}
-            who={faces.find((f) => f.screen)?.name ?? 'преподаватель'}
+            who={faces.find((f) => f.screen)?.name ?? тр("преподаватель")}
             onStop={stopShare}
           />
         ) : null}
@@ -883,9 +884,9 @@ export function Room({ code, name, onLeave, onHome }: Props) {
             именно не открылось, и что остальное на месте (ПРАВИЛА 6.4). */}
         {материалНеОткрылся ? (
           <div className={s.overNote}>
-            <Note light title="Материал не открылся"
-              text={`«${материалНеОткрылся}» не пришёл с сервера — возможно, его сняли с урока. Остальные материалы на месте.`}
-              action="Понятно" onAction={() => setМатериалНеОткрылся(null)} />
+            <Note light title={тр("Материал не открылся")}
+              text={тр("«{1}» не пришёл с сервера — возможно, его сняли с урока. Остальные материалы на месте.", { 1: материалНеОткрылся })}
+              action={тр("Понятно")} onAction={() => setМатериалНеОткрылся(null)} />
           </div>
         ) : null}
 
@@ -893,9 +894,9 @@ export function Room({ code, name, onLeave, onHome }: Props) {
             галку (ПРАВИЛА 6.4). Ссылка на урок стоит рядом, в шапке. */}
         {неСкопировалось ? (
           <div className={s.overNote}>
-            <Note light title="Ссылка не скопировалась"
-              text={`Браузер не дал скопировать. Ссылка на урок: ${link} — выделите её и скопируйте руками.`}
-              action="Понятно" onAction={() => setНеСкопировалось(false)} />
+            <Note light title={тр("Ссылка не скопировалась")}
+              text={тр("Браузер не дал скопировать. Ссылка на урок: {1} — выделите её и скопируйте руками.", { 1: link })}
+              action={тр("Понятно")} onAction={() => setНеСкопировалось(false)} />
           </div>
         ) : null}
 
@@ -903,7 +904,7 @@ export function Room({ code, name, onLeave, onHome }: Props) {
             и урок идёт дальше; но молчать нельзя (ПРАВИЛА 6.4). */}
         {shareSaid ? (
           <div className={s.overNote}>
-            <Note light title="Экран не показан" text={shareSaid} />
+            <Note light title={тр("Экран не показан")} text={shareSaid} />
           </div>
         ) : null}
 
@@ -911,8 +912,8 @@ export function Room({ code, name, onLeave, onHome }: Props) {
         {busy ? (
           <div className={s.overNote}>
             {грузимЗвук
-              ? <Note light title="Загружаем звук" text="Файл скачивается к вам в браузер. Нажмите «Играть» — и класс услышит." />
-              : <Note light title="Разбираем файл" text="Страницы готовятся прямо в браузере — на сервер файл не уезжает. Первой уедет классу та страница, которую откроете." />}
+              ? <Note light title={тр("Загружаем звук")} text={тр("Файл скачивается к вам в браузер. Нажмите «Играть» — и класс услышит.")} />
+              : <Note light title={тр("Разбираем файл")} text={тр("Страницы готовятся прямо в браузере — на сервер файл не уезжает. Первой уедет классу та страница, которую откроете.")} />}
           </div>
         ) : null}
 
@@ -930,7 +931,7 @@ export function Room({ code, name, onLeave, onHome }: Props) {
           />
         ) : (() => {
           const звучит = faces.find((f) => !f.isLocal && f.пособие)
-          return звучит ? <ЗвукКласса имя={звучит.пособиеИмя ?? 'Звук урока'} /> : null
+          return звучит ? <ЗвукКласса имя={звучит.пособиеИмя ?? тр("Звук урока")} /> : null
         })()}
 
         {/* Лица лежат ПОВЕРХ доски: холст под ними бесконечный и ничем не обрезан. */}
@@ -944,15 +945,15 @@ export function Room({ code, name, onLeave, onHome }: Props) {
         {source !== 'faces' && phase !== 'live' ? (
           <div className={s.overNote}>
             {phase === 'connecting' ? (
-              <Note light title="Поднимаем эфир" text="Первым появится ваш кадр, потом остальные — по мере входа. Доска уже работает." />
+              <Note light title={тр("Поднимаем эфир")} text={тр("Первым появится ваш кадр, потом остальные — по мере входа. Доска уже работает.")} />
             ) : (
               <Note
                 light
-                title="Эфир не поднялся"
+                title={тр("Эфир не поднялся")}
                 warn
                 text={error}
                 цело={ЦЕЛО}
-                action="Поднять эфир заново"
+                action={тр("Поднять эфир заново")}
                 onAction={() => window.location.reload()}
               />
             )}
@@ -993,7 +994,7 @@ export function Room({ code, name, onLeave, onHome }: Props) {
             имя={пишу.имя}
             веду={веду}
             уроки={веду && урокId && когдаУрок
-              ? [{ id: урокId, название: название || 'Урок по ссылке', ...когдаУрок } satisfies УрокДляЗова]
+              ? [{ id: урокId, название: название || тр("Урок по ссылке"), ...когдаУрок } satisfies УрокДляЗова]
               : []}
             onClose={() => setПишу(null)}
           />
@@ -1037,8 +1038,8 @@ export function Room({ code, name, onLeave, onHome }: Props) {
             className={s.pultTab}
             aria-expanded={пультЗван}
             aria-controls="pult"
-            aria-label={пультЗван ? 'Скрыть пульт занятия' : 'Показать пульт занятия'}
-            title="Пульт занятия"
+            aria-label={пультЗван ? тр("Скрыть пульт занятия") : тр("Показать пульт занятия")}
+            title={тр("Пульт занятия")}
             onClick={() => setПультЗван((v) => !v)}
           >
             <span className={s.pultTabLine} aria-hidden="true" />
@@ -1054,15 +1055,15 @@ export function Room({ code, name, onLeave, onHome }: Props) {
           <div className={s.pult} id="pult">
             <button
               type="button" className={s.pultIcon} onClick={toggleMic} aria-pressed={mic}
-              aria-label={mic ? 'Микрофон включён' : 'Микрофон выключен'}
-              title={mic ? 'Микрофон' : 'Микрофон выключен'}
+              aria-label={mic ? тр("Микрофон включён") : тр("Микрофон выключен")}
+              title={mic ? тр("Микрофон") : тр("Микрофон выключен")}
             >
               {mic ? МИКРОФОН : МИКРОФОН_ВЫКЛ}
             </button>
             <button
               type="button" className={s.pultIcon} onClick={toggleCam} aria-pressed={cam}
-              aria-label={cam ? 'Камера включена' : 'Камера выключена'}
-              title={cam ? 'Камера' : 'Камера выключена'}
+              aria-label={cam ? тр("Камера включена") : тр("Камера выключена")}
+              title={cam ? тр("Камера") : тр("Камера выключена")}
             >
               {cam ? КАМЕРА : КАМЕРА_ВЫКЛ}
             </button>
@@ -1074,8 +1075,8 @@ export function Room({ code, name, onLeave, onHome }: Props) {
                 <span className={s.divider} />
                 <button
                   type="button" className={s.pultIcon} onClick={copy}
-                  aria-label={copied ? 'Ссылка скопирована' : 'Скопировать ссылку на урок'}
-                  title={copied ? 'Ссылка скопирована' : 'Ссылка на урок'}
+                  aria-label={copied ? тр("Ссылка скопирована") : тр("Скопировать ссылку на урок")}
+                  title={copied ? тр("Ссылка скопирована") : тр("Ссылка на урок")}
                 >
                   {copied ? ГАЛКА : ССЫЛКА}
                 </button>
@@ -1091,8 +1092,8 @@ export function Room({ code, name, onLeave, onHome }: Props) {
                 setТема(т)
                 сохранитьТему(т)
               }}
-              aria-label={`Оформление: ${тема === 'день' ? 'день' : тема === 'ночь' ? 'ночь' : 'как в системе'}. Переключить`}
-              title="День, ночь или как в системе"
+              aria-label={тр("Оформление: {1}. Переключить", { 1: тр(тема) })}
+              title={тр("День, ночь или как в системе")}
             >
               {тема === 'день' ? СОЛНЦЕ : тема === 'ночь' ? ЛУНА : СИСТЕМА}
             </button>
@@ -1100,8 +1101,8 @@ export function Room({ code, name, onLeave, onHome }: Props) {
             {/* Уход — НЕ аларм (ПРАВИЛА 11а): без заливки и тише прочих. */}
             <button
               type="button" className={`${s.pultIcon} ${s.pultOut}`} onClick={quit}
-              aria-label={iLead ? 'Завершить урок' : 'Выйти из комнаты'}
-              title={iLead ? 'Завершить урок' : 'Выйти'}
+              aria-label={iLead ? тр("Завершить урок") : тр("Выйти из комнаты")}
+              title={iLead ? тр("Завершить урок") : тр("Выйти")}
             >
               {ВЫХОД}
             </button>

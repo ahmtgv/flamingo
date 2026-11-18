@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { moveObj, moveStroke } from './select'
 import { newId, type Bus, type Msg, type Obj, type Sheet, type Stroke } from './protocol'
+import { тр } from '../lib/язык.ts'
 
 /** Досок в комнате может быть несколько; открыта у всех одна и та же.
  *
@@ -10,7 +11,7 @@ import { newId, type Bus, type Msg, type Obj, type Sheet, type Stroke } from './
  *  доску на тридцати участниках. React узнаёт о переменах отдельной «версией».
  */
 export function useSheets(bus: Bus, peers: number) {
-  const sheets = useRef<Sheet[]>([{ id: 'first', name: 'Доска 1', strokes: [], objs: [] }])
+  const sheets = useRef<Sheet[]>([{ id: 'first', name: тр("Доска 1"), strokes: [], objs: [] }])
   const [active, setActive] = useState('first')
   const [version, bump] = useState(0)
   const activeRef = useRef(active)
@@ -129,7 +130,7 @@ export function useSheets(bus: Bus, peers: number) {
 
   const addSheet = useCallback(() => {
     const id = newId()
-    sheets.current = [...sheets.current, { id, name: `Доска ${sheets.current.length + 1}`, strokes: [], objs: [] }]
+    sheets.current = [...sheets.current, { id, name: тр("Доска {1}", { 1: sheets.current.length + 1 }), strokes: [], objs: [] }]
     setActive(id)
     activeRef.current = id
     touch()

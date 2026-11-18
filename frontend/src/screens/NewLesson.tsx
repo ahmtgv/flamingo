@@ -13,6 +13,7 @@ import {
 import s from './NewLesson.module.css'
 import { Button } from '../ui/Button'
 import { имяПояса, мойПояс } from '../lib/пояс'
+import { тр } from '../lib/язык.ts'
 
 /** Урок: завести новый или поправить заведённый.
  *
@@ -32,8 +33,8 @@ import { имяПояса, мойПояс } from '../lib/пояс'
  */
 
 const РАЗМЕР = (b: number) =>
-  b >= 1024 * 1024 ? `${Math.round(b / (1024 * 1024))} МБ`
-    : b >= 1024 ? `${Math.round(b / 1024)} КБ` : `${b} Б`
+  b >= 1024 * 1024 ? тр("{1} МБ", { 1: Math.round(b / (1024 * 1024)) })
+    : b >= 1024 ? тр("{1} КБ", { 1: Math.round(b / 1024) }) : тр("{1} Б", { 1: b })
 
 /* Время и дата набраны целиком — только тогда о них есть что сказать. */
 const ПОЛНОЕ_ВРЕМЯ = /^\d{2}:\d{2}$/
@@ -102,21 +103,21 @@ export function NewLesson({ person, урокId, onDone, onCreated, onBack, onOut
   const разобрать = () => {
     const имя = название.trim().replace(/\s+/g, ' ').slice(0, 120)
     if (!имя) {
-      setСказать(['Сначала название', 'По нему урок видно в расписании, а класс поймёт, куда пришёл.'])
+      setСказать([тр("Сначала название"), тр("По нему урок видно в расписании, а класс поймёт, куда пришёл.")])
       return null
     }
     const машинная = датаВМашинную(дата)
     if (!машинная) {
-      setСказать(['Дата — днём, месяцем и годом', 'Например, 03.09.2026.'])
+      setСказать([тр("Дата — днём, месяцем и годом"), тр("Например, 03.09.2026.")])
       return null
     }
     if (!времяЦелое(время)) {
-      setСказать(['Время — часами и минутами', 'Например, 14:00.'])
+      setСказать([тр("Время — часами и минутами"), тр("Например, 14:00.")])
       return null
     }
     const м = Number(минут)
     if (!Number.isFinite(м) || м < 5 || м > 480) {
-      setСказать(['Длительность — от 5 до 480 минут', 'Обычный урок — 45.'])
+      setСказать([тр("Длительность — от 5 до 480 минут"), тр("Обычный урок — 45.")])
       return null
     }
     return { название: имя, дата: машинная, время, минут: Math.round(м) }
@@ -131,14 +132,14 @@ export function NewLesson({ person, урокId, onDone, onCreated, onBack, onOut
       const новый = !урок
       const у = урок ? await поправитьУрок(урок.id, что) : await завестиУрок(что)
       setУрок(у)
-      setХорошо(новый ? 'Урок создан. Можно приложить материалы.' : 'Изменения сохранены.')
+      setХорошо(новый ? тр("Урок создан. Можно приложить материалы.") : тр("Изменения сохранены."))
       /* 🔴 АДРЕС ПОДМЕНЯЕТСЯ ТОЛЬКО ПОСЛЕ УДАЧИ И ТОЛЬКО ОДИН РАЗ. До этой
          строки экран оставался на «/создать-урок», хотя урок уже существовал:
          обновление страницы теряло панель материалов. Подмена, а не переход —
          иначе «Назад» упиралось бы в пустую форму создания того, что уже создано. */
       if (новый) onCreated?.(у.id)
     } catch (e) {
-      setСказать(['Не сохранилось', e instanceof Беда ? e.message : 'Сервер занятий не ответил.'])
+      setСказать([тр("Не сохранилось"), e instanceof Беда ? e.message : тр("Сервер занятий не ответил.")])
     } finally {
       setЖдём(false)
     }
@@ -152,7 +153,7 @@ export function NewLesson({ person, урокId, onDone, onCreated, onBack, onOut
         const п = await положитьФайл(урок.id, ф)
         setУрок((у) => (у ? { ...у, материалы: [...у.материалы, п] } : у))
       } catch (e) {
-        setСказать(['Файл не принят', e instanceof Беда ? e.message : 'Сервер не ответил.'])
+        setСказать([тр("Файл не принят"), e instanceof Беда ? e.message : тр("Сервер не ответил.")])
         break
       }
     }
@@ -168,7 +169,7 @@ export function NewLesson({ person, урокId, onDone, onCreated, onBack, onOut
       setСсылку(null)
       setСказать(null)
     } catch (e) {
-      setСказать(['Ссылка не принята', e instanceof Беда ? e.message : 'Сервер не ответил.'])
+      setСказать([тр("Ссылка не принята"), e instanceof Беда ? e.message : тр("Сервер не ответил.")])
     }
   }
 
@@ -178,7 +179,7 @@ export function NewLesson({ person, урокId, onDone, onCreated, onBack, onOut
       await снятьПособие(п.id)
       setУрок((у) => (у ? { ...у, материалы: у.материалы.filter((m) => m.id !== п.id) } : у))
     } catch (e) {
-      setСказать(['Не снялось', e instanceof Беда ? e.message : 'Сервер не ответил.'])
+      setСказать([тр("Не снялось"), e instanceof Беда ? e.message : тр("Сервер не ответил.")])
     }
   }
 
@@ -202,7 +203,7 @@ export function NewLesson({ person, урокId, onDone, onCreated, onBack, onOut
       await убратьУрок(урок.id)
       onDone()
     } catch (e) {
-      setСказать(['Урок не убрался', e instanceof Беда ? e.message : 'Сервер не ответил.'])
+      setСказать([тр("Урок не убрался"), e instanceof Беда ? e.message : тр("Сервер не ответил.")])
     }
   }
 
@@ -217,15 +218,15 @@ export function NewLesson({ person, урокId, onDone, onCreated, onBack, onOut
           рисуются рамой и здесь не повторяются (ПРАВИЛА 4.9: знак один на
           экран), а имя листа — рисуется всегда. */}
       <header className={s.head}>
-        {вРаме ? null : <Mark onGo={onHome} title="Главная" />}
+        {вРаме ? null : <Mark onGo={onHome} title={тр("Главная")} />}
         <span className={s.crumb}
-              title={`Кабинет преподавателя · ${правка ? 'Урок' : 'Создать урок'}`}>
-          Кабинет преподавателя · {правка ? 'Урок' : 'Создать урок'}
+              title={тр("Кабинет преподавателя · {1}", { 1: правка ? тр("Урок") : тр("Создать урок") })}>
+          {тр("Кабинет преподавателя ·")} {правка ? тр("Урок") : тр("Создать урок")}
         </span>
         {вРаме ? null : (
           <span className={s.who}>
             {person.name} ·{' '}
-            <button type="button" className={s.out} onClick={onOut}>Выйти</button>
+            <button type="button" className={s.out} onClick={onOut}>{тр("Выйти")}</button>
           </span>
         )}
       </header>
@@ -233,39 +234,37 @@ export function NewLesson({ person, урокId, onDone, onCreated, onBack, onOut
       <div className={s.body}>
         {/* Левая колонка — где я, куда вернуться и что сейчас произойдёт. */}
         <section className={s.promise}>
-          <button type="button" className={s.back} onClick={onBack}>← В кабинет</button>
+          <button type="button" className={s.back} onClick={onBack}>{тр("← В кабинет")}</button>
 
-          <h1 className={s.title}>{правка ? 'Урок' : 'Создать урок'}</h1>
+          <h1 className={s.title}>{правка ? тр("Урок") : тр("Создать урок")}</h1>
 
           <p className={s.lead}>
             {правка
-              ? 'Меняйте что нужно — ссылка на комнату останется прежней, и тем, кому вы её отдали, ничего пересылать не придётся.'
-              : 'Урок встанет в расписание, и у него сразу будет своя комната: войти в неё можно из кабинета в любой момент — и до начала, и после.'}
+              ? тр("Меняйте что нужно — ссылка на комнату останется прежней, и тем, кому вы её отдали, ничего пересылать не придётся.")
+              : тр("Урок встанет в расписание, и у него сразу будет своя комната: войти в неё можно из кабинета в любой момент — и до начала, и после.")}
           </p>
 
           <span className={s.rule} />
 
           {правка && урок ? (
             <div className={s.room}>
-              <span className={s.roomLabel}>Ссылка на комнату</span>
+              <span className={s.roomLabel}>{тр("Ссылка на комнату")}</span>
               <div className={s.linkBox} title={`${window.location.host}/r/${урок.код}`}>
                 <code>{window.location.host}/r/{урок.код}</code>
                 <button type="button" className={s.copy} onClick={() => копировать(урок.код)}>
-                  {скопировано ? 'Скопировано' : 'Скопировать'}
+                  {скопировано ? тр("Скопировано") : тр("Скопировать")}
                 </button>
               </div>
               <p className={s.foot}>
-                Ссылка рождается вместе с уроком и не меняется от правок — можно
-                отдать классу заранее.
+                {тр("Ссылка рождается вместе с уроком и не меняется от правок — можно отдать классу заранее.")}
               </p>
               {onEnter ? (
-                <div><Button kind="go" onClick={() => onEnter(урок.код)}>Войти в комнату</Button></div>
+                <div><Button kind="go" onClick={() => onEnter(урок.код)}>{тр("Войти в комнату")}</Button></div>
               ) : null}
             </div>
           ) : (
             <p className={s.foot}>
-              Материалы урока — учебник, презентацию, картинки, звук — можно приложить сразу
-              после создания: они лягут на полку «Материалы урока», когда класс войдёт.
+              {тр("Материалы урока — учебник, презентацию, картинки, звук — можно приложить сразу после создания: они лягут на полку «Материалы урока», когда класс войдёт.")}
             </p>
           )}
         </section>
@@ -278,8 +277,8 @@ export function NewLesson({ person, урокId, onDone, onCreated, onBack, onOut
             onSubmit={(e) => { e.preventDefault(); сохранить() }}
           >
             <Field
-              label="Название"
-              placeholder="Например, Алгебра — квадратные уравнения"
+              label={тр("Название")}
+              placeholder={тр("Например, Алгебра — квадратные уравнения")}
               value={название}
               maxLength={120}
               autoFocus={!правка}
@@ -288,15 +287,15 @@ export function NewLesson({ person, урокId, onDone, onCreated, onBack, onOut
 
             <div className={s.when}>
               <Field
-                label="Дата" inputMode="numeric" placeholder="дд.мм.гггг" value={дата}
+                label={тр("Дата")} inputMode="numeric" placeholder={тр("дд.мм.гггг")} value={дата}
                 onChange={(e) => { setДата(маскаДаты(e.target.value)); setСказать(null); setХорошо('') }}
               />
               <Field
-                label="Время" inputMode="numeric" placeholder="чч:мм" value={время}
+                label={тр("Время")} inputMode="numeric" placeholder={тр("чч:мм")} value={время}
                 onChange={(e) => { setВремя(маскаВремени(e.target.value)); setСказать(null); setХорошо('') }}
               />
               <Field
-                label="Длительность, мин" inputMode="numeric" placeholder="45" value={минут}
+                label={тр("Длительность, мин")} inputMode="numeric" placeholder="45" value={минут}
                 onChange={(e) => {
                   setМинут(e.target.value.replace(/\D/g, '').slice(0, 3)); setСказать(null); setХорошо('')
                 }}
@@ -316,7 +315,7 @@ export function NewLesson({ person, урокId, onDone, onCreated, onBack, onOut
                 о несуществующем времени — это шум, а не помощь. */}
             {пояс && ПОЛНОЕ_ВРЕМЯ.test(время) && ПОЛНАЯ_ДАТА.test(дата) ? (
               <p className={s.пояс}>
-                Время в вашем поясе: {имяПояса(пояс)}
+                {тр("Время в вашем поясе:")} {имяПояса(пояс)}
               </p>
             ) : null}
 
@@ -324,7 +323,7 @@ export function NewLesson({ person, урокId, onDone, onCreated, onBack, onOut
                 а до нажатия «Создать» его ещё нет. */}
             {урок ? (
               <div className={s.mats}>
-                <span className={s.matsLabel}>Материалы урока</span>
+                <span className={s.matsLabel}>{тр("Материалы урока")}</span>
 
                 {урок.материалы.length ? (
                   <div className={s.matList}>
@@ -335,7 +334,7 @@ export function NewLesson({ person, урокId, onDone, onCreated, onBack, onOut
                           {п.вид === 'link' ? 'ссылка' : РАЗМЕР(п.размер)}
                         </span>
                         <button type="button" className={s.matOff} onClick={() => снять(п)}>
-                          снять
+                          {тр("снять")}
                         </button>
                       </span>
                     ))}
@@ -347,13 +346,13 @@ export function NewLesson({ person, урокId, onDone, onCreated, onBack, onOut
                     type="button" className={s.chip}
                     onClick={() => файлВход.current?.click()}
                   >
-                    + Документ, картинка или звук
+                    {тр("+ Документ, картинка или звук")}
                   </button>
                   <button
                     type="button" className={s.chip}
                     onClick={() => setСсылку((v) => (v === null ? '' : null))}
                   >
-                    + Ссылка
+                    {тр("+ Ссылка")}
                   </button>
                   <input
                     ref={файлВход} type="file" multiple className={s.hidden}
@@ -371,19 +370,18 @@ export function NewLesson({ person, урокId, onDone, onCreated, onBack, onOut
                       onChange={(e) => setСсылку(e.target.value)}
                       onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); положитьАдрес() } }}
                     />
-                    <button type="button" className={s.chip} onClick={положитьАдрес}>Положить</button>
+                    <button type="button" className={s.chip} onClick={положитьАдрес}>{тр("Положить")}</button>
                   </div>
                 ) : null}
 
                 <span className={s.matsHint}>
-                  Видео и всё крупное — ссылкой: у себя мы их не храним, и класс
-                  не будет ждать загрузку вместо урока.
+                  {тр("Видео и всё крупное — ссылкой: у себя мы их не храним, и класс не будет ждать загрузку вместо урока.")}
                 </span>
               </div>
             ) : null}
 
             <Button kind="go" type="submit" disabled={ждём}>
-              {ждём ? 'Сохраняем…' : правка ? 'Сохранить' : 'Создать урок'}
+              {ждём ? тр("Сохраняем…") : правка ? тр("Сохранить") : тр("Создать урок")}
             </Button>
 
             {/* 🔴 СООБЩЕНИЕ ПОД КНОПКОЙ, А НЕ НАД НЕЙ, И БЕЗ ЗАПАСА МЕСТА.
@@ -412,20 +410,19 @@ export function NewLesson({ person, урокId, onDone, onCreated, onBack, onOut
             {правка ? (
               <>
               <div className={s.after}>
-                <Button kind="quiet" onClick={onDone}>Готово</Button>
+                <Button kind="quiet" onClick={onDone}>{тр("Готово")}</Button>
                 <button
                   type="button"
                   className={`${s.drop} ${сноситьВзвод ? s.dropArmed : ''}`}
                   onClick={убрать}
-                  title="Убрать урок · комната закроется, и ссылка перестанет работать у всех, кому вы её отправили. Вернуть нельзя."
+                  title={тр("Убрать урок · комната закроется, и ссылка перестанет работать у всех, кому вы её отправили. Вернуть нельзя.")}
                 >
-                  {сноситьВзвод ? 'убрать урок?' : 'Убрать урок'}
+                  {сноситьВзвод ? тр("убрать урок?") : тр("Убрать урок")}
                 </button>
               </div>
               {сноситьВзвод ? (
                 <p className={s.dropWhy} role="status">
-                  Комната закроется, и ссылка перестанет работать у всех, кому вы её
-                  отправили. Вернуть урок нельзя — только завести заново.
+                  {тр("Комната закроется, и ссылка перестанет работать у всех, кому вы её отправили. Вернуть урок нельзя — только завести заново.")}
                 </p>
               ) : null}
               </>

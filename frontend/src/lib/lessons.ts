@@ -13,6 +13,7 @@
 
 import { newRoomCode } from './code'
 import { мойПояс } from './пояс'
+import { тр } from './язык.ts'
 
 export type Урок = {
   id: string
@@ -85,7 +86,7 @@ export function поправить(
 ): Урок {
   const все = прочесть()
   const i = все.findIndex((у) => у.id === id)
-  if (i < 0) throw new Error('Такого занятия здесь нет.')
+  if (i < 0) throw new Error(тр("Такого занятия здесь нет."))
   все[i] = { ...все[i], ...что }
   записать(все)
   return все[i]

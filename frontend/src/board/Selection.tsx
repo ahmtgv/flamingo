@@ -1,6 +1,7 @@
 import s from './Board.module.css'
 import type { Box, Handle } from './select'
 import type { View } from './view'
+import { тр } from '../lib/язык.ts'
 
 /** Рамка выделения и ручки. Живут в ЭКРАННЫХ координатах, а не в мировых:
  *  ручка должна быть одного размера при любом масштабе, иначе на 30 % в неё
@@ -20,7 +21,7 @@ export function Selection({
   const handles: Handle[] = ['nw', 'ne', 'sw', 'se']
   return (
     <div className={s.selBox} style={{ left: x, top: y, width: w, height: h }} data-pult="выделение">
-      {count > 1 ? <span className={s.selCount}>{count} элемента</span> : null}
+      {count > 1 ? <span className={s.selCount}>{count} {тр("элемента")}</span> : null}
       {handles.map((hd) => (
         <span
           key={hd}

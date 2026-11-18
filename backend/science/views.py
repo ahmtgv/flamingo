@@ -130,6 +130,7 @@ def _meta(р: Run) -> dict:
         "проверка": р.id,
         "вид": р.kind,
         "протокол": р.protocol,
+        "язык": р.language,
         "начата": р.started,
         "закончена": р.finished,
         "перед": р.before,
@@ -243,6 +244,7 @@ def runs(request: HttpRequest, код: str) -> JsonResponse:
         volunteer=в,
         kind=вид,
         protocol=str(тело.get("протокол", ""))[:24],
+        language="en" if тело.get("язык") == "en" else "ru",
         before=_поля(тело.get("перед"), ПЕРЕД),
         device=_json_до(тело.get("устройство"), УСТРОЙСТВО_МАКС),
     )

@@ -2,6 +2,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 
 import s from './Board.module.css'
 import { PENS, type Form } from './protocol'
+import { тр } from '../lib/язык.ts'
 
 export type Tool = 'pick' | 'pen' | 'fade' | 'eraser' | 'hand' | 'arrow' | 'dash' | 'shape' | 'text' | 'note'
 
@@ -69,9 +70,9 @@ function Ico({ d }: { d: keyof typeof I }) {
 /** Подписи фигур. Список один и тот же для выпадашки и для подсказки кнопки:
  *  два списка разъезжаются на первой же правке. */
 const ФИГУРЫ: { f: Form; знак: 'ellipse' | 'rect' | 'tri'; имя: string; как: string }[] = [
-  { f: 'ellipse', знак: 'ellipse', имя: 'Овал', как: 'с Shift — ровный круг' },
-  { f: 'rect', знак: 'rect', имя: 'Прямоугольник', как: 'с Shift — квадрат' },
-  { f: 'tri', знак: 'tri', имя: 'Треугольник', как: 'с Shift — равносторонний' },
+  { f: 'ellipse', знак: 'ellipse', имя: тр("Овал"), как: тр("с Shift — ровный круг") },
+  { f: 'rect', знак: 'rect', имя: тр("Прямоугольник"), как: тр("с Shift — квадрат") },
+  { f: 'tri', знак: 'tri', имя: тр("Треугольник"), как: тр("с Shift — равносторонний") },
 ]
 
 export function Tools({
@@ -145,37 +146,37 @@ export function Tools({
   )
 
   return (
-    <div className={s.tools} role="toolbar" aria-label="Инструменты доски">
+    <div className={s.tools} role="toolbar" aria-label={тр("Инструменты доски")}>
       {/* Работа: чем ведут по холсту. «Рука» убрана с листа — холст двигают
           пробелом, и отдельная кнопка под это место в столбце не окупала. */}
-      {btn('pick', 'pick', 'Выбрать · клавиша V')}
-      {btn('pen', 'pen', 'Перо · клавиша P')}
+      {btn('pick', 'pick', тр("Выбрать · клавиша V"))}
+      {btn('pen', 'pen', тр("Перо · клавиша P"))}
       {/* Маркер стоит рядом с пером, а не с фигурами: рука делает им то же
           самое — ведёт линию. Разница только в том, что она не остаётся. */}
-      {btn('fade', 'fade', 'Исчезающий маркер · пропадает через 5 секунд · клавиша M')}
-      {btn('eraser', 'eraser', 'Ластик · клавиша E')}
+      {btn('fade', 'fade', тр("Исчезающий маркер · пропадает через 5 секунд · клавиша M"))}
+      {btn('eraser', 'eraser', тр("Ластик · клавиша E"))}
 
       <span className={s.sep} />
 
-      {btn('text', 'text', 'Текст · клавиша T')}
+      {btn('text', 'text', тр("Текст · клавиша T"))}
 
       <div className={s.attachBox} ref={box}>
         <button
           type="button"
           className={`${s.tool} ${menu === 'attach' ? s.toolOn : ''}`}
           aria-expanded={menu === 'attach'}
-          aria-label="Вложить"
-          title="Вложить: документ, картинка, видео, заметка"
+          aria-label={тр("Вложить")}
+          title={тр("Вложить: документ, картинка, видео, заметка")}
           onClick={() => setMenu((v) => (v === 'attach' ? null : 'attach'))}
         >
           <Ico d="clip" />
         </button>
         {menu === 'attach' ? (
-          <div className={s.attachMenu} role="menu" aria-label="Что вложить">
-            {вложение('doc', 'Документ', addDoc)}
-            {вложение('image', 'Картинка', addImage)}
-            {вложение('video', 'Видео по ссылке', addVideo)}
-            {вложение('note', 'Заметка', () => setTool('note'))}
+          <div className={s.attachMenu} role="menu" aria-label={тр("Что вложить")}>
+            {вложение('doc', тр("Документ"), addDoc)}
+            {вложение('image', тр("Картинка"), addImage)}
+            {вложение('video', тр("Видео по ссылке"), addVideo)}
+            {вложение('note', тр("Заметка"), () => setTool('note'))}
           </div>
         ) : null}
       </div>
@@ -185,11 +186,11 @@ export function Tools({
       {/* Отмена и возврат. ПРАВИЛА 14.1: пока отменять нечего, кнопка не притворяется
           живой — она выключена, и это видно. */}
       <button type="button" className={s.tool} onClick={undo} disabled={!canUndo}
-              title="Отменить · Ctrl+Z" aria-label="Отменить">
+              title={тр("Отменить · Ctrl+Z")} aria-label={тр("Отменить")}>
         <Ico d="undo" />
       </button>
       <button type="button" className={s.tool} onClick={redo} disabled={!canRedo}
-              title="Вернуть · Ctrl+Shift+Z" aria-label="Вернуть">
+              title={тр("Вернуть · Ctrl+Shift+Z")} aria-label={тр("Вернуть")}>
         <Ico d="redo" />
       </button>
 
@@ -216,8 +217,8 @@ export function Tools({
 
       {/* Форма линии — своя группа в конце, над толщиной (лист «Доска», 01.09).
           Стрелка, пунктир и толщина отвечают на один вопрос: как выглядит линия. */}
-      {btn('arrow', 'arrow', 'Стрелка · клавиша A')}
-      {btn('dash', 'dash', 'Пунктирная линия · клавиша D')}
+      {btn('arrow', 'arrow', тр("Стрелка · клавиша A"))}
+      {btn('dash', 'dash', тр("Пунктирная линия · клавиша D"))}
 
       {/* Три фигуры под одной кнопкой, как «Вложить»: тремя кнопками столбец
           вырастает на 144 px и перестаёт помещаться в кадр. Значок показывает
@@ -228,8 +229,8 @@ export function Tools({
           className={`${s.tool} ${tool === 'shape' || menu === 'shape' ? s.toolOn : ''}`}
           aria-expanded={menu === 'shape'}
           aria-pressed={tool === 'shape'}
-          aria-label="Фигура"
-          title={`Фигура: ${ФИГУРЫ.find((x) => x.f === form)?.имя.toLowerCase()} · клавиша S`}
+          aria-label={тр("Фигура")}
+          title={тр("Фигура: {1} · клавиша S", { 1: ФИГУРЫ.find((x) => x.f === form)?.имя.toLowerCase() })}
           onClick={() => {
             /* Первое нажатие берёт ту фигуру, что была выбрана прошлый раз, —
                рисовать можно сразу. Второе открывает список, чтобы сменить. */
@@ -241,7 +242,7 @@ export function Tools({
         </button>
         {menu === 'shape' ? (
           <div ref={menuShape} className={`${s.attachMenu} ${вверх ? s.attachMenuUp : ''}`}
-               role="menu" aria-label="Какая фигура">
+               role="menu" aria-label={тр("Какая фигура")}>
             {ФИГУРЫ.map((ф) => (
               <button
                 key={ф.f}
@@ -264,8 +265,8 @@ export function Tools({
         type="button"
         className={`${s.tool} ${thick ? s.toolOn : ''}`}
         aria-pressed={thick}
-        title={thick ? 'Толстое перо' : 'Тонкое перо'}
-        aria-label="Толщина пера"
+        title={thick ? тр("Толстое перо") : тр("Тонкое перо")}
+        aria-label={тр("Толщина пера")}
         onClick={() => setThick((v) => !v)}
       >
         <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor"
@@ -284,10 +285,10 @@ export function Tools({
         type="button"
         className={`${s.tool} ${armed ? s.wipeArmed : ''}`}
         onClick={wipe}
-        title="Стереть всё · стирает доску у всех, кто в комнате. Вернуть нельзя."
-        aria-label="Стереть всё"
+        title={тр("Стереть всё · стирает доску у всех, кто в комнате. Вернуть нельзя.")}
+        aria-label={тр("Стереть всё")}
       >
-        {armed ? <span className={s.wipeAsk}>стереть?</span> : <Ico d="wipe" />}
+        {armed ? <span className={s.wipeAsk}>{тр("стереть?")}</span> : <Ico d="wipe" />}
       </button>
     </div>
   )

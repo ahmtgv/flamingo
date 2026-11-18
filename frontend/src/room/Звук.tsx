@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 
 import s from './Звук.module.css'
+import { тр } from '../lib/язык.ts'
 
 /** Звук пособия на уроке (владелец, 12.11.2026: «учитель включает у себя в
  *  браузере — ученики слышат»).
@@ -58,7 +59,7 @@ export function ЗвукУчителя({ имя, адрес, пустьЗвуч�
     на('ended', () => setИграет(false))
     на('timeupdate', () => setГде(э.currentTime))
     на('loadedmetadata', () => setДлина(э.duration))
-    на('error', () => setБеда('Файл не читается: возможно, браузер не знает этот формат. Попробуйте mp3.'))
+    на('error', () => setБеда(тр("Файл не читается: возможно, браузер не знает этот формат. Попробуйте mp3.")))
     let звук: AudioContext | null = null
     try {
       звук = new AudioContext()
@@ -69,10 +70,10 @@ export function ЗвукУчителя({ имя, адрес, пустьЗвуч�
       исток.connect(эфир)
       const дорожка = эфир.stream.getAudioTracks()[0]
       if (дорожка) {
-        пустьЗвучит(дорожка, имя).catch(() => setБеда('Класс не слышит: эфир не принял звук. Проверьте связь.'))
+        пустьЗвучит(дорожка, имя).catch(() => setБеда(тр("Класс не слышит: эфир не принял звук. Проверьте связь.")))
       }
     } catch {
-      setБеда('Браузер не дал передать звук классу — играет только у вас.')
+      setБеда(тр("Браузер не дал передать звук классу — играет только у вас."))
     }
     return () => {
       э.pause()
@@ -94,14 +95,14 @@ export function ЗвукУчителя({ имя, адрес, пустьЗвуч�
        тогда заводится спящим, и ни учитель, ни класс ничего не слышат.
        Будим его этим нажатием. */
     void звукРеф.current?.resume()
-    if (э.paused) void э.play().catch(() => setБеда('Браузер не дал включить звук. Нажмите ещё раз.'))
+    if (э.paused) void э.play().catch(() => setБеда(тр("Браузер не дал включить звук. Нажмите ещё раз.")))
     else э.pause()
   }
 
   return (
-    <div className={s.плеер} role="group" aria-label={`Звук: ${имя}`} data-pult="звук">
+    <div className={s.плеер} role="group" aria-label={тр("Звук: {1}", { 1: имя })} data-pult="звук">
       <button type="button" className={s.кнопка} onClick={играть}
-              aria-label={играет ? 'Пауза' : 'Играть'} title={играет ? 'Пауза — у класса тоже тишина' : 'Играть — класс услышит'}>
+              aria-label={играет ? тр("Пауза") : тр("Играть")} title={играет ? тр("Пауза — у класса тоже тишина") : тр("Играть — класс услышит")}>
         {играет ? (
           <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M5 3.5v9M11 3.5v9" /></svg>
         ) : (
@@ -118,14 +119,14 @@ export function ЗвукУчителя({ имя, адрес, пустьЗвуч�
           step={0.1}
           value={Math.min(где, длина || 0)}
           onChange={(e) => { const э = плеер.current; if (э) э.currentTime = Number(e.target.value) }}
-          aria-label="Перемотка"
+          aria-label={тр("Перемотка")}
         />
         {(() => {
-          const слова = беда || `${время(где)} / ${время(длина)} · ${играет ? 'класс слышит' : 'пауза'}`
+          const слова = беда || `${время(где)} / ${время(длина)} · ${играет ? тр("класс слышит") : тр("пауза")}`
           return <span className={s.подпись} title={слова}>{слова}</span>
         })()}
       </div>
-      <button type="button" className={s.закрыть} onClick={onClose} aria-label="Закрыть звук" title="Закрыть — звук у класса стихнет">
+      <button type="button" className={s.закрыть} onClick={onClose} aria-label={тр("Закрыть звук")} title={тр("Закрыть — звук у класса стихнет")}>
         <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8" /></svg>
       </button>
     </div>
@@ -141,7 +142,7 @@ export function ЗвукКласса({ имя }: { имя: string }) {
       </span>
       <span className={s.середина}>
         <span className={s.имя} title={имя}>{имя}</span>
-        <span className={s.подпись} title="звук включил преподаватель">звук включил преподаватель</span>
+        <span className={s.подпись} title={тр("звук включил преподаватель")}>{тр("звук включил преподаватель")}</span>
       </span>
     </div>
   )

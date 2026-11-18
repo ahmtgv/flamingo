@@ -10,6 +10,7 @@ import '../styles/хаб.css'
 import х from './Hub.module.css'
 import s from './Чаты.module.css'
 import { КнопкиОкна, местоОкна, type ВидОкна } from '../hub/КнопкиОкна'
+import { ЛОКАЛЬ, тр } from '../lib/язык.ts'
 
 /** «Сообщения» — переписка своей страницей.
  *
@@ -36,7 +37,7 @@ type Шаг = 'список' | 'источник' | 'браузер'
 const миг = (когда: string) => {
   const д = new Date(когда)
   const сегодня = д.toDateString() === new Date().toDateString()
-  return д.toLocaleString('ru-RU', сегодня
+  return д.toLocaleString(ЛОКАЛЬ, сегодня
     ? { hour: '2-digit', minute: '2-digit' }
     : { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })
 }
@@ -48,8 +49,8 @@ const деньУрока = (у: { дата: string; время: string; пояс
 
 const последнее = (б: Разговор) => (
   б.последнее
-    ? (б.последнее.вид === 'invite' ? 'приглашение на занятие' : б.последнее.текст)
-    : 'разговора ещё не было'
+    ? (б.последнее.вид === 'invite' ? тр("приглашение на занятие") : б.последнее.текст)
+    : тр("разговора ещё не было")
 )
 
 /** Сам разговор: лента и поле ввода. Живёт и во вкладке, и в окне. */
@@ -73,14 +74,14 @@ function Лента({ кто, имя, веду, подложка, onПрочит
     let живо = true
     лента(кто).then(async (л) => {
       if (!живо) return
-      if (!л) { setОтказ('Сервер не отвечает, поэтому переписки не видно. Написанное раньше никуда не делось — оно на сервере.'); return }
+      if (!л) { setОтказ(тр("Сервер не отвечает, поэтому переписки не видно. Написанное раньше никуда не делось — оно на сервере.")); return }
       setПисьма(л.письма)
       /* «Прочитано» — только когда письма действительно показаны. */
       if (л.письма.some((п) => !п.мой && !п.прочитано)) {
         await прочитано(кто)
         if (живо) onПрочитано()
       }
-    }).catch((e) => { if (живо) setОтказ(e instanceof Беда ? e.message : 'Разговор не открылся.') })
+    }).catch((e) => { if (живо) setОтказ(e instanceof Беда ? e.message : тр("Разговор не открылся.")) })
     return () => { живо = false }
   // onПрочитано намеренно вне зависимостей: он меняется на каждом кадре родителя.
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -98,7 +99,7 @@ function Лента({ кто, имя, веду, подложка, onПрочит
       setПисьма((с) => [...(с ?? []), п])
       setТекст('')
     } catch (e) {
-      setБеда(e instanceof Беда ? e.message : 'Сервер не отвечает — сообщение не ушло.')
+      setБеда(e instanceof Беда ? e.message : тр("Сервер не отвечает — сообщение не ушло."))
     } finally {
       setШлём(false)
     }
@@ -108,28 +109,28 @@ function Лента({ кто, имя, веду, подложка, onПрочит
     <>
       <div className={s.thread}>
         {отказ ? <p className={s.quietLine}>{отказ}</p>
-          : письма === null ? <p className={s.quietLine}>Открываем разговор…</p>
+          : письма === null ? <p className={s.quietLine}>{тр("Открываем разговор…")}</p>
             : письма.length === 0 ? (
               <p className={s.quietLine}>
                 {веду
-                  ? 'Разговора ещё не было. Напишите первым — например, что повторить к следующему занятию.'
-                  : 'Разговора ещё не было. Спросите, если что-то осталось непонятным с урока.'}
+                  ? тр("Разговора ещё не было. Напишите первым — например, что повторить к следующему занятию.")
+                  : тр("Разговора ещё не было. Спросите, если что-то осталось непонятным с урока.")}
               </p>
             ) : письма.map((п) => (
               <div key={п.id} className={`${s.msg} ${п.мой ? s.msgMine : ''}`}>
-                <span className={s.msgWhen}>{п.мой ? 'вы' : имя} · {миг(п.когда)}</span>
+                <span className={s.msgWhen}>{п.мой ? тр("вы") : имя} · {миг(п.когда)}</span>
                 {п.вид !== 'invite' ? <span className={s.msgText}>{п.текст}</span>
                   : п.урок ? (
                     <span className={`${s.msgText} ${s.call}`}>
-                      <span className={s.callHead}>{п.мой ? 'вы зовёте на занятие' : 'зовёт вас на занятие'}</span>
+                      <span className={s.callHead}>{п.мой ? тр("вы зовёте на занятие") : тр("зовёт вас на занятие")}</span>
                       <span className={s.callName}>{п.урок.название}</span>
                       <span className={s.callWhen}>{деньУрока(п.урок)}</span>
-                      <a className={s.callDoor} href={`/r/${п.урок.код}`}>Войти в комнату</a>
+                      <a className={s.callDoor} href={`/r/${п.урок.код}`}>{тр("Войти в комнату")}</a>
                     </span>
                   ) : (
                     <span className={`${s.msgText} ${s.call}`}>
-                      <span className={s.callHead}>занятие снято</span>
-                      <span className={s.callWhen}>Приглашение осталось в разговоре, но занятия больше нет в расписании.</span>
+                      <span className={s.callHead}>{тр("занятие снято")}</span>
+                      <span className={s.callWhen}>{тр("Приглашение осталось в разговоре, но занятия больше нет в расписании.")}</span>
                     </span>
                   )}
               </div>
@@ -142,10 +143,10 @@ function Лента({ кто, имя, веду, подложка, onПрочит
           className={s.writeField}
           value={текст}
           onChange={(e) => setТекст(e.target.value)}
-          placeholder="Написать сообщение…"
-          aria-label={`Сообщение: ${имя}`}
+          placeholder={тр("Написать сообщение…")}
+          aria-label={тр("Сообщение: {1}", { 1: имя })}
         />
-        <button type="submit" className={s.send} disabled={!текст.trim() || шлём}>{шлём ? 'Уходит…' : 'Отправить'}</button>
+        <button type="submit" className={s.send} disabled={!текст.trim() || шлём}>{шлём ? тр("Уходит…") : тр("Отправить")}</button>
       </form>
     </>
   )
@@ -183,9 +184,9 @@ export function Чаты({ person, подложка, подложкаЛенты 
     разговоры()
       .then((р) => {
         if (р) { setБеседы(р); setБеда('') }
-        else setБеда('Переписка живёт на сервере, а он не отвечает. Написанное раньше никуда не делось.')
+        else setБеда(тр("Переписка живёт на сервере, а он не отвечает. Написанное раньше никуда не делось."))
       })
-      .catch((e) => setБеда(e instanceof Беда ? e.message : 'Переписка не открылась. Попробуйте ещё раз через минуту.'))
+      .catch((e) => setБеда(e instanceof Беда ? e.message : тр("Переписка не открылась. Попробуйте ещё раз через минуту.")))
   }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { обновить() }, [])
@@ -210,8 +211,8 @@ export function Чаты({ person, подложка, подложкаЛенты 
   /* «Непрочитанные» — первой группой и по общим правилам, как «Избранное» в
      источниках: люди в ней — дубли, из общего списка они не уходят. */
   const группы = [
-    { id: 'новые', имя: 'Непрочитанные', люди: все.filter((б) => б.непрочитано > 0) },
-    { id: 'люди', имя: учитель ? 'Ученики' : 'Преподаватели', люди: все },
+    { id: 'новые', имя: тр("Непрочитанные"), люди: все.filter((б) => б.непрочитано > 0) },
+    { id: 'люди', имя: учитель ? тр("Ученики") : тр("Преподаватели"), люди: все },
   ]
 
   const раскрыть = (id: string) => setРаскрыты((было) => (было.includes(id) ? было.filter((р) => р !== id) : [...было, id]))
@@ -248,7 +249,7 @@ export function Чаты({ person, подложка, подложкаЛенты 
   const вОкно = (id: string): boolean => {
     if (вОкне(id)) { наверх(id); return true }
     if (окна.length >= ОКОН_НЕ_БОЛЬШЕ) {
-      setОтказ('Открыто шесть окон — закройте одно, чтобы открыть ещё.')
+      setОтказ(тр("Открыто шесть окон — закройте одно, чтобы открыть ещё."))
       return false
     }
     setОтказ('')
@@ -321,40 +322,40 @@ export function Чаты({ person, подложка, подложкаЛенты 
         setСвежесть((б) => ({ ...б, [кто]: (б[кто] ?? 0) + 1 }))
         обновить()
       })
-      .catch((e) => setОтказ(e instanceof Беда ? e.message : 'Сервер не отвечает — позвать не вышло.'))
+      .catch((e) => setОтказ(e instanceof Беда ? e.message : тр("Сервер не отвечает — позвать не вышло.")))
   }
 
   const человек = поId(выбран)
   const текущий = поId(наВиду)
-  const роль = (б: Разговор) => (б.роль === 'teacher' ? 'преподаватель' : 'ученик')
+  const роль = (б: Разговор) => (б.роль === 'teacher' ? тр("преподаватель") : тр("ученик"))
 
   return (
     <main className={`${х.screen} ${тащат ? х.тащат : ''}`} ref={экран} data-шаг={шаг}>
       <div className={х.cols}>
         {/* ── слева: люди ────────────────────────────────────────────────── */}
-        <nav className={х.left} aria-label="С кем вы в переписке">
-          <h1 className={х.hidden}>Сообщения</h1>
+        <nav className={х.left} aria-label={тр("С кем вы в переписке")}>
+          <h1 className={х.hidden}>{тр("Сообщения")}</h1>
           <input
             ref={поиск}
             className={х.find}
             type="search"
             value={ищу}
             onChange={(e) => setИщу(e.target.value)}
-            placeholder="Найти человека…"
-            aria-label="Найти человека по имени"
+            placeholder={тр("Найти человека…")}
+            aria-label={тр("Найти человека по имени")}
           />
           <div className={х.names}>
             {беда ? (
               <p className={х.none}>
                 {беда}{' '}
-                <button type="button" className={s.again} onClick={обновить}>Попробовать ещё раз</button>
+                <button type="button" className={s.again} onClick={обновить}>{тр("Попробовать ещё раз")}</button>
               </p>
-            ) : беседы === null ? <p className={х.none}>Смотрим, с кем вы в переписке…</p>
+            ) : беседы === null ? <p className={х.none}>{тр("Смотрим, с кем вы в переписке…")}</p>
               : все.length === 0 ? (
                 <p className={х.none}>
                   {учитель
-                    ? 'Переписки пока нет. Ученик появится здесь, как только вы позовёте его к себе — приглашением из журнала.'
-                    : 'Переписки пока нет. Преподаватель появится здесь, как только вы примете его приглашение.'}
+                    ? тр("Переписки пока нет. Ученик появится здесь, как только вы позовёте его к себе — приглашением из журнала.")
+                    : тр("Переписки пока нет. Преподаватель появится здесь, как только вы примете его приглашение.")}
                 </p>
               ) : группы.map((г) => {
                 const свои = г.люди.filter(видно)
@@ -367,8 +368,8 @@ export function Чаты({ person, подложка, подложкаЛенты 
                       <span>{свои.length}</span>
                     </button>
                     {открыта ? свои.map((б) => {
-                      const метка = б.непрочитано > 0 ? `новых: ${б.непрочитано}`
-                        : вОкне(б.кто) ? 'в окне' : воВкладке(б.кто) ? 'открыт' : ''
+                      const метка = б.непрочитано > 0 ? тр("новых: {1}", { 1: б.непрочитано })
+                        : вОкне(б.кто) ? тр("в окне") : воВкладке(б.кто) ? 'открыт' : ''
                       return (
                         <button
                           key={б.кто}
@@ -384,27 +385,27 @@ export function Чаты({ person, подложка, подложкаЛенты 
                       )
                     }) : null}
                     {открыта && г.id === 'новые' && свои.length === 0
-                      ? <p className={х.none}>Всё прочитано.</p> : null}
+                      ? <p className={х.none}>{тр("Всё прочитано.")}</p> : null}
                   </section>
                 )
               })}
-            {слово && все.length > 0 && !все.some(видно) ? <p className={х.none}>Никого не нашлось. Попробуйте другое имя.</p> : null}
+            {слово && все.length > 0 && !все.some(видно) ? <p className={х.none}>{тр("Никого не нашлось. Попробуйте другое имя.")}</p> : null}
           </div>
         </nav>
 
         {/* ── в середине: человек и действия ─────────────────────────────── */}
-        <section className={х.mid} aria-label={человек ? `Собеседник: ${человек.имя}` : 'Собеседник'}>
-          <button type="button" className={х.step} onClick={() => setШаг('браузер')}>← К разговору</button>
+        <section className={х.mid} aria-label={человек ? тр("Собеседник: {1}", { 1: человек.имя }) : тр("Собеседник")}>
+          <button type="button" className={х.step} onClick={() => setШаг('браузер')}>{тр("← К разговору")}</button>
           {человек ? (
             <>
               <h2 className={х.name}>{человек.имя}</h2>
               <p className={х.box}>{последнее(человек)}</p>
               <p className={х.row}>
-                <span className={х.label}>Кто</span>{роль(человек)}
-                {человек.с ? <><span className={х.label}>На связи с</span>{человек.с.slice(0, 10).split('-').reverse().join('.')}</> : null}
+                <span className={х.label}>{тр("Кто")}</span>{роль(человек)}
+                {человек.с ? <><span className={х.label}>{тр("На связи с")}</span>{человек.с.slice(0, 10).split('-').reverse().join('.')}</> : null}
               </p>
               <p className={х.row}>
-                <span className={х.label}>Непрочитано</span>{человек.непрочитано > 0 ? человек.непрочитано : 'нет'}
+                <span className={х.label}>{тр("Непрочитано")}</span>{человек.непрочитано > 0 ? человек.непрочитано : 'нет'}
               </p>
 
               <button
@@ -412,13 +413,13 @@ export function Чаты({ person, подложка, подложкаЛенты 
                 className={`${х.act} ${х.onlyWide} ${вОкне(человек.кто) ? х.actOn : ''}`}
                 onClick={() => { if (вОкно(человек.кто)) закрытьВкладку(человек.кто) }}
               >
-                <span>{вОкне(человек.кто) ? 'Открыт в отдельном окне' : 'Открыть в отдельном окне'}</span>
-                <span className={х.actNote}>открыто {окна.length} из {ОКОН_НЕ_БОЛЬШЕ}</span>
+                <span>{вОкне(человек.кто) ? тр("Открыт в отдельном окне") : тр("Открыть в отдельном окне")}</span>
+                <span className={х.actNote}>{тр("открыто")} {окна.length} {тр("из")} {ОКОН_НЕ_БОЛЬШЕ}</span>
               </button>
               {учитель ? (
                 <button type="button" className={`${х.act} ${зову ? х.actOn : ''}`} aria-expanded={зову} onClick={() => setЗову((было) => !было)}>
-                  <span>Позвать на занятие</span>
-                  <span className={х.actNote}>{зову ? 'свернуть' : 'выбрать урок'}</span>
+                  <span>{тр("Позвать на занятие")}</span>
+                  <span className={х.actNote}>{зову ? 'свернуть' : тр("выбрать урок")}</span>
                 </button>
               ) : null}
               {зову ? (
@@ -429,26 +430,25 @@ export function Чаты({ person, подложка, подложкаЛенты 
                   </button>
                 )) : (
                   <p className={х.silent}>
-                    Будущих занятий нет. <a className={х.link} href="/создать-урок">Создать урок</a> — и вернитесь сюда.
+                    {тр("Будущих занятий нет.")} <a className={х.link} href="/создать-урок">{тр("Создать урок")}</a> {тр("— и вернитесь сюда.")}
                   </p>
                 )
               ) : null}
               <p className={х.refuse} role="status">{отказ}</p>
 
               <p className={х.silent}>
-                <span className={х.silentLabel}>Где хранится:</span> переписка лежит на сервере, а не в этом
-                браузере — она откроется с любого устройства.
+                <span className={х.silentLabel}>{тр("Где хранится:")}</span> {тр("переписка лежит на сервере, а не в этом браузере — она откроется с любого устройства.")}
               </p>
             </>
           ) : (
-            <p className={х.silent}>Выберите человека слева — здесь будут сведения о нём и действия.</p>
+            <p className={х.silent}>{тр("Выберите человека слева — здесь будут сведения о нём и действия.")}</p>
           )}
         </section>
 
         {/* ── справа: разговор ───────────────────────────────────────────── */}
-        <section className={х.right} aria-label="Разговор">
-          <div className={х.tabs} role="tablist" aria-label="Открытые разговоры">
-            <button type="button" className={х.step} onClick={() => setШаг('список')}>← К списку</button>
+        <section className={х.right} aria-label={тр("Разговор")}>
+          <div className={х.tabs} role="tablist" aria-label={тр("Открытые разговоры")}>
+            <button type="button" className={х.step} onClick={() => setШаг('список')}>{тр("← К списку")}</button>
             {вкладки.map((id) => {
               const б = поId(id)
               if (!б) return null
@@ -457,12 +457,12 @@ export function Чаты({ person, подложка, подложкаЛенты 
                   <button type="button" role="tab" aria-selected={id === наВиду} className={х.tabName} onClick={() => { setНаВиду(id); setВыбран(id) }}>
                     {б.имя}
                   </button>
-                  <button type="button" className={х.tabClose} onClick={() => закрытьВкладку(id)} aria-label={`Закрыть разговор: ${б.имя}`}>×</button>
+                  <button type="button" className={х.tabClose} onClick={() => закрытьВкладку(id)} aria-label={тр("Закрыть разговор: {1}", { 1: б.имя })}>×</button>
                 </span>
               )
             })}
-            {вкладки.length === 0 ? <span className={`${х.tab} ${х.tabOn} ${х.tabNone}`}>Нет открытых разговоров</span> : null}
-            <button type="button" className={х.tabPlus} onClick={() => { setШаг('список'); поиск.current?.focus() }} aria-label="Открыть ещё разговор">+</button>
+            {вкладки.length === 0 ? <span className={`${х.tab} ${х.tabOn} ${х.tabNone}`}>{тр("Нет открытых разговоров")}</span> : null}
+            <button type="button" className={х.tabPlus} onClick={() => { setШаг('список'); поиск.current?.focus() }} aria-label={тр("Открыть ещё разговор")}>+</button>
           </div>
           {текущий ? (
             <>
@@ -470,18 +470,18 @@ export function Чаты({ person, подложка, подложкаЛенты 
                 <button
                   type="button"
                   className={`${х.addrAct} ${х.reload}`}
-                  aria-label="Обновить разговор"
-                  title="Обновить разговор"
+                  aria-label={тр("Обновить разговор")}
+                  title={тр("Обновить разговор")}
                   onClick={() => { setСвежесть((б) => ({ ...б, [текущий.кто]: (б[текущий.кто] ?? 0) + 1 })); обновить() }}
                 >
                   <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M13.2 8a5.2 5.2 0 1 1-1.6-3.75M13.4 2.6v2.9h-2.9" /></svg>
                 </button>
                 <span className={х.addrUrl} title={текущий.имя}>{текущий.имя} · {роль(текущий)}</span>
                 <button type="button" className={`${х.addrAct} ${s.narrowAct}`} onClick={() => { setВыбран(текущий.кто); setШаг('источник') }}>
-                  Действия
+                  {тр("Действия")}
                 </button>
                 <button type="button" className={`${х.addrAct} ${х.onlyWide}`} onClick={() => { if (вОкно(текущий.кто)) закрытьВкладку(текущий.кто) }}>
-                  ⧉ в окно
+                  {тр("⧉ в окно")}
                 </button>
               </div>
               {вкладки.map((id) => {
@@ -495,12 +495,12 @@ export function Чаты({ person, подложка, подложкаЛенты 
               })}
             </>
           ) : (
-            <p className={х.empty}>Выберите человека слева — разговор откроется здесь.</p>
+            <p className={х.empty}>{тр("Выберите человека слева — разговор откроется здесь.")}</p>
           )}
         </section>
       </div>
 
-      {окна.length > 0 ? <p className={х.count}>Открыто окон: {окна.length} из {ОКОН_НЕ_БОЛЬШЕ}</p> : null}
+      {окна.length > 0 ? <p className={х.count}>{тр("Открыто окон:")} {окна.length} {тр("из")} {ОКОН_НЕ_БОЛЬШЕ}</p> : null}
 
       {/* ── окна: до шести, двигаются и меняют размер ───────────────────── */}
       {окна.map((о) => {
@@ -511,7 +511,7 @@ export function Чаты({ person, подложка, подложкаЛенты 
             key={о.id}
             className={`${х.window} ${о.вид === 'свёрнуто' ? х.windowMin : ''}`}
             role="dialog"
-            aria-label={`Окно разговора: ${б.имя}`}
+            aria-label={тр("Окно разговора: {1}", { 1: б.имя })}
             style={{ ...местоОкна(о), zIndex: о.слой }}
             onPointerDown={() => наверх(о.id)}
           >

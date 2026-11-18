@@ -1,5 +1,6 @@
 import { imageObj } from '../board/files'
 import type { Point } from '../board/protocol'
+import { тр } from '../lib/язык.ts'
 
 /** Что учитель показывает классу: одна картинка или страницы презентации.
  *
@@ -70,7 +71,7 @@ export async function deckFrom(files: File[]): Promise<Deck | null> {
     }
   }
   if (pages.length === 0) return null
-  const title = files.length === 1 ? files[0].name : `${files.length} файла`
+  const title = files.length === 1 ? files[0].name : тр("{1} файла", { 1: files.length })
   return { title, pages }
 }
 

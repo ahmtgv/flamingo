@@ -11,6 +11,7 @@ import s from './Journal.module.css'
 import { Button } from '../ui/Button'
 import { когдаУрок } from '../lib/пояс'
 import { подписьСтолбца } from '../lib/datetime'
+import { анг, тр } from '../lib/язык.ts'
 
 /** Журнал: все ученики и все занятия.
  *
@@ -28,12 +29,15 @@ import { подписьСтолбца } from '../lib/datetime'
  *  Поэтому в таблице нет ни одной кнопки «отметить» — и это не забытая кнопка.
  */
 
-const МЕСЯЦЫ = [
+const МЕСЯЦЫ = анг ? [
+  'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December',
+] : [
   'январь', 'февраль', 'март', 'апрель', 'май', 'июнь',
   'июль', 'август', 'сентябрь', 'октябрь', 'ноябрь', 'декабрь',
 ]
 
-const ДНИ = ['вс', 'пн', 'вт', 'ср', 'чт', 'пт', 'сб']
+const ДНИ = анг ? ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'] : ['вс', 'пн', 'вт', 'ср', 'чт', 'пт', 'сб']
 
 const ключМесяца = (d: Date) =>
   `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
@@ -84,7 +88,7 @@ export function Journal({ person, onBack, onHome, onOut, onNew, onLesson, под
     if (подложка) { setДанные(подложка); return () => { живо = false } }
     читатьЖурнал(месяц)
       .then((д) => { if (живо) setДанные(д) })
-      .catch((e) => { if (живо) setБеда(e instanceof Беда ? e.message : 'Журнал не открылся.') })
+      .catch((e) => { if (живо) setБеда(e instanceof Беда ? e.message : тр("Журнал не открылся.")) })
     return () => { живо = false }
   }, [месяц, подложка])
 
@@ -152,74 +156,69 @@ export function Journal({ person, onBack, onHome, onOut, onNew, onLesson, под
           рисуются рамой и здесь не повторяются (ПРАВИЛА 4.9: знак один на
           экран), а имя листа — рисуется всегда. */}
       <header className={s.head}>
-        {вРаме ? null : <Mark onGo={onHome} title="Главная" />}
-        <span className={s.crumb} title="Кабинет преподавателя · Журнал">
-          Кабинет преподавателя · Журнал
+        {вРаме ? null : <Mark onGo={onHome} title={тр("Главная")} />}
+        <span className={s.crumb} title={тр("Кабинет преподавателя · Журнал")}>
+          {тр("Кабинет преподавателя · Журнал")}
         </span>
         {вРаме ? null : (
           <span className={s.who}>
             {person.name} ·{' '}
-            <button type="button" className={s.out} onClick={onOut}>Выйти</button>
+            <button type="button" className={s.out} onClick={onOut}>{тр("Выйти")}</button>
           </span>
         )}
       </header>
 
       <div className={s.body}>
         <div className={s.top}>
-          <h1 className={s.title}>Журнал</h1>
+          <h1 className={s.title}>{тр("Журнал")}</h1>
           <p className={s.lead}>
-            Все ученики и все занятия в одном месте. Строка — ученик, столбец — урок.
-            Нажмите на дату, чтобы войти в комнату урока.
+            {тр("Все ученики и все занятия в одном месте. Строка — ученик, столбец — урок. Нажмите на дату, чтобы войти в комнату урока.")}
           </p>
         </div>
 
         <div className={s.pult}>
           <Button kind="go" onClick={() => setЗовём(true)}>
-            Добавить ученика
+            {тр("Добавить ученика")}
           </Button>
-          <Button kind="quiet" onClick={onNew}>Создать урок</Button>
-          <Button kind="quiet" onClick={onBack}>← В кабинет</Button>
+          <Button kind="quiet" onClick={onNew}>{тр("Создать урок")}</Button>
+          <Button kind="quiet" onClick={onBack}>{тр("← В кабинет")}</Button>
           <span className={s.month}>
-            <button type="button" className={s.arrow} onClick={() => сдвиг(-1)} aria-label="Месяц назад">‹</button>
+            <button type="button" className={s.arrow} onClick={() => сдвиг(-1)} aria-label={тр("Месяц назад")}>‹</button>
             <span className={s.monthName}>{МЕСЯЦЫ[когда.getMonth()]} {когда.getFullYear()}</span>
-            <button type="button" className={s.arrow} onClick={() => сдвиг(1)} aria-label="Месяц вперёд">›</button>
+            <button type="button" className={s.arrow} onClick={() => сдвиг(1)} aria-label={тр("Месяц вперёд")}>›</button>
           </span>
         </div>
 
         {беда ? (
           <div className={s.empty}>
-            <span className={s.emptyHead}>Журнал не открылся</span>
+            <span className={s.emptyHead}>{тр("Журнал не открылся")}</span>
             <span className={s.emptyBody}>{беда}</span>
           </div>
         ) : !данные ? (
-          <span className={s.lead}>Смотрим журнал…</span>
+          <span className={s.lead}>{тр("Смотрим журнал…")}</span>
         ) : !ученики.length ? (
           /* ПРАВИЛА 6.2: пусто объясняет словами и даёт одно действие. */
           <div className={s.empty}>
-            <span className={s.emptyHead}>Учеников пока нет</span>
+            <span className={s.emptyHead}>{тр("Учеников пока нет")}</span>
             <span className={s.emptyBody}>
-              Журнал наполняется не вводом с клавиатуры, а связью: ученик приходит
-              сам, и с этого момента вы видите друг друга — он вас в своих
-              преподавателях, вы его здесь.
+              {тр("Журнал наполняется не вводом с клавиатуры, а связью: ученик приходит сам, и с этого момента вы видите друг друга — он вас в своих преподавателях, вы его здесь.")}
             </span>
             <div className={s.ways}>
               <div className={s.way}>
-                <span className={s.wayName}>Ссылка в журнал</span>
+                <span className={s.wayName}>{тр("Ссылка в журнал")}</span>
                 <span className={s.wayWhat}>
-                  Отправьте её как угодно — в мессенджере, письмом, голосом.
-                  Перешёл — и вы связаны.
+                  {тр("Отправьте её как угодно — в мессенджере, письмом, голосом. Перешёл — и вы связаны.")}
                 </span>
               </div>
               <div className={s.way}>
-                <span className={s.wayName}>По почте</span>
+                <span className={s.wayName}>{тр("По почте")}</span>
                 <span className={s.wayWhat}>
-                  Ту же ссылку отправим мы. Ответ один и тот же, есть у нас такая
-                  почта или нет: узнать по журналу, кто зарегистрирован, нельзя.
+                  {тр("Ту же ссылку отправим мы. Ответ один и тот же, есть у нас такая почта или нет: узнать по журналу, кто зарегистрирован, нельзя.")}
                 </span>
               </div>
             </div>
             <Button kind="go" onClick={() => setЗовём(true)}>
-              Добавить ученика
+              {тр("Добавить ученика")}
             </Button>
           </div>
         ) : (
@@ -236,7 +235,7 @@ export function Journal({ person, onBack, onHome, onOut, onNew, onLesson, под
               >
                 <div className={`${s.row} ${s.headRow}`}>
                   <span className={s.hCell}>
-                    <span className={s.colLabel}>Ученик · {ученики.length}</span>
+                    <span className={s.colLabel}>{тр("Ученик ·")} {ученики.length}</span>
                   </span>
                   {показ.map(({ у, когда, строка }) => {
                     /* 🔴 СТОЛБЕЦ СТОИТ НА ДАТЕ ЧИТАТЕЛЯ, А НЕ НА ДАТЕ СЕРВЕРА.
@@ -270,8 +269,8 @@ export function Journal({ person, onBack, onHome, onOut, onNew, onLesson, под
                       </button>
                     )
                   })}
-                  {!уроки.length ? <span className={s.hCell}><span className={s.week}>уроков нет</span></span> : null}
-                  <span className={s.hCell}><span className={s.colLabel}>Был</span></span>
+                  {!уроки.length ? <span className={s.hCell}><span className={s.week}>{тр("уроков нет")}</span></span> : null}
+                  <span className={s.hCell}><span className={s.colLabel}>{тр("Был")}</span></span>
                 </div>
 
                 {ученики.map((у) => (
@@ -284,7 +283,7 @@ export function Journal({ person, onBack, onHome, onOut, onNew, onLesson, под
                       <button
                         type="button"
                         className={s.nameWho}
-                        title={`Написать: ${у.имя}`}
+                        title={тр("Написать: {1}", { 1: у.имя })}
                         onClick={() => setГоворим({ кто: у.id, имя: у.имя })}
                       >
                         {у.имя}
@@ -292,7 +291,7 @@ export function Journal({ person, onBack, onHome, onOut, onNew, onLesson, под
                           <span className={s.новые}>{непрочитано.get(у.id)}</span>
                         ) : null}
                       </button>
-                      <span className={s.nameHow}>по {у.как} · с {у.с.slice(8, 10)}.{у.с.slice(5, 7)}</span>
+                      <span className={s.nameHow}>{тр("по")} {тр(у.как)} {тр("· с")} {у.с.slice(8, 10)}.{у.с.slice(5, 7)}</span>
                     </span>
                     {уроки.map((урок, i) => (
                       <span
@@ -313,7 +312,7 @@ export function Journal({ person, onBack, onHome, onOut, onNew, onLesson, под
                 ))}
 
                 <div className={`${s.row} ${s.footRow}`}>
-                  <span className={s.name}>Пришли на урок</span>
+                  <span className={s.name}>{тр("Пришли на урок")}</span>
                   {уроки.map((урок, i) => (
                     <span key={урок.id} className={`${s.sum} ${урок.прошёл ? '' : s.cellAhead}`}>
                       {урок.прошёл ? ученики.filter((у) => у.был[i]).length : '—'}
@@ -326,15 +325,14 @@ export function Journal({ person, onBack, onHome, onOut, onNew, onLesson, под
             </div>
 
             <div className={s.legend}>
-              <i><span className={s.was} /> был на уроке</i>
-              <i><span className={s.wasnt} /> не был</i>
-              <i>пусто — урок ещё не прошёл</i>
+              <i><span className={s.was} /> {тр("был на уроке")}</i>
+              <i><span className={s.wasnt} /> {тр("не был")}</i>
+              <i>{тр("пусто — урок ещё не прошёл")}</i>
             </div>
 
             {данные.ждут.length ? (
               <span className={s.small}>
-                Ждут перехода по ссылке: {данные.ждут.length}. Пока человек не
-                перешёл, в журнале его нет — и это честно: связи ещё не случилось.
+                {тр("Ждут перехода по ссылке:")} {данные.ждут.length}{тр(". Пока человек не перешёл, в журнале его нет — и это честно: связи ещё не случилось.")}
               </span>
             ) : null}
           </>
@@ -381,14 +379,14 @@ function Зовём({ onClose }: { onClose: () => void }) {
     setБеда('')
     сделатьПриглашение()
       .then((r) => { if (живо) { setСсылка(r.ссылка); setДо(r.до) } })
-      .catch((e) => { if (живо) setБеда(e instanceof Беда ? e.message : 'Сервер не ответил.') })
+      .catch((e) => { if (живо) setБеда(e instanceof Беда ? e.message : тр("Сервер не ответил.")) })
     return () => { живо = false }
   }, [ещё])
 
   const письмом = async () => {
     const адрес = почта.trim().toLowerCase()
     if (!почтаПохожа(адрес)) {
-      setБеда('Почта должна быть похожа на почту: имя@почта.рф.')
+      setБеда(тр("Почта должна быть похожа на почту: имя@почта.рф."))
       return
     }
     setБеда('')
@@ -397,7 +395,7 @@ function Зовём({ onClose }: { onClose: () => void }) {
       setСказано(r.сказать)
       setПочта('')
     } catch (e) {
-      setБеда(e instanceof Беда ? e.message : 'Письмо не отправилось.')
+      setБеда(e instanceof Беда ? e.message : тр("Письмо не отправилось."))
     }
   }
 
@@ -406,68 +404,65 @@ function Зовём({ onClose }: { onClose: () => void }) {
       await navigator.clipboard.writeText(ссылка)
       setСкопировано(true)
     } catch {
-      setБеда('Браузер не дал скопировать. Выделите ссылку и скопируйте руками.')
+      setБеда(тр("Браузер не дал скопировать. Выделите ссылку и скопируйте руками."))
     }
   }
 
   return (
     <div className={s.veil}>
-      <div ref={поверх} tabIndex={-1} role="dialog" aria-modal="true" aria-label="Добавить ученика" className={s.panel}>
-        <h2 className={s.panelTitle}>Добавить ученика</h2>
+      <div ref={поверх} tabIndex={-1} role="dialog" aria-modal="true" aria-label={тр("Добавить ученика")} className={s.panel}>
+        <h2 className={s.panelTitle}>{тр("Добавить ученика")}</h2>
         <p className={s.panelLead}>
-          Ученик приходит сам — по ссылке. Перешёл, назвался — и вы связаны:
-          он видит вас в своих преподавателях, вы его в журнале.
+          {тр("Ученик приходит сам — по ссылке. Перешёл, назвался — и вы связаны: он видит вас в своих преподавателях, вы его в журнале.")}
         </p>
 
         <div className={s.wayBlock}>
-          <span className={s.wayLabel}>Ссылка в журнал</span>
+          <span className={s.wayLabel}>{тр("Ссылка в журнал")}</span>
           <div className={s.linkBox} title={ссылка || undefined}>
-            <code>{ссылка || (беда ? 'ссылки нет: ' + беда : 'делаем ссылку…')}</code>
+            <code>{ссылка || (беда ? тр("ссылки нет: ") + беда : тр("делаем ссылку…"))}</code>
             {ссылка ? (
               <button type="button" className={s.copy} onClick={копировать}>
-                {скопировано ? 'Скопировано' : 'Скопировать'}
+                {скопировано ? тр("Скопировано") : тр("Скопировать")}
               </button>
             ) : беда ? (
               <button type="button" className={s.copy} onClick={() => { setСсылка(''); setЕщё((н) => н + 1) }}>
-                Ещё раз
+                {тр("Ещё раз")}
               </button>
             ) : null}
           </div>
           <span className={s.small}>
             {до
-              ? `Живёт до ${до.slice(8, 10)}.${до.slice(5, 7)} и добавляет одного человека.`
-              : 'Живёт семь дней и добавляет одного человека.'}
+              ? тр("Живёт до {1}.{2} и добавляет одного человека.", { 1: до.slice(8, 10), 2: до.slice(5, 7) })
+              : тр("Живёт семь дней и добавляет одного человека.")}
           </span>
         </div>
 
-        <div className={s.or}>или</div>
+        <div className={s.or}>{тр("или")}</div>
 
         <div className={s.wayBlock}>
-          <span className={s.wayLabel}>Отправить по почте</span>
+          <span className={s.wayLabel}>{тр("Отправить по почте")}</span>
           {/* обрезание-исключение: коробка одинакова у ссылки и у поля почты,
               а внутри поля стоит то, что человек набрал сам, — читать ему
               нечего, и подсказывать нечем. */}
           <div className={s.linkBox}>
             <input
               className={s.mailField}
-              placeholder="имя@почта.рф"
+              placeholder={тр("имя@почта.рф")}
               value={почта}
               onChange={(e) => { setПочта(e.target.value); setСказано(''); setБеда('') }}
               onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); письмом() } }}
             />
           </div>
           <span className={s.small}>
-            Пришлём ту же ссылку письмом. Ответ будет один и тот же, есть у нас
-            такая почта или нет: иначе журнал стал бы способом проверять, кто
-            у нас зарегистрирован.
+            {тр("Пришлём ту же ссылку письмом. Ответ будет один и тот же, есть у нас такая почта или нет: иначе журнал стал бы способом проверять, кто у нас зарегистрирован.")}
           </span>
         </div>
 
         <span className={s.small} role="status">{беда || сказано}</span>
 
         <div className={s.panelFoot}>
-          <Button kind="go" onClick={письмом}>Отправить приглашение</Button>
-          <button type="button" className={s.cancel} onClick={onClose}>Закрыть</button>
+          <Button kind="go" onClick={письмом}>{тр("Отправить приглашение")}</Button>
+          <button type="button" className={s.cancel} onClick={onClose}>{тр("Закрыть")}</button>
         </div>
       </div>
     </div>

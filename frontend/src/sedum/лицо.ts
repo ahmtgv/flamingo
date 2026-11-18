@@ -27,6 +27,7 @@ import ядроJs from '@mediapipe/tasks-vision/vision_wasm_nosimd_internal.js?u
 import ядроWasm from '@mediapipe/tasks-vision/vision_wasm_nosimd_internal.wasm?url'
 
 import { ПУСТОЙ_КАДР, числаКадра, type Кадр } from './числа'
+import { тр } from '../lib/язык.ts'
 
 export const МОДЕЛЬ =
   'https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task'
@@ -44,7 +45,7 @@ const ЯДРА: { имя: string; набор: () => Promise<Набор> }[] = [
       ? { wasmLoaderPath: ядроSimdJs, wasmBinaryPath: ядроSimdWasm }
       : { wasmLoaderPath: ядроJs, wasmBinaryPath: ядроWasm }),
   },
-  { имя: 'с CDN', набор: () => FilesetResolver.forVisionTasks('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@1.0.1/wasm') },
+  { имя: тр("с CDN"), набор: () => FilesetResolver.forVisionTasks('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@1.0.1/wasm') },
 ]
 
 export type Завод = { модель: FaceLandmarker; ядро: string; ускорение: 'GPU' | 'CPU'; откуда: string }
@@ -87,7 +88,7 @@ function закрытьОтчёт(): void {
 
 function вСрок<Т>(обещание: Promise<Т>, мс: number, что: string): Promise<Т> {
   return new Promise((да, нет) => {
-    const id = setTimeout(() => нет(new Error(`модель не завелась за ${мс / 1000} с (${что})`)), мс)
+    const id = setTimeout(() => нет(new Error(тр("модель не завелась за {1} с ({2})", { 1: мс / 1000, 2: что }))), мс)
     обещание.then((x) => { clearTimeout(id); да(x) }, (e) => { clearTimeout(id); нет(e) })
   })
 }

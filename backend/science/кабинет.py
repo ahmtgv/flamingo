@@ -83,6 +83,7 @@ def _проверка_кратко(р: Run) -> dict:
         "id": р.id,
         "вид": р.kind,
         "протокол": р.protocol,
+        "язык": р.language,
         "начата": р.started.isoformat(),
         "закончена": р.finished.isoformat() if р.finished else None,
         "длина": _длина(р),

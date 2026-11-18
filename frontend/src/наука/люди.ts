@@ -12,6 +12,7 @@
  *  своим именем, а Адель видит в кабинете двоих с одинаковым именем и может
  *  их склеить. Записи живут на сервере, здесь — только код, имя и галочки.
  */
+import { ЛОКАЛЬ, тр } from '../lib/язык.ts'
 
 export type Человек = {
   код: string
@@ -50,12 +51,12 @@ export function запомнить(ч: Человек): void {
 export function когдаСловами(iso: string, сейчас = new Date()): string {
   const д = new Date(iso)
   if (Number.isNaN(д.getTime())) return ''
-  const часть = (ч: number) => (ч < 12 ? 'утром' : ч < 18 ? 'днём' : 'вечером')
+  const часть = (ч: number) => (ч < 12 ? тр("утром") : ч < 18 ? тр("днём") : тр("вечером"))
   const день = (x: Date) => new Date(x.getFullYear(), x.getMonth(), x.getDate()).getTime()
   const разница = Math.round((день(сейчас) - день(д)) / 86_400_000)
-  if (разница === 0) return `сегодня ${часть(д.getHours())}`
-  if (разница === 1) return `вчера ${часть(д.getHours())}`
-  return д.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })
+  if (разница === 0) return тр("сегодня {1}", { 1: часть(д.getHours()) })
+  if (разница === 1) return тр("вчера {1}", { 1: часть(д.getHours()) })
+  return д.toLocaleDateString(ЛОКАЛЬ, { day: 'numeric', month: 'long' })
 }
 
 /* ── «Как вы сейчас?» — один раз на два часа ─────────────────────────────

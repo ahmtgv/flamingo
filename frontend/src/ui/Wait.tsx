@@ -1,6 +1,7 @@
 import { Mark } from './Mark'
 import s from './Wait.module.css'
 import { Button } from './Button'
+import { тр } from '../lib/язык.ts'
 
 /** Короткое ожидание в начале.
  *
@@ -17,7 +18,7 @@ import { Button } from './Button'
  *  ответ хотя бы виден. Поэтому у него есть второе состояние — молчание
  *  сервера, названное словами и с одной кнопкой.
  */
-export function Wait({ say = 'Смотрим, кто вошёл' }: { say?: string }) {
+export function Wait({ say = тр("Смотрим, кто вошёл") }: { say?: string }) {
   return (
     <main className={s.screen}>
       <Mark />
@@ -31,21 +32,20 @@ export function Молчание({ onAgain, onRoom }: { onAgain: () => void; onR
   return (
     <main className={s.screen}>
       <Mark />
-      <span className={s.say} role="status">Сервер не отвечает</span>
+      <span className={s.say} role="status">{тр("Сервер не отвечает")}</span>
       <p className={s.words}>
-        Мы спросили, кто вошёл, и не получили ответа. Такое бывает, когда сервер
-        перезапускают: обычно это меньше минуты.
+        {тр("Мы спросили, кто вошёл, и не получили ответа. Такое бывает, когда сервер перезапускают: обычно это меньше минуты.")}
       </p>
       <span className={s.doors}>
-        <Button kind="go" onClick={onAgain}>Спросить ещё раз</Button>
+        <Button kind="go" onClick={onAgain}>{тр("Спросить ещё раз")}</Button>
         {onRoom ? (
           <Button kind="quiet" onClick={onRoom}>
-            Войти в урок по ссылке
+            {тр("Войти в урок по ссылке")}
           </Button>
         ) : null}
       </span>
       <p className={s.small}>
-        Урок по ссылке работает и без учётных записей: комната живёт отдельно от сервера.
+        {тр("Урок по ссылке работает и без учётных записей: комната живёт отдельно от сервера.")}
       </p>
     </main>
   )

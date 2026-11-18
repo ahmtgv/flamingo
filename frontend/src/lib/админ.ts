@@ -1,3 +1,4 @@
+import { тр } from './язык.ts'
 /** Разговор с админкой сервера (`backend/people/админка.py`).
  *
  *  🔴 ПРАВ ЗДЕСЬ НЕТ. Кто админ, решает сервер на каждом запросе; этот файл
@@ -44,15 +45,15 @@ async function разговор<T>(путь: string, init?: RequestInit): Promis
       ...init,
     })
   } catch {
-    throw new Отказ('Сервер Flamingo не отвечает. Попробуйте ещё раз через минуту.', 0)
+    throw new Отказ(тр("Сервер Flamingo не отвечает. Попробуйте ещё раз через минуту."), 0)
   }
   let тело: { error?: string } & Record<string, unknown> = {}
   try {
     тело = await res.json()
   } catch {
-    throw new Отказ('Сервер ответил непонятно. Похоже, админка на нём ещё не обновлена.', res.status)
+    throw new Отказ(тр("Сервер ответил непонятно. Похоже, админка на нём ещё не обновлена."), res.status)
   }
-  if (!res.ok) throw new Отказ(String(тело.error ?? 'Сервер отказал.'), res.status)
+  if (!res.ok) throw new Отказ(String(тело.error ?? тр("Сервер отказал.")), res.status)
   return тело as T
 }
 

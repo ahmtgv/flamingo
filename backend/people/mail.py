@@ -13,23 +13,35 @@ import logging
 from django.conf import settings
 from django.core.mail import send_mail
 
+from config.язык import сейчас
+
 log = logging.getLogger("flamingo.mail")
 
 
 def send_reset(email: str, name: str, link: str) -> None:
-    text = (
-        f"{name}, здравствуйте.\n\n"
-        f"Кто-то попросил сменить пароль во Flamingo. Если это вы — вот ссылка:\n\n"
-        f"{link}\n\n"
-        f"Ссылка работает один час и только один раз.\n\n"
-        f"Если вы ничего не просили — просто не открывайте её. Пароль останется прежним, "
-        f"а в вашу учётную запись никто не вошёл: одной этой ссылки для входа мало.\n"
-    )
+    if сейчас() == "en":
+        text = (
+            f"Hello, {name}.\n\n"
+            f"Someone asked to change the password on Flamingo. If it was you, here is the link:\n\n"
+            f"{link}\n\n"
+            f"The link works for one hour and only once.\n\n"
+            f"If you didn't ask for anything, just don't open it. Your password stays the same, "
+            f"and nobody has signed in to your account: this link alone is not enough to sign in.\n"
+        )
+    else:
+        text = (
+            f"{name}, здравствуйте.\n\n"
+            f"Кто-то попросил сменить пароль во Flamingo. Если это вы — вот ссылка:\n\n"
+            f"{link}\n\n"
+            f"Ссылка работает один час и только один раз.\n\n"
+            f"Если вы ничего не просили — просто не открывайте её. Пароль останется прежним, "
+            f"а в вашу учётную запись никто не вошёл: одной этой ссылки для входа мало.\n"
+        )
     if not settings.EMAIL_HOST:
         log.warning("ПОЧТА НЕ НАСТРОЕНА. Письмо для %s не ушло. Ссылка: %s", email, link)
         return
     send_mail(
-        subject="Flamingo · смена пароля",
+        subject="Flamingo · password change" if сейчас() == "en" else "Flamingo · смена пароля",
         message=text,
         from_email=settings.DEFAULT_FROM_EMAIL,
         recipient_list=[email],
@@ -43,22 +55,36 @@ def send_invite(email: str, teacher: str, link: str) -> None:
     🔴 Письмо НЕ говорит, зарегистрирован человек у нас или нет, и не намекает
     на это ни словом: тот же ответ получает и тот, кого у нас нет. Иначе журнал
     становится способом перебором собрать базу почт наших учеников.
+
+    Язык письма — язык страницы преподавателя, который зовёт (`config/язык.py`).
     """
-    text = (
-        f"Здравствуйте.\n\n"
-        f"{teacher} зовёт вас к себе на занятия во Flamingo. Вот ссылка:\n\n"
-        f"{link}\n\n"
-        f"Она работает семь дней и добавляет одного человека. Перейдёте — и вы "
-        f"увидите друг друга: {teacher} вас в журнале, вы её или его в своих "
-        f"преподавателях, и у вас появится общий чат.\n\n"
-        f"Если вы никого не ждали — просто не открывайте ссылку. Ничего не "
-        f"произойдёт, и о вас никто не узнает.\n"
-    )
+    if сейчас() == "en":
+        text = (
+            f"Hello.\n\n"
+            f"{teacher} invites you to lessons on Flamingo. Here is the link:\n\n"
+            f"{link}\n\n"
+            f"It works for seven days and adds one person. Follow it and you will "
+            f"see each other: {teacher} will have you in the journal, you will have them among your "
+            f"teachers, and you will have a shared chat.\n\n"
+            f"If you weren't expecting anyone, just don't open the link. Nothing will "
+            f"happen, and nobody will find out about you.\n"
+        )
+    else:
+        text = (
+            f"Здравствуйте.\n\n"
+            f"{teacher} зовёт вас к себе на занятия во Flamingo. Вот ссылка:\n\n"
+            f"{link}\n\n"
+            f"Она работает семь дней и добавляет одного человека. Перейдёте — и вы "
+            f"увидите друг друга: {teacher} вас в журнале, вы её или его в своих "
+            f"преподавателях, и у вас появится общий чат.\n\n"
+            f"Если вы никого не ждали — просто не открывайте ссылку. Ничего не "
+            f"произойдёт, и о вас никто не узнает.\n"
+        )
     if not settings.EMAIL_HOST:
         log.warning("ПОЧТА НЕ НАСТРОЕНА. Приглашение для %s не ушло. Ссылка: %s", email, link)
         return
     send_mail(
-        subject="Flamingo · приглашение на занятия",
+        subject="Flamingo · invitation to lessons" if сейчас() == "en" else "Flamingo · приглашение на занятия",
         message=text,
         from_email=settings.DEFAULT_FROM_EMAIL,
         recipient_list=[email],

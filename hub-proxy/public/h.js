@@ -10,13 +10,33 @@
    С «Источниками» страница говорит сообщениями: сюда приходят «назад» и
    «обновить», отсюда уходит адрес открытой сейчас страницы. */
 (async () => {
+  /* Язык — тот же, что у сайта: кука `fl_lang` на весь flamingo.plus, без неё —
+     настройки браузера (русский или английский; прочие — английский). */
+  const язык = /(?:^|;\s*)fl_lang=(ru|en)/.exec(document.cookie)?.[1]
+    ?? (navigator.languages?.length ? navigator.languages : [navigator.language])
+      .map((я) => String(я).toLowerCase().split('-')[0]).find((я) => я === 'ru' || я === 'en')
+    ?? 'en'
+  const EN = {
+    'Открываем источник…': 'Opening the source…',
+    ' Открыть в новой вкладке ↗': ' Open in a new tab ↗',
+    'Такого источника в каталоге нет.': 'There is no such source in the catalogue.',
+    'Этот браузер не умеет открывать источник здесь.': 'This browser cannot open the source here.',
+    'Войдите во Flamingo — и источник откроется прямо здесь.': 'Sign in to Flamingo — and the source will open right here.',
+    'Источник здесь не открылся.': 'The source did not open here.',
+  }
+  const тр = (т) => (язык === 'en' ? EN[т] ?? т : т)
   const слова = document.getElementById('слова')
+  if (язык === 'en') {
+    document.documentElement.lang = 'en'
+    document.title = 'Source — Flamingo'
+    слова.textContent = тр(слова.textContent)
+  }
   const сказать = (текст, ссылка) => {
     слова.hidden = false
-    слова.textContent = текст
+    слова.textContent = тр(текст)
     if (ссылка) {
       const а = document.createElement('a')
-      а.href = ссылка; а.target = '_blank'; а.rel = 'noopener noreferrer'; а.textContent = ' Открыть в новой вкладке ↗'
+      а.href = ссылка; а.target = '_blank'; а.rel = 'noopener noreferrer'; а.textContent = тр(' Открыть в новой вкладке ↗')
       слова.append(а)
     }
   }

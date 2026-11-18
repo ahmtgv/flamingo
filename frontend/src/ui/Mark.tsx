@@ -1,4 +1,5 @@
 import s from './Mark.module.css'
+import { тр } from '../lib/язык.ts'
 
 /** Знак и словесный знак. Один на экран, всегда одинаковый (ПРАВИЛА 4.9).
  *
@@ -33,7 +34,7 @@ export function Mark({ quiet = false, onGo, title }: {
 
   if (!onGo) {
     return (
-      <a href="/" className={`${s.mark} ${s.link} ${quiet ? s.quiet : ''}`} title="Главная" aria-label="Главная">
+      <a href="/" className={`${s.mark} ${s.link} ${quiet ? s.quiet : ''}`} title={тр("Главная")} aria-label={тр("Главная")}>
         {внутри}
       </a>
     )
@@ -44,8 +45,8 @@ export function Mark({ quiet = false, onGo, title }: {
       type="button"
       className={`${s.mark} ${s.link} ${quiet ? s.quiet : ''}`}
       onClick={onGo}
-      title={title ?? 'На главную'}
-      aria-label={title ?? 'На главную'}
+      title={title ?? тр("На главную")}
+      aria-label={title ?? тр("На главную")}
     >
       {внутри}
     </button>

@@ -5,6 +5,7 @@ import s from './Tiles.module.css'
 import type { Face } from './useRoom'
 import { знакПлитки, пишутПлитка, положениеПлитки, type ВниманиеНаСцене } from './внимание'
 import { ВниманиеНаПлитке } from './ВниманиеНаПлитке'
+import { тр } from '../lib/язык.ts'
 
 /** Превью лиц ПОВЕРХ доски (решение владельца 30.08).
  *
@@ -39,15 +40,15 @@ function Tile({ face, lead, внимание }: { face: Face; lead?: boolean; в
       {!face.camOn || !face.video ? <span className={s.ini}>{initials(face.name)}</span> : null}
       {lead || пишутПлитка(face, внимание) ? (
         <span className={s.marks}>
-          {lead ? <span className={s.mark}>ведёт занятие</span> : null}
-          {пишутПлитка(face, внимание) ? <span className={s.mark}>пишут в тетради</span> : null}
+          {lead ? <span className={s.mark}>{тр("ведёт занятие")}</span> : null}
+          {пишутПлитка(face, внимание) ? <span className={s.mark}>{тр("пишут в тетради")}</span> : null}
         </span>
       ) : null}
       <span className={s.name} title={face.name}>
         {face.name}
-        {face.isLocal ? ' · вы' : ''}
+        {face.isLocal ? тр(" · вы") : ''}
       </span>
-      {!face.micOn ? <span className={s.muted}>без звука</span> : null}
+      {!face.micOn ? <span className={s.muted}>{тр("без звука")}</span> : null}
       {знак || положение ? <ВниманиеНаПлитке знак={знак} положение={положение} сЦифрой={внимание?.вид === 'учитель'} /> : null}
     </div>
   )
@@ -88,7 +89,7 @@ export function Tiles({ faces, внимание, вид = 'рейка', зван
     /* Стоймя лица стоят строкой и не сворачиваются: под ними чат, и дыра на
        месте строки была бы просто дырой. */
     return (
-      <div className={s.strip} aria-label="Участники">
+      <div className={s.strip} aria-label={тр("Участники")}>
         {якорь ? <Tile face={якорь} lead={ведёт} внимание={внимание} /> : null}
         {pupils.map((f) => <Tile key={f.identity} face={f} внимание={внимание} />)}
       </div>
@@ -99,7 +100,7 @@ export function Tiles({ faces, внимание, вид = 'рейка', зван
     if (вид === 'кружок' && !зван) return null
     return (
       <button type="button" className={`${s.show} ${вид === 'кружок' ? s.showLow : ''}`} onClick={() => setOpen(true)}>
-        Участники · {faces.length}
+        {тр("Участники ·")} {faces.length}
       </button>
     )
   }
@@ -113,7 +114,7 @@ export function Tiles({ faces, внимание, вид = 'рейка', зван
         className={s.bubble}
         role="button"
         tabIndex={0}
-        aria-label={`${вКружке.name}. Двигайте пальцем; нажмите, чтобы убрать`}
+        aria-label={тр("{1}. Двигайте пальцем; нажмите, чтобы убрать", { 1: вКружке.name })}
         style={{ transform: `translate(${сдвиг.x}px, ${сдвиг.y}px)` }}
         onPointerDown={(e) => {
           const поле = e.currentTarget.parentElement?.getBoundingClientRect()
@@ -155,8 +156,8 @@ export function Tiles({ faces, внимание, вид = 'рейка', зван
       className={s.rail}
       role="button"
       tabIndex={0}
-      aria-label="Участники. Нажмите, чтобы свернуть"
-      title="Нажмите, чтобы свернуть"
+      aria-label={тр("Участники. Нажмите, чтобы свернуть")}
+      title={тр("Нажмите, чтобы свернуть")}
       onClick={() => setOpen(false)}
       onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setOpen(false) } }}
     >
@@ -168,7 +169,7 @@ export function Tiles({ faces, внимание, вид = 'рейка', зван
       </div>
       {rest > 0 ? (
         <p className={s.more}>
-          ещё {rest} · всего {faces.length} в комнате
+          {тр("ещё")} {rest} {тр("· всего")} {faces.length} {тр("в комнате")}
         </p>
       ) : null}
     </div>

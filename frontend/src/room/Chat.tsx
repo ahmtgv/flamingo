@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useОкно } from '../ui/окно'
 import { СТРЕЛКА, УГОЛ } from '../ui/знаки'
 import s from './Chat.module.css'
+import { ЛОКАЛЬ, тр } from '../lib/язык.ts'
 
 export type Line = { id: string; who: string; text: string; at: number; mine: boolean }
 
@@ -62,7 +63,7 @@ function куски(text: string) {
 
 /** Время реплики — в поясе смотрящего (ПРАВИЛА 8.5). */
 const часы = (at: number) =>
-  new Date(at).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })
+  new Date(at).toLocaleTimeString(ЛОКАЛЬ, { hour: '2-digit', minute: '2-digit' })
 
 export function Chat({ lines, alive, onClose, onSend, onOpen }: {
   lines: Line[]
@@ -99,14 +100,14 @@ export function Chat({ lines, alive, onClose, onSend, onOpen }: {
 
   return (
     <aside ref={окно.поставить} style={окно.стиль} className={s.chat}
-           aria-label="Чат занятия" data-geo="панель-чата">
+           aria-label={тр("Чат занятия")} data-geo="панель-чата">
       {/* Шапка — ручка окна: за неё возят. Кнопка внутри при этом работает. */}
       <header className={s.head} {...окно.везтиЗа}>
-        <span className={s.title}>Чат занятия</span>
+        <span className={s.title}>{тр("Чат занятия")}</span>
         {/* Значок рисованный, а не глиф шрифта: глиф на части машин
             не отрисовывается и оставляет пустой квадрат. */}
         <button type="button" className={s.close} onClick={onClose}
-                aria-label="Закрыть чат" title="Закрыть чат">
+                aria-label={тр("Закрыть чат")} title={тр("Закрыть чат")}>
           <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor"
                strokeWidth="1.4" vectorEffect="non-scaling-stroke" strokeLinecap="round" aria-hidden="true">
             <path d="M6 6l12 12 M18 6L6 18" />
@@ -118,15 +119,14 @@ export function Chat({ lines, alive, onClose, onSend, onOpen }: {
         {lines.length === 0 ? (
           /* ПРАВИЛА 6.2: пусто объясняет словами, что здесь будет. */
           <p className={s.empty}>
-            Здесь появятся вопросы класса. Пока учётных записей нет, переписка живёт только
-            во время урока: все вышли — чат исчез.
+            {тр("Здесь появятся вопросы класса. Пока учётных записей нет, переписка живёт только во время урока: все вышли — чат исчез.")}
           </p>
         ) : (
           lines.map((l) => (
             /* Все слева: сторон в общем разговоре не две, а весь класс. */
             <div key={l.id} className={s.line}>
               <span className={s.who}>
-                {l.mine ? 'вы' : l.who}
+                {l.mine ? тр("вы") : l.who}
                 <span className={s.at}>{часы(l.at)}</span>
               </span>
               <span className={s.text}>
@@ -136,7 +136,7 @@ export function Chat({ lines, alive, onClose, onSend, onOpen }: {
                       key={i}
                       type="button"
                       className={s.link}
-                      title={`Открыть ${к.ссылка} в занятии`}
+                      title={тр("Открыть {1} в занятии", { 1: к.ссылка })}
                       onClick={() => onOpen(к.ссылка as string)}
                     >
                       {к.сам}
@@ -157,15 +157,13 @@ export function Chat({ lines, alive, onClose, onSend, onOpen }: {
       <div className={s.say} data-geo="строка-сообщения" role="status">
         {failed ? (
           <span className={s.sayBox}>
-            <span className={s.sayHead}>Сообщение не ушло</span>
+            <span className={s.sayHead}>{тр("Сообщение не ушло")}</span>
             <span className={s.sayBody}>
               {/* 🔴 Слово «Отправить» живёт только в подписи для читалки: на
                   экране стрелка. И «доска и голос работают» — неправда: в этом
                   состоянии не работает ни то, ни другое, всё идёт по одной
                   связи. Осмотр комнаты 08.09, находки 2 и 16. */}
-              Связь с комнатой прервалась. Текст остался в поле — отправьте его стрелкой
-              ещё раз, когда связь вернётся. Написанное на доске цело, но классу оно
-              сейчас тоже не уходит.
+              {тр("Связь с комнатой прервалась. Текст остался в поле — отправьте его стрелкой ещё раз, когда связь вернётся. Написанное на доске цело, но классу оно сейчас тоже не уходит.")}
             </span>
           </span>
         ) : null}
@@ -185,14 +183,14 @@ export function Chat({ lines, alive, onClose, onSend, onOpen }: {
             setText(e.target.value)
             setFailed(false)
           }}
-          placeholder="Спросить или ответить"
+          placeholder={тр("Спросить или ответить")}
           maxLength={500}
-          aria-label="Сообщение в чат"
+          aria-label={тр("Сообщение в чат")}
         />
         {/* Стрелка вместо слова: подпись «Отправить» занимала треть строки
             ввода и повторяла то, что и так понятно по месту и по Enter. */}
         <button type="submit" className={s.send} disabled={!text.trim()}
-                aria-label="Отправить" title="Отправить">
+                aria-label={тр("Отправить")} title={тр("Отправить")}>
           {СТРЕЛКА}
         </button>
       </form>

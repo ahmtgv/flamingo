@@ -1,4 +1,5 @@
 import { useEffect, useRef, type MouseEvent } from 'react'
+import { ЯЗЫК, сменитьЯзык, тр, type Язык } from '../lib/язык.ts'
 
 /** Единая верхняя строка сайта (решение владельца 10.11.2026: «одна верхняя
  *  строка меню — с логотипом и одинаковым меню — на всех страницах»).
@@ -17,10 +18,10 @@ export type Где = 'главная' | 'источники' | 'кабинет' 
 type Раздел = Где
 
 const ПУНКТЫ: { имя: string; куда: string; раздел?: Раздел; внутри: boolean }[] = [
-  { имя: 'Главная', куда: '/', раздел: 'главная', внутри: true },
-  { имя: 'Источники мира', куда: '/hub', раздел: 'источники', внутри: true },
+  { имя: тр("Главная"), куда: '/', раздел: 'главная', внутри: true },
+  { имя: тр("Источники мира"), куда: '/hub', раздел: 'источники', внутри: true },
   /* Эти две страницы статичные: переход настоящий, не внутри приложения. */
-  { имя: 'о SEduM', куда: '/sedum/', внутри: false },
+  { имя: тр("о SEduM"), куда: '/sedum/', внутри: false },
   { имя: 'SEduM: AI & RND', куда: '/sedum/research-cabinet.html', внутри: false },
 ]
 
@@ -60,7 +61,7 @@ export function Шапка({ где, вошёл, админ = false, молчи�
     if (!заперто) go(куда)
   }
 
-  const разделы = админ ? [...ПУНКТЫ, { имя: 'Админка', куда: '/админ', раздел: 'админка' as Раздел, внутри: true }] : ПУНКТЫ
+  const разделы = админ ? [...ПУНКТЫ, { имя: тр("Админка"), куда: '/админ', раздел: 'админка' as Раздел, внутри: true }] : ПУНКТЫ
   const пункты = разделы.map((п) => (
     <a
       key={п.куда}
@@ -73,36 +74,51 @@ export function Шапка({ где, вошёл, админ = false, молчи�
   ))
 
   const дверь = молчит
-    ? { 'aria-disabled': true as const, title: 'Сервер учётных записей молчит — войти сейчас нельзя' }
+    ? { 'aria-disabled': true as const, title: тр("Сервер учётных записей молчит — войти сейчас нельзя") }
     : {}
+
+  /* Язык: RU · EN (владелец, 18.11.2026). Тот же переключатель стоит на
+     статичных страницах `/sedum/` — оформление в `public/site/site.css`. */
+  const язык = (вМеню = false) => (
+    <span className={`flnav__lang${вМеню ? ' flnav__lang--panel' : ''}`} role="group" aria-label={тр("Язык · Language")}>
+      {(['ru', 'en'] as Язык[]).map((я, i) => (
+        <span key={я} style={{ display: 'contents' }}>
+          {i ? <span aria-hidden="true">·</span> : null}
+          <button type="button" aria-pressed={ЯЗЫК === я} onClick={() => { if (ЯЗЫК !== я) сменитьЯзык(я) }}>{я.toUpperCase()}</button>
+        </span>
+      ))}
+    </span>
+  )
 
   return (
     <header className="flnav">
-      <a className="flnav__logo" href="/" aria-label="Flamingo — на главную" onClick={внутрь('/')}>
+      <a className="flnav__logo" href="/" aria-label={тр("Flamingo — на главную")} onClick={внутрь('/')}>
         <img src="/flamingo-bird.svg" alt="" width={22} height={20} />
         <span>flamingo<b>.</b></span>
       </a>
-      <nav className="flnav__items" aria-label="Разделы сайта">{пункты}</nav>
+      <nav className="flnav__items" aria-label={тр("Разделы сайта")}>{пункты}</nav>
       <div className="flnav__side">
+        {язык()}
         {вошёл ? (
           <a className="flnav__pill" href="/кабинет" onClick={внутрь('/кабинет')}
-             aria-current={где === 'кабинет' ? 'page' : undefined}>{где === 'кабинет' ? 'Кабинет' : 'Войти в кабинет'}</a>
+             aria-current={где === 'кабинет' ? 'page' : undefined}>{где === 'кабинет' ? тр("Кабинет") : тр("Войти в кабинет")}</a>
         ) : (
           <>
-            <a className="flnav__in" href="/вход" onClick={внутрь('/вход', молчит)} {...дверь}>Войти</a>
-            <a className="flnav__pill" href="/регистрация" data-out="" onClick={внутрь('/регистрация', молчит)} {...дверь}>Завести учётную запись</a>
+            <a className="flnav__in" href="/вход" onClick={внутрь('/вход', молчит)} {...дверь}>{тр("Войти")}</a>
+            <a className="flnav__pill" href="/регистрация" data-out="" onClick={внутрь('/регистрация', молчит)} {...дверь}>{тр("Завести учётную запись")}</a>
           </>
         )}
         <details className="flnav__more" ref={ещё}>
-          <summary aria-label="Меню">
+          <summary aria-label={тр("Меню")}>
             <svg className="flnav__bars" viewBox="0 0 20 20" aria-hidden="true"><path d="M3 6h14M3 10h14M3 14h14" /></svg>
             <svg className="flnav__x" viewBox="0 0 20 20" aria-hidden="true"><path d="m5 5 10 10M15 5 5 15" /></svg>
           </summary>
-          <nav className="flnav__panel" aria-label="Разделы сайта">
+          <nav className="flnav__panel" aria-label={тр("Разделы сайта")}>
             {пункты}
             {вошёл ? null : (
-              <a className="flnav__pill" href="/регистрация" onClick={внутрь('/регистрация', молчит)} {...дверь}>Завести учётную запись</a>
+              <a className="flnav__pill" href="/регистрация" onClick={внутрь('/регистрация', молчит)} {...дверь}>{тр("Завести учётную запись")}</a>
             )}
+            {язык(true)}
           </nav>
         </details>
       </div>

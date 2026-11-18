@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import type { Tool } from './Ink'
 import type { StickerName } from './shows'
 import s from './InkTools.module.css'
+import { тр } from '../lib/язык.ts'
 
 /** Полка инструментов пометок. Одна на показ и на трансляцию: три цвета маркера,
  *  стрелка, три стикера, отмена (решение владельца 31.08).
@@ -11,15 +12,15 @@ import s from './InkTools.module.css'
  *  (ПРАВИЛА 5.7): акцент на экране урока принадлежит поднятой руке. */
 
 const MARKER = [
-  { token: '--fl-coral-500', title: 'Коралловый' },
-  { token: '--color-go', title: 'Зелёный' },
-  { token: '--color-info', title: 'Синий' },
+  { token: '--fl-coral-500', title: тр("Коралловый") },
+  { token: '--color-go', title: тр("Зелёный") },
+  { token: '--color-info', title: тр("Синий") },
 ] as const
 
 const STICKERS: { name: StickerName; glyph: string; title: string }[] = [
-  { name: 'верно', glyph: '✓', title: 'Верно' },
-  { name: 'вопрос', glyph: '?', title: 'Вопрос' },
-  { name: 'сюда', glyph: '!', title: 'Смотрите сюда' },
+  { name: 'верно', glyph: '✓', title: тр("Верно") },
+  { name: 'вопрос', glyph: '?', title: тр("Вопрос") },
+  { name: 'сюда', glyph: '!', title: тр("Смотрите сюда") },
 ]
 
 export const FIRST_TOOL: Tool = { kind: 'pen', color: MARKER[0].token }
@@ -52,7 +53,7 @@ export function InkTools({ tool, onTool, onUndo, onWipe, canUndo, canWipe }: {
           key={c.token}
           type="button"
           className={`${s.dotBtn} ${pen?.kind === 'pen' && pen.color === c.token ? s.on : ''}`}
-          aria-label={`Маркер, ${c.title.toLowerCase()}`}
+          aria-label={тр("Маркер, {1}", { 1: c.title.toLowerCase() })}
           aria-pressed={pen?.kind === 'pen' && pen.color === c.token}
           onClick={() => onTool({ kind: 'pen', color: c.token })}
         >
@@ -66,7 +67,7 @@ export function InkTools({ tool, onTool, onUndo, onWipe, canUndo, canWipe }: {
         aria-pressed={tool.kind === 'arrow'}
         onClick={() => onTool({ kind: 'arrow', color: pen ? pen.color : MARKER[0].token })}
       >
-        Стрелка
+        {тр("Стрелка")}
       </button>
       {/* 🔴 ИМЯ, А НЕ ГЛИФ. Содержимое кнопки старше `title` при вычислении
           имени, поэтому читалка называла эти кнопки «✓», «?» и «!» —
@@ -87,7 +88,7 @@ export function InkTools({ tool, onTool, onUndo, onWipe, canUndo, canWipe }: {
       ))}
       <span className={s.sep} />
       <button type="button" className={s.btn} onClick={onUndo} disabled={!canUndo}>
-        Отменить
+        {тр("Отменить")}
       </button>
       {/* 🔴 ВТОРОЙ ВОПРОС, КАК У ДОСКИ (ПРАВИЛА 14.2). Раньше одно нажатие
           стирало пометки у всех и тут же писало опустевший показ в базу:
@@ -99,15 +100,15 @@ export function InkTools({ tool, onTool, onUndo, onWipe, canUndo, canWipe }: {
         className={`${s.btn} ${взведено ? s.wipeArmed : ''}`}
         onClick={стереть}
         disabled={!canWipe}
-        title="Стереть всё · стирает пометки этой страницы у всех, кто в комнате. Вернуть нельзя."
-        aria-label="Стереть всё"
+        title={тр("Стереть всё · стирает пометки этой страницы у всех, кто в комнате. Вернуть нельзя.")}
+        aria-label={тр("Стереть всё")}
       >
-        {взведено ? 'стереть?' : 'Стереть всё'}
+        {взведено ? тр("стереть?") : тр("Стереть всё")}
       </button>
 
       {/* Правило пометок сказано словами прямо на полке (лист «Показ»): иначе
           человек не знает, увидит ли он свой рисунок, вернувшись на страницу. */}
-      <span className={s.hint}>пометки привязаны к своей странице · ⌘Z отменяет</span>
+      <span className={s.hint}>{тр("пометки привязаны к своей странице · ⌘Z отменяет")}</span>
     </div>
   )
 }

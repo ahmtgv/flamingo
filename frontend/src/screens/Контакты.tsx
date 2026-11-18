@@ -4,6 +4,7 @@ import { useОкно } from '../ui/окно'
 import { УГОЛ } from '../ui/знаки'
 import { Беда, разговоры, type Разговор } from '../lib/study'
 import s from './Переписка.module.css'
+import { тр } from '../lib/язык.ts'
 
 /** С кем я в контакте — чтобы написать прямо с урока.
  *
@@ -38,17 +39,17 @@ export function Контакты({ onВыбрать, onClose, подложка }
       setЛюди(р)
     }).catch((e) => {
       if (!живо) return
-      setОтказ(e instanceof Беда ? e.message : 'Список не открылся.')
+      setОтказ(e instanceof Беда ? e.message : тр("Список не открылся."))
     })
     return () => { живо = false }
   }, [подложка])
 
   return (
-    <aside ref={окно.поставить} style={окно.стиль} className={s.панель} aria-label="Кому написать">
+    <aside ref={окно.поставить} style={окно.стиль} className={s.панель} aria-label={тр("Кому написать")}>
       <header className={s.верх} {...окно.везтиЗа}>
-        <span className={s.кто}>Кому написать</span>
+        <span className={s.кто}>{тр("Кому написать")}</span>
         <button type="button" className={s.закрыть} onClick={onClose}
-                aria-label="Закрыть список" title="Закрыть список">
+                aria-label={тр("Закрыть список")} title={тр("Закрыть список")}>
           <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor"
                strokeWidth="1.4" vectorEffect="non-scaling-stroke" strokeLinecap="round" aria-hidden="true">
             <path d="M6 6l12 12 M18 6L6 18" />
@@ -60,18 +61,18 @@ export function Контакты({ onВыбрать, onClose, подложка }
         {отказ ? (
           <p className={s.слова}>{отказ}</p>
         ) : молчит ? (
-          <p className={s.слова}>Сервер не отвечает, поэтому списка не видно. Контакты никуда не делись — они на сервере.</p>
+          <p className={s.слова}>{тр("Сервер не отвечает, поэтому списка не видно. Контакты никуда не делись — они на сервере.")}</p>
         ) : люди === null ? (
-          <p className={s.слова}>Открываем список…</p>
+          <p className={s.слова}>{тр("Открываем список…")}</p>
         ) : люди.length === 0 ? (
-          <p className={s.слова}>Контактов пока нет. Человек появится здесь после первого приглашения из журнала.</p>
+          <p className={s.слова}>{тр("Контактов пока нет. Человек появится здесь после первого приглашения из журнала.")}</p>
         ) : (
           люди.map((ч) => (
             <button key={ч.кто} type="button" className={s.урок} onClick={() => onВыбрать(ч.кто, ч.имя)}>
               <span className={s.урокИмя}>{ч.имя}</span>
               <span className={s.урокКогда}>
                 {ч.роль === 'teacher' ? 'преподаватель' : 'ученик'}
-                {ч.непрочитано > 0 ? ` · непрочитанных: ${ч.непрочитано}` : ''}
+                {ч.непрочитано > 0 ? тр(" · непрочитанных: {1}", { 1: ч.непрочитано }) : ''}
               </span>
             </button>
           ))

@@ -128,6 +128,7 @@ r2 = пост(Client(), "/api/auth/login", {"email": "нетакой@почта.
 да("отказ не говорит, есть ли такая почта",
    "почта или пароль" in плох.lower() and "нет" not in плох.lower()[:20], плох)
 
+
 раздел("Пояс:")
 r = пост(Client(), "/api/auth/login",
          {"email": "nina@почта.ru", "password": "четыре обычных слова", "tz": "Asia/Vladivostok"})
@@ -296,6 +297,20 @@ r = пост(запертая, "/api/auth/reset", {"key": ключ3, "password":
 да("небоевой ключ виден как небоевой",
    settings.SECRET_KEY.startswith("небоевой") or len(settings.SECRET_KEY) >= 40,
    settings.SECRET_KEY[:12])
+
+# ── Язык ответа ──────────────────────────────────────────────────────────
+раздел("Язык ответа:")
+# Язык ответа (config/язык.py): кука страницы, потом Accept-Language, иначе русский.
+англ = Client()
+англ.cookies["fl_lang"] = "en"
+r = пост(англ, "/api/auth/login", {"email": "язык@почта.ru", "password": "не тот пароль"})
+да("английская страница получает отказ по-английски",
+   тело(r).get("error") == "The email or password is incorrect." and r.get("Content-Length") in (None, str(len(r.content))),
+   тело(r))
+r = пост(Client(HTTP_ACCEPT_LANGUAGE="en-US,en;q=0.9"), "/api/auth/login", {"email": "язык@почта.ru", "password": "не тот пароль"})
+да("без куки язык берётся из браузера", тело(r).get("error") == "The email or password is incorrect.", тело(r))
+r = пост(Client(HTTP_ACCEPT_LANGUAGE="de-DE"), "/api/auth/login", {"email": "язык@почта.ru", "password": "не тот пароль"})
+да("незнакомый язык — русский, как было", тело(r).get("error") == "Почта или пароль не подошли.", тело(r))
 
 print(f"\n{'✅ всё сходится' if not плохо else f'❌ бед {плохо}'} · проверок {всего}")
 sys.exit(1 if плохо else 0)

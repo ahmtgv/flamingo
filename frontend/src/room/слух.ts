@@ -18,6 +18,7 @@
  *  только пока его микрофон включён: выключил микрофон — слух молчит.
  */
 import { useEffect, useRef, useState } from 'react'
+import { тр } from '../lib/язык.ts'
 
 export type Слух = 'выключен' | 'заводим' | 'слушает' | 'не завёлся'
 
@@ -29,14 +30,14 @@ type Модель = Awaited<ReturnType<typeof import('vosk-browser')['createMode
 async function собратьМодель(): Promise<string> {
   const о = await fetch(ОПИСЬ_РЕЧИ, { cache: 'no-cache' })
   /* Описи нет — сервер сайта отдаёт вместо неё страницу (html): «200» тут ничего не значит. */
-  if (!о.ok || (о.headers.get('content-type') ?? '').includes('text/html')) throw new Error('нет описи модели речи')
+  if (!о.ok || (о.headers.get('content-type') ?? '').includes('text/html')) throw new Error(тр("нет описи модели речи"))
   const { части } = (await о.json()) as { части?: unknown }
   if (!Array.isArray(части) || !части.length || !части.every((ч) => typeof ч === 'string' && /^[\w.-]+$/.test(ч))) {
-    throw new Error('опись модели речи повреждена')
+    throw new Error(тр("опись модели речи повреждена"))
   }
   const куски = await Promise.all(части.map(async (имя) => {
     const r = await fetch(`/модели/${имя}`)
-    if (!r.ok || (r.headers.get('content-type') ?? '').includes('text/html')) throw new Error(`нет куска ${имя}`)
+    if (!r.ok || (r.headers.get('content-type') ?? '').includes('text/html')) throw new Error(тр("нет куска {1}", { 1: имя }))
     return r.blob()
   }))
   return URL.createObjectURL(new Blob(куски, { type: 'application/gzip' }))

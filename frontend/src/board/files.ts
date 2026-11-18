@@ -1,4 +1,5 @@
 import { newId, type Obj, type Point, type Sheet } from './protocol'
+import { ЛОКАЛЬ, тр } from '../lib/язык.ts'
 
 /** Больше этого по длинной стороне картинку не держим: она уезжает по данным-каналу
  *  участникам, и полтора мегабайта из буфера положили бы связь всему классу. */
@@ -34,7 +35,7 @@ function readImage(file: Blob): Promise<HTMLImageElement> {
     }
     img.onerror = () => {
       URL.revokeObjectURL(url)
-      rej(new Error('не картинка'))
+      rej(new Error(тр("не картинка")))
     }
     img.src = url
   })
@@ -78,7 +79,7 @@ const читатьЦеликом = (file: Blob) =>
   new Promise<string>((res, rej) => {
     const r = new FileReader()
     r.onload = () => res(String(r.result))
-    r.onerror = () => rej(new Error('не прочиталось'))
+    r.onerror = () => rej(new Error(тр("не прочиталось")))
     r.readAsDataURL(file)
   })
 
@@ -153,7 +154,7 @@ export function saveFile(sheets: Sheet[]) {
   })
   const a = document.createElement('a')
   a.href = URL.createObjectURL(blob)
-  a.download = `Доски урока ${new Date().toLocaleDateString('ru-RU')}.flamingo.json`
+  a.download = тр("Доски урока {1}.flamingo.json", { 1: new Date().toLocaleDateString(ЛОКАЛЬ) })
   a.click()
   window.setTimeout(() => URL.revokeObjectURL(a.href), 1000)
 }

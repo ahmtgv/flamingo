@@ -1,6 +1,7 @@
 import type { CSSProperties } from 'react'
 
 import s from '../screens/Hub.module.css'
+import { тр } from '../lib/язык.ts'
 
 /** Три кнопки в заголовке окна: закрыть, свернуть, развернуть.
  *
@@ -35,15 +36,15 @@ export function КнопкиОкна({ имя, вид, закрыть, смен�
   return (
     <span className={s.dots}>
       <button type="button" className={s.dot} onPointerDown={стой} onClick={закрыть}
-              aria-label={`Закрыть окно: ${имя}`} title="Закрыть">
+              aria-label={тр("Закрыть окно: {1}", { 1: имя })} title={тр("Закрыть")}>
         <svg viewBox="0 0 10 10" aria-hidden="true"><path d="M3 3l4 4M7 3L3 7" /></svg>
       </button>
       <button type="button" className={s.dot} onPointerDown={стой} onClick={() => сменить(свёрнуто ? undefined : 'свёрнуто')}
-              aria-pressed={свёрнуто} aria-label={`${свёрнуто ? 'Раскрыть' : 'Свернуть'} окно: ${имя}`} title={свёрнуто ? 'Раскрыть' : 'Свернуть'}>
+              aria-pressed={свёрнуто} aria-label={тр("{1} окно: {2}", { 1: свёрнуто ? тр("Раскрыть") : тр("Свернуть"), 2: имя })} title={свёрнуто ? тр("Раскрыть") : тр("Свернуть")}>
         <svg viewBox="0 0 10 10" aria-hidden="true"><path d="M2.5 5h5" /></svg>
       </button>
       <button type="button" className={s.dot} onPointerDown={стой} onClick={() => сменить(развёрнуто ? undefined : 'развёрнуто')}
-              aria-pressed={развёрнуто} aria-label={`${развёрнуто ? 'Вернуть размер окна' : 'Развернуть окно'}: ${имя}`} title={развёрнуто ? 'Вернуть размер' : 'Развернуть'}>
+              aria-pressed={развёрнуто} aria-label={`${развёрнуто ? тр("Вернуть размер окна") : тр("Развернуть окно")}: ${имя}`} title={развёрнуто ? тр("Вернуть размер") : тр("Развернуть")}>
         <svg viewBox="0 0 10 10" aria-hidden="true"><path d="M5 2.5v5M2.5 5h5" /></svg>
       </button>
     </span>
