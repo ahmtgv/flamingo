@@ -70,9 +70,9 @@
      Моноширинный — код, пути, имена, время. Файлы лежат рядом с продуктом
      (@fontsource), в чужие CDN за ними не ходим: наших учеников никто не
      считает по запросам за шрифтом. */
-  --п-гротеск: 'Inter Variable', 'Inter', -apple-system, system-ui, sans-serif;
-  --п-сериф:   'EB Garamond', 'Iowan Old Style', 'Palatino Linotype', ui-serif, Georgia, serif;
-  --п-моно:    'JetBrains Mono Variable', 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  --п-гротеск: 'Inter Variable', 'Noto Sans Georgian Variable', 'Inter', -apple-system, system-ui, sans-serif;
+  --п-сериф:   'EB Garamond', 'Noto Sans Georgian Variable', 'Iowan Old Style', 'Palatino Linotype', ui-serif, Georgia, serif;
+  --п-моно:    'JetBrains Mono Variable', 'Noto Sans Georgian Variable', 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
 
   /* ── ВЕС ────────────────────────────────────────────────────────────────
      🔴 ЗАГОЛОВКИ ШЕПЧУТ. Вес 400 всегда, даже на 72 пикселях. Иерархию несут

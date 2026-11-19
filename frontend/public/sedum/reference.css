@@ -1,6 +1,6 @@
 /* Brand anchor: Титул.module.css + главная.css, not bitmap pixel dimensions.
    The reference screenshot is Retina: 48 physical pixels = 24 CSS pixels. */
-:root{--font:'Inter Variable',Inter,-apple-system,'Helvetica Neue',system-ui,sans-serif;--green:#496D4C;--green-hover:#3C5D3F;--green-pressed:#304C33;--green-text:#284C32;--green-soft:#F0F4ED;--green-border:#CEDBC9}
+:root{--font:'Inter Variable',Inter,'Noto Sans Georgian Variable',-apple-system,'Helvetica Neue',system-ui,sans-serif;--green:#496D4C;--green-hover:#3C5D3F;--green-pressed:#304C33;--green-text:#284C32;--green-soft:#F0F4ED;--green-border:#CEDBC9}
 .button{background:var(--green)}
 .button:hover{background:var(--green-hover)}
 .button:active{background:var(--green-pressed)}

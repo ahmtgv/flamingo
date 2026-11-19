@@ -5,7 +5,7 @@ import { ИМЕНА } from './Shelf'
 import type { Пособие } from '../lib/study'
 import type { ShowDoc } from './shows'
 import s from './ShowList.module.css'
-import { ЛОКАЛЬ, тр } from '../lib/язык.ts'
+import { деньИМесяц, тр } from '../lib/язык.ts'
 
 /** Панель показов: их несколько, и они сохраняются (решение владельца 31.08).
  *
@@ -23,7 +23,7 @@ import { ЛОКАЛЬ, тр } from '../lib/язык.ts'
  *  подписи значит соврать про половину. */
 
 function when(at: number): string {
-  return new Date(at).toLocaleDateString(ЛОКАЛЬ, { day: 'numeric', month: 'long' })
+  return деньИМесяц(new Date(at))
 }
 
 const ВЕС = (b: number) =>

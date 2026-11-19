@@ -1,3 +1,10 @@
+/* Грузинские буквы (владелец, 19.11.2026: «берём A» — Noto Sans Georgian).
+   В Manrope и Inter грузинских букв нет: латиница и цифры остаются своими,
+   а грузинские берутся отсюда. Файл грузится, только когда на странице есть
+   грузинский текст (unicode-range). Лицензия — OFL, рядом. Одно объявление
+   на всё: этот файл подключают и приложение, и статичные страницы /sedum/. */
+@font-face{font-family:'Noto Sans Georgian Variable';src:url('/site/noto-sans-georgian.woff2') format('woff2');font-weight:100 900;font-style:normal;font-display:swap;unicode-range:U+0589,U+10A0-10FF,U+1C90-1CBF,U+2D00-2D2F}
+
 /* Единая верхняя строка сайта — один файл на все страницы.
    Берут её: главная и «Источники мира» (ui/Шапка.tsx, ссылка в index.html)
    и статичные страницы /sedum/ (ссылка в их <head>). Править — только здесь:
@@ -33,7 +40,7 @@
   backdrop-filter: saturate(180%) blur(30px);
   border-bottom: 0.5px solid var(--fn-line);
   color: var(--fn-ink);
-  font: 500 13px/1 'Inter Variable', Inter, -apple-system, 'Helvetica Neue', system-ui, sans-serif;
+  font: 500 13px/1 'Inter Variable', Inter, 'Noto Sans Georgian Variable', -apple-system, 'Helvetica Neue', system-ui, sans-serif;
   letter-spacing: -0.01em;
   -webkit-font-smoothing: antialiased;
   white-space: nowrap;

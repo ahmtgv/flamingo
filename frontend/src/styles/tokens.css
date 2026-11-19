@@ -293,10 +293,10 @@
      учеников по запросам за шрифтом. Переменное начертание: один файл на
      все веса, 200–800, наш потолок 600.
      Системные имена оставлены запасными — на те полсекунды, пока файл едет. */
-  --font-heading: 'Manrope Variable', -apple-system, 'Inter', system-ui, sans-serif;
-  --font-body:    'Manrope Variable', -apple-system, 'Inter', system-ui, sans-serif;
+  --font-heading: 'Manrope Variable', 'Noto Sans Georgian Variable', -apple-system, 'Inter', system-ui, sans-serif;
+  --font-body:    'Manrope Variable', 'Noto Sans Georgian Variable', -apple-system, 'Inter', system-ui, sans-serif;
   /* Machine voice — numbers, time, kickers, statuses, counters, meta */
-  --font-mono:    'JetBrains Mono Variable', 'JetBrains Mono', 'SF Mono', ui-monospace, monospace;
+  --font-mono:    'JetBrains Mono Variable', 'Noto Sans Georgian Variable', 'JetBrains Mono', 'SF Mono', ui-monospace, monospace;
 
   --weight-regular: 400;
   --weight-medium: 500;

@@ -23,7 +23,7 @@
   var LANGS = [
     { code: 'ru', name: 'Русский', ready: true },
     { code: 'en', name: 'English', ready: true },
-    { code: 'ka', name: 'ქართული', ready: false },
+    { code: 'ka', name: 'ქართული', ready: true },
     { code: 'fr', name: 'Français', ready: true },
     { code: 'es', name: 'Español', ready: true },
     { code: 'de', name: 'Deutsch', ready: true },

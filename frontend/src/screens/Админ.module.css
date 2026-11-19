@@ -9,7 +9,7 @@
   overflow: hidden;
   background: var(--х-бумага);
   color: var(--х-текст);
-  font-family: 'Inter Variable', Inter, -apple-system, 'Helvetica Neue', system-ui, sans-serif;
+  font-family: 'Inter Variable', Inter, 'Noto Sans Georgian Variable', -apple-system, 'Helvetica Neue', system-ui, sans-serif;
   font-size: var(--х-к-13);
   font-weight: var(--х-вес);
   line-height: var(--х-строка);
