@@ -312,7 +312,21 @@ r = пост(Client(HTTP_ACCEPT_LANGUAGE="en-US,en;q=0.9"), "/api/auth/login", {
 r = пост(Client(HTTP_ACCEPT_LANGUAGE="ja-JP"), "/api/auth/login", {"email": "язык@почта.ru", "password": "не тот пароль"})
 да("незнакомый язык — русский, как было", тело(r).get("error") == "Почта или пароль не подошли.", тело(r))
 r = пост(Client(HTTP_ACCEPT_LANGUAGE="fr-FR"), "/api/auth/login", {"email": "язык@почта.ru", "password": "не тот пароль"})
-да("язык без своего словаря — английский, а не русский", тело(r).get("error") == "The email or password is incorrect.", тело(r))
+да("французская страница получает отказ по-французски", тело(r).get("error") == "L’e-mail ou le mot de passe est incorrect.", тело(r))
+араб = Client()
+араб.cookies["fl_lang"] = "ar"
+r = пост(араб, "/api/auth/login", {"email": "язык@почта.ru", "password": "не тот пароль"})
+да("арабская страница получает отказ по-арабски", тело(r).get("error") == "البريد أو كلمة المرور غير صحيحين.", тело(r))
+from config import язык as _язык
+for _код, _словарь in _язык.ПЕРЕВОДЫ.items():
+    _нет = set(_язык.СЛОВАРЬ) - set(_словарь)
+    да(f"словарь «{_код}» знает все фразы сервера", not _нет, sorted(_нет)[:3])
+_было = _язык.ПЕРЕВОДЫ["fr"].pop("Почта или пароль не подошли.")
+try:
+    да("фразы нет в словаре языка — английская, а не русская",
+       _язык.т("Почта или пароль не подошли.", "fr") == "The email or password is incorrect.")
+finally:
+    _язык.ПЕРЕВОДЫ["fr"]["Почта или пароль не подошли."] = _было
 
 print(f"\n{'✅ всё сходится' if not плохо else f'❌ бед {плохо}'} · проверок {всего}")
 sys.exit(1 if плохо else 0)

@@ -1,7 +1,7 @@
 /** Английский словарь интерфейса: русский текст → перевод.
  *  Как это устроено — `lib/язык.ts`. Пополняется вместе с текстами:
- *  новый текст без перевода остаётся на экране по-русски, и прибор
- *  `scripts/перевод-check.mjs` такие места находит. */
+ *  новый текст без перевода остаётся на экране по-русски — страница
+ *  не ломается. Формы слов к числу — ключи вида `year|years`. */
 export const СЛОВАРЬ: Record<string, string> = {
   " · {1} матер.": " · {1} mat.",
   " · вы": " · you",
@@ -323,6 +323,7 @@ export const СЛОВАРЬ: Record<string, string> = {
   "Журнал": "Journal",
   "Журнал действий": "Action log",
   "Журнал живёт на сервере, а он не отвечает. Расписание в этом ": "The journal lives on the server, and it is not responding. The schedule in this ",
+  "Журнал живёт на сервере, а он не отвечает. Расписание в этом браузере при этом работает.": "The journal lives on the server, and it is not responding. The schedule in this browser still works.",
   "Журнал наполняется не вводом с клавиатуры, а связью: ученик приходит сам, и с этого момента вы видите друг друга — он вас в своих преподавателях, вы его здесь.": "The journal is filled not by typing but by connection: a student comes on their own, and from that moment you see each other — they see you among their teachers, you see them here.",
   "Журнал не открылся": "The journal did not open",
   "Журнал не открылся.": "The journal did not open.",
@@ -821,6 +822,7 @@ export const СЛОВАРЬ: Record<string, string> = {
   "Переносит важное в долговременную память": "Moves what is important into long-term memory",
   "Переписать предложение, почитать с бумаги, подержать телефон, попить воды.": "Copy a sentence, read from paper, hold a phone, drink some water.",
   "Переписка живёт на сервере, а он не отвечает. ": "Conversations live on the server, and it is not responding. ",
+  "Переписка живёт на сервере, а он не отвечает. Написанное раньше никуда не делось — оно там, а не в этом браузере.": "Conversations live on the server, and it is not responding. What was written before has not gone anywhere — it is there, not in this browser.",
   "Переписка живёт на сервере, а он не отвечает. Написанное раньше никуда не делось.": "Conversations live on the server, and it is not responding. What was written before has not gone anywhere.",
   "Переписка не открылась": "Conversations did not open",
   "Переписка не открылась. Попробуйте ещё раз через минуту.": "Conversations did not open. Please try again in a minute.",
@@ -836,6 +838,7 @@ export const СЛОВАРЬ: Record<string, string> = {
   "Перо · клавиша P": "Pen · key P",
   "Песок и звук": "Sand and sound",
   "Писать можно тому, кто вас учит. Как только преподаватель ": "You can write to whoever teaches you. As soon as a teacher ",
+  "Писать можно тому, кто вас учит. Как только преподаватель добавит вас к себе, он появится здесь — и разговор откроется отсюда же.": "You can write to whoever teaches you. As soon as a teacher adds you, they will appear here — and the conversation will open from here too.",
   "Письмо в тетради": "Writing in a notebook",
   "Письмо не отправилось.": "The email was not sent.",
   "Письмо приходит в течение минуты. Страницу можно закрыть.": "The email arrives within a minute. You can close the page.",
@@ -931,6 +934,7 @@ export const СЛОВАРЬ: Record<string, string> = {
   "Посмотрите на экран, я покажу видео.": "Look at the screen, I'll show a video.",
   "Пособие не отдалось. Возможно, его сняли.": "The material could not be downloaded. Perhaps it was removed.",
   "Пособия нужно куда-то класть, а сервер занятий не отвечает. ": "Materials need somewhere to go, and the lessons server is not responding. ",
+  "Пособия нужно куда-то класть, а сервер занятий не отвечает. Урок при этом сохранится, материалы приложите позже.": "Materials need somewhere to go, and the lessons server is not responding. The lesson will still be saved; attach the materials later.",
   "Поставьте галочку — без согласия записывать нельзя.": "Tick the box — we cannot record without consent.",
   "Потому что Венера ближе всех планет к Солнцу": "Because Venus is the closest planet to the Sun",
   "Потому что оборот вокруг своей оси занимает у неё 243 земных дня, а оборот вокруг Солнца — 225": "Because one rotation on its axis takes it 243 Earth days, and one orbit of the Sun takes 225",
@@ -1083,6 +1087,7 @@ export const СЛОВАРЬ: Record<string, string> = {
   "Сервер занятий не ответил. Ссылка, скорее всего, цела — подождите минуту и спросите ещё раз.": "The lessons server did not answer. The link is most likely fine — wait a minute and ask again.",
   "Сервер занятий не отвечает — ссылку пока некуда положить.": "The lessons server is not responding — there is nowhere to put the link yet.",
   "Сервер занятий не отвечает, а без него у комнаты не будет ведущего — ": "The lessons server is not responding, and without it the room will have no host — ",
+  "Сервер занятий не отвечает, а без него у комнаты не будет ведущего — и провести урок в ней не выйдет. Попробуйте ещё раз через минуту.": "The lessons server is not responding, and without it the room will have no host — so you cannot run a lesson in it. Please try again in a minute.",
   "Сервер занятий отказал. Попробуйте ещё раз через минуту.": "The lessons server refused. Please try again in a minute.",
   "Сервер комнаты не пустил внутрь. Урок никуда не делся — откройте ссылку ещё раз или попросите новую.": "The room server did not let you in. The lesson has not gone anywhere — open the link again or ask for a new one.",
   "Сервер комнаты ответил непонятно. Урок и написанное на доске на месте — откройте ссылку ещё раз.": "The room server gave an unclear answer. The lesson and everything written on the board are fine — open the link again.",
@@ -1375,6 +1380,7 @@ export const СЛОВАРЬ: Record<string, string> = {
   "Ученик": "Student",
   "Ученик ·": "Student ·",
   "Ученик появится здесь, как только вы позовёте его к себе — ": "A student will appear here as soon as you invite them — ",
+  "Ученик появится здесь, как только вы позовёте его к себе — приглашением из журнала. Разговор откроется отсюда же.": "A student will appear here as soon as you invite them — with an invitation from the journal. The conversation will open from here too.",
   "Ученик приходит сам — по ссылке. Перешёл, назвался — и вы связаны: он видит вас в своих преподавателях, вы его в журнале.": "A student comes on their own — by the link. They follow it, give their name — and you are connected: they see you among their teachers, you see them in the journal.",
   "Ученики": "Students",
   "Учеников пока нет": "No students yet",
@@ -1667,7 +1673,7 @@ export const СЛОВАРЬ: Record<string, string> = {
   "пишут в тетради": "writing in notebooks",
   "плеер YouTube ответил": "the YouTube player answered",
   "плеер молчит — запускаю вслепую с": "the player is silent — starting blind at",
-  "по": "of",
+  "по": "via",
   "поводите мышью — или возьмите перо": "move the mouse — or take the pen",
   "поворот головы": "head turn",
   "подготовка": "preparation",
@@ -1758,6 +1764,7 @@ export const СЛОВАРЬ: Record<string, string> = {
   "урок голосом": "voice lesson",
   "урок на будущее: название, дата, время": "a future lesson: title, date, time",
   "урок|Войти": "Join",
+  "урок|Выйти": "Leave",
   "уроков нет": "no lessons",
   "утром": "in the morning",
   "ученик": "student",

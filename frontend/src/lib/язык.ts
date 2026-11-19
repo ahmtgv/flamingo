@@ -40,10 +40,10 @@ export const ЯЗЫКИ: ОЯзыке[] = [
   { код: 'ru', имя: 'Русский', локаль: 'ru-RU', ход: 'ltr', готов: true },
   { код: 'en', имя: 'English', локаль: 'en-GB', ход: 'ltr', готов: true },
   { код: 'ka', имя: 'ქართული', локаль: 'ka-GE', ход: 'ltr', готов: false },
-  { код: 'fr', имя: 'Français', локаль: 'fr-FR', ход: 'ltr', готов: false },
-  { код: 'es', имя: 'Español', локаль: 'es-ES', ход: 'ltr', готов: false },
-  { код: 'de', имя: 'Deutsch', локаль: 'de-DE', ход: 'ltr', готов: false },
-  { код: 'tr', имя: 'Türkçe', локаль: 'tr-TR', ход: 'ltr', готов: false },
+  { код: 'fr', имя: 'Français', локаль: 'fr-FR', ход: 'ltr', готов: true },
+  { код: 'es', имя: 'Español', локаль: 'es-ES', ход: 'ltr', готов: true },
+  { код: 'de', имя: 'Deutsch', локаль: 'de-DE', ход: 'ltr', готов: true },
+  { код: 'tr', имя: 'Türkçe', локаль: 'tr-TR', ход: 'ltr', готов: true },
   { код: 'ar', имя: 'العربية', локаль: 'ar', ход: 'rtl', готов: false },
 ]
 
@@ -97,8 +97,13 @@ let словарь: Record<string, string> = {}
 /* Словари по языкам. Новый язык — новая строка здесь и файл `lang/<код>.ts`. */
 const СЛОВАРИ: Partial<Record<Язык, () => Promise<{ СЛОВАРЬ: Record<string, string> }>>> = {
   en: () => import('../lang/en.ts'),
+  ka: () => import('../lang/ka.ts'),
+  fr: () => import('../lang/fr.ts'),
+  es: () => import('../lang/es.ts'),
+  de: () => import('../lang/de.ts'),
+  tr: () => import('../lang/tr.ts'),
+  ar: () => import('../lang/ar.ts'),
 }
-
 
 /** Подгрузить словарь до первого кадра. Русскому он не нужен. */
 export async function подготовитьЯзык(): Promise<void> {

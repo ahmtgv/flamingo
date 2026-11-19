@@ -24,10 +24,10 @@
     { code: 'ru', name: 'Русский', ready: true },
     { code: 'en', name: 'English', ready: true },
     { code: 'ka', name: 'ქართული', ready: false },
-    { code: 'fr', name: 'Français', ready: false },
-    { code: 'es', name: 'Español', ready: false },
-    { code: 'de', name: 'Deutsch', ready: false },
-    { code: 'tr', name: 'Türkçe', ready: false },
+    { code: 'fr', name: 'Français', ready: true },
+    { code: 'es', name: 'Español', ready: true },
+    { code: 'de', name: 'Deutsch', ready: true },
+    { code: 'tr', name: 'Türkçe', ready: true },
     { code: 'ar', name: 'العربية', ready: false, rtl: true }
   ]
   var DICT_VERSION = 2

@@ -1102,7 +1102,7 @@ export function Room({ code, name, onLeave, onHome }: Props) {
             <button
               type="button" className={`${s.pultIcon} ${s.pultOut}`} onClick={quit}
               aria-label={iLead ? тр("Завершить урок") : тр("Выйти из комнаты")}
-              title={iLead ? тр("Завершить урок") : тр("Выйти")}
+              title={iLead ? тр("Завершить урок") : тр("Выйти", undefined, "урок")}
             >
               {ВЫХОД}
             </button>
