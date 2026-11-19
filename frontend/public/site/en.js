@@ -1,7 +1,8 @@
 /* Английский словарь статичных страниц (/sedum/): русский текст → английский.
-   Как это работает — `site.js` («язык»). Новый текст без перевода остаётся
+   Как это работает — `site.js` («язык»): словарь, загрузившись, отдаёт себя
+   в `FL_START`. Новый текст без перевода остаётся
    на странице по-русски. */
-window.FL_EN = {
+window.FL_START({
 "SEduM — Supporting, Education, Monitoring. Система поддержки обучения, индивидуального контекста и исследований Flamingo.": "SEduM — Supporting, Education, Monitoring. Flamingo's system for learning support, individual context and research.",
 "Система поддержки обучения, индивидуального контекста и исследований Flamingo.": "Flamingo's system for learning support, individual context and research.",
 "Перейти к содержанию": "Skip to content",
@@ -258,4 +259,4 @@ window.FL_EN = {
 "Скоро": "Soon",
 "История обучения, результаты тестов и индивидуальный контекст ученика.": "Learning history, test results and the student's individual context.",
 "Участие добровольное, по согласию. Для детей — с участием родителя.": "Participation is voluntary, with consent. For children — with a parent's participation."
-}
+})

@@ -187,7 +187,10 @@ meta = ПАПКА / код / run / "meta.json"
 r = post(f"/api/science/v/{код}/runs", {"вид": "чтение", "протокол": "чтение-1", "язык": "en"})
 да("английская проверка помечена «en»", r.status_code == 201 and Run.objects.get(id=r.json()["id"]).language == "en", r.content)
 Run.objects.filter(id=r.json().get("id")).delete()
-r = post(f"/api/science/v/{код}/runs", {"вид": "чтение", "протокол": "чтение-1", "язык": "de"})
+r = post(f"/api/science/v/{код}/runs", {"вид": "чтение", "протокол": "чтение-1", "язык": "ar"})
+да("арабская проверка помечена «ar»", r.status_code == 201 and Run.objects.get(id=r.json()["id"]).language == "ar", r.content)
+Run.objects.filter(id=r.json().get("id")).delete()
+r = post(f"/api/science/v/{код}/runs", {"вид": "чтение", "протокол": "чтение-1", "язык": "ja"})
 да("незнакомый язык — русский, а не что прислали", r.status_code == 201 and Run.objects.get(id=r.json()["id"]).language == "ru", r.content)
 Run.objects.filter(id=r.json().get("id")).delete()
 

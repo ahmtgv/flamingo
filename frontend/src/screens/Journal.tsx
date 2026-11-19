@@ -11,7 +11,7 @@ import s from './Journal.module.css'
 import { Button } from '../ui/Button'
 import { когдаУрок } from '../lib/пояс'
 import { подписьСтолбца } from '../lib/datetime'
-import { анг, тр } from '../lib/язык.ts'
+import { анг, дниНедели, месяцы, рус, тр } from '../lib/язык.ts'
 
 /** Журнал: все ученики и все занятия.
  *
@@ -29,7 +29,7 @@ import { анг, тр } from '../lib/язык.ts'
  *  Поэтому в таблице нет ни одной кнопки «отметить» — и это не забытая кнопка.
  */
 
-const МЕСЯЦЫ = анг ? [
+const МЕСЯЦЫ = !рус && !анг ? месяцы() : анг ? [
   'January', 'February', 'March', 'April', 'May', 'June',
   'July', 'August', 'September', 'October', 'November', 'December',
 ] : [
@@ -37,7 +37,7 @@ const МЕСЯЦЫ = анг ? [
   'июль', 'август', 'сентябрь', 'октябрь', 'ноябрь', 'декабрь',
 ]
 
-const ДНИ = анг ? ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'] : ['вс', 'пн', 'вт', 'ср', 'чт', 'пт', 'сб']
+const ДНИ = !рус && !анг ? дниНедели(true) : анг ? ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'] : ['вс', 'пн', 'вт', 'ср', 'чт', 'пт', 'сб']
 
 const ключМесяца = (d: Date) =>
   `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`

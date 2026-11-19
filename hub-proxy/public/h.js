@@ -11,24 +11,31 @@
    «обновить», отсюда уходит адрес открытой сейчас страницы. */
 (async () => {
   /* Язык — тот же, что у сайта: кука `fl_lang` на весь flamingo.plus, без неё —
-     настройки браузера (русский или английский; прочие — английский). */
-  const язык = /(?:^|;\s*)fl_lang=(ru|en)/.exec(document.cookie)?.[1]
-    ?? (navigator.languages?.length ? navigator.languages : [navigator.language])
-      .map((я) => String(я).toLowerCase().split('-')[0]).find((я) => я === 'ru' || я === 'en')
-    ?? 'en'
-  const EN = {
-    'Открываем источник…': 'Opening the source…',
-    ' Открыть в новой вкладке ↗': ' Open in a new tab ↗',
-    'Такого источника в каталоге нет.': 'There is no such source in the catalogue.',
-    'Этот браузер не умеет открывать источник здесь.': 'This browser cannot open the source here.',
-    'Войдите во Flamingo — и источник откроется прямо здесь.': 'Sign in to Flamingo — and the source will open right here.',
-    'Источник здесь не открылся.': 'The source did not open here.',
+     настройки браузера; язык, которого здесь нет, — английский. */
+  const ПЕРЕВОД = {
+    en: ['Opening the source…', ' Open in a new tab ↗', 'There is no such source in the catalogue.', 'This browser cannot open the source here.', 'Sign in to Flamingo — and the source will open right here.', 'The source did not open here.', 'Source — Flamingo'],
+    ka: ['წყარო იხსნება…', ' ახალ ჩანართში გახსნა ↗', 'ასეთი წყარო კატალოგში არ არის.', 'ამ ბრაუზერს წყაროს აქ გახსნა არ შეუძლია.', 'შედით Flamingo-ში — და წყარო აქვე გაიხსნება.', 'წყარო აქ არ გაიხსნა.', 'წყარო — Flamingo'],
+    fr: ['Ouverture de la source…', ' Ouvrir dans un nouvel onglet ↗', 'Cette source n’existe pas dans le catalogue.', 'Ce navigateur ne peut pas ouvrir la source ici.', 'Connectez-vous à Flamingo — et la source s’ouvrira ici même.', 'La source ne s’est pas ouverte ici.', 'Source — Flamingo'],
+    es: ['Abriendo la fuente…', ' Abrir en una pestaña nueva ↗', 'Esta fuente no está en el catálogo.', 'Este navegador no puede abrir la fuente aquí.', 'Inicia sesión en Flamingo y la fuente se abrirá aquí mismo.', 'La fuente no se abrió aquí.', 'Fuente — Flamingo'],
+    de: ['Quelle wird geöffnet…', ' In neuem Tab öffnen ↗', 'Diese Quelle gibt es im Katalog nicht.', 'Dieser Browser kann die Quelle hier nicht öffnen.', 'Melden Sie sich bei Flamingo an — dann öffnet sich die Quelle direkt hier.', 'Die Quelle hat sich hier nicht geöffnet.', 'Quelle — Flamingo'],
+    tr: ['Kaynak açılıyor…', ' Yeni sekmede aç ↗', 'Katalogda böyle bir kaynak yok.', 'Bu tarayıcı kaynağı burada açamıyor.', 'Flamingo’ya giriş yapın — kaynak tam burada açılacak.', 'Kaynak burada açılmadı.', 'Kaynak — Flamingo'],
+    ar: ['جارٍ فتح المصدر…', ' فتح في علامة تبويب جديدة ↗', 'لا يوجد مصدر كهذا في الفهرس.', 'لا يستطيع هذا المتصفح فتح المصدر هنا.', 'سجّل الدخول إلى Flamingo — وسيُفتح المصدر هنا مباشرة.', 'لم يُفتح المصدر هنا.', 'المصدر — Flamingo'],
   }
-  const тр = (т) => (язык === 'en' ? EN[т] ?? т : т)
+  const РУССКИЙ = ['Открываем источник…', ' Открыть в новой вкладке ↗', 'Такого источника в каталоге нет.', 'Этот браузер не умеет открывать источник здесь.', 'Войдите во Flamingo — и источник откроется прямо здесь.', 'Источник здесь не открылся.', 'Источник — Flamingo']
+  const есть = (я) => я === 'ru' || я in ПЕРЕВОД
+  const язык = [/(?:^|;\s*)fl_lang=([a-z]{2})/.exec(document.cookie)?.[1],
+    ...(navigator.languages?.length ? navigator.languages : [navigator.language]).map((я) => String(я).toLowerCase().split('-')[0])]
+    .find((я) => я && есть(я)) ?? 'en'
+  const тр = (т) => {
+    if (язык === 'ru') return т
+    const i = РУССКИЙ.indexOf(т)
+    return i < 0 ? т : ПЕРЕВОД[язык][i]
+  }
   const слова = document.getElementById('слова')
-  if (язык === 'en') {
-    document.documentElement.lang = 'en'
-    document.title = 'Source — Flamingo'
+  if (язык !== 'ru') {
+    document.documentElement.lang = язык
+    document.documentElement.dir = язык === 'ar' ? 'rtl' : 'ltr'
+    document.title = тр('Источник — Flamingo')
     слова.textContent = тр(слова.textContent)
   }
   const сказать = (текст, ссылка) => {

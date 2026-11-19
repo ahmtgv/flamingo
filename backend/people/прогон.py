@@ -309,8 +309,10 @@ r = пост(англ, "/api/auth/login", {"email": "язык@почта.ru", "p
    тело(r))
 r = пост(Client(HTTP_ACCEPT_LANGUAGE="en-US,en;q=0.9"), "/api/auth/login", {"email": "язык@почта.ru", "password": "не тот пароль"})
 да("без куки язык берётся из браузера", тело(r).get("error") == "The email or password is incorrect.", тело(r))
-r = пост(Client(HTTP_ACCEPT_LANGUAGE="de-DE"), "/api/auth/login", {"email": "язык@почта.ru", "password": "не тот пароль"})
+r = пост(Client(HTTP_ACCEPT_LANGUAGE="ja-JP"), "/api/auth/login", {"email": "язык@почта.ru", "password": "не тот пароль"})
 да("незнакомый язык — русский, как было", тело(r).get("error") == "Почта или пароль не подошли.", тело(r))
+r = пост(Client(HTTP_ACCEPT_LANGUAGE="fr-FR"), "/api/auth/login", {"email": "язык@почта.ru", "password": "не тот пароль"})
+да("язык без своего словаря — английский, а не русский", тело(r).get("error") == "The email or password is incorrect.", тело(r))
 
 print(f"\n{'✅ всё сходится' if not плохо else f'❌ бед {плохо}'} · проверок {всего}")
 sys.exit(1 if плохо else 0)

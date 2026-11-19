@@ -33,8 +33,11 @@ from django.http import HttpRequest, JsonResponse
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 
+from config.язык import ЯЗЫКИ
+
 from .models import Invite, Run, Volunteer
 from .хранилище import (
+
     CODE, ДОБРОВОЛЕЦ_МАКС, ПРОВЕРКА_МАКС, RUN, Отказ, записать_json, записать_кусок, имя_куска,
     папка_добровольца, папка_проверки,
 )
@@ -244,7 +247,7 @@ def runs(request: HttpRequest, код: str) -> JsonResponse:
         volunteer=в,
         kind=вид,
         protocol=str(тело.get("протокол", ""))[:24],
-        language="en" if тело.get("язык") == "en" else "ru",
+        language=тело.get("язык") if тело.get("язык") in ЯЗЫКИ else "ru",
         before=_поля(тело.get("перед"), ПЕРЕД),
         device=_json_до(тело.get("устройство"), УСТРОЙСТВО_МАКС),
     )

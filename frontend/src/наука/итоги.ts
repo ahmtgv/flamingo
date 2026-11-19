@@ -12,7 +12,7 @@
  */
 import type { Состояние } from '../sedum/внимание.ts'
 import type { Сценарий } from './протокол.ts'
-import { анг, тр } from '../lib/язык.ts'
+import { форма as формаЯзыка, число, тр } from '../lib/язык.ts'
 
 /** Один кадр глазами сводки. `t` — секунды от начала записи. */
 export type Отсчёт = {
@@ -37,15 +37,10 @@ const МОРГАНИЕ = [0.04, 0.5] as const
 const ДОЛГО = 1
 
 /** «5,2» — десятичная запятая, как в остальном продукте. */
-export const дробь = (х: number, знаков = 1) => (анг ? х.toFixed(знаков) : х.toFixed(знаков).replace('.', ','))
+export const дробь = (х: number, знаков = 1) => число(х, знаков)
 
 /** Слово к целому числу: 1 градус, 2 градуса, 5 градусов. */
-export const форма = (n: number, одно: string, два: string, пять: string, en?: [string, string]) => {
-  if (анг && en) return n === 1 ? en[0] : en[1]
-  const д = Math.abs(n) % 100
-  const е = д % 10
-  return д >= 11 && д <= 14 ? пять : е === 1 ? одно : е >= 2 && е <= 4 ? два : пять
-}
+export const форма = (n: number, одно: string, два: string, пять: string, en: [string, string]) => формаЯзыка(n, одно, два, пять, en)
 
 export class Сводка {
   readonly сценарий: Сценарий

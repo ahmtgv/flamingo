@@ -1,5 +1,5 @@
-import { useEffect, useRef, type MouseEvent } from 'react'
-import { ЯЗЫК, сменитьЯзык, тр, type Язык } from '../lib/язык.ts'
+import { useEffect, useRef, useState, type MouseEvent } from 'react'
+import { ЯЗЫК, ЯЗЫКИ, сменитьЯзык, тр } from '../lib/язык.ts'
 
 /** Единая верхняя строка сайта (решение владельца 10.11.2026: «одна верхняя
  *  строка меню — с логотипом и одинаковым меню — на всех страницах»).
@@ -77,19 +77,6 @@ export function Шапка({ где, вошёл, админ = false, молчи�
     ? { 'aria-disabled': true as const, title: тр("Сервер учётных записей молчит — войти сейчас нельзя") }
     : {}
 
-  /* Язык: RU · EN (владелец, 18.11.2026). Тот же переключатель стоит на
-     статичных страницах `/sedum/` — оформление в `public/site/site.css`. */
-  const язык = (вМеню = false) => (
-    <span className={`flnav__lang${вМеню ? ' flnav__lang--panel' : ''}`} role="group" aria-label={тр("Язык · Language")}>
-      {(['ru', 'en'] as Язык[]).map((я, i) => (
-        <span key={я} style={{ display: 'contents' }}>
-          {i ? <span aria-hidden="true">·</span> : null}
-          <button type="button" aria-pressed={ЯЗЫК === я} onClick={() => { if (ЯЗЫК !== я) сменитьЯзык(я) }}>{я.toUpperCase()}</button>
-        </span>
-      ))}
-    </span>
-  )
-
   return (
     <header className="flnav">
       <a className="flnav__logo" href="/" aria-label={тр("Flamingo — на главную")} onClick={внутрь('/')}>
@@ -98,7 +85,7 @@ export function Шапка({ где, вошёл, админ = false, молчи�
       </a>
       <nav className="flnav__items" aria-label={тр("Разделы сайта")}>{пункты}</nav>
       <div className="flnav__side">
-        {язык()}
+        <ВыборЯзыка />
         {вошёл ? (
           <a className="flnav__pill" href="/кабинет" onClick={внутрь('/кабинет')}
              aria-current={где === 'кабинет' ? 'page' : undefined}>{где === 'кабинет' ? тр("Кабинет") : тр("Войти в кабинет")}</a>
@@ -118,10 +105,57 @@ export function Шапка({ где, вошёл, админ = false, молчи�
             {вошёл ? null : (
               <a className="flnav__pill" href="/регистрация" onClick={внутрь('/регистрация', молчит)} {...дверь}>{тр("Завести учётную запись")}</a>
             )}
-            {язык(true)}
+            <ВыборЯзыка вМеню />
           </nav>
         </details>
       </div>
     </header>
+  )
+}
+
+/** Язык — выпадашка «RU ▾» (владелец, 19.11.2026): код языка со стрелкой,
+ *  в списке каждый язык назван на самом себе. На телефоне та же выпадашка
+ *  стоит внутри меню и раскрывается списком вниз. Тот же выбор нарисован на
+ *  статичных страницах `/sedum/` (`public/site/site.js`), оформление одно —
+ *  `public/site/site.css`.
+ *
+ *  В списке — только готовые языки (`готов` в `lib/язык.ts`); язык в работе,
+ *  открытый адресом `?язык=…`, виден в списке, пока на нём стоишь. */
+function ВыборЯзыка({ вМеню = false }: { вМеню?: boolean }) {
+  const [открыт, setОткрыт] = useState(false)
+  const корень = useRef<HTMLSpanElement>(null)
+
+  useEffect(() => {
+    if (!открыт) return
+    const мимо = (e: PointerEvent) => { if (!корень.current?.contains(e.target as Node)) setОткрыт(false) }
+    const клавиша = (e: KeyboardEvent) => { if (e.key === 'Escape') setОткрыт(false) }
+    document.addEventListener('pointerdown', мимо)
+    document.addEventListener('keydown', клавиша)
+    return () => {
+      document.removeEventListener('pointerdown', мимо)
+      document.removeEventListener('keydown', клавиша)
+    }
+  }, [открыт])
+
+  const список = ЯЗЫКИ.filter((я) => я.готов || я.код === ЯЗЫК)
+  return (
+    <span className={`flnav__lang${вМеню ? ' flnav__lang--panel' : ''}`} ref={корень}>
+      <button type="button" className="flnav__lang-now" aria-haspopup="menu" aria-expanded={открыт}
+              aria-label={тр("Язык · Language")} onClick={() => setОткрыт((о) => !о)}>
+        {ЯЗЫК.toUpperCase()}
+        <svg viewBox="0 0 10 10" aria-hidden="true"><path d="m2 3.5 3 3 3-3" /></svg>
+      </button>
+      <ul className="flnav__lang-list" role="menu" hidden={!открыт}>
+        {список.map((я) => (
+          <li key={я.код} role="none">
+            <button type="button" role="menuitemradio" aria-checked={я.код === ЯЗЫК} lang={я.код} dir={я.ход}
+                    onClick={() => { setОткрыт(false); if (я.код !== ЯЗЫК) сменитьЯзык(я.код) }}>
+              {я.имя}
+              <span>{я.код.toUpperCase()}</span>
+            </button>
+          </li>
+        ))}
+      </ul>
+    </span>
   )
 }
